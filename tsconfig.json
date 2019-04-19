@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "strict": true,
+    "declaration": true,
+    "target": "es6",
+    "sourceMap": true,
+    "lib": ["es6"]
+  },
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts"
+  ]
+}

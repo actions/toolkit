@@ -4,18 +4,13 @@
   "scripts": {
     "test": "jest"
   },
-  "jest": {
-    "clearMocks": true,
-    "roots": [
-      "<rootDir>/packages"
-    ],
-    "testEnvironment": "node",
-    "testRunner": "jest-circus/runner",
-    "verbose": true
-  },
   "devDependencies": {
+    "@types/jest": "^24.0.11",
+    "@types/node": "^11.13.5",
     "jest": "^24.7.1",
     "jest-circus": "^24.7.1",
-    "lerna": "^3.13.3"
+    "lerna": "^3.13.3",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.4.4"
   }
 }
