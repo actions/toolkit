@@ -1,7 +1,21 @@
 {
   "name": "root",
   "private": true,
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "clearMocks": true,
+    "roots": [
+      "<rootDir>/packages"
+    ],
+    "testEnvironment": "node",
+    "testRunner": "jest-circus/runner",
+    "verbose": true
+  },
   "devDependencies": {
+    "jest": "^24.7.1",
+    "jest-circus": "^24.7.1",
     "lerna": "^3.13.3"
   }
 }
