@@ -4,6 +4,23 @@ import {Exit} from './exit'
 export type ActionFn = (tools: Toolkit) => unknown
 
 /**
+ * Options used to customize an instance of [[Toolkit]]
+ */
+export type ToolkitOptions = {
+  /**
+   * A custom Signale instance to use
+   */
+  logger?: Signale
+
+  /**
+   * A list of environment variable names this action requires in order to run
+   *
+   * If any of them are missing, the action will fail and log the missing keys.
+   */
+  requiredEnv?: string[]
+}
+
+/**
  * A set of tools for the Actions runtime
  */
 export class Toolkit {
@@ -13,8 +30,8 @@ export class Toolkit {
    * If an error occurs, the error will be logged and the action will exit as a
    * failure.
    */
-  static async run(func: ActionFn) {
-    const tools = new Toolkit()
+  static async run(func: ActionFn, opts?: ToolkitOptions) {
+    const tools = new Toolkit(opts)
 
     try {
       const ret = func(tools)
@@ -27,26 +44,45 @@ export class Toolkit {
   /**
    * A logger for the toolkit, an instance of [Signale](https://github.com/klaussinani/signale)
    */
-  readonly logger: Signale & LoggerFunc = this.wrapLogger(
-    new Signale({
-      config: {
-        underlineLabel: false
-      }
-    })
-  )
+  readonly logger: Signale & LoggerFunc
 
   /**
    * A wrapper around an instance of [[Exit]]
    */
-  readonly exit: Exit = new Exit(this.logger)
+  readonly exit: Exit
 
   /**
    * The authentication token for the GitHub API
    */
   readonly token: string = process.env.GITHUB_TOKEN || ''
 
+  constructor(opts: ToolkitOptions = {}) {
+    const logger = opts.logger || new Signale({config: {underlineLabel: false}})
+    this.logger = this.wrapLogger(logger)
+    this.exit = new Exit(this.logger)
+
+    if (opts.requiredEnv) {
+      this.checkRequiredEnv(opts.requiredEnv)
+    }
+  }
+
   /**
-   * Wrap a Signale logger so that its a callable class
+   * Ensure that the given keys are in the environment.
+   */
+  private checkRequiredEnv(keys: string[]) {
+    const missingEnv = keys.filter(key => !process.env.hasOwnProperty(key))
+
+    if (missingEnv.length === 0) return
+
+    const list = missingEnv.map(key => `- ${key}`).join('\n')
+
+    this.exit.failure(
+      `The following environment variables are required for this action to run:\n${list}`
+    )
+  }
+
+  /**
+   * Wrap a Signale logger so that its a callable class.
    */
   private wrapLogger(logger: Signale) {
     // Create a callable function
