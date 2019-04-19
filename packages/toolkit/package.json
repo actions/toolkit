@@ -31,6 +31,8 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@octokit/rest": "^16.25.0"
-  }
+    "@octokit/rest": "^16.25.0",
+    "signale": "^1.4.0"
+  },
+  "devDependencies": {}
 }
