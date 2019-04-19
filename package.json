@@ -2,14 +2,21 @@
   "name": "root",
   "private": true,
   "scripts": {
+    "format": "prettier --check packages/**/*.ts",
+    "lint": "eslint packages/**/*.ts",
     "test": "jest"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "@types/node": "^11.13.5",
+    "@typescript-eslint/parser": "^1.6.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-github": "^2.0.0",
+    "eslint-plugin-jest": "^22.4.1",
     "jest": "^24.7.1",
     "jest-circus": "^24.7.1",
     "lerna": "^3.13.3",
+    "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
     "typescript": "^3.4.4"
   }

@@ -1,0 +1,10 @@
+{
+  "extends": ["plugin:github/es6"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["jest"],
+  "env": {
+    "node": true,
+    "es6": true,
+    "jest/globals": true
+  }
+}
