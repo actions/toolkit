@@ -1,13 +1,13 @@
 {
-  "name": "@actions/github",
+  "name": "@actions/toolkit",
   "version": "0.0.0",
-  "description": "Actions tools for the GitHub API and GitHub context",
+  "description": "Base actions tools for the GitHub API and GitHub context",
   "keywords": [
     "github",
     "actions",
     "toolkit"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/github",
+  "homepage": "https://github.com/actions/toolkit/tree/master/packages/toolkit",
   "license": "MIT",
   "directories": {
     "lib": "lib",
@@ -29,5 +29,8 @@
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
+  },
+  "dependencies": {
+    "@octokit/rest": "^16.25.0"
   }
 }
