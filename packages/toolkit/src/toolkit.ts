@@ -41,6 +41,11 @@ export class Toolkit {
   readonly exit: Exit = new Exit(this.logger)
 
   /**
+   * The authentication token for the GitHub API
+   */
+  readonly token: string = process.env.GITHUB_TOKEN || ''
+
+  /**
    * Wrap a Signale logger so that its a callable class
    */
   private wrapLogger(logger: Signale) {
