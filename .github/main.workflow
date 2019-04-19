@@ -5,7 +5,7 @@ workflow "CI" {
 
 action "Dependencies" {
   uses = "actions/npm@v2.0.0"
-  args = "install"
+  args = "ci"
 }
 
 action "Format" {
