@@ -9,8 +9,9 @@ action "Dependencies" {
 }
 
 action "Compile" {
+  needs = "Dependencies"
   uses = "actions/npm@v2.0.0"
-  run = "run build"
+  args = "run build"
 }
 
 action "Format" {
