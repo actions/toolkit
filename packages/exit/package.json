@@ -1,0 +1,34 @@
+{
+  "name": "@actions/exit",
+  "version": "0.0.0",
+  "description": "Functions for safely exiting from GitHub Actions",
+  "main": "lib/exit.js",
+  "keywords": [
+    "github",
+    "actions",
+    "toolkit"
+  ],
+  "homepage": "https://github.com/actions/toolkit/tree/master/packages/exit",
+  "license": "MIT",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/toolkit.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/actions/toolkit/issues"
+  }
+}
