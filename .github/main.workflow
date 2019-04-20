@@ -8,14 +8,19 @@ action "Dependencies" {
   args = "ci"
 }
 
+action "Compile" {
+  uses = "actions/npm@v2.0.0"
+  run = "run build"
+}
+
 action "Format" {
-  needs = "Dependencies"
+  needs = "Compile"
   uses = "actions/npm@v2.0.0"
   args = "run format"
 }
 
 action "Test" {
-  needs = "Dependencies"
+  needs = "Compile"
   uses = "actions/npm@v2.0.0"
   args = "test"
 }
