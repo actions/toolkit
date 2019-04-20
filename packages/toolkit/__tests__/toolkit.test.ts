@@ -1,50 +1,50 @@
+import * as exitPkg from '@actions/exit'
 import {Signale} from 'signale'
-import {ExitCode} from '../src/exit'
 import {Toolkit} from '../src/toolkit'
 
-describe('Toolkit', () => {
-  describe('.run', () => {
-    it('runs a sync function', async () => {
-      const cb = jest.fn(() => true)
-      const value = await Toolkit.run(cb)
-      expect(cb).toHaveBeenCalledWith(expect.any(Toolkit))
-      expect(value).toBe(true)
-    })
+jest.mock('@actions/exit')
 
-    it('runs an async function', async () => {
-      const cb = jest.fn(async () => true)
-      const value = await Toolkit.run(cb)
-      expect(cb).toHaveBeenCalledWith(expect.any(Toolkit))
-      expect(value).toBe(true)
-    })
-
-    it('logs and fails when an error occurs', async () => {
-      const err = new Error()
-      const exitFailure = jest.fn()
-
-      await Toolkit.run(async tk => {
-        tk.exit.failure = exitFailure
-        throw err
-      })
-
-      expect(exitFailure).toHaveBeenCalledWith(err)
-    })
+describe('.run', () => {
+  it('runs a sync function', async () => {
+    const cb = jest.fn(() => true)
+    const value = await Toolkit.run(cb)
+    expect(cb).toHaveBeenCalledWith(expect.any(Toolkit))
+    expect(value).toBe(true)
   })
 
-  it('asserts required keys are present', async () => {
-    const missingKey = '__DOES_NOT_EXIST__'
+  it('runs an async function', async () => {
+    const cb = jest.fn(async () => true)
+    const value = await Toolkit.run(cb)
+    expect(cb).toHaveBeenCalledWith(expect.any(Toolkit))
+    expect(value).toBe(true)
+  })
 
-    Reflect.deleteProperty(process.env, missingKey)
+  it('logs and fails when an error occurs', async () => {
+    const err = new Error()
+    const exitFailure = jest.fn()
 
-    const logger = new Signale()
-    logger.fatal = jest.fn()
-    jest.spyOn(process, 'exit').mockImplementation()
+    await Toolkit.run(async tk => {
+      tk.exit.failure = exitFailure
+      throw err
+    })
 
-    new Toolkit({logger, requiredEnv: [missingKey]})
+    expect(exitFailure).toHaveBeenCalledWith(err)
+  })
+})
 
-    expect(process.exit).toHaveBeenCalledWith(ExitCode.Failure)
-    expect(logger.fatal)
-      .toHaveBeenCalledWith(`The following environment variables are required for this action to run:
+it('asserts required keys are present', async () => {
+  const missingKey = '__DOES_NOT_EXIST__'
+
+  Reflect.deleteProperty(process.env, missingKey)
+
+  const logger = new Signale()
+  logger.fatal = jest.fn()
+  jest.spyOn(process, 'exit').mockImplementation()
+
+  new Toolkit({logger, requiredEnv: [missingKey]})
+
+  expect(exitPkg.failure).toHaveBeenCalled()
+  expect(logger.fatal)
+    .toHaveBeenCalledWith(`The following environment variables are required for this action to run:
 - __DOES_NOT_EXIST__`)
-  })
 })

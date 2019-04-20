@@ -1,36 +1,37 @@
+import * as exitPkg from '@actions/exit'
 import {Signale} from 'signale'
-import {Exit, ExitCode} from '../src/exit'
+import {Exit} from '../src/exit'
 
-describe('Exit', () => {
-  const tests: [keyof Exit, keyof Signale, ExitCode][] = [
-    ['success', 'success', ExitCode.Success],
-    ['neutral', 'info', ExitCode.Neutral],
-    ['failure', 'fatal', ExitCode.Failure]
-  ]
+jest.mock('@actions/exit')
 
-  describe.each(tests)('%s', (method, log, code) => {
-    let logger: Signale
-    let exit: Exit
+const tests: [keyof Exit, keyof Signale][] = [
+  ['success', 'success'],
+  ['neutral', 'info'],
+  ['failure', 'fatal']
+]
 
-    beforeEach(() => {
-      // Create a logger to mock
-      logger = new Signale()
-      logger.success = jest.fn()
-      logger.info = jest.fn()
-      logger.fatal = jest.fn()
+describe.each(tests)('%s', (method, log) => {
+  let logger: Signale
+  let exit: Exit
 
-      process.exit = jest.fn<never, [number]>()
-      exit = new Exit(logger)
-    })
+  beforeEach(() => {
+    // Create a logger to mock
+    logger = new Signale()
+    logger.success = jest.fn()
+    logger.info = jest.fn()
+    logger.fatal = jest.fn()
 
-    it('exits with the expected code', () => {
-      exit[method]()
-      expect(process.exit).toHaveBeenCalledWith(code)
-    })
+    process.exit = jest.fn<never, [number]>()
+    exit = new Exit(logger)
+  })
 
-    it('logs the expected message', () => {
-      exit[method]('hello')
-      expect(logger[log]).toHaveBeenCalledWith('hello')
-    })
+  it('exits with the expected method', () => {
+    exit[method]()
+    expect(exitPkg[method]).toHaveBeenCalled()
+  })
+
+  it('logs the expected message', () => {
+    exit[method]('hello')
+    expect(logger[log]).toHaveBeenCalledWith('hello')
   })
 })

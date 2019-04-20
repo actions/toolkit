@@ -1,16 +1,5 @@
+import * as exit from '@actions/exit'
 import {Signale} from 'signale'
-
-/**
- * The code to exit an action
- */
-export enum ExitCode {
-  Success = 0,
-  Failure = 1,
-  Neutral = 78
-}
-
-// TODO: These exit codes may not behave as expected on the new runtime, due to
-// complexities of async logging and sync exiting.
 
 /**
  * A class that wraps some basic methods of exiting from an action
@@ -23,7 +12,7 @@ export class Exit {
    */
   success(message?: string) {
     if (message) this.logger.success(message)
-    process.exit(ExitCode.Success)
+    exit.success()
   }
 
   /**
@@ -31,7 +20,7 @@ export class Exit {
    */
   neutral(message?: string) {
     if (message) this.logger.info(message)
-    process.exit(ExitCode.Neutral)
+    exit.neutral()
   }
 
   /**
@@ -39,6 +28,6 @@ export class Exit {
    */
   failure(message?: string) {
     if (message) this.logger.fatal(message)
-    process.exit(ExitCode.Failure)
+    exit.failure()
   }
 }
