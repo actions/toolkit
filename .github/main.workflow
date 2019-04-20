@@ -8,14 +8,20 @@ action "Dependencies" {
   args = "ci"
 }
 
-action "Compile" {
+action "Bootstrap" {
   needs = "Dependencies"
+  uses = "actions/npm@v2.0.0"
+  args = "run bootstrap"
+}
+
+action "Compile" {
+  needs = "Bootstrap"
   uses = "actions/npm@v2.0.0"
   args = "run build"
 }
 
 action "Format" {
-  needs = "Compile"
+  needs = "Dependencies"
   uses = "actions/npm@v2.0.0"
   args = "run format"
 }

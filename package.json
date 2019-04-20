@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
+    "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
     "format": "prettier --check packages/*/src/**/*.ts",
     "test": "jest"
