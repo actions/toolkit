@@ -2,8 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "format": "prettier --check packages/**/*.ts",
-    "lint": "eslint packages/**/*.ts",
+    "format": "prettier --check packages/*/src/**/*.ts",
     "test": "jest"
   },
   "devDependencies": {
