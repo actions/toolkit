@@ -1,4 +1,4 @@
-import {WriteStream} from 'tty'
+import * as tty from 'tty'
 
 /**
  * Options for exiting an action
@@ -54,20 +54,30 @@ export async function neutral(opts: ExitOpts = {}) {
   await exit(ExitCode.Neutral, opts)
 }
 
+/**
+ * Exit after waiting for streams to drain (if needed).
+ *
+ * Since `process.exit` is synchronous, and writing to `process.stdout` and
+ * `process.stderr` are potentially asynchronous, this function waits for them
+ * to drain, if need be, before exiting.
+ */
 async function exit(code: ExitCode, opts: ExitOpts) {
   if (opts.sync) {
     process.exit(code)
   }
 
-  const stdout = process.stdout as WriteStream
-  const stderr = process.stderr as WriteStream
+  const stdout = process.stdout as tty.WriteStream
+  const stderr = process.stderr as tty.WriteStream
 
   await Promise.all([stdout, stderr].map(drainStream))
 
   process.exit(code)
 }
 
-async function drainStream(stream: WriteStream) {
+/**
+ * Drain the given `stream`, if need be, or immediately return.
+ */
+async function drainStream(stream: tty.WriteStream) {
   if (stream.bufferSize > 0) {
     return new Promise(resolve => stream.once('drain', resolve))
   } else {
