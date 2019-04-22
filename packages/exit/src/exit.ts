@@ -1,3 +1,15 @@
+import {WriteStream} from 'tty'
+
+/**
+ * Options for exiting an action
+ */
+export type ExitOpts = {
+  /**
+   * Exit immediately, without waiting for a drain
+   */
+  sync?: boolean
+}
+
 /**
  * The code to exit an action
  */
@@ -24,20 +36,41 @@ export enum ExitCode {
 /**
  * Exit the action as a success.
  */
-export function success() {
-  process.exit(ExitCode.Success)
+export async function success(opts: ExitOpts = {}) {
+  await exit(ExitCode.Success, opts)
 }
 
 /**
  * Exit the action as a failure.
  */
-export function failure() {
-  process.exit(ExitCode.Failure)
+export async function failure(opts: ExitOpts = {}) {
+  await exit(ExitCode.Failure, opts)
 }
 
 /**
  * Exit the action neither a success or a failure
  */
-export function neutral() {
-  process.exit(ExitCode.Neutral)
+export async function neutral(opts: ExitOpts = {}) {
+  await exit(ExitCode.Neutral, opts)
+}
+
+async function exit(code: ExitCode, opts: ExitOpts) {
+  if (opts.sync) {
+    process.exit(code)
+  }
+
+  const stdout = process.stdout as WriteStream
+  const stderr = process.stderr as WriteStream
+
+  await Promise.all([stdout, stderr].map(drainStream))
+
+  process.exit(code)
+}
+
+async function drainStream(stream: WriteStream) {
+  if (stream.bufferSize > 0) {
+    return new Promise(resolve => stream.once('drain', resolve))
+  } else {
+    return Promise.resolve()
+  }
 }
