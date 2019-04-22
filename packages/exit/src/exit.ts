@@ -30,9 +30,6 @@ export enum ExitCode {
   Neutral = 78
 }
 
-// TODO: These exit codes may not behave as expected on the new runtime, due to
-// complexities of async logging and sync exiting.
-
 /**
  * Exit the action as a success.
  */
