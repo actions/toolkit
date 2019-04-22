@@ -21,6 +21,7 @@ This repository uses [Lerna](https://github.com/lerna/lerna#readme) to manage mu
     ```console
     $ npm test -- packages/toolkit
     ```
+- `npm run create-package [name]` This runs a script that automates a couple of parts of creating a new package.
 
 ### Creating a Package
 
