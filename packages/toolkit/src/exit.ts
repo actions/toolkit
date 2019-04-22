@@ -10,17 +10,17 @@ export class Exit {
   /**
    * Stop the action with a "success" status.
    */
-  success(message?: string) {
+  success(message?: string, opts?: exit.ExitOpts) {
     if (message) this.logger.success(message)
-    return exit.success()
+    return exit.success(opts)
   }
 
   /**
    * Stop the action with a "neutral" status.
    */
-  neutral(message?: string) {
+  neutral(message?: string, opts?: exit.ExitOpts) {
     if (message) this.logger.info(message)
-    return exit.neutral()
+    return exit.neutral(opts)
   }
 
   /**
