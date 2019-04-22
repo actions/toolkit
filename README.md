@@ -46,4 +46,4 @@ $ cp packages/toolkit/tsconfig.json packages/new-package/tsconfig.json
 }
 ```
 
-4. Start developing 😄
+4. Start developing 😄 and open a pull request.
