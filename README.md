@@ -33,7 +33,7 @@ $ npm run create-package new-package
 
 This will ask you some questions about the new package. Start with `0.0.0` as the first version (look generally at some of the other packages for how the package.json is structured).
 
-1. Add `tsc` script to the new package's package.json file:
+2. Add `tsc` script to the new package's package.json file:
 
 ```json
 "scripts": {
@@ -41,4 +41,4 @@ This will ask you some questions about the new package. Start with `0.0.0` as th
 }
 ```
 
-1. Start developing 😄 and open a pull request.
+3. Start developing 😄 and open a pull request.
