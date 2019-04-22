@@ -32,6 +32,8 @@ export enum ExitCode {
 
 /**
  * Exit the action as a success.
+ *
+ * @param opts [[ExitOpts]] to use for this exit
  */
 export async function success(opts: ExitOpts = {}) {
   await exit(ExitCode.Success, opts)
@@ -39,6 +41,8 @@ export async function success(opts: ExitOpts = {}) {
 
 /**
  * Exit the action as a failure.
+ *
+ * @param opts [[ExitOpts]] to use for this exit
  */
 export async function failure(opts: ExitOpts = {}) {
   await exit(ExitCode.Failure, opts)
@@ -46,6 +50,8 @@ export async function failure(opts: ExitOpts = {}) {
 
 /**
  * Exit the action neither a success or a failure
+ *
+ * @param opts [[ExitOpts]] to use for this exit
  */
 export async function neutral(opts: ExitOpts = {}) {
   await exit(ExitCode.Neutral, opts)
@@ -57,6 +63,9 @@ export async function neutral(opts: ExitOpts = {}) {
  * Since `process.exit` is synchronous, and writing to `process.stdout` and
  * `process.stderr` are potentially asynchronous, this function waits for them
  * to drain, if need be, before exiting.
+ *
+ * @param code The [[ExitCode]] to use when exiting
+ * @param opts [[ExitOpts]] to use for this exit
  */
 async function exit(code: ExitCode, opts: ExitOpts) {
   if (opts.sync) {
@@ -73,10 +82,12 @@ async function exit(code: ExitCode, opts: ExitOpts) {
 
 /**
  * Drain the given `stream`, if need be, or immediately return.
+ *
+ * @param stream A [tty.WriteStream](https://nodejs.org/dist/latest-v11.x/docs/api/tty.html#tty_class_tty_writestream) to drain
  */
 async function drainStream(stream: tty.WriteStream) {
   if (stream.bufferSize > 0) {
-    return new Promise(resolve => stream.once('drain', resolve))
+    return new Promise(resolve => stream.once('drain', () => resolve))
   } else {
     return Promise.resolve()
   }

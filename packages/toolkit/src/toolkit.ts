@@ -29,6 +29,16 @@ export class Toolkit {
    *
    * If an error occurs, the error will be logged and the action will exit as a
    * failure.
+   *
+   * ```typescript
+   * Toolkit.run(async toolkit => {
+   *   toolkit.logger('Hello, world!')
+   *   await toolkit.exit.success()
+   * })
+   * ```
+   *
+   * @param func The function to run
+   * @param opts [[ToolkitOptions]] with which to run the function
    */
   static async run(func: ActionFn, opts?: ToolkitOptions) {
     const tools = new Toolkit(opts)
@@ -56,6 +66,11 @@ export class Toolkit {
    */
   readonly token: string = process.env.GITHUB_TOKEN || ''
 
+  /**
+   * Create an instance of [[Toolkit]].
+   *
+   * @param opts [[ToolkitOptions]] for configuring the [[Toolkit]]
+   */
   constructor(opts: ToolkitOptions = {}) {
     const logger = opts.logger || new Signale({config: {underlineLabel: false}})
     this.logger = this.wrapLogger(logger)
@@ -68,6 +83,8 @@ export class Toolkit {
 
   /**
    * Ensure that the given keys are in the environment.
+   *
+   * @param keys A list of keys to be ensured are in the environment
    */
   private checkRequiredEnv(keys: string[]) {
     const missingEnv = keys.filter(key => !process.env.hasOwnProperty(key))
@@ -84,6 +101,8 @@ export class Toolkit {
 
   /**
    * Wrap a Signale logger so that its a callable class.
+   *
+   * @param logger A logger to wrap (and make callable)
    */
   private wrapLogger(logger: Signale) {
     // Create a callable function
