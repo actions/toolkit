@@ -20,15 +20,17 @@ describe('.run', () => {
   })
 
   it('logs and fails when an error occurs', async () => {
-    const err = new Error()
-    const exitFailure = jest.fn()
+    const err = new Error('Error in run')
+
+    const logFatal = jest.fn()
 
     await Toolkit.run(async tk => {
-      tk.exit.failure = exitFailure
+      tk.logger.fatal = logFatal
       throw err
     })
 
-    expect(exitFailure).toHaveBeenCalledWith(err)
+    expect(logFatal).toHaveBeenCalledWith(err)
+    expect(exitPkg.failure).toHaveBeenCalled()
   })
 })
 
@@ -43,7 +45,7 @@ it('asserts required keys are present', async () => {
 
   new Toolkit({logger, requiredEnv: [missingKey]})
 
-  expect(exitPkg.failure).toHaveBeenCalled()
+  expect(exitPkg.failure).toHaveBeenCalledWith({sync: true})
   expect(logger.fatal)
     .toHaveBeenCalledWith(`The following environment variables are required for this action to run:
 - __DOES_NOT_EXIST__`)

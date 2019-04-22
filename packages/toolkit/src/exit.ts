@@ -12,7 +12,7 @@ export class Exit {
    */
   success(message?: string) {
     if (message) this.logger.success(message)
-    exit.success()
+    return exit.success()
   }
 
   /**
@@ -20,14 +20,14 @@ export class Exit {
    */
   neutral(message?: string) {
     if (message) this.logger.info(message)
-    exit.neutral()
+    return exit.neutral()
   }
 
   /**
    * Stop the action with a "failed" status.
    */
-  failure(message?: string) {
+  failure(message?: string, opts?: exit.ExitOpts) {
     if (message) this.logger.fatal(message)
-    exit.failure()
+    return exit.failure(opts)
   }
 }

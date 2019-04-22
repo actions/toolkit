@@ -37,7 +37,7 @@ export class Toolkit {
       const ret = func(tools)
       return ret instanceof Promise ? await ret : ret
     } catch (err) {
-      tools.exit.failure(err)
+      await tools.exit.failure(err)
     }
   }
 
@@ -77,7 +77,8 @@ export class Toolkit {
     const list = missingEnv.map(key => `- ${key}`).join('\n')
 
     this.exit.failure(
-      `The following environment variables are required for this action to run:\n${list}`
+      `The following environment variables are required for this action to run:\n${list}`,
+      {sync: true}
     )
   }
 
