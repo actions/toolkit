@@ -5,6 +5,7 @@
     "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
     "format": "prettier --check packages/*/src/**/*.ts",
+    "new-package": "scripts/create-package",
     "test": "jest"
   },
   "devDependencies": {

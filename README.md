@@ -27,18 +27,12 @@ This repository uses [Lerna](https://github.com/lerna/lerna#readme) to manage mu
 1. In a new branch, create a new Lerna package:
 
 ```console
-$ lerna create @actions/new-package
+$ npm run create-package new-package
 ```
 
 This will ask you some questions about the new package. Start with `0.0.0` as the first version (look generally at some of the other packages for how the package.json is structured).
 
-2. Add a `tsconfig.json` file for the new package (you can probably just reuse one from another existing package):
-
-```console
-$ cp packages/toolkit/tsconfig.json packages/new-package/tsconfig.json
-```
-
-3. Add `tsc` script to the new package's package.json file:
+1. Add `tsc` script to the new package's package.json file:
 
 ```json
 "scripts": {
@@ -46,4 +40,4 @@ $ cp packages/toolkit/tsconfig.json packages/new-package/tsconfig.json
 }
 ```
 
-4. Start developing 😄 and open a pull request.
+1. Start developing 😄 and open a pull request.
