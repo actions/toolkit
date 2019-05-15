@@ -186,11 +186,11 @@ export function mv(source: string, dest: string, recursive: boolean = false, for
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
  * If you check and the tool does not exist, it will throw.
  * 
- * @param     tool       name of the tool
- * @param     check      whether to check if tool exists
- * @returns   string     path to tool
+ * @param     tool              name of the tool
+ * @param     check             whether to check if tool exists
+ * @returns   Promise<string>   path to tool
  */
-export function which(tool: string, check?: boolean): string
+export function which(tool: string, check?: boolean): Promise<string>
 ```
 
 ### Exec spec
