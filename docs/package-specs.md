@@ -168,9 +168,9 @@ export function rmRF(path: string): Promise<void>
  * Will throw if it fails
  * 
  * @param     p       path to create
- * @returns   void
+ * @returns   Promise<void>
  */
-export function mkdirP(p: string): void
+export function mkdirP(p: string): Promise<void>
 
 /**
  * Moves a path.
