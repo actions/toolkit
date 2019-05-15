@@ -19,7 +19,7 @@ export function error(message: string): void
  * @param val       the value of the variable
  * @param isSecret  whether the variable should be marked as secret (will be masked from logs)
  */
-export function export(name: string, val: string, isSecret: bool = false): void
+export function exportVariable(name: string, val: string, isSecret: bool = false): void
 
 /**
  * Gets the value of an input.  The value is also trimmed.
