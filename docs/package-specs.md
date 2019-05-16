@@ -33,13 +33,12 @@ export function exportVariable(name: string, val: string, options?: ExportOption
  * Interface for getInput options
  */
 export interface InputOptions {
-    /** Optional. Whether the input is required. Defaults to false */
+    /** Optional. Whether the input is required. If required and not present, will throw. Defaults to false */
     required?: bool;
 }
 
 /**
  * Gets the value of an input.  The value is also trimmed.
- * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the input to get
  * @param     options  optional. See InputOptions.
@@ -87,7 +86,6 @@ export function rmRF(path: string): Promise<void>
 
 /**
  * Make a directory.  Creates the full path with folders in between
- * Will throw if it fails
  * 
  * @param     p       path to create
  * @returns   Promise<void>
@@ -107,13 +105,12 @@ export function mv(source: string, dest: string, options?: CopyOptions): Promise
  * Interface for which options
  */
 export interface WhichOptions {
-    /** Optional. Whether to check if tool exists. Defaults to false */
+    /** Optional. Whether to check if tool exists. If true, will throw if it fails. Defaults to false */
     check?: boolean;
 }
 
 /**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, it will throw.
  * 
  * @param     tool              name of the tool
  * @param     options           optional. See WhichOptions.
