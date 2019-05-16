@@ -3,33 +3,53 @@ import intm = require('./internal');
 import process = require('process');
 
 /**
- * sets env variable for this action and future actions in the job
- * @param name the name of the variable to set
- * @param val the value of the variable
+ * Interface for exportVariable options
  */
-export function setVariable(name: string, val: string) {
+export interface ExportOptions {
+    /** Optional. Whether the variable should be marked as secret (will be masked from logs). Defaults to false */
+    isSecret?: boolean;
+}
+
+/**
+ * sets env variable for this action and future actions in the job
+ *
+ * @param name      the name of the variable to set
+ * @param val       the value of the variable
+ * @param options   optional. See ExportOptions.
+ */
+export function exportVariable(name: string, val: string, options?: ExportOptions): void {
+    if (options && options.isSecret) {
+        intm._issueCommand('set-secret', {'name': name}, val);
+    }
     process.env[name] = val;
     intm._issueCommand('set-variable', {'name': name}, val);
 }
 
 /**
- * sets a variable which will get masked from logs
- * @param name name of the secret variable 
- * @param val value of the secret variable
+ * Interface for getInput options
  */
-export function setSecret(name: string, val: string) {
-    intm._issueCommand('set-secret', {'name': name}, val);
-    setVariable(name, val);
-} 
+export interface InputOptions {
+    /** Optional. Whether the input is required. If required and not present, will throw. Defaults to false */
+    required?: boolean;
+}
 
-//-----------------------------------------------------------------------
-// Results
-//-----------------------------------------------------------------------
+/**
+ * Gets the value of an input.  The value is also trimmed.
+ * 
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string
+ */
+export function getInput(name: string, options?: InputOptions): string | undefined {
+    // TODO - how are we passing in actions inputs?
+    return '';
+}
+
 /**
  * fail the action
  * @param message 
  */
-export function fail(message: string) {
+export function setFailure(message: string): void {
     process.exitCode = im.ExitCode.Failure;
     error(message);
 }
@@ -38,14 +58,7 @@ export function fail(message: string) {
 // Logging Commands
 // https://github.com/github/dreamlifter/blob/master/docs/actions-model.md#logging-commands
 //
-// error and warning issues do not take FileDetails because while possible,
-// that's typically reserved for the agent and the problem matchers.
-//
 //-----------------------------------------------------------------------
-
-export function addPath(path: string) {
-    intm._issueCommand('add-path', {}, path);
-}
 
 export function error(message: string) {
     intm._issue('error', message);
@@ -53,4 +66,8 @@ export function error(message: string) {
 
 export function warning(message: string) {
     intm._issue('warning', message);
+}
+
+export function debug(message: string): void {
+    intm._issue('debug', message);
 }

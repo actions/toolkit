@@ -10,7 +10,7 @@ import os = require('os');
  *   
  * Examples:
  *   ##[warning]This is the user warning message
- *   ##[set-secret name=mypassword]definatelyNotAPassword!
+ *   ##[set-secret name=mypassword]definitelyNotAPassword!
  */
 export function _issueCommand(command: string, properties: {[key: string]: string}, message: string) {
     var cmd = new _Command(command, properties, message);
@@ -67,7 +67,6 @@ export class _Command {
 }
 
 export function _commandFromString(commandLine: string) {
-    var preLen = CMD_PREFIX.length;
     var lbPos = commandLine.indexOf('[');
     var rbPos = commandLine.indexOf(']');
     if (lbPos == -1 || rbPos == -1 || rbPos - lbPos < 3) {

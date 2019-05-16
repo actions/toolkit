@@ -3,8 +3,28 @@
 import * as core from '../src/lib'
 
 describe('@actions/core', () => {
-    it('needs tests', () => {
-        
+    it('tests exportVariable', () => {
+        // TODO
+    });
+
+    it('tests getInput', () => {
+        // TODO
+    });
+
+    it('tests setFailure', () => {
+        // TODO
+    });
+
+    it('tests error', () => {
+        // TODO
+    });
+
+    it('tests warning', () => {
+        // TODO
+    });
+
+    it('tests debug', () => {
+        // TODO
     });
 });
 
