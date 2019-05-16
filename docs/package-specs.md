@@ -13,29 +13,45 @@ export function warning(message: string): void
 export function error(message: string): void
 
 /**
+ * Interface for exportVariable options
+ */
+export interface ExportOptions {
+    /** Optional. Whether the variable should be marked as secret (will be masked from logs). Defaults to false */
+    isSecret?: bool;
+}
+
+/**
  * sets env variable for this action and future actions in the job
  *
  * @param name      the name of the variable to set
  * @param val       the value of the variable
- * @param isSecret  whether the variable should be marked as secret (will be masked from logs)
+ * @param options   optional. See ExportOptions.
  */
-export function exportVariable(name: string, val: string, isSecret: bool = false): void
+export function exportVariable(name: string, val: string, options?: ExportOptions): void
+
+/**
+ * Interface for getInput options
+ */
+export interface InputOptions {
+    /** Optional. Whether the input is required. Defaults to false */
+    required?: bool;
+}
 
 /**
  * Gets the value of an input.  The value is also trimmed.
  * If required is true and the value is not set, it will throw.
  * 
  * @param     name     name of the input to get
- * @param     required whether input is required.  optional, defaults to false
+ * @param     options  optional. See InputOptions.
  * @returns   string
  */
-export function getInput(name: string, required?: boolean): string | undefined
+export function getInput(name: string, options?: InputOptions): string | undefined
 
 /**
  * fail the action
  * @param message 
  */
-export function fail(message: string): void
+export function setFailure(message: string): void
 ```
 
 ### IO spec
@@ -44,14 +60,23 @@ Holds all the functions necessary for file system manipulation (cli scenarios, n
 
 ```
 /**
+ * Interface for cp/mv options
+ */
+export interface CopyOptions {
+    /** Optional. Whether to recursively copy all subdirectories. Defaults to false */
+    recursive?: boolean;
+    /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
+    force?: boolean;
+}
+
+/**
  * Copies a file or folder.
  * 
- * @param     source            source path
- * @param     dest              destination path
- * @param     recursive         whether to recursively copy all subdirectories
- * @param     force             whether to overwrite existing files in the destination
+ * @param     source    source path
+ * @param     dest      destination path
+ * @param     options   optional. See CopyOptions.
  */
-export function cp(source: string, dest: string, recursive: boolean = false, force: boolean = true): Promise<void>
+export function cp(source: string, dest: string, options?: CopyOptions): Promise<void>
 
 /**
  * Remove a path recursively with force
@@ -71,23 +96,30 @@ export function mkdirP(p: string): Promise<void>
 
 /**
  * Moves a path.
- * 
- * @param     source     source path
- * @param     dest       destination path
- * @param     recursive  whether to recursively copy all subdirectories
- * @param     force      whether to overwrite existing files in the destination
+ *
+ * @param     source    source path
+ * @param     dest      destination path
+ * @param     options   optional. See CopyOptions.
  */
-export function mv(source: string, dest: string, recursive: boolean = false, force: boolean = true): Promise<void>
+export function mv(source: string, dest: string, options?: CopyOptions): Promise<void>
+
+/**
+ * Interface for which options
+ */
+export interface WhichOptions {
+    /** Optional. Whether to check if tool exists. Defaults to false */
+    check?: boolean;
+}
 
 /**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
  * If you check and the tool does not exist, it will throw.
  * 
  * @param     tool              name of the tool
- * @param     check             whether to check if tool exists
+ * @param     options           optional. See WhichOptions.
  * @returns   Promise<string>   path to tool
  */
-export function which(tool: string, check?: boolean): Promise<string>
+export function which(tool: string, options?: WhichOptions): Promise<string>
 ```
 
 ### Exec spec
