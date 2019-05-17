@@ -13,21 +13,13 @@ export function warning(message: string): void
 export function error(message: string): void
 
 /**
- * Interface for exportVariable options
- */
-export interface ExportOptions {
-    /** Optional. Whether the variable should be marked as secret (will be masked from logs). Defaults to false */
-    isSecret?: bool;
-}
-
-/**
  * sets env variable for this action and future actions in the job
  *
  * @param name      the name of the variable to set
  * @param val       the value of the variable
  * @param options   optional. See ExportOptions.
  */
-export function exportVariable(name: string, val: string, options?: ExportOptions): void
+export function exportVariable(name: string, val: string): void
 
 /**
  * Interface for getInput options
@@ -47,10 +39,16 @@ export interface InputOptions {
 export function getInput(name: string, options?: InputOptions): string | undefined
 
 /**
- * fail the action
+ * sets the status of the action to neutral
  * @param message 
  */
-export function setFailure(message: string): void
+export function setFailed(message: string): void
+
+/**
+ * sets the status of the action to failed
+ * @param message 
+ */
+export function setFailed(message: string): void
 ```
 
 ### IO spec
