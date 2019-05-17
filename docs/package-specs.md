@@ -22,6 +22,16 @@ export function error(message: string): void
 export function exportVariable(name: string, val: string): void
 
 /**
+ * exports the variable and registers a secret which will get masked from logs
+ * @param name the name of the variable to set
+ * @param val value of the secret
+ */
+export function exportSecret(name: string, val: string) {
+    exportVariable(name, val);
+    intm._issueCommand('set-secret', {}, val);
+} 
+
+/**
  * Interface for getInput options
  */
 export interface InputOptions {
