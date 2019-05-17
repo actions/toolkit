@@ -3,16 +3,15 @@ import os = require('os');
 
 /** 
  * Commands
- * Spec: https://github.com/github/dreamlifter/blob/master/docs/actions-model.md#logging-commands
  *
  * Command Format:
  *   ##[name key=value;key=value]message
  *   
  * Examples:
  *   ##[warning]This is the user warning message
- *   ##[set-secret name=mypassword]definitelyNotAPassword!
+ *   ##[set-secret name=mypassword]definatelyNotAPassword!
  */
-export function _issueCommand(command: string, properties: {[key: string]: string}, message: string) {
+export function _issueCommand(command: string, properties: any, message: string) {
     var cmd = new _Command(command, properties, message);
     _writeLine(cmd.toString());
 }
@@ -67,6 +66,7 @@ export class _Command {
 }
 
 export function _commandFromString(commandLine: string) {
+    var preLen = CMD_PREFIX.length;
     var lbPos = commandLine.indexOf('[');
     var rbPos = commandLine.indexOf(']');
     if (lbPos == -1 || rbPos == -1 || rbPos - lbPos < 3) {
