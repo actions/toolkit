@@ -20,7 +20,7 @@ describe('@actions/core', () => {
     });
 
     it('getInput throws on missing required input', () => {
-        expect(() => core.getInput('missing', {required: true})).toThrow('Failed to find input missing');
+        expect(() => core.getInput('missing', {required: true})).toThrow('Input required and not supplied: missing');
     });
 
     it('getInput doesnt throw on missing non-required input', () => {
