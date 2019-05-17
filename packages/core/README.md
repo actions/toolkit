@@ -5,18 +5,24 @@
 ## Usage
 
 ```
+//-----------------------------------------------------------------------
+// Variables, Inputs and Outputs
+//-----------------------------------------------------------------------
+
 /**
  * sets env variable for this action and future actions in the job
  * @param name the name of the variable to set
  * @param val the value of the variable
  */
-export function exportVariable(name: string, val: string, options?:im.ExportOptions);
+export function exportVariable(name: string, val: string);
 
 /**
  * registers a secret which will get masked from logs
  * @param val value of the secret
  */
-export function setSecret(val: string);
+export function setSecret(name: string, val: string);
+
+// TODO: follow up and see if we need anything for outputs
 
 //-----------------------------------------------------------------------
 // Results

@@ -19,9 +19,9 @@ export enum ExitCode {
 }
 
 /**
- * Interface for exportVariable options
+ * Interface for getInput options
  */
-export interface ExportOptions {
-    /** Optional. Whether the variable should be marked as secret (will be masked from logs). Defaults to false */
-    isSecret?: boolean;
+export interface InputOptions {
+    /** Optional. Whether the input is required. If required and not present, will throw. Defaults to false */
+    required?: boolean;
 }
