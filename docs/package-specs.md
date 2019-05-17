@@ -42,7 +42,7 @@ export function getInput(name: string, options?: InputOptions): string | undefin
  * sets the status of the action to neutral
  * @param message 
  */
-export function setFailed(message: string): void
+export function setNeutral(message: string): void
 
 /**
  * sets the status of the action to failed
