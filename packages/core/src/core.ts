@@ -2,24 +2,45 @@ import im = require('./interfaces');
 import intm = require('./internal');
 import process = require('process');
 
+//-----------------------------------------------------------------------
+// Variables
+//-----------------------------------------------------------------------
+
 /**
  * sets env variable for this action and future actions in the job
  * @param name the name of the variable to set
  * @param val the value of the variable
  */
-export function exportVariable(name: string, val: string, options?:im.ExportOptions) {
+export function exportVariable(name: string, val: string) {
     process.env[name] = val;
-    let props = {'name': name, 'isSecret': options? options.isSecret : false};
-    intm._issueCommand('set-variable', props, val);
+    intm._issueCommand('set-variable', {'name': name}, val);
 }
 
 /**
- * registers a secret which will get masked from logs
+ * exports the variable and registers a secret which will get masked from logs
+ * @param name the name of the variable to set
  * @param val value of the secret
  */
-export function setSecret(val: string) {
+export function setSecret(name: string, val: string) {
+    exportVariable(name, val);
     intm._issueCommand('set-secret', {}, val);
 } 
+
+/**
+ * Gets the value of an input.  The value is also trimmed.
+ * 
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string
+ */
+export function getInput(name: string, options?: im.InputOptions): string {
+    let val:string = process.env['INPUT_' + name];
+    if (options && options.required && !val) {
+        throw new Error(`Input required and not supplied: ${name}`);
+    }
+
+    return val;
+}
 
 //-----------------------------------------------------------------------
 // Results
@@ -44,10 +65,6 @@ export function setFailed(message: string) {
 
 //-----------------------------------------------------------------------
 // Logging Commands
-//
-// error and warning issues do not take FileDetails because while possible,
-// that's typically reserved for the agent and the problem matchers.
-//
 //-----------------------------------------------------------------------
 
 /**
