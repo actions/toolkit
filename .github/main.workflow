@@ -23,7 +23,7 @@ action "Compile" {
 action "Format" {
   needs = "Dependencies"
   uses = "actions/npm@v2.0.0"
-  args = "run format"
+  args = "run format-check"
 }
 
 action "Test" {
