@@ -69,10 +69,10 @@ export class _Command {
 }
 
 export function _commandFromString(commandLine: string) {
-  const preLen = CMD_PREFIX.length
   const lbPos = commandLine.indexOf('[')
   const rbPos = commandLine.indexOf(']')
-  if (lbPos == -1 || rbPos == -1 || rbPos - lbPos < 3) {
+
+  if (lbPos === -1 || rbPos === -1 || rbPos - lbPos < 3) {
     throw new Error('Invalid command brackets')
   }
   const cmdInfo = commandLine.substring(lbPos + 1, rbPos)
@@ -86,11 +86,14 @@ export function _commandFromString(commandLine: string) {
     const propSection = cmdInfo.trim().substring(spaceIdx + 1)
 
     const propLines: string[] = propSection.split(';')
-    propLines.forEach(function(propLine: string) {
+
+    for (let propLine of propLines) {
       propLine = propLine.trim()
+
       if (propLine.length > 0) {
         const eqIndex = propLine.indexOf('=')
-        if (eqIndex == -1) {
+
+        if (eqIndex === -1) {
           throw new Error(`Invalid property: ${propLine}`)
         }
 
@@ -99,7 +102,7 @@ export function _commandFromString(commandLine: string) {
 
         properties[key] = unescape(val)
       }
-    })
+    }
   }
 
   const msg: string = unescapedata(commandLine.substring(rbPos + 1))
@@ -136,7 +139,7 @@ function unescape(s: string): string {
 //-----------------------------------------------------
 
 let _outStream = process.stdout
-let _errStream = process.stderr
+let _errStream = process.stderr // eslint-disable-line @typescript-eslint/no-unused-vars
 
 export function _writeLine(str: string): void {
   _outStream.write(str + os.EOL)
