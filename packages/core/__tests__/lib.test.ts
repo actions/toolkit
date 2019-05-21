@@ -1,7 +1,5 @@
-'use strict'
-
-import * as core from '../src/core'
 import * as os from 'os'
+import * as core from '../src/core'
 
 describe('@actions/core', () => {
   beforeEach(() => {
