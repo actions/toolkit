@@ -40,7 +40,7 @@ export function setSecret(name: string, val: string) {
  * @param     options  optional. See InputOptions.
  * @returns   string
  */
-export function getInput(name: string, options?: im.InputOptions): string {
+export function getInput(name: string, options?: InputOptions): string {
   const val: string =
     process.env[`INPUT_${name.replace(' ', '_').toUpperCase()}`] || ''
   if (options && options.required && !val) {
