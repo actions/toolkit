@@ -145,7 +145,7 @@ export function rmRF(inputPath: string): Promise<void> {
       } catch (err) {
         // if you try to delete a file that doesn't exist, desired result is achieved
         // other errors are valid
-        if (err.code != 'ENOENT') {
+        if (err.code !== 'ENOENT') {
           reject(err)
           return
         }
@@ -157,7 +157,7 @@ export function rmRF(inputPath: string): Promise<void> {
       } catch (err) {
         // if you try to delete a file that doesn't exist, desired result is achieved
         // other errors are valid
-        if (err.code != 'ENOENT') {
+        if (err.code !== 'ENOENT') {
           reject(err)
           return
         }
@@ -171,7 +171,7 @@ export function rmRF(inputPath: string): Promise<void> {
       } catch (err) {
         // if you try to delete a file that doesn't exist, desired result is achieved
         // other errors are valid
-        if (err.code == 'ENOENT') {
+        if (err.code === 'ENOENT') {
           resolve()
         } else {
           reject(err)
@@ -222,10 +222,10 @@ export function mkdirP(p: string): Promise<void> {
         try {
           stats = fs.statSync(testDir)
         } catch (err) {
-          if (err.code == 'ENOENT') {
+          if (err.code === 'ENOENT') {
             // validate the directory is not the drive root
             const parentDir = path.dirname(testDir)
-            if (testDir == parentDir) {
+            if (testDir === parentDir) {
               throw new Error(
                 `Unable to create directory '${p}'. Root directory does not exist: '${testDir}'`
               )
@@ -235,7 +235,7 @@ export function mkdirP(p: string): Promise<void> {
             stack.push(testDir)
             testDir = parentDir
             continue
-          } else if (err.code == 'UNKNOWN') {
+          } else if (err.code === 'UNKNOWN') {
             throw new Error(
               `Unable to create directory '${p}'. Unable to verify the directory exists: '${testDir}'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.`
             )
@@ -287,7 +287,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
     if (check) {
       const result: string = await which(tool, false)
       if (!result) {
-        if (process.platform == 'win32') {
+        if (process.platform === 'win32') {
           reject(
             `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`
           )
@@ -303,7 +303,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
     try {
       // build the list of extensions to try
       const extensions: string[] = []
-      if (process.platform == 'win32' && process.env['PATHEXT']) {
+      if (process.platform === 'win32' && process.env['PATHEXT']) {
         for (const extension of process.env['PATHEXT']!.split(path.delimiter)) {
           if (extension) {
             extensions.push(extension)
@@ -326,7 +326,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
       // if any path separators, return empty
       if (
         tool.indexOf('/') >= 0 ||
-        (process.platform == 'win32' && tool.indexOf('\\') >= 0)
+        (process.platform === 'win32' && tool.indexOf('\\') >= 0)
       ) {
         resolve('')
         return

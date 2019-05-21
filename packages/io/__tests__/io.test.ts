@@ -347,7 +347,7 @@ describe('rmRF', () => {
   })
 
   // creating a symlink to a file on Windows requires elevated
-  if (os.platform() != 'win32') {
+  if (os.platform() !== 'win32') {
     it('removes symlink file with rmRF', async () => {
       // create the following layout:
       //   real_file
@@ -564,7 +564,7 @@ describe('rmRF', () => {
         encoding: 'utf8'
       })
     ).toBe('test file content')
-    if (os.platform() == 'win32') {
+    if (os.platform() === 'win32') {
       expect(fs.readlinkSync(symlinkLevel2Directory)).toBe(
         `${symlinkDirectory}\\`
       )
@@ -814,13 +814,13 @@ describe('which', () => {
     const testPath = path.join(getTestTemp(), 'which-finds-file-name')
     await io.mkdirP(testPath)
     let fileName = 'Which-Test-File'
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       fileName += '.exe'
     }
 
     const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
 
@@ -834,7 +834,7 @@ describe('which', () => {
       expect(await io.which(fileName, false)).toBe(filePath)
       expect(await io.which(fileName, true)).toBe(filePath)
 
-      if (process.platform == 'win32') {
+      if (process.platform === 'win32') {
         // not case sensitive on windows
         expect(await io.which('which-test-file.exe')).toBe(
           path.join(testPath, 'which-test-file.exe')
@@ -853,7 +853,7 @@ describe('which', () => {
         expect(await io.which('which-test-file')).toBe(filePath)
         expect(await io.which('which-test-file', false)).toBe(filePath)
         expect(await io.which('which-test-file', true)).toBe(filePath)
-      } else if (process.platform == 'darwin') {
+      } else if (process.platform === 'darwin') {
         // not case sensitive on Mac
         expect(await io.which(fileName.toUpperCase())).toBe(
           path.join(testPath, fileName.toUpperCase())
@@ -887,7 +887,7 @@ describe('which', () => {
     const testPath = path.join(getTestTemp(), 'which-searches-path-in-order')
     await io.mkdirP(testPath)
     let fileName
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       fileName = 'chcp.com'
     } else {
       fileName = 'bash'
@@ -895,7 +895,7 @@ describe('which', () => {
 
     const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
 
@@ -922,13 +922,13 @@ describe('which', () => {
     const testPath = path.join(getTestTemp(), 'which-requires-executable')
     await io.mkdirP(testPath)
     let fileName = 'Which-Test-File'
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       fileName += '.abc' // not a valid PATHEXT
     }
 
     const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(filePath, '-x')
     }
 
@@ -955,12 +955,12 @@ describe('which', () => {
     // create a directory
     const testPath = path.join(getTestTemp(), 'which-ignores-directory-match')
     let dirPath = path.join(testPath, 'Which-Test-Dir')
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       dirPath += '.exe'
     }
 
     await io.mkdirP(dirPath)
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(dirPath, '+x')
     }
 
@@ -981,12 +981,12 @@ describe('which', () => {
     const testPath = path.join(getTestTemp(), 'which-allows-rooted-path')
     await io.mkdirP(testPath)
     let filePath = path.join(testPath, 'Which-Test-File')
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       filePath += '.exe'
     }
 
     fs.writeFileSync(filePath, '')
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
 
@@ -1006,12 +1006,12 @@ describe('which', () => {
     )
     await io.mkdirP(testPath)
     let filePath = path.join(testPath, 'Which-Test-File')
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       filePath += '.abc' // not a valid PATHEXT
     }
 
     fs.writeFileSync(filePath, '')
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(filePath, '-x')
     }
 
@@ -1035,12 +1035,12 @@ describe('which', () => {
       'which-requires-rooted-path-to-be-executable'
     )
     let dirPath = path.join(testPath, 'Which-Test-Dir')
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       dirPath += '.exe'
     }
 
     await io.mkdirP(dirPath)
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(dirPath, '+x')
     }
 
@@ -1059,7 +1059,7 @@ describe('which', () => {
 
   it('which() requires rooted path to exist', async () => {
     let filePath = path.join(__dirname, 'no-such-file')
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       filePath += '.exe'
     }
 
@@ -1081,13 +1081,13 @@ describe('which', () => {
     const testPath = path.join(getTestTemp(), testDirName)
     await io.mkdirP(testPath)
     let fileName = 'Which-Test-File'
-    if (process.platform == 'win32') {
+    if (process.platform === 'win32') {
       fileName += '.exe'
     }
 
     const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
-    if (process.platform != 'win32') {
+    if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
 
@@ -1100,7 +1100,7 @@ describe('which', () => {
       expect((await io.which(`${testDirName}/${fileName}`)) || '').toBe('')
 
       // on Windows, also try "dir\file"
-      if (process.platform == 'win32') {
+      if (process.platform === 'win32') {
         expect((await io.which(`${testDirName}\\${fileName}`)) || '').toBe('')
       }
     } finally {
@@ -1108,7 +1108,7 @@ describe('which', () => {
     }
   })
 
-  if (process.platform == 'win32') {
+  if (process.platform === 'win32') {
     it('which() resolves actual case file name when extension is applied', async () => {
       const comspec: string = process.env['ComSpec'] || ''
       expect(!!comspec).toBe(true)
@@ -1343,7 +1343,7 @@ async function findsExecutableWithScopedPermissions(chmodOptions: string) {
   const testPath = path.join(getTestTemp(), 'which-finds-file-name')
   await io.mkdirP(testPath)
   const fileName = 'Which-Test-File'
-  if (process.platform == 'win32') {
+  if (process.platform === 'win32') {
     return
   }
 
@@ -1361,7 +1361,7 @@ async function findsExecutableWithScopedPermissions(chmodOptions: string) {
     expect(await io.which(fileName, false)).toBe(filePath)
     expect(await io.which(fileName, true)).toBe(filePath)
 
-    if (process.platform == 'darwin') {
+    if (process.platform === 'darwin') {
       // not case sensitive on Mac
       expect(await io.which(fileName.toUpperCase())).toBe(
         path.join(testPath, fileName.toUpperCase())
@@ -1385,7 +1385,7 @@ async function findsExecutableWithScopedPermissions(chmodOptions: string) {
 
 function chmod(file: string, mode: string): void {
   const result = child.spawnSync('chmod', [mode, file])
-  if (result.status != 0) {
+  if (result.status !== 0) {
     const message: string = (result.output || []).join(' ').trim()
     throw new Error(`Command failed: "chmod ${mode} ${file}".  ${message}`)
   }
@@ -1398,9 +1398,9 @@ async function createHiddenDirectory(dir: string): Promise<void> {
     }
 
     await io.mkdirP(dir)
-    if (os.platform() == 'win32') {
+    if (os.platform() === 'win32') {
       const result = child.spawnSync('attrib.exe', ['+H', dir])
-      if (result.status != 0) {
+      if (result.status !== 0) {
         const message: string = (result.output || []).join(' ').trim()
         reject(
           `Failed to set hidden attribute for directory '${dir}'. ${message}`
@@ -1419,9 +1419,9 @@ async function createHiddenFile(file: string, content: string): Promise<void> {
 
     await io.mkdirP(path.dirname(file))
     fs.writeFileSync(file, content)
-    if (os.platform() == 'win32') {
+    if (os.platform() === 'win32') {
       const result = child.spawnSync('attrib.exe', ['+H', file])
-      if (result.status != 0) {
+      if (result.status !== 0) {
         const message: string = (result.output || []).join(' ').trim()
         reject(`Failed to set hidden attribute for file '${file}'. ${message}`)
       }
@@ -1440,7 +1440,7 @@ function getTestTemp() {
  * A symlink directory is not created on Windows since it requires an elevated context.
  */
 function createSymlinkDir(real: string, link: string): void {
-  if (os.platform() == 'win32') {
+  if (os.platform() === 'win32') {
     fs.symlinkSync(real, link, 'junction')
   } else {
     fs.symlinkSync(real, link)

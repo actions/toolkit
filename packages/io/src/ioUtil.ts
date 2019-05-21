@@ -25,13 +25,13 @@ export function _isRooted(p: string): boolean {
     throw new Error('isRooted() parameter "p" cannot be empty')
   }
 
-  if (process.platform == 'win32') {
+  if (process.platform === 'win32') {
     return (
-      p.slice(0, '\\'.length) == '\\' || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
+      p.slice(0, '\\'.length) === '\\' || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
     ) // e.g. C: or C:\hello
   }
 
-  return p.slice(0, '/'.length) == '/'
+  return p.slice(0, '/'.length) === '/'
 }
 
 /**
@@ -48,13 +48,15 @@ export function _tryGetExecutablePath(
     // test file exists
     const stats: fs.Stats = fs.statSync(filePath)
     if (stats.isFile()) {
-      if (process.platform == 'win32') {
+      if (process.platform === 'win32') {
         // on Windows, test for valid extension
         const fileName = path.basename(filePath)
         const dotIndex = fileName.lastIndexOf('.')
         if (dotIndex >= 0) {
           const upperExt = fileName.substr(dotIndex).toUpperCase()
-          if (extensions.some(validExt => validExt.toUpperCase() == upperExt)) {
+          if (
+            extensions.some(validExt => validExt.toUpperCase() === upperExt)
+          ) {
             return filePath
           }
         }
@@ -65,7 +67,7 @@ export function _tryGetExecutablePath(
       }
     }
   } catch (err) {
-    if (err.code != 'ENOENT') {
+    if (err.code !== 'ENOENT') {
       console.log(
         `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
       )
@@ -79,13 +81,13 @@ export function _tryGetExecutablePath(
     try {
       const stats: fs.Stats = fs.statSync(filePath)
       if (stats.isFile()) {
-        if (process.platform == 'win32') {
+        if (process.platform === 'win32') {
           // preserve the case of the actual file (since an extension was appended)
           try {
             const directory = path.dirname(filePath)
             const upperName = path.basename(filePath).toUpperCase()
             for (const actualName of fs.readdirSync(directory)) {
-              if (upperName == actualName.toUpperCase()) {
+              if (upperName === actualName.toUpperCase()) {
                 filePath = path.join(directory, actualName)
                 break
               }
@@ -104,7 +106,7 @@ export function _tryGetExecutablePath(
         }
       }
     } catch (err) {
-      if (err.code != 'ENOENT') {
+      if (err.code !== 'ENOENT') {
         console.log(
           `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
         )
@@ -117,7 +119,7 @@ export function _tryGetExecutablePath(
 
 function _normalizeSeparators(p: string): string {
   p = p || ''
-  if (process.platform == 'win32') {
+  if (process.platform === 'win32') {
     // convert slashes on Windows
     p = p.replace(/\//g, '\\')
 
@@ -131,7 +133,7 @@ function _normalizeSeparators(p: string): string {
 }
 
 function _startsWith(str: string, start: string): boolean {
-  return str.slice(0, start.length) == start
+  return str.slice(0, start.length) === start
 }
 
 // on Mac/Linux, test the execute bit
