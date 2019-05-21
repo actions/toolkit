@@ -1,5 +1,5 @@
-import fs = require('fs')
-import path = require('path')
+import * as fs from 'fs'
+import * as path from 'path'
 
 export function _removeDirectory(directoryPath: string) {
   if (fs.existsSync(directoryPath)) {

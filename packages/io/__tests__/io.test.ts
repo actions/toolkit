@@ -1,15 +1,14 @@
-import child = require('child_process')
-import fs = require('fs')
-import path = require('path')
-import os = require('os')
-
-import io = require('../src/io')
+import * as child from 'child_process'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
+import * as io from '../src/io'
 
 describe('cp', () => {
   it('copies file with no flags', async () => {
-    const root: string = path.join(getTestTemp(), 'cp_with_no_flags')
-    const sourceFile: string = path.join(root, 'cp_source')
-    const targetFile: string = path.join(root, 'cp_target')
+    const root = path.join(getTestTemp(), 'cp_with_no_flags')
+    const sourceFile = path.join(root, 'cp_source')
+    const targetFile = path.join(root, 'cp_target')
     await io.mkdirP(root)
     fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
 
