@@ -4,7 +4,6 @@ import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
-const IS_WINDOWS = process.platform === 'win32'
 const exec = promisify(childProcess.exec)
 
 /**
@@ -102,7 +101,7 @@ export async function mv(
  * @param inputPath path to remove
  */
 export async function rmRF(inputPath: string): Promise<void> {
-  if (IS_WINDOWS) {
+  if (ioUtil.IS_WINDOWS) {
     // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
     try {
@@ -233,7 +232,7 @@ export async function which(tool: string, check?: boolean): Promise<string> {
     const result: string = await which(tool, false)
 
     if (!result) {
-      if (IS_WINDOWS) {
+      if (ioUtil.IS_WINDOWS) {
         throw new Error(
           `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`
         )
@@ -248,7 +247,7 @@ export async function which(tool: string, check?: boolean): Promise<string> {
   try {
     // build the list of extensions to try
     const extensions: string[] = []
-    if (IS_WINDOWS && process.env.PATHEXT) {
+    if (ioUtil.IS_WINDOWS && process.env.PATHEXT) {
       for (const extension of process.env.PATHEXT.split(path.delimiter)) {
         if (extension) {
           extensions.push(extension)
@@ -271,7 +270,7 @@ export async function which(tool: string, check?: boolean): Promise<string> {
     }
 
     // if any path separators, return empty
-    if (tool.includes('/') || (IS_WINDOWS && tool.includes('\\'))) {
+    if (tool.includes('/') || (ioUtil.IS_WINDOWS && tool.includes('\\'))) {
       return ''
     }
 

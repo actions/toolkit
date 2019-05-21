@@ -1,6 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
+export const IS_WINDOWS = process.platform === 'win32'
+
 export async function exists(fsPath: string): Promise<boolean> {
   try {
     await fs.promises.stat(fsPath)
@@ -44,7 +46,7 @@ export function isRooted(p: string): boolean {
     throw new Error('isRooted() parameter "p" cannot be empty')
   }
 
-  if (process.platform === 'win32') {
+  if (IS_WINDOWS) {
     return (
       p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
     ) // e.g. C: or C:\hello
@@ -68,7 +70,7 @@ export async function tryGetExecutablePath(
     const stats = await fs.promises.stat(filePath)
 
     if (stats.isFile()) {
-      if (process.platform === 'win32') {
+      if (IS_WINDOWS) {
         // on Windows, test for valid extension
         const fileName = path.basename(filePath)
         const dotIndex = fileName.lastIndexOf('.')
@@ -103,7 +105,7 @@ export async function tryGetExecutablePath(
       const stats = await fs.promises.stat(filePath)
 
       if (stats.isFile()) {
-        if (process.platform === 'win32') {
+        if (IS_WINDOWS) {
           // preserve the case of the actual file (since an extension was appended)
           try {
             const directory = path.dirname(filePath)
@@ -143,7 +145,7 @@ export async function tryGetExecutablePath(
 
 function normalizeSeparators(p: string): string {
   p = p || ''
-  if (process.platform === 'win32') {
+  if (IS_WINDOWS) {
     // convert slashes on Windows
     p = p.replace(/\//g, '\\')
 
