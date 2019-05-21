@@ -20,7 +20,7 @@ export interface CopyOptions {
  * @param     dest      destination path
  * @param     options   optional. See CopyOptions.
  */
-export function cp(
+export async function cp(
   source: string,
   dest: string,
   options?: CopyOptions
@@ -75,7 +75,7 @@ export function cp(
  * @param     dest      destination path
  * @param     options   optional. See CopyOptions.
  */
-export function mv(
+export async function mv(
   source: string,
   dest: string,
   options?: CopyOptions
@@ -131,7 +131,7 @@ export function mv(
  *
  * @param     inputPath     path to remove
  */
-export function rmRF(inputPath: string): Promise<void> {
+export async function rmRF(inputPath: string): Promise<void> {
   return new Promise<void>(async (resolve, reject) => {
     if (process.platform === 'win32') {
       // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
@@ -199,7 +199,7 @@ export function rmRF(inputPath: string): Promise<void> {
  * @param     p       path to create
  * @returns   Promise<void>
  */
-export function mkdirP(p: string): Promise<void> {
+export async function mkdirP(p: string): Promise<void> {
   return new Promise<void>(async (resolve, reject) => {
     try {
       if (!p) {
@@ -209,6 +209,8 @@ export function mkdirP(p: string): Promise<void> {
       // build a stack of directories to create
       const stack: string[] = []
       let testDir: string = p
+
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         // validate the loop is not out of control
         if (stack.length >= (process.env['TEST_MKDIRP_FAILSAFE'] || 1000)) {
@@ -255,9 +257,10 @@ export function mkdirP(p: string): Promise<void> {
       }
 
       // create each directory
-      while (stack.length) {
-        const dir = stack.pop()! // non-null because `stack.length` was truthy
+      let dir = stack.pop()
+      while (dir != null) {
         fs.mkdirSync(dir)
+        dir = stack.pop()
       }
     } catch (err) {
       reject(err)
@@ -276,10 +279,10 @@ export function mkdirP(p: string): Promise<void> {
  * @param     check             whether to check if tool exists
  * @returns   Promise<string>   path to tool
  */
-export function which(tool: string, check?: boolean): Promise<string> {
+export async function which(tool: string, check?: boolean): Promise<string> {
   return new Promise<string>(async (resolve, reject) => {
     if (!tool) {
-      reject("parameter 'tool' is required")
+      reject(new Error("parameter 'tool' is required"))
       return
     }
 
@@ -289,11 +292,15 @@ export function which(tool: string, check?: boolean): Promise<string> {
       if (!result) {
         if (process.platform === 'win32') {
           reject(
-            `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`
+            new Error(
+              `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`
+            )
           )
         } else {
           reject(
-            `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`
+            new Error(
+              `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`
+            )
           )
         }
         return
@@ -303,8 +310,8 @@ export function which(tool: string, check?: boolean): Promise<string> {
     try {
       // build the list of extensions to try
       const extensions: string[] = []
-      if (process.platform === 'win32' && process.env['PATHEXT']) {
-        for (const extension of process.env['PATHEXT']!.split(path.delimiter)) {
+      if (process.platform === 'win32' && process.env.PATHEXT) {
+        for (const extension of process.env.PATHEXT.split(path.delimiter)) {
           if (extension) {
             extensions.push(extension)
           }
@@ -326,7 +333,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
       // if any path separators, return empty
       if (
         tool.includes('/') ||
-        (process.platform === 'win32' && tool.indexOf('\\') >= 0)
+        (process.platform === 'win32' && tool.includes('\\'))
       ) {
         resolve('')
         return
@@ -339,8 +346,9 @@ export function which(tool: string, check?: boolean): Promise<string> {
       // case of a shell, and the which() function exposed by the task lib should strive for consistency
       // across platforms.
       const directories: string[] = []
-      if (process.env['PATH']) {
-        for (const p of process.env['PATH']!.split(path.delimiter)) {
+
+      if (process.env.PATH) {
+        for (const p of process.env.PATH.split(path.delimiter)) {
           if (p) {
             directories.push(p)
           }
@@ -361,7 +369,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
 
       resolve('')
     } catch (err) {
-      reject(`which failed with message ${err.message}`)
+      reject(new Error(`which failed with message ${err.message}`))
     }
   })
 }
@@ -373,7 +381,7 @@ function copyDirectoryContents(
   dest: string,
   force: boolean,
   deleteOriginal = false
-) {
+): void {
   if (fs.lstatSync(source).isDirectory()) {
     if (fs.existsSync(dest)) {
       if (!fs.lstatSync(dest).isDirectory()) {
@@ -385,7 +393,8 @@ function copyDirectoryContents(
 
     // Copy all child files, and directories recursively
     const sourceChildren: string[] = fs.readdirSync(source)
-    sourceChildren.forEach(newSource => {
+
+    for (const newSource of sourceChildren) {
       const newDest = path.join(dest, path.basename(newSource))
       copyDirectoryContents(
         path.resolve(source, newSource),
@@ -393,7 +402,8 @@ function copyDirectoryContents(
         force,
         deleteOriginal
       )
-    })
+    }
+
     if (deleteOriginal) {
       fs.rmdirSync(source)
     }

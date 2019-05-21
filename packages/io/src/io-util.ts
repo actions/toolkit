@@ -1,16 +1,16 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-export function _removeDirectory(directoryPath: string) {
+export function _removeDirectory(directoryPath: string): void {
   if (fs.existsSync(directoryPath)) {
-    fs.readdirSync(directoryPath).forEach(fileName => {
+    for (const fileName of fs.readdirSync(directoryPath)) {
       const file = path.join(directoryPath, fileName)
       if (fs.lstatSync(file).isDirectory()) {
         _removeDirectory(file)
       } else {
         fs.unlinkSync(file)
       }
-    })
+    }
   }
   fs.rmdirSync(directoryPath)
 }
@@ -68,6 +68,7 @@ export function _tryGetExecutablePath(
     }
   } catch (err) {
     if (err.code !== 'ENOENT') {
+      // eslint-disable-next-line no-console
       console.log(
         `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
       )
@@ -77,7 +78,7 @@ export function _tryGetExecutablePath(
   // try each extension
   const originalFilePath = filePath
   for (const extension of extensions) {
-    let filePath = originalFilePath + extension
+    filePath = originalFilePath + extension
     try {
       const stats: fs.Stats = fs.statSync(filePath)
       if (stats.isFile()) {
@@ -93,6 +94,7 @@ export function _tryGetExecutablePath(
               }
             }
           } catch (err) {
+            // eslint-disable-next-line no-console
             console.log(
               `Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`
             )
@@ -107,6 +109,7 @@ export function _tryGetExecutablePath(
       }
     } catch (err) {
       if (err.code !== 'ENOENT') {
+        // eslint-disable-next-line no-console
         console.log(
           `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
         )
@@ -132,14 +135,10 @@ function _normalizeSeparators(p: string): string {
   return p.replace(/\/\/+/g, '/')
 }
 
-function _startsWith(str: string, start: string): boolean {
-  return str.startsWith(start)
-}
-
 // on Mac/Linux, test the execute bit
 //     R   W  X  R  W X R W X
 //   256 128 64 32 16 8 4 2 1
-function _isUnixExecutable(stats: fs.Stats) {
+function _isUnixExecutable(stats: fs.Stats): boolean {
   return (
     (stats.mode & 1) > 0 ||
     ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||

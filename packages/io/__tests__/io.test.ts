@@ -1,5 +1,5 @@
 import * as child from 'child_process'
-import * as fs from 'fs'
+import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
@@ -10,11 +10,11 @@ describe('cp', () => {
     const sourceFile = path.join(root, 'cp_source')
     const targetFile = path.join(root, 'cp_target')
     await io.mkdirP(root)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
 
     await io.cp(sourceFile, targetFile)
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
   })
@@ -24,11 +24,11 @@ describe('cp', () => {
     const sourceFile: string = path.join(root, 'cp_source')
     const targetFile: string = path.join(root, 'cp_target')
     await io.mkdirP(root)
-    fs.writeFileSync(sourceFile, 'test file content')
+    await fs.writeFile(sourceFile, 'test file content')
 
     await io.cp(sourceFile, targetFile, {recursive: false, force: true})
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
   })
@@ -38,8 +38,8 @@ describe('cp', () => {
     const sourceFile: string = path.join(root, 'cp_source')
     const targetFile: string = path.join(root, 'cp_target')
     await io.mkdirP(root)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
-    fs.writeFileSync(targetFile, 'correct content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(targetFile, 'correct content', {encoding: 'utf8'})
     let failed = false
     try {
       await io.cp(sourceFile, targetFile, {recursive: false, force: false})
@@ -48,7 +48,7 @@ describe('cp', () => {
     }
     expect(failed).toBe(true)
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'correct content'
     )
   })
@@ -65,11 +65,11 @@ describe('cp', () => {
       'cp_source_file'
     )
     await io.mkdirP(sourceFolder)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.mkdirP(targetFolder)
     await io.cp(sourceFolder, targetFolder, {recursive: true})
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
   })
@@ -82,10 +82,10 @@ describe('cp', () => {
     const targetFolder: string = path.join(root, 'cp_target')
     const targetFile: string = path.join(targetFolder, 'cp_source_file')
     await io.mkdirP(sourceFolder)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.cp(sourceFolder, targetFolder, {recursive: true})
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
   })
@@ -102,7 +102,7 @@ describe('cp', () => {
       'cp_source_file'
     )
     await io.mkdirP(sourceFolder)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
 
     let thrown = false
     try {
@@ -111,24 +111,24 @@ describe('cp', () => {
       thrown = true
     }
     expect(thrown).toBe(true)
-    expect(fs.existsSync(targetFile)).toBe(false)
+    await assertNotExists(targetFile)
   })
 })
 
 describe('mv', () => {
   it('moves file with no flags', async () => {
-    const root: string = path.join(getTestTemp(), ' mv_with_no_flags')
-    const sourceFile: string = path.join(root, ' mv_source')
-    const targetFile: string = path.join(root, ' mv_target')
+    const root = path.join(getTestTemp(), ' mv_with_no_flags')
+    const sourceFile = path.join(root, ' mv_source')
+    const targetFile = path.join(root, ' mv_target')
     await io.mkdirP(root)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
 
     await io.mv(sourceFile, targetFile)
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
-    expect(fs.existsSync(sourceFile)).toBe(false)
+    await assertNotExists(sourceFile)
   })
 
   it('moves file using -f', async () => {
@@ -136,14 +136,15 @@ describe('mv', () => {
     const sourceFile: string = path.join(root, ' mv_source')
     const targetFile: string = path.join(root, ' mv_target')
     await io.mkdirP(root)
-    fs.writeFileSync(sourceFile, 'test file content')
+    await fs.writeFile(sourceFile, 'test file content')
 
     await io.mv(sourceFile, targetFile)
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
-    expect(fs.existsSync(sourceFile)).toBe(false)
+
+    await assertNotExists(sourceFile)
   })
 
   it('try moving to existing file with -n', async () => {
@@ -151,8 +152,8 @@ describe('mv', () => {
     const sourceFile: string = path.join(root, ' mv_source')
     const targetFile: string = path.join(root, ' mv_target')
     await io.mkdirP(root)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
-    fs.writeFileSync(targetFile, 'correct content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(targetFile, 'correct content', {encoding: 'utf8'})
     let failed = false
     try {
       await io.mv(sourceFile, targetFile, {force: false})
@@ -161,10 +162,10 @@ describe('mv', () => {
     }
     expect(failed).toBe(true)
 
-    expect(fs.readFileSync(sourceFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(sourceFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'correct content'
     )
   })
@@ -181,14 +182,14 @@ describe('mv', () => {
       ' mv_source_file'
     )
     await io.mkdirP(sourceFolder)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.mkdirP(targetFolder)
     await io.mv(sourceFolder, targetFolder, {recursive: true})
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
-    expect(fs.existsSync(sourceFile)).toBe(false)
+    await assertNotExists(sourceFile)
   })
 
   it('moves directory into non-existing destination with -r', async () => {
@@ -202,13 +203,13 @@ describe('mv', () => {
     const targetFolder: string = path.join(root, ' mv_target')
     const targetFile: string = path.join(targetFolder, ' mv_source_file')
     await io.mkdirP(sourceFolder)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.mv(sourceFolder, targetFolder, {recursive: true})
 
-    expect(fs.readFileSync(targetFile, {encoding: 'utf8'})).toBe(
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
-    expect(fs.existsSync(sourceFile)).toBe(false)
+    await assertNotExists(sourceFile)
   })
 
   it('tries to move directory without -r', async () => {
@@ -223,7 +224,7 @@ describe('mv', () => {
       'mv_source_file'
     )
     await io.mkdirP(sourceFolder)
-    fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
 
     let thrown = false
     try {
@@ -233,8 +234,8 @@ describe('mv', () => {
     }
 
     expect(thrown).toBe(true)
-    expect(fs.existsSync(sourceFile)).toBe(true)
-    expect(fs.existsSync(targetFile)).toBe(false)
+    await assertExists(sourceFile)
+    await assertNotExists(targetFile)
   })
 })
 
@@ -243,10 +244,10 @@ describe('rmRF', () => {
     const testPath = path.join(getTestTemp(), 'testFolder')
 
     await io.mkdirP(testPath)
-    expect(fs.existsSync(testPath)).toBe(true)
+    await assertExists(testPath)
 
     await io.rmRF(testPath)
-    expect(fs.existsSync(testPath)).toBe(false)
+    await assertNotExists(testPath)
   })
 
   it('removes recursive folders with rmRF', async () => {
@@ -254,75 +255,78 @@ describe('rmRF', () => {
     const testPath2 = path.join(testPath, 'testDir2')
     await io.mkdirP(testPath2)
 
-    expect(fs.existsSync(testPath)).toBe(true)
-    expect(fs.existsSync(testPath2)).toBe(true)
+    await assertExists(testPath)
+    await assertExists(testPath2)
 
     await io.rmRF(testPath)
-    expect(fs.existsSync(testPath)).toBe(false)
-    expect(fs.existsSync(testPath2)).toBe(false)
+    await assertNotExists(testPath)
+    await assertNotExists(testPath2)
   })
 
   it('removes folder with locked file with rmRF', async () => {
     const testPath = path.join(getTestTemp(), 'testFolder')
     await io.mkdirP(testPath)
-    expect(fs.existsSync(testPath)).toBe(true)
+    await assertExists(testPath)
 
     // can't remove folder with locked file on windows
     const filePath = path.join(testPath, 'file.txt')
-    fs.appendFileSync(filePath, 'some data')
-    expect(fs.existsSync(filePath)).toBe(true)
+    await fs.appendFile(filePath, 'some data')
+    await assertExists(filePath)
 
-    const fd = fs.openSync(filePath, 'r')
+    const fd = await fs.open(filePath, 'r')
 
-    let worked = false
+    let worked: boolean
+
     try {
       await io.rmRF(testPath)
       worked = true
-    } catch (err) {}
+    } catch (err) {
+      worked = false
+    }
 
     if (os.platform() === 'win32') {
       expect(worked).toBe(false)
-      expect(fs.existsSync(testPath)).toBe(true)
+      await assertExists(testPath)
     } else {
       expect(worked).toBe(true)
-      expect(fs.existsSync(testPath)).toBe(false)
+      await assertNotExists(testPath)
     }
 
-    fs.closeSync(fd)
+    await fd.close()
     await io.rmRF(testPath)
-    expect(fs.existsSync(testPath)).toBe(false)
+    await assertNotExists(testPath)
   })
 
   it('removes folder that doesnt exist with rmRF', async () => {
     const testPath = path.join(getTestTemp(), 'testFolder')
-    expect(fs.existsSync(testPath)).toBe(false)
+    await assertNotExists(testPath)
 
     await io.rmRF(testPath)
-    expect(fs.existsSync(testPath)).toBe(false)
+    await assertNotExists(testPath)
   })
 
   it('removes file with rmRF', async () => {
     const file: string = path.join(getTestTemp(), 'rmRF_file')
-    fs.writeFileSync(file, 'test file content')
-    expect(fs.existsSync(file)).toBe(true)
+    await fs.writeFile(file, 'test file content')
+    await assertExists(file)
     await io.rmRF(file)
-    expect(fs.existsSync(file)).toBe(false)
+    await assertNotExists(file)
   })
 
   it('removes hidden folder with rmRF', async () => {
     const directory: string = path.join(getTestTemp(), '.rmRF_directory')
     await createHiddenDirectory(directory)
-    expect(fs.existsSync(directory)).toBe(true)
+    await assertExists(directory)
     await io.rmRF(directory)
-    expect(fs.existsSync(directory)).toBe(false)
+    await assertNotExists(directory)
   })
 
   it('removes hidden file with rmRF', async () => {
     const file: string = path.join(getTestTemp(), '.rmRF_file')
-    fs.writeFileSync(file, 'test file content')
-    expect(fs.existsSync(file)).toBe(true)
+    await fs.writeFile(file, 'test file content')
+    await assertExists(file)
     await io.rmRF(file)
-    expect(fs.existsSync(file)).toBe(false)
+    await assertNotExists(file)
   })
 
   it('removes symlink folder with rmRF', async () => {
@@ -335,14 +339,14 @@ describe('rmRF', () => {
     const realFile: string = path.join(root, 'real_directory', 'real_file')
     const symlinkDirectory: string = path.join(root, 'symlink_directory')
     await io.mkdirP(realDirectory)
-    fs.writeFileSync(realFile, 'test file content')
-    createSymlinkDir(realDirectory, symlinkDirectory)
-    expect(fs.existsSync(path.join(symlinkDirectory, 'real_file'))).toBe(true)
+    await fs.writeFile(realFile, 'test file content')
+    await createSymlinkDir(realDirectory, symlinkDirectory)
+    await assertExists(path.join(symlinkDirectory, 'real_file'))
 
     await io.rmRF(symlinkDirectory)
-    expect(fs.existsSync(realDirectory)).toBe(true)
-    expect(fs.existsSync(realFile)).toBe(true)
-    expect(fs.existsSync(symlinkDirectory)).toBe(false)
+    await assertExists(realDirectory)
+    await assertExists(realFile)
+    await assertNotExists(symlinkDirectory)
   })
 
   // creating a symlink to a file on Windows requires elevated
@@ -355,15 +359,15 @@ describe('rmRF', () => {
       const realFile: string = path.join(root, 'real_file')
       const symlinkFile: string = path.join(root, 'symlink_file')
       await io.mkdirP(root)
-      fs.writeFileSync(realFile, 'test file content')
-      fs.symlinkSync(realFile, symlinkFile)
-      expect(fs.readFileSync(symlinkFile, {encoding: 'utf8'})).toBe(
+      await fs.writeFile(realFile, 'test file content')
+      await fs.symlink(realFile, symlinkFile)
+      expect(await fs.readFile(symlinkFile, {encoding: 'utf8'})).toBe(
         'test file content'
       )
 
       await io.rmRF(symlinkFile)
-      expect(fs.existsSync(realFile)).toBe(true)
-      expect(fs.existsSync(symlinkFile)).toBe(false)
+      await assertExists(realFile)
+      await assertNotExists(symlinkFile)
     })
 
     it('removes symlink file with missing source using rmRF', async () => {
@@ -377,21 +381,21 @@ describe('rmRF', () => {
       const realFile: string = path.join(root, 'real_file')
       const symlinkFile: string = path.join(root, 'symlink_file')
       await io.mkdirP(root)
-      fs.writeFileSync(realFile, 'test file content')
-      fs.symlinkSync(realFile, symlinkFile)
-      expect(fs.readFileSync(symlinkFile, {encoding: 'utf8'})).toBe(
+      await fs.writeFile(realFile, 'test file content')
+      await fs.symlink(realFile, symlinkFile)
+      expect(await fs.readFile(symlinkFile, {encoding: 'utf8'})).toBe(
         'test file content'
       )
 
       // remove the real file
-      fs.unlinkSync(realFile)
-      expect(fs.lstatSync(symlinkFile).isSymbolicLink()).toBe(true)
+      await fs.unlink(realFile)
+      expect((await fs.lstat(symlinkFile)).isSymbolicLink()).toBe(true)
 
       // remove the symlink file
       await io.rmRF(symlinkFile)
       let errcode = ''
       try {
-        fs.lstatSync(symlinkFile)
+        await fs.lstat(symlinkFile)
       } catch (err) {
         errcode = err.code
       }
@@ -412,17 +416,17 @@ describe('rmRF', () => {
       const symlinkFile: string = path.join(root, 'symlink_file')
       const symlinkLevel2File: string = path.join(root, 'symlink_level_2_file')
       await io.mkdirP(root)
-      fs.writeFileSync(realFile, 'test file content')
-      fs.symlinkSync(realFile, symlinkFile)
-      fs.symlinkSync(symlinkFile, symlinkLevel2File)
-      expect(fs.readFileSync(symlinkLevel2File, {encoding: 'utf8'})).toBe(
+      await fs.writeFile(realFile, 'test file content')
+      await fs.symlink(realFile, symlinkFile)
+      await fs.symlink(symlinkFile, symlinkLevel2File)
+      expect(await fs.readFile(symlinkLevel2File, {encoding: 'utf8'})).toBe(
         'test file content'
       )
 
       await io.rmRF(symlinkLevel2File)
-      expect(fs.existsSync(realFile)).toBe(true)
-      expect(fs.existsSync(symlinkFile)).toBe(true)
-      expect(fs.existsSync(symlinkLevel2File)).toBe(false)
+      await assertExists(realFile)
+      await assertExists(symlinkFile)
+      await assertNotExists(symlinkLevel2File)
     })
 
     it('removes nested symlink file with rmRF', async () => {
@@ -441,18 +445,18 @@ describe('rmRF', () => {
         'symlink_file'
       )
       await io.mkdirP(realDirectory)
-      fs.writeFileSync(realFile, 'test file content')
+      await fs.writeFile(realFile, 'test file content')
       await io.mkdirP(outerDirectory)
-      fs.symlinkSync(realFile, symlinkFile)
-      expect(fs.readFileSync(symlinkFile, {encoding: 'utf8'})).toBe(
+      await fs.symlink(realFile, symlinkFile)
+      expect(await fs.readFile(symlinkFile, {encoding: 'utf8'})).toBe(
         'test file content'
       )
 
       await io.rmRF(outerDirectory)
-      expect(fs.existsSync(realDirectory)).toBe(true)
-      expect(fs.existsSync(realFile)).toBe(true)
-      expect(fs.existsSync(symlinkFile)).toBe(false)
-      expect(fs.existsSync(outerDirectory)).toBe(false)
+      await assertExists(realDirectory)
+      await assertExists(realFile)
+      await assertNotExists(symlinkFile)
+      await assertNotExists(outerDirectory)
     })
 
     it('removes deeply nested symlink file with rmRF', async () => {
@@ -481,18 +485,18 @@ describe('rmRF', () => {
         'symlink_file'
       )
       await io.mkdirP(realDirectory)
-      fs.writeFileSync(realFile, 'test file content')
+      await fs.writeFile(realFile, 'test file content')
       await io.mkdirP(nestedDirectory)
-      fs.symlinkSync(realFile, symlinkFile)
-      expect(fs.readFileSync(symlinkFile, {encoding: 'utf8'})).toBe(
+      await fs.symlink(realFile, symlinkFile)
+      expect(await fs.readFile(symlinkFile, {encoding: 'utf8'})).toBe(
         'test file content'
       )
 
       await io.rmRF(outerDirectory)
-      expect(fs.existsSync(realDirectory)).toBe(true)
-      expect(fs.existsSync(realFile)).toBe(true)
-      expect(fs.existsSync(symlinkFile)).toBe(false)
-      expect(fs.existsSync(outerDirectory)).toBe(false)
+      await assertExists(realDirectory)
+      await assertExists(realFile)
+      await assertNotExists(symlinkFile)
+      await assertNotExists(outerDirectory)
     })
   }
 
@@ -506,16 +510,16 @@ describe('rmRF', () => {
     const realFile: string = path.join(root, 'real_directory', 'real_file')
     const symlinkDirectory: string = path.join(root, 'symlink_directory')
     await io.mkdirP(realDirectory)
-    fs.writeFileSync(realFile, 'test file content')
-    createSymlinkDir(realDirectory, symlinkDirectory)
-    expect(fs.existsSync(symlinkDirectory)).toBe(true)
+    await fs.writeFile(realFile, 'test file content')
+    await createSymlinkDir(realDirectory, symlinkDirectory)
+    await assertExists(symlinkDirectory)
 
     // remove the real directory
-    fs.unlinkSync(realFile)
-    fs.rmdirSync(realDirectory)
+    await fs.unlink(realFile)
+    await fs.rmdir(realDirectory)
     let errcode = ''
     try {
-      fs.statSync(symlinkDirectory)
+      await fs.stat(symlinkDirectory)
     } catch (err) {
       errcode = err.code
     }
@@ -523,13 +527,13 @@ describe('rmRF', () => {
     expect(errcode).toBe('ENOENT')
 
     // lstat shouldn't throw
-    fs.lstatSync(symlinkDirectory)
+    await fs.lstat(symlinkDirectory)
 
     // remove the symlink directory
     await io.rmRF(symlinkDirectory)
     errcode = ''
     try {
-      fs.lstatSync(symlinkDirectory)
+      await fs.lstat(symlinkDirectory)
     } catch (err) {
       errcode = err.code
     }
@@ -555,25 +559,25 @@ describe('rmRF', () => {
       'symlink_level_2_directory'
     )
     await io.mkdirP(realDirectory)
-    fs.writeFileSync(realFile, 'test file content')
-    createSymlinkDir(realDirectory, symlinkDirectory)
-    createSymlinkDir(symlinkDirectory, symlinkLevel2Directory)
+    await fs.writeFile(realFile, 'test file content')
+    await createSymlinkDir(realDirectory, symlinkDirectory)
+    await createSymlinkDir(symlinkDirectory, symlinkLevel2Directory)
     expect(
-      fs.readFileSync(path.join(symlinkDirectory, 'real_file'), {
+      await fs.readFile(path.join(symlinkDirectory, 'real_file'), {
         encoding: 'utf8'
       })
     ).toBe('test file content')
     if (os.platform() === 'win32') {
-      expect(fs.readlinkSync(symlinkLevel2Directory)).toBe(
+      expect(await fs.readlink(symlinkLevel2Directory)).toBe(
         `${symlinkDirectory}\\`
       )
     } else {
-      expect(fs.readlinkSync(symlinkLevel2Directory)).toBe(symlinkDirectory)
+      expect(await fs.readlink(symlinkLevel2Directory)).toBe(symlinkDirectory)
     }
 
     await io.rmRF(symlinkLevel2Directory)
-    expect(fs.existsSync(path.join(symlinkDirectory, 'real_file'))).toBe(true)
-    expect(fs.existsSync(symlinkLevel2Directory)).toBe(false)
+    await assertExists(path.join(symlinkDirectory, 'real_file'))
+    await assertNotExists(symlinkLevel2Directory)
   })
 
   it('removes nested symlink folder with rmRF', async () => {
@@ -592,16 +596,16 @@ describe('rmRF', () => {
       'symlink_directory'
     )
     await io.mkdirP(realDirectory)
-    fs.writeFileSync(realFile, 'test file content')
+    await fs.writeFile(realFile, 'test file content')
     await io.mkdirP(outerDirectory)
-    createSymlinkDir(realDirectory, symlinkDirectory)
-    expect(fs.existsSync(path.join(symlinkDirectory, 'real_file'))).toBe(true)
+    await createSymlinkDir(realDirectory, symlinkDirectory)
+    await assertExists(path.join(symlinkDirectory, 'real_file'))
 
     await io.rmRF(outerDirectory)
-    expect(fs.existsSync(realDirectory)).toBe(true)
-    expect(fs.existsSync(realFile)).toBe(true)
-    expect(fs.existsSync(symlinkDirectory)).toBe(false)
-    expect(fs.existsSync(outerDirectory)).toBe(false)
+    await assertExists(realDirectory)
+    await assertExists(realFile)
+    await assertNotExists(symlinkDirectory)
+    await assertNotExists(outerDirectory)
   })
 
   it('removes deeply nested symlink folder with rmRF', async () => {
@@ -627,25 +631,25 @@ describe('rmRF', () => {
       'symlink_directory'
     )
     await io.mkdirP(realDirectory)
-    fs.writeFileSync(realFile, 'test file content')
+    await fs.writeFile(realFile, 'test file content')
     await io.mkdirP(nestedDirectory)
-    createSymlinkDir(realDirectory, symlinkDirectory)
-    expect(fs.existsSync(path.join(symlinkDirectory, 'real_file'))).toBe(true)
+    await createSymlinkDir(realDirectory, symlinkDirectory)
+    await assertExists(path.join(symlinkDirectory, 'real_file'))
 
     await io.rmRF(outerDirectory)
-    expect(fs.existsSync(realDirectory)).toBe(true)
-    expect(fs.existsSync(realFile)).toBe(true)
-    expect(fs.existsSync(symlinkDirectory)).toBe(false)
-    expect(fs.existsSync(outerDirectory)).toBe(false)
+    await assertExists(realDirectory)
+    await assertExists(realFile)
+    await assertNotExists(symlinkDirectory)
+    await assertNotExists(outerDirectory)
   })
 
   it('removes hidden file with rmRF', async () => {
     const file: string = path.join(getTestTemp(), '.rmRF_file')
     await io.mkdirP(path.dirname(file))
     await createHiddenFile(file, 'test file content')
-    expect(fs.existsSync(file)).toBe(true)
+    await assertExists(file)
     await io.rmRF(file)
-    expect(fs.existsSync(file)).toBe(false)
+    await assertNotExists(file)
   })
 })
 
@@ -658,14 +662,14 @@ describe('mkdirP', () => {
     const testPath = path.join(getTestTemp(), 'mkdirTest')
     await io.mkdirP(testPath)
 
-    expect(fs.existsSync(testPath)).toBe(true)
+    await assertExists(testPath)
   })
 
   it('creates nested folders with mkdirP', async () => {
     const testPath = path.join(getTestTemp(), 'mkdir1', 'mkdir2')
     await io.mkdirP(testPath)
 
-    expect(fs.existsSync(testPath)).toBe(true)
+    await assertExists(testPath)
   })
 
   it('fails if mkdirP with illegal chars', async () => {
@@ -675,18 +679,23 @@ describe('mkdirP', () => {
       await io.mkdirP(testPath)
       worked = true
     } catch (err) {
-      expect(fs.existsSync(testPath)).toBe(false)
+      await expect(fs.stat(testPath)).rejects.toHaveProperty(
+        'code',
+        'ERR_INVALID_ARG_VALUE'
+      )
     }
 
     expect(worked).toBe(false)
   })
 
   it('fails if mkdirP with empty path', async () => {
-    let worked = false
+    let worked: boolean
     try {
       await io.mkdirP('')
       worked = true
-    } catch (err) {}
+    } catch (err) {
+      worked = false
+    }
 
     expect(worked).toBe(false)
   })
@@ -694,12 +703,14 @@ describe('mkdirP', () => {
   it('fails if mkdirP with conflicting file path', async () => {
     const testPath = path.join(getTestTemp(), 'mkdirP_conflicting_file_path')
     await io.mkdirP(getTestTemp())
-    fs.writeFileSync(testPath, '')
-    let worked = false
+    await fs.writeFile(testPath, '')
+    let worked: boolean
     try {
       await io.mkdirP(testPath)
       worked = true
-    } catch (err) {}
+    } catch (err) {
+      worked = false
+    }
 
     expect(worked).toBe(false)
   })
@@ -711,12 +722,14 @@ describe('mkdirP', () => {
       'dir'
     )
     await io.mkdirP(getTestTemp())
-    fs.writeFileSync(path.dirname(testPath), '')
-    let worked = false
+    await fs.writeFile(path.dirname(testPath), '')
+    let worked: boolean
     try {
       await io.mkdirP(testPath)
       worked = true
-    } catch (err) {}
+    } catch (err) {
+      worked = false
+    }
 
     expect(worked).toBe(false)
   })
@@ -724,11 +737,11 @@ describe('mkdirP', () => {
   it('no-ops if mkdirP directory exists', async () => {
     const testPath = path.join(getTestTemp(), 'mkdirP_dir_exists')
     await io.mkdirP(testPath)
-    expect(fs.existsSync(testPath)).toBe(true)
+    await assertExists(testPath)
 
     // Calling again shouldn't throw
     await io.mkdirP(testPath)
-    expect(fs.existsSync(testPath)).toBe(true)
+    await assertExists(testPath)
   })
 
   it('no-ops if mkdirP with symlink directory', async () => {
@@ -741,18 +754,18 @@ describe('mkdirP', () => {
     const realFilePath = path.join(realDirPath, 'file.txt')
     const symlinkDirPath = path.join(rootPath, 'symlink_dir')
     await io.mkdirP(getTestTemp())
-    fs.mkdirSync(rootPath)
-    fs.mkdirSync(realDirPath)
-    fs.writeFileSync(realFilePath, 'test real_dir/file.txt contet')
-    createSymlinkDir(realDirPath, symlinkDirPath)
+    await fs.mkdir(rootPath)
+    await fs.mkdir(realDirPath)
+    await fs.writeFile(realFilePath, 'test real_dir/file.txt contet')
+    await createSymlinkDir(realDirPath, symlinkDirPath)
 
     await io.mkdirP(symlinkDirPath)
 
     // the file in the real directory should still be accessible via the symlink
-    expect(fs.lstatSync(symlinkDirPath).isSymbolicLink()).toBe(true)
-    expect(fs.statSync(path.join(symlinkDirPath, 'file.txt')).isFile()).toBe(
-      true
-    )
+    expect((await fs.lstat(symlinkDirPath)).isSymbolicLink()).toBe(true)
+    expect(
+      (await fs.stat(path.join(symlinkDirPath, 'file.txt'))).isFile()
+    ).toBe(true)
   })
 
   it('no-ops if mkdirP with parent symlink directory', async () => {
@@ -765,18 +778,18 @@ describe('mkdirP', () => {
     const realFilePath = path.join(realDirPath, 'file.txt')
     const symlinkDirPath = path.join(rootPath, 'symlink_dir')
     await io.mkdirP(getTestTemp())
-    fs.mkdirSync(rootPath)
-    fs.mkdirSync(realDirPath)
-    fs.writeFileSync(realFilePath, 'test real_dir/file.txt contet')
-    createSymlinkDir(realDirPath, symlinkDirPath)
+    await fs.mkdir(rootPath)
+    await fs.mkdir(realDirPath)
+    await fs.writeFile(realFilePath, 'test real_dir/file.txt contet')
+    await createSymlinkDir(realDirPath, symlinkDirPath)
 
     const subDirPath = path.join(symlinkDirPath, 'sub_dir')
     await io.mkdirP(subDirPath)
 
     // the subdirectory should be accessible via the real directory
-    expect(fs.lstatSync(path.join(realDirPath, 'sub_dir')).isDirectory()).toBe(
-      true
-    )
+    expect(
+      (await fs.lstat(path.join(realDirPath, 'sub_dir'))).isDirectory()
+    ).toBe(true)
   })
 
   it('breaks if mkdirP loop out of control', async () => {
@@ -818,7 +831,7 @@ describe('which', () => {
     }
 
     const filePath = path.join(testPath, fileName)
-    fs.writeFileSync(filePath, '')
+    await fs.writeFile(filePath, '')
     if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
@@ -826,7 +839,7 @@ describe('which', () => {
     const originalPath = process.env['PATH']
     try {
       // update the PATH
-      process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
+      process.env['PATH'] = `${process.env['PATH']}${path.delimiter}${testPath}`
 
       // exact file name
       expect(await io.which(fileName)).toBe(filePath)
@@ -865,7 +878,7 @@ describe('which', () => {
         )
       } else {
         // case sensitive on Linux
-        expect((await io.which(fileName.toUpperCase())) || '').toBe('')
+        expect(await io.which(fileName.toUpperCase())).toBe('')
       }
     } finally {
       process.env['PATH'] = originalPath
@@ -875,10 +888,9 @@ describe('which', () => {
   it('which() not found', async () => {
     expect(await io.which('which-test-no-such-file')).toBe('')
     expect(await io.which('which-test-no-such-file', false)).toBe('')
-    try {
-      await io.which('which-test-no-such-file', true)
-      throw new Error('Should have thrown')
-    } catch (err) {}
+    await expect(
+      io.which('which-test-no-such-file', true)
+    ).rejects.toBeDefined()
   })
 
   it('which() searches path in order', async () => {
@@ -893,7 +905,7 @@ describe('which', () => {
     }
 
     const filePath = path.join(testPath, fileName)
-    fs.writeFileSync(filePath, '')
+    await fs.writeFile(filePath, '')
     if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
@@ -905,7 +917,7 @@ describe('which', () => {
       expect(!!(originalWhich || '')).toBe(true)
 
       // modify PATH
-      process.env['PATH'] = testPath + path.delimiter + process.env['PATH']
+      process.env['PATH'] = [testPath, process.env.PATH].join(path.delimiter)
 
       // override chcp.com/bash should be found
       expect(await io.which(fileName)).toBe(filePath)
@@ -926,7 +938,7 @@ describe('which', () => {
     }
 
     const filePath = path.join(testPath, fileName)
-    fs.writeFileSync(filePath, '')
+    await fs.writeFile(filePath, '')
     if (process.platform !== 'win32') {
       chmod(filePath, '-x')
     }
@@ -934,10 +946,10 @@ describe('which', () => {
     const originalPath = process.env['PATH']
     try {
       // modify PATH
-      process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
+      process.env['PATH'] = [process.env['PATH'], testPath].join(path.delimiter)
 
       // should not be found
-      expect((await io.which(fileName)) || '').toBe('')
+      expect(await io.which(fileName)).toBe('')
     } finally {
       process.env['PATH'] = originalPath
     }
@@ -966,10 +978,10 @@ describe('which', () => {
     const originalPath = process.env['PATH']
     try {
       // modify PATH
-      process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
+      process.env['PATH'] = [process.env['PATH'], testPath].join(path.delimiter)
 
       // should not be found
-      expect((await io.which(path.basename(dirPath))) || '').toBe('')
+      expect(await io.which(path.basename(dirPath))).toBe('')
     } finally {
       process.env['PATH'] = originalPath
     }
@@ -984,7 +996,7 @@ describe('which', () => {
       filePath += '.exe'
     }
 
-    fs.writeFileSync(filePath, '')
+    await fs.writeFile(filePath, '')
     if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
@@ -1009,14 +1021,14 @@ describe('which', () => {
       filePath += '.abc' // not a valid PATHEXT
     }
 
-    fs.writeFileSync(filePath, '')
+    await fs.writeFile(filePath, '')
     if (process.platform !== 'win32') {
       chmod(filePath, '-x')
     }
 
     // should not be found
-    expect((await io.which(filePath)) || '').toBe('')
-    expect((await io.which(filePath, false)) || '').toBe('')
+    expect(await io.which(filePath)).toBe('')
+    expect(await io.which(filePath, false)).toBe('')
     let failed = false
     try {
       await io.which(filePath, true)
@@ -1044,8 +1056,8 @@ describe('which', () => {
     }
 
     // should not be found
-    expect((await io.which(dirPath)) || '').toBe('')
-    expect((await io.which(dirPath, false)) || '').toBe('')
+    expect(await io.which(dirPath)).toBe('')
+    expect(await io.which(dirPath, false)).toBe('')
     let failed = false
     try {
       await io.which(dirPath, true)
@@ -1062,8 +1074,8 @@ describe('which', () => {
       filePath += '.exe'
     }
 
-    expect((await io.which(filePath)) || '').toBe('')
-    expect((await io.which(filePath, false)) || '').toBe('')
+    expect(await io.which(filePath)).toBe('')
+    expect(await io.which(filePath, false)).toBe('')
     let failed = false
     try {
       await io.which(filePath, true)
@@ -1085,7 +1097,7 @@ describe('which', () => {
     }
 
     const filePath = path.join(testPath, fileName)
-    fs.writeFileSync(filePath, '')
+    await fs.writeFile(filePath, '')
     if (process.platform !== 'win32') {
       chmod(filePath, '+x')
     }
@@ -1093,14 +1105,14 @@ describe('which', () => {
     const originalPath = process.env['PATH']
     try {
       // modify PATH
-      process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
+      process.env['PATH'] = [process.env['PATH'], testPath].join(path.delimiter)
 
       // which "dir/file", should not be found
-      expect((await io.which(`${testDirName}/${fileName}`)) || '').toBe('')
+      expect(await io.which(`${testDirName}/${fileName}`)).toBe('')
 
       // on Windows, also try "dir\file"
       if (process.platform === 'win32') {
-        expect((await io.which(`${testDirName}\\${fileName}`)) || '').toBe('')
+        expect(await io.which(`${testDirName}\\${fileName}`)).toBe('')
       }
     } finally {
       process.env['PATH'] = originalPath
@@ -1133,13 +1145,15 @@ describe('which', () => {
         )
       }
       for (const fileName of Object.keys(files)) {
-        fs.writeFileSync(files[fileName], '')
+        await fs.writeFile(files[fileName], '')
       }
 
       const originalPath = process.env['PATH']
       try {
         // modify PATH
-        process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
+        process.env['PATH'] = `${process.env['PATH']}${
+          path.delimiter
+        }${testPath}`
 
         // find each file
         for (const fileName of Object.keys(files)) {
@@ -1180,7 +1194,7 @@ describe('which', () => {
         'which-test-file-5.txt.com'
       )
       for (const fileName of Object.keys(files)) {
-        fs.writeFileSync(files[fileName], '')
+        await fs.writeFile(files[fileName], '')
       }
 
       // find each file
@@ -1206,11 +1220,13 @@ describe('which', () => {
       const fileName = 'which-test-file.bat'
       const expectedFilePath = path.join(testPath, fileName)
       const notExpectedFilePath = path.join(testPath, `${fileName}.exe`)
-      fs.writeFileSync(expectedFilePath, '')
-      fs.writeFileSync(notExpectedFilePath, '')
+      await fs.writeFile(expectedFilePath, '')
+      await fs.writeFile(notExpectedFilePath, '')
       const originalPath = process.env['PATH']
       try {
-        process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
+        process.env['PATH'] = `${process.env['PATH']}${
+          path.delimiter
+        }${testPath}`
         expect(await io.which(fileName)).toBe(expectedFilePath)
       } finally {
         process.env['PATH'] = originalPath
@@ -1234,8 +1250,8 @@ describe('which', () => {
       const fileName = 'which-test-file.bat'
       const expectedFilePath = path.join(testPath, fileName)
       const notExpectedFilePath = path.join(testPath, `${fileName}.exe`)
-      fs.writeFileSync(expectedFilePath, '')
-      fs.writeFileSync(notExpectedFilePath, '')
+      await fs.writeFile(expectedFilePath, '')
+      await fs.writeFile(notExpectedFilePath, '')
       expect(await io.which(path.join(testPath, fileName))).toBe(
         expectedFilePath
       )
@@ -1249,19 +1265,19 @@ describe('which', () => {
       const fileNameWithoutExtension = 'which-test-file'
       const comTestPath = path.join(testPath, 'com-test')
       await io.mkdirP(comTestPath)
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(comTestPath, `${fileNameWithoutExtension}.com`),
         ''
       )
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(comTestPath, `${fileNameWithoutExtension}.exe`),
         ''
       )
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(comTestPath, `${fileNameWithoutExtension}.bat`),
         ''
       )
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(comTestPath, `${fileNameWithoutExtension}.cmd`),
         ''
       )
@@ -1270,15 +1286,15 @@ describe('which', () => {
       // PATHEXT=.COM;.EXE;.BAT;.CMD...
       const exeTestPath = path.join(testPath, 'exe-test')
       await io.mkdirP(exeTestPath)
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(exeTestPath, `${fileNameWithoutExtension}.exe`),
         ''
       )
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(exeTestPath, `${fileNameWithoutExtension}.bat`),
         ''
       )
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(exeTestPath, `${fileNameWithoutExtension}.cmd`),
         ''
       )
@@ -1287,11 +1303,11 @@ describe('which', () => {
       // PATHEXT=.COM;.EXE;.BAT;.CMD...
       const batTestPath = path.join(testPath, 'bat-test')
       await io.mkdirP(batTestPath)
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(batTestPath, `${fileNameWithoutExtension}.bat`),
         ''
       )
-      fs.writeFileSync(
+      await fs.writeFile(
         path.join(batTestPath, `${fileNameWithoutExtension}.cmd`),
         ''
       )
@@ -1299,34 +1315,34 @@ describe('which', () => {
       // create a directory for testing .CMD
       const cmdTestPath = path.join(testPath, 'cmd-test')
       await io.mkdirP(cmdTestPath)
-      const cmdTest_cmdFilePath = path.join(
+      const cmdFilePath = path.join(
         cmdTestPath,
         `${fileNameWithoutExtension}.cmd`
       )
-      fs.writeFileSync(cmdTest_cmdFilePath, '')
+      await fs.writeFile(cmdFilePath, '')
 
       const originalPath = process.env['PATH']
       try {
         // test .COM
-        process.env['PATH'] = comTestPath + path.delimiter + originalPath
+        process.env['PATH'] = `${comTestPath}${path.delimiter}${originalPath}`
         expect(await io.which(fileNameWithoutExtension)).toBe(
           path.join(comTestPath, `${fileNameWithoutExtension}.com`)
         )
 
         // test .EXE
-        process.env['PATH'] = exeTestPath + path.delimiter + originalPath
+        process.env['PATH'] = `${exeTestPath}${path.delimiter}${originalPath}`
         expect(await io.which(fileNameWithoutExtension)).toBe(
           path.join(exeTestPath, `${fileNameWithoutExtension}.exe`)
         )
 
         // test .BAT
-        process.env['PATH'] = batTestPath + path.delimiter + originalPath
+        process.env['PATH'] = `${batTestPath}${path.delimiter}${originalPath}`
         expect(await io.which(fileNameWithoutExtension)).toBe(
           path.join(batTestPath, `${fileNameWithoutExtension}.bat`)
         )
 
         // test .CMD
-        process.env['PATH'] = cmdTestPath + path.delimiter + originalPath
+        process.env['PATH'] = `${cmdTestPath}${path.delimiter}${originalPath}`
         expect(await io.which(fileNameWithoutExtension)).toBe(
           path.join(cmdTestPath, `${fileNameWithoutExtension}.cmd`)
         )
@@ -1337,7 +1353,9 @@ describe('which', () => {
   }
 })
 
-async function findsExecutableWithScopedPermissions(chmodOptions: string) {
+async function findsExecutableWithScopedPermissions(
+  chmodOptions: string
+): Promise<void> {
   // create a executable file
   const testPath = path.join(getTestTemp(), 'which-finds-file-name')
   await io.mkdirP(testPath)
@@ -1347,13 +1365,13 @@ async function findsExecutableWithScopedPermissions(chmodOptions: string) {
   }
 
   const filePath = path.join(testPath, fileName)
-  fs.writeFileSync(filePath, '')
+  await fs.writeFile(filePath, '')
   chmod(filePath, chmodOptions)
 
   const originalPath = process.env['PATH']
   try {
     // update the PATH
-    process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
+    process.env['PATH'] = `${process.env['PATH']}${path.delimiter}${testPath}`
 
     // exact file name
     expect(await io.which(fileName)).toBe(filePath)
@@ -1373,13 +1391,21 @@ async function findsExecutableWithScopedPermissions(chmodOptions: string) {
       )
     } else {
       // case sensitive on Linux
-      expect((await io.which(fileName.toUpperCase())) || '').toBe('')
+      expect(await io.which(fileName.toUpperCase())).toBe('')
     }
   } finally {
     process.env['PATH'] = originalPath
   }
+}
 
-  return
+// Assert that a file exists
+async function assertExists(filePath: string): Promise<void> {
+  expect(await fs.stat(filePath)).toBeDefined()
+}
+
+// Assert that reading a file raises an ENOENT error (does not exist)
+async function assertNotExists(filePath: string): Promise<void> {
+  await expect(fs.stat(filePath)).rejects.toHaveProperty('code', 'ENOENT')
 }
 
 function chmod(file: string, mode: string): void {
@@ -1391,46 +1417,42 @@ function chmod(file: string, mode: string): void {
 }
 
 async function createHiddenDirectory(dir: string): Promise<void> {
-  return new Promise<void>(async (resolve, reject) => {
-    if (!path.basename(dir).match(/^\./)) {
-      reject(`Expected dir '${dir}' to start with '.'.`)
-    }
+  if (!path.basename(dir).match(/^\./)) {
+    throw new Error(`Expected dir '${dir}' to start with '.'.`)
+  }
 
-    await io.mkdirP(dir)
-    if (os.platform() === 'win32') {
-      const result = child.spawnSync('attrib.exe', ['+H', dir])
-      if (result.status !== 0) {
-        const message: string = (result.output || []).join(' ').trim()
-        reject(
-          `Failed to set hidden attribute for directory '${dir}'. ${message}`
-        )
-      }
+  await io.mkdirP(dir)
+  if (os.platform() === 'win32') {
+    const result = child.spawnSync('attrib.exe', ['+H', dir])
+    if (result.status !== 0) {
+      const message: string = (result.output || []).join(' ').trim()
+      throw new Error(
+        `Failed to set hidden attribute for directory '${dir}'. ${message}`
+      )
     }
-    resolve()
-  })
+  }
 }
 
 async function createHiddenFile(file: string, content: string): Promise<void> {
-  return new Promise<void>(async (resolve, reject) => {
-    if (!path.basename(file).match(/^\./)) {
-      reject(`Expected dir '${file}' to start with '.'.`)
-    }
+  if (!path.basename(file).match(/^\./)) {
+    throw new Error(`Expected dir '${file}' to start with '.'.`)
+  }
 
-    await io.mkdirP(path.dirname(file))
-    fs.writeFileSync(file, content)
-    if (os.platform() === 'win32') {
-      const result = child.spawnSync('attrib.exe', ['+H', file])
-      if (result.status !== 0) {
-        const message: string = (result.output || []).join(' ').trim()
-        reject(`Failed to set hidden attribute for file '${file}'. ${message}`)
-      }
-    }
+  await io.mkdirP(path.dirname(file))
+  await fs.writeFile(file, content)
 
-    resolve()
-  })
+  if (os.platform() === 'win32') {
+    const result = child.spawnSync('attrib.exe', ['+H', file])
+    if (result.status !== 0) {
+      const message: string = (result.output || []).join(' ').trim()
+      throw new Error(
+        `Failed to set hidden attribute for file '${file}'. ${message}`
+      )
+    }
+  }
 }
 
-function getTestTemp() {
+function getTestTemp(): string {
   return path.join(__dirname, '_temp')
 }
 
@@ -1438,10 +1460,10 @@ function getTestTemp() {
  * Creates a symlink directory on OSX/Linux, and a junction point directory on Windows.
  * A symlink directory is not created on Windows since it requires an elevated context.
  */
-function createSymlinkDir(real: string, link: string): void {
+async function createSymlinkDir(real: string, link: string): Promise<void> {
   if (os.platform() === 'win32') {
-    fs.symlinkSync(real, link, 'junction')
+    await fs.symlink(real, link, 'junction')
   } else {
-    fs.symlinkSync(real, link)
+    await fs.symlink(real, link)
   }
 }
