@@ -42,11 +42,11 @@ class Command {
     this.message = message
   }
 
-  public command: string
-  public message: string
-  public properties: {[key: string]: string}
+  command: string
+  message: string
+  properties: {[key: string]: string}
 
-  public toString() {
+  toString() {
     let cmdStr = CMD_PREFIX + this.command
 
     if (this.properties && Object.keys(this.properties).length > 0) {
