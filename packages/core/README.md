@@ -4,4 +4,4 @@
 
 ## Usage
 
-See [src/core.tsx](src/core.tsx).
+See [src/core.ts](src/core.ts).
