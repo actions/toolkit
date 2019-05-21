@@ -4,8 +4,4 @@
 
 ## Usage
 
-```
-const exit = require('@actions/exit');
-
-// TODO: DEMONSTRATE API
-```
+See [src/exit.ts](src/exit.ts).
