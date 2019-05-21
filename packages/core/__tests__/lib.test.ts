@@ -19,6 +19,8 @@ describe('@actions/core', () => {
   beforeEach(() => {
     for (const key in testEnvVars)
       process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
+
+    process.stdout.write = jest.fn()
   })
 
   afterEach(() => {
@@ -26,66 +28,67 @@ describe('@actions/core', () => {
   })
 
   it('exportVariable produces the correct command and sets the env', () => {
-    const output = overrideStdoutWrite()
-
     core.exportVariable('my var', 'var val')
     expect(process.env['my var']).toBe('var val')
-    expect(output.value).toBe(`##[set-variable name=my var;]var val${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[set-variable name=my var;]var val${os.EOL}`
+    )
   })
 
   it('exportVariable escapes variable names', () => {
-    const output = overrideStdoutWrite()
-
     core.exportVariable('special char var \r\n];', 'special val')
     expect(process.env['special char var \r\n];']).toBe('special val')
-    expect(output.value).toBe(
+    expect(process.stdout.write).toHaveBeenCalledWith(
       `##[set-variable name=special char var %0D%0A%5D%3B;]special val${os.EOL}`
     )
   })
 
   it('exportVariable escapes variable values', () => {
-    const output = overrideStdoutWrite()
-
     core.exportVariable('my var2', 'var val\r\n')
     expect(process.env['my var2']).toBe('var val\r\n')
-    expect(output.value).toBe(
+    expect(process.stdout.write).toHaveBeenCalledWith(
       `##[set-variable name=my var2;]var val%0D%0A${os.EOL}`
     )
   })
 
   it('setSecret produces the correct commands and sets the env', () => {
-    const output = overrideStdoutWrite()
-
     core.setSecret('my secret', 'secret val')
     expect(process.env['my secret']).toBe('secret val')
-    expect(output.value).toBe(
-      `##[set-variable name=my secret;]secret val${
-        os.EOL
-      }##[set-secret]secret val${os.EOL}`
+    expect(process.stdout.write).toHaveBeenNthCalledWith(
+      1,
+      `##[set-variable name=my secret;]secret val${os.EOL}`
+    )
+    expect(process.stdout.write).toHaveBeenNthCalledWith(
+      2,
+      `##[set-secret]secret val${os.EOL}`
     )
   })
 
   it('setSecret escapes secret names', () => {
-    const output = overrideStdoutWrite()
-
     core.setSecret('special char secret \r\n];', 'special secret val')
     expect(process.env['special char secret \r\n];']).toBe('special secret val')
-    expect(output.value).toBe(
+    expect(process.stdout.write).toHaveBeenNthCalledWith(
+      1,
       `##[set-variable name=special char secret %0D%0A%5D%3B;]special secret val${
         os.EOL
-      }##[set-secret]special secret val${os.EOL}`
+      }`
+    )
+    expect(process.stdout.write).toHaveBeenNthCalledWith(
+      2,
+      `##[set-secret]special secret val${os.EOL}`
     )
   })
 
   it('setSecret escapes secret values', () => {
-    const output = overrideStdoutWrite()
-
     core.setSecret('my secret2', 'secret val\r\n')
     expect(process.env['my secret2']).toBe('secret val\r\n')
-    expect(output.value).toBe(
-      `##[set-variable name=my secret2;]secret val%0D%0A${
-        os.EOL
-      }##[set-secret]secret val%0D%0A${os.EOL}`
+    expect(process.stdout.write).toHaveBeenNthCalledWith(
+      1,
+      `##[set-variable name=my secret2;]secret val%0D%0A${os.EOL}`
+    )
+    expect(process.stdout.write).toHaveBeenNthCalledWith(
+      2,
+      `##[set-secret]secret val%0D%0A${os.EOL}`
     )
   })
 
@@ -121,78 +124,58 @@ describe('@actions/core', () => {
   })
 
   it('setFailure sets the correct exit code and failure message', () => {
-    const output = overrideStdoutWrite()
-
     core.setFailed('Failure message')
     expect(process.exitCode).toBe(1)
-    expect(output.value).toBe(`##[error]Failure message${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[error]Failure message${os.EOL}`
+    )
   })
 
   it('setFailure escapes the failure message', () => {
-    const output = overrideStdoutWrite()
-
     core.setFailed('Failure \r\n\nmessage\r')
     expect(process.exitCode).toBe(1)
-    expect(output.value).toBe(`##[error]Failure %0D%0A%0Amessage%0D${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[error]Failure %0D%0A%0Amessage%0D${os.EOL}`
+    )
   })
 
   it('error sets the correct error message', () => {
-    const output = overrideStdoutWrite()
-
     core.error('Error message')
-    expect(output.value).toBe(`##[error]Error message${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[error]Error message${os.EOL}`
+    )
   })
 
   it('error escapes the error message', () => {
-    const output = overrideStdoutWrite()
-
     core.error('Error message\r\n\n')
-    expect(output.value).toBe(`##[error]Error message%0D%0A%0A${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[error]Error message%0D%0A%0A${os.EOL}`
+    )
   })
 
   it('warning sets the correct message', () => {
-    const output = overrideStdoutWrite()
-
     core.warning('Warning')
-    expect(output.value).toBe(`##[warning]Warning${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[warning]Warning${os.EOL}`
+    )
   })
 
   it('warning escapes the message', () => {
-    const output = overrideStdoutWrite()
-
     core.warning('\r\nwarning\n')
-    expect(output.value).toBe(`##[warning]%0D%0Awarning%0A${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[warning]%0D%0Awarning%0A${os.EOL}`
+    )
   })
 
   it('debug sets the correct message', () => {
-    const output = overrideStdoutWrite()
-
     core.debug('Debug')
-    expect(output.value).toBe(`##[debug]Debug${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(`##[debug]Debug${os.EOL}`)
   })
 
   it('debug escapes the message', () => {
-    const output = overrideStdoutWrite()
-
     core.debug('\r\ndebug\n')
-    expect(output.value).toBe(`##[debug]%0D%0Adebug%0A${os.EOL}`)
+    expect(process.stdout.write).toHaveBeenCalledWith(
+      `##[debug]%0D%0Adebug%0A${os.EOL}`
+    )
   })
 })
-
-// Override stdout and append to output so that we capture the command that is sent
-function overrideStdoutWrite(value: string = ''): {value: string} {
-  const output = {value}
-
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  process.stdout.write = (
-    p1: string | Buffer | Uint8Array,
-    p2?: string | ((err?: Error) => void),
-    p3?: (err?: Error) => void
-  ): boolean => {
-    output.value += p1
-    return true
-  }
-  /* eslint-enable */
-
-  return output
-}
