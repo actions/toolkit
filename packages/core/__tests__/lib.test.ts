@@ -18,121 +18,66 @@ describe('@actions/core', () => {
   })
 
   it('exportVariable produces the correct command and sets the env', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.exportVariable('my var', 'var val')
     expect(process.env['my var']).toBe('var val')
-    expect(output).toBe('##[set-variable name=my var;]var val' + os.EOL)
+    expect(output.value).toBe(`##[set-variable name=my var;]var val${os.EOL}`)
   })
 
   it('exportVariable escapes variable names', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.exportVariable('special char var \r\n];', 'special val')
     expect(process.env['special char var \r\n];']).toBe('special val')
-    expect(output).toBe(
-      '##[set-variable name=special char var %0D%0A%5D%3B;]special val' + os.EOL
+    expect(output.value).toBe(
+      `##[set-variable name=special char var %0D%0A%5D%3B;]special val${os.EOL}`
     )
   })
 
   it('exportVariable escapes variable values', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.exportVariable('my var2', 'var val\r\n')
     expect(process.env['my var2']).toBe('var val\r\n')
-    expect(output).toBe('##[set-variable name=my var2;]var val%0D%0A' + os.EOL)
+    expect(output.value).toBe(
+      `##[set-variable name=my var2;]var val%0D%0A${os.EOL}`
+    )
   })
 
   it('setSecret produces the correct commands and sets the env', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.setSecret('my secret', 'secret val')
     expect(process.env['my secret']).toBe('secret val')
-    expect(output).toBe(
-      '##[set-variable name=my secret;]secret val' +
-        os.EOL +
-        '##[set-secret]secret val' +
+    expect(output.value).toBe(
+      `##[set-variable name=my secret;]secret val${
         os.EOL
+      }##[set-secret]secret val${os.EOL}`
     )
   })
 
   it('setSecret escapes secret names', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.setSecret('special char secret \r\n];', 'special secret val')
     expect(process.env['special char secret \r\n];']).toBe('special secret val')
-    expect(output).toBe(
-      '##[set-variable name=special char secret %0D%0A%5D%3B;]special secret val' +
-        os.EOL +
-        '##[set-secret]special secret val' +
+    expect(output.value).toBe(
+      `##[set-variable name=special char secret %0D%0A%5D%3B;]special secret val${
         os.EOL
+      }##[set-secret]special secret val${os.EOL}`
     )
   })
 
   it('setSecret escapes secret values', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.setSecret('my secret2', 'secret val\r\n')
     expect(process.env['my secret2']).toBe('secret val\r\n')
-    expect(output).toBe(
-      '##[set-variable name=my secret2;]secret val%0D%0A' +
-        os.EOL +
-        '##[set-secret]secret val%0D%0A' +
+    expect(output.value).toBe(
+      `##[set-variable name=my secret2;]secret val%0D%0A${
         os.EOL
+      }##[set-secret]secret val%0D%0A${os.EOL}`
     )
   })
 
@@ -168,132 +113,78 @@ describe('@actions/core', () => {
   })
 
   it('setFailure sets the correct exit code and failure message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.setFailed('Failure message')
     expect(process.exitCode).toBe(1)
-    expect(output).toBe('##[error]Failure message' + os.EOL)
+    expect(output.value).toBe(`##[error]Failure message${os.EOL}`)
   })
 
   it('setFailure escapes the failure message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.setFailed('Failure \r\n\nmessage\r')
     expect(process.exitCode).toBe(1)
-    expect(output).toBe('##[error]Failure %0D%0A%0Amessage%0D' + os.EOL)
+    expect(output.value).toBe(`##[error]Failure %0D%0A%0Amessage%0D${os.EOL}`)
   })
 
   it('error sets the correct error message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.error('Error message')
-    expect(output).toBe('##[error]Error message' + os.EOL)
+    expect(output.value).toBe(`##[error]Error message${os.EOL}`)
   })
 
   it('error escapes the error message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.error('Error message\r\n\n')
-    expect(output).toBe('##[error]Error message%0D%0A%0A' + os.EOL)
+    expect(output.value).toBe(`##[error]Error message%0D%0A%0A${os.EOL}`)
   })
 
   it('warning sets the correct message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.warning('Warning')
-    expect(output).toBe('##[warning]Warning' + os.EOL)
+    expect(output.value).toBe(`##[warning]Warning${os.EOL}`)
   })
 
   it('warning escapes the message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.warning('\r\nwarning\n')
-    expect(output).toBe('##[warning]%0D%0Awarning%0A' + os.EOL)
+    expect(output.value).toBe(`##[warning]%0D%0Awarning%0A${os.EOL}`)
   })
 
   it('debug sets the correct message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.debug('Debug')
-    expect(output).toBe('##[debug]Debug' + os.EOL)
+    expect(output.value).toBe(`##[debug]Debug${os.EOL}`)
   })
 
   it('debug escapes the message', () => {
-    // Override stdout and append to output so that we capture the command that is sent
-    let output = ''
-    process.stdout.write = (
-      p1: string | Buffer | Uint8Array,
-      p2?: string | ((err?: Error) => void),
-      p3?: (err?: Error) => void
-    ): boolean => {
-      output += p1
-      return true
-    }
+    const output = overrideStdoutWrite()
 
     core.debug('\r\ndebug\n')
-    expect(output).toBe('##[debug]%0D%0Adebug%0A' + os.EOL)
+    expect(output.value).toBe(`##[debug]%0D%0Adebug%0A${os.EOL}`)
   })
 })
+
+// Override stdout and append to output so that we capture the command that is sent
+function overrideStdoutWrite(value: string = ''): {value: string} {
+  const output = {value}
+
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  process.stdout.write = (
+    p1: string | Buffer | Uint8Array,
+    p2?: string | ((err?: Error) => void),
+    p3?: (err?: Error) => void
+  ): boolean => {
+    output.value += p1
+    return true
+  }
+  /* eslint-enable */
+
+  return output
+}
