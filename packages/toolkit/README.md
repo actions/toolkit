@@ -4,8 +4,4 @@
 
 ## Usage
 
-```
-const github = require('@actions/toolkit');
-
-// TODO: DEMONSTRATE API
-```
+See [src/toolkit.ts](src/toolkit.ts).
