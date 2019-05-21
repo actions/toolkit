@@ -33,5 +33,8 @@
   },
   "devDependencies": {
     "@types/node": "^12.0.2"
+  },
+  "dependencies": {
+    "@actions/exit": "^0.0.0"
   }
 }

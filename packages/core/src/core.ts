@@ -1,5 +1,13 @@
-import * as im from './interfaces'
+import {ExitCode} from '@actions/exit'
 import * as intm from './internal'
+
+/**
+ * Interface for getInput options
+ */
+export interface InputOptions {
+  /** Optional. Whether the input is required. If required and not present, will throw. Defaults to false */
+  required?: boolean
+}
 
 //-----------------------------------------------------------------------
 // Variables
@@ -50,7 +58,7 @@ export function getInput(name: string, options?: im.InputOptions): string {
  * Sets the action status to neutral
  */
 export function setNeutral() {
-  process.exitCode = im.ExitCode.Neutral
+  process.exitCode = ExitCode.Neutral
 }
 
 /**
@@ -59,7 +67,7 @@ export function setNeutral() {
  * @param message add error issue message
  */
 export function setFailed(message: string) {
-  process.exitCode = im.ExitCode.Failure
+  process.exitCode = ExitCode.Failure
   error(message)
 }
 
