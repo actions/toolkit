@@ -29,67 +29,50 @@ describe('@actions/core', () => {
 
   it('exportVariable produces the correct command and sets the env', () => {
     core.exportVariable('my var', 'var val')
-    expect(process.env['my var']).toBe('var val')
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[set-variable name=my var;]var val${os.EOL}`
-    )
+    assertWriteCalls([`##[set-variable name=my var;]var val${os.EOL}`])
   })
 
   it('exportVariable escapes variable names', () => {
     core.exportVariable('special char var \r\n];', 'special val')
     expect(process.env['special char var \r\n];']).toBe('special val')
-    expect(process.stdout.write).toHaveBeenCalledWith(
+    assertWriteCalls([
       `##[set-variable name=special char var %0D%0A%5D%3B;]special val${os.EOL}`
-    )
+    ])
   })
 
   it('exportVariable escapes variable values', () => {
     core.exportVariable('my var2', 'var val\r\n')
     expect(process.env['my var2']).toBe('var val\r\n')
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[set-variable name=my var2;]var val%0D%0A${os.EOL}`
-    )
+    assertWriteCalls([`##[set-variable name=my var2;]var val%0D%0A${os.EOL}`])
   })
 
   it('setSecret produces the correct commands and sets the env', () => {
     core.setSecret('my secret', 'secret val')
     expect(process.env['my secret']).toBe('secret val')
-    expect(process.stdout.write).toHaveBeenNthCalledWith(
-      1,
-      `##[set-variable name=my secret;]secret val${os.EOL}`
-    )
-    expect(process.stdout.write).toHaveBeenNthCalledWith(
-      2,
+    assertWriteCalls([
+      `##[set-variable name=my secret;]secret val${os.EOL}`,
       `##[set-secret]secret val${os.EOL}`
-    )
+    ])
   })
 
   it('setSecret escapes secret names', () => {
     core.setSecret('special char secret \r\n];', 'special secret val')
     expect(process.env['special char secret \r\n];']).toBe('special secret val')
-    expect(process.stdout.write).toHaveBeenNthCalledWith(
-      1,
+    assertWriteCalls([
       `##[set-variable name=special char secret %0D%0A%5D%3B;]special secret val${
         os.EOL
-      }`
-    )
-    expect(process.stdout.write).toHaveBeenNthCalledWith(
-      2,
+      }`,
       `##[set-secret]special secret val${os.EOL}`
-    )
+    ])
   })
 
   it('setSecret escapes secret values', () => {
     core.setSecret('my secret2', 'secret val\r\n')
     expect(process.env['my secret2']).toBe('secret val\r\n')
-    expect(process.stdout.write).toHaveBeenNthCalledWith(
-      1,
-      `##[set-variable name=my secret2;]secret val%0D%0A${os.EOL}`
-    )
-    expect(process.stdout.write).toHaveBeenNthCalledWith(
-      2,
+    assertWriteCalls([
+      `##[set-variable name=my secret2;]secret val%0D%0A${os.EOL}`,
       `##[set-secret]secret val%0D%0A${os.EOL}`
-    )
+    ])
   })
 
   it('getInput gets non-required input', () => {
@@ -126,56 +109,51 @@ describe('@actions/core', () => {
   it('setFailure sets the correct exit code and failure message', () => {
     core.setFailed('Failure message')
     expect(process.exitCode).toBe(1)
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[error]Failure message${os.EOL}`
-    )
+    assertWriteCalls([`##[error]Failure message${os.EOL}`])
   })
 
   it('setFailure escapes the failure message', () => {
     core.setFailed('Failure \r\n\nmessage\r')
     expect(process.exitCode).toBe(1)
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[error]Failure %0D%0A%0Amessage%0D${os.EOL}`
-    )
+    assertWriteCalls([`##[error]Failure %0D%0A%0Amessage%0D${os.EOL}`])
   })
 
   it('error sets the correct error message', () => {
     core.error('Error message')
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[error]Error message${os.EOL}`
-    )
+    assertWriteCalls([`##[error]Error message${os.EOL}`])
   })
 
   it('error escapes the error message', () => {
     core.error('Error message\r\n\n')
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[error]Error message%0D%0A%0A${os.EOL}`
-    )
+    assertWriteCalls([`##[error]Error message%0D%0A%0A${os.EOL}`])
   })
 
   it('warning sets the correct message', () => {
     core.warning('Warning')
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[warning]Warning${os.EOL}`
-    )
+    assertWriteCalls([`##[warning]Warning${os.EOL}`])
   })
 
   it('warning escapes the message', () => {
     core.warning('\r\nwarning\n')
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[warning]%0D%0Awarning%0A${os.EOL}`
-    )
+    assertWriteCalls([`##[warning]%0D%0Awarning%0A${os.EOL}`])
   })
 
   it('debug sets the correct message', () => {
     core.debug('Debug')
-    expect(process.stdout.write).toHaveBeenCalledWith(`##[debug]Debug${os.EOL}`)
+    assertWriteCalls([`##[debug]Debug${os.EOL}`])
   })
 
   it('debug escapes the message', () => {
     core.debug('\r\ndebug\n')
-    expect(process.stdout.write).toHaveBeenCalledWith(
-      `##[debug]%0D%0Adebug%0A${os.EOL}`
-    )
+    assertWriteCalls([`##[debug]%0D%0Adebug%0A${os.EOL}`])
   })
 })
+
+// Assert that process.stdout.write calls called only with the given arguments.
+function assertWriteCalls(calls: string[]) {
+  expect(process.stdout.write).toHaveBeenCalledTimes(calls.length)
+
+  for (let i = 0; i < calls.length; i++) {
+    expect(process.stdout.write).toHaveBeenNthCalledWith(i + 1, calls[i])
+  }
+}
