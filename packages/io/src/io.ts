@@ -23,18 +23,11 @@ export interface CopyOptions {
 export async function cp(
   source: string,
   dest: string,
-  options?: CopyOptions
+  options: CopyOptions = {}
 ): Promise<void> {
-  let force = true
-  let recursive = false
-  if (options) {
-    if (options.recursive) {
-      recursive = true
-    }
-    if (options.force === false) {
-      force = false
-    }
-  }
+  const force = Boolean(options.force)
+  const recursive = Boolean(options.recursive)
+
   return new Promise<void>(async (resolve, reject) => {
     try {
       if (fs.lstatSync(source).isDirectory()) {
