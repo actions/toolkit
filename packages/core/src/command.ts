@@ -28,7 +28,11 @@ export function issue(name: string, message: string) {
 const CMD_PREFIX = '##['
 
 class Command {
-  constructor(command: string, properties: {[key: string]: string}, message: string) {
+  constructor(
+    command: string,
+    properties: {[key: string]: string},
+    message: string
+  ) {
     if (!command) {
       command = 'missing.command'
     }
