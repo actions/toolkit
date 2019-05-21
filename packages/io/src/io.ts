@@ -325,7 +325,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
 
       // if any path separators, return empty
       if (
-        tool.indexOf('/') >= 0 ||
+        tool.includes('/') ||
         (process.platform === 'win32' && tool.indexOf('\\') >= 0)
       ) {
         resolve('')

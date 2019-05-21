@@ -389,7 +389,7 @@ describe('rmRF', () => {
 
       // remove the symlink file
       await io.rmRF(symlinkFile)
-      let errcode: string = ''
+      let errcode = ''
       try {
         fs.lstatSync(symlinkFile)
       } catch (err) {
@@ -513,7 +513,7 @@ describe('rmRF', () => {
     // remove the real directory
     fs.unlinkSync(realFile)
     fs.rmdirSync(realDirectory)
-    let errcode: string = ''
+    let errcode = ''
     try {
       fs.statSync(symlinkDirectory)
     } catch (err) {
@@ -670,7 +670,7 @@ describe('mkdirP', () => {
 
   it('fails if mkdirP with illegal chars', async () => {
     const testPath = path.join(getTestTemp(), 'mkdir\0')
-    let worked: boolean = false
+    let worked = false
     try {
       await io.mkdirP(testPath)
       worked = true
@@ -682,7 +682,7 @@ describe('mkdirP', () => {
   })
 
   it('fails if mkdirP with empty path', async () => {
-    let worked: boolean = false
+    let worked = false
     try {
       await io.mkdirP('')
       worked = true
@@ -695,7 +695,7 @@ describe('mkdirP', () => {
     const testPath = path.join(getTestTemp(), 'mkdirP_conflicting_file_path')
     await io.mkdirP(getTestTemp())
     fs.writeFileSync(testPath, '')
-    let worked: boolean = false
+    let worked = false
     try {
       await io.mkdirP(testPath)
       worked = true
@@ -712,7 +712,7 @@ describe('mkdirP', () => {
     )
     await io.mkdirP(getTestTemp())
     fs.writeFileSync(path.dirname(testPath), '')
-    let worked: boolean = false
+    let worked = false
     try {
       await io.mkdirP(testPath)
       worked = true

@@ -27,11 +27,11 @@ export function _isRooted(p: string): boolean {
 
   if (process.platform === 'win32') {
     return (
-      p.slice(0, '\\'.length) === '\\' || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
+      p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
     ) // e.g. C: or C:\hello
   }
 
-  return p.slice(0, '/'.length) === '/'
+  return p.startsWith('/')
 }
 
 /**
@@ -133,7 +133,7 @@ function _normalizeSeparators(p: string): string {
 }
 
 function _startsWith(str: string, start: string): boolean {
-  return str.slice(0, start.length) === start
+  return str.startsWith(start)
 }
 
 // on Mac/Linux, test the execute bit
