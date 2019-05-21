@@ -2,6 +2,8 @@ import * as exitPkg from '@actions/exit'
 import {Signale} from 'signale'
 import {Toolkit} from '../src/toolkit'
 
+/* eslint-disable @typescript-eslint/unbound-method */
+
 jest.mock('@actions/exit')
 
 describe('.run', () => {

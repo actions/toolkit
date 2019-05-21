@@ -18,7 +18,7 @@ export interface InputOptions {
  * @param name the name of the variable to set
  * @param val the value of the variable
  */
-export function exportVariable(name: string, val: string) {
+export function exportVariable(name: string, val: string): void {
   process.env[name] = val
   issueCommand('set-env', {name}, val)
 }
@@ -28,7 +28,7 @@ export function exportVariable(name: string, val: string) {
  * @param name the name of the variable to set
  * @param val value of the secret
  */
-export function exportSecret(name: string, val: string) {
+export function exportSecret(name: string, val: string): void {
   exportVariable(name, val)
   issueCommand('set-secret', {}, val)
 }
@@ -57,7 +57,7 @@ export function getInput(name: string, options?: InputOptions): string {
 /**
  * Sets the action status to neutral
  */
-export function setNeutral() {
+export function setNeutral(): void {
   process.exitCode = ExitCode.Neutral
 }
 
@@ -66,7 +66,7 @@ export function setNeutral() {
  * When the action exits it will be with an exit code of 1
  * @param message add error issue message
  */
-export function setFailed(message: string) {
+export function setFailed(message: string): void {
   process.exitCode = ExitCode.Failure
   error(message)
 }
@@ -79,7 +79,7 @@ export function setFailed(message: string) {
  * Writes debug message to user log
  * @param message debug message
  */
-export function debug(message: string) {
+export function debug(message: string): void {
   issueCommand('debug', {}, message)
 }
 
@@ -87,7 +87,7 @@ export function debug(message: string) {
  * Adds an error issue
  * @param message error issue message
  */
-export function error(message: string) {
+export function error(message: string): void {
   issue('error', message)
 }
 
@@ -95,6 +95,6 @@ export function error(message: string) {
  * Adds an warning issue
  * @param message warning issue message
  */
-export function warning(message: string) {
+export function warning(message: string): void {
   issue('warning', message)
 }

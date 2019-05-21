@@ -2,6 +2,8 @@ import * as exitPkg from '@actions/exit'
 import {Signale} from 'signale'
 import {Exit} from '../src/exit'
 
+/* eslint-disable @typescript-eslint/unbound-method */
+
 jest.mock('@actions/exit')
 
 const tests: [keyof Exit, keyof Signale][] = [

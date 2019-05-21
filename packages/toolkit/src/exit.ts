@@ -10,7 +10,7 @@ export class Exit {
   /**
    * Stop the action with a "success" status.
    */
-  success(message?: string) {
+  success(message?: string): void {
     if (message) this.logger.success(message)
     exit.success()
   }
@@ -18,7 +18,7 @@ export class Exit {
   /**
    * Stop the action with a "neutral" status.
    */
-  neutral(message?: string) {
+  neutral(message?: string): void {
     if (message) this.logger.info(message)
     exit.neutral()
   }
@@ -26,7 +26,7 @@ export class Exit {
   /**
    * Stop the action with a "failed" status.
    */
-  failure(message?: string) {
+  failure(message?: string): void {
     if (message) this.logger.fatal(message)
     exit.failure()
   }

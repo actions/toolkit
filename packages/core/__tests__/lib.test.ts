@@ -1,5 +1,8 @@
+import {ExitCode} from '@actions/exit'
 import * as os from 'os'
 import * as core from '../src/core'
+
+/* eslint-disable @typescript-eslint/unbound-method */
 
 const testEnvVars = {
   'my var': '',
@@ -103,18 +106,18 @@ describe('@actions/core', () => {
 
   it('setNeutral sets the correct exit code', () => {
     core.setFailed('Failure message')
-    expect(process.exitCode).toBe(1)
+    expect(process.exitCode).toBe(ExitCode.Failure)
   })
 
   it('setFailure sets the correct exit code and failure message', () => {
     core.setFailed('Failure message')
-    expect(process.exitCode).toBe(1)
+    expect(process.exitCode).toBe(ExitCode.Failure)
     assertWriteCalls([`##[error]Failure message${os.EOL}`])
   })
 
   it('setFailure escapes the failure message', () => {
     core.setFailed('Failure \r\n\nmessage\r')
-    expect(process.exitCode).toBe(1)
+    expect(process.exitCode).toBe(ExitCode.Failure)
     assertWriteCalls([`##[error]Failure %0D%0A%0Amessage%0D${os.EOL}`])
   })
 
@@ -150,7 +153,7 @@ describe('@actions/core', () => {
 })
 
 // Assert that process.stdout.write calls called only with the given arguments.
-function assertWriteCalls(calls: string[]) {
+function assertWriteCalls(calls: string[]): void {
   expect(process.stdout.write).toHaveBeenCalledTimes(calls.length)
 
   for (let i = 0; i < calls.length; i++) {
