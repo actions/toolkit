@@ -4,6 +4,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
+    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build\"",
     "format": "prettier --write packages/*/src/**/*.ts",
     "format-check": "prettier --check packages/*/src/**/*.ts",
     "lint": "eslint packages/*/src/**/*.ts",
@@ -15,6 +16,7 @@
     "@types/node": "^11.13.5",
     "@types/signale": "^1.2.1",
     "@typescript-eslint/parser": "^1.9.0",
+    "concurrently": "^4.1.0",
     "eslint": "^5.16.0",
     "eslint-plugin-github": "^2.0.0",
     "eslint-plugin-jest": "^22.5.1",
