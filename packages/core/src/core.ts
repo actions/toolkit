@@ -20,7 +20,7 @@ export interface InputOptions {
  */
 export function exportVariable(name: string, val: string) {
   process.env[name] = val
-  intm.issueCommand('set-variable', {name}, val)
+  intm.issueCommand('set-env', {name}, val)
 }
 
 /**

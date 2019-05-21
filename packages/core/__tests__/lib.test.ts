@@ -29,28 +29,28 @@ describe('@actions/core', () => {
 
   it('exportVariable produces the correct command and sets the env', () => {
     core.exportVariable('my var', 'var val')
-    assertWriteCalls([`##[set-variable name=my var;]var val${os.EOL}`])
+    assertWriteCalls([`##[set-env name=my var;]var val${os.EOL}`])
   })
 
   it('exportVariable escapes variable names', () => {
     core.exportVariable('special char var \r\n];', 'special val')
     expect(process.env['special char var \r\n];']).toBe('special val')
     assertWriteCalls([
-      `##[set-variable name=special char var %0D%0A%5D%3B;]special val${os.EOL}`
+      `##[set-env name=special char var %0D%0A%5D%3B;]special val${os.EOL}`
     ])
   })
 
   it('exportVariable escapes variable values', () => {
     core.exportVariable('my var2', 'var val\r\n')
     expect(process.env['my var2']).toBe('var val\r\n')
-    assertWriteCalls([`##[set-variable name=my var2;]var val%0D%0A${os.EOL}`])
+    assertWriteCalls([`##[set-env name=my var2;]var val%0D%0A${os.EOL}`])
   })
 
   it('exportSecret produces the correct commands and sets the env', () => {
     core.exportSecret('my secret', 'secret val')
     expect(process.env['my secret']).toBe('secret val')
     assertWriteCalls([
-      `##[set-variable name=my secret;]secret val${os.EOL}`,
+      `##[set-env name=my secret;]secret val${os.EOL}`,
       `##[set-secret]secret val${os.EOL}`
     ])
   })
@@ -59,7 +59,7 @@ describe('@actions/core', () => {
     core.exportSecret('special char secret \r\n];', 'special secret val')
     expect(process.env['special char secret \r\n];']).toBe('special secret val')
     assertWriteCalls([
-      `##[set-variable name=special char secret %0D%0A%5D%3B;]special secret val${
+      `##[set-env name=special char secret %0D%0A%5D%3B;]special secret val${
         os.EOL
       }`,
       `##[set-secret]special secret val${os.EOL}`
@@ -70,7 +70,7 @@ describe('@actions/core', () => {
     core.exportSecret('my secret2', 'secret val\r\n')
     expect(process.env['my secret2']).toBe('secret val\r\n')
     assertWriteCalls([
-      `##[set-variable name=my secret2;]secret val%0D%0A${os.EOL}`,
+      `##[set-env name=my secret2;]secret val%0D%0A${os.EOL}`,
       `##[set-secret]secret val%0D%0A${os.EOL}`
     ])
   })
