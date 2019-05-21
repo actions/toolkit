@@ -1,20 +1,28 @@
 import * as os from 'os'
 import * as core from '../src/core'
 
+const testEnvVars = {
+  'my var': '',
+  'special char var \r\n];': '',
+  'my var2': '',
+  'my secret': '',
+  'special char secret \r\n];': '',
+  'my secret2': '',
+
+  // Set inputs
+  INPUT_MY_INPUT: 'val',
+  INPUT_MISSING: '',
+  'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ repsonse '
+}
+
 describe('@actions/core', () => {
   beforeEach(() => {
-    // Clear variables
-    process.env['my var'] = ''
-    process.env['special char var \r\n];'] = ''
-    process.env['my var2'] = ''
-    process.env['my secret'] = ''
-    process.env['special char secret \r\n];'] = ''
-    process.env['my secret2'] = ''
+    for (const key in testEnvVars)
+      process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
+  })
 
-    // Set inputs
-    process.env['INPUT_MY_INPUT'] = 'val'
-    process.env['INPUT_MISSING'] = ''
-    process.env['INPUT_SPECIAL_CHARS_\'\t"\\'] = '\'\t"\\ repsonse '
+  afterEach(() => {
+    for (const key in testEnvVars) Reflect.deleteProperty(testEnvVars, key)
   })
 
   it('exportVariable produces the correct command and sets the env', () => {
