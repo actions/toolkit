@@ -15,7 +15,7 @@ export function _issueCommand(
   properties: any,
   message: string
 ) {
-  var cmd = new _Command(command, properties, message)
+  const cmd = new _Command(command, properties, message)
   _writeLine(cmd.toString())
 }
 
@@ -23,7 +23,7 @@ export function _issue(name: string, message: string) {
   _issueCommand(name, {}, message)
 }
 
-let CMD_PREFIX = '##['
+const CMD_PREFIX = '##['
 
 export class _Command {
   constructor(command: string, properties: any, message: string) {
@@ -41,17 +41,17 @@ export class _Command {
   public properties: any
 
   public toString() {
-    var cmdStr = CMD_PREFIX + this.command
+    let cmdStr = CMD_PREFIX + this.command
 
     if (this.properties && Object.keys(this.properties).length > 0) {
       cmdStr += ' '
-      for (var key in this.properties) {
+      for (const key in this.properties) {
         if (this.properties.hasOwnProperty(key)) {
-          var val = this.properties[key]
+          const val = this.properties[key]
           if (val) {
             // safely append the val - avoid blowing up when attempting to
             // call .replace() if message is not a string for some reason
-            cmdStr += key + '=' + escape('' + (val || '')) + ';'
+            cmdStr += `${key}=${escape(`${val || ''}`)};`
           }
         }
       }
@@ -61,7 +61,7 @@ export class _Command {
 
     // safely append the message - avoid blowing up when attempting to
     // call .replace() if message is not a string for some reason
-    let message: string = '' + (this.message || '')
+    const message: string = `${this.message || ''}`
     cmdStr += escapedata(message)
 
     return cmdStr
@@ -69,41 +69,41 @@ export class _Command {
 }
 
 export function _commandFromString(commandLine: string) {
-  var preLen = CMD_PREFIX.length
-  var lbPos = commandLine.indexOf('[')
-  var rbPos = commandLine.indexOf(']')
+  const preLen = CMD_PREFIX.length
+  const lbPos = commandLine.indexOf('[')
+  const rbPos = commandLine.indexOf(']')
   if (lbPos == -1 || rbPos == -1 || rbPos - lbPos < 3) {
     throw new Error('Invalid command brackets')
   }
-  var cmdInfo = commandLine.substring(lbPos + 1, rbPos)
-  var spaceIdx = cmdInfo.indexOf(' ')
+  const cmdInfo = commandLine.substring(lbPos + 1, rbPos)
+  const spaceIdx = cmdInfo.indexOf(' ')
 
-  var command = cmdInfo
-  var properties: {[key: string]: string} = {}
+  let command = cmdInfo
+  const properties: {[key: string]: string} = {}
 
   if (spaceIdx > 0) {
     command = cmdInfo.trim().substring(0, spaceIdx)
-    var propSection = cmdInfo.trim().substring(spaceIdx + 1)
+    const propSection = cmdInfo.trim().substring(spaceIdx + 1)
 
-    var propLines: string[] = propSection.split(';')
+    const propLines: string[] = propSection.split(';')
     propLines.forEach(function(propLine: string) {
       propLine = propLine.trim()
       if (propLine.length > 0) {
-        var eqIndex = propLine.indexOf('=')
+        const eqIndex = propLine.indexOf('=')
         if (eqIndex == -1) {
-          throw new Error('Invalid property: ' + propLine)
+          throw new Error(`Invalid property: ${propLine}`)
         }
 
-        var key: string = propLine.substring(0, eqIndex)
-        var val: string = propLine.substring(eqIndex + 1)
+        const key: string = propLine.substring(0, eqIndex)
+        const val: string = propLine.substring(eqIndex + 1)
 
         properties[key] = unescape(val)
       }
     })
   }
 
-  let msg: string = unescapedata(commandLine.substring(rbPos + 1))
-  var cmd = new _Command(command, properties, msg)
+  const msg: string = unescapedata(commandLine.substring(rbPos + 1))
+  const cmd = new _Command(command, properties, msg)
   return cmd
 }
 

@@ -13,7 +13,7 @@ import process = require('process')
  */
 export function exportVariable(name: string, val: string) {
   process.env[name] = val
-  intm._issueCommand('set-variable', {name: name}, val)
+  intm._issueCommand('set-variable', {name}, val)
 }
 
 /**
@@ -34,8 +34,8 @@ export function setSecret(name: string, val: string) {
  * @returns   string
  */
 export function getInput(name: string, options?: im.InputOptions): string {
-  let val: string =
-    process.env['INPUT_' + name.replace(' ', '_').toUpperCase()] || ''
+  const val: string =
+    process.env[`INPUT_${name.replace(' ', '_').toUpperCase()}`] || ''
   if (options && options.required && !val) {
     throw new Error(`Input required and not supplied: ${name}`)
   }
