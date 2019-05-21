@@ -4,7 +4,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
-    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build\"",
+    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
     "format": "prettier --write packages/*/src/**/*.ts",
     "format-check": "prettier --check packages/*/src/**/*.ts",
     "lint": "eslint packages/*/src/**/*.ts",
