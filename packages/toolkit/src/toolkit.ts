@@ -6,7 +6,7 @@ export type ActionFn = (tools: Toolkit) => unknown
 /**
  * Options used to customize an instance of [[Toolkit]]
  */
-export type ToolkitOptions = {
+export interface ToolkitOptions {
   /**
    * A custom Signale instance to use
    */
@@ -30,7 +30,7 @@ export class Toolkit {
    * If an error occurs, the error will be logged and the action will exit as a
    * failure.
    */
-  static async run(func: ActionFn, opts?: ToolkitOptions) {
+  static async run(func: ActionFn, opts?: ToolkitOptions): Promise<void> {
     const tools = new Toolkit(opts)
 
     try {
@@ -69,7 +69,7 @@ export class Toolkit {
   /**
    * Ensure that the given keys are in the environment.
    */
-  private checkRequiredEnv(keys: string[]) {
+  private checkRequiredEnv(keys: string[]): void {
     const missingEnv = keys.filter(key => !process.env.hasOwnProperty(key))
 
     if (missingEnv.length === 0) return
@@ -84,7 +84,7 @@ export class Toolkit {
   /**
    * Wrap a Signale logger so that its a callable class.
    */
-  private wrapLogger(logger: Signale) {
+  private wrapLogger(logger: Signale): Signale & LoggerFunc {
     // Create a callable function
     const fn = logger.info.bind(logger)
     // Add the log methods onto the function

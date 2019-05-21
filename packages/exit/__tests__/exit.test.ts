@@ -1,5 +1,7 @@
 import * as exit from '../src/exit'
 
+/* eslint-disable @typescript-eslint/unbound-method */
+
 it('exits successfully', () => {
   jest.spyOn(process, 'exit').mockImplementation()
   exit.success()

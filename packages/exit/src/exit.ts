@@ -24,20 +24,20 @@ export enum ExitCode {
 /**
  * Exit the action as a success.
  */
-export function success() {
+export function success(): void {
   process.exit(ExitCode.Success)
 }
 
 /**
  * Exit the action as a failure.
  */
-export function failure() {
+export function failure(): void {
   process.exit(ExitCode.Failure)
 }
 
 /**
  * Exit the action neither a success or a failure
  */
-export function neutral() {
+export function neutral(): void {
   process.exit(ExitCode.Neutral)
 }
