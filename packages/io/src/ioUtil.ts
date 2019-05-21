@@ -75,7 +75,6 @@ export function _tryGetExecutablePath(
   // try each extension
   let originalFilePath = filePath
   for (let extension of extensions) {
-    let found = false
     let filePath = originalFilePath + extension
     try {
       let stats: fs.Stats = fs.statSync(filePath)

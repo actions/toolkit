@@ -1,8 +1,17 @@
 import childProcess = require('child_process')
 import fs = require('fs')
 import path = require('path')
-import intm = require('./internal')
-import im = require('./interfaces')
+import util = require('./ioUtil')
+
+/**
+ * Interface for cp/mv options
+ */
+export interface CopyOptions {
+  /** Optional. Whether to recursively copy all subdirectories. Defaults to false */
+  recursive?: boolean
+  /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
+  force?: boolean
+}
 
 /**
  * Copies a file or folder.
@@ -14,7 +23,7 @@ import im = require('./interfaces')
 export function cp(
   source: string,
   dest: string,
-  options?: im.CopyOptions
+  options?: CopyOptions
 ): Promise<void> {
   let force = true
   let recursive = false
@@ -69,7 +78,7 @@ export function cp(
 export function mv(
   source: string,
   dest: string,
-  options?: im.CopyOptions
+  options?: CopyOptions
 ): Promise<void> {
   let force = true
   let recursive = false
@@ -171,7 +180,7 @@ export function rmRF(inputPath: string): Promise<void> {
       }
 
       if (isDirectory) {
-        intm._removeDirectory(inputPath)
+        util._removeDirectory(inputPath)
         resolve()
         return
       } else {
@@ -303,8 +312,8 @@ export function which(tool: string, check?: boolean): Promise<string> {
       }
 
       // if it's rooted, return it if exists. otherwise return empty.
-      if (intm._isRooted(tool)) {
-        let filePath: string = intm._tryGetExecutablePath(tool, extensions)
+      if (util._isRooted(tool)) {
+        let filePath: string = util._tryGetExecutablePath(tool, extensions)
         if (filePath) {
           resolve(filePath)
           return
@@ -340,7 +349,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
 
       // return the first match
       for (let directory of directories) {
-        let filePath = intm._tryGetExecutablePath(
+        let filePath = util._tryGetExecutablePath(
           directory + path.sep + tool,
           extensions
         )

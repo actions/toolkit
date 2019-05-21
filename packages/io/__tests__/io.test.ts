@@ -3,7 +3,7 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 
-import io = require('../src/lib');
+import io = require('../src/io');
 
 describe('cp', () => {
     it('copies file with no flags', async () => {
