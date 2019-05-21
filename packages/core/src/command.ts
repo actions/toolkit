@@ -1,5 +1,7 @@
 import * as os from 'os'
 
+// For internal use, subject to change.
+
 /**
  * Commands
  *
