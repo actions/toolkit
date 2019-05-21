@@ -1,26 +1,45 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-export function _removeDirectory(directoryPath: string): void {
-  if (fs.existsSync(directoryPath)) {
-    for (const fileName of fs.readdirSync(directoryPath)) {
+export async function exists(fsPath: string): Promise<boolean> {
+  try {
+    await fs.promises.stat(fsPath)
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return false
+    }
+
+    throw err
+  }
+
+  return true
+}
+
+export async function isDirectory(fsPath: string): Promise<boolean> {
+  const lstat = await fs.promises.lstat(fsPath)
+  return lstat.isDirectory()
+}
+
+export async function removeDirectory(directoryPath: string): Promise<void> {
+  if (await exists(directoryPath)) {
+    for (const fileName of await fs.promises.readdir(directoryPath)) {
       const file = path.join(directoryPath, fileName)
-      if (fs.lstatSync(file).isDirectory()) {
-        _removeDirectory(file)
+      if (await isDirectory(file)) {
+        await removeDirectory(file)
       } else {
-        fs.unlinkSync(file)
+        await fs.promises.unlink(file)
       }
     }
   }
-  fs.rmdirSync(directoryPath)
+  await fs.promises.rmdir(directoryPath)
 }
 
 /**
  * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
  * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
  */
-export function _isRooted(p: string): boolean {
-  p = _normalizeSeparators(p)
+export function isRooted(p: string): boolean {
+  p = normalizeSeparators(p)
   if (!p) {
     throw new Error('isRooted() parameter "p" cannot be empty')
   }
@@ -40,13 +59,14 @@ export function _isRooted(p: string): boolean {
  * @param extensions  additional file extensions to try
  * @return if file exists and is executable, returns the file path. otherwise empty string.
  */
-export function _tryGetExecutablePath(
+export async function tryGetExecutablePath(
   filePath: string,
   extensions: string[]
-): string {
+): Promise<string> {
   try {
     // test file exists
-    const stats: fs.Stats = fs.statSync(filePath)
+    const stats = await fs.promises.stat(filePath)
+
     if (stats.isFile()) {
       if (process.platform === 'win32') {
         // on Windows, test for valid extension
@@ -61,7 +81,7 @@ export function _tryGetExecutablePath(
           }
         }
       } else {
-        if (_isUnixExecutable(stats)) {
+        if (isUnixExecutable(stats)) {
           return filePath
         }
       }
@@ -80,14 +100,15 @@ export function _tryGetExecutablePath(
   for (const extension of extensions) {
     filePath = originalFilePath + extension
     try {
-      const stats: fs.Stats = fs.statSync(filePath)
+      const stats = await fs.promises.stat(filePath)
+
       if (stats.isFile()) {
         if (process.platform === 'win32') {
           // preserve the case of the actual file (since an extension was appended)
           try {
             const directory = path.dirname(filePath)
             const upperName = path.basename(filePath).toUpperCase()
-            for (const actualName of fs.readdirSync(directory)) {
+            for (const actualName of await fs.promises.readdir(directory)) {
               if (upperName === actualName.toUpperCase()) {
                 filePath = path.join(directory, actualName)
                 break
@@ -102,7 +123,7 @@ export function _tryGetExecutablePath(
 
           return filePath
         } else {
-          if (_isUnixExecutable(stats)) {
+          if (isUnixExecutable(stats)) {
             return filePath
           }
         }
@@ -120,7 +141,7 @@ export function _tryGetExecutablePath(
   return ''
 }
 
-function _normalizeSeparators(p: string): string {
+function normalizeSeparators(p: string): string {
   p = p || ''
   if (process.platform === 'win32') {
     // convert slashes on Windows
@@ -138,7 +159,7 @@ function _normalizeSeparators(p: string): string {
 // on Mac/Linux, test the execute bit
 //     R   W  X  R  W X R W X
 //   256 128 64 32 16 8 4 2 1
-function _isUnixExecutable(stats: fs.Stats): boolean {
+function isUnixExecutable(stats: fs.Stats): boolean {
   return (
     (stats.mode & 1) > 0 ||
     ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
