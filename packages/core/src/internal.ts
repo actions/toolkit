@@ -1,4 +1,4 @@
-import os = require('os')
+import * as os from 'os'
 
 /**
  * Commands

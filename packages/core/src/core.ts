@@ -1,6 +1,5 @@
-import im = require('./interfaces')
-import intm = require('./internal')
-import process = require('process')
+import * as im from './interfaces'
+import * as intm from './internal'
 
 //-----------------------------------------------------------------------
 // Variables
