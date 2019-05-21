@@ -1,7 +1,7 @@
 import childProcess = require('child_process')
 import fs = require('fs')
 import path = require('path')
-import util = require('./ioUtil')
+import util = require('./io-util')
 
 /**
  * Interface for cp/mv options
