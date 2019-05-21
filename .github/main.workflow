@@ -1,6 +1,6 @@
 workflow "CI" {
   on = "push"
-  resolves = ["Format", "Test"]
+  resolves = ["Format", "Lint", "Test"]
 }
 
 action "Dependencies" {
@@ -23,7 +23,13 @@ action "Compile" {
 action "Format" {
   needs = "Dependencies"
   uses = "actions/npm@v2.0.0"
-  args = "run format"
+  args = "run format-check"
+}
+
+action "Lint" {
+  needs = "Dependencies"
+  uses = "actions/npm@v2.0.0"
+  args = "run lint"
 }
 
 action "Test" {

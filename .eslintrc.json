@@ -1,0 +1,21 @@
+{
+  "plugins": ["jest", "@typescript-eslint"],
+  "extends": ["plugin:github/es6"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 9,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "eslint-comments/no-use": "off",
+    "import/no-namespace": "off",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/explicit-member-accessibility": ["error", {"accessibility": "no-public"}]
+  },
+  "env": {
+    "node": true,
+    "es6": true,
+    "jest/globals": true
+  }
+}

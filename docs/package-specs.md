@@ -47,10 +47,16 @@ export interface InputOptions {
 export function getInput(name: string, options?: InputOptions): string | undefined
 
 /**
- * fail the action
+ * sets the status of the action to neutral
  * @param message 
  */
-export function setFailure(message: string): void
+export function setNeutral(message: string): void
+
+/**
+ * sets the status of the action to failed
+ * @param message 
+ */
+export function setFailed(message: string): void
 ```
 
 ### IO spec
