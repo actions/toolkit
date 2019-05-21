@@ -7,9 +7,9 @@ import io = require('../src/io')
 
 describe('cp', () => {
   it('copies file with no flags', async () => {
-    let root: string = path.join(getTestTemp(), 'cp_with_no_flags')
-    let sourceFile: string = path.join(root, 'cp_source')
-    let targetFile: string = path.join(root, 'cp_target')
+    const root: string = path.join(getTestTemp(), 'cp_with_no_flags')
+    const sourceFile: string = path.join(root, 'cp_source')
+    const targetFile: string = path.join(root, 'cp_target')
     await io.mkdirP(root)
     fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
 
@@ -21,9 +21,9 @@ describe('cp', () => {
   })
 
   it('copies file using -f', async () => {
-    let root: string = path.join(path.join(__dirname, '_temp'), 'cp_with_-f')
-    let sourceFile: string = path.join(root, 'cp_source')
-    let targetFile: string = path.join(root, 'cp_target')
+    const root: string = path.join(path.join(__dirname, '_temp'), 'cp_with_-f')
+    const sourceFile: string = path.join(root, 'cp_source')
+    const targetFile: string = path.join(root, 'cp_target')
     await io.mkdirP(root)
     fs.writeFileSync(sourceFile, 'test file content')
 
@@ -35,9 +35,9 @@ describe('cp', () => {
   })
 
   it('try copying to existing file with -n', async () => {
-    let root: string = path.join(getTestTemp(), 'cp_to_existing')
-    let sourceFile: string = path.join(root, 'cp_source')
-    let targetFile: string = path.join(root, 'cp_target')
+    const root: string = path.join(getTestTemp(), 'cp_to_existing')
+    const sourceFile: string = path.join(root, 'cp_source')
+    const targetFile: string = path.join(root, 'cp_target')
     await io.mkdirP(root)
     fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
     fs.writeFileSync(targetFile, 'correct content', {encoding: 'utf8'})
@@ -55,12 +55,12 @@ describe('cp', () => {
   })
 
   it('copies directory into existing destination with -r', async () => {
-    let root: string = path.join(getTestTemp(), 'cp_with_-r_existing_dest')
-    let sourceFolder: string = path.join(root, 'cp_source')
-    let sourceFile: string = path.join(sourceFolder, 'cp_source_file')
+    const root: string = path.join(getTestTemp(), 'cp_with_-r_existing_dest')
+    const sourceFolder: string = path.join(root, 'cp_source')
+    const sourceFile: string = path.join(sourceFolder, 'cp_source_file')
 
-    let targetFolder: string = path.join(root, 'cp_target')
-    let targetFile: string = path.join(
+    const targetFolder: string = path.join(root, 'cp_target')
+    const targetFile: string = path.join(
       targetFolder,
       'cp_source',
       'cp_source_file'
@@ -76,12 +76,12 @@ describe('cp', () => {
   })
 
   it('copies directory into non-existing destination with -r', async () => {
-    let root: string = path.join(getTestTemp(), 'cp_with_-r_nonexisting_dest')
-    let sourceFolder: string = path.join(root, 'cp_source')
-    let sourceFile: string = path.join(sourceFolder, 'cp_source_file')
+    const root: string = path.join(getTestTemp(), 'cp_with_-r_nonexisting_dest')
+    const sourceFolder: string = path.join(root, 'cp_source')
+    const sourceFile: string = path.join(sourceFolder, 'cp_source_file')
 
-    let targetFolder: string = path.join(root, 'cp_target')
-    let targetFile: string = path.join(targetFolder, 'cp_source_file')
+    const targetFolder: string = path.join(root, 'cp_target')
+    const targetFile: string = path.join(targetFolder, 'cp_source_file')
     await io.mkdirP(sourceFolder)
     fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.cp(sourceFolder, targetFolder, {recursive: true})
@@ -92,12 +92,12 @@ describe('cp', () => {
   })
 
   it('tries to copy directory without -r', async () => {
-    let root: string = path.join(getTestTemp(), 'cp_without_-r')
-    let sourceFolder: string = path.join(root, 'cp_source')
-    let sourceFile: string = path.join(sourceFolder, 'cp_source_file')
+    const root: string = path.join(getTestTemp(), 'cp_without_-r')
+    const sourceFolder: string = path.join(root, 'cp_source')
+    const sourceFile: string = path.join(sourceFolder, 'cp_source_file')
 
-    let targetFolder: string = path.join(root, 'cp_target')
-    let targetFile: string = path.join(
+    const targetFolder: string = path.join(root, 'cp_target')
+    const targetFile: string = path.join(
       targetFolder,
       'cp_source',
       'cp_source_file'
@@ -118,9 +118,9 @@ describe('cp', () => {
 
 describe('mv', () => {
   it('moves file with no flags', async () => {
-    let root: string = path.join(getTestTemp(), ' mv_with_no_flags')
-    let sourceFile: string = path.join(root, ' mv_source')
-    let targetFile: string = path.join(root, ' mv_target')
+    const root: string = path.join(getTestTemp(), ' mv_with_no_flags')
+    const sourceFile: string = path.join(root, ' mv_source')
+    const targetFile: string = path.join(root, ' mv_target')
     await io.mkdirP(root)
     fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
 
@@ -133,9 +133,9 @@ describe('mv', () => {
   })
 
   it('moves file using -f', async () => {
-    let root: string = path.join(path.join(__dirname, '_temp'), ' mv_with_-f')
-    let sourceFile: string = path.join(root, ' mv_source')
-    let targetFile: string = path.join(root, ' mv_target')
+    const root: string = path.join(path.join(__dirname, '_temp'), ' mv_with_-f')
+    const sourceFile: string = path.join(root, ' mv_source')
+    const targetFile: string = path.join(root, ' mv_target')
     await io.mkdirP(root)
     fs.writeFileSync(sourceFile, 'test file content')
 
@@ -148,9 +148,9 @@ describe('mv', () => {
   })
 
   it('try moving to existing file with -n', async () => {
-    let root: string = path.join(getTestTemp(), ' mv_to_existing')
-    let sourceFile: string = path.join(root, ' mv_source')
-    let targetFile: string = path.join(root, ' mv_target')
+    const root: string = path.join(getTestTemp(), ' mv_to_existing')
+    const sourceFile: string = path.join(root, ' mv_source')
+    const targetFile: string = path.join(root, ' mv_target')
     await io.mkdirP(root)
     fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
     fs.writeFileSync(targetFile, 'correct content', {encoding: 'utf8'})
@@ -171,12 +171,12 @@ describe('mv', () => {
   })
 
   it('moves directory into existing destination with -r', async () => {
-    let root: string = path.join(getTestTemp(), ' mv_with_-r_existing_dest')
-    let sourceFolder: string = path.join(root, ' mv_source')
-    let sourceFile: string = path.join(sourceFolder, ' mv_source_file')
+    const root: string = path.join(getTestTemp(), ' mv_with_-r_existing_dest')
+    const sourceFolder: string = path.join(root, ' mv_source')
+    const sourceFile: string = path.join(sourceFolder, ' mv_source_file')
 
-    let targetFolder: string = path.join(root, ' mv_target')
-    let targetFile: string = path.join(
+    const targetFolder: string = path.join(root, ' mv_target')
+    const targetFile: string = path.join(
       targetFolder,
       ' mv_source',
       ' mv_source_file'
@@ -193,12 +193,15 @@ describe('mv', () => {
   })
 
   it('moves directory into non-existing destination with -r', async () => {
-    let root: string = path.join(getTestTemp(), ' mv_with_-r_nonexisting_dest')
-    let sourceFolder: string = path.join(root, ' mv_source')
-    let sourceFile: string = path.join(sourceFolder, ' mv_source_file')
+    const root: string = path.join(
+      getTestTemp(),
+      ' mv_with_-r_nonexisting_dest'
+    )
+    const sourceFolder: string = path.join(root, ' mv_source')
+    const sourceFile: string = path.join(sourceFolder, ' mv_source_file')
 
-    let targetFolder: string = path.join(root, ' mv_target')
-    let targetFile: string = path.join(targetFolder, ' mv_source_file')
+    const targetFolder: string = path.join(root, ' mv_target')
+    const targetFile: string = path.join(targetFolder, ' mv_source_file')
     await io.mkdirP(sourceFolder)
     fs.writeFileSync(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.mv(sourceFolder, targetFolder, {recursive: true})
@@ -210,12 +213,12 @@ describe('mv', () => {
   })
 
   it('tries to move directory without -r', async () => {
-    let root: string = path.join(getTestTemp(), 'mv_without_-r')
-    let sourceFolder: string = path.join(root, 'mv_source')
-    let sourceFile: string = path.join(sourceFolder, 'mv_source_file')
+    const root: string = path.join(getTestTemp(), 'mv_without_-r')
+    const sourceFolder: string = path.join(root, 'mv_source')
+    const sourceFile: string = path.join(sourceFolder, 'mv_source_file')
 
-    let targetFolder: string = path.join(root, 'mv_target')
-    let targetFile: string = path.join(
+    const targetFolder: string = path.join(root, 'mv_target')
+    const targetFile: string = path.join(
       targetFolder,
       'mv_source',
       'mv_source_file'
@@ -238,7 +241,7 @@ describe('mv', () => {
 
 describe('rmRF', () => {
   it('removes single folder with rmRF', async () => {
-    var testPath = path.join(getTestTemp(), 'testFolder')
+    const testPath = path.join(getTestTemp(), 'testFolder')
 
     await io.mkdirP(testPath)
     expect(fs.existsSync(testPath)).toBe(true)
@@ -248,8 +251,8 @@ describe('rmRF', () => {
   })
 
   it('removes recursive folders with rmRF', async () => {
-    var testPath = path.join(getTestTemp(), 'testDir1')
-    var testPath2 = path.join(testPath, 'testDir2')
+    const testPath = path.join(getTestTemp(), 'testDir1')
+    const testPath2 = path.join(testPath, 'testDir2')
     await io.mkdirP(testPath2)
 
     expect(fs.existsSync(testPath)).toBe(true)
@@ -261,18 +264,18 @@ describe('rmRF', () => {
   })
 
   it('removes folder with locked file with rmRF', async () => {
-    var testPath = path.join(getTestTemp(), 'testFolder')
+    const testPath = path.join(getTestTemp(), 'testFolder')
     await io.mkdirP(testPath)
     expect(fs.existsSync(testPath)).toBe(true)
 
     // can't remove folder with locked file on windows
-    var filePath = path.join(testPath, 'file.txt')
+    const filePath = path.join(testPath, 'file.txt')
     fs.appendFileSync(filePath, 'some data')
     expect(fs.existsSync(filePath)).toBe(true)
 
-    var fd = fs.openSync(filePath, 'r')
+    const fd = fs.openSync(filePath, 'r')
 
-    var worked = false
+    let worked = false
     try {
       await io.rmRF(testPath)
       worked = true
@@ -292,7 +295,7 @@ describe('rmRF', () => {
   })
 
   it('removes folder that doesnt exist with rmRF', async () => {
-    var testPath = path.join(getTestTemp(), 'testFolder')
+    const testPath = path.join(getTestTemp(), 'testFolder')
     expect(fs.existsSync(testPath)).toBe(false)
 
     await io.rmRF(testPath)
@@ -300,7 +303,7 @@ describe('rmRF', () => {
   })
 
   it('removes file with rmRF', async () => {
-    let file: string = path.join(getTestTemp(), 'rmRF_file')
+    const file: string = path.join(getTestTemp(), 'rmRF_file')
     fs.writeFileSync(file, 'test file content')
     expect(fs.existsSync(file)).toBe(true)
     await io.rmRF(file)
@@ -308,7 +311,7 @@ describe('rmRF', () => {
   })
 
   it('removes hidden folder with rmRF', async () => {
-    let directory: string = path.join(getTestTemp(), '.rmRF_directory')
+    const directory: string = path.join(getTestTemp(), '.rmRF_directory')
     await createHiddenDirectory(directory)
     expect(fs.existsSync(directory)).toBe(true)
     await io.rmRF(directory)
@@ -316,7 +319,7 @@ describe('rmRF', () => {
   })
 
   it('removes hidden file with rmRF', async () => {
-    let file: string = path.join(getTestTemp(), '.rmRF_file')
+    const file: string = path.join(getTestTemp(), '.rmRF_file')
     fs.writeFileSync(file, 'test file content')
     expect(fs.existsSync(file)).toBe(true)
     await io.rmRF(file)
@@ -328,10 +331,10 @@ describe('rmRF', () => {
     //   real_directory
     //   real_directory/real_file
     //   symlink_directory -> real_directory
-    let root: string = path.join(getTestTemp(), 'rmRF_sym_dir_test')
-    let realDirectory: string = path.join(root, 'real_directory')
-    let realFile: string = path.join(root, 'real_directory', 'real_file')
-    let symlinkDirectory: string = path.join(root, 'symlink_directory')
+    const root: string = path.join(getTestTemp(), 'rmRF_sym_dir_test')
+    const realDirectory: string = path.join(root, 'real_directory')
+    const realFile: string = path.join(root, 'real_directory', 'real_file')
+    const symlinkDirectory: string = path.join(root, 'symlink_directory')
     await io.mkdirP(realDirectory)
     fs.writeFileSync(realFile, 'test file content')
     createSymlinkDir(realDirectory, symlinkDirectory)
@@ -349,9 +352,9 @@ describe('rmRF', () => {
       // create the following layout:
       //   real_file
       //   symlink_file -> real_file
-      let root: string = path.join(getTestTemp(), 'rmRF_sym_file_test')
-      let realFile: string = path.join(root, 'real_file')
-      let symlinkFile: string = path.join(root, 'symlink_file')
+      const root: string = path.join(getTestTemp(), 'rmRF_sym_file_test')
+      const realFile: string = path.join(root, 'real_file')
+      const symlinkFile: string = path.join(root, 'symlink_file')
       await io.mkdirP(root)
       fs.writeFileSync(realFile, 'test file content')
       fs.symlinkSync(realFile, symlinkFile)
@@ -368,12 +371,12 @@ describe('rmRF', () => {
       // create the following layout:
       //   real_file
       //   symlink_file -> real_file
-      let root: string = path.join(
+      const root: string = path.join(
         getTestTemp(),
         'rmRF_sym_file_missing_source_test'
       )
-      let realFile: string = path.join(root, 'real_file')
-      let symlinkFile: string = path.join(root, 'symlink_file')
+      const realFile: string = path.join(root, 'real_file')
+      const symlinkFile: string = path.join(root, 'symlink_file')
       await io.mkdirP(root)
       fs.writeFileSync(realFile, 'test file content')
       fs.symlinkSync(realFile, symlinkFile)
@@ -402,10 +405,13 @@ describe('rmRF', () => {
       //   real_file
       //   symlink_file -> real_file
       //   symlink_level_2_file -> symlink_file
-      let root: string = path.join(getTestTemp(), 'rmRF_sym_level_2_file_test')
-      let realFile: string = path.join(root, 'real_file')
-      let symlinkFile: string = path.join(root, 'symlink_file')
-      let symlinkLevel2File: string = path.join(root, 'symlink_level_2_file')
+      const root: string = path.join(
+        getTestTemp(),
+        'rmRF_sym_level_2_file_test'
+      )
+      const realFile: string = path.join(root, 'real_file')
+      const symlinkFile: string = path.join(root, 'symlink_file')
+      const symlinkLevel2File: string = path.join(root, 'symlink_level_2_file')
       await io.mkdirP(root)
       fs.writeFileSync(realFile, 'test file content')
       fs.symlinkSync(realFile, symlinkFile)
@@ -426,11 +432,11 @@ describe('rmRF', () => {
       //   real_directory/real_file
       //   outer_directory
       //   outer_directory/symlink_file -> real_file
-      let root: string = path.join(getTestTemp(), 'rmRF_sym_nest_file_test')
-      let realDirectory: string = path.join(root, 'real_directory')
-      let realFile: string = path.join(root, 'real_directory', 'real_file')
-      let outerDirectory: string = path.join(root, 'outer_directory')
-      let symlinkFile: string = path.join(
+      const root: string = path.join(getTestTemp(), 'rmRF_sym_nest_file_test')
+      const realDirectory: string = path.join(root, 'real_directory')
+      const realFile: string = path.join(root, 'real_directory', 'real_file')
+      const outerDirectory: string = path.join(root, 'outer_directory')
+      const symlinkFile: string = path.join(
         root,
         'outer_directory',
         'symlink_file'
@@ -457,19 +463,19 @@ describe('rmRF', () => {
       //   outer_directory
       //   outer_directory/nested_directory
       //   outer_directory/nested_directory/symlink_file -> real_file
-      let root: string = path.join(
+      const root: string = path.join(
         getTestTemp(),
         'rmRF_sym_deep_nest_file_test'
       )
-      let realDirectory: string = path.join(root, 'real_directory')
-      let realFile: string = path.join(root, 'real_directory', 'real_file')
-      let outerDirectory: string = path.join(root, 'outer_directory')
-      let nestedDirectory: string = path.join(
+      const realDirectory: string = path.join(root, 'real_directory')
+      const realFile: string = path.join(root, 'real_directory', 'real_file')
+      const outerDirectory: string = path.join(root, 'outer_directory')
+      const nestedDirectory: string = path.join(
         root,
         'outer_directory',
         'nested_directory'
       )
-      let symlinkFile: string = path.join(
+      const symlinkFile: string = path.join(
         root,
         'outer_directory',
         'nested_directory',
@@ -496,10 +502,10 @@ describe('rmRF', () => {
     //   real_directory
     //   real_directory/real_file
     //   symlink_directory -> real_directory
-    let root: string = path.join(getTestTemp(), 'rmRF_sym_dir_miss_src_test')
-    let realDirectory: string = path.join(root, 'real_directory')
-    let realFile: string = path.join(root, 'real_directory', 'real_file')
-    let symlinkDirectory: string = path.join(root, 'symlink_directory')
+    const root: string = path.join(getTestTemp(), 'rmRF_sym_dir_miss_src_test')
+    const realDirectory: string = path.join(root, 'real_directory')
+    const realFile: string = path.join(root, 'real_directory', 'real_file')
+    const symlinkDirectory: string = path.join(root, 'symlink_directory')
     await io.mkdirP(realDirectory)
     fs.writeFileSync(realFile, 'test file content')
     createSymlinkDir(realDirectory, symlinkDirectory)
@@ -538,14 +544,14 @@ describe('rmRF', () => {
     //   real_directory/real_file
     //   symlink_directory -> real_directory
     //   symlink_level_2_directory -> symlink_directory
-    let root: string = path.join(
+    const root: string = path.join(
       getTestTemp(),
       'rmRF_sym_level_2_directory_test'
     )
-    let realDirectory: string = path.join(root, 'real_directory')
-    let realFile: string = path.join(realDirectory, 'real_file')
-    let symlinkDirectory: string = path.join(root, 'symlink_directory')
-    let symlinkLevel2Directory: string = path.join(
+    const realDirectory: string = path.join(root, 'real_directory')
+    const realFile: string = path.join(realDirectory, 'real_file')
+    const symlinkDirectory: string = path.join(root, 'symlink_directory')
+    const symlinkLevel2Directory: string = path.join(
       root,
       'symlink_level_2_directory'
     )
@@ -560,7 +566,7 @@ describe('rmRF', () => {
     ).toBe('test file content')
     if (os.platform() == 'win32') {
       expect(fs.readlinkSync(symlinkLevel2Directory)).toBe(
-        symlinkDirectory + '\\'
+        `${symlinkDirectory}\\`
       )
     } else {
       expect(fs.readlinkSync(symlinkLevel2Directory)).toBe(symlinkDirectory)
@@ -577,11 +583,11 @@ describe('rmRF', () => {
     //   real_directory/real_file
     //   outer_directory
     //   outer_directory/symlink_directory -> real_directory
-    let root: string = path.join(getTestTemp(), 'rmRF_sym_nest_dir_test')
-    let realDirectory: string = path.join(root, 'real_directory')
-    let realFile: string = path.join(root, 'real_directory', 'real_file')
-    let outerDirectory: string = path.join(root, 'outer_directory')
-    let symlinkDirectory: string = path.join(
+    const root: string = path.join(getTestTemp(), 'rmRF_sym_nest_dir_test')
+    const realDirectory: string = path.join(root, 'real_directory')
+    const realFile: string = path.join(root, 'real_directory', 'real_file')
+    const outerDirectory: string = path.join(root, 'outer_directory')
+    const symlinkDirectory: string = path.join(
       root,
       'outer_directory',
       'symlink_directory'
@@ -606,16 +612,16 @@ describe('rmRF', () => {
     //   outer_directory
     //   outer_directory/nested_directory
     //   outer_directory/nested_directory/symlink_directory -> real_directory
-    let root: string = path.join(getTestTemp(), 'rmRF_sym_deep_nest_dir_test')
-    let realDirectory: string = path.join(root, 'real_directory')
-    let realFile: string = path.join(root, 'real_directory', 'real_file')
-    let outerDirectory: string = path.join(root, 'outer_directory')
-    let nestedDirectory: string = path.join(
+    const root: string = path.join(getTestTemp(), 'rmRF_sym_deep_nest_dir_test')
+    const realDirectory: string = path.join(root, 'real_directory')
+    const realFile: string = path.join(root, 'real_directory', 'real_file')
+    const outerDirectory: string = path.join(root, 'outer_directory')
+    const nestedDirectory: string = path.join(
       root,
       'outer_directory',
       'nested_directory'
     )
-    let symlinkDirectory: string = path.join(
+    const symlinkDirectory: string = path.join(
       root,
       'outer_directory',
       'nested_directory',
@@ -635,7 +641,7 @@ describe('rmRF', () => {
   })
 
   it('removes hidden file with rmRF', async () => {
-    let file: string = path.join(getTestTemp(), '.rmRF_file')
+    const file: string = path.join(getTestTemp(), '.rmRF_file')
     await io.mkdirP(path.dirname(file))
     await createHiddenFile(file, 'test file content')
     expect(fs.existsSync(file)).toBe(true)
@@ -650,22 +656,22 @@ describe('mkdirP', () => {
   })
 
   it('creates folder', async () => {
-    var testPath = path.join(getTestTemp(), 'mkdirTest')
+    const testPath = path.join(getTestTemp(), 'mkdirTest')
     await io.mkdirP(testPath)
 
     expect(fs.existsSync(testPath)).toBe(true)
   })
 
   it('creates nested folders with mkdirP', async () => {
-    var testPath = path.join(getTestTemp(), 'mkdir1', 'mkdir2')
+    const testPath = path.join(getTestTemp(), 'mkdir1', 'mkdir2')
     await io.mkdirP(testPath)
 
     expect(fs.existsSync(testPath)).toBe(true)
   })
 
   it('fails if mkdirP with illegal chars', async () => {
-    var testPath = path.join(getTestTemp(), 'mkdir\0')
-    var worked: boolean = false
+    const testPath = path.join(getTestTemp(), 'mkdir\0')
+    let worked: boolean = false
     try {
       await io.mkdirP(testPath)
       worked = true
@@ -677,7 +683,7 @@ describe('mkdirP', () => {
   })
 
   it('fails if mkdirP with empty path', async () => {
-    var worked: boolean = false
+    let worked: boolean = false
     try {
       await io.mkdirP('')
       worked = true
@@ -687,7 +693,7 @@ describe('mkdirP', () => {
   })
 
   it('fails if mkdirP with conflicting file path', async () => {
-    let testPath = path.join(getTestTemp(), 'mkdirP_conflicting_file_path')
+    const testPath = path.join(getTestTemp(), 'mkdirP_conflicting_file_path')
     await io.mkdirP(getTestTemp())
     fs.writeFileSync(testPath, '')
     let worked: boolean = false
@@ -700,7 +706,7 @@ describe('mkdirP', () => {
   })
 
   it('fails if mkdirP with conflicting parent file path', async () => {
-    let testPath = path.join(
+    const testPath = path.join(
       getTestTemp(),
       'mkdirP_conflicting_parent_file_path',
       'dir'
@@ -717,7 +723,7 @@ describe('mkdirP', () => {
   })
 
   it('no-ops if mkdirP directory exists', async () => {
-    let testPath = path.join(getTestTemp(), 'mkdirP_dir_exists')
+    const testPath = path.join(getTestTemp(), 'mkdirP_dir_exists')
     await io.mkdirP(testPath)
     expect(fs.existsSync(testPath)).toBe(true)
 
@@ -731,10 +737,10 @@ describe('mkdirP', () => {
     //   real_dir
     //   real_dir/file.txt
     //   symlink_dir -> real_dir
-    let rootPath = path.join(getTestTemp(), 'mkdirP_symlink_dir')
-    let realDirPath = path.join(rootPath, 'real_dir')
-    let realFilePath = path.join(realDirPath, 'file.txt')
-    let symlinkDirPath = path.join(rootPath, 'symlink_dir')
+    const rootPath = path.join(getTestTemp(), 'mkdirP_symlink_dir')
+    const realDirPath = path.join(rootPath, 'real_dir')
+    const realFilePath = path.join(realDirPath, 'file.txt')
+    const symlinkDirPath = path.join(rootPath, 'symlink_dir')
     await io.mkdirP(getTestTemp())
     fs.mkdirSync(rootPath)
     fs.mkdirSync(realDirPath)
@@ -755,17 +761,17 @@ describe('mkdirP', () => {
     //   real_dir
     //   real_dir/file.txt
     //   symlink_dir -> real_dir
-    let rootPath = path.join(getTestTemp(), 'mkdirP_parent_symlink_dir')
-    let realDirPath = path.join(rootPath, 'real_dir')
-    let realFilePath = path.join(realDirPath, 'file.txt')
-    let symlinkDirPath = path.join(rootPath, 'symlink_dir')
+    const rootPath = path.join(getTestTemp(), 'mkdirP_parent_symlink_dir')
+    const realDirPath = path.join(rootPath, 'real_dir')
+    const realFilePath = path.join(realDirPath, 'file.txt')
+    const symlinkDirPath = path.join(rootPath, 'symlink_dir')
     await io.mkdirP(getTestTemp())
     fs.mkdirSync(rootPath)
     fs.mkdirSync(realDirPath)
     fs.writeFileSync(realFilePath, 'test real_dir/file.txt contet')
     createSymlinkDir(realDirPath, symlinkDirPath)
 
-    let subDirPath = path.join(symlinkDirPath, 'sub_dir')
+    const subDirPath = path.join(symlinkDirPath, 'sub_dir')
     await io.mkdirP(subDirPath)
 
     // the subdirectory should be accessible via the real directory
@@ -775,7 +781,7 @@ describe('mkdirP', () => {
   })
 
   it('breaks if mkdirP loop out of control', async () => {
-    let testPath = path.join(
+    const testPath = path.join(
       getTestTemp(),
       'mkdirP_failsafe',
       '1',
@@ -805,20 +811,20 @@ describe('mkdirP', () => {
 describe('which', () => {
   it('which() finds file name', async () => {
     // create a executable file
-    let testPath = path.join(getTestTemp(), 'which-finds-file-name')
+    const testPath = path.join(getTestTemp(), 'which-finds-file-name')
     await io.mkdirP(testPath)
     let fileName = 'Which-Test-File'
     if (process.platform == 'win32') {
       fileName += '.exe'
     }
 
-    let filePath = path.join(testPath, fileName)
+    const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
     if (process.platform != 'win32') {
       chmod(filePath, '+x')
     }
 
-    let originalPath = process.env['PATH']
+    const originalPath = process.env['PATH']
     try {
       // update the PATH
       process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
@@ -878,7 +884,7 @@ describe('which', () => {
 
   it('which() searches path in order', async () => {
     // create a chcp.com/bash override file
-    let testPath = path.join(getTestTemp(), 'which-searches-path-in-order')
+    const testPath = path.join(getTestTemp(), 'which-searches-path-in-order')
     await io.mkdirP(testPath)
     let fileName
     if (process.platform == 'win32') {
@@ -887,16 +893,16 @@ describe('which', () => {
       fileName = 'bash'
     }
 
-    let filePath = path.join(testPath, fileName)
+    const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
     if (process.platform != 'win32') {
       chmod(filePath, '+x')
     }
 
-    let originalPath = process.env['PATH']
+    const originalPath = process.env['PATH']
     try {
       // sanity - regular chcp.com/bash should be found
-      let originalWhich = await io.which(fileName)
+      const originalWhich = await io.which(fileName)
       expect(!!(originalWhich || '')).toBe(true)
 
       // modify PATH
@@ -913,20 +919,20 @@ describe('which', () => {
     // create a non-executable file
     // on Windows, should not end in valid PATHEXT
     // on Mac/Linux should not have executable bit
-    let testPath = path.join(getTestTemp(), 'which-requires-executable')
+    const testPath = path.join(getTestTemp(), 'which-requires-executable')
     await io.mkdirP(testPath)
     let fileName = 'Which-Test-File'
     if (process.platform == 'win32') {
       fileName += '.abc' // not a valid PATHEXT
     }
 
-    let filePath = path.join(testPath, fileName)
+    const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
     if (process.platform != 'win32') {
       chmod(filePath, '-x')
     }
 
-    let originalPath = process.env['PATH']
+    const originalPath = process.env['PATH']
     try {
       // modify PATH
       process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
@@ -947,7 +953,7 @@ describe('which', () => {
 
   it('which() ignores directory match', async () => {
     // create a directory
-    let testPath = path.join(getTestTemp(), 'which-ignores-directory-match')
+    const testPath = path.join(getTestTemp(), 'which-ignores-directory-match')
     let dirPath = path.join(testPath, 'Which-Test-Dir')
     if (process.platform == 'win32') {
       dirPath += '.exe'
@@ -958,7 +964,7 @@ describe('which', () => {
       chmod(dirPath, '+x')
     }
 
-    let originalPath = process.env['PATH']
+    const originalPath = process.env['PATH']
     try {
       // modify PATH
       process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
@@ -972,7 +978,7 @@ describe('which', () => {
 
   it('which() allows rooted path', async () => {
     // create an executable file
-    let testPath = path.join(getTestTemp(), 'which-allows-rooted-path')
+    const testPath = path.join(getTestTemp(), 'which-allows-rooted-path')
     await io.mkdirP(testPath)
     let filePath = path.join(testPath, 'Which-Test-File')
     if (process.platform == 'win32') {
@@ -994,7 +1000,7 @@ describe('which', () => {
     // create a non-executable file
     // on Windows, should not end in valid PATHEXT
     // on Mac/Linux, should not have executable bit
-    let testPath = path.join(
+    const testPath = path.join(
       getTestTemp(),
       'which-requires-rooted-path-to-be-executable'
     )
@@ -1024,7 +1030,7 @@ describe('which', () => {
 
   it('which() requires rooted path to be a file', async () => {
     // create a dir
-    let testPath = path.join(
+    const testPath = path.join(
       getTestTemp(),
       'which-requires-rooted-path-to-be-executable'
     )
@@ -1071,31 +1077,31 @@ describe('which', () => {
 
   it('which() does not allow separators', async () => {
     // create an executable file
-    let testDirName = 'which-does-not-allow-separators'
-    let testPath = path.join(getTestTemp(), testDirName)
+    const testDirName = 'which-does-not-allow-separators'
+    const testPath = path.join(getTestTemp(), testDirName)
     await io.mkdirP(testPath)
     let fileName = 'Which-Test-File'
     if (process.platform == 'win32') {
       fileName += '.exe'
     }
 
-    let filePath = path.join(testPath, fileName)
+    const filePath = path.join(testPath, fileName)
     fs.writeFileSync(filePath, '')
     if (process.platform != 'win32') {
       chmod(filePath, '+x')
     }
 
-    let originalPath = process.env['PATH']
+    const originalPath = process.env['PATH']
     try {
       // modify PATH
       process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
 
       // which "dir/file", should not be found
-      expect((await io.which(testDirName + '/' + fileName)) || '').toBe('')
+      expect((await io.which(`${testDirName}/${fileName}`)) || '').toBe('')
 
       // on Windows, also try "dir\file"
       if (process.platform == 'win32') {
-        expect((await io.which(testDirName + '\\' + fileName)) || '').toBe('')
+        expect((await io.which(`${testDirName}\\${fileName}`)) || '').toBe('')
       }
     } finally {
       process.env['PATH'] = originalPath
@@ -1114,10 +1120,10 @@ describe('which', () => {
 
     it('which() appends ext on windows', async () => {
       // create executable files
-      let testPath = path.join(getTestTemp(), 'which-appends-ext-on-windows')
+      const testPath = path.join(getTestTemp(), 'which-appends-ext-on-windows')
       await io.mkdirP(testPath)
       // PATHEXT=.COM;.EXE;.BAT;.CMD...
-      let files: {[key: string]: string} = {
+      const files: {[key: string]: string} = {
         'which-test-file-1': path.join(testPath, 'which-test-file-1.com'),
         'which-test-file-2': path.join(testPath, 'which-test-file-2.exe'),
         'which-test-file-3': path.join(testPath, 'which-test-file-3.bat'),
@@ -1127,17 +1133,17 @@ describe('which', () => {
           'which-test-file-5.txt.com'
         )
       }
-      for (let fileName of Object.keys(files)) {
+      for (const fileName of Object.keys(files)) {
         fs.writeFileSync(files[fileName], '')
       }
 
-      let originalPath = process.env['PATH']
+      const originalPath = process.env['PATH']
       try {
         // modify PATH
         process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
 
         // find each file
-        for (let fileName of Object.keys(files)) {
+        for (const fileName of Object.keys(files)) {
           expect(await io.which(fileName)).toBe(files[fileName])
         }
       } finally {
@@ -1147,13 +1153,13 @@ describe('which', () => {
 
     it('which() appends ext on windows when rooted', async () => {
       // create executable files
-      let testPath = path.join(
+      const testPath = path.join(
         getTestTemp(),
         'which-appends-ext-on-windows-when-rooted'
       )
       await io.mkdirP(testPath)
       // PATHEXT=.COM;.EXE;.BAT;.CMD...
-      let files: {[key: string]: string} = {}
+      const files: {[key: string]: string} = {}
       files[path.join(testPath, 'which-test-file-1')] = path.join(
         testPath,
         'which-test-file-1.com'
@@ -1174,12 +1180,12 @@ describe('which', () => {
         testPath,
         'which-test-file-5.txt.com'
       )
-      for (let fileName of Object.keys(files)) {
+      for (const fileName of Object.keys(files)) {
         fs.writeFileSync(files[fileName], '')
       }
 
       // find each file
-      for (let fileName of Object.keys(files)) {
+      for (const fileName of Object.keys(files)) {
         expect(await io.which(fileName)).toBe(files[fileName])
       }
     })
@@ -1193,17 +1199,17 @@ describe('which', () => {
       //
       // preference, within the same dir, should be given to the exact match (even though
       // .EXE is defined with higher preference than .BAT in PATHEXT (PATHEXT=.COM;.EXE;.BAT;.CMD...)
-      let testPath = path.join(
+      const testPath = path.join(
         getTestTemp(),
         'which-prefer-exact-match-on-windows'
       )
       await io.mkdirP(testPath)
-      let fileName = 'which-test-file.bat'
-      let expectedFilePath = path.join(testPath, fileName)
-      let notExpectedFilePath = path.join(testPath, fileName + '.exe')
+      const fileName = 'which-test-file.bat'
+      const expectedFilePath = path.join(testPath, fileName)
+      const notExpectedFilePath = path.join(testPath, `${fileName}.exe`)
       fs.writeFileSync(expectedFilePath, '')
       fs.writeFileSync(notExpectedFilePath, '')
-      let originalPath = process.env['PATH']
+      const originalPath = process.env['PATH']
       try {
         process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
         expect(await io.which(fileName)).toBe(expectedFilePath)
@@ -1221,14 +1227,14 @@ describe('which', () => {
       //
       // preference, within the same dir, should be given to the exact match (even though
       // .EXE is defined with higher preference than .BAT in PATHEXT (PATHEXT=.COM;.EXE;.BAT;.CMD...)
-      let testPath = path.join(
+      const testPath = path.join(
         getTestTemp(),
         'which-prefer-exact-match-on-windows-when-rooted'
       )
       await io.mkdirP(testPath)
-      let fileName = 'which-test-file.bat'
-      let expectedFilePath = path.join(testPath, fileName)
-      let notExpectedFilePath = path.join(testPath, fileName + '.exe')
+      const fileName = 'which-test-file.bat'
+      const expectedFilePath = path.join(testPath, fileName)
+      const notExpectedFilePath = path.join(testPath, `${fileName}.exe`)
       fs.writeFileSync(expectedFilePath, '')
       fs.writeFileSync(notExpectedFilePath, '')
       expect(await io.which(path.join(testPath, fileName))).toBe(
@@ -1237,93 +1243,93 @@ describe('which', () => {
     })
 
     it('which() searches ext in order', async () => {
-      let testPath = path.join(getTestTemp(), 'which-searches-ext-in-order')
+      const testPath = path.join(getTestTemp(), 'which-searches-ext-in-order')
 
       // create a directory for testing .COM order preference
       // PATHEXT=.COM;.EXE;.BAT;.CMD...
-      let fileNameWithoutExtension = 'which-test-file'
-      let comTestPath = path.join(testPath, 'com-test')
+      const fileNameWithoutExtension = 'which-test-file'
+      const comTestPath = path.join(testPath, 'com-test')
       await io.mkdirP(comTestPath)
       fs.writeFileSync(
-        path.join(comTestPath, fileNameWithoutExtension + '.com'),
+        path.join(comTestPath, `${fileNameWithoutExtension}.com`),
         ''
       )
       fs.writeFileSync(
-        path.join(comTestPath, fileNameWithoutExtension + '.exe'),
+        path.join(comTestPath, `${fileNameWithoutExtension}.exe`),
         ''
       )
       fs.writeFileSync(
-        path.join(comTestPath, fileNameWithoutExtension + '.bat'),
+        path.join(comTestPath, `${fileNameWithoutExtension}.bat`),
         ''
       )
       fs.writeFileSync(
-        path.join(comTestPath, fileNameWithoutExtension + '.cmd'),
+        path.join(comTestPath, `${fileNameWithoutExtension}.cmd`),
         ''
       )
 
       // create a directory for testing .EXE order preference
       // PATHEXT=.COM;.EXE;.BAT;.CMD...
-      let exeTestPath = path.join(testPath, 'exe-test')
+      const exeTestPath = path.join(testPath, 'exe-test')
       await io.mkdirP(exeTestPath)
       fs.writeFileSync(
-        path.join(exeTestPath, fileNameWithoutExtension + '.exe'),
+        path.join(exeTestPath, `${fileNameWithoutExtension}.exe`),
         ''
       )
       fs.writeFileSync(
-        path.join(exeTestPath, fileNameWithoutExtension + '.bat'),
+        path.join(exeTestPath, `${fileNameWithoutExtension}.bat`),
         ''
       )
       fs.writeFileSync(
-        path.join(exeTestPath, fileNameWithoutExtension + '.cmd'),
+        path.join(exeTestPath, `${fileNameWithoutExtension}.cmd`),
         ''
       )
 
       // create a directory for testing .BAT order preference
       // PATHEXT=.COM;.EXE;.BAT;.CMD...
-      let batTestPath = path.join(testPath, 'bat-test')
+      const batTestPath = path.join(testPath, 'bat-test')
       await io.mkdirP(batTestPath)
       fs.writeFileSync(
-        path.join(batTestPath, fileNameWithoutExtension + '.bat'),
+        path.join(batTestPath, `${fileNameWithoutExtension}.bat`),
         ''
       )
       fs.writeFileSync(
-        path.join(batTestPath, fileNameWithoutExtension + '.cmd'),
+        path.join(batTestPath, `${fileNameWithoutExtension}.cmd`),
         ''
       )
 
       // create a directory for testing .CMD
-      let cmdTestPath = path.join(testPath, 'cmd-test')
+      const cmdTestPath = path.join(testPath, 'cmd-test')
       await io.mkdirP(cmdTestPath)
-      let cmdTest_cmdFilePath = path.join(
+      const cmdTest_cmdFilePath = path.join(
         cmdTestPath,
-        fileNameWithoutExtension + '.cmd'
+        `${fileNameWithoutExtension}.cmd`
       )
       fs.writeFileSync(cmdTest_cmdFilePath, '')
 
-      let originalPath = process.env['PATH']
+      const originalPath = process.env['PATH']
       try {
         // test .COM
         process.env['PATH'] = comTestPath + path.delimiter + originalPath
         expect(await io.which(fileNameWithoutExtension)).toBe(
-          path.join(comTestPath, fileNameWithoutExtension + '.com')
+          path.join(comTestPath, `${fileNameWithoutExtension}.com`)
         )
 
         // test .EXE
         process.env['PATH'] = exeTestPath + path.delimiter + originalPath
         expect(await io.which(fileNameWithoutExtension)).toBe(
-          path.join(exeTestPath, fileNameWithoutExtension + '.exe')
+          path.join(exeTestPath, `${fileNameWithoutExtension}.exe`)
         )
 
         // test .BAT
         process.env['PATH'] = batTestPath + path.delimiter + originalPath
         expect(await io.which(fileNameWithoutExtension)).toBe(
-          path.join(batTestPath, fileNameWithoutExtension + '.bat')
+          path.join(batTestPath, `${fileNameWithoutExtension}.bat`)
         )
 
         // test .CMD
         process.env['PATH'] = cmdTestPath + path.delimiter + originalPath
         expect(await io.which(fileNameWithoutExtension)).toBe(
-          path.join(cmdTestPath, fileNameWithoutExtension + '.cmd')
+          path.join(cmdTestPath, `${fileNameWithoutExtension}.cmd`)
         )
       } finally {
         process.env['PATH'] = originalPath
@@ -1334,18 +1340,18 @@ describe('which', () => {
 
 async function findsExecutableWithScopedPermissions(chmodOptions: string) {
   // create a executable file
-  let testPath = path.join(getTestTemp(), 'which-finds-file-name')
+  const testPath = path.join(getTestTemp(), 'which-finds-file-name')
   await io.mkdirP(testPath)
-  let fileName = 'Which-Test-File'
+  const fileName = 'Which-Test-File'
   if (process.platform == 'win32') {
     return
   }
 
-  let filePath = path.join(testPath, fileName)
+  const filePath = path.join(testPath, fileName)
   fs.writeFileSync(filePath, '')
   chmod(filePath, chmodOptions)
 
-  let originalPath = process.env['PATH']
+  const originalPath = process.env['PATH']
   try {
     // update the PATH
     process.env['PATH'] = process.env['PATH'] + path.delimiter + testPath
@@ -1378,9 +1384,9 @@ async function findsExecutableWithScopedPermissions(chmodOptions: string) {
 }
 
 function chmod(file: string, mode: string): void {
-  let result = child.spawnSync('chmod', [mode, file])
+  const result = child.spawnSync('chmod', [mode, file])
   if (result.status != 0) {
-    let message: string = (result.output || []).join(' ').trim()
+    const message: string = (result.output || []).join(' ').trim()
     throw new Error(`Command failed: "chmod ${mode} ${file}".  ${message}`)
   }
 }
@@ -1393,9 +1399,9 @@ async function createHiddenDirectory(dir: string): Promise<void> {
 
     await io.mkdirP(dir)
     if (os.platform() == 'win32') {
-      let result = child.spawnSync('attrib.exe', ['+H', dir])
+      const result = child.spawnSync('attrib.exe', ['+H', dir])
       if (result.status != 0) {
-        let message: string = (result.output || []).join(' ').trim()
+        const message: string = (result.output || []).join(' ').trim()
         reject(
           `Failed to set hidden attribute for directory '${dir}'. ${message}`
         )
@@ -1414,9 +1420,9 @@ async function createHiddenFile(file: string, content: string): Promise<void> {
     await io.mkdirP(path.dirname(file))
     fs.writeFileSync(file, content)
     if (os.platform() == 'win32') {
-      let result = child.spawnSync('attrib.exe', ['+H', file])
+      const result = child.spawnSync('attrib.exe', ['+H', file])
       if (result.status != 0) {
-        let message: string = (result.output || []).join(' ').trim()
+        const message: string = (result.output || []).join(' ').trim()
         reject(`Failed to set hidden attribute for file '${file}'. ${message}`)
       }
     }

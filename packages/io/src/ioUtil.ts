@@ -4,7 +4,7 @@ import path = require('path')
 export function _removeDirectory(directoryPath: string) {
   if (fs.existsSync(directoryPath)) {
     fs.readdirSync(directoryPath).forEach(fileName => {
-      let file = path.join(directoryPath, fileName)
+      const file = path.join(directoryPath, fileName)
       if (fs.lstatSync(file).isDirectory()) {
         _removeDirectory(file)
       } else {
@@ -46,14 +46,14 @@ export function _tryGetExecutablePath(
 ): string {
   try {
     // test file exists
-    let stats: fs.Stats = fs.statSync(filePath)
+    const stats: fs.Stats = fs.statSync(filePath)
     if (stats.isFile()) {
       if (process.platform == 'win32') {
         // on Windows, test for valid extension
-        let fileName = path.basename(filePath)
-        let dotIndex = fileName.lastIndexOf('.')
+        const fileName = path.basename(filePath)
+        const dotIndex = fileName.lastIndexOf('.')
         if (dotIndex >= 0) {
-          let upperExt = fileName.substr(dotIndex).toUpperCase()
+          const upperExt = fileName.substr(dotIndex).toUpperCase()
           if (extensions.some(validExt => validExt.toUpperCase() == upperExt)) {
             return filePath
           }
@@ -73,18 +73,18 @@ export function _tryGetExecutablePath(
   }
 
   // try each extension
-  let originalFilePath = filePath
-  for (let extension of extensions) {
+  const originalFilePath = filePath
+  for (const extension of extensions) {
     let filePath = originalFilePath + extension
     try {
-      let stats: fs.Stats = fs.statSync(filePath)
+      const stats: fs.Stats = fs.statSync(filePath)
       if (stats.isFile()) {
         if (process.platform == 'win32') {
           // preserve the case of the actual file (since an extension was appended)
           try {
-            let directory = path.dirname(filePath)
-            let upperName = path.basename(filePath).toUpperCase()
-            for (let actualName of fs.readdirSync(directory)) {
+            const directory = path.dirname(filePath)
+            const upperName = path.basename(filePath).toUpperCase()
+            for (const actualName of fs.readdirSync(directory)) {
               if (upperName == actualName.toUpperCase()) {
                 filePath = path.join(directory, actualName)
                 break
@@ -122,7 +122,7 @@ function _normalizeSeparators(p: string): string {
     p = p.replace(/\//g, '\\')
 
     // remove redundant slashes
-    let isUnc = /^\\\\+[^\\]/.test(p) // e.g. \\hello
+    const isUnc = /^\\\\+[^\\]/.test(p) // e.g. \\hello
     return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\') // preserve leading // for UNC
   }
 

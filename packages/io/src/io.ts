@@ -207,7 +207,7 @@ export function mkdirP(p: string): Promise<void> {
       }
 
       // build a stack of directories to create
-      let stack: string[] = []
+      const stack: string[] = []
       let testDir: string = p
       while (true) {
         // validate the loop is not out of control
@@ -224,7 +224,7 @@ export function mkdirP(p: string): Promise<void> {
         } catch (err) {
           if (err.code == 'ENOENT') {
             // validate the directory is not the drive root
-            let parentDir = path.dirname(testDir)
+            const parentDir = path.dirname(testDir)
             if (testDir == parentDir) {
               throw new Error(
                 `Unable to create directory '${p}'. Root directory does not exist: '${testDir}'`
@@ -256,7 +256,7 @@ export function mkdirP(p: string): Promise<void> {
 
       // create each directory
       while (stack.length) {
-        let dir = stack.pop()! // non-null because `stack.length` was truthy
+        const dir = stack.pop()! // non-null because `stack.length` was truthy
         fs.mkdirSync(dir)
       }
     } catch (err) {
@@ -285,7 +285,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
 
     // recursive when check=true
     if (check) {
-      let result: string = await which(tool, false)
+      const result: string = await which(tool, false)
       if (!result) {
         if (process.platform == 'win32') {
           reject(
@@ -302,9 +302,9 @@ export function which(tool: string, check?: boolean): Promise<string> {
 
     try {
       // build the list of extensions to try
-      let extensions: string[] = []
+      const extensions: string[] = []
       if (process.platform == 'win32' && process.env['PATHEXT']) {
-        for (let extension of process.env['PATHEXT']!.split(path.delimiter)) {
+        for (const extension of process.env['PATHEXT']!.split(path.delimiter)) {
           if (extension) {
             extensions.push(extension)
           }
@@ -313,7 +313,7 @@ export function which(tool: string, check?: boolean): Promise<string> {
 
       // if it's rooted, return it if exists. otherwise return empty.
       if (util._isRooted(tool)) {
-        let filePath: string = util._tryGetExecutablePath(tool, extensions)
+        const filePath: string = util._tryGetExecutablePath(tool, extensions)
         if (filePath) {
           resolve(filePath)
           return
@@ -338,9 +338,9 @@ export function which(tool: string, check?: boolean): Promise<string> {
       // it feels like we should not do this. Checking the current directory seems like more of a use
       // case of a shell, and the which() function exposed by the task lib should strive for consistency
       // across platforms.
-      let directories: string[] = []
+      const directories: string[] = []
       if (process.env['PATH']) {
-        for (let p of process.env['PATH']!.split(path.delimiter)) {
+        for (const p of process.env['PATH']!.split(path.delimiter)) {
           if (p) {
             directories.push(p)
           }
@@ -348,8 +348,8 @@ export function which(tool: string, check?: boolean): Promise<string> {
       }
 
       // return the first match
-      for (let directory of directories) {
-        let filePath = util._tryGetExecutablePath(
+      for (const directory of directories) {
+        const filePath = util._tryGetExecutablePath(
           directory + path.sep + tool,
           extensions
         )
@@ -384,9 +384,9 @@ function copyDirectoryContents(
     }
 
     // Copy all child files, and directories recursively
-    let sourceChildren: string[] = fs.readdirSync(source)
+    const sourceChildren: string[] = fs.readdirSync(source)
     sourceChildren.forEach(newSource => {
-      let newDest = path.join(dest, path.basename(newSource))
+      const newDest = path.join(dest, path.basename(newSource))
       copyDirectoryContents(
         path.resolve(source, newSource),
         newDest,
