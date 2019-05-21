@@ -68,13 +68,13 @@ class Command {
     // safely append the message - avoid blowing up when attempting to
     // call .replace() if message is not a string for some reason
     const message: string = `${this.message || ''}`
-    cmdStr += escapedata(message)
+    cmdStr += escapeData(message)
 
     return cmdStr
   }
 }
 
-function escapedata(s: string): string {
+function escapeData(s: string): string {
   return s.replace(/\r/g, '%0D').replace(/\n/g, '%0A')
 }
 
