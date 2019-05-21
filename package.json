@@ -4,7 +4,8 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
-    "format": "prettier --check packages/**/*.ts",
+    "format": "prettier --write packages/**/*.ts",
+    "format-check": "prettier --check packages/**/*.ts",
     "new-package": "scripts/create-package",
     "test": "jest"
   },

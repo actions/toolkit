@@ -13,23 +13,21 @@ export function warning(message: string): void
 export function error(message: string): void
 
 /**
+ * Interface for exportVariable options
+ */
+export interface ExportOptions {
+    /** Optional. Whether the variable should be marked as secret (will be masked from logs). Defaults to false */
+    isSecret?: bool;
+}
+
+/**
  * sets env variable for this action and future actions in the job
  *
  * @param name      the name of the variable to set
  * @param val       the value of the variable
  * @param options   optional. See ExportOptions.
  */
-export function exportVariable(name: string, val: string): void
-
-/**
- * exports the variable and registers a secret which will get masked from logs
- * @param name the name of the variable to set
- * @param val value of the secret
- */
-export function exportSecret(name: string, val: string) {
-    exportVariable(name, val);
-    intm._issueCommand('set-secret', {}, val);
-} 
+export function exportVariable(name: string, val: string, options?: ExportOptions): void
 
 /**
  * Interface for getInput options
