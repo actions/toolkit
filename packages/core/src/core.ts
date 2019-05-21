@@ -1,5 +1,5 @@
 import {ExitCode} from '@actions/exit'
-import * as intm from './command'
+import {issue, issueCommand} from './command'
 
 /**
  * Interface for getInput options
@@ -20,7 +20,7 @@ export interface InputOptions {
  */
 export function exportVariable(name: string, val: string) {
   process.env[name] = val
-  intm.issueCommand('set-env', {name}, val)
+  issueCommand('set-env', {name}, val)
 }
 
 /**
@@ -30,7 +30,7 @@ export function exportVariable(name: string, val: string) {
  */
 export function exportSecret(name: string, val: string) {
   exportVariable(name, val)
-  intm.issueCommand('set-secret', {}, val)
+  issueCommand('set-secret', {}, val)
 }
 
 /**
@@ -80,7 +80,7 @@ export function setFailed(message: string) {
  * @param message debug message
  */
 export function debug(message: string) {
-  intm.issueCommand('debug', {}, message)
+  issueCommand('debug', {}, message)
 }
 
 /**
@@ -88,7 +88,7 @@ export function debug(message: string) {
  * @param message error issue message
  */
 export function error(message: string) {
-  intm.issue('error', message)
+  issue('error', message)
 }
 
 /**
@@ -96,5 +96,5 @@ export function error(message: string) {
  * @param message warning issue message
  */
 export function warning(message: string) {
-  intm.issue('warning', message)
+  issue('warning', message)
 }
