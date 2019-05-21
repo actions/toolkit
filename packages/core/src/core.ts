@@ -1,5 +1,5 @@
 import {ExitCode} from '@actions/exit'
-import * as intm from './internal'
+import * as intm from './command'
 
 /**
  * Interface for getInput options
@@ -20,7 +20,7 @@ export interface InputOptions {
  */
 export function exportVariable(name: string, val: string) {
   process.env[name] = val
-  intm._issueCommand('set-variable', {name}, val)
+  intm.issueCommand('set-variable', {name}, val)
 }
 
 /**
@@ -28,9 +28,9 @@ export function exportVariable(name: string, val: string) {
  * @param name the name of the variable to set
  * @param val value of the secret
  */
-export function setSecret(name: string, val: string) {
+export function exportSecret(name: string, val: string) {
   exportVariable(name, val)
-  intm._issueCommand('set-secret', {}, val)
+  intm.issueCommand('set-secret', {}, val)
 }
 
 /**
@@ -80,7 +80,7 @@ export function setFailed(message: string) {
  * @param message debug message
  */
 export function debug(message: string) {
-  intm._issueCommand('debug', {}, message)
+  intm.issueCommand('debug', {}, message)
 }
 
 /**
@@ -88,7 +88,7 @@ export function debug(message: string) {
  * @param message error issue message
  */
 export function error(message: string) {
-  intm._issue('error', message)
+  intm.issue('error', message)
 }
 
 /**
@@ -96,5 +96,5 @@ export function error(message: string) {
  * @param message warning issue message
  */
 export function warning(message: string) {
-  intm._issue('warning', message)
+  intm.issue('warning', message)
 }

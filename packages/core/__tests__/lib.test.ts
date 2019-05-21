@@ -46,8 +46,8 @@ describe('@actions/core', () => {
     assertWriteCalls([`##[set-variable name=my var2;]var val%0D%0A${os.EOL}`])
   })
 
-  it('setSecret produces the correct commands and sets the env', () => {
-    core.setSecret('my secret', 'secret val')
+  it('exportSecret produces the correct commands and sets the env', () => {
+    core.exportSecret('my secret', 'secret val')
     expect(process.env['my secret']).toBe('secret val')
     assertWriteCalls([
       `##[set-variable name=my secret;]secret val${os.EOL}`,
@@ -55,8 +55,8 @@ describe('@actions/core', () => {
     ])
   })
 
-  it('setSecret escapes secret names', () => {
-    core.setSecret('special char secret \r\n];', 'special secret val')
+  it('exportSecret escapes secret names', () => {
+    core.exportSecret('special char secret \r\n];', 'special secret val')
     expect(process.env['special char secret \r\n];']).toBe('special secret val')
     assertWriteCalls([
       `##[set-variable name=special char secret %0D%0A%5D%3B;]special secret val${
@@ -66,8 +66,8 @@ describe('@actions/core', () => {
     ])
   })
 
-  it('setSecret escapes secret values', () => {
-    core.setSecret('my secret2', 'secret val\r\n')
+  it('exportSecret escapes secret values', () => {
+    core.exportSecret('my secret2', 'secret val\r\n')
     expect(process.env['my secret2']).toBe('secret val\r\n')
     assertWriteCalls([
       `##[set-variable name=my secret2;]secret val%0D%0A${os.EOL}`,
