@@ -28,30 +28,7 @@ export async function cp(
   dest: string,
   options: CopyOptions = {}
 ): Promise<void> {
-  const {force, recursive} = readCopyOptions(options)
-
-  if (await ioUtil.isDirectory(source)) {
-    if (!recursive) {
-      throw new Error(`non-recursive cp failed, ${source} is a directory`)
-    }
-
-    // If directory exists, copy source inside it. Otherwise, create it and copy contents of source inside.
-    if (await ioUtil.exists(dest)) {
-      if (!(await ioUtil.isDirectory(dest))) {
-        throw new Error(`${dest} is not a directory`)
-      }
-
-      dest = path.join(dest, path.basename(source))
-    }
-
-    await copyDirectoryContents(source, dest, force)
-  } else {
-    if (force) {
-      await fs.promises.copyFile(source, dest)
-    } else {
-      await fs.promises.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
-    }
-  }
+  await move(source, dest, options, {deleteOriginal: false})
 }
 
 /**
@@ -66,33 +43,7 @@ export async function mv(
   dest: string,
   options: CopyOptions = {}
 ): Promise<void> {
-  const {force, recursive} = readCopyOptions(options)
-
-  if (await ioUtil.isDirectory(source)) {
-    if (!recursive) {
-      throw new Error(`non-recursive cp failed, ${source} is a directory`)
-    }
-
-    // If directory exists, move source inside it. Otherwise, create it and move contents of source inside.
-    if (await ioUtil.exists(dest)) {
-      if (!(await ioUtil.isDirectory(dest))) {
-        throw new Error(`${dest} is not a directory`)
-      }
-
-      dest = path.join(dest, path.basename(source))
-    }
-
-    await copyDirectoryContents(source, dest, force, true)
-  } else {
-    if (force) {
-      await fs.promises.copyFile(source, dest)
-    } else {
-      await fs.promises.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
-    }
-
-    // Delete file after copying since this is mv.
-    await fs.promises.unlink(source)
-  }
+  await move(source, dest, options, {deleteOriginal: true})
 }
 
 /**
@@ -347,6 +298,42 @@ async function copyDirectoryContents(
       await fs.promises.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
     }
     if (deleteOriginal) {
+      await fs.promises.unlink(source)
+    }
+  }
+}
+
+async function move(
+  source: string,
+  dest: string,
+  options: CopyOptions = {},
+  moveOptions: {deleteOriginal: boolean}
+): Promise<void> {
+  const {force, recursive} = readCopyOptions(options)
+
+  if (await ioUtil.isDirectory(source)) {
+    if (!recursive) {
+      throw new Error(`non-recursive cp failed, ${source} is a directory`)
+    }
+
+    // If directory exists, move source inside it. Otherwise, create it and move contents of source inside.
+    if (await ioUtil.exists(dest)) {
+      if (!(await ioUtil.isDirectory(dest))) {
+        throw new Error(`${dest} is not a directory`)
+      }
+
+      dest = path.join(dest, path.basename(source))
+    }
+
+    await copyDirectoryContents(source, dest, force, moveOptions.deleteOriginal)
+  } else {
+    if (force) {
+      await fs.promises.copyFile(source, dest)
+    } else {
+      await fs.promises.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
+    }
+
+    if (moveOptions.deleteOriginal) {
       await fs.promises.unlink(source)
     }
   }
