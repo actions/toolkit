@@ -80,13 +80,9 @@ export async function tryGetExecutablePath(
   if (stats && stats.isFile()) {
     if (IS_WINDOWS) {
       // on Windows, test for valid extension
-      const fileName = path.basename(filePath)
-      const dotIndex = fileName.lastIndexOf('.')
-      if (dotIndex >= 0) {
-        const upperExt = fileName.substr(dotIndex).toUpperCase()
-        if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
-          return filePath
-        }
+      const upperExt = path.extname(filePath).toUpperCase()
+      if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
+        return filePath
       }
     } else {
       if (isUnixExecutable(stats)) {
