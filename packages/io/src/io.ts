@@ -56,7 +56,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
     try {
-      if (await ioUtil.isDirectory(inputPath)) {
+      if (await ioUtil.isDirectory(inputPath, true)) {
         await exec(`rd /s /q "${inputPath}"`)
       } else {
         await exec(`del /f /a "${inputPath}"`)
