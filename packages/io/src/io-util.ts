@@ -1,3 +1,4 @@
+import {ok} from 'assert'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -69,6 +70,8 @@ export async function mkdirP(
   maxDepth: number = 1000,
   depth: number = 1
 ): Promise<void> {
+  ok(fsPath, 'a path argument must be provided')
+
   fsPath = path.resolve(fsPath)
 
   if (depth >= maxDepth) return mkdir(fsPath)
