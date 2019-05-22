@@ -69,7 +69,7 @@ export async function rmRF(inputPath: string): Promise<void> {
 
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
-      await fs.promises.unlink(inputPath)
+      await ioUtil.unlink(inputPath)
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
@@ -89,7 +89,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     if (isDir) {
       await exec(`rm -rf "${inputPath}"`)
     } else {
-      await fs.promises.unlink(inputPath)
+      await ioUtil.unlink(inputPath)
     }
   }
 }
@@ -115,13 +115,13 @@ export async function mkdirP(fsPath: string): Promise<void> {
     // validate the loop is not out of control
     if (stack.length >= (process.env['TEST_MKDIRP_FAILSAFE'] || 1000)) {
       // let the framework throw
-      await fs.promises.mkdir(fsPath)
+      await ioUtil.mkdir(fsPath)
       return
     }
 
     let stats: fs.Stats
     try {
-      stats = await fs.promises.stat(testDir)
+      stats = await ioUtil.stat(testDir)
     } catch (err) {
       if (err.code === 'ENOENT') {
         // validate the directory is not the drive root
@@ -158,7 +158,7 @@ export async function mkdirP(fsPath: string): Promise<void> {
   // create each directory
   let dir = stack.pop()
   while (dir != null) {
-    await fs.promises.mkdir(dir)
+    await ioUtil.mkdir(dir)
     dir = stack.pop()
   }
 }
@@ -274,7 +274,7 @@ async function copyDirectoryContents(
     }
 
     // Copy all child files, and directories recursively
-    const sourceChildren: string[] = await fs.promises.readdir(source)
+    const sourceChildren: string[] = await ioUtil.readdir(source)
 
     for (const newSource of sourceChildren) {
       const newDest = path.join(dest, path.basename(newSource))
@@ -287,16 +287,16 @@ async function copyDirectoryContents(
     }
 
     if (deleteOriginal) {
-      await fs.promises.rmdir(source)
+      await ioUtil.rmdir(source)
     }
   } else {
     if (force) {
-      await fs.promises.copyFile(source, dest)
+      await ioUtil.copyFile(source, dest)
     } else {
-      await fs.promises.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
+      await ioUtil.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
     }
     if (deleteOriginal) {
-      await fs.promises.unlink(source)
+      await ioUtil.unlink(source)
     }
   }
 }
@@ -326,13 +326,13 @@ async function move(
     await copyDirectoryContents(source, dest, force, moveOptions.deleteOriginal)
   } else {
     if (force) {
-      await fs.promises.copyFile(source, dest)
+      await ioUtil.copyFile(source, dest)
     } else {
-      await fs.promises.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
+      await ioUtil.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
     }
 
     if (moveOptions.deleteOriginal) {
-      await fs.promises.unlink(source)
+      await ioUtil.unlink(source)
     }
   }
 }

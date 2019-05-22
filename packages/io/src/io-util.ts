@@ -1,11 +1,21 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
+export const {
+  copyFile,
+  lstat,
+  mkdir,
+  readdir,
+  rmdir,
+  stat,
+  unlink
+} = fs.promises
+
 export const IS_WINDOWS = process.platform === 'win32'
 
 export async function exists(fsPath: string): Promise<boolean> {
   try {
-    await fs.promises.stat(fsPath)
+    await stat(fsPath)
   } catch (err) {
     if (err.code === 'ENOENT') {
       return false
@@ -21,10 +31,8 @@ export async function isDirectory(
   fsPath: string,
   useStat: boolean = false
 ): Promise<boolean> {
-  const stat = useStat
-    ? await fs.promises.stat(fsPath)
-    : await fs.promises.lstat(fsPath)
-  return stat.isDirectory()
+  const stats = useStat ? await stat(fsPath) : await lstat(fsPath)
+  return stats.isDirectory()
 }
 
 /**
@@ -59,7 +67,7 @@ export async function tryGetExecutablePath(
   let stats: fs.Stats | undefined = undefined
   try {
     // test file exists
-    stats = await fs.promises.stat(filePath)
+    stats = await stat(filePath)
   } catch (err) {
     if (err.code !== 'ENOENT') {
       // eslint-disable-next-line no-console
@@ -89,7 +97,7 @@ export async function tryGetExecutablePath(
 
     stats = undefined
     try {
-      stats = await fs.promises.stat(filePath)
+      stats = await stat(filePath)
     } catch (err) {
       if (err.code !== 'ENOENT') {
         // eslint-disable-next-line no-console
@@ -105,7 +113,7 @@ export async function tryGetExecutablePath(
         try {
           const directory = path.dirname(filePath)
           const upperName = path.basename(filePath).toUpperCase()
-          for (const actualName of await fs.promises.readdir(directory)) {
+          for (const actualName of await readdir(directory)) {
             if (upperName === actualName.toUpperCase()) {
               filePath = path.join(directory, actualName)
               break
