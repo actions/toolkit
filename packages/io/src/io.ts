@@ -87,7 +87,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
 
     if (isDir) {
-      await ioUtil.removeDirectory(inputPath)
+      await exec(`rm -rf "${inputPath}"`)
     } else {
       await fs.promises.unlink(inputPath)
     }

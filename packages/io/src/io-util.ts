@@ -27,20 +27,6 @@ export async function isDirectory(
   return stat.isDirectory()
 }
 
-export async function removeDirectory(directoryPath: string): Promise<void> {
-  if (await exists(directoryPath)) {
-    for (const fileName of await fs.promises.readdir(directoryPath)) {
-      const file = path.join(directoryPath, fileName)
-      if (await isDirectory(file)) {
-        await removeDirectory(file)
-      } else {
-        await fs.promises.unlink(file)
-      }
-    }
-  }
-  await fs.promises.rmdir(directoryPath)
-}
-
 /**
  * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
  * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
