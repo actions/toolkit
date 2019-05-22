@@ -74,13 +74,12 @@ export async function mkdirP(
   if (depth >= maxDepth) return mkdir(fsPath)
 
   try {
-    await mkdir(fsPath)
+    return mkdir(fsPath)
   } catch (err) {
     switch (err.code) {
       case 'ENOENT': {
         await mkdirP(path.dirname(fsPath), maxDepth, depth + 1)
-        await mkdirP(fsPath, maxDepth, depth + 1)
-        break
+        return mkdir(fsPath)
       }
       default: {
         let stats: fs.Stats
