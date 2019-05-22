@@ -136,10 +136,6 @@ export async function mkdirP(fsPath: string): Promise<void> {
         stack.push(testDir)
         testDir = parentDir
         continue
-      } else if (err.code === 'UNKNOWN') {
-        throw new Error(
-          `Unable to create directory '${fsPath}'. Unable to verify the directory exists: '${testDir}'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.`
-        )
       } else {
         throw err
       }
