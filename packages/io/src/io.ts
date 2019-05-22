@@ -99,9 +99,13 @@ export async function rmRF(inputPath: string): Promise<void> {
  * Will throw if it fails
  *
  * @param   fsPath        path to create
+ * @param   options       options for configuring the mkdirP call. For testing.
  * @returns Promise<void>
  */
-export async function mkdirP(fsPath: string): Promise<void> {
+export async function mkdirP(
+  fsPath: string,
+  {loopMax}: {loopMax: number} = {loopMax: 1000}
+): Promise<void> {
   if (!fsPath) {
     throw new Error('Parameter p is required')
   }
@@ -113,7 +117,7 @@ export async function mkdirP(fsPath: string): Promise<void> {
   // eslint-disable-next-line no-constant-condition
   while (true) {
     // validate the loop is not out of control
-    if (stack.length >= (process.env['TEST_MKDIRP_FAILSAFE'] || 1000)) {
+    if (stack.length >= loopMax) {
       // let the framework throw
       await ioUtil.mkdir(fsPath)
       return

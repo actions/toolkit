@@ -807,14 +807,12 @@ describe('mkdirP', () => {
       '9',
       '10'
     )
-    process.env['TEST_MKDIRP_FAILSAFE'] = '10'
-    try {
-      await io.mkdirP(testPath)
-      throw new Error('directory should not have been created')
-    } catch (err) {
-      delete process.env['TEST_MKDIRP_FAILSAFE']
 
-      // ENOENT is expected, all other errors are not
+    expect.assertions(1)
+
+    try {
+      await io.mkdirP(testPath, {loopMax: 10})
+    } catch (err) {
       expect(err.code).toBe('ENOENT')
     }
   })
