@@ -3,6 +3,7 @@ import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
+import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
   it('copies file with no flags', async () => {
@@ -688,18 +689,6 @@ describe('mkdirP', () => {
     expect(worked).toBe(false)
   })
 
-  it('fails if mkdirP with empty path', async () => {
-    let worked: boolean
-    try {
-      await io.mkdirP('')
-      worked = true
-    } catch (err) {
-      worked = false
-    }
-
-    expect(worked).toBe(false)
-  })
-
   it('fails if mkdirP with conflicting file path', async () => {
     const testPath = path.join(getTestTemp(), 'mkdirP_conflicting_file_path')
     await io.mkdirP(getTestTemp())
@@ -807,14 +796,12 @@ describe('mkdirP', () => {
       '9',
       '10'
     )
-    process.env['TEST_MKDIRP_FAILSAFE'] = '10'
-    try {
-      await io.mkdirP(testPath)
-      throw new Error('directory should not have been created')
-    } catch (err) {
-      delete process.env['TEST_MKDIRP_FAILSAFE']
 
-      // ENOENT is expected, all other errors are not
+    expect.assertions(1)
+
+    try {
+      await ioUtil.mkdirP(testPath, 10)
+    } catch (err) {
       expect(err.code).toBe('ENOENT')
     }
   })

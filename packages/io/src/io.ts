@@ -102,65 +102,7 @@ export async function rmRF(inputPath: string): Promise<void> {
  * @returns Promise<void>
  */
 export async function mkdirP(fsPath: string): Promise<void> {
-  if (!fsPath) {
-    throw new Error('Parameter p is required')
-  }
-
-  // build a stack of directories to create
-  const stack: string[] = []
-  let testDir: string = fsPath
-
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    // validate the loop is not out of control
-    if (stack.length >= (process.env['TEST_MKDIRP_FAILSAFE'] || 1000)) {
-      // let the framework throw
-      await ioUtil.mkdir(fsPath)
-      return
-    }
-
-    let stats: fs.Stats
-    try {
-      stats = await ioUtil.stat(testDir)
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        // validate the directory is not the drive root
-        const parentDir = path.dirname(testDir)
-        if (testDir === parentDir) {
-          throw new Error(
-            `Unable to create directory '${fsPath}'. Root directory does not exist: '${testDir}'`
-          )
-        }
-
-        // push the dir and test the parent
-        stack.push(testDir)
-        testDir = parentDir
-        continue
-      } else if (err.code === 'UNKNOWN') {
-        throw new Error(
-          `Unable to create directory '${fsPath}'. Unable to verify the directory exists: '${testDir}'. If directory is a file share, please verify the share name is correct, the share is online, and the current process has permission to access the share.`
-        )
-      } else {
-        throw err
-      }
-    }
-
-    if (!stats.isDirectory()) {
-      throw new Error(
-        `Unable to create directory '${fsPath}'. Conflicting file exists: '${testDir}'`
-      )
-    }
-
-    // testDir exists
-    break
-  }
-
-  // create each directory
-  let dir = stack.pop()
-  while (dir != null) {
-    await ioUtil.mkdir(dir)
-    dir = stack.pop()
-  }
+  await ioUtil.mkdirP(fsPath)
 }
 
 /**
