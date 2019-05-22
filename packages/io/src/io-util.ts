@@ -65,29 +65,10 @@ export async function tryGetExecutablePath(
   filePath: string,
   extensions: string[]
 ): Promise<string> {
+  let stats: fs.Stats | undefined = undefined
   try {
     // test file exists
-    const stats = await fs.promises.stat(filePath)
-
-    if (stats.isFile()) {
-      if (IS_WINDOWS) {
-        // on Windows, test for valid extension
-        const fileName = path.basename(filePath)
-        const dotIndex = fileName.lastIndexOf('.')
-        if (dotIndex >= 0) {
-          const upperExt = fileName.substr(dotIndex).toUpperCase()
-          if (
-            extensions.some(validExt => validExt.toUpperCase() === upperExt)
-          ) {
-            return filePath
-          }
-        }
-      } else {
-        if (isUnixExecutable(stats)) {
-          return filePath
-        }
-      }
-    }
+    stats = await fs.promises.stat(filePath)
   } catch (err) {
     if (err.code !== 'ENOENT') {
       // eslint-disable-next-line no-console
@@ -96,46 +77,65 @@ export async function tryGetExecutablePath(
       )
     }
   }
+  if (stats && stats.isFile()) {
+    if (IS_WINDOWS) {
+      // on Windows, test for valid extension
+      const fileName = path.basename(filePath)
+      const dotIndex = fileName.lastIndexOf('.')
+      if (dotIndex >= 0) {
+        const upperExt = fileName.substr(dotIndex).toUpperCase()
+        if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
+          return filePath
+        }
+      }
+    } else {
+      if (isUnixExecutable(stats)) {
+        return filePath
+      }
+    }
+  }
 
   // try each extension
   const originalFilePath = filePath
   for (const extension of extensions) {
     filePath = originalFilePath + extension
+
+    stats = undefined
     try {
-      const stats = await fs.promises.stat(filePath)
-
-      if (stats.isFile()) {
-        if (IS_WINDOWS) {
-          // preserve the case of the actual file (since an extension was appended)
-          try {
-            const directory = path.dirname(filePath)
-            const upperName = path.basename(filePath).toUpperCase()
-            for (const actualName of await fs.promises.readdir(directory)) {
-              if (upperName === actualName.toUpperCase()) {
-                filePath = path.join(directory, actualName)
-                break
-              }
-            }
-          } catch (err) {
-            // eslint-disable-next-line no-console
-            console.log(
-              `Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`
-            )
-          }
-
-          return filePath
-        } else {
-          if (isUnixExecutable(stats)) {
-            return filePath
-          }
-        }
-      }
+      stats = await fs.promises.stat(filePath)
     } catch (err) {
       if (err.code !== 'ENOENT') {
         // eslint-disable-next-line no-console
         console.log(
           `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
         )
+      }
+    }
+
+    if (stats && stats.isFile()) {
+      if (IS_WINDOWS) {
+        // preserve the case of the actual file (since an extension was appended)
+        try {
+          const directory = path.dirname(filePath)
+          const upperName = path.basename(filePath).toUpperCase()
+          for (const actualName of await fs.promises.readdir(directory)) {
+            if (upperName === actualName.toUpperCase()) {
+              filePath = path.join(directory, actualName)
+              break
+            }
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`
+          )
+        }
+
+        return filePath
+      } else {
+        if (isUnixExecutable(stats)) {
+          return filePath
+        }
       }
     }
   }
