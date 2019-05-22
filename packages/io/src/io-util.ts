@@ -1,3 +1,4 @@
+import {ok} from 'assert'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -52,6 +53,52 @@ export function isRooted(p: string): boolean {
   }
 
   return p.startsWith('/')
+}
+
+/**
+ * Recursively create a directory at `fsPath`.
+ *
+ * This implementation is optimistic, meaning it attempts to create the full
+ * path first, and backs up the path stack from there.
+ *
+ * @param fsPath The path to create
+ * @param maxDepth The maximum recursion depth
+ * @param depth The current recursion depth
+ */
+export async function mkdirP(
+  fsPath: string,
+  maxDepth: number = 1000,
+  depth: number = 1
+): Promise<void> {
+  ok(fsPath, 'a path argument must be provided')
+
+  fsPath = path.resolve(fsPath)
+
+  if (depth >= maxDepth) return mkdir(fsPath)
+
+  try {
+    await mkdir(fsPath)
+    return
+  } catch (err) {
+    switch (err.code) {
+      case 'ENOENT': {
+        await mkdirP(path.dirname(fsPath), maxDepth, depth + 1)
+        await mkdir(fsPath)
+        return
+      }
+      default: {
+        let stats: fs.Stats
+
+        try {
+          stats = await stat(fsPath)
+        } catch (err2) {
+          throw err
+        }
+
+        if (!stats.isDirectory()) throw err
+      }
+    }
+  }
 }
 
 /**
