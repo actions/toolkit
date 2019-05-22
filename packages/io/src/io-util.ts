@@ -137,7 +137,7 @@ function normalizeSeparators(p: string): string {
     p = p.replace(/\//g, '\\')
 
     // remove redundant slashes
-    return p.replace(/\\\\+/g, '\\') // preserve leading // for UNC
+    return p.replace(/\\\\+/g, '\\')
   }
 
   // remove redundant slashes
