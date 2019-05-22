@@ -659,6 +659,16 @@ describe('mkdirP', () => {
     await io.rmRF(getTestTemp())
   })
 
+  it('fails when called with an empty path', async () => {
+    expect.assertions(1)
+
+    try {
+      await io.mkdirP('')
+    } catch(err) {
+      expect(err.message).toEqual('a path argument must be provided')
+    }
+  })
+
   it('creates folder', async () => {
     const testPath = path.join(getTestTemp(), 'mkdirTest')
     await io.mkdirP(testPath)
