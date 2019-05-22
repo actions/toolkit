@@ -17,8 +17,13 @@ export async function exists(fsPath: string): Promise<boolean> {
   return true
 }
 
-export async function isDirectory(fsPath: string, useStat: boolean = false): Promise<boolean> {
-  const stat = useStat ? await fs.promises.stat(fsPath) : await fs.promises.lstat(fsPath)
+export async function isDirectory(
+  fsPath: string,
+  useStat: boolean = false
+): Promise<boolean> {
+  const stat = useStat
+    ? await fs.promises.stat(fsPath)
+    : await fs.promises.lstat(fsPath)
   return stat.isDirectory()
 }
 
