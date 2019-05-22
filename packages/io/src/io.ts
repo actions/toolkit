@@ -76,8 +76,6 @@ export async function rmRF(inputPath: string): Promise<void> {
       if (err.code !== 'ENOENT') throw err
     }
   } else {
-    // get the lstats in order to workaround a bug in shelljs@0.3.0 where symlinks
-    // with missing targets are not handled correctly by "rm('-rf', path)"
     let isDir = false
     try {
       isDir = await ioUtil.isDirectory(inputPath)

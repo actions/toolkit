@@ -18,8 +18,8 @@ export async function exists(fsPath: string): Promise<boolean> {
 }
 
 export async function isDirectory(fsPath: string): Promise<boolean> {
-  const lstat = await fs.promises.lstat(fsPath)
-  return lstat.isDirectory()
+  const stat = await fs.promises.stat(fsPath)
+  return stat.isDirectory()
 }
 
 export async function removeDirectory(directoryPath: string): Promise<void> {
@@ -150,8 +150,7 @@ function normalizeSeparators(p: string): string {
     p = p.replace(/\//g, '\\')
 
     // remove redundant slashes
-    const isUnc = /^\\\\+[^\\]/.test(p) // e.g. \\hello
-    return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\') // preserve leading // for UNC
+    return p.replace(/\\\\+/g, '\\') // preserve leading // for UNC
   }
 
   // remove redundant slashes
