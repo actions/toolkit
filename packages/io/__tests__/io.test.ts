@@ -664,7 +664,7 @@ describe('mkdirP', () => {
 
     try {
       await io.mkdirP('')
-    } catch(err) {
+    } catch (err) {
       expect(err.message).toEqual('a path argument must be provided')
     }
   })
