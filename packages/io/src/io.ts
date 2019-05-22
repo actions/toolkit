@@ -116,7 +116,6 @@ export async function mkdirP(
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    // validate the loop is not out of control
     if (stack.length >= loopMax) {
       // let the framework throw
       await ioUtil.mkdir(fsPath)
