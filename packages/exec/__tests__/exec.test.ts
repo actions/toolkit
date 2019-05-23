@@ -144,15 +144,15 @@ describe('@actions/exec', () => {
       args = ['/c', 'non-existent']
     } else {
       toolpath = await io.which('ls', true)
-      args = [' -l', 'non-existent']
+      args = ['-l', 'non-existent']
     }
 
     let failed = false
 
     await exec.exec(`"${toolpath}"`, args, _testExecOptions).catch(err => {
       failed = true
-      expect(err.message).toBe(
-        `The process '${toolpath}' failed with exit code 1`
+      expect(err.message).toContain(
+        `The process '${toolpath}' failed with exit code `
       )
     })
 
@@ -372,10 +372,7 @@ describe('@actions/exec', () => {
       ]
     } else {
       toolName = await io.which('bash', true)
-      args = [
-        '-c',
-        `node '${scriptPath}' 'file=${semaphorePath}' & exit /b 123`
-      ]
+      args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' & exit 123`]
     }
 
     await exec
