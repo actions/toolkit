@@ -8,13 +8,13 @@ import * as tr from './toolrunner'
  *
  * @param     commandLine        command to execute (can include additional args). Must be correctly escaped.
  * @param     args               optional arguments for tool. Escaping is handled by the lib.
- * @param     options            optional exec options.  See IExecOptions
- * @returns   Promise<im.IExecResult>    see IExecResult
+ * @param     options            optional exec options.  See ExecOptions
+ * @returns   Promise<number>    exit code
  */
 export async function exec(
   commandLine: string,
   args?: string[],
-  options?: im.IExecOptions
+  options?: im.ExecOptions
 ): Promise<number> {
   const commandArgs = tr.argStringToArray(commandLine)
   if (commandArgs.length === 0) {

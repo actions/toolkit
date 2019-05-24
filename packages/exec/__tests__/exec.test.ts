@@ -25,7 +25,7 @@ describe('@actions/exec', () => {
   })
 
   it('Runs exec successfully with arguments split out', async () => {
-    const _testExecOptions = <im.IExecOptions>{
+    const _testExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: {},
       silent: false,
@@ -61,7 +61,7 @@ describe('@actions/exec', () => {
   })
 
   it('Runs exec successfully with arguments partially split out', async () => {
-    const _testExecOptions = <im.IExecOptions>{
+    const _testExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: {},
       silent: false,
@@ -97,7 +97,7 @@ describe('@actions/exec', () => {
   })
 
   it('Runs exec successfully with arguments as part of command line', async () => {
-    const _testExecOptions = <im.IExecOptions>{
+    const _testExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: {},
       silent: false,
@@ -129,7 +129,7 @@ describe('@actions/exec', () => {
   })
 
   it('Exec fails with error on bad call', async () => {
-    const _testExecOptions = <im.IExecOptions>{
+    const _testExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: {},
       silent: false,
@@ -176,7 +176,7 @@ describe('@actions/exec', () => {
     )
     const nodePath: string = await io.which('node', true)
 
-    const _testExecOptions: im.IExecOptions = <im.IExecOptions>{
+    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: {},
       silent: false,
@@ -199,7 +199,7 @@ describe('@actions/exec', () => {
     )
     const nodePath: string = await io.which('node', true)
 
-    const _testExecOptions: im.IExecOptions = <im.IExecOptions>{
+    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: {},
       silent: false,
@@ -222,7 +222,7 @@ describe('@actions/exec', () => {
 
   it('Fails when process fails to launch', async () => {
     const nodePath: string = await io.which('node', true)
-    const _testExecOptions: im.IExecOptions = <im.IExecOptions>{
+    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
       cwd: path.join(__dirname, 'nosuchdir'),
       env: {},
       silent: false,
@@ -253,7 +253,7 @@ describe('@actions/exec', () => {
     let stdoutCalled = false
     let stderrCalled = false
 
-    const _testExecOptions: im.IExecOptions = <im.IExecOptions>{
+    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: {},
       silent: false,
@@ -289,7 +289,7 @@ describe('@actions/exec', () => {
     const nodePath = await io.which('node', true)
     const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
-    const _testExecOptions: im.IExecOptions = <im.IExecOptions>{
+    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: process.env,
       silent: false,
@@ -342,7 +342,7 @@ describe('@actions/exec', () => {
     const nodePath = await io.which('node', true)
     const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
-    const _testExecOptions: im.IExecOptions = <im.IExecOptions>{
+    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: process.env,
       silent: false,
@@ -403,7 +403,7 @@ describe('@actions/exec', () => {
     const nodePath = await io.which('node', true)
     const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
-    const _testExecOptions: im.IExecOptions = <im.IExecOptions>{
+    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
       cwd: __dirname,
       env: process.env,
       silent: false,
@@ -466,7 +466,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['/c', 'echo', 'helloworld', 'hello:"world again"']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.IExecOptions>{
+      const options = <im.ExecOptions>{
         outStream: <stream.Writable>outStream,
         windowsVerbatimArguments: true,
         listeners: {
@@ -496,7 +496,7 @@ describe('@actions/exec', () => {
       ]
       const outStream = new StringStream()
       let output = ''
-      const options = <im.IExecOptions>{
+      const options = <im.ExecOptions>{
         outStream: <stream.Writable>outStream,
         listeners: {
           stdout: (data: Buffer) => {
@@ -530,7 +530,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['myarg1 myarg2']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.IExecOptions>{
+      const options = <im.ExecOptions>{
         outStream: <stream.Writable>outStream,
         windowsVerbatimArguments: true,
         listeners: {
@@ -559,7 +559,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['arg1 arg2', 'arg3']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.IExecOptions>{
+      const options = <im.ExecOptions>{
         outStream: <stream.Writable>outStream,
         windowsVerbatimArguments: true,
         listeners: {
@@ -591,7 +591,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['my arg 1', 'my arg 2']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.IExecOptions>{
+      const options = <im.ExecOptions>{
         outStream: <stream.Writable>outStream,
         listeners: {
           stdout: (data: Buffer) => {
@@ -648,7 +648,7 @@ describe('@actions/exec', () => {
       ]
       const outStream = new StringStream()
       let output = ''
-      const options = <im.IExecOptions>{
+      const options = <im.ExecOptions>{
         outStream: <stream.Writable>outStream,
         listeners: {
           stdout: (data: Buffer) => {

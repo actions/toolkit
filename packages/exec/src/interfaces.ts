@@ -2,7 +2,7 @@ import * as stream from 'stream'
 /**
  * Interface for exec options
  */
-export interface IExecOptions {
+export interface ExecOptions {
   /** optional working directory.  defaults to current */
   cwd?: string
 

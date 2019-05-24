@@ -10,7 +10,7 @@ import * as im from './interfaces'
 const IS_WINDOWS = process.platform === 'win32'
 
 export class ToolRunner extends events.EventEmitter {
-  constructor(toolPath: string, args?: string[], options?: im.IExecOptions) {
+  constructor(toolPath: string, args?: string[], options?: im.ExecOptions) {
     super()
 
     if (!toolPath) {
@@ -24,7 +24,7 @@ export class ToolRunner extends events.EventEmitter {
 
   private toolPath: string
   private args: string[]
-  private options: im.IExecOptions
+  private options: im.ExecOptions
 
   private _debug(message: string): void {
     if (this.options.listeners && this.options.listeners.debug) {
@@ -33,7 +33,7 @@ export class ToolRunner extends events.EventEmitter {
   }
 
   private _getCommandString(
-    options: im.IExecOptions,
+    options: im.ExecOptions,
     noPrefix?: boolean
   ): string {
     const toolPath: string = this._getSpawnFileName()
@@ -109,7 +109,7 @@ export class ToolRunner extends events.EventEmitter {
     return this.toolPath
   }
 
-  private _getSpawnArgs(options: im.IExecOptions): string[] {
+  private _getSpawnArgs(options: im.ExecOptions): string[] {
     if (IS_WINDOWS) {
       if (this._isCmdFile()) {
         let argline = `/D /S /C "${this._windowsQuoteCmdArg(this.toolPath)}`
@@ -398,9 +398,9 @@ export class ToolRunner extends events.EventEmitter {
       .join('')
   }
 
-  private _cloneExecOptions(options?: im.IExecOptions): im.IExecOptions {
-    options = options || <im.IExecOptions>{}
-    const result: im.IExecOptions = <im.IExecOptions>{
+  private _cloneExecOptions(options?: im.ExecOptions): im.ExecOptions {
+    options = options || <im.ExecOptions>{}
+    const result: im.ExecOptions = <im.ExecOptions>{
       cwd: options.cwd || process.cwd(),
       env: options.env || process.env,
       silent: options.silent || false,
@@ -414,8 +414,8 @@ export class ToolRunner extends events.EventEmitter {
     return result
   }
 
-  private _getSpawnOptions(options?: im.IExecOptions): child.SpawnOptions {
-    options = options || <im.IExecOptions>{}
+  private _getSpawnOptions(options?: im.ExecOptions): child.SpawnOptions {
+    options = options || <im.ExecOptions>{}
     const result = <child.SpawnOptions>{}
     result.cwd = options.cwd
     result.env = options.env
@@ -430,7 +430,7 @@ export class ToolRunner extends events.EventEmitter {
    * Returns promise with return code
    *
    * @param     tool     path to tool to exec
-   * @param     options  optional exec options.  See IExecOptions
+   * @param     options  optional exec options.  See ExecOptions
    * @returns   number
    */
   async exec(): Promise<number> {
@@ -612,7 +612,7 @@ export function argStringToArray(argString: string): string[] {
 }
 
 class ExecState extends events.EventEmitter {
-  constructor(options: im.IExecOptions, toolPath: string) {
+  constructor(options: im.ExecOptions, toolPath: string) {
     super()
 
     if (!toolPath) {
@@ -633,7 +633,7 @@ class ExecState extends events.EventEmitter {
   processStderr: boolean = false // tracks whether stderr was written to
   private delay = 10000 // 10 seconds
   private done: boolean = false
-  private options: im.IExecOptions
+  private options: im.ExecOptions
   private timeout: NodeJS.Timer | null = null
   private toolPath: string
 
