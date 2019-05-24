@@ -10,10 +10,10 @@
 * Output will be streamed to the live console.
 * Returns promise with return code
 * 
-* @param     commandLine        command to execute
-* @param     args               optional additional arguments
-* @param     options            optional exec options.  See IExecOptions
-* @returns   Promise<number>    return code
+* @param     commandLine        command to execute (can include additional args). Must be correctly escaped.
+* @param     args               optional arguments for tool. Escaping is handled by the lib.
+* @param     options            optional exec options.  See ExecOptions
+* @returns   Promise<number>    exit code
 */
-export function exec(commandLine: string, args?: string[], options?: IExecOptions): Promise<number> 
+export function exec(commandLine: string, args?: string[], options?: ExecOptions): Promise<number> 
 ```
