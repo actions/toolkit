@@ -34,6 +34,21 @@ describe('cp', () => {
     )
   })
 
+  it('copies file into directory', async () => {
+    const root: string = path.join(path.join(__dirname, '_temp'), 'cp_file_to_directory')
+    const sourceFile: string = path.join(root, 'cp_source')
+    const targetDirectory: string = path.join(root, 'cp_target')
+    const targetFile: string = path.join(targetDirectory, 'cp_source')
+    await io.mkdirP(targetDirectory)
+    await fs.writeFile(sourceFile, 'test file content')
+
+    await io.cp(sourceFile, targetDirectory, {recursive: false, force: true})
+
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
+      'test file content'
+    )
+  })
+
   it('try copying to existing file with -n', async () => {
     const root: string = path.join(getTestTemp(), 'cp_to_existing')
     const sourceFile: string = path.join(root, 'cp_source')
