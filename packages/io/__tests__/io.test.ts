@@ -35,7 +35,10 @@ describe('cp', () => {
   })
 
   it('copies file into directory', async () => {
-    const root: string = path.join(path.join(__dirname, '_temp'), 'cp_file_to_directory')
+    const root: string = path.join(
+      path.join(__dirname, '_temp'),
+      'cp_file_to_directory'
+    )
     const sourceFile: string = path.join(root, 'cp_source')
     const targetDirectory: string = path.join(root, 'cp_target')
     const targetFile: string = path.join(targetDirectory, 'cp_source')
