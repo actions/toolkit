@@ -267,6 +267,9 @@ async function move(
 
     await copyDirectoryContents(source, dest, force, moveOptions.deleteOriginal)
   } else {
+    if (await ioUtil.isDirectory(dest)) {
+      dest = path.join(dest, path.basename(source))
+    }
     if (force) {
       await ioUtil.copyFile(source, dest)
     } else {
