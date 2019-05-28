@@ -8,6 +8,9 @@ import * as im from './interfaces'
 
 const IS_WINDOWS = process.platform === 'win32'
 
+/*
+* Class for running command line tools. Handles quoting and arg parsing in a platform agnostic way.
+*/
 export class ToolRunner extends events.EventEmitter {
   constructor(toolPath: string, args?: string[], options?: im.ExecOptions) {
     super()
