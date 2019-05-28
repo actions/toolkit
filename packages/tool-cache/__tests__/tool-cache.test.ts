@@ -193,57 +193,56 @@ describe('@actions/toolCache', function() {
   it('installs a zip and extracts it to specified directory', async function() {
     const tempDir = path.join(__dirname, 'test-install-zip')
     try {
-    await io.mkdirP(tempDir)
+      await io.mkdirP(tempDir)
 
-    // stage the layout for a zip file:
-    //   file.txt
-    //   folder/nested-file.txt
-    const stagingDir = path.join(tempDir, 'zip-staging')
-    await io.mkdirP(path.join(stagingDir, 'folder'))
-    fs.writeFileSync(path.join(stagingDir, 'file.txt'), '')
-    fs.writeFileSync(path.join(stagingDir, 'folder', 'nested-file.txt'), '')
+      // stage the layout for a zip file:
+      //   file.txt
+      //   folder/nested-file.txt
+      const stagingDir = path.join(tempDir, 'zip-staging')
+      await io.mkdirP(path.join(stagingDir, 'folder'))
+      fs.writeFileSync(path.join(stagingDir, 'file.txt'), '')
+      fs.writeFileSync(path.join(stagingDir, 'folder', 'nested-file.txt'), '')
 
-    // create the zip
-    const zipFile = path.join(tempDir, 'test.zip')
-    await io.rmRF(zipFile)
-    if (IS_WINDOWS) {
-      const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
-      const escapedZipFile = zipFile.replace(/'/g, "''")
-      const powershellPath = await io.which('powershell', true)
-      const args = [
-        '-NoLogo',
-        '-Sta',
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy',
-        'Unrestricted',
-        '-Command',
-        `$ErrorActionPreference = 'Stop' ; Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::CreateFromDirectory('${escapedStagingPath}', '${escapedZipFile}')`
-      ]
-      await exec.exec(`"${powershellPath}"`, args)
-    } else {
-      const zipPath = await io.which('zip')
-      await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
-    }
+      // create the zip
+      const zipFile = path.join(tempDir, 'test.zip')
+      await io.rmRF(zipFile)
+      if (IS_WINDOWS) {
+        const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
+        const escapedZipFile = zipFile.replace(/'/g, "''")
+        const powershellPath = await io.which('powershell', true)
+        const args = [
+          '-NoLogo',
+          '-Sta',
+          '-NoProfile',
+          '-NonInteractive',
+          '-ExecutionPolicy',
+          'Unrestricted',
+          '-Command',
+          `$ErrorActionPreference = 'Stop' ; Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::CreateFromDirectory('${escapedStagingPath}', '${escapedZipFile}')`
+        ]
+        await exec.exec(`"${powershellPath}"`, args)
+      } else {
+        const zipPath = await io.which('zip')
+        await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
+      }
 
-    const destDir = path.join(__dirname, 'unzip-dest')
-    await io.rmRF(destDir)
-    await io.mkdirP(destDir)
-    try {
-      const extPath: string = await tc.extractZip(zipFile, destDir)
-      await tc.cacheDir(extPath, 'foo', '1.1.0')
-      const toolPath: string = tc.find('foo', '1.1.0')
-      expect(fs.existsSync(toolPath)).toBeTruthy()
-      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
-      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
-      ).toBeTruthy()
-    } finally {
+      const destDir = path.join(__dirname, 'unzip-dest')
       await io.rmRF(destDir)
-    }
-    }
-    finally {
+      await io.mkdirP(destDir)
+      try {
+        const extPath: string = await tc.extractZip(zipFile, destDir)
+        await tc.cacheDir(extPath, 'foo', '1.1.0')
+        const toolPath: string = tc.find('foo', '1.1.0')
+        expect(fs.existsSync(toolPath)).toBeTruthy()
+        expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+        expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+        ).toBeTruthy()
+      } finally {
+        await io.rmRF(destDir)
+      }
+    } finally {
       await io.rmRF(tempDir)
     }
   })
