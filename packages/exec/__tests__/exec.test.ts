@@ -1,5 +1,3 @@
-'use strict'
-
 import * as exec from '../src/exec'
 import * as im from '../src/interfaces'
 
@@ -25,29 +23,27 @@ describe('@actions/exec', () => {
   })
 
   it('Runs exec successfully with arguments split out', async () => {
-    const _testExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: {},
-      silent: false,
-      failOnStdErr: false,
-      ignoreReturnCode: false
-    }
+    const _testExecOptions = getExecOptions()
 
-    let ret = 1
+    let exitCode = 1
     let toolpath = ''
     if (IS_WINDOWS) {
       toolpath = await io.which('cmd', true)
-      ret = await exec.exec(
+      exitCode = await exec.exec(
         `"${toolpath}"`,
         ['/c', 'echo', 'hello'],
         _testExecOptions
       )
     } else {
       toolpath = await io.which('ls', true)
-      ret = await exec.exec(`"${toolpath}"`, ['-l', '-a'], _testExecOptions)
+      exitCode = await exec.exec(
+        `"${toolpath}"`,
+        ['-l', '-a'],
+        _testExecOptions
+      )
     }
 
-    expect(ret).toBe(0)
+    expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
       expect(process.stdout.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
@@ -61,29 +57,23 @@ describe('@actions/exec', () => {
   })
 
   it('Runs exec successfully with arguments partially split out', async () => {
-    const _testExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: {},
-      silent: false,
-      failOnStdErr: false,
-      ignoreReturnCode: false
-    }
+    const _testExecOptions = getExecOptions()
 
-    let ret = 1
+    let exitCode = 1
     let toolpath = ''
     if (IS_WINDOWS) {
       toolpath = await io.which('cmd', true)
-      ret = await exec.exec(
+      exitCode = await exec.exec(
         `"${toolpath}" /c`,
         ['echo', 'hello'],
         _testExecOptions
       )
     } else {
       toolpath = await io.which('ls', true)
-      ret = await exec.exec(`"${toolpath}" -l`, ['-a'], _testExecOptions)
+      exitCode = await exec.exec(`"${toolpath}" -l`, ['-a'], _testExecOptions)
     }
 
-    expect(ret).toBe(0)
+    expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
       expect(process.stdout.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
@@ -97,25 +87,23 @@ describe('@actions/exec', () => {
   })
 
   it('Runs exec successfully with arguments as part of command line', async () => {
-    const _testExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: {},
-      silent: false,
-      failOnStdErr: false,
-      ignoreReturnCode: false
-    }
+    const _testExecOptions = getExecOptions()
 
-    let ret = 1
+    let exitCode = 1
     let toolpath = ''
     if (IS_WINDOWS) {
       toolpath = await io.which('cmd', true)
-      ret = await exec.exec(`"${toolpath}" /c echo hello`, [], _testExecOptions)
+      exitCode = await exec.exec(
+        `"${toolpath}" /c echo hello`,
+        [],
+        _testExecOptions
+      )
     } else {
       toolpath = await io.which('ls', true)
-      ret = await exec.exec(`"${toolpath}" -l -a`, [], _testExecOptions)
+      exitCode = await exec.exec(`"${toolpath}" -l -a`, [], _testExecOptions)
     }
 
-    expect(ret).toBe(0)
+    expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
       expect(process.stdout.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
@@ -129,13 +117,7 @@ describe('@actions/exec', () => {
   })
 
   it('Exec fails with error on bad call', async () => {
-    const _testExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: {},
-      silent: false,
-      failOnStdErr: false,
-      ignoreReturnCode: false
-    }
+    const _testExecOptions = getExecOptions()
 
     let toolpath = ''
     let args: string[] = []
@@ -176,16 +158,15 @@ describe('@actions/exec', () => {
     )
     const nodePath: string = await io.which('node', true)
 
-    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: {},
-      silent: false,
-      ignoreReturnCode: false
-    }
+    const _testExecOptions = getExecOptions()
 
-    const ret = await exec.exec(`"${nodePath}"`, [scriptPath], _testExecOptions)
+    const exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [scriptPath],
+      _testExecOptions
+    )
 
-    expect(ret).toBe(0)
+    expect(exitCode).toBe(0)
     expect(process.stdout.write).toBeCalledWith(
       new Buffer('this is output to stderr')
     )
@@ -199,13 +180,8 @@ describe('@actions/exec', () => {
     )
     const nodePath: string = await io.which('node', true)
 
-    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: {},
-      silent: false,
-      failOnStdErr: true,
-      ignoreReturnCode: false
-    }
+    const _testExecOptions = getExecOptions()
+    _testExecOptions.failOnStdErr = true
 
     let failed = false
     await exec
@@ -222,13 +198,8 @@ describe('@actions/exec', () => {
 
   it('Fails when process fails to launch', async () => {
     const nodePath: string = await io.which('node', true)
-    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
-      cwd: path.join(__dirname, 'nosuchdir'),
-      env: {},
-      silent: false,
-      failOnStdErr: true,
-      ignoreReturnCode: false
-    }
+    const _testExecOptions = getExecOptions()
+    _testExecOptions.cwd = path.join(__dirname, 'nosuchdir')
 
     let failed = false
     await exec.exec(`"${nodePath}"`, [], _testExecOptions).catch(() => {
@@ -253,27 +224,26 @@ describe('@actions/exec', () => {
     let stdoutCalled = false
     let stderrCalled = false
 
-    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: {},
-      silent: false,
-      ignoreReturnCode: false,
-      listeners: {
-        stdout: (data: Buffer) => {
-          expect(data).toEqual(new Buffer('this is output to stdout'))
-          stdoutCalled = true
-        },
-        stderr: (data: Buffer) => {
-          expect(data).toEqual(new Buffer('this is output to stderr'))
-          stderrCalled = true
-        }
+    const _testExecOptions = getExecOptions()
+    _testExecOptions.listeners = {
+      stdout: (data: Buffer) => {
+        expect(data).toEqual(new Buffer('this is output to stdout'))
+        stdoutCalled = true
+      },
+      stderr: (data: Buffer) => {
+        expect(data).toEqual(new Buffer('this is output to stderr'))
+        stderrCalled = true
       }
     }
 
-    const ret = await exec.exec(`"${nodePath}"`, [stdOutPath], _testExecOptions)
-    expect(ret).toBe(0)
-    await exec.exec(`"${nodePath}"`, [stdErrPath], _testExecOptions)
-    expect(ret).toBe(0)
+    let exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [stdOutPath],
+      _testExecOptions
+    )
+    expect(exitCode).toBe(0)
+    exitCode = await exec.exec(`"${nodePath}"`, [stdErrPath], _testExecOptions)
+    expect(exitCode).toBe(0)
 
     expect(stdoutCalled).toBeTruthy()
     expect(stderrCalled).toBeTruthy()
@@ -289,23 +259,16 @@ describe('@actions/exec', () => {
     const nodePath = await io.which('node', true)
     const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
-    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: process.env,
-      silent: false,
-      failOnStdErr: true,
-      ignoreReturnCode: false,
-      outStream: process.stdout,
-      errStream: process.stdout,
-      windowsVerbatimArguments: true,
-      delay: 500, // 0.5 seconds
-      listeners: {
-        debug: (data: string) => {
-          debugList.push(data)
-        }
+    const _testExecOptions = getExecOptions()
+    _testExecOptions.delay = 500
+    _testExecOptions.windowsVerbatimArguments = true
+    _testExecOptions.listeners = {
+      debug: (data: string) => {
+        debugList.push(data)
       }
     }
-    let ret: number
+
+    let exitCode: number
     if (IS_WINDOWS) {
       const toolName: string = await io.which('cmd.exe', true)
       const args = [
@@ -316,15 +279,15 @@ describe('@actions/exec', () => {
         '/C',
         `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`
       ]
-      ret = await exec.exec(`"${toolName}"`, args, _testExecOptions)
+      exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
     } else {
       const toolName: string = await io.which('bash', true)
       const args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' &`]
 
-      ret = await exec.exec(`"${toolName}"`, args, _testExecOptions)
+      exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
     }
 
-    expect(ret).toBe(0)
+    expect(exitCode).toBe(0)
     expect(
       debugList.filter(x => x.includes('STDIO streams did not close')).length
     ).toBe(1)
@@ -342,22 +305,15 @@ describe('@actions/exec', () => {
     const nodePath = await io.which('node', true)
     const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
-    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: process.env,
-      silent: false,
-      failOnStdErr: true,
-      ignoreReturnCode: false,
-      outStream: process.stdout,
-      errStream: process.stdout,
-      windowsVerbatimArguments: true,
-      delay: 500, // 0.5 seconds
-      listeners: {
-        debug: (data: string) => {
-          debugList.push(data)
-        }
+    const _testExecOptions = getExecOptions()
+    _testExecOptions.delay = 500
+    _testExecOptions.windowsVerbatimArguments = true
+    _testExecOptions.listeners = {
+      debug: (data: string) => {
+        debugList.push(data)
       }
     }
+
     let toolName: string
     let args: string[]
     if (IS_WINDOWS) {
@@ -403,22 +359,16 @@ describe('@actions/exec', () => {
     const nodePath = await io.which('node', true)
     const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
-    const _testExecOptions: im.ExecOptions = <im.ExecOptions>{
-      cwd: __dirname,
-      env: process.env,
-      silent: false,
-      failOnStdErr: true,
-      ignoreReturnCode: false,
-      outStream: process.stdout,
-      errStream: process.stdout,
-      windowsVerbatimArguments: true,
-      delay: 500, // 0.5 seconds
-      listeners: {
-        debug: (data: string) => {
-          debugList.push(data)
-        }
+    const _testExecOptions = getExecOptions()
+    _testExecOptions.delay = 500
+    _testExecOptions.failOnStdErr = true
+    _testExecOptions.windowsVerbatimArguments = true
+    _testExecOptions.listeners = {
+      debug: (data: string) => {
+        debugList.push(data)
       }
     }
+
     let toolName: string
     let args: string[]
     if (IS_WINDOWS) {
@@ -466,7 +416,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['/c', 'echo', 'helloworld', 'hello:"world again"']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.ExecOptions>{
+      const options = {
         outStream: <stream.Writable>outStream,
         windowsVerbatimArguments: true,
         listeners: {
@@ -476,8 +426,8 @@ describe('@actions/exec', () => {
         }
       }
 
-      const ret = await exec.exec(`"${exePath}"`, args, options)
-      expect(ret).toBe(0)
+      const exitCode = await exec.exec(`"${exePath}"`, args, options)
+      expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]"${exePath}" /c echo helloworld hello:"world again"`
       )
@@ -496,7 +446,7 @@ describe('@actions/exec', () => {
       ]
       const outStream = new StringStream()
       let output = ''
-      const options = <im.ExecOptions>{
+      const options = {
         outStream: <stream.Writable>outStream,
         listeners: {
           stdout: (data: Buffer) => {
@@ -505,8 +455,8 @@ describe('@actions/exec', () => {
         }
       }
 
-      const ret = await exec.exec(`"${exePath}"`, args, options)
-      expect(ret).toBe(0)
+      const exitCode = await exec.exec(`"${exePath}"`, args, options)
+      expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]${exePath} /c echo` +
           ` helloworld` +
@@ -530,7 +480,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['myarg1 myarg2']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.ExecOptions>{
+      const options = {
         outStream: <stream.Writable>outStream,
         windowsVerbatimArguments: true,
         listeners: {
@@ -540,8 +490,8 @@ describe('@actions/exec', () => {
         }
       }
 
-      const ret = await exec.exec(`"${exePath}"`, args, options)
-      expect(ret).toBe(0)
+      const exitCode = await exec.exec(`"${exePath}"`, args, options)
+      expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]"${exePath}" myarg1 myarg2`
       )
@@ -559,7 +509,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['arg1 arg2', 'arg3']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.ExecOptions>{
+      const options = {
         outStream: <stream.Writable>outStream,
         windowsVerbatimArguments: true,
         listeners: {
@@ -569,8 +519,8 @@ describe('@actions/exec', () => {
         }
       }
 
-      const ret = await exec.exec(`"${cmdPath}"`, args, options)
-      expect(ret).toBe(0)
+      const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
+      expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`
       )
@@ -591,7 +541,7 @@ describe('@actions/exec', () => {
       const args: string[] = ['my arg 1', 'my arg 2']
       const outStream = new StringStream()
       let output = ''
-      const options = <im.ExecOptions>{
+      const options = {
         outStream: <stream.Writable>outStream,
         listeners: {
           stdout: (data: Buffer) => {
@@ -600,8 +550,8 @@ describe('@actions/exec', () => {
         }
       }
 
-      const ret = await exec.exec(`"${cmdPath}"`, args, options)
-      expect(ret).toBe(0)
+      const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
+      expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]${
           process.env.ComSpec
@@ -648,7 +598,7 @@ describe('@actions/exec', () => {
       ]
       const outStream = new StringStream()
       let output = ''
-      const options = <im.ExecOptions>{
+      const options = {
         outStream: <stream.Writable>outStream,
         listeners: {
           stdout: (data: Buffer) => {
@@ -657,8 +607,8 @@ describe('@actions/exec', () => {
         }
       }
 
-      const ret = await exec.exec(`"${cmdPath}"`, args, options)
-      expect(ret).toBe(0)
+      const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
+      expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}"` +
           ` helloworld` +
@@ -719,6 +669,16 @@ describe('@actions/exec', () => {
 
 function getTestTemp(): string {
   return path.join(__dirname, '_temp')
+}
+
+function getExecOptions(): im.ExecOptions {
+  return {
+    cwd: __dirname,
+    env: {},
+    silent: false,
+    failOnStdErr: false,
+    ignoreReturnCode: false
+  }
 }
 
 export class StringStream extends stream.Writable {

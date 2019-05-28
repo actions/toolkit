@@ -5,7 +5,6 @@ import * as stream from 'stream'
 import * as im from './interfaces'
 
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable prefer-rest-params */
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -36,8 +35,8 @@ export class ToolRunner extends events.EventEmitter {
     options: im.ExecOptions,
     noPrefix?: boolean
   ): string {
-    const toolPath: string = this._getSpawnFileName()
-    const args: string[] = this._getSpawnArgs(options)
+    const toolPath = this._getSpawnFileName()
+    const args = this._getSpawnArgs(options)
     let cmd = noPrefix ? '' : '[command]' // omit prefix when piped to a second tool
     if (IS_WINDOWS) {
       // Windows + cmd file
@@ -95,7 +94,7 @@ export class ToolRunner extends events.EventEmitter {
       strBuffer = s
     } catch (err) {
       // streaming lines to console is best effort.  Don't fail a build.
-      this._debug('error processing line')
+      this._debug(`error processing line. Failed with error ${err}`)
     }
   }
 
@@ -122,56 +121,6 @@ export class ToolRunner extends events.EventEmitter {
 
         argline += '"'
         return [argline]
-      }
-
-      if (options.windowsVerbatimArguments) {
-        // note, in Node 6.x options.argv0 can be used instead of overriding args.slice and args.unshift.
-        // for more details, refer to https://github.com/nodejs/node/blob/v6.x/lib/child_process.js
-
-        const args = this.args.slice(0) // copy the array
-
-        // override slice to prevent Node from creating a copy of the arg array.
-        // we need Node to use the "unshift" override below.
-        args.slice = function() {
-          if (arguments.length !== 1 || arguments[0] !== 0) {
-            throw new Error(
-              'Unexpected arguments passed to args.slice when windowsVerbatimArguments flag is set.'
-            )
-          }
-
-          return args
-        }
-
-        // override unshift
-        //
-        // when using the windowsVerbatimArguments option, Node does not quote the tool path when building
-        // the cmdline parameter for the win32 function CreateProcess(). an unquoted space in the tool path
-        // causes problems for tools when attempting to parse their own command line args. tools typically
-        // assume their arguments begin after arg 0.
-        //
-        // by hijacking unshift, we can quote the tool path when it pushed onto the args array. Node builds
-        // the cmdline parameter from the args array.
-        //
-        // note, we can't simply pass a quoted tool path to Node for multiple reasons:
-        //   1) Node verifies the file exists (calls win32 function GetFileAttributesW) and the check returns
-        //      false if the path is quoted.
-        //   2) Node passes the tool path as the application parameter to CreateProcess, which expects the
-        //      path to be unquoted.
-        //
-        // also note, in addition to the tool path being embedded within the cmdline parameter, Node also
-        // passes the tool path to CreateProcess via the application parameter (optional parameter). when
-        // present, Windows uses the application parameter to determine which file to run, instead of
-        // interpreting the file from the cmdline parameter.
-        args.unshift = function() {
-          if (arguments.length !== 1) {
-            throw new Error(
-              'Unexpected arguments passed to args.unshift when windowsVerbatimArguments flag is set.'
-            )
-          }
-
-          return Array.prototype.unshift.call(args, `"${arguments[0]}"`) // quote the file name
-        }
-        return args
       }
     }
 
@@ -414,13 +363,19 @@ export class ToolRunner extends events.EventEmitter {
     return result
   }
 
-  private _getSpawnOptions(options?: im.ExecOptions): child.SpawnOptions {
+  private _getSpawnOptions(
+    options: im.ExecOptions,
+    toolPath: string
+  ): child.SpawnOptions {
     options = options || <im.ExecOptions>{}
     const result = <child.SpawnOptions>{}
     result.cwd = options.cwd
     result.env = options.env
     result['windowsVerbatimArguments'] =
       options.windowsVerbatimArguments || this._isCmdFile()
+    if (options.windowsVerbatimArguments) {
+      result.argv0 = `"${toolPath}"`
+    }
     return result
   }
 
@@ -453,10 +408,11 @@ export class ToolRunner extends events.EventEmitter {
         this._debug(message)
       })
 
+      const fileName = this._getSpawnFileName()
       const cp = child.spawn(
-        this._getSpawnFileName(),
+        fileName,
         this._getSpawnArgs(optionsNonNull),
-        this._getSpawnOptions(this.options)
+        this._getSpawnOptions(this.options, fileName)
       )
 
       const stdbuffer = ''
