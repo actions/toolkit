@@ -187,7 +187,7 @@ export async function extractZip(file: string, dest?: string): Promise<string> {
     ]
     await exec(`"${powershellPath}"`, args)
   } else {
-    const unzipPath = await io.which('powershell')
+    const unzipPath = await io.which('unzip')
     await exec(`"${unzipPath}"`, [file], {cwd: dest})
   }
 
@@ -338,6 +338,16 @@ function _getAgentTemp(): string {
   return tempDirectory
 }
 
+function _getCacheRoot(): string {
+  // TODO - we need an actual protocol for this (this is just a placeholder)
+  const cacheRoot = process.env['Runner.ToolsDirectory']
+  if (!cacheRoot) {
+    throw new Error('Runner.ToolsDirectory is not set')
+  }
+
+  return cacheRoot
+}
+
 async function _createToolPath(
   tool: string,
   version: string,
@@ -367,16 +377,6 @@ function _completeToolPath(tool: string, version: string, arch?: string): void {
   const markerPath = `${folderPath}.complete`
   fs.writeFileSync(markerPath, '')
   core.debug('finished caching tool')
-}
-
-function _getCacheRoot(): string {
-  // TODO - we need an actual protocol for this (this is just a placeholder)
-  const cacheRoot = process.env['Runner.ToolsDirectory']
-  if (!cacheRoot) {
-    throw new Error('Runner.ToolsDirectory is not set')
-  }
-
-  return cacheRoot
 }
 
 function _isExplicitVersion(versionSpec: string): boolean {
