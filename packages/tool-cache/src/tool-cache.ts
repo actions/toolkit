@@ -187,7 +187,13 @@ export async function extractZip(file: string, dest?: string): Promise<string> {
     ]
     await exec(`"${powershellPath}"`, args)
   } else {
-    const unzipPath = path.join(__dirname, '..', 'scripts', 'externals', 'unzip')
+    const unzipPath = path.join(
+      __dirname,
+      '..',
+      'scripts',
+      'externals',
+      'unzip'
+    )
     await exec(`"${unzipPath}"`, [file], {cwd: dest})
   }
 
