@@ -15,7 +15,8 @@
     "test": "__tests__"
   },
   "files": [
-    "lib"
+    "lib",
+    "scripts"
   ],
   "publishConfig": {
     "access": "public"

@@ -98,7 +98,7 @@ export async function extract7z(file: string, dest?: string): Promise<string> {
   try {
     process.chdir(dest)
     const escapedScript = path
-      .join(__dirname, 'Invoke-7zdec.ps1')
+      .join(__dirname, '..', 'scripts', 'Invoke-7zdec.ps1')
       .replace(/'/g, "''")
       .replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
     const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '')
@@ -187,7 +187,7 @@ export async function extractZip(file: string, dest?: string): Promise<string> {
     ]
     await exec(`"${powershellPath}"`, args)
   } else {
-    const unzipPath = path.join(__dirname, 'externals', 'unzip')
+    const unzipPath = path.join(__dirname, '..', 'scripts', 'externals', 'unzip')
     await exec(`"${unzipPath}"`, [file], {cwd: dest})
   }
 
