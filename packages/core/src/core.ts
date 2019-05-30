@@ -1,6 +1,8 @@
 import {ExitCode} from '@actions/exit'
 import {issue, issueCommand} from './command'
 
+import * as path from 'path'
+
 /**
  * Interface for getInput options
  */
@@ -31,6 +33,15 @@ export function exportVariable(name: string, val: string): void {
 export function exportSecret(name: string, val: string): void {
   exportVariable(name, val)
   issueCommand('set-secret', {}, val)
+}
+
+/**
+ * Prepends inputPath to the PATH (for this action and future actions)
+ * @param inputPath
+ */
+export function addPath(inputPath: string): void {
+    issueCommand('add-path', {}, inputPath)
+    process.env['PATH'] = inputPath + path.delimiter + process.env['PATH']
 }
 
 /**
