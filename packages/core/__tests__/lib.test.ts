@@ -12,7 +12,7 @@ const testEnvVars = {
   'my secret': '',
   'special char secret \r\n];': '',
   'my secret2': '',
-  'PATH': 'path1' + path.delimiter + 'path2',
+  PATH: 'path1' + path.delimiter + 'path2',
 
   // Set inputs
   INPUT_MY_INPUT: 'val',
@@ -82,7 +82,9 @@ describe('@actions/core', () => {
 
   it('prependPath produces the correct commands and sets the env', () => {
     core.addPath('myPath')
-    expect(process.env['PATH']).toBe('myPath' + path.delimiter + 'path1' + path.delimiter + 'path2')
+    expect(process.env['PATH']).toBe(
+      'myPath' + path.delimiter + 'path1' + path.delimiter + 'path2'
+    )
     assertWriteCalls([`##[add-path]myPath${os.EOL}`])
   })
 

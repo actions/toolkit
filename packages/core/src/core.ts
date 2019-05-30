@@ -40,8 +40,8 @@ export function exportSecret(name: string, val: string): void {
  * @param inputPath
  */
 export function addPath(inputPath: string): void {
-    issueCommand('add-path', {}, inputPath)
-    process.env['PATH'] = inputPath + path.delimiter + process.env['PATH']
+  issueCommand('add-path', {}, inputPath)
+  process.env['PATH'] = inputPath + path.delimiter + process.env['PATH']
 }
 
 /**
