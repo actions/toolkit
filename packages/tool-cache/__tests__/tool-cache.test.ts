@@ -74,6 +74,7 @@ describe('@actions/toolCache', function() {
       throw new Error('Should have failed')
     } catch (err) {
       expect(err.toString()).toContain('Unexpected HTTP response: 400')
+      expect(err['httpStatusCode']).toBe(400)
     }
   })
 

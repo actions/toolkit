@@ -9,6 +9,10 @@ import * as uuidV4 from 'uuid/v4'
 import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 
+interface Error {
+  [key:string]: any; // Add index signature so that we can attach additional fields without breaking type checking (e.g. httpStatusCode)
+}
+
 const IS_WINDOWS = process.platform === 'win32'
 const userAgent = 'actions/tool-cache'
 
@@ -68,6 +72,7 @@ export async function downloadTool(url: string): Promise<string> {
             response.message.statusCode
           }) Message(${response.message.statusMessage})`
         )
+        err['httpStatusCode'] = response.message.statusCode
         throw err
       }
 
