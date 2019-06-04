@@ -9,8 +9,10 @@ import * as uuidV4 from 'uuid/v4'
 import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 
+// Add index signature so that we can attach additional fields without breaking type checking (e.g. httpStatusCode)
 interface Error {
-  [key:string]: any; // Add index signature so that we can attach additional fields without breaking type checking (e.g. httpStatusCode)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any
 }
 
 const IS_WINDOWS = process.platform === 'win32'
