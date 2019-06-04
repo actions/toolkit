@@ -138,15 +138,7 @@ export async function extract7z(file: string, dest?: string): Promise<string> {
       command
     ]
     const options: ExecOptions = {
-      silent: true,
-      listeners: {
-        stdout: (data: Buffer) => {
-          process.stdout.write(data)
-        },
-        stderr: (data: Buffer) => {
-          process.stderr.write(data)
-        }
-      }
+      silent: true
     }
     await exec(`"${powershellPath}"`, args, options)
   } finally {
