@@ -27,8 +27,8 @@ describe('@actions/toolCache', function() {
     await io.rmRF(tempPath)
     await io.mkdirP(cachePath)
     await io.mkdirP(tempPath)
-    process.env['Runner.TempDirectory'] = tempPath
-    process.env['Runner.ToolsDirectory'] = cachePath
+    process.env['RUNNER_TEMPDIRECTORY'] = tempPath
+    process.env['RUNNER_TOOLSDIRECTORY'] = cachePath
   })
 
   afterAll(async function() {

@@ -12,6 +12,28 @@ import {ExecOptions} from '@actions/exec/lib/interfaces'
 const IS_WINDOWS = process.platform === 'win32'
 const userAgent = 'actions/tool-cache'
 
+// On load grab temp directory and cache directory and remove them from env (currently don't want to expose this)
+let tempDirectory: string = process.env['RUNNER_TEMPDIRECTORY'] || ''
+let cacheRoot: string = process.env['RUNNER_TOOLSDIRECTORY'] || ''
+process.env['RUNNER_TEMPDIRECTORY'] = ''
+process.env['RUNNER_TOOLSDIRECTORY'] = ''
+// If directories not found, place them in common temp locations
+if (!tempDirectory || !cacheRoot) {
+  let baseLocation: string
+  if (IS_WINDOWS) {
+    // On windows use the USERPROFILE env variable
+    baseLocation = process.env['USERPROFILE'] || 'C:\\'
+  } else {
+    baseLocation = '/home'
+  }
+  if (!tempDirectory) {
+    tempDirectory = path.join(baseLocation, 'actions', 'temp')
+  }
+  if (!cacheRoot) {
+    cacheRoot = path.join(baseLocation, 'actions', 'cache')
+  }
+}
+
 /**
  * Download a tool from an url and stream it into a file
  *
@@ -25,9 +47,9 @@ export async function downloadTool(url: string): Promise<string> {
         allowRetries: true,
         maxRetries: 3
       })
-      const destPath: string = path.join(_getAgentTemp(), uuidV4())
+      const destPath: string = path.join(tempDirectory, uuidV4())
 
-      await io.mkdirP(_getAgentTemp())
+      await io.mkdirP(tempDirectory)
       core.debug(`Downloading ${url}`)
       core.debug(`Downloading ${destPath}`)
 
@@ -312,7 +334,6 @@ export function find(
   let toolPath = ''
   if (versionSpec) {
     versionSpec = semver.clean(versionSpec) || ''
-    const cacheRoot = _getCacheRoot()
     const cachePath = path.join(cacheRoot, toolName, versionSpec, arch)
     core.debug(`checking cache: ${cachePath}`)
     if (fs.existsSync(cachePath) && fs.existsSync(`${cachePath}.complete`)) {
@@ -328,30 +349,10 @@ export function find(
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(_getAgentTemp(), uuidV4())
+    dest = path.join(tempDirectory, uuidV4())
   }
   await io.mkdirP(dest)
   return dest
-}
-
-function _getAgentTemp(): string {
-  // TODO - we need an actual protocol for this (this is just a placeholder)
-  const tempDirectory = process.env['Runner.TempDirectory']
-  if (!tempDirectory) {
-    throw new Error('Runner.TempDirectory is not set')
-  }
-
-  return tempDirectory
-}
-
-function _getCacheRoot(): string {
-  // TODO - we need an actual protocol for this (this is just a placeholder)
-  const cacheRoot = process.env['Runner.ToolsDirectory']
-  if (!cacheRoot) {
-    throw new Error('Runner.ToolsDirectory is not set')
-  }
-
-  return cacheRoot
 }
 
 async function _createToolPath(
@@ -360,7 +361,7 @@ async function _createToolPath(
   arch?: string
 ): Promise<string> {
   const folderPath = path.join(
-    _getCacheRoot(),
+    cacheRoot,
     tool,
     semver.clean(version) || version,
     arch || ''
@@ -375,7 +376,7 @@ async function _createToolPath(
 
 function _completeToolPath(tool: string, version: string, arch?: string): void {
   const folderPath = path.join(
-    _getCacheRoot(),
+    cacheRoot,
     tool,
     semver.clean(version) || version,
     arch || ''
@@ -426,7 +427,7 @@ function _findLocalToolVersions(toolName: string, arch?: string): string[] {
   const versions: string[] = []
 
   arch = arch || os.arch()
-  const toolPath = path.join(_getCacheRoot(), toolName)
+  const toolPath = path.join(cacheRoot, toolName)
 
   if (fs.existsSync(toolPath)) {
     const children: string[] = fs.readdirSync(toolPath)
