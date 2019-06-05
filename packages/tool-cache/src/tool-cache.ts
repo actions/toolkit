@@ -188,36 +188,38 @@ export async function extractZip(file: string, dest?: string): Promise<string> {
   dest = dest || (await _createExtractFolder(dest))
 
   if (IS_WINDOWS) {
-    // build the powershell command
-    const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
-    const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-    const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
-
-    // run powershell
-    const powershellPath = await io.which('powershell')
-    const args = [
-      '-NoLogo',
-      '-Sta',
-      '-NoProfile',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Unrestricted',
-      '-Command',
-      command
-    ]
-    await exec(`"${powershellPath}"`, args)
+    await extractZipWin(file, dest)
   } else {
-    const unzipPath = path.join(
-      __dirname,
-      '..',
-      'scripts',
-      'externals',
-      'unzip'
-    )
-    await exec(`"${unzipPath}"`, [file], {cwd: dest})
+    await extractZipNix(file, dest)
   }
 
   return dest
+}
+
+async function extractZipWin(file: string, dest: string): Promise<void> {
+  // build the powershell command
+  const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
+  const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
+  const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
+
+  // run powershell
+  const powershellPath = await io.which('powershell')
+  const args = [
+    '-NoLogo',
+    '-Sta',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Unrestricted',
+    '-Command',
+    command
+  ]
+  await exec(`"${powershellPath}"`, args)
+}
+
+async function extractZipNix(file: string, dest: string): Promise<void> {
+  const unzipPath = path.join(__dirname, '..', 'scripts', 'externals', 'unzip')
+  await exec(`"${unzipPath}"`, [file], {cwd: dest})
 }
 
 /**
