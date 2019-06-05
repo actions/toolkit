@@ -6,7 +6,6 @@
     "exec",
     "actions"
   ],
-  "author": "Danny McCormick <damccorm@microsoft.com>",
   "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
   "license": "MIT",
   "main": "lib/tool-cache.js",

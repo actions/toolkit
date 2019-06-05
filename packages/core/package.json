@@ -6,7 +6,6 @@
     "core",
     "actions"
   ],
-  "author": "Bryan MacFarlane <bryanmac@microsoft.com>",
   "homepage": "https://github.com/actions/toolkit/tree/master/packages/core",
   "license": "MIT",
   "main": "lib/core.js",

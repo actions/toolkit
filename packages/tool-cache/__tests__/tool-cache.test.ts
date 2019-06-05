@@ -11,9 +11,9 @@ const cachePath = path.join(__dirname, 'CACHE')
 const tempPath = path.join(__dirname, 'TEMP')
 const IS_WINDOWS = process.platform === 'win32'
 
-describe('@actions/toolCache', function() {
+describe('@actions/tool-cache', function() {
   beforeAll(function() {
-    nock('http://microsoft.com')
+    nock('http://example.com')
       .persist()
       .get('/bytes/35')
       .reply(200, {
@@ -38,7 +38,7 @@ describe('@actions/toolCache', function() {
 
   it('downloads a 35 byte file', async () => {
     const downPath: string = await tc.downloadTool(
-      'http://microsoft.com/bytes/35'
+      'http://example.com/bytes/35'
     )
 
     expect(fs.existsSync(downPath)).toBeTruthy()
@@ -46,14 +46,14 @@ describe('@actions/toolCache', function() {
   })
 
   it('downloads a 35 byte file after a redirect', async () => {
-    nock('http://microsoft.com')
+    nock('http://example.com')
       .get('/redirect-to')
       .reply(303, undefined, {
-        location: 'http://microsoft.com/bytes/35'
+        location: 'http://example.com/bytes/35'
       })
 
     const downPath: string = await tc.downloadTool(
-      'http://microsoft.com/redirect-to'
+      'http://example.com/redirect-to'
     )
 
     expect(fs.existsSync(downPath)).toBeTruthy()
@@ -61,7 +61,7 @@ describe('@actions/toolCache', function() {
   })
 
   it('has status code in exception dictionary for HTTP error code responses', async () => {
-    nock('http://microsoft.com')
+    nock('http://example.com')
       .get('/bytes/bad')
       .reply(400, {
         username: 'bad',
@@ -69,7 +69,7 @@ describe('@actions/toolCache', function() {
       })
 
     try {
-      const errorCodeUrl = 'http://microsoft.com/bytes/bad'
+      const errorCodeUrl = 'http://example.com/bytes/bad'
       await tc.downloadTool(errorCodeUrl)
       throw new Error('Should have failed')
     } catch (err) {
@@ -79,14 +79,14 @@ describe('@actions/toolCache', function() {
   })
 
   it('works with redirect code 302', async function() {
-    nock('http://microsoft.com')
+    nock('http://example.com')
       .get('/redirect-to')
       .reply(302, undefined, {
-        location: 'http://microsoft.com/bytes/35'
+        location: 'http://example.com/bytes/35'
       })
 
     const downPath: string = await tc.downloadTool(
-      'http://microsoft.com/redirect-to'
+      'http://example.com/redirect-to'
     )
 
     expect(fs.existsSync(downPath)).toBeTruthy()
@@ -95,7 +95,7 @@ describe('@actions/toolCache', function() {
 
   it('installs a binary tool and finds it', async () => {
     const downPath: string = await tc.downloadTool(
-      'http://microsoft.com/bytes/35'
+      'http://example.com/bytes/35'
     )
 
     expect(fs.existsSync(downPath)).toBeTruthy()
@@ -249,31 +249,31 @@ describe('@actions/toolCache', function() {
   })
 
   it('works with a 502 temporary failure', async function() {
-    nock('http://microsoft.com')
+    nock('http://example.com')
       .get('/temp502')
       .twice()
       .reply(502, undefined)
-    nock('http://microsoft.com')
+    nock('http://example.com')
       .get('/temp502')
       .reply(200, undefined)
 
-    const statusCodeUrl = 'http://microsoft.com/temp502'
+    const statusCodeUrl = 'http://example.com/temp502'
     await tc.downloadTool(statusCodeUrl)
   })
 
   it("doesn't retry 502s more than 3 times", async function() {
-    nock('http://microsoft.com')
+    nock('http://example.com')
       .get('/perm502')
       .times(3)
       .reply(502, undefined)
 
-    let thrown = false
+    expect.assertions(1)
+
     try {
-      const statusCodeUrl = 'http://microsoft.com/perm502'
+      const statusCodeUrl = 'http://example.com/perm502'
       await tc.downloadTool(statusCodeUrl)
     } catch (err) {
-      thrown = true
+      expect(err.toString()).toContain('502')
     }
-    expect(thrown).toBeTruthy()
   })
 })
