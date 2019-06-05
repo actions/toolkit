@@ -6,13 +6,12 @@ import * as exec from '@actions/exec'
 
 const cachePath = path.join(__dirname, 'CACHE')
 const tempPath = path.join(__dirname, 'TEMP')
-// Set temp and tool directories before running
+// Set temp and tool directories before importing (used to set global state)
 process.env['RUNNER_TEMPDIRECTORY'] = tempPath
 process.env['RUNNER_TOOLSDIRECTORY'] = cachePath
 
 // eslint-disable-next-line import/first
 import * as tc from '../src/tool-cache'
-import {exportSecret} from '../../../../../../setup-node/node_modules/@actions/core/lib/core'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -144,11 +143,14 @@ describe('@actions/tool-cache', function() {
     })
 
     it('extract 7z using custom 7z tool', async function() {
-      let tempDir = path.join(__dirname, 'test-extract-7z-using-custom-7z-tool')
+      const tempDir = path.join(
+        __dirname,
+        'test-extract-7z-using-custom-7z-tool'
+      )
       try {
         await io.mkdirP(tempDir)
         // create mock7zr.cmd
-        let mock7zrPath: string = path.join(tempDir, 'mock7zr.cmd')
+        const mock7zrPath: string = path.join(tempDir, 'mock7zr.cmd')
         fs.writeFileSync(
           mock7zrPath,
           [
@@ -164,11 +166,11 @@ describe('@actions/tool-cache', function() {
         )
 
         // copy the 7z file to the test dir
-        let _7zFile: string = path.join(tempDir, 'test.7z')
+        const _7zFile: string = path.join(tempDir, 'test.7z')
         await io.cp(path.join(__dirname, 'data', 'test.7z'), _7zFile)
 
         // extract
-        let extPath: string = await tc.extract7z(
+        const extPath: string = await tc.extract7z(
           _7zFile,
           undefined,
           mock7zrPath
