@@ -4,8 +4,6 @@ import * as path from 'path'
 import * as io from '@actions/io'
 import * as exec from '@actions/exec'
 
-'use strict'
-
 const cachePath = path.join(__dirname, 'CACHE')
 const tempPath = path.join(__dirname, 'TEMP')
 // Set temp and tool directories before running
@@ -72,10 +70,11 @@ describe('@actions/tool-cache', function() {
         password: 'file'
       })
 
+    expect.assertions(2)
+
     try {
       const errorCodeUrl = 'http://example.com/bytes/bad'
       await tc.downloadTool(errorCodeUrl)
-      throw new Error('Should have failed')
     } catch (err) {
       expect(err.toString()).toContain('Unexpected HTTP response: 400')
       expect(err['httpStatusCode']).toBe(400)
