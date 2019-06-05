@@ -114,9 +114,21 @@ export async function downloadTool(url: string): Promise<string> {
  *
  * @param file     path to the .7z file
  * @param dest     destination directory. Optional.
+ * @param _7zPath  path to 7zr.exe. Optional, for long path support. Most .7z archives do not have this
+ * problem. If your .7z archive contains very long paths, you can pass the path to 7zr.exe which will
+ * gracefully handle long paths. By default 7zdec.exe is used because it is a very small program and is
+ * bundled with the tool lib. However it does not support long paths. 7zr.exe is the reduced command line
+ * interface, it is smaller than the full command line interface, and it does support long paths. At the
+ * time of this writing, it is freely available from the LZMA SDK that is available on the 7zip website.
+ * Be sure to check the current license agreement. If 7zr.exe is bundled with your action, then the path
+ * to 7zr.exe can be pass to this function.
  * @returns        path to the destination directory
  */
-export async function extract7z(file: string, dest?: string): Promise<string> {
+export async function extract7z(
+  file: string,
+  dest?: string,
+  _7zPath?: string
+): Promise<string> {
   ok(IS_WINDOWS, 'extract7z() not supported on current OS')
   ok(file, 'parameter "file" is required')
 
@@ -124,31 +136,49 @@ export async function extract7z(file: string, dest?: string): Promise<string> {
 
   const originalCwd = process.cwd()
   process.chdir(dest)
-  const escapedScript = path
-    .join(__dirname, '..', 'scripts', 'Invoke-7zdec.ps1')
-    .replace(/'/g, "''")
-    .replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
-  const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-  const escapedTarget = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-  const command = `& '${escapedScript}' -Source '${escapedFile}' -Target '${escapedTarget}'`
-  const args: string[] = [
-    '-NoLogo',
-    '-Sta',
-    '-NoProfile',
-    '-NonInteractive',
-    '-ExecutionPolicy',
-    'Unrestricted',
-    '-Command',
-    command
-  ]
-  const options: ExecOptions = {
-    silent: true
-  }
-  try {
-    const powershellPath: string = await io.which('powershell', true)
-    await exec(`"${powershellPath}"`, args, options)
-  } finally {
-    process.chdir(originalCwd)
+  if (_7zPath) {
+    try {
+      const args: string[] = [
+        'x', // eXtract files with full paths
+        '-bb1', // -bb[0-3] : set output log level
+        '-bd', // disable progress indicator
+        '-sccUTF-8', // set charset for for console input/output
+        file
+      ]
+      const options: ExecOptions = {
+        silent: true
+      }
+      await exec(`"${_7zPath}"`, args, options)
+    } finally {
+      process.chdir(originalCwd)
+    }
+  } else {
+    const escapedScript = path
+      .join(__dirname, '..', 'scripts', 'Invoke-7zdec.ps1')
+      .replace(/'/g, "''")
+      .replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
+    const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '')
+    const escapedTarget = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
+    const command = `& '${escapedScript}' -Source '${escapedFile}' -Target '${escapedTarget}'`
+    const args: string[] = [
+      '-NoLogo',
+      '-Sta',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Unrestricted',
+      '-Command',
+      command
+    ]
+    const options: ExecOptions = {
+      silent: true
+    }
+    try {
+      const powershellPath: string = await io.which('powershell', true)
+      await exec(`"${powershellPath}"`, args, options)
+    } finally {
+      process.chdir(originalCwd)
+    }
   }
 
   return dest

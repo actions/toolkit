@@ -12,6 +12,7 @@ process.env['RUNNER_TOOLSDIRECTORY'] = cachePath
 
 // eslint-disable-next-line import/first
 import * as tc from '../src/tool-cache'
+import {exportSecret} from '../../../../../../setup-node/node_modules/@actions/core/lib/core'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -136,6 +137,59 @@ describe('@actions/tool-cache', function() {
         ).toBeTruthy()
         expect(
           fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+        ).toBeTruthy()
+      } finally {
+        await io.rmRF(tempDir)
+      }
+    })
+
+    it('extract 7z using custom 7z tool', async function() {
+      let tempDir = path.join(__dirname, 'test-extract-7z-using-custom-7z-tool')
+      try {
+        await io.mkdirP(tempDir)
+        // create mock7zr.cmd
+        let mock7zrPath: string = path.join(tempDir, 'mock7zr.cmd')
+        fs.writeFileSync(
+          mock7zrPath,
+          [
+            'echo %* > "%~dp0mock7zr-args.txt"',
+            `"${path.join(
+              __dirname,
+              '..',
+              'scripts',
+              'externals',
+              '7zdec.exe'
+            )}" x %5`
+          ].join('\r\n')
+        )
+
+        // copy the 7z file to the test dir
+        let _7zFile: string = path.join(tempDir, 'test.7z')
+        await io.cp(path.join(__dirname, 'data', 'test.7z'), _7zFile)
+
+        // extract
+        let extPath: string = await tc.extract7z(
+          _7zFile,
+          undefined,
+          mock7zrPath
+        )
+
+        expect(fs.existsSync(extPath)).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(tempDir, 'mock7zr-args.txt'))
+        ).toBeTruthy()
+        expect(
+          fs
+            .readFileSync(path.join(tempDir, 'mock7zr-args.txt'))
+            .toString()
+            .trim()
+        ).toBe(`x -bb1 -bd -sccUTF-8 ${_7zFile}`)
+        expect(fs.existsSync(path.join(extPath, 'file.txt'))).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(extPath, 'file-with-ç-character.txt'))
+        ).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(extPath, 'folder', 'nested-file.txt'))
         ).toBeTruthy()
       } finally {
         await io.rmRF(tempDir)
