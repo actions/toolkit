@@ -10,7 +10,7 @@ import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
 
-class HTTPError extends Error {
+export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
     super(`Unexpected HTTP response: ${httpStatusCode}`)
     Object.setPrototypeOf(this, new.target.prototype)
