@@ -13,21 +13,24 @@ export function warning(message: string): void
 export function error(message: string): void
 
 /**
- * Interface for exportVariable options
+ * sets env variable for this action and future actions in the job
+ * @param name the name of the variable to set
+ * @param val the value of the variable
  */
-export interface ExportOptions {
-    /** Optional. Whether the variable should be marked as secret (will be masked from logs). Defaults to false */
-    isSecret?: bool;
-}
+export function exportVariable(name: string, val: string): void
 
 /**
- * sets env variable for this action and future actions in the job
- *
- * @param name      the name of the variable to set
- * @param val       the value of the variable
- * @param options   optional. See ExportOptions.
+ * exports the variable and registers a secret which will get masked from logs
+ * @param name the name of the variable to set
+ * @param val value of the secret
  */
-export function exportVariable(name: string, val: string, options?: ExportOptions): void
+export function exportSecret(name: string, val: string): void
+
+/**
+ * Prepends inputPath to the PATH
+ * @param inputPath
+ */
+export function addPath(inputPath: string): void
 
 /**
  * Interface for getInput options
@@ -197,10 +200,4 @@ export async function cacheDir(sourceDir: string, tool: string, version: string,
  * @param arch          optional arch.  defaults to arch of computer
  */
 export function find(toolName: string, versionSpec: string, arch?: string): string
-
-/**
- * Prepends inputPath to the PATH
- * @param inputPath
- */
-export function addPath(inputPath: string): void
 ```
