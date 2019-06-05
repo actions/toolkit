@@ -8,11 +8,13 @@ import * as semver from 'semver'
 import * as uuidV4 from 'uuid/v4'
 import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
+import {ok} from 'assert'
 
-// Add index signature so that we can attach additional fields without breaking type checking (e.g. httpStatusCode)
-interface Error {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any
+class HTTPError extends Error {
+  constructor(readonly httpStatusCode: number | undefined) {
+    super(`Unexpected HTTP response: ${httpStatusCode}`)
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
 }
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -30,7 +32,11 @@ if (!tempDirectory || !cacheRoot) {
     // On windows use the USERPROFILE env variable
     baseLocation = process.env['USERPROFILE'] || 'C:\\'
   } else {
-    baseLocation = '/home'
+    if (process.platform === 'darwin') {
+      baseLocation = '/Users'
+    } else {
+      baseLocation = '/home'
+    }
   }
   if (!tempDirectory) {
     tempDirectory = path.join(baseLocation, 'actions', 'temp')
@@ -47,13 +53,14 @@ if (!tempDirectory || !cacheRoot) {
  * @returns         path to downloaded tool
  */
 export async function downloadTool(url: string): Promise<string> {
+  // Wrap in a promise so that we can resolve from within stream callbacks
   return new Promise<string>(async (resolve, reject) => {
     try {
-      const http: httpm.HttpClient = new httpm.HttpClient(userAgent, [], {
+      const http = new httpm.HttpClient(userAgent, [], {
         allowRetries: true,
         maxRetries: 3
       })
-      const destPath: string = path.join(tempDirectory, uuidV4())
+      const destPath = path.join(tempDirectory, uuidV4())
 
       await io.mkdirP(tempDirectory)
       core.debug(`Downloading ${url}`)
@@ -66,15 +73,12 @@ export async function downloadTool(url: string): Promise<string> {
       const response: httpm.HttpClientResponse = await http.get(url)
 
       if (response.message.statusCode !== 200) {
-        const err: Error = new Error(
-          `Unexpected HTTP response: ${response.message.statusCode}`
-        )
+        const err = new HTTPError(response.message.statusCode)
         core.debug(
           `Failed to download from "${url}". Code(${
             response.message.statusCode
           }) Message(${response.message.statusMessage})`
         )
-        err['httpStatusCode'] = response.message.statusCode
         throw err
       }
 
@@ -113,40 +117,35 @@ export async function downloadTool(url: string): Promise<string> {
  * @returns        path to the destination directory
  */
 export async function extract7z(file: string, dest?: string): Promise<string> {
-  if (!IS_WINDOWS) {
-    throw new Error('extract7z() not supported on current OS')
-  }
-
-  if (!file) {
-    throw new Error("parameter 'file' is required")
-  }
+  ok(IS_WINDOWS, 'extract7z() not supported on current OS')
+  ok(file, 'parameter "file" is required')
 
   dest = dest || (await _createExtractFolder(dest))
 
   const originalCwd = process.cwd()
+  process.chdir(dest)
+  const escapedScript = path
+    .join(__dirname, '..', 'scripts', 'Invoke-7zdec.ps1')
+    .replace(/'/g, "''")
+    .replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
+  const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '')
+  const escapedTarget = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
+  const command = `& '${escapedScript}' -Source '${escapedFile}' -Target '${escapedTarget}'`
+  const args: string[] = [
+    '-NoLogo',
+    '-Sta',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Unrestricted',
+    '-Command',
+    command
+  ]
+  const options: ExecOptions = {
+    silent: true
+  }
   try {
-    process.chdir(dest)
-    const escapedScript = path
-      .join(__dirname, '..', 'scripts', 'Invoke-7zdec.ps1')
-      .replace(/'/g, "''")
-      .replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
-    const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-    const escapedTarget = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-    const command = `& '${escapedScript}' -Source '${escapedFile}' -Target '${escapedTarget}'`
     const powershellPath: string = await io.which('powershell', true)
-    const args: string[] = [
-      '-NoLogo',
-      '-Sta',
-      '-NoProfile',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Unrestricted',
-      '-Command',
-      command
-    ]
-    const options: ExecOptions = {
-      silent: true
-    }
     await exec(`"${powershellPath}"`, args, options)
   } finally {
     process.chdir(originalCwd)

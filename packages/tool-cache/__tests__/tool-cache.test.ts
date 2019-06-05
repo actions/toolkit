@@ -3,12 +3,18 @@ import * as nock from 'nock'
 import * as path from 'path'
 import * as io from '@actions/io'
 import * as exec from '@actions/exec'
-import * as tc from '../src/tool-cache'
 
 'use strict'
 
 const cachePath = path.join(__dirname, 'CACHE')
 const tempPath = path.join(__dirname, 'TEMP')
+// Set temp and tool directories before running
+process.env['RUNNER_TEMPDIRECTORY'] = tempPath
+process.env['RUNNER_TOOLSDIRECTORY'] = cachePath
+
+// eslint-disable-next-line import/first
+import * as tc from '../src/tool-cache'
+
 const IS_WINDOWS = process.platform === 'win32'
 
 describe('@actions/tool-cache', function() {
@@ -27,8 +33,6 @@ describe('@actions/tool-cache', function() {
     await io.rmRF(tempPath)
     await io.mkdirP(cachePath)
     await io.mkdirP(tempPath)
-    process.env['RUNNER_TEMPDIRECTORY'] = tempPath
-    process.env['RUNNER_TOOLSDIRECTORY'] = cachePath
   })
 
   afterAll(async function() {
