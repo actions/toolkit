@@ -330,7 +330,7 @@ export async function cacheFile(
 }
 
 /**
- * finds the path to a tool in the local installed tool cache
+ * Finds the path to a tool version in the local installed tool cache
  *
  * @param toolName      name of the tool
  * @param versionSpec   version of the tool
@@ -353,7 +353,7 @@ export function find(
 
   // attempt to resolve an explicit version
   if (!_isExplicitVersion(versionSpec)) {
-    const localVersions: string[] = _findLocalToolVersions(toolName, arch)
+    const localVersions: string[] = findAllVersions(toolName, arch)
     const match = _evaluateVersions(localVersions, versionSpec)
     versionSpec = match
   }
@@ -372,6 +372,33 @@ export function find(
     }
   }
   return toolPath
+}
+
+/**
+ * Finds the paths to all versions of a tool that are installed in the local tool cache
+ *
+ * @param toolName  name of the tool
+ * @param arch      optional arch.  defaults to arch of computer
+ */
+export function findAllVersions(toolName: string, arch?: string): string[] {
+  const versions: string[] = []
+
+  arch = arch || os.arch()
+  const toolPath = path.join(cacheRoot, toolName)
+
+  if (fs.existsSync(toolPath)) {
+    const children: string[] = fs.readdirSync(toolPath)
+    for (const child of children) {
+      if (_isExplicitVersion(child)) {
+        const fullPath = path.join(toolPath, child, arch || '')
+        if (fs.existsSync(fullPath) && fs.existsSync(`${fullPath}.complete`)) {
+          versions.push(child)
+        }
+      }
+    }
+  }
+
+  return versions
 }
 
 async function _createExtractFolder(dest?: string): Promise<string> {
@@ -449,25 +476,4 @@ function _evaluateVersions(versions: string[], versionSpec: string): string {
   }
 
   return version
-}
-
-function _findLocalToolVersions(toolName: string, arch?: string): string[] {
-  const versions: string[] = []
-
-  arch = arch || os.arch()
-  const toolPath = path.join(cacheRoot, toolName)
-
-  if (fs.existsSync(toolPath)) {
-    const children: string[] = fs.readdirSync(toolPath)
-    for (const child of children) {
-      if (_isExplicitVersion(child)) {
-        const fullPath = path.join(toolPath, child, arch || '')
-        if (fs.existsSync(fullPath) && fs.existsSync(`${fullPath}.complete`)) {
-          versions.push(child)
-        }
-      }
-    }
-  }
-
-  return versions
 }
