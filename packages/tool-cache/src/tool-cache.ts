@@ -353,7 +353,7 @@ export function find(
 
   // attempt to resolve an explicit version
   if (!_isExplicitVersion(versionSpec)) {
-    const localVersions: string[] = findVersions(toolName, arch)
+    const localVersions: string[] = findAllVersions(toolName, arch)
     const match = _evaluateVersions(localVersions, versionSpec)
     versionSpec = match
   }
@@ -375,12 +375,12 @@ export function find(
 }
 
 /**
- * Finds the paths to tool versions that are installed in the local tool cache
+ * Finds the paths to all versions of a tool that are installed in the local tool cache
  *
  * @param toolName  name of the tool
  * @param arch      optional arch.  defaults to arch of computer
  */
-export function findVersions(toolName: string, arch?: string): string[] {
+export function findAllVersions(toolName: string, arch?: string): string[] {
   const versions: string[] = []
 
   arch = arch || os.arch()
