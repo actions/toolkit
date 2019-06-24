@@ -114,6 +114,11 @@ describe('@actions/core', () => {
     expect(core.getInput('special chars_\'\t"\\')).toBe('\'\t"\\ repsonse')
   })
 
+  it('setOutput produces the correct command', () => {
+    core.setOutput('some output', 'some value')
+    assertWriteCalls([`##[set-output name=some output;]some value${os.EOL}`])
+  })
+
   it('setNeutral sets the correct exit code', () => {
     core.setFailed('Failure message')
     expect(process.exitCode).toBe(ExitCode.Failure)
