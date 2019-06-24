@@ -1,4 +1,3 @@
-import {ExitCode} from '@actions/exit'
 import * as os from 'os'
 import * as path from 'path'
 import * as core from '../src/core'
@@ -116,18 +115,18 @@ describe('@actions/core', () => {
 
   it('setNeutral sets the correct exit code', () => {
     core.setFailed('Failure message')
-    expect(process.exitCode).toBe(ExitCode.Failure)
+    expect(process.exitCode).toBe(core.ExitCode.Failure)
   })
 
   it('setFailure sets the correct exit code and failure message', () => {
     core.setFailed('Failure message')
-    expect(process.exitCode).toBe(ExitCode.Failure)
+    expect(process.exitCode).toBe(core.ExitCode.Failure)
     assertWriteCalls([`##[error]Failure message${os.EOL}`])
   })
 
   it('setFailure escapes the failure message', () => {
     core.setFailed('Failure \r\n\nmessage\r')
-    expect(process.exitCode).toBe(ExitCode.Failure)
+    expect(process.exitCode).toBe(core.ExitCode.Failure)
     assertWriteCalls([`##[error]Failure %0D%0A%0Amessage%0D${os.EOL}`])
   })
 
