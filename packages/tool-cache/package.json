@@ -1,6 +1,6 @@
 {
   "name": "@actions/tool-cache",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Actions tool-cache lib",
   "keywords": [
     "exec",
@@ -35,9 +35,9 @@
     "semver": "^6.1.0",
     "typed-rest-client": "^1.4.0",
     "uuid": "^3.3.2",
-    "@actions/core": "^0.1.0",
-    "@actions/io": "^1.0.0",
-    "@actions/exec": "^1.0.0"
+    "@actions/core": "^0.0.0",
+    "@actions/io": "^0.0.0",
+    "@actions/exec": "^0.0.0"
   },
   "devDependencies": {
     "nock": "^10.0.6",
