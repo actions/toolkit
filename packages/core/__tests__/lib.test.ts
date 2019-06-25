@@ -111,7 +111,7 @@ describe('@actions/core', () => {
 
   it('getInput handles special characters', () => {
     expect(core.getInput('special chars_\'\t"\\')).toBe('\'\t"\\ repsonse')
-  })  
+  })
 
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
