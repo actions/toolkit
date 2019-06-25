@@ -68,7 +68,7 @@ export function getInput(name: string, options?: InputOptions): string {
  * @param     value    value to store
  */
 export function setOutput(name: string, value: string): void {
-  issueCommand('set-output', {'name': name}, value)
+  issueCommand('set-output', {name: name}, value)
 }
 
 //-----------------------------------------------------------------------
