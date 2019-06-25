@@ -15,6 +15,11 @@
 
 This repository uses [Lerna](https://github.com/lerna/lerna#readme) to manage multiple packages. Read the documentation there to begin contributing.
 
+Note that before a PR will be accepted, you must ensure:
+- all tests are passing
+- `npm run format` reports no issues
+- `npm run lint` reports no issues
+
 ### Useful Scripts
 
 - `npm run bootstrap` This runs `lerna bootstrap` which will install dependencies in this repository's packages and cross-link packages where necessary.
