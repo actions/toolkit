@@ -80,6 +80,16 @@ export function getInput(name: string, options?: InputOptions): string {
   return val.trim()
 }
 
+/**
+ * Sets the value of an output.
+ *
+ * @param     name     name of the output to set
+ * @param     value    value to store
+ */
+export function setOutput(name: string, value: string): void {
+  issueCommand('set-output', {name}, value)
+}
+
 //-----------------------------------------------------------------------
 // Results
 //-----------------------------------------------------------------------
