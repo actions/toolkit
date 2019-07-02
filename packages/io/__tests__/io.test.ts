@@ -59,13 +59,7 @@ describe('cp', () => {
     await io.mkdirP(root)
     await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await fs.writeFile(targetFile, 'correct content', {encoding: 'utf8'})
-    let failed = false
-    try {
-      await io.cp(sourceFile, targetFile, {recursive: false, force: false})
-    } catch {
-      failed = true
-    }
-    expect(failed).toBe(true)
+    await io.cp(sourceFile, targetFile, {recursive: false, force: false})
 
     expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'correct content'
@@ -132,6 +126,43 @@ describe('cp', () => {
     expect(thrown).toBe(true)
     await assertNotExists(targetFile)
   })
+
+  it('Copies symlinks correctly', async () => {
+    // create the following layout
+    // sourceFolder
+    // sourceFolder/nested
+    // sourceFolder/nested/sourceFile
+    // sourceFolder/symlinkDirectory -> sourceFile
+    const root: string = path.join(getTestTemp(), 'cp_with_-r_symlinks')
+    const sourceFolder: string = path.join(root, 'cp_source')
+    const nestedFolder: string = path.join(sourceFolder, 'nested')
+    const sourceFile: string = path.join(nestedFolder, 'cp_source_file')
+    const symlinkDirectory: string = path.join(sourceFolder, 'symlinkDirectory')
+
+    const targetFolder: string = path.join(root, 'cp_target')
+    const targetFile: string = path.join(
+      targetFolder,
+      'nested',
+      'cp_source_file'
+    )
+    const symlinkTargetPath: string = path.join(
+      targetFolder,
+      'symlinkDirectory',
+      'cp_source_file'
+    )
+    await io.mkdirP(sourceFolder)
+    await io.mkdirP(nestedFolder)
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
+    await createSymlinkDir(nestedFolder, symlinkDirectory)
+    await io.cp(sourceFolder, targetFolder, {recursive: true})
+
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
+      'test file content'
+    )
+    expect(await fs.readFile(symlinkTargetPath, {encoding: 'utf8'})).toBe(
+      'test file content'
+    )
+  })
 })
 
 describe('mv', () => {
@@ -189,7 +220,7 @@ describe('mv', () => {
     )
   })
 
-  it('moves directory into existing destination with -r', async () => {
+  it('moves directory into existing destination', async () => {
     const root: string = path.join(getTestTemp(), ' mv_with_-r_existing_dest')
     const sourceFolder: string = path.join(root, ' mv_source')
     const sourceFile: string = path.join(sourceFolder, ' mv_source_file')
@@ -203,7 +234,7 @@ describe('mv', () => {
     await io.mkdirP(sourceFolder)
     await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.mkdirP(targetFolder)
-    await io.mv(sourceFolder, targetFolder, {recursive: true})
+    await io.mv(sourceFolder, targetFolder)
 
     expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
@@ -211,7 +242,7 @@ describe('mv', () => {
     await assertNotExists(sourceFile)
   })
 
-  it('moves directory into non-existing destination with -r', async () => {
+  it('moves directory into non-existing destination', async () => {
     const root: string = path.join(
       getTestTemp(),
       ' mv_with_-r_nonexisting_dest'
@@ -223,38 +254,12 @@ describe('mv', () => {
     const targetFile: string = path.join(targetFolder, ' mv_source_file')
     await io.mkdirP(sourceFolder)
     await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
-    await io.mv(sourceFolder, targetFolder, {recursive: true})
+    await io.mv(sourceFolder, targetFolder)
 
     expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
     await assertNotExists(sourceFile)
-  })
-
-  it('tries to move directory without -r', async () => {
-    const root: string = path.join(getTestTemp(), 'mv_without_-r')
-    const sourceFolder: string = path.join(root, 'mv_source')
-    const sourceFile: string = path.join(sourceFolder, 'mv_source_file')
-
-    const targetFolder: string = path.join(root, 'mv_target')
-    const targetFile: string = path.join(
-      targetFolder,
-      'mv_source',
-      'mv_source_file'
-    )
-    await io.mkdirP(sourceFolder)
-    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
-
-    let thrown = false
-    try {
-      await io.mv(sourceFolder, targetFolder)
-    } catch (err) {
-      thrown = true
-    }
-
-    expect(thrown).toBe(true)
-    await assertExists(sourceFile)
-    await assertNotExists(targetFile)
   })
 })
 

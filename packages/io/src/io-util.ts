@@ -3,12 +3,16 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 export const {
+  chmod,
   copyFile,
   lstat,
   mkdir,
   readdir,
+  readlink,
+  rename,
   rmdir,
   stat,
+  symlink,
   unlink
 } = fs.promises
 

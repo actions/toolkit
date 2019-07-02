@@ -1,5 +1,4 @@
 import * as childProcess from 'child_process'
-import * as fs from 'fs'
 import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
@@ -17,7 +16,16 @@ export interface CopyOptions {
 }
 
 /**
+ * Interface for cp/mv options
+ */
+export interface MoveOptions {
+  /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
+  force?: boolean
+}
+
+/**
  * Copies a file or folder.
+ * Based off of shelljs - https://github.com/shelljs/shelljs/blob/9237f66c52e5daa40458f94f9565e18e8132f5a6/src/cp.js
  *
  * @param     source    source path
  * @param     dest      destination path
@@ -28,7 +36,41 @@ export async function cp(
   dest: string,
   options: CopyOptions = {}
 ): Promise<void> {
-  await move(source, dest, options, {deleteOriginal: false})
+  const {force, recursive} = readCopyOptions(options)
+
+  const destStat = (await ioUtil.exists(dest)) ? await ioUtil.stat(dest) : null
+  // Dest is an existing file, but not forcing
+  if (destStat && destStat.isFile() && !force) {
+    return
+  }
+
+  // If dest is an existing directory, should copy inside.
+  const newDest: string =
+    destStat && destStat.isDirectory()
+      ? path.join(dest, path.basename(source))
+      : dest
+
+  if (!(await ioUtil.exists(source))) {
+    throw new Error(`no such file or directory: ${source}`)
+  }
+  const sourceStat = await ioUtil.stat(source)
+
+  if (sourceStat.isDirectory()) {
+    if (!recursive) {
+      throw new Error(
+        `Failed to copy. ${source} is a directory, but tried to copy without recursive flag.`
+      )
+    } else {
+      await cpDirRecursive(source, newDest, 0, force)
+    }
+  } else {
+    if (path.relative(source, newDest) === '') {
+      // a file cannot be copied to itself
+      throw new Error(`'${newDest}' and '${source}' are the same file`)
+    }
+
+    await copyFile(source, newDest, force)
+  }
 }
 
 /**
@@ -36,14 +78,31 @@ export async function cp(
  *
  * @param     source    source path
  * @param     dest      destination path
- * @param     options   optional. See CopyOptions.
+ * @param     options   optional. See MoveOptions.
  */
 export async function mv(
   source: string,
   dest: string,
-  options: CopyOptions = {}
+  options: MoveOptions = {}
 ): Promise<void> {
-  await move(source, dest, options, {deleteOriginal: true})
+  if (await ioUtil.exists(dest)) {
+    let destExists = true
+    if (await ioUtil.isDirectory(dest)) {
+      // If dest is directory copy src into dest
+      dest = path.join(dest, path.basename(source))
+      destExists = await ioUtil.exists(dest)
+    }
+
+    if (destExists) {
+      if (options.force == null || options.force) {
+        await rmRF(dest)
+      } else {
+        throw new Error('Destination already exists')
+      }
+    }
+  }
+  await mkdirP(path.dirname(dest))
+  await ioUtil.rename(source, dest)
 }
 
 /**
@@ -198,92 +257,71 @@ export async function which(tool: string, check?: boolean): Promise<string> {
   }
 }
 
-// Copies contents of source into dest, making any necessary folders along the way.
-// Deletes the original copy if deleteOriginal is true
-async function copyDirectoryContents(
-  source: string,
-  dest: string,
-  force: boolean,
-  deleteOriginal = false
-): Promise<void> {
-  if (await ioUtil.isDirectory(source)) {
-    if (await ioUtil.exists(dest)) {
-      if (!(await ioUtil.isDirectory(dest))) {
-        throw new Error(`${dest} is not a directory`)
-      }
-    } else {
-      await mkdirP(dest)
-    }
-
-    // Copy all child files, and directories recursively
-    const sourceChildren: string[] = await ioUtil.readdir(source)
-
-    for (const newSource of sourceChildren) {
-      const newDest = path.join(dest, path.basename(newSource))
-      await copyDirectoryContents(
-        path.resolve(source, newSource),
-        newDest,
-        force,
-        deleteOriginal
-      )
-    }
-
-    if (deleteOriginal) {
-      await ioUtil.rmdir(source)
-    }
-  } else {
-    if (force) {
-      await ioUtil.copyFile(source, dest)
-    } else {
-      await ioUtil.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
-    }
-    if (deleteOriginal) {
-      await ioUtil.unlink(source)
-    }
-  }
-}
-
-async function move(
-  source: string,
-  dest: string,
-  options: CopyOptions = {},
-  moveOptions: {deleteOriginal: boolean}
-): Promise<void> {
-  const {force, recursive} = readCopyOptions(options)
-
-  if (await ioUtil.isDirectory(source)) {
-    if (!recursive) {
-      throw new Error(`non-recursive cp failed, ${source} is a directory`)
-    }
-
-    // If directory exists, move source inside it. Otherwise, create it and move contents of source inside.
-    if (await ioUtil.exists(dest)) {
-      if (!(await ioUtil.isDirectory(dest))) {
-        throw new Error(`${dest} is not a directory`)
-      }
-
-      dest = path.join(dest, path.basename(source))
-    }
-
-    await copyDirectoryContents(source, dest, force, moveOptions.deleteOriginal)
-  } else {
-    if ((await ioUtil.exists(dest)) && (await ioUtil.isDirectory(dest))) {
-      dest = path.join(dest, path.basename(source))
-    }
-    if (force) {
-      await ioUtil.copyFile(source, dest)
-    } else {
-      await ioUtil.copyFile(source, dest, fs.constants.COPYFILE_EXCL)
-    }
-
-    if (moveOptions.deleteOriginal) {
-      await ioUtil.unlink(source)
-    }
-  }
-}
-
 function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
   const force = options.force == null ? true : options.force
   const recursive = Boolean(options.recursive)
   return {force, recursive}
+}
+
+async function cpDirRecursive(
+  sourceDir: string,
+  destDir: string,
+  currentDepth: number,
+  force: boolean
+): Promise<void> {
+  // Ensure there is not a run away recursive copy
+  if (currentDepth >= 255) return
+  currentDepth++
+
+  await mkdirP(destDir)
+
+  const files: string[] = await ioUtil.readdir(sourceDir)
+
+  for (const fileName of files) {
+    const srcFile = `${sourceDir}/${fileName}`
+    const destFile = `${destDir}/${fileName}`
+    const srcFileStat = await ioUtil.lstat(srcFile)
+
+    if (srcFileStat.isDirectory()) {
+      // Recurse
+      await cpDirRecursive(srcFile, destFile, currentDepth, force)
+    } else {
+      await copyFile(srcFile, destFile, force)
+    }
+  }
+
+  // Change the mode for the newly created directory
+  await ioUtil.chmod(destDir, (await ioUtil.stat(sourceDir)).mode)
+}
+
+// Buffered file copy
+async function copyFile(
+  srcFile: string,
+  destFile: string,
+  force: boolean
+): Promise<void> {
+  if ((await ioUtil.lstat(srcFile)).isSymbolicLink()) {
+    // unlink/re-link it
+    try {
+      await ioUtil.lstat(destFile)
+      await ioUtil.unlink(destFile)
+    } catch (e) {
+      // Try to override file permission
+      if (e.code === 'EPERM') {
+        await ioUtil.chmod(destFile, '0666')
+        await ioUtil.unlink(destFile)
+      }
+      // other errors = it doesn't exist, no work to do
+    }
+
+    // Copy over symlink
+    const symlinkFull: string = await ioUtil.readlink(srcFile)
+    await ioUtil.symlink(
+      symlinkFull,
+      destFile,
+      ioUtil.IS_WINDOWS ? 'junction' : null
+    )
+  } else if (!(await ioUtil.exists(destFile)) || force) {
+    await ioUtil.copyFile(srcFile, destFile)
+  }
 }
