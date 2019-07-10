@@ -1,4 +1,10 @@
-# Actions Toolkit 🛠
+# Actions Toolkit
+
+<p align="center">
+  <img src="res/at-logo.png">
+</p>
+
+
 
 ## Packages
 
@@ -6,10 +12,8 @@
 | ------- | ----------- |
 | [@actions/core](packages/core) | Core functions for setting results, logging, secrets and environment variables |
 | [@actions/exec](packages/exec) | Functions necessary for running tools on the command line |
-| [@actions/exit](packages/exit) | Provides utilities for exiting from an action |
 | [@actions/io](packages/io) | Core functions for CLI filesystem scenarios |
 | [@actions/tool-cache](packages/tool-cache) | Functions necessary for downloading and caching tools |
-| [@actions/toolkit](packages/toolkit) | A general-purpose toolkit for writing actions |
 
 ## Development
 
