@@ -1,4 +1,3 @@
-# Actions Toolkit
 
 <p align="center">
   <img src="res/at-logo.png">
