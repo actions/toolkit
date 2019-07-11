@@ -35,7 +35,7 @@ describe('@actions/exec', () => {
     if (IS_WINDOWS) {
       toolpath = await io.which('cmd', true)
       exitCode = await exec.exec(
-        `cmd`,
+        `"${toolpath}"`,
         ['/c', 'echo', 'hello'],
         _testExecOptions
       )
