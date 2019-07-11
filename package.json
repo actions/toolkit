@@ -9,7 +9,7 @@
     "format-check": "prettier --check packages/**/*.ts",
     "lint": "eslint packages/**/*.ts",
     "new-package": "scripts/create-package",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
