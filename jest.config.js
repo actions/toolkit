@@ -3,7 +3,7 @@ module.exports = {
   moduleFileExtensions: ['js', 'ts'],
   roots: ['<rootDir>/packages'],
   testEnvironment: 'node',
-  testMatch: ['**/__tests__/*.test.ts'],
+  testMatch: ['**/exec/__tests__/*.test.ts'],
   testRunner: 'jest-circus/runner',
   transform: {
     '^.+\\.ts$': 'ts-jest'
