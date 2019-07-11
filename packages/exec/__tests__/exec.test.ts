@@ -409,262 +409,262 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   })
 
-  if (IS_WINDOWS) {
-    // Win specific quoting tests
-    it('execs .exe with verbatim args (Windows)', async () => {
-      const exePath = process.env.ComSpec
-      const args: string[] = ['/c', 'echo', 'helloworld', 'hello:"world again"']
-      const outStream = new StringStream()
-      let output = ''
-      const options = {
-        outStream: <stream.Writable>outStream,
-        windowsVerbatimArguments: true,
-        listeners: {
-          stdout: (data: Buffer) => {
-            output += data.toString()
-          }
-        }
-      }
+  // if (IS_WINDOWS) {
+  //   // Win specific quoting tests
+  //   it('execs .exe with verbatim args (Windows)', async () => {
+  //     const exePath = process.env.ComSpec
+  //     const args: string[] = ['/c', 'echo', 'helloworld', 'hello:"world again"']
+  //     const outStream = new StringStream()
+  //     let output = ''
+  //     const options = {
+  //       outStream: <stream.Writable>outStream,
+  //       windowsVerbatimArguments: true,
+  //       listeners: {
+  //         stdout: (data: Buffer) => {
+  //           output += data.toString()
+  //         }
+  //       }
+  //     }
 
-      const exitCode = await exec.exec(`"${exePath}"`, args, options)
-      expect(exitCode).toBe(0)
-      expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]"${exePath}" /c echo helloworld hello:"world again"`
-      )
-      expect(output.trim()).toBe('helloworld hello:"world again"')
-    })
+  //     const exitCode = await exec.exec(`"${exePath}"`, args, options)
+  //     expect(exitCode).toBe(0)
+  //     expect(outStream.getContents().split(os.EOL)[0]).toBe(
+  //       `[command]"${exePath}" /c echo helloworld hello:"world again"`
+  //     )
+  //     expect(output.trim()).toBe('helloworld hello:"world again"')
+  //   })
 
-    it('execs .exe with arg quoting (Windows)', async () => {
-      const exePath = process.env.ComSpec
-      const args: string[] = [
-        '/c',
-        'echo',
-        'helloworld',
-        'hello world',
-        'hello:"world again"',
-        'hello,world'
-      ]
-      const outStream = new StringStream()
-      let output = ''
-      const options = {
-        outStream: <stream.Writable>outStream,
-        listeners: {
-          stdout: (data: Buffer) => {
-            output += data.toString()
-          }
-        }
-      }
+  //   it('execs .exe with arg quoting (Windows)', async () => {
+  //     const exePath = process.env.ComSpec
+  //     const args: string[] = [
+  //       '/c',
+  //       'echo',
+  //       'helloworld',
+  //       'hello world',
+  //       'hello:"world again"',
+  //       'hello,world'
+  //     ]
+  //     const outStream = new StringStream()
+  //     let output = ''
+  //     const options = {
+  //       outStream: <stream.Writable>outStream,
+  //       listeners: {
+  //         stdout: (data: Buffer) => {
+  //           output += data.toString()
+  //         }
+  //       }
+  //     }
 
-      const exitCode = await exec.exec(`"${exePath}"`, args, options)
-      expect(exitCode).toBe(0)
-      expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]${exePath} /c echo` +
-          ` helloworld` +
-          ` "hello world"` +
-          ` "hello:\\"world again\\""` +
-          ` hello,world`
-      )
-      expect(output.trim()).toBe(
-        'helloworld' +
-          ' "hello world"' +
-          ' "hello:\\"world again\\""' +
-          ' hello,world'
-      )
-    })
+  //     const exitCode = await exec.exec(`"${exePath}"`, args, options)
+  //     expect(exitCode).toBe(0)
+  //     expect(outStream.getContents().split(os.EOL)[0]).toBe(
+  //       `[command]${exePath} /c echo` +
+  //         ` helloworld` +
+  //         ` "hello world"` +
+  //         ` "hello:\\"world again\\""` +
+  //         ` hello,world`
+  //     )
+  //     expect(output.trim()).toBe(
+  //       'helloworld' +
+  //         ' "hello world"' +
+  //         ' "hello:\\"world again\\""' +
+  //         ' hello,world'
+  //     )
+  //   })
 
-    it('execs .exe with a space and with verbatim args (Windows)', async () => {
-      // this test validates the quoting that tool runner adds around the tool path
-      // when using the windowsVerbatimArguments option. otherwise the target process
-      // interprets the args as starting after the first space in the tool path.
-      const exePath = compileArgsExe('print args exe with spaces.exe')
-      const args: string[] = ['myarg1 myarg2']
-      const outStream = new StringStream()
-      let output = ''
-      const options = {
-        outStream: <stream.Writable>outStream,
-        windowsVerbatimArguments: true,
-        listeners: {
-          stdout: (data: Buffer) => {
-            output += data.toString()
-          }
-        }
-      }
+  //   it('execs .exe with a space and with verbatim args (Windows)', async () => {
+  //     // this test validates the quoting that tool runner adds around the tool path
+  //     // when using the windowsVerbatimArguments option. otherwise the target process
+  //     // interprets the args as starting after the first space in the tool path.
+  //     const exePath = compileArgsExe('print args exe with spaces.exe')
+  //     const args: string[] = ['myarg1 myarg2']
+  //     const outStream = new StringStream()
+  //     let output = ''
+  //     const options = {
+  //       outStream: <stream.Writable>outStream,
+  //       windowsVerbatimArguments: true,
+  //       listeners: {
+  //         stdout: (data: Buffer) => {
+  //           output += data.toString()
+  //         }
+  //       }
+  //     }
 
-      const exitCode = await exec.exec(`"${exePath}"`, args, options)
-      expect(exitCode).toBe(0)
-      expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]"${exePath}" myarg1 myarg2`
-      )
-      expect(output.trim()).toBe("args[0]: 'myarg1'\r\nargs[1]: 'myarg2'")
-    })
+  //     const exitCode = await exec.exec(`"${exePath}"`, args, options)
+  //     expect(exitCode).toBe(0)
+  //     expect(outStream.getContents().split(os.EOL)[0]).toBe(
+  //       `[command]"${exePath}" myarg1 myarg2`
+  //     )
+  //     expect(output.trim()).toBe("args[0]: 'myarg1'\r\nargs[1]: 'myarg2'")
+  //   })
 
-    it('execs .cmd with a space and with verbatim args (Windows)', async () => {
-      // this test validates the quoting that tool runner adds around the script path.
-      // otherwise cmd.exe will not be able to resolve the path to the script.
-      const cmdPath = path.join(
-        __dirname,
-        'scripts',
-        'print args cmd with spaces.cmd'
-      )
-      const args: string[] = ['arg1 arg2', 'arg3']
-      const outStream = new StringStream()
-      let output = ''
-      const options = {
-        outStream: <stream.Writable>outStream,
-        windowsVerbatimArguments: true,
-        listeners: {
-          stdout: (data: Buffer) => {
-            output += data.toString()
-          }
-        }
-      }
+  //   it('execs .cmd with a space and with verbatim args (Windows)', async () => {
+  //     // this test validates the quoting that tool runner adds around the script path.
+  //     // otherwise cmd.exe will not be able to resolve the path to the script.
+  //     const cmdPath = path.join(
+  //       __dirname,
+  //       'scripts',
+  //       'print args cmd with spaces.cmd'
+  //     )
+  //     const args: string[] = ['arg1 arg2', 'arg3']
+  //     const outStream = new StringStream()
+  //     let output = ''
+  //     const options = {
+  //       outStream: <stream.Writable>outStream,
+  //       windowsVerbatimArguments: true,
+  //       listeners: {
+  //         stdout: (data: Buffer) => {
+  //           output += data.toString()
+  //         }
+  //       }
+  //     }
 
-      const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
-      expect(exitCode).toBe(0)
-      expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`
-      )
-      expect(output.trim()).toBe(
-        'args[0]: "arg1"\r\nargs[1]: "arg2"\r\nargs[2]: "arg3"'
-      )
-    })
+  //     const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
+  //     expect(exitCode).toBe(0)
+  //     expect(outStream.getContents().split(os.EOL)[0]).toBe(
+  //       `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" arg1 arg2 arg3"`
+  //     )
+  //     expect(output.trim()).toBe(
+  //       'args[0]: "arg1"\r\nargs[1]: "arg2"\r\nargs[2]: "arg3"'
+  //     )
+  //   })
 
-    it('execs .cmd with a space and with arg with space (Windows)', async () => {
-      // this test validates the command is wrapped in quotes (i.e. cmd.exe /S /C "<COMMAND>").
-      // otherwise the leading quote (around the script with space path) would be stripped
-      // and cmd.exe would not be able to resolve the script path.
-      const cmdPath = path.join(
-        __dirname,
-        'scripts',
-        'print args cmd with spaces.cmd'
-      )
-      const args: string[] = ['my arg 1', 'my arg 2']
-      const outStream = new StringStream()
-      let output = ''
-      const options = {
-        outStream: <stream.Writable>outStream,
-        listeners: {
-          stdout: (data: Buffer) => {
-            output += data.toString()
-          }
-        }
-      }
+  //   it('execs .cmd with a space and with arg with space (Windows)', async () => {
+  //     // this test validates the command is wrapped in quotes (i.e. cmd.exe /S /C "<COMMAND>").
+  //     // otherwise the leading quote (around the script with space path) would be stripped
+  //     // and cmd.exe would not be able to resolve the script path.
+  //     const cmdPath = path.join(
+  //       __dirname,
+  //       'scripts',
+  //       'print args cmd with spaces.cmd'
+  //     )
+  //     const args: string[] = ['my arg 1', 'my arg 2']
+  //     const outStream = new StringStream()
+  //     let output = ''
+  //     const options = {
+  //       outStream: <stream.Writable>outStream,
+  //       listeners: {
+  //         stdout: (data: Buffer) => {
+  //           output += data.toString()
+  //         }
+  //       }
+  //     }
 
-      const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
-      expect(exitCode).toBe(0)
-      expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]${
-          process.env.ComSpec
-        } /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`
-      )
-      expect(output.trim()).toBe(
-        'args[0]: "<quote>my arg 1<quote>"\r\n' +
-          'args[1]: "<quote>my arg 2<quote>"'
-      )
-    })
+  //     const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
+  //     expect(exitCode).toBe(0)
+  //     expect(outStream.getContents().split(os.EOL)[0]).toBe(
+  //       `[command]${
+  //         process.env.ComSpec
+  //       } /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`
+  //     )
+  //     expect(output.trim()).toBe(
+  //       'args[0]: "<quote>my arg 1<quote>"\r\n' +
+  //         'args[1]: "<quote>my arg 2<quote>"'
+  //     )
+  //   })
 
-    it('execs .cmd with arg quoting (Windows)', async () => {
-      // this test validates .cmd quoting rules are applied, not the default libuv rules
-      const cmdPath = path.join(
-        __dirname,
-        'scripts',
-        'print args cmd with spaces.cmd'
-      )
-      const args: string[] = [
-        'helloworld',
-        'hello world',
-        'hello\tworld',
-        'hello&world',
-        'hello(world',
-        'hello)world',
-        'hello[world',
-        'hello]world',
-        'hello{world',
-        'hello}world',
-        'hello^world',
-        'hello=world',
-        'hello;world',
-        'hello!world',
-        "hello'world",
-        'hello+world',
-        'hello,world',
-        'hello`world',
-        'hello~world',
-        'hello|world',
-        'hello<world',
-        'hello>world',
-        'hello:"world again"',
-        'hello world\\'
-      ]
-      const outStream = new StringStream()
-      let output = ''
-      const options = {
-        outStream: <stream.Writable>outStream,
-        listeners: {
-          stdout: (data: Buffer) => {
-            output += data.toString()
-          }
-        }
-      }
+  //   it('execs .cmd with arg quoting (Windows)', async () => {
+  //     // this test validates .cmd quoting rules are applied, not the default libuv rules
+  //     const cmdPath = path.join(
+  //       __dirname,
+  //       'scripts',
+  //       'print args cmd with spaces.cmd'
+  //     )
+  //     const args: string[] = [
+  //       'helloworld',
+  //       'hello world',
+  //       'hello\tworld',
+  //       'hello&world',
+  //       'hello(world',
+  //       'hello)world',
+  //       'hello[world',
+  //       'hello]world',
+  //       'hello{world',
+  //       'hello}world',
+  //       'hello^world',
+  //       'hello=world',
+  //       'hello;world',
+  //       'hello!world',
+  //       "hello'world",
+  //       'hello+world',
+  //       'hello,world',
+  //       'hello`world',
+  //       'hello~world',
+  //       'hello|world',
+  //       'hello<world',
+  //       'hello>world',
+  //       'hello:"world again"',
+  //       'hello world\\'
+  //     ]
+  //     const outStream = new StringStream()
+  //     let output = ''
+  //     const options = {
+  //       outStream: <stream.Writable>outStream,
+  //       listeners: {
+  //         stdout: (data: Buffer) => {
+  //           output += data.toString()
+  //         }
+  //       }
+  //     }
 
-      const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
-      expect(exitCode).toBe(0)
-      expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}"` +
-          ` helloworld` +
-          ` "hello world"` +
-          ` "hello\tworld"` +
-          ` "hello&world"` +
-          ` "hello(world"` +
-          ` "hello)world"` +
-          ` "hello[world"` +
-          ` "hello]world"` +
-          ` "hello{world"` +
-          ` "hello}world"` +
-          ` "hello^world"` +
-          ` "hello=world"` +
-          ` "hello;world"` +
-          ` "hello!world"` +
-          ` "hello'world"` +
-          ` "hello+world"` +
-          ` "hello,world"` +
-          ` "hello\`world"` +
-          ` "hello~world"` +
-          ` "hello|world"` +
-          ` "hello<world"` +
-          ` "hello>world"` +
-          ` "hello:""world again"""` +
-          ` "hello world\\\\"` +
-          `"`
-      )
-      expect(output.trim()).toBe(
-        'args[0]: "helloworld"\r\n' +
-          'args[1]: "<quote>hello world<quote>"\r\n' +
-          'args[2]: "<quote>hello\tworld<quote>"\r\n' +
-          'args[3]: "<quote>hello&world<quote>"\r\n' +
-          'args[4]: "<quote>hello(world<quote>"\r\n' +
-          'args[5]: "<quote>hello)world<quote>"\r\n' +
-          'args[6]: "<quote>hello[world<quote>"\r\n' +
-          'args[7]: "<quote>hello]world<quote>"\r\n' +
-          'args[8]: "<quote>hello{world<quote>"\r\n' +
-          'args[9]: "<quote>hello}world<quote>"\r\n' +
-          'args[10]: "<quote>hello^world<quote>"\r\n' +
-          'args[11]: "<quote>hello=world<quote>"\r\n' +
-          'args[12]: "<quote>hello;world<quote>"\r\n' +
-          'args[13]: "<quote>hello!world<quote>"\r\n' +
-          'args[14]: "<quote>hello\'world<quote>"\r\n' +
-          'args[15]: "<quote>hello+world<quote>"\r\n' +
-          'args[16]: "<quote>hello,world<quote>"\r\n' +
-          'args[17]: "<quote>hello`world<quote>"\r\n' +
-          'args[18]: "<quote>hello~world<quote>"\r\n' +
-          'args[19]: "<quote>hello|world<quote>"\r\n' +
-          'args[20]: "<quote>hello<world<quote>"\r\n' +
-          'args[21]: "<quote>hello>world<quote>"\r\n' +
-          'args[22]: "<quote>hello:<quote><quote>world again<quote><quote><quote>"\r\n' +
-          'args[23]: "<quote>hello world\\\\<quote>"'
-      )
-    })
-  }
+  //     const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
+  //     expect(exitCode).toBe(0)
+  //     expect(outStream.getContents().split(os.EOL)[0]).toBe(
+  //       `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}"` +
+  //         ` helloworld` +
+  //         ` "hello world"` +
+  //         ` "hello\tworld"` +
+  //         ` "hello&world"` +
+  //         ` "hello(world"` +
+  //         ` "hello)world"` +
+  //         ` "hello[world"` +
+  //         ` "hello]world"` +
+  //         ` "hello{world"` +
+  //         ` "hello}world"` +
+  //         ` "hello^world"` +
+  //         ` "hello=world"` +
+  //         ` "hello;world"` +
+  //         ` "hello!world"` +
+  //         ` "hello'world"` +
+  //         ` "hello+world"` +
+  //         ` "hello,world"` +
+  //         ` "hello\`world"` +
+  //         ` "hello~world"` +
+  //         ` "hello|world"` +
+  //         ` "hello<world"` +
+  //         ` "hello>world"` +
+  //         ` "hello:""world again"""` +
+  //         ` "hello world\\\\"` +
+  //         `"`
+  //     )
+  //     expect(output.trim()).toBe(
+  //       'args[0]: "helloworld"\r\n' +
+  //         'args[1]: "<quote>hello world<quote>"\r\n' +
+  //         'args[2]: "<quote>hello\tworld<quote>"\r\n' +
+  //         'args[3]: "<quote>hello&world<quote>"\r\n' +
+  //         'args[4]: "<quote>hello(world<quote>"\r\n' +
+  //         'args[5]: "<quote>hello)world<quote>"\r\n' +
+  //         'args[6]: "<quote>hello[world<quote>"\r\n' +
+  //         'args[7]: "<quote>hello]world<quote>"\r\n' +
+  //         'args[8]: "<quote>hello{world<quote>"\r\n' +
+  //         'args[9]: "<quote>hello}world<quote>"\r\n' +
+  //         'args[10]: "<quote>hello^world<quote>"\r\n' +
+  //         'args[11]: "<quote>hello=world<quote>"\r\n' +
+  //         'args[12]: "<quote>hello;world<quote>"\r\n' +
+  //         'args[13]: "<quote>hello!world<quote>"\r\n' +
+  //         'args[14]: "<quote>hello\'world<quote>"\r\n' +
+  //         'args[15]: "<quote>hello+world<quote>"\r\n' +
+  //         'args[16]: "<quote>hello,world<quote>"\r\n' +
+  //         'args[17]: "<quote>hello`world<quote>"\r\n' +
+  //         'args[18]: "<quote>hello~world<quote>"\r\n' +
+  //         'args[19]: "<quote>hello|world<quote>"\r\n' +
+  //         'args[20]: "<quote>hello<world<quote>"\r\n' +
+  //         'args[21]: "<quote>hello>world<quote>"\r\n' +
+  //         'args[22]: "<quote>hello:<quote><quote>world again<quote><quote><quote>"\r\n' +
+  //         'args[23]: "<quote>hello world\\\\<quote>"'
+  //     )
+  //   })
+  // }
 })
 
 function getTestTemp(): string {
