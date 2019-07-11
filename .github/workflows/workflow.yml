@@ -2,7 +2,7 @@ name: Main workflow
 on: [push]
 jobs:
   Ubuntu:
-    name: Run
+    name: Run Ubuntu
     runs-on: ubuntu-latest
     actions:
     - name: Set Node.js 10.x
@@ -28,7 +28,7 @@ jobs:
     - name: Format
       run: npm run format-check
   Windows:
-    name: Run
+    name: Run Windows
     runs-on: windows-latest
     actions:
     - name: Set Node.js 10.x
