@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, windows-2017]
+        operating-system: [ubuntu-latest, windows-latest]
     actions:
     - name: Set Node.js 10.x
       uses: bryanmacfarlane/node-config@master
