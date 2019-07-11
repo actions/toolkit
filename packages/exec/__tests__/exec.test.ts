@@ -35,7 +35,7 @@ describe('@actions/exec', () => {
     if (IS_WINDOWS) {
       toolpath = await io.which('cmd', true)
       exitCode = await exec.exec(
-        `"${toolpath}"`,
+        `cmd`,
         ['/c', 'echo', 'hello'],
         _testExecOptions
       )
@@ -276,15 +276,14 @@ describe('@actions/exec', () => {
     let exitCode: number
     if (IS_WINDOWS) {
       const toolName: string = await io.which('cmd.exe', true)
-      // const args = [
-      //   '/D', // Disable execution of AutoRun commands from registry.
-      //   '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
-      //   '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
-      //   '/S', // Will cause first and last quote after /C to be stripped.
-      //   '/C',
-      //   `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`
-      // ]
-      const args = ['/c', 'echo', 'hello']
+      const args = [
+        '/D', // Disable execution of AutoRun commands from registry.
+        '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
+        '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
+        '/S', // Will cause first and last quote after /C to be stripped.
+        '/C',
+        `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`
+      ]
       exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
     } else {
       const toolName: string = await io.which('bash', true)
@@ -294,9 +293,9 @@ describe('@actions/exec', () => {
     }
 
     expect(exitCode).toBe(0)
-    // expect(
-    //   debugList.filter(x => x.includes('STDIO streams did not close')).length
-    // ).toBe(1)
+    expect(
+      debugList.filter(x => x.includes('STDIO streams did not close')).length
+    ).toBe(1)
 
     fs.unlinkSync(semaphorePath)
   })
