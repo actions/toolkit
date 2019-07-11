@@ -12,14 +12,19 @@ import * as io from '@actions/io'
 
 const IS_WINDOWS = process.platform === 'win32'
 
+let outstream: stream.Writable
+let errstream: stream.Writable
+
 describe('@actions/exec', () => {
   beforeAll(() => {
     io.mkdirP(getTestTemp())
+    outstream = fs.createWriteStream(path.join(getTestTemp(), 'my.log'))
+    errstream = fs.createWriteStream(path.join(getTestTemp(), 'myerr.log'))
   })
 
   beforeEach(() => {
-    process.stdout.write = jest.fn()
-    process.stderr.write = jest.fn()
+    outstream.write = jest.fn()
+    errstream.write = jest.fn()
   })
 
   it('Runs exec successfully with arguments split out', async () => {
@@ -45,12 +50,12 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(process.stdout.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
     } else {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
       )
     }
@@ -75,12 +80,12 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(process.stdout.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
     } else {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
       )
     }
@@ -105,12 +110,12 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(process.stdout.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
     } else {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
       )
     }
@@ -140,11 +145,11 @@ describe('@actions/exec', () => {
 
     expect(failed).toBe(true)
     if (IS_WINDOWS) {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c non-existent${os.EOL}`
       )
     } else {
-      expect(process.stdout.write).toBeCalledWith(
+      expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l non-existent${os.EOL}`
       )
     }
@@ -167,7 +172,7 @@ describe('@actions/exec', () => {
     )
 
     expect(exitCode).toBe(0)
-    expect(process.stdout.write).toBeCalledWith(
+    expect(outstream.write).toBeCalledWith(
       new Buffer('this is output to stderr')
     )
   })
@@ -191,7 +196,7 @@ describe('@actions/exec', () => {
       })
 
     expect(failed).toBe(true)
-    expect(process.stderr.write).toBeCalledWith(
+    expect(errstream.write).toBeCalledWith(
       new Buffer('this is output to stderr')
     )
   })
@@ -677,7 +682,9 @@ function getExecOptions(): im.ExecOptions {
     env: {},
     silent: false,
     failOnStdErr: false,
-    ignoreReturnCode: false
+    ignoreReturnCode: false,
+    outStream: outstream,
+    errStream: errstream
   }
 }
 
