@@ -23,7 +23,7 @@ jobs:
       run: npm run build
 
     - name: npm test
-      run: jest --runInBand
+      run: npm test-ci
 
     - name: Lint
       run: npm run lint
