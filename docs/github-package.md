@@ -77,6 +77,10 @@ export class Context {
    * Hydrate the context from the environment
    */
   constructor ()
+  
+  public get issue ()
+  
+  public get repo ()
 }
 
 ```
