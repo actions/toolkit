@@ -54,7 +54,7 @@ export interface WebhookPayloadWithRepository {
 
 ##### context.ts
 
-Contains a hydrated GitHub context
+Contains a GitHub context
 
 ```
 export class Context {
