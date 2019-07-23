@@ -1,7 +1,8 @@
-# `@actions/core`
+# `@actions/github`
 
-> Core functions for setting results, logging, registering secrets and exporting variables across actions
+> Classes for accessing the GitHub context and a hydrated GitHub client.
 
 ## Usage
 
-See [src/core.ts](src/core.ts).
+For GitHub context, see [src/context.ts](src/context.ts).
+For hydrated GitHub client, see [src/github.ts](src/github.ts).
