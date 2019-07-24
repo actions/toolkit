@@ -1,5 +1,6 @@
 import * as path from 'path'
 import {Context} from '../src/context'
+import {GitHub} from '../src/github'
 
 describe('@actions/context', () => {
   let context: Context
@@ -18,6 +19,10 @@ describe('@actions/context', () => {
         expect(context.payload.repository.owner.login).toBe('user')
       }
     }
+  })
+  
+  it('Initializes GitHub', () => {
+    const github = new GitHub("")
   })
 
   it('returns an empty payload if the GITHUB_EVENT_PATH environment variable is falsey', () => {
