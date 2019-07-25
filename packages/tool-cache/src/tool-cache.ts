@@ -22,7 +22,7 @@ const userAgent = 'actions/tool-cache'
 
 // On load grab temp directory and cache directory and remove them from env (currently don't want to expose this)
 let tempDirectory: string = process.env['RUNNER_TEMPDIRECTORY'] || ''
-let cacheRoot: string = process.env['RUNNER_TOOLSDIRECTORY'] || ''
+let cacheRoot: string = process.env['RUNNER_TOOL_CACHE'] || process.env['RUNNER_TOOLSDIRECTORY'] || process.env['AGENT_TOOLSDIRECTORY'] || ''
 // If directories not found, place them in common temp locations
 if (!tempDirectory || !cacheRoot) {
   let baseLocation: string
