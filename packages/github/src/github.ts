@@ -6,9 +6,9 @@ import * as Context from './context'
 // We need this in order to extend Octokit
 Octokit.prototype = new Octokit()
 
-export class GitHub extends Octokit {
-  context: Context.Context = new Context.Context()
+module.exports.context = new Context.Context()
 
+export class GitHub extends Octokit {
   graphql: (
     query: string,
     variables?: Variables

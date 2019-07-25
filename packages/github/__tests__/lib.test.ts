@@ -1,6 +1,8 @@
 import * as path from 'path'
 import {Context} from '../src/context'
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 describe('@actions/context', () => {
   let context: Context
 
@@ -11,13 +13,7 @@ describe('@actions/context', () => {
   })
 
   it('returns the payload object', () => {
-    expect(context.payload.repository).toBeDefined()
-    if (context.payload.repository) {
-      expect(context.payload.repository.owner).toBeDefined()
-      if (context.payload.repository.owner) {
-        expect(context.payload.repository.owner.login).toBe('user')
-      }
-    }
+    expect(context.payload).toEqual(require('./payload.json'))
   })
 
   it('returns an empty payload if the GITHUB_EVENT_PATH environment variable is falsey', () => {
@@ -45,7 +41,7 @@ describe('@actions/context', () => {
     delete process.env.GITHUB_REPOSITORY
 
     context.payload.repository = undefined
-    expect(() => context.repo).toThrow()
+    expect(() => context.repo).toThrowErrorMatchingSnapshot()
   })
 
   it('returns issue attributes from the repository', () => {

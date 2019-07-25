@@ -35,7 +35,9 @@ const result = await octokit.graphql(query, variables)
 Finally, you can get the context of the current action:
 
 ```
-const context = octokit.context
+const github = require('@actions/github');
+
+const context = github.context
 
 const newIssue = await octokit.issues.create({
   ...context.repo,
