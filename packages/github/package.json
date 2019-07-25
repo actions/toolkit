@@ -25,7 +25,8 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "tsc": "tsc"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
