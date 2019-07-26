@@ -12,7 +12,7 @@ export interface PayloadRepository {
   htmlUrl?: string
 }
 
-export interface WebhookPayloadWithRepository {
+export interface WebhookPayload {
   [key: string]: any
   repository?: PayloadRepository
   issue?: {

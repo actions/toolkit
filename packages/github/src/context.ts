@@ -1,5 +1,5 @@
 // Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/master/src/context.ts
-import {WebhookPayloadWithRepository} from './interfaces'
+import {WebhookPayload} from './interfaces'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
@@ -7,12 +7,9 @@ export class Context {
   /**
    * Webhook payload object that triggered the workflow
    */
-  payload: WebhookPayloadWithRepository
+  payload: WebhookPayload
 
-  /**
-   * Name of the event that triggered the workflow
-   */
-  event: string
+  eventName: string
   sha: string
   ref: string
   workflow: string
@@ -26,7 +23,7 @@ export class Context {
     this.payload = process.env.GITHUB_EVENT_PATH
       ? require(process.env.GITHUB_EVENT_PATH)
       : {}
-    this.event = process.env.GITHUB_EVENT_NAME as string
+    this.eventName = process.env.GITHUB_EVENT_NAME as string
     this.sha = process.env.GITHUB_SHA as string
     this.ref = process.env.GITHUB_REF as string
     this.workflow = process.env.GITHUB_WORKFLOW as string
