@@ -1,0 +1,15 @@
+{
+  "action": "opened",
+  "repository": {
+    "owner": {
+      "login": "user"
+    },
+    "name": "test"
+  },
+  "issue": {
+    "number": 1
+  },
+  "sender": {
+    "type": "User"
+  }
+}

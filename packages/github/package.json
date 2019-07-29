@@ -1,0 +1,41 @@
+{
+  "name": "@actions/github",
+  "version": "0.0.0",
+  "description": "Actions github lib",
+  "keywords": [
+    "github",
+    "actions"
+  ],
+  "homepage": "https://github.com/actions/toolkit/tree/master/packages/github",
+  "license": "MIT",
+  "main": "lib/github.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/toolkit.git"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "tsc": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/actions/toolkit/issues"
+  },
+  "dependencies": {
+    "@octokit/graphql": "^2.0.1",
+    "@octokit/rest": "^16.15.0"
+  },
+  "devDependencies": {
+    "jest": "^24.7.1"
+  }
+}
