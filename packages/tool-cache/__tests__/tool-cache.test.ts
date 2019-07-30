@@ -7,8 +7,8 @@ import * as exec from '@actions/exec'
 const cachePath = path.join(__dirname, 'CACHE')
 const tempPath = path.join(__dirname, 'TEMP')
 // Set temp and tool directories before importing (used to set global state)
-process.env['RUNNER_TEMPDIRECTORY'] = tempPath
-process.env['RUNNER_TOOLSDIRECTORY'] = cachePath
+process.env['RUNNER_TEMP'] = tempPath
+process.env['RUNNER_TOOL_CACHE'] = cachePath
 
 // eslint-disable-next-line import/first
 import * as tc from '../src/tool-cache'
