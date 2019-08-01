@@ -107,7 +107,7 @@ $ git add <whatever only files you added>
 $ git commit -m "Message"
 ```
 
-> NOTE: husky will add/vendor node_modules and prune dev dependencies.  See husky in package.json for details.  There is no need for you to add node_modules.
+> husky will add/vendor node_modules and prune dev dependencies.  See husky in package.json for details.  There is no need for you to add node_modules.
 
 # Publish Action
 
