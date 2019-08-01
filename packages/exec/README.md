@@ -48,7 +48,7 @@ await exec.exec('node', ['index.js', 'foo=bar'], options);
 
 #### Exec tools not in the PATH
 
-You can use it in conjunction with io's which to execute tools not in the PATH:
+You can use it in conjunction with the `which` function from `@actions/io` to execute tools that are not in the PATH:
 
 ```
 const exec = require('@actions/exec');
