@@ -37,7 +37,7 @@ else {
 
 #### Cache
 
-You can finally cache these directories in our tool-cache. This is useful if you want to switch back and forth between versions of a tool, or save a tool between runs for private runners (private runners are still in development but are on the roadmap).
+Finally, you can cache these directories in our tool-cache. This is useful if you want to switch back and forth between versions of a tool, or save a tool between runs for private runners (private runners are still in development but are on the roadmap).
 
 You'll often want to add it to the path as part of this step:
 
@@ -57,7 +57,7 @@ You can also cache files for reuse.
 ```
 const tc = require('@actions/tool-cache');
 
-tc.cacheFile('path/to/script', 'destFileName.exe', 'myScriptName', '1.1.0');
+tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
 ```
 
 #### Find
