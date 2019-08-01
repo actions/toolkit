@@ -3,54 +3,35 @@
   <img src="res/at-logo.png">
 </p>
 
+## Toolkit
 
+The toolkit provides a set of packages to make creating actions easier and drive consistency.
 
 ## Packages
 
+The toolkit provides four separate packages.  Since actions are run by pulling actions from the github graph, dependencies including the packages are vendored into your action.
+
 | Package | Description |
 | ------- | ----------- |
-| [@actions/core](packages/core) | Core functions for setting results, logging, secrets and environment variables |
+| [@actions/core](packages/core) | Core functions for getting inputs, setting outputs, setting results, logging, secrets and environment variables |
 | [@actions/exec](packages/exec) | Functions necessary for running tools on the command line |
 | [@actions/io](packages/io) | Core functions for CLI filesystem scenarios |
 | [@actions/tool-cache](packages/tool-cache) | Functions necessary for downloading and caching tools |
 
-## Development
+## Creating an Action with the Toolkit
 
-This repository uses [Lerna](https://github.com/lerna/lerna#readme) to manage multiple packages. Read the documentation there to begin contributing.
+Actions are units of work which can either run in a container or on the host machine.
 
-Note that before a PR will be accepted, you must ensure:
-- all tests are passing
-- `npm run format` reports no issues
-- `npm run lint` reports no issues
+[Choosing an action type](docs/action-types.md): Outlines the differences and why you would want to create a host or a container based action.
 
-### Useful Scripts
+[JavaScript Action Walthrough](docs/node12-action.md): Create an action which runs on the host using the toolkit
 
-- `npm run bootstrap` This runs `lerna bootstrap` which will install dependencies in this repository's packages and cross-link packages where necessary.
-- `npm run build` This compiles TypeScript code in each package (this is especially important if one package relies on changes in another when you're running tests). This is just an alias for `lerna run tsc`.
-- `npm run format` This checks that formatting has been applied with Prettier.
-- `npm test` This runs all Jest tests in all packages in this repository.
-  - If you need to run tests for only one package, you can pass normal Jest CLI options:
-    ```console
-    $ npm test -- packages/toolkit
-    ```
-- `npm run create-package [name]` This runs a script that automates a couple of parts of creating a new package.
+[Docker Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container and run with docker.
 
-### Creating a Package
+[Docker Action Walkthrough with Octokit](docs/container-action-toolkit.md): Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
 
-1. In a new branch, create a new Lerna package:
+[Versioning](docs/action-versioning.md): Recommendations on versioning, releases and tagging your action.
 
-```console
-$ npm run create-package new-package
-```
+## Contributing
 
-This will ask you some questions about the new package. Start with `0.0.0` as the first version (look generally at some of the other packages for how the package.json is structured).
-
-2. Add `tsc` script to the new package's package.json file:
-
-```json
-"scripts": {
-  "tsc": "tsc"
-}
-```
-
-3. Start developing 😄 and open a pull request.
+We welcome contributions.  See [how to contribute](docs/contribute.md).
