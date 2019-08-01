@@ -107,9 +107,11 @@ $ git add <whatever only files you added>
 $ git commit -m "Message"
 ```
 
+**IMPORTANT**: do not git add or .gitignore node_modules.
+
 Husky will add/vendor node_modules and prune dev dependencies.  See husky in package.json for details.  There is no need for you to add node_modules.
 
-IMPORTANT: We understand that the process of checking in node_modules is currently somewhat painful for some use cases. We are actively tracking an enhancement in [this issue](https://github.com/actions/node12-template/issues/4) to improve this process (and are open to any suggestions :smile:).
+NOTE: We understand that the process of checking in node_modules is currently somewhat painful for some use cases. We are actively tracking an enhancement in [this issue](https://github.com/actions/node12-template/issues/4) to improve this process (and are open to any suggestions :smile:).
 
 In the meantime we still **strongly encourage** you to not check in dev-dependencies, it will significantly bloat the size of actions and degrade the experience.
 
