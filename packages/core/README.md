@@ -20,7 +20,7 @@ core.setOutput('outputKey', 'outputVal');
 
 #### Exporting variables/secrets
 
-You can also export variables and secrets for future steps. Variables get set in the environment automatically, a secret with key `FOO` must be scoped into the environment from a workflow using `{{ secret.FOO }}` and will be masked from the logs:
+You can also export variables and secrets for future steps. Variables get set in the environment automatically, while secrets must be scoped into the environment from a workflow using `{{ secret.FOO }}`. Secrets will also be masked from the logs:
 
 ```
 const core = require('@actions/core');
@@ -33,7 +33,7 @@ core.exportSecret('secretVar', variableWithSecretValue);
 
 #### PATH Manipulation
 
-You can explicitly add items to the path for all remaining steps:
+You can explicitly add items to the path for all remaining steps in a workflow:
 
 ```
 const core = require('@actions/core');
