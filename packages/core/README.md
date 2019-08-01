@@ -4,6 +4,8 @@
 
 ## Usage
 
+#### Inputs/Outputs
+
 You can use this library to get inputs or set outputs:
 
 ```
@@ -16,6 +18,8 @@ const myInput = core.getInput('inputName', { required: true });
 core.setOutput('outputKey', 'outputVal');
 ```
 
+#### Exporting variables/secrets
+
 You can also export variables and secrets for future steps. Variables get set in the environment automatically, a secret with key `FOO` must be scoped into the environment from a workflow using `{{ secret.FOO }}` and will be masked from the logs:
 
 ```
@@ -27,6 +31,8 @@ core.exportVariable('envVar', 'Val');
 core.exportSecret('secretVar', variableWithSecretValue);
 ```
 
+#### PATH Manipulation
+
 You can explicitly add items to the path for all remaining steps:
 
 ```
@@ -34,6 +40,8 @@ const core = require('@actions/core');
 
 core.addPath('pathToTool');
 ```
+
+#### Exit codes
 
 You should use this library to set the exit code for your action:
 
@@ -54,6 +62,8 @@ catch (err) {
 }
 
 ```
+
+#### Logging
 
 Finally, this library provides some utilities for logging:
 
