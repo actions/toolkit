@@ -9,17 +9,17 @@ Both have access to the workspace and the github event payload and context.
 
 ## Why would I choose a container action?
 
-Container actions carry both the unit of work and the environment and toolsets and their dependencies.
+Container actions carry both the unit of work and the environment.
 
-Container actions are limited to Linux only.
+This creates a more consistent and reliable unit of work where the consumer of the action does not need to worry about the toolsets and it's dependencies.
+
+Container actions are currently limited to Linux only.
 
 ## Why would I choose a host action?
 
-Host actions decouple the unit of work from 
+Host actions decouple the unit of work from the environment.
 
 Consider a simple example of testing a node lib on node 8, 10 and running a custom action.  Each job will setup a node version on the host and custom-action will run it's unit of work on each environment (node8+ubunut16, node8+windows-2019, etc.)
-
-Host actions work on any environment that host action runtime is supported on which is currently node 12.
 
 ```yaml
 on: push
@@ -41,3 +41,5 @@ jobs:
         npm test
     - uses: actions/custom-action@master
 ```
+
+Host actions work on any environment that host action runtime is supported on which is currently node 12.  However, a host action that runs a toolset expects the environment that it's running on to have that toolset in it's PATH or using a setup-* action to acquire it on demand.
