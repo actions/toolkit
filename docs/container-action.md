@@ -1,6 +1,6 @@
-# Creating a Container Action
+# Creating a Docker Action
 
-The [container-template](https://github.com/actions/container-template) repo contains the base files to create a container action.
+The [container-template](https://github.com/actions/container-template) repo contains the base files to create a Docker action.
 
 # Create a Repo from the Template
 

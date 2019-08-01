@@ -1,4 +1,4 @@
-# Creating Host Action
+# Creating a JavaScript Action
 
 The [node12-template](https://github.com/actions/node12-template) repo contains everything you need to get started.
 

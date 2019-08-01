@@ -24,11 +24,11 @@ Actions are units of work which can either run in a container or on the host mac
 
 [Choosing an action type](docs/action-types.md): Outlines the differences and why you would want to create a host or a container based action.
 
-[Host Action Walthrough](docs/node12-action.md): Create an action which runs on the host using the toolkit
+[JavaScript Action Walthrough](docs/node12-action.md): Create an action which runs on the host using the toolkit
 
-[Container Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container.
+[Docker Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container and run with docker.
 
-[Container Action Walkthrough with Octokit](docs/container-action-toolkit.md): Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client
+[Docker Action Walkthrough with Octokit](docs/container-action-toolkit.md): Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
 
 [Versioning](docs/action-versioning.md): Recommendations on versioning, releases and tagging your action.
 
