@@ -5,7 +5,7 @@
 
 ## Toolkit
 
-A set of packages to make creating actions easier and drive consistency.
+The toolkit provides a set of packages to make creating actions easier and drive consistency.
 
 ## Packages
 
@@ -22,15 +22,15 @@ The toolkit provides four separate packages.  Since actions are run by pulling a
 
 Actions are units of work which can either run in a container or on the host machine.
 
-[Choosing an action type](docs/action-types.md)
+[Choosing an action type](docs/action-types.md): Outlines the differences and why you would want to create a host or a container based action.
 
-[Walk-through to create a host action](docs/node12-action.md)
+[Host Action Walthrough](docs/node12-action.md): Create an action which runs on the host using the toolkit
 
-[Walk-through to create a container action](docs/container-action.md)
+[Container Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container.
 
-## Reference Examples
+[Container Action Walkthrough with Toolkit](docs/container-action-toolkit.md): Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client
 
-Examples of actions using the toolkit:
+[Versioning](docs/action-versioning.md): Recommendations on versioning, releases and tagging your action.
 
 ## Contributing
 

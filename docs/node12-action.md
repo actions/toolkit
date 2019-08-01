@@ -1,6 +1,6 @@
 # Creating Host Action
 
-A [node12-template](https://github.com/actions/node12-template) repo contains everything you need to get started.
+The [node12-template](https://github.com/actions/node12-template) repo contains everything you need to get started.
 
 # Create a Repo from the Template
 
