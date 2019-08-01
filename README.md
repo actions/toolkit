@@ -18,7 +18,7 @@ The toolkit provides four separate packages.  Since actions are run by pulling a
 | [@actions/io](packages/io) | Core functions for CLI filesystem scenarios |
 | [@actions/tool-cache](packages/tool-cache) | Functions necessary for downloading and caching tools |
 
-## Creating an Action
+## Creating an Action with the Toolkit
 
 Actions are units of work which can either run in a container or on the host machine.
 
@@ -28,7 +28,7 @@ Actions are units of work which can either run in a container or on the host mac
 
 [Container Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container.
 
-[Container Action Walkthrough with Toolkit](docs/container-action-toolkit.md): Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client
+[Container Action Walkthrough with Octokit](docs/container-action-toolkit.md): Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client
 
 [Versioning](docs/action-versioning.md): Recommendations on versioning, releases and tagging your action.
 

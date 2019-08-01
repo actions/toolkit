@@ -44,7 +44,7 @@ runs:
 
 It will be run with docker and the input is mapped into the args
 
-# Change Code and Add Tests
+# Change Code
 
 The entry point is in entrypoint.sh
 
