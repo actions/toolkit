@@ -20,8 +20,10 @@ Binding to master is convenient but if a new major version is release which brea
 # Recommendations
 
 1. **Create a release**: use sematic versioning for the release (v1.0.9)
-2. **Update the major version tag**: move the major version tag (v1, v2, etc.) to point to the current release.
+2. **Update the major version tag**: move the major version tag (v1, v2, etc.) to point to the ref of the current release.
 3. **Compaitbility Breaks**:  introduce a new major version tag (v2) if changes will break existing workflows.  For example, changing inputs.
+
+See [Git-Basics-Tagging](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
 
 
 
