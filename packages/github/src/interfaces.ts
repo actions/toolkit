@@ -2,14 +2,14 @@
 
 export interface PayloadRepository {
   [key: string]: any
-  fullName?: string
+  full_name?: string
   name: string
   owner: {
     [key: string]: any
     login: string
     name?: string
   }
-  htmlUrl?: string
+  html_url?: string
 }
 
 export interface WebhookPayload {
@@ -21,10 +21,10 @@ export interface WebhookPayload {
     html_url?: string
     body?: string
   }
-  pullRequest?: {
+  pull_request?: {
     [key: string]: any
     number: number
-    htmlUrl?: string
+    html_url?: string
     body?: string
   }
   sender?: {
