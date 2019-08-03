@@ -113,8 +113,6 @@ $ git add <whatever only files you added>
 $ git commit -m "Message"
 ```
 
-> husky will add/vendor node_modules and prune dev dependencies.  See husky in package.json for details.  There is no need for you to add node_modules.
-
 ## Publish a V1 Action
 
 After changing some files, create a V1 branch which we will release 
@@ -149,7 +147,6 @@ Users can now reference your action in their workflows with
 steps:
     using: {org}/{reponame}@V1
 ```
-
 
 
 
