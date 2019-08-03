@@ -141,6 +141,15 @@ $ git push
 
 > NOTE: Consider versioning your actions with tags.  See [versioning](docs/action-versioning.md)
 
+# Users Referencing
+
+Users can now reference your action in their workflows with
+
+```yaml
+steps:
+    using: {org}/{reponame}@V1
+```
+
 
 
 
