@@ -27,7 +27,7 @@ The workflow below describes one possible workflow with a branching strategy.  O
 
 > Key Point: the branch that users reference in their workflow files should reference an action that has **only** the production dependencies. 
 
-The workflow below describes a strategy where you code in master (with node_modules ignored) with a V1 branch users reference and contains the product references.  Actions are self contained referenced on the github graph of repos.
+The workflow below describes a strategy where you code in master (with node_modules ignored) with a v1 branch users reference and contains the product references.  Actions are self contained referenced on the github graph of repos.
 
 ## Install Dependencies
 
@@ -113,12 +113,12 @@ $ git add <whatever only files you added>
 $ git commit -m "Message"
 ```
 
-## Publish a V1 Action
+## Publish a v1 Action
 
-After changing some files, create a V1 branch which we will release 
+After changing some files, create a v1 branch which we will release 
 
 ```bash
-$ git checkout -b V1
+$ git checkout -b v1
 ```
 
 > NOTE: We will provide tooling and an action to automate this soon.
@@ -133,7 +133,7 @@ Checkin production dependencies:
 Simply commit and push your action to publish.
 
 ```bash
-$ git commit -a -m "publishing V1 of action"
+$ git commit -a -m "publishing v1 of action"
 $ git push
 ```
 
@@ -145,7 +145,7 @@ Users can now reference your action in their workflows with
 
 ```yaml
 steps:
-    using: {org}/{reponame}@V1
+    using: {org}/{reponame}@v1
 ```
 
 
