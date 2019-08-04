@@ -4,46 +4,50 @@
 
 ## Usage
 
+#### mkdir -p
+
+Recursively make a directory. Follows rules specified in [man mkdir](https://linux.die.net/man/1/mkdir) with the `-p` option specified:
+
 ```
-/**
- * Copies a file or folder.
- * 
- * @param     source    source path
- * @param     dest      destination path
- * @param     options   optional. See CopyOptions.
- */
-export function cp(source: string, dest: string, options?: CopyOptions): Promise<void>
+const io = require('@actions/io');
 
-/**
- * Remove a path recursively with force
- * 
- * @param     path     path to remove
- */
-export function rmRF(path: string): Promise<void>
+await io.mkdirP('path/to/make');
+```
 
-/**
- * Make a directory.  Creates the full path with folders in between
- * 
- * @param     p       path to create
- * @returns   Promise<void>
- */
-export function mkdirP(p: string): Promise<void>
+#### cp/mv
 
-/**
- * Moves a path.
- *
- * @param     source    source path
- * @param     dest      destination path
- * @param     options   optional. See CopyOptions.
- */
-export function mv(source: string, dest: string, options?: CopyOptions): Promise<void>
+Copy or move files or folders. Follows rules specified in [man cp](https://linux.die.net/man/1/cp) and [man mv](https://linux.die.net/man/1/mv):
 
-/**
- * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * 
- * @param     tool              name of the tool
- * @param     options           optional. See WhichOptions.
- * @returns   Promise<string>   path to tool
- */
-export function which(tool: string, options?: WhichOptions): Promise<string>
+```
+const io = require('@actions/io');
+
+// Recursive must be true for directories
+const options = { recursive: true, force: false }
+
+await io.cp('path/to/directory', 'path/to/dest', options);
+await io.mv('path/to/file', 'path/to/dest');
+```
+
+#### rm -rf
+
+Remove a file or folder recursively. Follows rules specified in [man rm](https://linux.die.net/man/1/rm) with the `-r` and `-f` rules specified.
+
+```
+const io = require('@actions/io');
+
+await io.rmRF('path/to/directory');
+await io.rmRF('path/to/file');
+```
+
+#### which
+
+Get the path to a tool and resolves via paths. Follows the rules specified in [man which](https://linux.die.net/man/1/which).
+
+```
+const exec = require('@actions/exec');
+const io = require('@actions/io');
+
+const pythonPath: string = await io.which('python', true)
+
+await exec.exec(`"${pythonPath}"`, ['main.py']);
 ```
