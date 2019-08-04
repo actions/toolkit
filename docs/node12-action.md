@@ -137,7 +137,7 @@ $ git commit -a -m "publishing v1 of action"
 $ git push
 ```
 
-> NOTE: Consider versioning your actions with tags.  See [versioning](docs/action-versioning.md)
+> NOTE: Consider versioning your actions with tags.  See [versioning](action-versioning.md)
 
 ## Test End To End
 
