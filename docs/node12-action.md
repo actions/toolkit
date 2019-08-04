@@ -113,12 +113,12 @@ $ git add <whatever only files you added>
 $ git commit -m "Message"
 ```
 
-## Publish a v1 Action
+## Publish a v1-release Action
 
-After changing some files, create a v1 branch which we will release 
+After changing some files, create a v1-release branch which we will release 
 
 ```bash
-$ git checkout -b v1
+$ git checkout -b v1-release
 ```
 
 > NOTE: We will provide tooling and an action to automate this soon.
@@ -138,6 +138,21 @@ $ git push
 ```
 
 > NOTE: Consider versioning your actions with tags.  See [versioning](docs/action-versioning.md)
+
+## Test End To End
+
+Once the action has a self contained version in the v1-release branch, you can test it by referencing the latest (and potentially unstable) version in the release branch.  If you are fixing an issue that someone else is having with your action, you can have them try it before you officially releasing it as the 'v1' version.
+
+```yaml
+steps:
+    using: {org}/{reponame}@v1-release
+```
+
+## Release Current Changes as v1
+
+Once you have tested end to end, push a tag of 'v1' to the commit in the release branch.
+
+See [action versioning](action-versioning.md) for more details.
 
 # Users Referencing
 

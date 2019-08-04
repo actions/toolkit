@@ -8,14 +8,14 @@ Examples:
 steps:
     - use: actions/setup-node@74bc508
     - user: actions/setup-node@v1
-    - uses: actions/setup-node@master
+    - uses: actions/setup-node@master  # not recommended
 ```
 
 Binding to the immutable sha1 of a released version is the safest for stability and security.
 
 Binding to a specific major version allows for receiving critical fixes and security patches while still mainting compatibility and the assurance your workflow should still work.
 
-Binding to master is convenient but if a new major version is release which breaks compatilibility, your workflow could break.
+Binding to master is convenient but if a new major version is released which breaks compatilibility, your workflow could break. 
 
 # Recommendations
 
