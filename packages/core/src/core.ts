@@ -22,12 +22,7 @@ export enum ExitCode {
   /**
    * A code indicating that the action was a failure
    */
-  Failure = 1,
-
-  /**
-   * A code indicating that the action is complete, but neither succeeded nor failed
-   */
-  Neutral = 78
+  Failure = 1
 }
 
 //-----------------------------------------------------------------------
@@ -93,13 +88,6 @@ export function setOutput(name: string, value: string): void {
 //-----------------------------------------------------------------------
 // Results
 //-----------------------------------------------------------------------
-
-/**
- * Sets the action status to neutral
- */
-export function setNeutral(): void {
-  process.exitCode = ExitCode.Neutral
-}
 
 /**
  * Sets the action status to failed.

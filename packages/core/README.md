@@ -43,18 +43,13 @@ core.addPath('pathToTool');
 
 #### Exit codes
 
-You should use this library to set the exit code for your action:
+You should use this library to set the failing exit code for your action:
 
 ```
 const core = require('@actions/core');
 
 try {
-  if (work to do) {
-    // Do work
-  } else {
-    // Set neutral indicates that the action terminated but did not fail (aka there was no work to be done)
-    core.setNeutral();
-  }
+  // Do stuff
 }
 catch (err) {
   // setFailed logs the message and sets a failing exit code
