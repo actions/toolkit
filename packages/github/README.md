@@ -35,7 +35,7 @@ const result = await octokit.graphql(query, variables);
 
 Finally, you can get the context of the current action:
 
-```
+```js
 const github = require('@actions/github');
 
 const context = github.context;
