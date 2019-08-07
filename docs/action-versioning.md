@@ -6,8 +6,8 @@ Examples:
 
 ```yaml
 steps:
-    - use: actions/setup-node@74bc508
-    - user: actions/setup-node@v1
+    - uses: actions/setup-node@74bc508
+    - uses: actions/setup-node@v1
     - uses: actions/setup-node@master  # not recommended
 ```
 
@@ -38,6 +38,6 @@ git tag -fa v1 -m "Update v1 tag"
 git push origin v1
 ```
 4. **Create releases for minor and patch version updates**: From the GitHub UI create a release for each minor or patch version update titled with that release version (e.g. v1.2.3).
-5. **Compaitbility Breaks**:  introduce a new major version branch (releases/v2) and tag (v2) if changes will break existing workflows.  For example, changing inputs.
+5. **Compatibility Breaks**:  introduce a new major version branch (releases/v2) and tag (v2) if changes will break existing workflows.  For example, changing inputs.
 
 See [Git-Basics-Tagging](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
