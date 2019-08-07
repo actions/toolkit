@@ -32,17 +32,17 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
+    "@actions/core": "^1.0.0",
+    "@actions/exec": "^1.0.0",
+    "@actions/io": "^1.0.0",
     "semver": "^6.1.0",
     "typed-rest-client": "^1.4.0",
-    "uuid": "^3.3.2",
-    "@actions/core": "^1.0.0",
-    "@actions/io": "^1.0.0",
-    "@actions/exec": "^1.0.0"
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "nock": "^10.0.6",
     "@types/nock": "^10.0.3",
     "@types/semver": "^6.0.0",
-    "@types/uuid": "^3.4.4"
+    "@types/uuid": "^3.4.4",
+    "nock": "^10.0.6"
   }
 }
