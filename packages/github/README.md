@@ -4,9 +4,9 @@
 
 ## Usage
 
-Returns an [Octokit SDK] client. See https://octokit.github.io/rest.js for the API.
+Returns an Octokit client. See https://octokit.github.io/rest.js for the API.
 
-```
+```js
 const github = require('@actions/github');
 const core = require('@actions/core');
 
@@ -15,7 +15,7 @@ const myToken = core.getInput('myToken');
 
 const octokit = new github.GitHub(myToken);
 
-const pulls = await octokit.pulls.get({
+const { data: pullRequest } = await octokit.pulls.get({
     owner: 'octokit',
     repo: 'rest.js',
     pull_number: 123,
@@ -24,12 +24,12 @@ const pulls = await octokit.pulls.get({
     }
 });
 
-console.log(pulls);
+console.log(pullRequest);
 ```
 
 You can also make GraphQL requests:
 
-```
+```js
 const result = await octokit.graphql(query, variables);
 ```
 
