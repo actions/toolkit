@@ -1,6 +1,6 @@
 {
   "name": "@actions/exec",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Actions exec lib",
   "keywords": [
     "exec",
@@ -31,6 +31,6 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "devDependencies": {
-    "@actions/io": "^0.0.0"
+    "@actions/io": "^1.0.0"
   }
 }
