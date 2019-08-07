@@ -27,7 +27,7 @@ const { data: pullRequest } = await octokit.pulls.get({
 console.log(pullRequest);
 ```
 
-You can also make GraphQL requests:
+You can also make GraphQL requests. See https://github.com/octokit/graphql.js for the API.
 
 ```js
 const result = await octokit.graphql(query, variables);
