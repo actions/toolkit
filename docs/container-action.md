@@ -64,7 +64,7 @@ $ git push
 
 The runner will download the action and build the docker container on the fly at runtime.
 
-> Consider versioning your actions with tags.  See [versioning](docs/action-versioning.md)
+> Consider versioning your actions with tags.  See [versioning](/docs/action-versioning.md)
 
 
 
