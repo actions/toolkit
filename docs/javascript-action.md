@@ -1,10 +1,10 @@
 # Creating a JavaScript Action
 
-The [node12-template](https://github.com/actions/node12-template) repo contains everything you need to get started.
+The [javascript-template](https://github.com/actions/javascript-template) repo contains everything you need to get started.
 
 # Create a Repo from the Template
 
-Navigate to https://github.com/actions/node12-template
+Navigate to https://github.com/actions/javascript-template
 
 Click on `Use this template` to create the repo for your action.
 
