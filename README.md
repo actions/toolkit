@@ -3,6 +3,10 @@
   <img src="res/at-logo.png">
 </p>
 
+<p align="center">
+  <a href="https://github.com/actions/toolkit"><img alt="GitHub Actions status" src="https://github.com/actions/toolkit/workflows/Main%20workflow/badge.svg"></a>
+</p>
+
 ## Toolkit
 
 The toolkit provides a set of packages to make creating actions easier and drive consistency.
