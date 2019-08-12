@@ -60,7 +60,7 @@ catch (err) {
 
 #### Logging
 
-Finally, this library provides some utilities for logging. Note that debug logging is hidden from the logs by default. This behavior can be toggled by [setting a secret](https://developer.github.com/actions/managing-workflows/storing-secrets/): `ACTIONS_STEPS_DEBUG = true`.:
+Finally, this library provides some utilities for logging. Note that debug logging is hidden from the logs by default. This behavior can be toggled by enabling the [Step Debug Logs](../../docs/action-debugging.md#step-debug-logs).
 
 ```
 const core = require('@actions/core');
