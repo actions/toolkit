@@ -16,7 +16,7 @@ These log files are enabled by [setting the secret](https://help.github.com/en/a
 All actions ran while this secret is enabled contain additional diagnostic log files in the `runner-diagnostic-logs` folder of the [log archive](https://help.github.com/en/articles/managing-a-workflow-run#downloading-logs-and-artifacts).
 
 ## Step Debug Logs
-Step debug Logs increase the verbosity of a jobs logs during and after a job's execution to assist with troubleshooting. 
+Step debug logs increase the verbosity of a job's logs during and after a job's execution to assist with troubleshooting. 
 
 Additional log events with the prefix `##[debug]` will now also appear in the job's logs.
 
