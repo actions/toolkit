@@ -9,7 +9,7 @@ The toolkit provides a set of packages to make creating actions easier and drive
 
 ## Packages
 
-The toolkit provides four separate packages.  Since actions are run by pulling actions from the github graph, dependencies including the packages are vendored into your action.
+The toolkit provides five separate packages.  Since actions are run by pulling actions from the github graph, dependencies including the packages are vendored into your action.
 
 | Package | Description |
 | ------- | ----------- |
@@ -17,6 +17,7 @@ The toolkit provides four separate packages.  Since actions are run by pulling a
 | [@actions/exec](packages/exec) | Functions necessary for running tools on the command line |
 | [@actions/io](packages/io) | Core functions for CLI filesystem scenarios |
 | [@actions/tool-cache](packages/tool-cache) | Functions necessary for downloading and caching tools |
+| [@actions/github](packages/github) | An Octokit client hydrated with the context that the current action is being run in |
 
 ## Creating an Action with the Toolkit
 
