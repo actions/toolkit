@@ -76,6 +76,6 @@ try {
   // Do stuff
 }
 catch (err) {
-  core.error('Error ${err}, action may still succeed though');
+  core.error(`Error ${err}, action may still succeed though`);
 }
 ```
