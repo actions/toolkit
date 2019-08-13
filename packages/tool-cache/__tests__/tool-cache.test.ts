@@ -236,7 +236,7 @@ describe('@actions/tool-cache', function() {
         await io.cp(path.join(__dirname, 'data', 'test.tar.xz'), _txzFile)
 
         // extract/cache
-        const extPath: string = await tc.extractTar(_txzFile)
+        const extPath: string = await tc.extractTar(_txzFile, undefined, 'x')
         await tc.cacheDir(extPath, 'my-txz-contents', '1.1.0')
         const toolPath: string = tc.find('my-txz-contents', '1.1.0')
 
