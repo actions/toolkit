@@ -196,7 +196,7 @@ export async function extractTar(file: string, dest?: string): Promise<string> {
 
   dest = dest || (await _createExtractFolder(dest))
   const tarPath: string = await io.which('tar', true)
-  await exec(`"${tarPath}"`, ['xzC', dest, '-f', file])
+  await exec(`"${tarPath}"`, ['xC', dest, '-f', file])
 
   return dest
 }
