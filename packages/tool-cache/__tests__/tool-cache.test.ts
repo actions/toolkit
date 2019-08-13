@@ -197,6 +197,34 @@ describe('@actions/tool-cache', function() {
         await io.rmRF(tempDir)
       }
     })
+  } else {
+    it('extract .tar.gz to specified directory', async () => {
+      const tempDir = path.join(__dirname, 'test-install-tar.gz')
+      try {
+        await io.mkdirP(tempDir)
+
+        // copy the .tar.gz file to the test dir
+        const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
+        await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
+
+        // extract/cache
+        const extPath: string = await tc.extractTar(_tgzFile)
+        await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
+        const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
+
+        expect(fs.existsSync(toolPath)).toBeTruthy()
+        expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+        expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+        ).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+        ).toBeTruthy()
+      } finally {
+        await io.rmRF(tempDir)
+      }
+    })
   }
 
   it('installs a zip and finds it', async () => {
