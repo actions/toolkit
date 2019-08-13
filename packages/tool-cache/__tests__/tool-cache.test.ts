@@ -198,7 +198,7 @@ describe('@actions/tool-cache', function() {
       }
     })
   } else {
-    it('extract .tar.gz to specified directory', async () => {
+    it('extract .tar.gz', async () => {
       const tempDir = path.join(tempPath, 'test-install-tar.gz')
 
       await io.mkdirP(tempDir)
@@ -221,9 +221,15 @@ describe('@actions/tool-cache', function() {
       expect(
         fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
       ).toBeTruthy()
+      expect(
+        fs.readFileSync(
+          path.join(toolPath, 'folder', 'nested-file.txt'),
+          'utf8'
+        )
+      ).toBe('folder/nested-file.txt contents')
     })
 
-    it('extract .tar.xz to specified directory', async () => {
+    it('extract .tar.xz', async () => {
       const tempDir = path.join(tempPath, 'test-install-tar.xz')
 
       await io.mkdirP(tempDir)
@@ -239,13 +245,13 @@ describe('@actions/tool-cache', function() {
 
       expect(fs.existsSync(toolPath)).toBeTruthy()
       expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
-      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+      expect(fs.existsSync(path.join(toolPath, 'bar.txt'))).toBeTruthy()
       expect(
-        fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+        fs.existsSync(path.join(toolPath, 'foo', 'hello.txt'))
       ).toBeTruthy()
       expect(
-        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
-      ).toBeTruthy()
+        fs.readFileSync(path.join(toolPath, 'foo', 'hello.txt'), 'utf8')
+      ).toBe('foo/hello: world')
     })
   }
 
