@@ -187,16 +187,21 @@ export async function extract7z(
  *
  * @param file     path to the tar
  * @param dest     destination directory. Optional.
+ * @param flags    flags for the tar. Optional.
  * @returns        path to the destination directory
  */
-export async function extractTar(file: string, dest?: string): Promise<string> {
+export async function extractTar(
+  file: string,
+  dest?: string,
+  flags: string = 'xz'
+): Promise<string> {
   if (!file) {
     throw new Error("parameter 'file' is required")
   }
 
   dest = dest || (await _createExtractFolder(dest))
   const tarPath: string = await io.which('tar', true)
-  await exec(`"${tarPath}"`, ['xzC', dest, '-f', file])
+  await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
 
   return dest
 }
