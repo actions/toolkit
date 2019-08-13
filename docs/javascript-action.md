@@ -80,12 +80,6 @@ run();
 
 Modify tests in `__tests__\main.test.ts`.  The template uses [jest](https://github.com/facebook/jest).
 
-## Format the Code
-
-```bash
-$ npm run format
-```
-
 ## Build and Test
 
 ```bash
