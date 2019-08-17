@@ -29,7 +29,7 @@ Actions are units of work which can either run in a container or on the host mac
 
 [Choosing an action type](docs/action-types.md): Outlines the differences and why you would want to create a host or a container based action.
 
-[JavaScript Action Walthrough](docs/javascript-action.md): A full walkthrough creating an action using the toolkit along with TypeScript and Jest for unit testing.  It also covers a branching strategy for versioning and safely testing and releasing an action.
+[JavaScript Action Walkthrough](docs/javascript-action.md): A full walkthrough creating an action using the toolkit along with TypeScript and Jest for unit testing.  It also covers a branching strategy for versioning and safely testing and releasing an action.
 
 [Docker Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container and run with docker.
 
