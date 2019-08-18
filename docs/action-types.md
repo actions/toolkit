@@ -19,7 +19,7 @@ Docker actions are currently limited to Linux only.
 
 JavaScript actions decouple the unit of work from the environment and run directly on the host machine or VM.
 
-Consider a simple example of testing a node lib on node 8, 10 and running a custom action.  Each job will setup a node version on the host and custom-action will run its unit of work on each environment (node8+ubunut16, node8+windows-2019, etc.)
+Consider a simple example of testing a node lib on node 8, 10 and running a custom action.  Each job will setup a node version on the host and custom-action will run its unit of work on each environment (node8+ubuntu16, node8+windows-2019, etc.)
 
 ```yaml
 on: push
