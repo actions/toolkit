@@ -6,7 +6,7 @@ In order to support the node-config action, I propose adding the following into 
 
 Holds all the functions necessary for interacting with the runner/environment.
 
-```
+```ts
 // Logging functions
 export function debug(message: string): void
 export function warning(message: string): void
@@ -66,7 +66,7 @@ export function setFailed(message: string): void
 
 Holds all the functions necessary for file system manipulation (cli scenarios, not fs replacements):
 
-```
+```ts
 /**
  * Interface for cp/mv options
  */
@@ -132,7 +132,7 @@ export function which(tool: string, options?: WhichOptions): Promise<string>
 
 Holds all the functions necessary for running the tools node-config depends on (aka 7-zip and tar)
 
-```
+```ts
 /**
  * Interface for exec options
  */
@@ -155,7 +155,7 @@ export function exec(commandLine: string, args?: string[], options?: IExecOption
 
 Holds all the functions necessary for downloading and caching node.
 
-```
+```ts
 /**
  * Download a tool from an url and stream it into a file
  *
