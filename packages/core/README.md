@@ -35,7 +35,7 @@ core.exportSecret('secretVar', variableWithSecretValue);
 
 You can explicitly add items to the path for all remaining steps in a workflow:
 
-```
+```js
 const core = require('@actions/core');
 
 core.addPath('pathToTool');
