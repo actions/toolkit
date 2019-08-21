@@ -8,7 +8,7 @@
 
 You can use this library to get inputs or set outputs:
 
-```
+```js
 const core = require('@actions/core');
 
 const myInput = core.getInput('inputName', { required: true });
@@ -22,7 +22,7 @@ core.setOutput('outputKey', 'outputVal');
 
 You can also export variables and secrets for future steps. Variables get set in the environment automatically, while secrets must be scoped into the environment from a workflow using `${{ secrets.FOO }}`. Secrets will also be masked from the logs:
 
-```
+```js
 const core = require('@actions/core');
 
 // Do stuff
@@ -45,7 +45,7 @@ core.addPath('pathToTool');
 
 You should use this library to set the failing exit code for your action:
 
-```
+```js
 const core = require('@actions/core');
 
 try {
@@ -62,7 +62,7 @@ catch (err) {
 
 Finally, this library provides some utilities for logging. Note that debug logging is hidden from the logs by default. This behavior can be toggled by enabling the [Step Debug Logs](../../docs/action-debugging.md#step-debug-logs).
 
-```
+```js
 const core = require('@actions/core');
 
 const myInput = core.getInput('input');
