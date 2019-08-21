@@ -8,7 +8,7 @@
 
 You can use this to download tools (or other files) from a download URL:
 
-```
+```js
 const tc = require('@actions/tool-cache');
 
 const node12Path = await tc.downloadTool('http://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz');
@@ -18,7 +18,7 @@ const node12Path = await tc.downloadTool('http://nodejs.org/dist/v12.7.0/node-v1
 
 These can then be extracted in platform specific ways:
 
-```
+```js
 const tc = require('@actions/tool-cache');
 
 if (process.platform === 'win32') {
@@ -41,7 +41,7 @@ Finally, you can cache these directories in our tool-cache. This is useful if yo
 
 You'll often want to add it to the path as part of this step:
 
-```
+```js
 const tc = require('@actions/tool-cache');
 const core = require('@actions/core');
 
@@ -54,7 +54,7 @@ core.addPath(cachedPath);
 
 You can also cache files for reuse.
 
-```
+```js
 const tc = require('@actions/tool-cache');
 
 tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
@@ -64,7 +64,7 @@ tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
 
 Finally, you can find directories and files you've previously cached:
 
-```
+```js
 const tc = require('@actions/tool-cache');
 const core = require('@actions/core');
 
@@ -74,7 +74,7 @@ core.addPath(nodeDirectory);
 
 You can even find all cached versions of a tool:
 
-```
+```js
 const tc = require('@actions/tool-cache');
 
 const allNodeVersions = tc.findAllVersions('node');
