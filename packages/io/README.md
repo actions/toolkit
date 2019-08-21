@@ -8,7 +8,7 @@
 
 Recursively make a directory. Follows rules specified in [man mkdir](https://linux.die.net/man/1/mkdir) with the `-p` option specified:
 
-```
+```js
 const io = require('@actions/io');
 
 await io.mkdirP('path/to/make');
@@ -18,7 +18,7 @@ await io.mkdirP('path/to/make');
 
 Copy or move files or folders. Follows rules specified in [man cp](https://linux.die.net/man/1/cp) and [man mv](https://linux.die.net/man/1/mv):
 
-```
+```js
 const io = require('@actions/io');
 
 // Recursive must be true for directories
@@ -32,7 +32,7 @@ await io.mv('path/to/file', 'path/to/dest');
 
 Remove a file or folder recursively. Follows rules specified in [man rm](https://linux.die.net/man/1/rm) with the `-r` and `-f` rules specified.
 
-```
+```js
 const io = require('@actions/io');
 
 await io.rmRF('path/to/directory');
@@ -43,7 +43,7 @@ await io.rmRF('path/to/file');
 
 Get the path to a tool and resolves via paths. Follows the rules specified in [man which](https://linux.die.net/man/1/which).
 
-```
+```js
 const exec = require('@actions/exec');
 const io = require('@actions/io');
 
