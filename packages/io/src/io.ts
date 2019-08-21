@@ -226,9 +226,9 @@ export async function which(tool: string, check?: boolean): Promise<string> {
 
     // build the list of directories
     //
-    // Note, technically "where" checks the current directory on Windows. From a task lib perspective,
+    // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
     // it feels like we should not do this. Checking the current directory seems like more of a use
-    // case of a shell, and the which() function exposed by the task lib should strive for consistency
+    // case of a shell, and the which() function exposed by the toolkit should strive for consistency
     // across platforms.
     const directories: string[] = []
 
