@@ -88,7 +88,7 @@ describe('cp', () => {
   })
 
   it('copies directory into non-existing destination with -r', async () => {
-    const root: string = path.join(getTestTemp(), 'cp_with_-r_nonexisting_dest')
+    const root: string = path.join(getTestTemp(), 'cp_with_-r_nonexistent_dest')
     const sourceFolder: string = path.join(root, 'cp_source')
     const sourceFile: string = path.join(sourceFolder, 'cp_source_file')
 
@@ -245,7 +245,7 @@ describe('mv', () => {
   it('moves directory into non-existing destination', async () => {
     const root: string = path.join(
       getTestTemp(),
-      ' mv_with_-r_nonexisting_dest'
+      ' mv_with_-r_nonexistent_dest'
     )
     const sourceFolder: string = path.join(root, ' mv_source')
     const sourceFile: string = path.join(sourceFolder, ' mv_source_file')
