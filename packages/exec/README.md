@@ -6,7 +6,7 @@
 
 You can use this package to execute your tools on the command line in a cross platform way:
 
-```
+```js
 const exec = require('@actions/exec');
 
 await exec.exec('node index.js');
@@ -16,7 +16,7 @@ await exec.exec('node index.js');
 
 You can also pass in arg arrays:
 
-```
+```js
 const exec = require('@actions/exec');
 
 await exec.exec('node', ['index.js', 'foo=bar']);
@@ -26,7 +26,7 @@ await exec.exec('node', ['index.js', 'foo=bar']);
 
 Capture output or specify [other options](https://github.com/actions/toolkit/blob/d9347d4ab99fd507c0b9104b2cf79fb44fcc827d/packages/exec/src/interfaces.ts#L5):
 
-```
+```js
 const exec = require('@actions/exec');
 
 const myOutput = '';
@@ -50,7 +50,7 @@ await exec.exec('node', ['index.js', 'foo=bar'], options);
 
 You can use it in conjunction with the `which` function from `@actions/io` to execute tools that are not in the PATH:
 
-```
+```js
 const exec = require('@actions/exec');
 const io = require('@actions/io');
 

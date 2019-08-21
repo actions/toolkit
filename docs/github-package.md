@@ -8,7 +8,7 @@ Its main purpose will be to provide a hydrated GitHub context/Octokit client wit
 
 ##### interfaces.ts
 
-```
+```ts
 /*
  * Interfaces
  */
@@ -56,7 +56,7 @@ export interface WebhookPayloadWithRepository {
 
 Contains a GitHub context
 
-```
+```ts
 export class Context {
    /**
    * Webhook payload object that triggered the workflow
@@ -89,7 +89,7 @@ export class Context {
 
 Contains a hydrated Octokit client
 
-```
+```ts
 export class GithubClient extends Octokit {
  // For making GraphQL requests
  public graphql: (query: string, variables?: Variables) => Promise<GraphQlQueryResponse>
