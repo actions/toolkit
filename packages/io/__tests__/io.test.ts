@@ -321,7 +321,7 @@ describe('rmRF', () => {
     await assertNotExists(testPath)
   })
 
-  it('removes folder that doesnt exist with rmRF', async () => {
+  it('removes folder that does not exist with rmRF', async () => {
     const testPath = path.join(getTestTemp(), 'testFolder')
     await assertNotExists(testPath)
 

@@ -101,7 +101,7 @@ describe('@actions/core', () => {
     )
   })
 
-  it('getInput doesnt throw on missing non-required input', () => {
+  it('getInput does not throw on missing non-required input', () => {
     expect(core.getInput('missing', {required: false})).toBe('')
   })
 
