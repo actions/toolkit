@@ -70,7 +70,7 @@ try {
   core.debug('Inside try block');
   
   if (!myInput) {
-    core.warning('myInput wasnt set');
+    core.warning('myInput was not set');
   }
   
   // Do stuff

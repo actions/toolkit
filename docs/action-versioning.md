@@ -13,9 +13,9 @@ steps:
 
 Binding to the immutable sha1 of a released version is the safest for stability and security.
 
-Binding to a specific major version allows for receiving critical fixes and security patches while still mainting compatibility and the assurance your workflow should still work.
+Binding to a specific major version allows for receiving critical fixes and security patches while still maintaining compatibility and the assurance your workflow should still work.
 
-Binding to master is convenient but if a new major version is released which breaks compatilibility, your workflow could break. 
+Binding to master is convenient but if a new major version is released which breaks compatibility, your workflow could break. 
 
 # Recommendations
 

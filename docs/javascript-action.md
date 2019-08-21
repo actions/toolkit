@@ -117,7 +117,7 @@ $ git checkout -b v1-release
 
 > NOTE: We will provide tooling and an action to automate this soon.
 
-Checkin production dependencies:
+Check in production dependencies:
 1. **Do not ignore node_modules**:  Add a `!` in front of the `node_modules` line.
 2. **Delete node_modules**: rm -Rf node_modules
 3. **Install production dependencies**: npm install --production

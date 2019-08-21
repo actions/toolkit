@@ -16,7 +16,7 @@ const testEnvVars = {
   // Set inputs
   INPUT_MY_INPUT: 'val',
   INPUT_MISSING: '',
-  'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ repsonse '
+  'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response '
 }
 
 describe('@actions/core', () => {
@@ -101,7 +101,7 @@ describe('@actions/core', () => {
     )
   })
 
-  it('getInput doesnt throw on missing non-required input', () => {
+  it('getInput does not throw on missing non-required input', () => {
     expect(core.getInput('missing', {required: false})).toBe('')
   })
 
@@ -110,7 +110,7 @@ describe('@actions/core', () => {
   })
 
   it('getInput handles special characters', () => {
-    expect(core.getInput('special chars_\'\t"\\')).toBe('\'\t"\\ repsonse')
+    expect(core.getInput('special chars_\'\t"\\')).toBe('\'\t"\\ response')
   })
 
   it('setOutput produces the correct command', () => {

@@ -216,7 +216,7 @@ export class ToolRunner extends events.EventEmitter {
     //    command line from libuv quoting rules would look like:
     //          foo.exe "myarg:\"my val\""
     //
-    // 3) double-up slashes that preceed a quote,
+    // 3) double-up slashes that precede a quote,
     //    e.g.  hello \world    => "hello \world"
     //          hello\"world    => "hello\\""world"
     //          hello\\"world   => "hello\\\\""world"

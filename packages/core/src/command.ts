@@ -14,7 +14,7 @@ interface CommandProperties {
  *
  * Examples:
  *   ##[warning]This is the user warning message
- *   ##[set-secret name=mypassword]definatelyNotAPassword!
+ *   ##[set-secret name=mypassword]definitelyNotAPassword!
  */
 export function issueCommand(
   command: string,
