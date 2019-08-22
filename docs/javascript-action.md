@@ -139,7 +139,7 @@ Once the action has a self contained version in the v1-release branch, you can t
 
 ```yaml
 steps:
-    using: {org}/{reponame}@v1-release
+    uses: {org}/{reponame}@v1-release
 ```
 
 ## Release Current Changes as v1
@@ -154,7 +154,7 @@ Users can now reference your action in their workflows with
 
 ```yaml
 steps:
-    using: {org}/{reponame}@v1
+    uses: {org}/{reponame}@v1
 ```
 
 
