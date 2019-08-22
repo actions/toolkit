@@ -14,7 +14,7 @@ Complete creating your repo and clone the repo.
 
 > NOTE: The location of the repo will be how users will reference your action in their workflow file with the using keyword.
 
-e.g. To use https://github.com/actions/setup-node, user's will author:
+e.g. To use https://github.com/actions/setup-node, users will author:
 
 ```yaml
 steps:
