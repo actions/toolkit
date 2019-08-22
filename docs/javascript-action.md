@@ -18,7 +18,7 @@ e.g. To use https://github.com/actions/setup-node, user's will author:
 
 ```yaml
 steps:
-    using: actions/setup-node@master
+    uses: actions/setup-node@master
 ```
 
 # Dev Workflow
