@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Actions core lib",
   "keywords": [
-    "core",
-    "actions"
+    "github",
+    "actions",
+    "core"
   ],
   "homepage": "https://github.com/actions/toolkit/tree/master/packages/core",
   "license": "MIT",

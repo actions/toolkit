@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Actions exec lib",
   "keywords": [
-    "exec",
-    "actions"
+    "github",
+    "actions",    
+    "exec"
   ],
   "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
   "license": "MIT",

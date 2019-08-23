@@ -3,8 +3,9 @@
   "version": "1.1.0",
   "description": "Actions tool-cache lib",
   "keywords": [
-    "exec",
-    "actions"
+    "github",
+    "actions",    
+    "exec"
   ],
   "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
   "license": "MIT",
