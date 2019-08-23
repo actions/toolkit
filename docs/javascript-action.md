@@ -157,5 +157,6 @@ steps:
     uses: {org}/{reponame}@v1
 ```
 
+# Next Steps
 
-
+Now that you've created a basic action, see how to [leverage the github context](./github-package) in your actions
