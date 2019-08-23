@@ -18,7 +18,7 @@ All of the dependencies we need should come packaged for us in this library's co
 
 ## Metadata
 
-Next, we will need a welcome message and a repo token as an input. Recall that inputs are defined in the `action.yml` metadata file - update your `action.yml` file to define `welcomeMessage` and `repo-token` as inputs.
+Next, we will need a welcome message and a repo token as an input. Recall that inputs are defined in the `action.yml` metadata file - update your `action.yml` file to define `welcome-message` and `repo-token` as inputs.
 
 ```yaml
 name: 'Welcome'
@@ -81,7 +81,7 @@ if (github.context.payload.action !== 'opened') {
 }
 ```
 
-So our whole `src/main.ts` file now looks like:
+Our whole `src/main.ts` file now looks like:
 
 ```
 import * as core from '@actions/core';
@@ -119,7 +119,7 @@ await client.issues.createComment({
   owner: issue.owner,
   repo: issue.repo,
   issue_number: issue.number,
-  body: welcome-message
+  body: welcomeMessage
 });
 ```
 
@@ -245,9 +245,9 @@ client.issues.createComment({
 });
 ```
 
-From https://developer.github.com/v3/issues/comments/#create-a-comment, we expect this to get make a POST request to https://api.github.com/repos/foo/bar/issues/10/comments with body of `{"body":"hello"}`
+From [the GitHub endpoint docs](https://developer.github.com/v3/issues/comments/#create-a-comment), we expect this to get make a POST request to `https://api.github.com/repos/foo/bar/issues/10/comments` with body of `{"body":"hello"}`
 
-So we can mock this with:
+We can mock this with:
 
 ```
 const nock = require('nock');
@@ -275,7 +275,7 @@ describe('action test suite', () => {
 });
 ```
 
-This will fail on the nock step if the url or body doesn't exactly match the parameters passed in. We can now run `npm test` and the test should succeed.
+This will fail if the url or body doesn't exactly match the parameters passed into the nock function. We can now run `npm test` and the test should succeed.
 
 ## Build and publish
 
