@@ -53,6 +53,7 @@ export async function run() {
     }
     catch (error) {
       core.setFailed(error.message);
+      throw error;
     }
 }
 
@@ -101,6 +102,7 @@ export async function run() {
     }
     catch (error) {
       core.setFailed(error.message);
+      throw error;
     }
 }
 
@@ -113,7 +115,7 @@ Now that we have our context data, we are able to send a request to the GitHub A
 
 ```
 const client: github.GitHub = new github.GitHub(repoToken);
-await github.client.issues.createComment({
+await client.issues.createComment({
   owner: issue.owner,
   repo: issue.repo,
   issue_number: issue.number,
@@ -139,15 +141,16 @@ export async function run() {
     }
 
     const client: github.GitHub = new github.GitHub(repoToken);
-    await github.client.issues.createComment({
+    await client.issues.createComment({
       owner: issue.owner,
       repo: issue.repo,
       issue_number: issue.number,
-      body: welcome-message
+      body: welcomeMessage
     });
     }
     catch (error) {
       core.setFailed(error.message);
+      throw error;
     }
 }
 
@@ -159,11 +162,10 @@ run();
 Next, we're going to write a basic unit test for our action using jest. If you followed the [javascript walkthrough](./javascript-action.md), you should have a file `__tests__/main.test.ts` that runs tests when `npm test` is called. We're going to start by populating that with one test:
 
 ```
-import * as main from '../src/main.ts';
-import * as nock from 'nock';
-import * as path from 'path';
+const nock = require('nock');
+const path = require('path');
 
-describe('action test suite', async () => {
+describe('action test suite', () => {
   it('It posts a comment on an opened issue', async () => {
     // TODO
   });
@@ -177,16 +179,15 @@ For the purposes of this walkthrough, we'll focus on populating this test and le
 First, we want to make sure that we can mock our inputs (welcome-message, and repo-token). Actions handles inputs by populating process.env.INPUT_${input name in all caps}, so we can mock that simply by setting those environment variables:
 
 ```
-import * as main from '../src/main.ts';
-import * as nock from 'nock';
-import * as path from 'path';
+const nock = require('nock');
+const path = require('path');
 
-describe('action test suite', async () => {
+describe('action test suite', () => {
   it('It posts a comment on an opened issue', async () => {
-    const welcome-message = 'hello';
-    const repo-token = 'token';
-    process.env.INPUT_WELCOME-MESSAGE = welcome-message;
-    process.env.INPUT_REPO-TOKEN = repo-token;
+    const welcomeMessage = 'hello';
+    const repoToken = 'token';
+    process.env['INPUT_WELCOME-MESSAGE'] = welcomeMessage;
+    process.env['INPUT_REPO-TOKEN'] = repoToken;
 
     // TODO
   });
@@ -198,19 +199,18 @@ describe('action test suite', async () => {
 Mocking the GitHub context is relatively straightforward. Since most of it is simply populated by environment variables, you can just set the corresponding environment variables defined [here](https://github.com/actions/toolkit/blob/ac007c06984bc483fae2ba649788dfc858bc6a8b/packages/github/src/context.ts#L23) and test that it works in that environment. In this case, we can setup our test with:
 
 ```
-import * as main from '../src/main.ts';
-import * as nock from 'nock';
-import * as path from 'path';
+const nock = require('nock');
+const path = require('path');
 
-describe('action test suite', async () => {
+describe('action test suite', () => {
   it('It posts a comment on an opened issue', async () => {
-    const welcome-message = 'hello';
-    const repo-token = 'token';
-    process.env.INPUT_WELCOME-MESSAGE = welcome-message;
-    process.env.INPUT_REPO-TOKEN = repo-token;
+    const welcomeMessage = 'hello';
+    const repoToken = 'token';
+    process.env['INPUT_WELCOME-MESSAGE'] = welcomeMessage;
+    process.env['INPUT_REPO-TOKEN'] = repoToken;
 
-    process.env.GITHUB_REPOSITORY = 'foo/bar';
-    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'payload.json');
+    process.env['GITHUB_REPOSITORY'] = 'foo/bar';
+    process.env['GITHUB_EVENT_PATH'] = path.join(__dirname, 'payload.json');
 
     // TODO
   });
@@ -221,7 +221,9 @@ Note that the payload is loaded from GITHUB_EVENT_PATH. Since we set that to `pa
 
 ```
 {
-    "issue": 10,
+    "issue": {
+        "number": 10
+    },
     "action": "opened"
 }
 ```
@@ -230,12 +232,12 @@ Now, calling `github.context.issue` should return `{owner: foo, repo: bar, numbe
 
 ### Mocking the Octokit Client
 
-To mock the client calls, we recommend using [nock](https://github.com/nock/nock) which allows you to mock the http requests made by the client. First, install nock with `npm install nock`.
+To mock the client calls, we recommend using [nock](https://github.com/nock/nock) which allows you to mock the http requests made by the client. First, install nock with `npm install nock --save-dev`.
 
 For this test, we expect the following call:
 
 ```
-github.client.issues.createComment({
+client.issues.createComment({
   owner: 'foo',
   repo: 'bar',
   issue_number: 10,
@@ -243,30 +245,32 @@ github.client.issues.createComment({
 });
 ```
 
-From https://developer.github.com/v3/issues/comments/#create-a-comment, we expect this to get make a POST request to https://api.github.com/repos/foo/bar/10/comments with body: "hello".
+From https://developer.github.com/v3/issues/comments/#create-a-comment, we expect this to get make a POST request to https://api.github.com/repos/foo/bar/issues/10/comments with body of `{"body":"hello"}`
 
 So we can mock this with:
 
 ```
-import * as main from '../src/main.ts';
-import * as nock from 'nock';
-import * as path from 'path';
+const nock = require('nock');
+const path = require('path');
 
-describe('action test suite', async () => {
+describe('action test suite', () => {
   it('It posts a comment on an opened issue', async () => {
-    const welcome-message = 'hello';
-    const repo-token = 'token';
-    process.env.INPUT_WELCOME-MESSAGE = welcome-message;
-    process.env.INPUT_REPO-TOKEN = repo-token;
+    const welcomeMessage = 'hello';
+    const repoToken = 'token';
+    process.env['INPUT_WELCOME-MESSAGE'] = welcomeMessage;
+    process.env['INPUT_REPO-TOKEN'] = repoToken;
 
-    process.env.GITHUB_REPOSITORY = 'foo/bar';
-    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'payload.json');
+    process.env['GITHUB_REPOSITORY'] = 'foo/bar';
+    process.env['GITHUB_EVENT_PATH'] = path.join(__dirname, 'payload.json');
 
     nock('https://api.github.com')
-      .post('/repos/foo/bar/10/comments', 'hello')
+      .persist()
+      .post('/repos/foo/bar/issues/10/comments', '{\"body\":\"hello\"}')
       .reply(200);
+      
+    const main = require('../src/main');
 
-    await main.run()
+    await main.run();
   });
 });
 ```
