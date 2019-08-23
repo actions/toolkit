@@ -54,7 +54,6 @@ inputs:
 runs:
   using: 'node12'
   main: 'lib/main.js'
-
 ```
 
 Note that the action will be run with node 12 (carried by the runner) and the entry point is specified with `main:` 
@@ -157,5 +156,6 @@ steps:
     using: {org}/{reponame}@v1
 ```
 
+# Next Steps
 
-
+Now that you've created a basic action, see how to [leverage the github context](./github-package) in your actions
