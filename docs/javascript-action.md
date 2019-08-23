@@ -78,7 +78,7 @@ async function run() {
 run();
 ```
 
-Modify tests in `__tests__\main.test.ts`.  The template uses [jest](https://github.com/facebook/jest).
+Modify tests in `__tests__/main.test.ts`.  The template uses [jest](https://github.com/facebook/jest).
 
 ## Build and Test
 
