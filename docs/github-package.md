@@ -2,7 +2,7 @@
 
 ## Goal
 
-In this walkthrough we will learn how to build a basic action using GitHub context data to greet users when they open an issue. In the process we will explore how to access this context and how to make authenticated requests to the GitHub API.
+In this walkthrough we will learn how to build a basic action using GitHub context data to greet users when they open an issue or PR. In the process we will explore how to access this context and how to make authenticated requests to the GitHub API.
 
 Note that a complete version of this action can be found at https://github.com/damccorm/issue-greeter.
 
@@ -12,13 +12,13 @@ This walkthrough assumes that you have gone through the basic [javascript action
 
 ## Installing dependencies
 
-All of the dependencies we need should come packaged for us in this library's github package. To install, run the following in your action:
+All of the dependencies we need should come packaged for us in this library's core and github packages. To install, run the following in your action:
 
-`npm install @actions/github`
+`npm install @actions/core && npm install @actions/github`
 
 ## Metadata
 
-Next, we will need a welcome message and a repo-token as an input. Recall that inputs are defined in the `action.yml` metadata file - update your `action.yml` file to define `welcomeMessage` as an input.
+Next, we will need a welcome message and a repo token as an input. Recall that inputs are defined in the `action.yml` metadata file - update your `action.yml` file to define `welcomeMessage` and `repo-token` as inputs.
 
 ```yaml
 name: 'Welcome'
@@ -26,8 +26,11 @@ description: 'A basic welcome action'
 author: 'GitHub'
 inputs: 
   welcome-message:
-    description: 'Message to display on a user's first issue'
-    default: 'Welcome to my repo'
+    description: 'Message to display when a user opens an issue or PR'
+    default: 'Thanks for opening an issue! Make sure you've followed CONTRIBUTING.md'
+  repo-token:
+    description: 'Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    required: true
 runs:
   using: 'node12'
   main: 'lib/main.js'
@@ -41,7 +44,7 @@ Now that we've installed our dependencies and defined our inputs, we're ready to
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-async function run() {
+export async function run() {
     try {
     const welcomeMessage: string = core.getInput('welcome-message');
     // TODO - Get context data
@@ -56,7 +59,7 @@ async function run() {
 run();
 ```
 
-### Getting Context Data
+### Getting context data
 
 For the purpose of this walkthrough, we will need the following pieces of context data:
 
@@ -71,7 +74,7 @@ Fortunately, the GitHub package provides all of this to us with [a single conven
 The context object also contains a number of easily accessed properties, as well as easy access to the full [GitHub payload](https://developer.github.com/v3/activity/events/types/). We can use this to check and make sure we're actually looking at a recently opened issue (and not something else, like a comment on an existing issue):
 
 ```
-if (context.payload.action !== 'opened') {
+if (github.context.payload.action !== 'opened') {
   console.log('No issue or PR was opened, skipping');
   return;
 }
@@ -83,13 +86,13 @@ So our whole `src/main.ts` file now looks like:
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-async function run() {
+export async function run() {
     try {
     const welcomeMessage: string = core.getInput('welcome-message', {required: true});
     const repoToken: string = core.getInput('repo-token', {required: true});
     const issue: {owner: string; repo: string; number: number} = github.context.issue;
 
-    if (context.payload.action !== 'opened') {
+    if (github.context.payload.action !== 'opened') {
       console.log('No issue or pull request was opened, skipping');
       return;
     }
@@ -104,9 +107,9 @@ async function run() {
 run();
 ```
 
-### Sending Requests to the GitHub API
+### Sending requests to the GitHub API
 
-Now that we have our context data, we are able to send a request to the GitHub API using the [Octokit REST client](https://github.com/octokit/rest.js). The REST client exposes a number of easy convenience functions, including one for adding comments to issues:
+Now that we have our context data, we are able to send a request to the GitHub API using the [Octokit REST client](https://github.com/octokit/rest.js). The REST client exposes a number of easy convenience functions, including one for adding comments to issues/PRs (issues and PRs are treated as one concept by the Octokit client):
 
 ```
 const client: github.GitHub = new github.GitHub(repoToken);
@@ -118,15 +121,161 @@ await github.client.issues.createComment({
 });
 ```
 
-For more docs on the client, you can visit the [Octokit REST documentation](https://octokit.github.io/rest.js/).
+For more docs on the client, you can visit the [Octokit REST documentation](https://octokit.github.io/rest.js/). Now our action code should be complete:
 
-### Build and publish
+```
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 
-Now that we've written our source code, we can build our action with `npm run build` and push it to a repo where it can be consumed by workflows. For more info on versioning your action, see [our versioning docs](./action-versioning.md).
+export async function run() {
+    try {
+    const welcomeMessage: string = core.getInput('welcome-message', {required: true});
+    const repoToken: string = core.getInput('repo-token', {required: true});
+    const issue: {owner: string; repo: string; number: number} = github.context.issue;
 
-## Testing your action
+    if (github.context.payload.action !== 'opened') {
+      console.log('No issue or pull request was opened, skipping');
+      return;
+    }
 
-// TODO
+    const client: github.GitHub = new github.GitHub(repoToken);
+    await github.client.issues.createComment({
+      owner: issue.owner,
+      repo: issue.repo,
+      issue_number: issue.number,
+      body: welcome-message
+    });
+    }
+    catch (error) {
+      core.setFailed(error.message);
+    }
+}
+
+run();
+```
+
+## Writing unit tests for your action
+
+Next, we're going to write a basic unit test for our action using jest. If you followed the [javascript walkthrough](./javascript-action.md), you should have a file `__tests__/main.test.ts` that runs tests when `npm test` is called. We're going to start by populating that with one test:
+
+```
+import * as main from '../src/main.ts';
+import * as nock from 'nock';
+import * as path from 'path';
+
+describe('action test suite', async () => {
+  it('It posts a comment on an opened issue', async () => {
+    // TODO
+  });
+});
+```
+
+For the purposes of this walkthrough, we'll focus on populating this test and leave the remaining test coverage as an exercise for the reader.
+
+### Mocking inputs
+
+First, we want to make sure that we can mock our inputs (welcome-message, and repo-token). Actions handles inputs by populating process.env.INPUT_${input name in all caps}, so we can mock that simply by setting those environment variables:
+
+```
+import * as main from '../src/main.ts';
+import * as nock from 'nock';
+import * as path from 'path';
+
+describe('action test suite', async () => {
+  it('It posts a comment on an opened issue', async () => {
+    const welcome-message = 'hello';
+    const repo-token = 'token';
+    process.env.INPUT_WELCOME-MESSAGE = welcome-message;
+    process.env.INPUT_REPO-TOKEN = repo-token;
+
+    // TODO
+  });
+});
+```
+
+### Mocking the GitHub context
+
+Mocking the GitHub context is relatively straightforward. Since most of it is simply populated by environment variables, you can just set the corresponding environment variables defined [here](https://github.com/actions/toolkit/blob/ac007c06984bc483fae2ba649788dfc858bc6a8b/packages/github/src/context.ts#L23) and test that it works in that environment. In this case, we can setup our test with:
+
+```
+import * as main from '../src/main.ts';
+import * as nock from 'nock';
+import * as path from 'path';
+
+describe('action test suite', async () => {
+  it('It posts a comment on an opened issue', async () => {
+    const welcome-message = 'hello';
+    const repo-token = 'token';
+    process.env.INPUT_WELCOME-MESSAGE = welcome-message;
+    process.env.INPUT_REPO-TOKEN = repo-token;
+
+    process.env.GITHUB_REPOSITORY = 'foo/bar';
+    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'payload.json');
+
+    // TODO
+  });
+});
+```
+
+Note that the payload is loaded from GITHUB_EVENT_PATH. Since we set that to `path.join(__dirname, 'payload.json')`, we need to go save our payload there. For the purposes of this test, we can simply save the following to `__tests__/payload.json`:
+
+```
+{
+    "issue": 10,
+    "action": "opened"
+}
+```
+
+Now, calling `github.context.issue` should return `{owner: foo, repo: bar, number: 10}`, and `github.context.payload.action` should get set to 'opened'
+
+### Mocking the Octokit Client
+
+To mock the client calls, we recommend using [nock](https://github.com/nock/nock) which allows you to mock the http requests made by the client. First, install nock with `npm install nock`.
+
+For this test, we expect the following call:
+
+```
+github.client.issues.createComment({
+  owner: 'foo',
+  repo: 'bar',
+  issue_number: 10,
+  body: 'you posted your first issue'
+});
+```
+
+From https://developer.github.com/v3/issues/comments/#create-a-comment, we expect this to get make a POST request to https://api.github.com/repos/foo/bar/10/comments with body: "hello".
+
+So we can mock this with:
+
+```
+import * as main from '../src/main.ts';
+import * as nock from 'nock';
+import * as path from 'path';
+
+describe('action test suite', async () => {
+  it('It posts a comment on an opened issue', async () => {
+    const welcome-message = 'hello';
+    const repo-token = 'token';
+    process.env.INPUT_WELCOME-MESSAGE = welcome-message;
+    process.env.INPUT_REPO-TOKEN = repo-token;
+
+    process.env.GITHUB_REPOSITORY = 'foo/bar';
+    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'payload.json');
+
+    nock('https://api.github.com')
+      .post('/repos/foo/bar/10/comments', 'hello')
+      .reply(200);
+
+    await main.run()
+  });
+});
+```
+
+This will fail on the nock step if the url or body doesn't exactly match the parameters passed in. We can now run `npm test` and the test should succeed.
+
+## Build and publish
+
+Now that we've written and unit tested our action, we can build our action with `npm run build` and push it to a repo where it can be consumed by workflows. For more info on versioning your action, see [our versioning docs](./action-versioning.md).
 
 ## Next steps
 
