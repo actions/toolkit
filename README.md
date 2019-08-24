@@ -7,13 +7,13 @@
   <a href="https://github.com/actions/toolkit"><img alt="GitHub Actions status" src="https://github.com/actions/toolkit/workflows/Main%20workflow/badge.svg"></a>
 </p>
 
-## Toolkit
+## GitHub Actions Toolkit
 
-The toolkit provides a set of packages to make creating actions easier and drive consistency.
+The GitHub Actions ToolKit provides a set of packages to make creating actions easier and drive consistency.
 
 ## Packages
 
-The toolkit provides five separate packages.  Since actions are run by pulling actions from the github graph, dependencies including the packages are vendored into your action.
+The toolkit provides five separate packages.   See the docs for each action.
 
 | Package | Description |
 | ------- | ----------- |
