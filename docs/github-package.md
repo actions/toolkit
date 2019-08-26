@@ -40,7 +40,7 @@ runs:
 
 Now that we've installed our dependencies and defined our inputs, we're ready to start writing the action logic in `src/main.ts`! For clarity, we'll structure our action up as follows:
 
-```
+```ts
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
@@ -74,7 +74,7 @@ Fortunately, the GitHub package provides all of this to us with [a single conven
 
 The context object also contains a number of easily accessed properties, as well as easy access to the full [GitHub payload](https://developer.github.com/v3/activity/events/types/). We can use this to check and make sure we're actually looking at a recently opened issue (and not something else, like a comment on an existing issue):
 
-```
+```ts
 if (github.context.payload.action !== 'opened') {
   console.log('No issue or PR was opened, skipping');
   return;
@@ -83,7 +83,7 @@ if (github.context.payload.action !== 'opened') {
 
 Our whole `src/main.ts` file now looks like:
 
-```
+```ts
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
@@ -113,7 +113,7 @@ run();
 
 Now that we have our context data, we are able to send a request to the GitHub API using the [Octokit REST client](https://github.com/octokit/rest.js). The REST client exposes a number of easy convenience functions, including one for adding comments to issues/PRs (issues and PRs are treated as one concept by the Octokit client):
 
-```
+```ts
 const client: github.GitHub = new github.GitHub(repoToken);
 await client.issues.createComment({
   owner: issue.owner,
@@ -125,7 +125,7 @@ await client.issues.createComment({
 
 For more docs on the client, you can visit the [Octokit REST documentation](https://octokit.github.io/rest.js/). Now our action code should be complete:
 
-```
+```ts
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
@@ -161,7 +161,7 @@ run();
 
 Next, we're going to write a basic unit test for our action using jest. If you followed the [javascript walkthrough](./javascript-action.md), you should have a file `__tests__/main.test.ts` that runs tests when `npm test` is called. We're going to start by populating that with one test:
 
-```
+```ts
 const nock = require('nock');
 const path = require('path');
 
@@ -178,7 +178,7 @@ For the purposes of this walkthrough, we'll focus on populating this test and le
 
 First, we want to make sure that we can mock our inputs (welcome-message, and repo-token). Actions handles inputs by populating process.env.INPUT_${input name in all caps}, so we can mock that simply by setting those environment variables:
 
-```
+```ts
 const nock = require('nock');
 const path = require('path');
 
@@ -198,7 +198,7 @@ describe('action test suite', () => {
 
 Mocking the GitHub context is relatively straightforward. Since most of it is simply populated by environment variables, you can just set the corresponding environment variables defined [here](https://github.com/actions/toolkit/blob/ac007c06984bc483fae2ba649788dfc858bc6a8b/packages/github/src/context.ts#L23) and test that it works in that environment. In this case, we can setup our test with:
 
-```
+```ts
 const nock = require('nock');
 const path = require('path');
 
@@ -219,7 +219,7 @@ describe('action test suite', () => {
 
 Note that the payload is loaded from GITHUB_EVENT_PATH. Since we set that to `path.join(__dirname, 'payload.json')`, we need to go save our payload there. For the purposes of this test, we can simply save the following to `__tests__/payload.json`:
 
-```
+```json
 {
     "issue": {
         "number": 10
@@ -236,7 +236,7 @@ To mock the client calls, we recommend using [nock](https://github.com/nock/nock
 
 For this test, we expect the following call:
 
-```
+```ts
 client.issues.createComment({
   owner: 'foo',
   repo: 'bar',
@@ -249,7 +249,7 @@ From [the GitHub endpoint docs](https://developer.github.com/v3/issues/comments/
 
 We can mock this with:
 
-```
+```ts
 const nock = require('nock');
 const path = require('path');
 
