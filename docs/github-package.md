@@ -230,6 +230,8 @@ Note that the payload is loaded from GITHUB_EVENT_PATH. Since we set that to `pa
 
 Now, calling `github.context.issue` should return `{owner: foo, repo: bar, number: 10}`, and `github.context.payload.action` should get set to 'opened'
 
+> One important detail here is that because the GitHub context loads these environment variables as soon as it is required, you should set them before you require your action. In most cases, this means you need to rerequire your action in every test. If this is a problem, you can get around it by mocking the class directly using jest (or whatever framework you choose).
+
 ### Mocking the Octokit Client
 
 To mock the client calls, we recommend using [nock](https://github.com/nock/nock) which allows you to mock the http requests made by the client. First, install nock with `npm install nock --save-dev`.
