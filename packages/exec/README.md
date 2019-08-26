@@ -29,8 +29,8 @@ Capture output or specify [other options](https://github.com/actions/toolkit/blo
 ```js
 const exec = require('@actions/exec');
 
-const myOutput = '';
-const myError = '';
+let myOutput = '';
+let myError = '';
 
 const options = {};
 options.listeners = {
