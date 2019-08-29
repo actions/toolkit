@@ -166,9 +166,11 @@ describe('@actions/core', () => {
   })
 
   it('group wraps an async call in a group', async () => {
-    await core.group('mygroup', async () => {
+    const result = await core.group('mygroup', async () => {
       process.stdout.write('in my group\n')
+      return true
     })
+    expect(result).toBe(true)
     assertWriteCalls([
       `##[group]mygroup${os.EOL}`,
       'in my group\n',
