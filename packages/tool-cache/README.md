@@ -23,9 +23,10 @@ const tc = require('@actions/tool-cache');
 
 if (process.platform === 'win32') {
   const node12Path = tc.downloadTool('http://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip');
+  const node12ExtractedFolder = await tc.extractZip(node12Path, 'path/to/extract/to');
+
   // Or alternately
   const node12Path = tc.downloadTool('http://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.7z');
-
   const node12ExtractedFolder = await tc.extract7z(node12Path, 'path/to/extract/to');
 }
 else {
