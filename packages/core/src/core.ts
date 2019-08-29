@@ -130,3 +130,36 @@ export function error(message: string): void {
 export function warning(message: string): void {
   issue('warning', message)
 }
+
+/**
+ * Begin an output group.
+ *
+ * Output until the next `groupEnd` will be foldable in this group
+ *
+ * @param name The name of the output group
+ */
+export function startGroup(name: string): void {
+  issue('group', name)
+}
+
+/**
+ * End an output group.
+ */
+export function endGroup(): void {
+  issue('endgroup')
+}
+
+/**
+ * Wrap an asynchronous function call in a group.
+ *
+ * Returns the same type as the function itself.
+ *
+ * @param name The name of the group
+ * @param fn The function to wrap in the group
+ */
+export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
+  startGroup(name)
+  const result = await fn()
+  endGroup()
+  return result
+}

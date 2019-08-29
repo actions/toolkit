@@ -155,6 +155,27 @@ describe('@actions/core', () => {
     assertWriteCalls([`##[warning]%0D%0Awarning%0A${os.EOL}`])
   })
 
+  it('startGroup starts a new group', () => {
+    core.startGroup('my-group')
+    assertWriteCalls([`##[group]my-group${os.EOL}`])
+  })
+
+  it('endGroup ends new group', () => {
+    core.endGroup()
+    assertWriteCalls([`##[endgroup]${os.EOL}`])
+  })
+
+  it('group wraps an async call in a group', async () => {
+    await core.group('mygroup', async () => {
+      process.stdout.write('in my group\n')
+    })
+    assertWriteCalls([
+      `##[group]mygroup${os.EOL}`,
+      'in my group\n',
+      `##[endgroup]${os.EOL}`
+    ])
+  })
+
   it('debug sets the correct message', () => {
     core.debug('Debug')
     assertWriteCalls([`##[debug]Debug${os.EOL}`])

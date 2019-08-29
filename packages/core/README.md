@@ -78,3 +78,20 @@ catch (err) {
   core.error(`Error ${err}, action may still succeed though`);
 }
 ```
+
+This library can also wrap chunks of output in foldable groups.
+
+```js
+const core = require('@actions/core')
+
+// Manually wrap output
+core.groupStart('Do some function')
+doSomeFunction()
+core.groupEnd()
+
+// Wrap an asynchronous function call
+const result = await core.group('Do something async', async () => {
+  const response = await doSomeHTTPRequest()
+  return response
+})
+```
