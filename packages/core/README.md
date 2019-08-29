@@ -85,9 +85,9 @@ This library can also wrap chunks of output in foldable groups.
 const core = require('@actions/core')
 
 // Manually wrap output
-core.groupStart('Do some function')
+core.startGroup('Do some function')
 doSomeFunction()
-core.groupEnd()
+core.endGroup()
 
 // Wrap an asynchronous function call
 const result = await core.group('Do something async', async () => {
