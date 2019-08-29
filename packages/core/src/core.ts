@@ -159,7 +159,14 @@ export function endGroup(): void {
  */
 export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
   startGroup(name)
-  const result = await fn()
-  endGroup()
+
+  let result: T
+
+  try {
+    result = await fn()
+  } finally {
+    endGroup()
+  }
+
   return result
 }
