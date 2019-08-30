@@ -1,7 +1,6 @@
 // Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/master/src/context.ts
 import {WebhookPayload} from './interfaces'
-
-/* eslint-disable @typescript-eslint/no-require-imports */
+import {readFileSync} from 'fs'
 
 export class Context {
   /**
@@ -21,7 +20,9 @@ export class Context {
    */
   constructor() {
     this.payload = process.env.GITHUB_EVENT_PATH
-      ? require(process.env.GITHUB_EVENT_PATH)
+      ? JSON.parse(
+          readFileSync(process.env.GITHUB_EVENT_PATH, {encoding: 'utf8'})
+        )
       : {}
     this.eventName = process.env.GITHUB_EVENT_NAME as string
     this.sha = process.env.GITHUB_SHA as string
