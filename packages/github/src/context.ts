@@ -1,6 +1,7 @@
 // Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/master/src/context.ts
 import {WebhookPayload} from './interfaces'
-import {readFileSync} from 'fs'
+import {readFileSync, existsSync} from 'fs'
+import {EOL} from 'os'
 
 export class Context {
   /**
@@ -19,11 +20,20 @@ export class Context {
    * Hydrate the context from the environment
    */
   constructor() {
-    this.payload = process.env.GITHUB_EVENT_PATH
-      ? JSON.parse(
+    this.payload = {}
+    if (process.env.GITHUB_EVENT_PATH) {
+      if (existsSync(process.env.GITHUB_EVENT_PATH)) {
+        this.payload = JSON.parse(
           readFileSync(process.env.GITHUB_EVENT_PATH, {encoding: 'utf8'})
         )
-      : {}
+      } else {
+        process.stdout.write(
+          `GITHUB_EVENT_PATH ${
+            process.env.GITHUB_EVENT_PATH
+          } does not exist${EOL}`
+        )
+      }
+    }
     this.eventName = process.env.GITHUB_EVENT_NAME as string
     this.sha = process.env.GITHUB_SHA as string
     this.ref = process.env.GITHUB_REF as string
