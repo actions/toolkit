@@ -8,7 +8,7 @@ Note that a complete version of this action can be found at https://github.com/d
 
 ## Prerequisites
 
-This walkthrough assumes that you have gone through the basic [javascript action walkthrough](./javascript-action) and have a basic action set up. If not, we recommend you go through that first.
+This walkthrough assumes that you have gone through the basic [javascript action walkthrough](./javascript-action.md) and have a basic action set up. If not, we recommend you go through that first.
 
 ## Installing dependencies
 
