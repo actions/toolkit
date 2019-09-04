@@ -4,14 +4,16 @@ The [core toolkit package](https://github.com/actions/toolkit/tree/master/packag
 setting results, logging, registering secrets and exporting variables across actions. Sometimes, however, its useful to be able to do
 these things in a script or other tool.
 
-To allow this, we permit a special `::` syntax which, if logged to stdout, will allow the runner to interpret your commands.
-The following commands are all supported:
+To allow this, we provide a special `::` syntax which, if logged to `stdout`, will allow the runner to perform special behavior on
+your commands. The following commands are all supported:
 
 ### Set an environment variable
 
 To set an environment variable, use `::set-env`:
 
-`echo ::set-env name=FOO::BAR`
+```sh
+echo ::set-env name=FOO::BAR
+```
 
 Running `$FOO` in a future step will now return `BAR`
 
@@ -19,23 +21,38 @@ Running `$FOO` in a future step will now return `BAR`
 
 To prepend a string to PATH, use `::addPath`:
 
-`echo ::add-path::BAR`
+```sh
+echo ::add-path::BAR
+```
 
 Running `$PATH` in a future step will now return `BAR:{Previous Path}`;
 
 ### Set outputs
 
-To set an output for the step, use `set-output`:
+To set an output for the step, use `::set-output`:
 
-`echo ::set-output name=FOO::BAR`
+```sh
+echo ::set-output name=FOO::BAR
+```
 
 Running `steps.[step-id].outputs.FOO` in your Yaml will now give you `BAR`
 
-### Masking Values from Logs
+```yaml
+steps:
+  - name: Set the value
+    id: step_one
+    run: echo ::set-output name=FOO::BAR
+  - name: Use it
+    run: echo ${{ steps.step_one.outputs.FOO }}
+```
 
-To mask a value from the logs, use `add-mask`:
+### Masking Values in Logs
 
-`echo ::add-mask::BAR`
+To mask a value in the logs, use `::add-mask`:
+
+```sh
+echo ::add-mask::BAR
+```
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
 
@@ -44,15 +61,10 @@ For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` wi
 
 ### Log Level
 
-Finally, there are several commands to emit different levels of log output.
-To emit [debug](https://github.com/actions/toolkit/blob/master/docs/action-debugging.md) output, use `::debug`:
+Finally, there are several commands to emit different levels of log output:
 
-`echo ::debug::My debug message`
-
-To emit error messages use `::error`:
-
-`echo ::error::My error message`
-
-Finally, to emit warnings use `::warning`:
-
-`echo ::warning::My warning message`
+| log level | example usage |
+|---|---|
+| [debug](https://github.com/actions/toolkit/blob/master/docs/action-debugging.md)  | `echo ::debug::My debug message` |
+| warning | `echo ::warning::My warning message` |
+| error | `echo ::error::My error message` |
