@@ -84,7 +84,7 @@ describe('@actions/core', () => {
     expect(process.env['PATH']).toBe(
       `myPath${path.delimiter}path1${path.delimiter}path2`
     )
-    assertWriteCalls([`::add-path]myPath${os.EOL}`])
+    assertWriteCalls([`::add-path::myPath${os.EOL}`])
   })
 
   it('getInput gets non-required input', () => {
