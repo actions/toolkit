@@ -6,7 +6,7 @@ The [javascript-template](https://github.com/actions/javascript-template) repo c
 
 Navigate to https://github.com/actions/javascript-template
 
-Click on `Use this template` to create the repo for your action.  Provide a name such as `myaction`.
+Click on `Use this template` to create the repo for your action.  Provide a name such as `myaction` (used in rest of walk through).
 
 ![template](assets/node12-template.png)
 
@@ -23,7 +23,7 @@ Update the `author` element in the package.json file.
 
 The workflow below describes one possible workflow with a branching strategy.  Others exist.  
 
-> Key Point: the branch that users reference in their workflow files should reference an action from a distribution branch that has **only** the production dependencies. 
+> Key Point: the branch that users reference in their workflow files should reference an action from a distribution branch that **only** has the production dependencies. 
 
 The workflow below describes a strategy where you code in master (with node_modules ignored) with a distribution releases/v1 branch users reference via a tag.  Actions are self contained referenced from the github graph of repos, downloaded by the runner and run intact at runtime.
 
@@ -137,7 +137,9 @@ Once the action has a self contained version in the v1-release branch, you can t
 
 ```yaml
 steps:
-    uses: {org}/{reponame}@releases/v1
+    uses: myorg/myaction@releases/v1
+    with:
+      name: World!
 ```
 
 ## Release Current Changes as v1
@@ -152,7 +154,9 @@ Users can now reference your action in their workflows with
 
 ```yaml
 steps:
-    uses: {org}/{reponame}@v1
+    uses: myorg/myaction@v1
+    with:
+      name: World!
 ```
 
 
