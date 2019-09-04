@@ -29,7 +29,7 @@ export function issue(name: string, message: string): void {
   issueCommand(name, {}, message)
 }
 
-const CMD_PREFIX = '##['
+const CMD_STRING = '::'
 
 class Command {
   private readonly command: string
@@ -47,7 +47,7 @@ class Command {
   }
 
   toString(): string {
-    let cmdStr = CMD_PREFIX + this.command
+    let cmdStr = CMD_STRING + this.command
 
     if (this.properties && Object.keys(this.properties).length > 0) {
       cmdStr += ' '
@@ -57,13 +57,13 @@ class Command {
           if (val) {
             // safely append the val - avoid blowing up when attempting to
             // call .replace() if message is not a string for some reason
-            cmdStr += `${key}=${escape(`${val || ''}`)};`
+            cmdStr += `${key}=${escape(`${val || ''}`)},`
           }
         }
       }
     }
 
-    cmdStr += ']'
+    cmdStr += CMD_STRING
 
     // safely append the message - avoid blowing up when attempting to
     // call .replace() if message is not a string for some reason
