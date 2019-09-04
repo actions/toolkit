@@ -136,5 +136,5 @@ export function warning(message: string): void {
  * @param message info message
  */
 export function info(message: string): void {
-  console.log(message);
+  process.stdout.write(message + os.EOL)
 }
