@@ -130,3 +130,11 @@ export function error(message: string): void {
 export function warning(message: string): void {
   issue('warning', message)
 }
+
+/**
+ * Writes info to log with console.log.
+ * @param message info message
+ */
+export function info(message: string): void {
+  console.log(message);
+}
