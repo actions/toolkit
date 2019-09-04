@@ -6,32 +6,30 @@ The [javascript-template](https://github.com/actions/javascript-template) repo c
 
 Navigate to https://github.com/actions/javascript-template
 
-Click on `Use this template` to create the repo for your action.
+Click on `Use this template` to create the repo for your action.  Provide a name such as `myaction`.
 
 ![template](assets/node12-template.png)
 
-Complete creating your repo and clone the repo.
+# Clone and Update
 
-> NOTE: The location of the repo will be how users will reference your action in their workflow file with the using keyword.
-
-e.g. To use https://github.com/actions/setup-node, user's will author:
-
-```yaml
-steps:
-    uses: actions/setup-node@master
+```bash
+$ git clone <repolocation>
+$ cd myaction
 ```
+
+Update the `author` element in the package.json file.
 
 # Dev Workflow
 
 The workflow below describes one possible workflow with a branching strategy.  Others exist.  
 
-> Key Point: the branch that users reference in their workflow files should reference an action that has **only** the production dependencies. 
+> Key Point: the branch that users reference in their workflow files should reference an action from a distribution branch that has **only** the production dependencies. 
 
-The workflow below describes a strategy where you code in master (with node_modules ignored) with a v1 branch users reference and contains the product references.  Actions are self contained referenced on the github graph of repos.
+The workflow below describes a strategy where you code in master (with node_modules ignored) with a distribution releases/v1 branch users reference via a tag.  Actions are self contained referenced from the github graph of repos, downloaded by the runner and run intact at runtime.
 
 ## Install Dependencies
 
-After creating a repo from the template and cloning it, you will be in master.  The command below will install the toolkit, other dependencies and dev dependencies
+After creating a repo from the template and cloning it, you will be in master.  The command below will install the toolkit, other dependencies and dev dependencies.  node_modules are ignored in the coding master branch.
 
 ```bash
 $ npm install
@@ -39,23 +37,23 @@ $ npm install
 
 ## Define Metadata
 
-Your action has a name and a description.  Update the author.
-
-Create inputs that your unit of work will need.  These will be what workflow authors set with the `with:` keyword.
+Your action has a name and a description.  Update all fields .
 
 ```yaml
-name: 'My new action'
-description: 'A test action'
-author: 'GitHub'
+name: 'Hello'
+description: 'Outputs Hello to a named input'
+author: 'me'
 inputs: 
-  myInput:
-    description: 'Input to use'
-    default: 'world'
+  name:
+    description: 'the name to say hello to'
+    default: 'World'
 runs:
   using: 'node12'
   main: 'lib/main.js'
 
 ```
+
+The `name` input will be referenced by workflow authors using the `with:` keyword.
 
 Note that the action will be run with node 12 (carried by the runner) and the entry point is specified with `main:` 
 
@@ -68,8 +66,8 @@ import * as core from '@actions/core';
 
 async function run() {
   try {
-    const myInput = core.getInput('myInput');
-    core.debug(`Hello ${myInput}!`);
+    const nameInput = core.getInput('name');
+    console.log(`Hello ${nameInput}!`);
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -78,14 +76,14 @@ async function run() {
 run();
 ```
 
-Modify tests in `__tests__/main.test.ts`.  The template uses [jest](https://github.com/facebook/jest).
+Note that tests are in `__tests__/main.test.ts`.  The template uses [jest](https://github.com/facebook/jest) to get you started with unit testing.
 
 ## Build and Test
 
 ```bash
 $ npm run build
 
-> node12-template-action@0.0.0 build /Users/user/Projects/testnode12
+> javascript-template-action@0.0.0 build /Users/user/Projects/myaction
 > tsc
 
 $ npm test
@@ -107,12 +105,12 @@ $ git add <whatever only files you added>
 $ git commit -m "Message"
 ```
 
-## Publish a v1-release Action
+## Publish a releases/v1 Action
 
-After changing some files, create a v1-release branch which we will release 
+After changing some files, create a releases/v1 branch which we will release 
 
 ```bash
-$ git checkout -b v1-release
+$ git checkout -b releases/v1
 ```
 
 > NOTE: We will provide tooling and an action to automate this soon.
@@ -139,7 +137,7 @@ Once the action has a self contained version in the v1-release branch, you can t
 
 ```yaml
 steps:
-    uses: {org}/{reponame}@v1-release
+    uses: {org}/{reponame}@releases/v1
 ```
 
 ## Release Current Changes as v1
