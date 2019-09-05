@@ -1,4 +1,4 @@
-name: Main workflow
+name: BestBond
 on: [push]
 jobs:
   Ubuntu:
