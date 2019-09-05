@@ -26,6 +26,6 @@
     "lerna": "^3.13.3",
     "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.4.4"
+    "typescript": "^3.6.2"
   }
 }

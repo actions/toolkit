@@ -27,6 +27,8 @@ const { data: pullRequest } = await octokit.pulls.get({
 console.log(pullRequest);
 ```
 
+You can pass client options (except `auth`, which is handled by the token argument), as specified by [Octokit](https://octokit.github.io/rest.js/), as a second argument to the `GitHub` constructor.
+
 You can also make GraphQL requests. See https://github.com/octokit/graphql.js for the API.
 
 ```js
