@@ -14,8 +14,8 @@ export class GitHub extends Octokit {
     variables?: Variables
   ) => Promise<GraphQlQueryResponse>
 
-  constructor(token: string) {
-    super({auth: `token ${token}`})
+  constructor(token: string, opts: Omit<Octokit.Options, 'auth'> = {}) {
+    super({...opts, auth: `token ${token}`})
     this.graphql = defaults({
       headers: {authorization: `token ${token}`}
     })
