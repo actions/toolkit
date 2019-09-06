@@ -126,7 +126,7 @@ Simply commit and push your action to publish.
 
 ```bash
 $ git commit -a -m "publishing v1 of action"
-$ git push
+$ git push origin releases/v1
 ```
 
 > NOTE: Consider versioning your actions with tags.  See [versioning](action-versioning.md)
