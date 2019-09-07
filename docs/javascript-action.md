@@ -119,7 +119,7 @@ Check in production dependencies:
 1. **Do not ignore node_modules**:  Add a `!` in front of the `node_modules` line.
 2. **Delete node_modules**: rm -Rf node_modules
 3. **Install production dependencies**: npm install --production
-4. **Add**: git add node_modules
+4. **Add**: git add node_modules -f
 
 
 Simply commit and push your action to publish.
