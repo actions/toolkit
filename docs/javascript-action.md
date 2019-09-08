@@ -37,7 +37,7 @@ $ npm install
 
 ## Define Metadata
 
-Your action has a name and a description.  Update all fields .
+Your action has a name and a description.  Update all fields in action.yml .
 
 ```yaml
 name: 'Hello'
