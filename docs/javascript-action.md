@@ -159,5 +159,6 @@ steps:
       name: World!
 ```
 
+# Next Steps
 
-
+Now that you've created a basic action, see how to [leverage the github context](./github-package) in your actions
