@@ -1,5 +1,6 @@
 import {issue, issueCommand} from './command'
 
+import * as os from 'os'
 import * as path from 'path'
 
 /**
@@ -129,6 +130,14 @@ export function error(message: string): void {
  */
 export function warning(message: string): void {
   issue('warning', message)
+}
+
+/**
+ * Writes info to log with console.log.
+ * @param message info message
+ */
+export function info(message: string): void {
+  process.stdout.write(message + os.EOL)
 }
 
 /**
