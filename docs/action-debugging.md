@@ -18,7 +18,7 @@ All actions ran while this secret is enabled contain additional diagnostic log f
 ## Step Debug Logs
 Step debug logs increase the verbosity of a job's logs during and after a job's execution to assist with troubleshooting. 
 
-Additional log events with the prefix `##[debug]` will now also appear in the job's logs.
+Additional log events with the prefix `::debug::` will now also appear in the job's logs.
 
 ### How to Access Step Debug Logs
 This flag can be enabled by [setting the secret](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) `ACTIONS_STEP_DEBUG` to `true`.
