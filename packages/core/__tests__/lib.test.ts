@@ -157,12 +157,12 @@ describe('@actions/core', () => {
 
   it('startGroup starts a new group', () => {
     core.startGroup('my-group')
-    assertWriteCalls([`##[group]my-group${os.EOL}`])
+    assertWriteCalls([`::group::my-group${os.EOL}`])
   })
 
   it('endGroup ends new group', () => {
     core.endGroup()
-    assertWriteCalls([`##[endgroup]${os.EOL}`])
+    assertWriteCalls([`::endgroup::${os.EOL}`])
   })
 
   it('group wraps an async call in a group', async () => {
@@ -172,9 +172,9 @@ describe('@actions/core', () => {
     })
     expect(result).toBe(true)
     assertWriteCalls([
-      `##[group]mygroup${os.EOL}`,
+      `::group::mygroup${os.EOL}`,
       'in my group\n',
-      `##[endgroup]${os.EOL}`
+      `::endgroup::${os.EOL}`
     ])
   })
 
