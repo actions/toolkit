@@ -41,3 +41,9 @@ git push origin v1
 5. **Compatibility Breaks**:  introduce a new major version branch (releases/v2) and tag (v2) if changes will break existing workflows.  For example, changing inputs.
 
 See [Git-Basics-Tagging](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
+
+# Sample Workflow
+
+This illustrates one possible versioning workflow which the walk through covered.
+
+![versioning](assets/action-releases.png)

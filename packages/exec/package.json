@@ -1,10 +1,10 @@
 {
   "name": "@actions/exec",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Actions exec lib",
   "keywords": [
     "github",
-    "actions",    
+    "actions",
     "exec"
   ],
   "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
@@ -32,6 +32,6 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "devDependencies": {
-    "@actions/io": "^1.0.0"
+    "@actions/io": "^1.0.1"
   }
 }

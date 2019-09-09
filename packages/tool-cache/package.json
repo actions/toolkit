@@ -1,10 +1,10 @@
 {
   "name": "@actions/tool-cache",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Actions tool-cache lib",
   "keywords": [
     "github",
-    "actions",    
+    "actions",
     "exec"
   ],
   "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
@@ -33,9 +33,9 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.0.0",
-    "@actions/exec": "^1.0.0",
-    "@actions/io": "^1.0.0",
+    "@actions/core": "^1.1.0",
+    "@actions/exec": "^1.0.1",
+    "@actions/io": "^1.0.1",
     "semver": "^6.1.0",
     "typed-rest-client": "^1.4.0",
     "uuid": "^3.3.2"
