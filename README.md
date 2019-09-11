@@ -25,11 +25,15 @@ The toolkit provides five separate packages.   See the docs for each action.
 
 ## Creating an Action with the Toolkit
 
-Actions are units of work which can either run in a container or on the host machine.
+Actions run in a container or on the host machine.
 
 [Choosing an action type](docs/action-types.md): Outlines the differences and why you would want to create a JavaScript or a container based action.
 
-[JavaScript Action Walkthrough using a Template](docs/javascript-action.md): A full walkthrough creating an action using the toolkit along with TypeScript for compile time support and Jest for unit testing.  It also covers a branching strategy for versioning and safely testing and releasing an action.
+[Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action): Illustrates how to create a simple hello world javascript action.
+
+[JavaScript Action Walkthrough](https://github.com/actions/javascript-action): Walkthrough creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
+
+[TypeScript Action Walkthrough](docs/typescript-action.md): Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
 
 [Docker Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container and run with docker.
 

@@ -1,10 +1,10 @@
 # Creating a JavaScript Action
 
-The [javascript-template](https://github.com/actions/javascript-template) repo contains everything you need to get started.
+The [typescript-action](https://github.com/actions/typescript-action) repo contains everything you need to get started.
 
 # Create a Repo from the Template
 
-Navigate to https://github.com/actions/javascript-template
+Navigate to https://github.com/actions/typescript-action
 
 Click on `Use this template` to create the repo for your action.  Provide a name such as `myaction` (used in rest of walk through).
 
