@@ -11,6 +11,8 @@ const github = require('@actions/github');
 const core = require('@actions/core');
 
 // This should be a token with access to your repository scoped in as a secret.
+// The YML workflow will need to set myToken with the GitHub Secret Token
+// myToken: ${{ secrets.GITHUB_TOKEN }
 const myToken = core.getInput('myToken');
 
 const octokit = new github.GitHub(myToken);
