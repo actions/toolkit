@@ -16,7 +16,8 @@ const testEnvVars = {
   // Set inputs
   INPUT_MY_INPUT: 'val',
   INPUT_MISSING: '',
-  'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response '
+  'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
+  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces'
 }
 
 describe('@actions/core', () => {
@@ -111,6 +112,12 @@ describe('@actions/core', () => {
 
   it('getInput handles special characters', () => {
     expect(core.getInput('special chars_\'\t"\\')).toBe('\'\t"\\ response')
+  })
+
+  it('getInput handles multiple spaces', () => {
+    expect(core.getInput('multiple spaces variable')).toBe(
+      'I have multiple spaces'
+    )
   })
 
   it('setOutput produces the correct command', () => {
