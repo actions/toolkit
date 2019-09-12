@@ -2,6 +2,7 @@
 
 ### Unreleased
 
+- Add support for action input variables with multiple spaces [#127](https://github.com/actions/toolkit/issues/127)
 - Switched ## commands to :: commands (should have no noticeable impact) [#110)(https://github.com/actions/toolkit/pull/110)
 
 ### 1.1.0
