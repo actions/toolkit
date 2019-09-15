@@ -1,4 +1,4 @@
-# Creating a JavaScript Action
+# Creating a TypeScript Action
 
 The [typescript-action](https://github.com/actions/typescript-action) repo contains everything you need to get started.
 
