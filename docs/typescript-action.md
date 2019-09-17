@@ -161,4 +161,4 @@ steps:
 
 # Next Steps
 
-Now that you've created a basic action, see how to [leverage the github context](./github-package) in your actions
+Now that you've created a basic action, see how to [leverage the github context](github-package.md) in your actions
