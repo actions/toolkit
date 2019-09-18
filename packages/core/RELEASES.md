@@ -1,6 +1,6 @@
 # @actions/core Releases
 
-### 1.2.0
+### 1.1.1
 
 - set-secret is now available for use [#141](https://github.com/actions/toolkit/issues/141)
 - Add support for action input variables with multiple spaces [#127](https://github.com/actions/toolkit/issues/127)
