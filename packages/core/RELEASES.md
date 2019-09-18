@@ -1,6 +1,6 @@
 # @actions/core Releases
 
-### Unreleased
+### 1.2.0
 
 - Don't throw on set-secret [#141](https://github.com/actions/toolkit/issues/141)
 - Add support for action input variables with multiple spaces [#127](https://github.com/actions/toolkit/issues/127)
