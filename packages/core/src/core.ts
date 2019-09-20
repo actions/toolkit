@@ -1,4 +1,4 @@
-import {issue, issueCommand} from './command'
+import { issue, issueCommand } from './command'
 
 import * as os from 'os'
 import * as path from 'path'
@@ -37,7 +37,7 @@ export enum ExitCode {
  */
 export function exportVariable(name: string, val: string): void {
   process.env[name] = val
-  issueCommand('set-env', {name}, val)
+  issueCommand('set-env', { name }, val)
 }
 
 /**
@@ -86,7 +86,7 @@ export function getInput(name: string, options?: InputOptions): string {
  * @param     value    value to store
  */
 export function setOutput(name: string, value: string): void {
-  issueCommand('set-output', {name}, value)
+  issueCommand('set-output', { name }, value)
 }
 
 //-----------------------------------------------------------------------
@@ -177,4 +177,28 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
   }
 
   return result
+}
+
+//-----------------------------------------------------------------------
+// Wrapper action state
+//-----------------------------------------------------------------------
+
+/**
+ * Saves state for current action, the state can only be retrieved by this action's post job execution.
+ *
+ * @param     name     name of the state to store
+ * @param     value    value to store
+ */
+export function saveState(name: string, value: string): void {
+  issueCommand('save-state', { name }, value)
+}
+
+/**
+ * Gets the value of an state set by this action's main execution.
+ *
+ * @param     name     name of the state to get
+ * @returns   string
+ */
+export function getState(name: string): string {
+  return process.env[`STATE_${name}`] || ''
 }

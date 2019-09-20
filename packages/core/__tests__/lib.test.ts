@@ -17,7 +17,10 @@ const testEnvVars = {
   INPUT_MY_INPUT: 'val',
   INPUT_MISSING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
-  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces'
+  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
+
+  // Save inputs
+  STATE_state_1: 'state_val'
 }
 
 describe('@actions/core', () => {
@@ -93,17 +96,17 @@ describe('@actions/core', () => {
   })
 
   it('getInput gets required input', () => {
-    expect(core.getInput('my input', {required: true})).toBe('val')
+    expect(core.getInput('my input', { required: true })).toBe('val')
   })
 
   it('getInput throws on missing required input', () => {
-    expect(() => core.getInput('missing', {required: true})).toThrow(
+    expect(() => core.getInput('missing', { required: true })).toThrow(
       'Input required and not supplied: missing'
     )
   })
 
   it('getInput does not throw on missing non-required input', () => {
-    expect(core.getInput('missing', {required: false})).toBe('')
+    expect(core.getInput('missing', { required: false })).toBe('')
   })
 
   it('getInput is case insensitive', () => {
@@ -193,6 +196,15 @@ describe('@actions/core', () => {
   it('debug escapes the message', () => {
     core.debug('\r\ndebug\n')
     assertWriteCalls([`::debug::%0D%0Adebug%0A${os.EOL}`])
+  })
+
+  it('saveState produces the correct command', () => {
+    core.saveState('state_1', 'some value')
+    assertWriteCalls([`::save-state name=state_1,::some value${os.EOL}`])
+  })
+
+  it('getState gets wrapper action state', () => {
+    expect(core.getState('state_1')).toBe('state_val')
   })
 })
 
