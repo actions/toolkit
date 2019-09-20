@@ -1,4 +1,4 @@
-import { issue, issueCommand} from './command'
+import {issue, issueCommand} from './command'
 
 import * as os from 'os'
 import * as path from 'path'
@@ -86,7 +86,7 @@ export function getInput(name: string, options?: InputOptions): string {
  * @param     value    value to store
  */
 export function setOutput(name: string, value: string): void {
-  issueCommand('set-output', { name }, value)
+  issueCommand('set-output', {name}, value)
 }
 
 //-----------------------------------------------------------------------
@@ -190,7 +190,7 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
  * @param     value    value to store
  */
 export function saveState(name: string, value: string): void {
-  issueCommand('save-state', { name }, value)
+  issueCommand('save-state', {name}, value)
 }
 
 /**

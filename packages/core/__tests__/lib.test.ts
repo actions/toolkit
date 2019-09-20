@@ -96,17 +96,17 @@ describe('@actions/core', () => {
   })
 
   it('getInput gets required input', () => {
-    expect(core.getInput('my input', { required: true})).toBe('val')
+    expect(core.getInput('my input', {required: true})).toBe('val')
   })
 
   it('getInput throws on missing required input', () => {
-    expect(() => core.getInput('missing', { required: true})).toThrow(
+    expect(() => core.getInput('missing', {required: true})).toThrow(
       'Input required and not supplied: missing'
     )
   })
 
   it('getInput does not throw on missing non-required input', () => {
-    expect(core.getInput('missing', { required: false})).toBe('')
+    expect(core.getInput('missing', {required: false})).toBe('')
   })
 
   it('getInput is case insensitive', () => {
