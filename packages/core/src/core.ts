@@ -1,4 +1,4 @@
-import { issue, issueCommand } from './command'
+import { issue, issueCommand} from './command'
 
 import * as os from 'os'
 import * as path from 'path'
@@ -37,7 +37,7 @@ export enum ExitCode {
  */
 export function exportVariable(name: string, val: string): void {
   process.env[name] = val
-  issueCommand('set-env', { name }, val)
+  issueCommand('set-env', {name}, val)
 }
 
 /**
