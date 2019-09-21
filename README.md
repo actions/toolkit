@@ -33,7 +33,7 @@ Actions run in a container or on the host machine.
 
 [JavaScript Action Walkthrough](https://github.com/actions/javascript-action): Walkthrough creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
 
-[TypeScript Action Walkthrough](docs/typescript-action.md): Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
+[TypeScript Action Walkthrough](https://github.com/actions/typescript-action): Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
 
 [Docker Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container and run with docker.
 
