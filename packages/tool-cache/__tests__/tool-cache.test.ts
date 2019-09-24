@@ -288,7 +288,7 @@ describe('@actions/tool-cache', function() {
         await exec.exec(`"${powershellPath}"`, args)
       } else {
         const zipPath: string = await io.which('zip')
-        console.log('****', zipPath);
+        console.log('****', zipPath)
         console.log(`"${zipPath}`, [zipFile, '-r', '.'], {cwd: stagingDir})
         await exec.exec(`"${zipPath}`, [zipFile, '-r', '.'], {cwd: stagingDir})
       }

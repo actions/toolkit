@@ -251,7 +251,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
 }
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
-  const unzipPath = await io.which('unzip');
+  const unzipPath = await io.which('unzip')
   await exec(`"${unzipPath}"`, [file], {cwd: dest})
 }
 
