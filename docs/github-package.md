@@ -21,19 +21,19 @@ All of the dependencies we need should come packaged for us in this library's co
 Next, we will need a welcome message and a repo token as an input. Recall that inputs are defined in the `action.yml` metadata file - update your `action.yml` file to define `welcome-message` and `repo-token` as inputs.
 
 ```yaml
-name: 'Welcome'
-description: 'A basic welcome action'
-author: 'GitHub'
-inputs: 
+name: "Welcome"
+description: "A basic welcome action"
+author: "GitHub"
+inputs:
   welcome-message:
-    description: 'Message to display when a user opens an issue or PR'
-    default: 'Thanks for opening an issue! Make sure you've followed CONTRIBUTING.md'
+    description: "Message to display when a user opens an issue or PR"
+    default: "Thanks for opening an issue! Make sure you've followed CONTRIBUTING.md"
   repo-token:
-    description: 'Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    description: "Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}"
     required: true
 runs:
-  using: 'node12'
-  main: 'lib/main.js'
+  using: "node12"
+  main: "lib/main.js"
 ```
 
 ## Action logic
