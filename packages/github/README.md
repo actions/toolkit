@@ -10,24 +10,28 @@ Returns an Octokit client. See https://octokit.github.io/rest.js for the API.
 const github = require('@actions/github');
 const core = require('@actions/core');
 
-// This should be a token with access to your repository scoped in as a secret.
-// The YML workflow will need to set myToken with the GitHub Secret Token
-// myToken: ${{ secrets.GITHUB_TOKEN }}
-// https://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret
-const myToken = core.getInput('myToken');
+async function run() {
+    // This should be a token with access to your repository scoped in as a secret.
+    // The YML workflow will need to set myToken with the GitHub Secret Token
+    // myToken: ${{ secrets.GITHUB_TOKEN }
+    // https://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret
+    const myToken = core.getInput('myToken');
 
-const octokit = new github.GitHub(myToken);
+    const octokit = new github.GitHub(myToken);
 
-const { data: pullRequest } = await octokit.pulls.get({
-    owner: 'octokit',
-    repo: 'rest.js',
-    pull_number: 123,
-    mediaType: {
-      format: 'diff'
-    }
-});
+    const { data: pullRequest } = await octokit.pulls.get({
+        owner: 'octokit',
+        repo: 'rest.js',
+        pull_number: 123,
+        mediaType: {
+          format: 'diff'
+        }
+    });
 
-console.log(pullRequest);
+    console.log(pullRequest);
+}
+
+run();
 ```
 
 You can pass client options (except `auth`, which is handled by the token argument), as specified by [Octokit](https://octokit.github.io/rest.js/), as a second argument to the `GitHub` constructor.
