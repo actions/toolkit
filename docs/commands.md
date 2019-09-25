@@ -89,7 +89,7 @@ Emitting a group with a title will instruct the logs to create a collapsable reg
 
 ```bash
 echo ::group::my title   
-echo ::ungroup::
+echo ::endgroup::
 ```
 
 This is wrapped by the core methods:
