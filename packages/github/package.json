@@ -21,7 +21,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/toolkit.git"
+    "url": "git+https://github.com/actions/toolkit.git",
+    "directory": "packages/github"
   },
   "scripts": {
     "test": "jest",

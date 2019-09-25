@@ -23,7 +23,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/toolkit.git"
+    "url": "git+https://github.com/actions/toolkit.git",
+    "directory": "packages/tool-cache"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
