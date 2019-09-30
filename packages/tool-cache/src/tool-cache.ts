@@ -201,7 +201,13 @@ export async function extractTar(
 
   dest = dest || (await _createExtractFolder(dest))
   const tarPath: string = await io.which('tar', true)
-  await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
+  const args: string[] = [flags]
+  if (IS_WINDOWS) {
+    // On Windows, absolute path use a ':' (e.g. C:\foo), which is incorrectly recognized as a remote path by tar unless this flag is passed
+    args.push('--force-local')
+  }
+  args.push('-C', dest, '-f', file)
+  await exec(`"${tarPath}"`, args)
 
   return dest
 }
