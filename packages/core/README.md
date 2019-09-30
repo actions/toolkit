@@ -18,16 +18,17 @@ const myInput = core.getInput('inputName', { required: true });
 core.setOutput('outputKey', 'outputVal');
 ```
 
-#### Exporting variables
+#### Exporting variables and secrets
 
-You can also export variables for future steps. Variables get set in the environment.
+You can also export variables and secrets for future steps. Both get set in the environment; the only difference is that a secret is masked in the logs.
 
 ```js
 const core = require('@actions/core');
 
-// Do stuff
-
+// add envVar to the environment, with 'Val' visible in logs
 core.exportVariable('envVar', 'Val');
+// add secretVar to the environment, with only '***' visible in logs
+core.exportSecret('secretVar', 'secret');
 ```
 
 #### PATH Manipulation

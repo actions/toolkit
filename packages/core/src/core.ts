@@ -47,10 +47,7 @@ export function exportVariable(name: string, val: string): void {
  */
 export function exportSecret(name: string, val: string): void {
   exportVariable(name, val)
-
-  // the runner will error with not implemented
-  // leaving the function but raising the error earlier
-  issueCommand('set-secret', {}, val)
+  issueCommand('add-mask', {}, val)
 }
 
 /**

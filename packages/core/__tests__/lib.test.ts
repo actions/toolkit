@@ -51,34 +51,34 @@ describe('@actions/core', () => {
     assertWriteCalls([`::set-env name=my var2,::var val%0D%0A${os.EOL}`])
   })
 
-  // it('exportSecret produces the correct commands and sets the env', () => {
-  //   core.exportSecret('my secret', 'secret val')
-  //   expect(process.env['my secret']).toBe('secret val')
-  //   assertWriteCalls([
-  //     `::set-env name=my secret,::secret val${os.EOL}`,
-  //     `::set-secret]secret val${os.EOL}`
-  //   ])
-  // })
+  it('exportSecret produces the correct commands and sets the env', () => {
+    core.exportSecret('my secret', 'secret val')
+    expect(process.env['my secret']).toBe('secret val')
+    assertWriteCalls([
+      `::set-env name=my secret,::secret val${os.EOL}`,
+      `::add-mask::secret val${os.EOL}`
+    ])
+  })
 
-  // it('exportSecret escapes secret names', () => {
-  //   core.exportSecret('special char secret \r\n];', 'special secret val')
-  //   expect(process.env['special char secret \r\n];']).toBe('special secret val')
-  //   assertWriteCalls([
-  //     `::set-env name=special char secret %0D%0A%5D%3B,::special secret val${
-  //       os.EOL
-  //     }`,
-  //     `::set-secret]special secret val${os.EOL}`
-  //   ])
-  // })
+  it('exportSecret escapes secret names', () => {
+    core.exportSecret('special char secret \r\n];', 'special secret val')
+    expect(process.env['special char secret \r\n];']).toBe('special secret val')
+    assertWriteCalls([
+      `::set-env name=special char secret %0D%0A%5D%3B,::special secret val${
+        os.EOL
+      }`,
+      `::add-mask::special secret val${os.EOL}`
+    ])
+  })
 
-  // it('exportSecret escapes secret values', () => {
-  //   core.exportSecret('my secret2', 'secret val\r\n')
-  //   expect(process.env['my secret2']).toBe('secret val\r\n')
-  //   assertWriteCalls([
-  //     `::set-env name=my secret2,::secret val%0D%0A${os.EOL}`,
-  //     `::set-secret]secret val%0D%0A${os.EOL}`
-  //   ])
-  // })
+  it('exportSecret escapes secret values', () => {
+    core.exportSecret('my secret2', 'secret val\r\n')
+    expect(process.env['my secret2']).toBe('secret val\r\n')
+    assertWriteCalls([
+      `::set-env name=my secret2,::secret val%0D%0A${os.EOL}`,
+      `::add-mask::secret val%0D%0A${os.EOL}`
+    ])
+  })
 
   it('prependPath produces the correct commands and sets the env', () => {
     core.addPath('myPath')
