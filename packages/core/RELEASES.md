@@ -3,7 +3,7 @@
 ### 1.1.3 
 
 - setSecret added to register a secret with the runner to be masked from the logs
-- exportSecret which was not implemented and never worked was removed in favore of setSecret.  A future output variable of type secret will be added for using a secret in subsequent steps.
+- exportSecret which was not implemented and never worked was removed after clarification from product.
 
 ### 1.1.1
 
