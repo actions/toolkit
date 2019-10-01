@@ -4,7 +4,7 @@ The [core toolkit package](https://github.com/actions/toolkit/tree/master/packag
 setting results, logging, registering secrets and exporting variables across actions. Sometimes, however, its useful to be able to do
 these things in a script or other tool.
 
-To allow this, we provide a special `::` syntax which, if logged to `stdout`, will allow the runner to perform special behavior on
+To allow this, we provide a special `::` syntax which, if logged to `stdout` on a new line, will allow the runner to perform special behavior on
 your commands. The following commands are all supported:
 
 ### Set an environment variable
