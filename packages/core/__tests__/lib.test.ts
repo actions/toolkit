@@ -125,11 +125,6 @@ describe('@actions/core', () => {
     assertWriteCalls([`::set-output name=some output,::some value${os.EOL}`])
   })
 
-  it('setNeutral sets the correct exit code', () => {
-    core.setFailed('Failure message')
-    expect(process.exitCode).toBe(core.ExitCode.Failure)
-  })
-
   it('setFailure sets the correct exit code and failure message', () => {
     core.setFailed('Failure message')
     expect(process.exitCode).toBe(core.ExitCode.Failure)
