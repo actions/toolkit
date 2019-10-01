@@ -32,10 +32,12 @@ Since each step runs in a separate process, you can use `exportVariable` to add 
 core.exportVariable('envVar', 'Val');
 ```
 
-Exporting a secret exports the variable but also registers the secret with the runner to ensure it is masked in logs.
+#### Setting a secret
+
+Setting a secret registers the secret with the runner to ensure it is masked in logs.
 
 ```js
-core.exportSecret('myPassword', mypass);
+core.setSecret('myPassword');
 ```
 
 #### PATH Manipulation

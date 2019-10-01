@@ -67,15 +67,16 @@ export function setOutput(name: string, value: string): void {}
 
 If a script or action does work to create a secret at runtime, it can be registered with the runner to be masked in logs.
 
-To mask a value in the logs, use `::set-secret`:
+To mask a value in the logs, use `::add-mask`:
 
 ```sh
-echo ::set-secret::BAR
+echo ::add-mask::mysecretvalue
 ```
 
-This is wrapped by the core method which both sets the value as a variable for future steps and registers the secret to mask
+This is wrapped by the core setSecret method
+
 ```javascript
-function exportSecret(name: string, val: string): void {}
+function setSecret(secret: string): void {}
 ```
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
