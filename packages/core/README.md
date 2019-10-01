@@ -16,7 +16,7 @@ import * as core from '@actions/core';
 
 #### Inputs/Outputs
 
-Action inputs can be read with `getInput`.  Outputs be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
+Action inputs can be read with `getInput`.  Outputs can be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
 
 ```js
 const myInput = core.getInput('inputName', { required: true });
@@ -26,7 +26,7 @@ core.setOutput('outputKey', 'outputVal');
 
 #### Exporting variables
 
-Since steps run out of proc, you can use `exportVariable` to add it to this step and future steps environment blocks.
+Since each step runs in a separate process, you can use `exportVariable` to add it to this step and future steps environment blocks.
 
 ```js
 core.exportVariable('envVar', 'Val');
@@ -48,7 +48,7 @@ core.addPath('/path/to/mytool');
 
 #### Exit codes
 
-You should use this library to set the failing exit code for your action.  If you status is set and the script runs to completion, that will lead to a success.
+You should use this library to set the failing exit code for your action.  If status is not set and the script runs to completion, that will lead to a success.
 
 ```js
 const core = require('@actions/core');
