@@ -42,7 +42,7 @@ export function exportVariable(name: string, val: string): void {
 
 /**
  * Registers a secret which will get masked from logs
- * @param val value of the secret
+ * @param secret value of the secret
  */
 export function setSecret(secret: string): void {
   issueCommand('add-mask', {}, secret)
