@@ -1,8 +1,9 @@
 # @actions/core Releases
 
-### 1.1.2
+### 1.1.3 
 
-- set-secret is now available for use [#141](https://github.com/actions/toolkit/issues/141)
+- setSecret added to register a secret with the runner to be masked from the logs
+- exportSecret which was not implemented and never worked was removed after clarification from product.
 
 ### 1.1.1
 
