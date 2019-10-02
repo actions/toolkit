@@ -13,33 +13,77 @@ The GitHub Actions ToolKit provides a set of packages to make creating actions e
 
 ## Packages
 
-:heavy_check_mark: [@actions/core](packages/core) provides functions for inputs, outputs, results, logging, secrets and variables
+:heavy_check_mark: [@actions/core](packages/core) 
 
-:runner: [@actions/exec](packages/exec) provides functions to exec cli tools and process output 
+Provides functions for inputs, outputs, results, logging, secrets and variables. Read more [here](packages/core)
 
-:pencil2: [@actions/io](packages/io) provides disk i/o functions like cp, mv, rmRF, find etc. 
+```bash
+$ npm install @actions/core --save
+```
 
-:hammer: [@actions/tool-cache](packages/tool-cache) provides functions for downloading and caching tools.  e.g. setup-* actions.
+:runner: [@actions/exec](packages/exec) 
 
-:octocat: [@actions/github](packages/github) provides an Octokit client hydrated with the context that the current action is being run in
+Provides functions to exec cli tools and process output. Read more [here](packages/exec)
+
+```bash
+$ npm install @actions/exec --save
+```
+
+:pencil2: [@actions/io](packages/io) 
+
+Provides disk i/o functions like cp, mv, rmRF, find etc. Read more [here](packages/io)
+
+```bash
+$ npm install @actions/io --save
+```
+
+:hammer: [@actions/tool-cache](packages/tool-cache) 
+
+Provides functions for downloading and caching tools.  e.g. setup-* actions. Read more [here](packages/tool-cache)
+
+```bash
+$ npm install @actions/tool-cache --save
+```
+
+:octocat: [@actions/github](packages/github) 
+
+Provides an Octokit client hydrated with the context that the current action is being run in. Read more [here](packages/github)
+
+```bash
+$ npm install @actions/github --save
+```
 
 ## Creating an Action with the Toolkit
 
 Actions run in a container or on the host machine.
 
-:question: [Choosing an action type](docs/action-types.md): Outlines the differences and why you would want to create a JavaScript or a container based action.
+:question: [Choosing an action type](docs/action-types.md)
 
-:rocket: [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action): Illustrates how to create a simple hello world javascript action.
+Outlines the differences and why you would want to create a JavaScript or a container based action.
 
-:rocket: [JavaScript Action Walkthrough](https://github.com/actions/javascript-action): Walkthrough creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
+:rocket: [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
 
-:rocket: [TypeScript Action Walkthrough](https://github.com/actions/typescript-action): Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
+Illustrates how to create a simple hello world javascript action.
 
-:rocket: [Docker Action Walkthrough](docs/container-action.md): Create an action that is delivered as a container and run with docker.
+:rocket: [JavaScript Action Walkthrough](https://github.com/actions/javascript-action)
+ 
+ Walkthrough creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
 
-:rocket: [Docker Action Walkthrough with Octokit](docs/container-action-toolkit.md): Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
+:rocket: [TypeScript Action Walkthrough](https://github.com/actions/typescript-action) 
 
-:curly_loop: [Versioning](docs/action-versioning.md): Recommendations on versioning, releases and tagging your action.
+Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
+
+:rocket: [Docker Action Walkthrough](docs/container-action.md)
+
+Create an action that is delivered as a container and run with docker.
+
+:rocket: [Docker Action Walkthrough with Octokit](docs/container-action-toolkit.md)
+
+Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
+
+:curly_loop: [Versioning](docs/action-versioning.md)
+
+Recommendations on versioning, releases and tagging your action.
 
 ## Contributing
 
