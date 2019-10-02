@@ -66,7 +66,7 @@ Outlines the differences and why you would want to create a JavaScript or a cont
 <br/>
 <br/>
 
-:memo: [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+[Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
 
 Illustrates how to create a simple hello world javascript action.
 
@@ -79,15 +79,15 @@ Illustrates how to create a simple hello world javascript action.
 <br/>
 <br/>
 
-:memo: [JavaScript Action Walkthrough](https://github.com/actions/javascript-action)
+[JavaScript Action Walkthrough](https://github.com/actions/javascript-action)
  
  Walkthrough and template for creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
 
  ```javascript
 PASS ./index.test.js
-  ✓ throws invalid number (7ms)
-  ✓ wait 500 ms (502ms)
-  ✓ test runs (105ms)
+  ✓ throws invalid number 
+  ✓ wait 500 ms 
+  ✓ test runs
 
 Test Suites: 1 passed, 1 total    
 Tests:       3 passed, 3 total
@@ -95,7 +95,7 @@ Tests:       3 passed, 3 total
 <br/>
 <br/>
 
-:memo: [TypeScript Action Walkthrough](https://github.com/actions/typescript-action) 
+[TypeScript Action Walkthrough](https://github.com/actions/typescript-action) 
 
 Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
 
@@ -118,7 +118,7 @@ run();
 <br/>
 <br/>
 
-:memo: [Docker Action Walkthrough](docs/container-action.md)
+[Docker Action Walkthrough](docs/container-action.md)
 
 Create an action that is delivered as a container and run with docker.
 
@@ -134,7 +134,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 <br/>
 <br/>
 
-:memo: [Docker Action Walkthrough with Octokit](https://github.com/actions/container-toolkit-action)
+[Docker Action Walkthrough with Octokit](https://github.com/actions/container-toolkit-action)
 
 Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
 
