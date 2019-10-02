@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/actions/toolkit"><img alt="GitHub Actions status" src="https://github.com/actions/toolkit/workflows/Main%20workflow/badge.svg"></a>
+  <a href="https://github.com/actions/toolkit"><img alt="GitHub Actions status" src="https://github.com/actions/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
 </p>
 
 ## GitHub Actions Toolkit

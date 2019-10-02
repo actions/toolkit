@@ -1,4 +1,4 @@
-name: Main workflow
+name: toolkit-unit-tests
 on: [push]
 jobs:
   Ubuntu:
