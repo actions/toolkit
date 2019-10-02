@@ -17,7 +17,7 @@ jobs:
     - name: Set Node.js 10.x
       uses: actions/setup-node@master
       with:
-        version: 10.x
+        node-version: 10.x
 
     - name: npm install
       run: npm install
@@ -46,7 +46,7 @@ jobs:
       - name: Set Node.js 10.x
         uses: actions/setup-node@master
         with:
-          version: 10.x
+          node-version: 10.x
 
       - name: npm install
         run: npm install
@@ -69,7 +69,7 @@ jobs:
     - name: Set Node.js 10.x
       uses: actions/setup-node@master
       with:
-        version: 10.x
+        node-version: 10.x
 
     - name: npm install
       run: npm install
