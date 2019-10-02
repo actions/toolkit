@@ -69,36 +69,90 @@ Outlines the differences and why you would want to create a JavaScript or a cont
 :memo: [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
 
 Illustrates how to create a simple hello world javascript action.
+
+```javascript
+...
+  const nameToGreet = core.getInput('who-to-greet');
+  console.log(`Hello ${nameToGreet}!`);
+...
+```
 <br/>
 <br/>
 
 :memo: [JavaScript Action Walkthrough](https://github.com/actions/javascript-action)
  
- Walkthrough creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
+ Walkthrough and template for creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
+
+ ```javascript
+PASS ./index.test.js
+  ✓ throws invalid number (7ms)
+  ✓ wait 500 ms (502ms)
+  ✓ test runs (105ms)
+
+Test Suites: 1 passed, 1 total    
+Tests:       3 passed, 3 total
+ ```
 <br/>
 <br/>
 
 :memo: [TypeScript Action Walkthrough](https://github.com/actions/typescript-action) 
 
 Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
+
+```javascript
+import * as core from '@actions/core';
+
+async function run() {
+  try {
+    const ms = core.getInput('milliseconds');
+    console.log(`Waiting ${ms} milliseconds ...`)
+    ...
+
+  } catch (error) {
+    core.setFailed(error.message);
+  }
+}
+
+run();
+```
 <br/>
 <br/>
 
 :memo: [Docker Action Walkthrough](docs/container-action.md)
 
 Create an action that is delivered as a container and run with docker.
+
+```docker
+FROM alpine:3.10
+
+COPY LICENSE README.md /
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+```
 <br/>
 <br/>
 
-:memo: [Docker Action Walkthrough with Octokit](docs/container-action-toolkit.md)
+:memo: [Docker Action Walkthrough with Octokit](https://github.com/actions/container-toolkit-action)
 
 Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
-<br/><br/>
+
+```javascript
+    const myInput = core.getInput('myInput');
+    core.debug(`Hello ${myInput} from inside a container`);
+
+    const context = github.context;
+    console.log(`We can even get context data, like the repo: ${context.repo.repo}`)    
+```
+<br/>
+<br/>
 
 :curly_loop: [Versioning](docs/action-versioning.md)
 
 Recommendations on versioning, releases and tagging your action.
-<br/><br/>
+<br/>
+<br/>
 
 ## Contributing
 
