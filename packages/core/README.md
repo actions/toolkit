@@ -32,11 +32,12 @@ Since each step runs in a separate process, you can use `exportVariable` to add 
 core.exportVariable('envVar', 'Val');
 ```
 
-#### Setting a secret
+#### Setting a string as secret
 
-Setting a secret registers the secret with the runner to ensure it is masked in logs.
+Setting a secrets adds the passed string to the runner's list of values to mask in its logs.
 
 ```js
+// *** will appear in logs instead of myPassword
 core.setSecret('myPassword');
 ```
 
