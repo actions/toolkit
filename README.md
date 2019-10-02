@@ -63,29 +63,34 @@ $ npm install @actions/github --save
 :question: [Choosing an action type](docs/action-types.md)
 
 Outlines the differences and why you would want to create a JavaScript or a container based action.
-<br/><br/>
+<br/>
+<br/>
 
-:rocket: [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+:memo: [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
 
 Illustrates how to create a simple hello world javascript action.
-<br/><br/>
+<br/>
+<br/>
 
-:rocket: [JavaScript Action Walkthrough](https://github.com/actions/javascript-action)
+:memo: [JavaScript Action Walkthrough](https://github.com/actions/javascript-action)
  
  Walkthrough creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
-<br/><br/>
+<br/>
+<br/>
 
-:rocket: [TypeScript Action Walkthrough](https://github.com/actions/typescript-action) 
+:memo: [TypeScript Action Walkthrough](https://github.com/actions/typescript-action) 
 
 Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
-<br/><br/>
+<br/>
+<br/>
 
-:rocket: [Docker Action Walkthrough](docs/container-action.md)
+:memo: [Docker Action Walkthrough](docs/container-action.md)
 
 Create an action that is delivered as a container and run with docker.
-<br/><br/>
+<br/>
+<br/>
 
-:rocket: [Docker Action Walkthrough with Octokit](docs/container-action-toolkit.md)
+:memo: [Docker Action Walkthrough with Octokit](docs/container-action-toolkit.md)
 
 Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
 <br/><br/>
