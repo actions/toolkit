@@ -200,6 +200,10 @@ export async function extractTar(
   }
 
   dest = dest || (await _createExtractFolder(dest))
+  if (IS_WINDOWS) {
+    // For some reason, GNU Tar on Windows expects paths to be slash-separated even though this is not the standard Windows path delimiter
+    dest = dest.replace(/\\/g, '/')
+  }
   const tarPath: string = await io.which('tar', true)
   await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
 
