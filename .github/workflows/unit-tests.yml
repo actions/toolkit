@@ -1,9 +1,11 @@
 name: toolkit-unit-tests
 on: 
   push:
-    paths:
-      - 'packages/**'
-      - '*.json'
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'     
 jobs:
   Ubuntu:
     name: Run Ubuntu
