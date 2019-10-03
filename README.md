@@ -7,9 +7,14 @@
   <a href="https://github.com/actions/toolkit"><img alt="GitHub Actions status" src="https://github.com/actions/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
 </p>
 
+
 ## GitHub Actions Toolkit
 
 The GitHub Actions ToolKit provides a set of packages to make creating actions easier.
+
+<br/>
+<h3 align="center">Get started with the <a href="https://github.com/actions/javascript-action">javascript-action template</a>!</h3>
+<br/>
 
 ## Packages
 
@@ -66,6 +71,12 @@ Outlines the differences and why you would want to create a JavaScript or a cont
 <br/>
 <br/>
 
+:curly_loop: [Versioning](docs/action-versioning.md)
+
+Actions are downloaded and run from the GitHub graph of repos.  This contains guidance for versioning actions and safe releases.
+<br/>
+<br/>
+
 [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
 
 Illustrates how to create a simple hello world javascript action.
@@ -83,7 +94,14 @@ Illustrates how to create a simple hello world javascript action.
  
  Walkthrough and template for creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
 
- ```javascript
+```javascript
+async function run() {
+  try { 
+    const ms = core.getInput('milliseconds');
+    console.log(`Waiting ${ms} milliseconds ...`)
+    ...
+```
+```javascript
 PASS ./index.test.js
   ✓ throws invalid number 
   ✓ wait 500 ms 
@@ -91,7 +109,7 @@ PASS ./index.test.js
 
 Test Suites: 1 passed, 1 total    
 Tests:       3 passed, 3 total
- ```
+```
 <br/>
 <br/>
 
@@ -107,13 +125,15 @@ async function run() {
     const ms = core.getInput('milliseconds');
     console.log(`Waiting ${ms} milliseconds ...`)
     ...
+```
+```javascript
+PASS ./index.test.js
+  ✓ throws invalid number 
+  ✓ wait 500 ms 
+  ✓ test runs
 
-  } catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run();
+Test Suites: 1 passed, 1 total    
+Tests:       3 passed, 3 total
 ```
 <br/>
 <br/>
@@ -124,11 +144,8 @@ Create an action that is delivered as a container and run with docker.
 
 ```docker
 FROM alpine:3.10
-
 COPY LICENSE README.md /
-
 COPY entrypoint.sh /entrypoint.sh
-
 ENTRYPOINT ["/entrypoint.sh"]
 ```
 <br/>
@@ -138,17 +155,21 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
 
+```docker
+FROM node:slim
+COPY . .
+RUN npm install --production
+ENTRYPOINT ["node", "/lib/main.js"]
+```
 ```javascript
-    const myInput = core.getInput('myInput');
-    core.debug(`Hello ${myInput} from inside a container`);
+const myInput = core.getInput('myInput');
+core.debug(`Hello ${myInput} from inside a container`);
 
-    const context = github.context;
-    console.log(`We can even get context data, like the repo: ${context.repo.repo}`)    
+const context = github.context;
+console.log(`We can even get context data, like the repo: ${context.repo.repo}`)    
 ```
 <br/>
 <br/>
-
-:curly_loop: [Versioning](docs/action-versioning.md)
 
 Recommendations on versioning, releases and tagging your action.
 <br/>

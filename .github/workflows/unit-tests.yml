@@ -1,5 +1,9 @@
 name: toolkit-unit-tests
-on: [push]
+on: 
+  push:
+    paths:
+      - 'packages/**'
+      - '*.json'
 jobs:
   Ubuntu:
     name: Run Ubuntu
