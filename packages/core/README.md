@@ -126,5 +126,5 @@ const core = require('@actions/core');
 
 var pid = core.getState("pidToKill");
 
-kill(pid);
+process.kill(pid);
 ```
