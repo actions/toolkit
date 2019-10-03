@@ -77,7 +77,7 @@ Actions are downloaded and run from the GitHub graph of repos.  This contains gu
 <br/>
 <br/>
 
-[Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+<h3><a href="https://github.com/actions/hello-world-javascript-action">Hello World JavaScript Action</a></h3>
 
 Illustrates how to create a simple hello world javascript action.
 
@@ -88,11 +88,10 @@ Illustrates how to create a simple hello world javascript action.
 ...
 ```
 <br/>
-<br/>
 
-[JavaScript Action Walkthrough](https://github.com/actions/javascript-action)
+<h3><a href="https://github.com/actions/javascript-action">JavaScript Action Walkthrough</a></h3>
  
- Walkthrough and template for creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
+Walkthrough and template for creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
 
 ```javascript
 async function run() {
@@ -111,9 +110,8 @@ Test Suites: 1 passed, 1 total
 Tests:       3 passed, 3 total
 ```
 <br/>
-<br/>
 
-[TypeScript Action Walkthrough](https://github.com/actions/typescript-action) 
+<h3><a href="https://github.com/actions/typescript-action">TypeScript Action Walkthrough</a></h3>
 
 Walkthrough creating a TypeScript Action with compilation, tests, linting, workflow, publishing, and versioning.
 
@@ -138,7 +136,7 @@ Tests:       3 passed, 3 total
 <br/>
 <br/>
 
-[Docker Action Walkthrough](docs/container-action.md)
+<h3><a href="docs/container-action.md">Docker Action Walkthrough</a></h3>
 
 Create an action that is delivered as a container and run with docker.
 
@@ -149,9 +147,8 @@ COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 ```
 <br/>
-<br/>
 
-[Docker Action Walkthrough with Octokit](https://github.com/actions/container-toolkit-action)
+<h3><a href="https://github.com/actions/container-toolkit-action">Docker Action Walkthrough with Octokit</a></h3>
 
 Create an action that is delivered as a container which uses the toolkit.  This example uses the GitHub context to construct an Octokit client.
 
@@ -168,7 +165,6 @@ core.debug(`Hello ${myInput} from inside a container`);
 const context = github.context;
 console.log(`We can even get context data, like the repo: ${context.repo.repo}`)    
 ```
-<br/>
 <br/>
 
 Recommendations on versioning, releases and tagging your action.
