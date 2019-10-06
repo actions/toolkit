@@ -1,4 +1,4 @@
-# `@actions/core`
+# `@Ekkarat304/core`
 
 > Core functions for setting results, logging, registering secrets and exporting variables across actions
 
