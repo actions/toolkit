@@ -174,3 +174,7 @@ Recommendations on versioning, releases and tagging your action.
 ## Contributing
 
 We welcome contributions.  See [how to contribute](docs/contribute.md).
+
+## Code of Conduct
+
+See [our code of conduct](CODE_OF_CONDUCT.md).

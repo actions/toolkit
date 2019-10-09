@@ -6,17 +6,11 @@ Thank you 🙇‍♀ for wanting to create an issue in this repository. Before y
 
 If your issue is relevant to this repository, please include the information below:
 
-**Describe the bug**
-A clear and concise description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior.
-
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Describe the enhancement**
+A clear and concise description of what the features or enhancment you need.
 
 **Code Snippet**
-If applicable, add a code snippet to help explain your problem.
+If applicable, add a code snippet to show the api enhancement.
 
 **Additional information**
-Add any other context about the problem here.
+Add any other context about the feature here.
