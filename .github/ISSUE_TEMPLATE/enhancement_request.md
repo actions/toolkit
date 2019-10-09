@@ -2,7 +2,7 @@
 name: Feature Request
 about: Create a request to help us improve
 title: ''
-labels: 'enhancement'
+labels: enhancement
 assignees: ''
 
 ---
