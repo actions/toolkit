@@ -1,3 +1,12 @@
+---
+name: Feature Request
+about: Create a request to help us improve
+title: ''
+labels: 'enhancement'
+assignees: ''
+
+---
+
 Thank you 🙇‍♀ for wanting to create an issue in this repository. Before you do, please ensure you are filing the issue in the right place. Issues should only be opened on if the issue **relates to code in this repository**.  
 
 * If you have found a security issue [please submit it here](https://hackerone.com/github)
