@@ -173,3 +173,27 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
 
   return result
 }
+
+//-----------------------------------------------------------------------
+// Wrapper action state
+//-----------------------------------------------------------------------
+
+/**
+ * Saves state for current action, the state can only be retrieved by this action's post job execution.
+ *
+ * @param     name     name of the state to store
+ * @param     value    value to store
+ */
+export function saveState(name: string, value: string): void {
+  issueCommand('save-state', {name}, value)
+}
+
+/**
+ * Gets the value of an state set by this action's main execution.
+ *
+ * @param     name     name of the state to get
+ * @returns   string
+ */
+export function getState(name: string): string {
+  return process.env[`STATE_${name}`] || ''
+}

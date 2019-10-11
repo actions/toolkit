@@ -105,3 +105,36 @@ const result = await core.group('Do something async', async () => {
   return response
 })
 ```
+
+#### Action state
+
+You can use this library to save state and get state for sharing information between a given wrapper action: 
+
+**action.yml**
+```yaml
+name: 'Wrapper action sample'
+inputs:
+  name:
+    default: 'GitHub'
+runs:
+  using: 'node12'
+  main: 'main.js'
+  post: 'cleanup.js'
+```
+
+In action's `main.js`:
+
+```js
+const core = require('@actions/core');
+
+core.saveState("pidToKill", 12345);
+```
+
+In action's `cleanup.js`:
+```js
+const core = require('@actions/core');
+
+var pid = core.getState("pidToKill");
+
+process.kill(pid);
+```

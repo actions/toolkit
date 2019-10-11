@@ -17,7 +17,10 @@ const testEnvVars = {
   INPUT_MY_INPUT: 'val',
   INPUT_MISSING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
-  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces'
+  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
+
+  // Save inputs
+  STATE_TEST_1: 'state_val'
 }
 
 describe('@actions/core', () => {
@@ -164,6 +167,15 @@ describe('@actions/core', () => {
   it('debug escapes the message', () => {
     core.debug('\r\ndebug\n')
     assertWriteCalls([`::debug::%0D%0Adebug%0A${os.EOL}`])
+  })
+
+  it('saveState produces the correct command', () => {
+    core.saveState('state_1', 'some value')
+    assertWriteCalls([`::save-state name=state_1,::some value${os.EOL}`])
+  })
+
+  it('getState gets wrapper action state', () => {
+    expect(core.getState('TEST_1')).toBe('state_val')
   })
 })
 
