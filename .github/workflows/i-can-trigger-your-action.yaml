@@ -1,0 +1,17 @@
+name: i-can-trigger-your-action
+
+on:
+  pull_request:
+    branches:
+    - 'master'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Show me env
+      run: env
+    - name: Do something bad
+      run: echo "Bad!"
+    
