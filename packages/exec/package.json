@@ -22,7 +22,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/toolkit.git"
+    "url": "git+https://github.com/actions/toolkit.git",
+    "directory": "packages/exec"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",

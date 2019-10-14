@@ -1,8 +1,12 @@
 # @actions/core Releases
 
+### 1.1.3 
+
+- setSecret added to register a secret with the runner to be masked from the logs
+- exportSecret which was not implemented and never worked was removed after clarification from product.
+
 ### 1.1.1
 
-- set-secret is now available for use [#141](https://github.com/actions/toolkit/issues/141)
 - Add support for action input variables with multiple spaces [#127](https://github.com/actions/toolkit/issues/127)
 - Switched ## commands to :: commands (should have no noticeable impact) [#110)(https://github.com/actions/toolkit/pull/110)
 

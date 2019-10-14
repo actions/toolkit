@@ -17,7 +17,10 @@ const testEnvVars = {
   INPUT_MY_INPUT: 'val',
   INPUT_MISSING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
-  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces'
+  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
+
+  // Save inputs
+  STATE_TEST_1: 'state_val'
 }
 
 describe('@actions/core', () => {
@@ -51,34 +54,10 @@ describe('@actions/core', () => {
     assertWriteCalls([`::set-env name=my var2,::var val%0D%0A${os.EOL}`])
   })
 
-  // it('exportSecret produces the correct commands and sets the env', () => {
-  //   core.exportSecret('my secret', 'secret val')
-  //   expect(process.env['my secret']).toBe('secret val')
-  //   assertWriteCalls([
-  //     `::set-env name=my secret,::secret val${os.EOL}`,
-  //     `::set-secret]secret val${os.EOL}`
-  //   ])
-  // })
-
-  // it('exportSecret escapes secret names', () => {
-  //   core.exportSecret('special char secret \r\n];', 'special secret val')
-  //   expect(process.env['special char secret \r\n];']).toBe('special secret val')
-  //   assertWriteCalls([
-  //     `::set-env name=special char secret %0D%0A%5D%3B,::special secret val${
-  //       os.EOL
-  //     }`,
-  //     `::set-secret]special secret val${os.EOL}`
-  //   ])
-  // })
-
-  // it('exportSecret escapes secret values', () => {
-  //   core.exportSecret('my secret2', 'secret val\r\n')
-  //   expect(process.env['my secret2']).toBe('secret val\r\n')
-  //   assertWriteCalls([
-  //     `::set-env name=my secret2,::secret val%0D%0A${os.EOL}`,
-  //     `::set-secret]secret val%0D%0A${os.EOL}`
-  //   ])
-  // })
+  it('setSecret produces the correct command', () => {
+    core.setSecret('secret val')
+    assertWriteCalls([`::add-mask::secret val${os.EOL}`])
+  })
 
   it('prependPath produces the correct commands and sets the env', () => {
     core.addPath('myPath')
@@ -123,11 +102,6 @@ describe('@actions/core', () => {
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
     assertWriteCalls([`::set-output name=some output,::some value${os.EOL}`])
-  })
-
-  it('setNeutral sets the correct exit code', () => {
-    core.setFailed('Failure message')
-    expect(process.exitCode).toBe(core.ExitCode.Failure)
   })
 
   it('setFailure sets the correct exit code and failure message', () => {
@@ -193,6 +167,15 @@ describe('@actions/core', () => {
   it('debug escapes the message', () => {
     core.debug('\r\ndebug\n')
     assertWriteCalls([`::debug::%0D%0Adebug%0A${os.EOL}`])
+  })
+
+  it('saveState produces the correct command', () => {
+    core.saveState('state_1', 'some value')
+    assertWriteCalls([`::save-state name=state_1,::some value${os.EOL}`])
+  })
+
+  it('getState gets wrapper action state', () => {
+    expect(core.getState('TEST_1')).toBe('state_val')
   })
 })
 

@@ -31,7 +31,7 @@ export enum ExitCode {
 //-----------------------------------------------------------------------
 
 /**
- * sets env variable for this action and future actions in the job
+ * Sets env variable for this action and future actions in the job
  * @param name the name of the variable to set
  * @param val the value of the variable
  */
@@ -41,16 +41,11 @@ export function exportVariable(name: string, val: string): void {
 }
 
 /**
- * exports the variable and registers a secret which will get masked from logs
- * @param name the name of the variable to set
- * @param val value of the secret
+ * Registers a secret which will get masked from logs
+ * @param secret value of the secret
  */
-export function exportSecret(name: string, val: string): void {
-  exportVariable(name, val)
-
-  // the runner will error with not implemented
-  // leaving the function but raising the error earlier
-  issueCommand('set-secret', {}, val)
+export function setSecret(secret: string): void {
+  issueCommand('add-mask', {}, secret)
 }
 
 /**
@@ -177,4 +172,28 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
   }
 
   return result
+}
+
+//-----------------------------------------------------------------------
+// Wrapper action state
+//-----------------------------------------------------------------------
+
+/**
+ * Saves state for current action, the state can only be retrieved by this action's post job execution.
+ *
+ * @param     name     name of the state to store
+ * @param     value    value to store
+ */
+export function saveState(name: string, value: string): void {
+  issueCommand('save-state', {name}, value)
+}
+
+/**
+ * Gets the value of an state set by this action's main execution.
+ *
+ * @param     name     name of the state to get
+ * @returns   string
+ */
+export function getState(name: string): string {
+  return process.env[`STATE_${name}`] || ''
 }

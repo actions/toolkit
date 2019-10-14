@@ -4,45 +4,53 @@
 
 ## Usage
 
-#### Inputs/Outputs
-
-You can use this library to get inputs or set outputs:
+### Import the package
 
 ```js
+// javascript
 const core = require('@actions/core');
 
-const myInput = core.getInput('inputName', { required: true });
+// typescript
+import * as core from '@actions/core';
+```
 
-// Do stuff
+#### Inputs/Outputs
+
+Action inputs can be read with `getInput`.  Outputs can be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
+
+```js
+const myInput = core.getInput('inputName', { required: true });
 
 core.setOutput('outputKey', 'outputVal');
 ```
 
 #### Exporting variables
 
-You can also export variables for future steps. Variables get set in the environment.
+Since each step runs in a separate process, you can use `exportVariable` to add it to this step and future steps environment blocks.
 
 ```js
-const core = require('@actions/core');
-
-// Do stuff
-
 core.exportVariable('envVar', 'Val');
+```
+
+#### Setting a secret
+
+Setting a secret registers the secret with the runner to ensure it is masked in logs.
+
+```js
+core.setSecret('myPassword');
 ```
 
 #### PATH Manipulation
 
-You can explicitly add items to the path for all remaining steps in a workflow:
+To make a tool's path available in the path for the remainder of the job (without altering the machine or containers state), use `addPath`.  The runner will prepend the path given to the jobs PATH.
 
 ```js
-const core = require('@actions/core');
-
-core.addPath('pathToTool');
+core.addPath('/path/to/mytool');
 ```
 
 #### Exit codes
 
-You should use this library to set the failing exit code for your action:
+You should use this library to set the failing exit code for your action.  If status is not set and the script runs to completion, that will lead to a success.
 
 ```js
 const core = require('@actions/core');
@@ -54,6 +62,8 @@ catch (err) {
   // setFailed logs the message and sets a failing exit code
   core.setFailed(`Action failed with error ${err}`);
 }
+
+Note that `setNeutral` is not yet implemented in actions V2 but equivalent functionality is being planned.
 
 ```
 
@@ -94,4 +104,37 @@ const result = await core.group('Do something async', async () => {
   const response = await doSomeHTTPRequest()
   return response
 })
+```
+
+#### Action state
+
+You can use this library to save state and get state for sharing information between a given wrapper action: 
+
+**action.yml**
+```yaml
+name: 'Wrapper action sample'
+inputs:
+  name:
+    default: 'GitHub'
+runs:
+  using: 'node12'
+  main: 'main.js'
+  post: 'cleanup.js'
+```
+
+In action's `main.js`:
+
+```js
+const core = require('@actions/core');
+
+core.saveState("pidToKill", 12345);
+```
+
+In action's `cleanup.js`:
+```js
+const core = require('@actions/core');
+
+var pid = core.getState("pidToKill");
+
+process.kill(pid);
 ```

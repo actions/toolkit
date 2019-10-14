@@ -255,6 +255,8 @@ describe('@actions/exec', () => {
   })
 
   it('Handles child process holding streams open', async function() {
+    // this was timing out on some slower hosted macOS runs at default 5s
+    jest.setTimeout(10000)
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -301,6 +303,8 @@ describe('@actions/exec', () => {
   })
 
   it('Handles child process holding streams open and non-zero exit code', async function() {
+    // this was timing out on some slower hosted macOS runs at default 5s
+    jest.setTimeout(10000)
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'

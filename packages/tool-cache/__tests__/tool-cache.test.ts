@@ -287,9 +287,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipBin: string =
-          process.platform === 'darwin' ? 'zip-darwin' : 'zip'
-        const zipPath: string = path.join(__dirname, 'externals', zipBin)
+        const zipPath: string = await io.which('zip')
         await exec.exec(`"${zipPath}`, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
@@ -340,9 +338,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipBin: string =
-          process.platform === 'darwin' ? 'zip-darwin' : 'zip'
-        const zipPath = path.join(__dirname, 'externals', zipBin)
+        const zipPath: string = await io.which('zip')
         await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
