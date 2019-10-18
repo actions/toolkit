@@ -100,6 +100,14 @@ function startGroup(name: string): void {}
 function endGroup(): void {}
 ```
 
+### Save State
+
+Save state to be used in the corresponding wrapper (finally) post job entry point.
+
+```bash
+echo ::save-state name=FOO::foovalue
+```
+
 ### Log Level
 
 Finally, there are several commands to emit different levels of log output:
