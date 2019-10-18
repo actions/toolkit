@@ -1,5 +1,9 @@
 # @actions/core Releases
 
+### 1.2.0
+
+- saveState and getState functions for wrapper tasks (on finally entry points that run post job)
+
 ### 1.1.3 
 
 - setSecret added to register a secret with the runner to be masked from the logs
