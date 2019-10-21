@@ -33,9 +33,8 @@ git push origin releases/v1
 3. **When ready for a stable release, add a major version tag**: Move the major version tag (v1, v2, etc.) to point to the ref of the current release. This will act as the stable release for that major version. You should keep this tag updated to the most recent stable minor/patch release.
 ```
 git checkout releases/v1
-git push origin :refs/tags/v1
 git tag -fa v1 -m "Update v1 tag"
-git push origin v1
+git push origin v1 --force
 ```
 4. **Create releases for minor and patch version updates**: From the GitHub UI create a release for each minor or patch version update titled with that release version (e.g. v1.2.3).
 5. **Compatibility Breaks**:  introduce a new major version branch (releases/v2) and tag (v2) if changes will break existing workflows.  For example, changing inputs.
