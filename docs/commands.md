@@ -12,7 +12,7 @@ your commands. The following commands are all supported:
 To set an environment variable for future out of process steps, use `::set-env`:
 
 ```sh
-echo ::set-env name=FOO::BAR
+echo "::set-env name=FOO::BAR"
 ```
 
 Running `$FOO` in a future step will now return `BAR`
@@ -28,7 +28,7 @@ export function exportVariable(name: string, val: string): void {}
 To prepend a string to PATH, use `::addPath`:
 
 ```sh
-echo ::add-path::BAR
+echo "::add-path::BAR"
 ```
 
 Running `$PATH` in a future step will now return `BAR:{Previous Path}`;
@@ -43,7 +43,7 @@ export function addPath(inputPath: string): void {}
 To set an output for the step, use `::set-output`:
 
 ```sh
-echo ::set-output name=FOO::BAR
+echo "::set-output name=FOO::BAR"
 ```
 
 Running `steps.[step-id].outputs.FOO` in your Yaml will now give you `BAR`
@@ -52,7 +52,7 @@ Running `steps.[step-id].outputs.FOO` in your Yaml will now give you `BAR`
 steps:
   - name: Set the value
     id: step_one
-    run: echo ::set-output name=FOO::BAR
+    run: echo "::set-output name=FOO::BAR"
   - name: Use it
     run: echo ${{ steps.step_one.outputs.FOO }}
 ```
@@ -70,7 +70,7 @@ If a script or action does work to create a secret at runtime, it can be registe
 To mask a value in the logs, use `::add-mask`:
 
 ```sh
-echo ::add-mask::mysecretvalue
+echo "::add-mask::mysecretvalue"
 ```
 
 This is wrapped by the core setSecret method
@@ -89,8 +89,8 @@ For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` wi
 Emitting a group with a title will instruct the logs to create a collapsable region up to the next ungroup command.
 
 ```bash
-echo ::group::my title   
-echo ::endgroup::
+echo "::group::my title"   
+echo "::endgroup::"
 ```
 
 This is wrapped by the core methods:
@@ -105,7 +105,7 @@ function endGroup(): void {}
 Save state to be used in the corresponding wrapper (finally) post job entry point.
 
 ```bash
-echo ::save-state name=FOO::foovalue
+echo "::save-state name=FOO::foovalue"
 ```
 
 ### Log Level
@@ -114,6 +114,12 @@ Finally, there are several commands to emit different levels of log output:
 
 | log level | example usage |
 |---|---|
-| [debug](https://github.com/actions/toolkit/blob/master/docs/action-debugging.md)  | `echo ::debug::My debug message` |
-| warning | `echo ::warning::My warning message` |
-| error | `echo ::error::My error message` |
+| [debug](https://github.com/actions/toolkit/blob/master/docs/action-debugging.md)  | `echo "::debug::My debug message"` |
+| warning | `echo "::warning::My warning message"` |
+| error | `echo "::error::My error message"` |
+
+### Command Prompt 
+CMD processes the `"` character differently from other shells when echoing. In CMD, the above snippets should have the `"` characters removed in order to correctly process. For example, the set output command would be:
+```cmd
+echo ::set-output name=FOO::BAR
+```
