@@ -1,5 +1,5 @@
 # Problem Matchers
-Problem Matchers are a way to scan output of builds for a specified pattern and surface that information in the UI. [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created for pattern matches. Problem Matchers are enabled via the toolkit [command](commands.md#Problem Matchers).
+Problem Matchers are a way to scan output of builds for a specified pattern and surface that information in the UI. [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created for pattern matches. Problem Matchers are enabled via the toolkit [command](commands.md#problem-matchers).
 
 For example, consider the ESLint compact output:
 ```
@@ -106,7 +106,7 @@ Registering two problem-matchers with the same owner will result in only the pro
 
 ## Examples
 Some of the starter actions are already using problem matchers, for example:
-[setup-node Problem Matchers](https://github.com/actions/setup-node/tree/master/.github)
-[setup-python Problem Matchers](https://github.com/actions/setup-python/tree/master/.github)
-[setup-go Problem Matchers](https://github.com/actions/setup-go/tree/master/.github)
-[setup-dotnet](https://github.com/actions/setup-dotnet/tree/master/.github)
+- [setup-node Problem Matchers](https://github.com/actions/setup-node/tree/master/.github)
+- [setup-python Problem Matchers](https://github.com/actions/setup-python/tree/master/.github)
+- [setup-go Problem Matchers](https://github.com/actions/setup-go/tree/master/.github)
+- [setup-dotnet](https://github.com/actions/setup-dotnet/tree/master/.github)
