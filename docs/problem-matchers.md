@@ -6,7 +6,7 @@ For example, consider the ESLint compact output:
 badFile.js: line 50, col 11, Error - 'myVar' is defined but never used. (no-unused-vars)
 ```
 We can create a JSON file to define a problem matcher that detects input in that format:
-```json
+```
 {
     "problemMatcher": [
         {
@@ -69,7 +69,7 @@ The file name is printed once, yet multiple error lines are printed. The `loop` 
 
 The eslint-stylish problem matcher defined below catches that output, and creates two annotations from it.
 
-```json
+```
 {
     "problemMatcher": [
         {
