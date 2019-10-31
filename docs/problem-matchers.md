@@ -1,12 +1,12 @@
 # Problem Matchers
-Problem Matchers are a way to scan output of builds for a specified pattern and surface that information in the UI. [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created for pattern matches.
+Problem Matchers are a way to scan output of builds for a specified pattern and surface that information in the UI. [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created for pattern matches. Problem Matchers are enabled via the toolkit [command](commands.md#Problem Matchers).
 
 For example, consider the ESLint compact output:
 ```
 badFile.js: line 50, col 11, Error - 'myVar' is defined but never used. (no-unused-vars)
 ```
-We can define a problem matcher to detect that output:
-```
+We can create a JSON file to define a problem matcher that detects input in that format:
+```json
 {
     "problemMatcher": [
         {
@@ -34,7 +34,7 @@ We can define a problem matcher to detect that output:
 }
 ```
 
-The following fields are available for problem matchers
+The following fields are available for problem matchers:
 
 ```
 {
@@ -69,23 +69,27 @@ The file name is printed once, yet multiple error lines are printed. The `loop` 
 
 The eslint-stylish problem matcher defined below catches that output, and creates two annotations from it.
 
-```
+```json
 {
     "problemMatcher": [
         {
             "owner": "eslint-stylish",
             "pattern": [
                 {
+                    // Matches the 1st line in the output
                     "regexp": "^([^\\s].*)$",
                     "file": 1
                 },
                 {
+                    // Matches the 2nd and 3rd line in the output
                     "regexp": "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.*)\\s\\s+(.*)$",
+                    // File is carried through from above, so we definte the rest of the groups
                     "line": 1,
                     "column": 2,
                     "severity": 3,
                     "message": 4,
                     "code": 5,
+                    // Loops until a match is not found
                     "loop": true
                 }
             ]
@@ -101,6 +105,7 @@ The second pattern loops through the remaining lines with `loop : true`, and cre
 Registering two problem-matchers with the same owner will result in only the problem matcher registered last running.
 
 ## Examples
+Some of the starter actions are already using problem matchers, for example:
 [setup-node Problem Matchers](https://github.com/actions/setup-node/tree/master/.github)
 [setup-python Problem Matchers](https://github.com/actions/setup-python/tree/master/.github)
 [setup-go Problem Matchers](https://github.com/actions/setup-go/tree/master/.github)

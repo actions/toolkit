@@ -100,14 +100,16 @@ function startGroup(name: string): void {}
 function endGroup(): void {}
 ```
 
-### Add and Remove Problem Matchers
-Problems matchers can be used to scan a build's output to automatically surface lines to the user that matches the provided pattern. See the [Problem Matchers](problem-matchers.md) documentation for more information.
+### Problem Matchers
+Problems matchers can be used to scan a build's output to automatically surface lines to the user that matches the provided pattern. A file path to a .json Problem Matcher must be provided. See [Problem Matchers](problem-matchers.md) for more information on how to define a Problem Matcher.
 
 ```bash
-echo "::add-matcher::path-to-problem-matcher-config.json"   
-echo "::remove-matcher::owner"
+echo "::add-matcher::eslint-compact-problem-matcher.json"   
+echo "::remove-matcher::eslint-compact"
 ```
 
+`add-matcher` takes a path to a Problem Matcher file
+`remove-matcher` removes a Problem Matcher by owner
 ### Save State
 
 Save state to be used in the corresponding wrapper (finally) post job entry point.
