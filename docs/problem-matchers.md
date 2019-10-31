@@ -50,14 +50,14 @@ The following fields are available for problem matchers:
             code: a group number containing the error code
             message: a group number containing the error message. **required** at least one pattern must set message
             fromPath: a group number containing the base path of the file, otherwise the location of the git repository on disk is used
-            loop: See [Multiline Matching](#Multi line matching)
+            loop: loops until a match is not found, only valid on the last pattern of a multipattern matcher
         }
     ]
 }
 ```
 
 
-## Multi line matching
+## Multiline Matching
 Consider the following output:
 ```
 test.js
@@ -89,7 +89,6 @@ The eslint-stylish problem matcher defined below catches that output, and create
                     "severity": 3,
                     "message": 4,
                     "code": 5,
-                    // Loops until a match is not found
                     "loop": true
                 }
             ]
