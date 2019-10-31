@@ -100,6 +100,14 @@ function startGroup(name: string): void {}
 function endGroup(): void {}
 ```
 
+### Add and Remove Problem Matchers
+Problems matchers can be used to scan a build's output to automatically surface lines to the user that matches the provided pattern. See the [Problem Matchers](problem-matchers.md) documentation for more information.
+
+```bash
+echo "::add-matcher::path-to-problem-matcher-config.json"   
+echo "::remove-matcher::owner"
+```
+
 ### Save State
 
 Save state to be used in the corresponding wrapper (finally) post job entry point.
@@ -114,7 +122,7 @@ Finally, there are several commands to emit different levels of log output:
 
 | log level | example usage |
 |---|---|
-| [debug](https://github.com/actions/toolkit/blob/master/docs/action-debugging.md)  | `echo "::debug::My debug message"` |
+| [debug](action-debugging.md)  | `echo "::debug::My debug message"` |
 | warning | `echo "::warning::My warning message"` |
 | error | `echo "::error::My error message"` |
 
