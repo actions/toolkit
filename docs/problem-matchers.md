@@ -1,11 +1,11 @@
 # Problem Matchers
-Problem Matchers are a way to scan output of builds for a specified pattern and surface that information in the UI. GitHub annotations and log file decorations are created for matches when the pattern is detected.
+Problem Matchers are a way to scan output of builds for a specified pattern and surface that information in the UI. [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created for pattern matches.
 
-For example, consider the eslint compact output:
+For example, consider the ESLint compact output:
 ```
-/home/admin/git/MyProject/badFile.js: line 50, col 11, Error - 'myVar' is defined but never used. (no-unused-vars)
+badFile.js: line 50, col 11, Error - 'myVar' is defined but never used. (no-unused-vars)
 ```
-We can define a problem matcher to detect that output, and relay that information to an annotation.
+We can define a problem matcher to detect that output:
 ```
 {
     "problemMatcher": [
@@ -38,17 +38,17 @@ The following fields are available for problem matchers
 
 ```
 {
-    owner: An id field that can be used to remove or replace the problem matcher
+    owner: An id field that can be used to remove or replace the problem matcher. **required**
     pattern: 
     [
         {
-            regexp: The regex containing the groups
+            regexp: The regex containing the groups. **required**
             file: a group number containing the file name
             line: a group number containing the line number
             column: a group number containing the column information
-            severity: a group number containing either 'warning' or 'error' ignore case. Defaults to `error`
+            severity: a group number containing either 'warning' or 'error' case insensitive. Defaults to `error`
             code: a group number containing the error code
-            message: a group number containing the error message
+            message: a group number containing the error message. **required** at least one pattern must set message
             fromPath: a group number containing the base path of the file, otherwise the location of the git repository on disk is used
             loop: See [Multiline Matching](#Multi line matching)
         }
