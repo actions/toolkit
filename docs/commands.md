@@ -81,7 +81,9 @@ function setSecret(secret: string): void {}
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
 
-CAUTION: Do **not** mask short values if you can avoid it, it could render your output unreadable (and future steps' output as well).
+**WARNING** The add-mask and setSecret  commands only support single line secrets. To register a multiline secrets you must register each line individually otherwise it will not be masked.
+
+**WARNING** Do **not** mask short values if you can avoid it, it could render your output unreadable (and future steps' output as well).
 For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` will now print `He*********o FOO BAR Wor****d`
 
 ### Group and Ungroup Log Lines
