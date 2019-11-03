@@ -19,7 +19,7 @@ Major versions should guarentee compatibility.  A major version can add net new 
 
 Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `master` branch has latest code and is unstable to bind to since a breaking new major version may first get implemented in master.  
 
-> Warning: do not reference `master` since that is 
+> Warning: do not reference `master` since that is latest code and can be carrying breaking changes of the next major version.
 
 ```yaml
 steps:
