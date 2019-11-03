@@ -59,6 +59,6 @@ See [Git-Basics-Tagging](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
 
 # Sample Workflow
 
-This illustrates one possible versioning workflow which the walkthrough covered.
+This illustrates the versioning workflow covered above.
 
 ![versioning](assets/action-releases.png)
