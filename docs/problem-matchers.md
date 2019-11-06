@@ -8,26 +8,19 @@ Let's consider the ESLint compact output:
 badFile.js: line 50, col 11, Error - 'myVar' is defined but never used. (no-unused-vars)
 ```
 We can define a problem matcher in json that detects input in that format:
-```
+```json
 {
     "problemMatcher": [
         {
             "owner": "eslint-compact",
             "pattern": [
                 {
-                    // The pattern that provides groups to match against
                     "regexp": "^(.+):\\sline\\s(\\d+),\\scol\\s(\\d+),\\s(Error|Warning|Info)\\s-\\s(.+)\\s\\((.+)\\)$",
-                    // The first group matches the file
                     "file": 1,
-                    // The second group matches the line
                     "line": 2,
-                    // The third group matches the column
                     "column": 3,
-                    // The fourth group matches the severity
                     "severity": 4,
-                    // The fifth group matches the message
                     "message": 5,
-                    // The sixth group matches the code
                     "code": 6
                 }
             ]
@@ -40,18 +33,16 @@ The following fields are available for problem matchers:
 
 ```
 {
-    owner: An id field that can be used to remove or replace the problem matcher. **required**
-    pattern: 
-    [
+    owner: An ID field that can be used to remove or replace the problem matcher. **required**
+    pattern: [
         {
-            regexp: The regex containing the groups. **required**
+            regexp: The regex pattern that provides the groups to match against **required**
             file: a group number containing the file name
             line: a group number containing the line number
             column: a group number containing the column information
             severity: a group number containing either 'warning' or 'error' case-insensitive. Defaults to `error`
             code: a group number containing the error code
-            message: a group number containing the error message. **required** at least one pattern must set message
-            fromPath: a group number containing the base path of the file, otherwise the location of the git repository on disk is used
+            message: a group number containing the error message. **required** at least one pattern must set the message
             loop: loops until a match is not found, only valid on the last pattern of a multipattern matcher
         }
     ]
@@ -100,7 +91,7 @@ The eslint-stylish problem matcher defined below catches that output, and create
 ```
 
 The first pattern matches the `test.js` line and records the file information. This line is not decorated in the UI.
-The second pattern loops through the remaining lines with `loop : true` until it fails to find a match, and surfaces these lines prominently in the UI.
+The second pattern loops through the remaining lines with `loop: true` until it fails to find a match, and surfaces these lines prominently in the UI.
 
 ## Adding and Removing Problem Matchers
 Problem Matchers are enabled and removed via the toolkit [commands](commands.md#problem-matchers).
@@ -110,7 +101,7 @@ Registering two problem-matchers with the same owner will result in only the pro
 
 ## Examples
 Some of the starter actions are already using problem matchers, for example:
-- [setup-node Problem Matchers](https://github.com/actions/setup-node/tree/master/.github)
-- [setup-python Problem Matchers](https://github.com/actions/setup-python/tree/master/.github)
-- [setup-go Problem Matchers](https://github.com/actions/setup-go/tree/master/.github)
+- [setup-node](https://github.com/actions/setup-node/tree/master/.github)
+- [setup-python](https://github.com/actions/setup-python/tree/master/.github)
+- [setup-go](https://github.com/actions/setup-go/tree/master/.github)
 - [setup-dotnet](https://github.com/actions/setup-dotnet/tree/master/.github)
