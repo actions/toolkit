@@ -32,7 +32,7 @@ Binding to the immutable sha1 may offer more reliability.  However, note that th
 
 # Recommendations
 
-1. **Create a release branch for each major version**: For example, `releases\v1`.  This will allow for releases of that major version while the development of a different major version proceeds.
+1. **Create a release branch for each major version**: For example, `releases/v1`.  This will allow for releases of that major version while the development of a different major version proceeds.
 
 2. **Validate changes referencing the release branch**:  
 
