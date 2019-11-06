@@ -102,6 +102,16 @@ function startGroup(name: string): void {}
 function endGroup(): void {}
 ```
 
+### Problem Matchers
+Problems matchers can be used to scan a build's output to automatically surface lines to the user that matches the provided pattern. A file path to a .json Problem Matcher must be provided. See [Problem Matchers](problem-matchers.md) for more information on how to define a Problem Matcher.
+
+```bash
+echo "::add-matcher::eslint-compact-problem-matcher.json"   
+echo "::remove-matcher::eslint-compact"
+```
+
+`add-matcher` takes a path to a Problem Matcher file
+`remove-matcher` removes a Problem Matcher by owner
 ### Save State
 
 Save state to be used in the corresponding wrapper (finally) post job entry point.
@@ -116,7 +126,7 @@ Finally, there are several commands to emit different levels of log output:
 
 | log level | example usage |
 |---|---|
-| [debug](https://github.com/actions/toolkit/blob/master/docs/action-debugging.md)  | `echo "::debug::My debug message"` |
+| [debug](action-debugging.md)  | `echo "::debug::My debug message"` |
 | warning | `echo "::warning::My warning message"` |
 | error | `echo "::error::My error message"` |
 
