@@ -16,7 +16,7 @@ Thank you 🙇‍♀ for wanting to create an issue in this repository. Before y
 If your issue is relevant to this repository, please include the information below:
 
 **Describe the enhancement**
-A clear and concise description of what the features or enhancment you need.
+A clear and concise description of what the features or enhancement you need.
 
 **Code Snippet**
 If applicable, add a code snippet to show the api enhancement.
