@@ -146,7 +146,7 @@ export async function extract7z(
     try {
       const args: string[] = [
         'x', // eXtract files with full paths
-        '-bb1', // -bb[0-3] : set output log level
+        '-bb0', // -bb[0-3] : set output log level
         '-bd', // disable progress indicator
         '-sccUTF-8', // set charset for for console input/output
         file
@@ -295,7 +295,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
   const unzipPath = await io.which('unzip', true)
-  await exec(`"${unzipPath}"`, [file], {cwd: dest})
+  await exec(`"${unzipPath}"`, ['-q', file], {cwd: dest})
 }
 
 /**
