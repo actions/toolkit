@@ -253,6 +253,37 @@ describe('@actions/tool-cache', function() {
         fs.readFileSync(path.join(toolPath, 'foo', 'hello.txt'), 'utf8')
       ).toBe('foo/hello: world')
     })
+
+    it('extract .xar', async () => {
+      const tempDir = path.join(tempPath, 'test-install.xar')
+
+      await io.mkdirP(tempDir)
+
+      // copy the .xar file to the test dir
+      const _xarFile: string = path.join(tempDir, 'test.xar')
+      await io.cp(path.join(__dirname, 'data', 'test.xar'), _xarFile)
+
+      // extract/cache
+      const extPath: string = await tc.extractXar(_xarFile, undefined, '-x')
+      await tc.cacheDir(extPath, 'my-xar-contents', '1.1.0')
+      const toolPath: string = tc.find('my-xar-contents', '1.1.0')
+
+      expect(fs.existsSync(toolPath)).toBeTruthy()
+      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+      expect(
+        fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+      ).toBeTruthy()
+      expect(
+        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+      ).toBeTruthy()
+      expect(
+        fs.readFileSync(
+          path.join(toolPath, 'folder', 'nested-file.txt'),
+          'utf8'
+        )
+      ).toBe('folder/nested-file.txt contents')
+    })
   }
 
   it('installs a zip and finds it', async () => {
