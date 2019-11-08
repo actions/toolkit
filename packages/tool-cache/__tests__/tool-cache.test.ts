@@ -14,6 +14,7 @@ process.env['RUNNER_TOOL_CACHE'] = cachePath
 import * as tc from '../src/tool-cache'
 
 const IS_WINDOWS = process.platform === 'win32'
+const IS_MAC = process.platform === 'darwin'
 
 describe('@actions/tool-cache', function() {
   beforeAll(function() {
@@ -198,6 +199,39 @@ describe('@actions/tool-cache', function() {
       }
     })
   } else {
+    if (IS_MAC) {
+      it('extract .xar', async () => {
+        const tempDir = path.join(tempPath, 'test-install.xar')
+
+        await io.mkdirP(tempDir)
+
+        // copy the .xar file to the test dir
+        const _xarFile: string = path.join(tempDir, 'test.xar')
+        await io.cp(path.join(__dirname, 'data', 'test.xar'), _xarFile)
+
+        // extract/cache
+        const extPath: string = await tc.extractXar(_xarFile, undefined, '-x')
+        await tc.cacheDir(extPath, 'my-xar-contents', '1.1.0')
+        const toolPath: string = tc.find('my-xar-contents', '1.1.0')
+
+        expect(fs.existsSync(toolPath)).toBeTruthy()
+        expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+        expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+        ).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+        ).toBeTruthy()
+        expect(
+          fs.readFileSync(
+            path.join(toolPath, 'folder', 'nested-file.txt'),
+            'utf8'
+          )
+        ).toBe('folder/nested-file.txt contents')
+      })
+    }
+
     it('extract .tar.gz', async () => {
       const tempDir = path.join(tempPath, 'test-install-tar.gz')
 
@@ -252,37 +286,6 @@ describe('@actions/tool-cache', function() {
       expect(
         fs.readFileSync(path.join(toolPath, 'foo', 'hello.txt'), 'utf8')
       ).toBe('foo/hello: world')
-    })
-
-    it('extract .xar', async () => {
-      const tempDir = path.join(tempPath, 'test-install.xar')
-
-      await io.mkdirP(tempDir)
-
-      // copy the .xar file to the test dir
-      const _xarFile: string = path.join(tempDir, 'test.xar')
-      await io.cp(path.join(__dirname, 'data', 'test.xar'), _xarFile)
-
-      // extract/cache
-      const extPath: string = await tc.extractXar(_xarFile, undefined, '-x')
-      await tc.cacheDir(extPath, 'my-xar-contents', '1.1.0')
-      const toolPath: string = tc.find('my-xar-contents', '1.1.0')
-
-      expect(fs.existsSync(toolPath)).toBeTruthy()
-      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
-      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
-      ).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
-      ).toBeTruthy()
-      expect(
-        fs.readFileSync(
-          path.join(toolPath, 'folder', 'nested-file.txt'),
-          'utf8'
-        )
-      ).toBe('folder/nested-file.txt contents')
     })
   }
 

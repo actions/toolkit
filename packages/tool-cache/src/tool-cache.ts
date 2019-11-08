@@ -18,6 +18,7 @@ export class HTTPError extends Error {
 }
 
 const IS_WINDOWS = process.platform === 'win32'
+const IS_MAC = process.platform === 'darwin'
 const userAgent = 'actions/tool-cache'
 
 // On load grab temp directory and cache directory and remove them from env (currently don't want to expose this)
@@ -219,9 +220,8 @@ export async function extractXar(
   dest?: string,
   flags: string = '-x'
 ): Promise<string> {
-  if (!file) {
-    throw new Error("parameter 'file' is required")
-  }
+  ok(IS_MAC, 'extractXar() not supported on current OS')
+  ok(file, 'parameter "file" is required')
 
   dest = dest || (await _createExtractFolder(dest))
   const xarPath: string = await io.which('xar', true)
