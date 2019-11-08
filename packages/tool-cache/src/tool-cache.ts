@@ -207,6 +207,30 @@ export async function extractTar(
 }
 
 /**
+ * Extract a xar compatible archive
+ *
+ * @param file     path to the archive
+ * @param dest     destination directory. Optional.
+ * @param flags    flags for the xar. Optional.
+ * @returns        path to the destination directory
+ */
+export async function extractXar(
+  file: string,
+  dest?: string,
+  flags: string = '-x'
+): Promise<string> {
+  if (!file) {
+    throw new Error("parameter 'file' is required")
+  }
+
+  dest = dest || (await _createExtractFolder(dest))
+  const xarPath: string = await io.which('xar', true)
+  await exec(`"${xarPath}"`, [flags, '-C', dest, '-f', file])
+
+  return dest
+}
+
+/**
  * Extract a zip
  *
  * @param file     path to the zip
