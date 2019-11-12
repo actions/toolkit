@@ -107,7 +107,7 @@ Problems matchers can be used to scan a build's output to automatically surface 
 
 ```bash
 echo "::add-matcher::eslint-compact-problem-matcher.json"   
-echo "::remove-matcher::eslint-compact"
+echo "::remove-matcher owner=eslint-compact::"
 ```
 
 `add-matcher` takes a path to a Problem Matcher file
