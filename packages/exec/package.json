@@ -32,7 +32,7 @@
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
   },
-  "devDependencies": {
+  "dependencies": {
     "@actions/io": "^1.0.1"
   }
 }
