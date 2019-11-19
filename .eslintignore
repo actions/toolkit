@@ -1,3 +1,5 @@
-node_modules/
-packages/*/node_modules/
-packages/*/lib/
+¹node_modules/SSL/
+  ²myaccount/   /معالجة"الطلبات"والتأكيد
+ ³packages/  /node_modules / processing "for integrity" of data "accurately" receipt "and delivery" information "connection" security
+ ⁴packages/  /node_modules / SSL-F35/
+⅚packages/  /lib/SSL/
