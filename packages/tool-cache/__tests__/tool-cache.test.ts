@@ -142,6 +142,36 @@ describe('@actions/tool-cache', function() {
       }
     })
 
+    it('extracts a 7z to a directory that does not exist', async () => {
+      const tempDir = path.join(__dirname, 'test-install-7z')
+      const destDir = path.join(tempDir, 'not-exist')
+      try {
+        await io.mkdirP(tempDir)
+
+        // copy the 7z file to the test dir
+        const _7zFile: string = path.join(tempDir, 'test.7z')
+        await io.cp(path.join(__dirname, 'data', 'test.7z'), _7zFile)
+
+        // extract/cache
+        const extPath: string = await tc.extract7z(_7zFile, destDir)
+        await tc.cacheDir(extPath, 'my-7z-contents', '1.1.0')
+        const toolPath: string = tc.find('my-7z-contents', '1.1.0')
+
+        expect(extPath).toContain('not-exist')
+        expect(fs.existsSync(toolPath)).toBeTruthy()
+        expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+        expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+        ).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+        ).toBeTruthy()
+      } finally {
+        await io.rmRF(tempDir)
+      }
+    })
+
     it('extract 7z using custom 7z tool', async function() {
       const tempDir = path.join(
         __dirname,
@@ -212,6 +242,39 @@ describe('@actions/tool-cache', function() {
       await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
       const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
 
+      expect(fs.existsSync(toolPath)).toBeTruthy()
+      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+      expect(
+        fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+      ).toBeTruthy()
+      expect(
+        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+      ).toBeTruthy()
+      expect(
+        fs.readFileSync(
+          path.join(toolPath, 'folder', 'nested-file.txt'),
+          'utf8'
+        )
+      ).toBe('folder/nested-file.txt contents')
+    })
+
+    it('extract .tar.gz to a directory that does not exist', async () => {
+      const tempDir = path.join(tempPath, 'test-install-tar.gz')
+      const destDir = path.join(tempDir, 'not-exist')
+
+      await io.mkdirP(tempDir)
+
+      // copy the .tar.gz file to the test dir
+      const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
+      await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
+
+      // extract/cache
+      const extPath: string = await tc.extractTar(_tgzFile, destDir)
+      await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
+      const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
+
+      expect(extPath).toContain('not-exist')
       expect(fs.existsSync(toolPath)).toBeTruthy()
       expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
       expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
@@ -358,6 +421,60 @@ describe('@actions/tool-cache', function() {
       } finally {
         await io.rmRF(destDir)
       }
+    } finally {
+      await io.rmRF(tempDir)
+    }
+  })
+
+  it('extract zip to a directory that does not exist', async function() {
+    const tempDir = path.join(__dirname, 'test-install-zip')
+    try {
+      await io.mkdirP(tempDir)
+
+      // stage the layout for a zip file:
+      //   file.txt
+      //   folder/nested-file.txt
+      const stagingDir = path.join(tempDir, 'zip-staging')
+      await io.mkdirP(path.join(stagingDir, 'folder'))
+      fs.writeFileSync(path.join(stagingDir, 'file.txt'), '')
+      fs.writeFileSync(path.join(stagingDir, 'folder', 'nested-file.txt'), '')
+
+      // create the zip
+      const zipFile = path.join(tempDir, 'test.zip')
+      await io.rmRF(zipFile)
+      if (IS_WINDOWS) {
+        const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
+        const escapedZipFile = zipFile.replace(/'/g, "''")
+        const powershellPath = await io.which('powershell', true)
+        const args = [
+          '-NoLogo',
+          '-Sta',
+          '-NoProfile',
+          '-NonInteractive',
+          '-ExecutionPolicy',
+          'Unrestricted',
+          '-Command',
+          `$ErrorActionPreference = 'Stop' ; Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::CreateFromDirectory('${escapedStagingPath}', '${escapedZipFile}')`
+        ]
+        await exec.exec(`"${powershellPath}"`, args)
+      } else {
+        const zipPath: string = await io.which('zip')
+        await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
+      }
+
+      const destDir = path.join(tempDir, 'not-exist')
+
+      const extPath: string = await tc.extractZip(zipFile, destDir)
+      await tc.cacheDir(extPath, 'foo', '1.1.0')
+      const toolPath: string = tc.find('foo', '1.1.0')
+
+      expect(extPath).toContain('not-exist')
+      expect(fs.existsSync(toolPath)).toBeTruthy()
+      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+      expect(
+        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+      ).toBeTruthy()
     } finally {
       await io.rmRF(tempDir)
     }
