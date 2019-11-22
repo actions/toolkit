@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -27,13 +27,15 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
+    "format": "prettier --write **/*.ts",
+    "format-check": "prettier --check **/*.ts",
     "tsc": "tsc"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@octokit/graphql": "^2.0.1",
+    "@octokit/graphql": "^4.3.1",
     "@octokit/rest": "^16.15.0"
   },
   "devDependencies": {
