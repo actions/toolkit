@@ -575,6 +575,36 @@ describe('@actions/exec', () => {
   })
 
   if (IS_WINDOWS) {
+    it('Exec roots relative tool path using process.cwd (Windows path separator)', async () => {
+      let exitCode: number
+      const command = 'scripts\\print-args-cmd' // let ToolRunner resolve the extension
+      const execOptions = getExecOptions()
+      const outStream = new StringStream()
+      execOptions.outStream = outStream
+      let output = ''
+      execOptions.listeners = {
+        stdout: (data: Buffer) => {
+          output += data.toString()
+        }
+      }
+
+      const originalCwd = process.cwd()
+      try {
+        process.chdir(__dirname)
+        exitCode = await exec.exec(`${command} hello world`, [], execOptions)
+      } catch (err) {
+        process.chdir(originalCwd)
+        throw err
+      }
+
+      expect(exitCode).toBe(0)
+      const toolPath = path.resolve(__dirname, `${command}.cmd`)
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${process.env.ComSpec} /D /S /C "${toolPath} hello world"`
+      )
+      expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
+    })
+
     // Win specific quoting tests
     it('execs .exe with verbatim args (Windows)', async () => {
       const exePath = process.env.ComSpec
