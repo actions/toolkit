@@ -661,7 +661,7 @@ describe('@actions/exec', () => {
         `[command]"${exePath}" myarg1 myarg2`
       )
       expect(output.trim()).toBe("args[0]: 'myarg1'\r\nargs[1]: 'myarg2'")
-    }, 10000) // slower windows runs timeout, so upping timeout to 10s (from default of 5s)
+    }, 20000) // slower windows runs timeout, so upping timeout to 20s (from default of 5s)
 
     it('execs .cmd with a space and with verbatim args (Windows)', async () => {
       // this test validates the quoting that tool runner adds around the script path.
