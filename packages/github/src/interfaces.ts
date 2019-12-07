@@ -10,6 +10,6 @@ export interface WebhookPayload {
     [key: string]: any
     type: string
   }
-  action: number
+  action?: string
   installation?: Webhooks.WebhookPayloadInstallationInstallation
 }
