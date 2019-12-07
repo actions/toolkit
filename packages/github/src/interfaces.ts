@@ -1,39 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-export interface PayloadRepository {
-  [key: string]: any
-  full_name?: string
-  name: string
-  owner: {
-    [key: string]: any
-    login: string
-    name?: string
-  }
-  html_url?: string
-}
+import Webhooks from '@octokit/webhooks'
 
 export interface WebhookPayload {
   [key: string]: any
-  repository?: PayloadRepository
-  issue?: {
-    [key: string]: any
-    number: number
-    html_url?: string
-    body?: string
-  }
-  pull_request?: {
-    [key: string]: any
-    number: number
-    html_url?: string
-    body?: string
-  }
+  repository?: Webhooks.PayloadRepository
+  issue?: Webhooks.WebhookPayloadIssuesIssue
+  pull_request?: Webhooks.WebhookPayloadPullRequest
   sender?: {
     [key: string]: any
     type: string
   }
-  action?: string
-  installation?: {
-    id: number
-    [key: string]: any
-  }
+  action: number
+  installation?: Webhooks.WebhookPayloadInstallationInstallation
 }

@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "@octokit/graphql": "^4.3.1",
-    "@octokit/rest": "^16.15.0"
+    "@octokit/rest": "^16.15.0",
+    "@octokit/webhooks": "^7.0.0"
   },
   "devDependencies": {
     "jest": "^24.7.1"
