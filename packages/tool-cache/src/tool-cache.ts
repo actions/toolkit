@@ -202,17 +202,20 @@ export async function extractTar(
   dest = dest || (await _createExtractFolder(dest))
   let tarPath: string
   if (IS_WINDOWS) {
-    // Do not which tar on Windows due to incompatibilities between BSD tar and GNU tar on Windows.
-    // The version of tar at C:\Windows\System32\tar.exe is BSD tar and works properly with
-    // Windows-style paths. Whereas GNU tar requires forward slashes and also requires the flag
-    // `--force-local` due to the `:` in Windows paths. This presents an incompatibility because
-    // BSD tar does not support the flag `--force-local` (invalid flag, fails the process).
-    tarPath = path.join(process.env['windir'] as string, 'System32', 'tar.exe')
-    fs.statSync(tarPath)
+    // Use 7z
+    await extract7z(file, dest);
+
+    // // Do not which tar on Windows due to incompatibilities between BSD tar and GNU tar on Windows.
+    // // The version of tar at C:\Windows\System32\tar.exe is BSD tar and works properly with
+    // // Windows-style paths. Whereas GNU tar requires forward slashes and also requires the flag
+    // // `--force-local` due to the `:` in Windows paths. This presents an incompatibility because
+    // // BSD tar does not support the flag `--force-local` (invalid flag, fails the process).
+    // tarPath = path.join(process.env['windir'] as string, 'System32', 'tar.exe')
+    // fs.statSync(tarPath)
   } else {
     tarPath = await io.which('tar', true)
+    await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
   }
-  await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
 
   return dest
 }
