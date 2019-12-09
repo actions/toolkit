@@ -130,7 +130,7 @@ export async function extract7z(
   ok(IS_WINDOWS, 'extract7z() not supported on current OS')
   ok(file, 'parameter "file" is required')
 
-  dest = dest || (await _createExtractFolder(dest))
+  dest = await _createExtractFolder(dest)
 
   const originalCwd = process.cwd()
   process.chdir(dest)
@@ -199,7 +199,7 @@ export async function extractTar(
     throw new Error("parameter 'file' is required")
   }
 
-  dest = dest || (await _createExtractFolder(dest))
+  dest = await _createExtractFolder(dest)
   const tarPath: string = await io.which('tar', true)
   await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
 
@@ -218,7 +218,7 @@ export async function extractZip(file: string, dest?: string): Promise<string> {
     throw new Error("parameter 'file' is required")
   }
 
-  dest = dest || (await _createExtractFolder(dest))
+  dest = await _createExtractFolder(dest)
 
   if (IS_WINDOWS) {
     await extractZipWin(file, dest)
