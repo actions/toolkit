@@ -200,7 +200,14 @@ export async function extractTar(
   }
 
   dest = dest || (await _createExtractFolder(dest))
-  const tarPath: string = await io.which('tar', true)
+  let tarPath: string
+  if (IS_WINDOWS) {
+    tarPath = path.join(process.env['windir'] as string, 'System32', 'tar.exe')
+    fs.statSync(tarPath)
+  }
+  else {
+    tarPath = await io.which('tar', true)
+  }
   await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
 
   return dest
