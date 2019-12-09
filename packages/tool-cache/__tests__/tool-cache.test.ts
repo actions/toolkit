@@ -223,10 +223,7 @@ describe('@actions/tool-cache', function() {
       fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
     ).toBeTruthy()
     expect(
-      fs.readFileSync(
-        path.join(toolPath, 'folder', 'nested-file.txt'),
-        'utf8'
-      )
+      fs.readFileSync(path.join(toolPath, 'folder', 'nested-file.txt'), 'utf8')
     ).toBe('folder/nested-file.txt contents')
   })
 
@@ -247,9 +244,7 @@ describe('@actions/tool-cache', function() {
     expect(fs.existsSync(toolPath)).toBeTruthy()
     expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
     expect(fs.existsSync(path.join(toolPath, 'bar.txt'))).toBeTruthy()
-    expect(
-      fs.existsSync(path.join(toolPath, 'foo', 'hello.txt'))
-    ).toBeTruthy()
+    expect(fs.existsSync(path.join(toolPath, 'foo', 'hello.txt'))).toBeTruthy()
     expect(
       fs.readFileSync(path.join(toolPath, 'foo', 'hello.txt'), 'utf8')
     ).toBe('foo/hello: world')

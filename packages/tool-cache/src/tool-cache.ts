@@ -209,8 +209,7 @@ export async function extractTar(
     // BSD tar does not support the flag `--force-local` (invalid flag, fails the process).
     tarPath = path.join(process.env['windir'] as string, 'System32', 'tar.exe')
     fs.statSync(tarPath)
-  }
-  else {
+  } else {
     tarPath = await io.which('tar', true)
   }
   await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
