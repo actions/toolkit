@@ -76,7 +76,7 @@ The eslint-stylish problem matcher defined below catches that output, and create
                 {
                     // Matches the 2nd and 3rd line in the output
                     "regexp": "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.*)\\s\\s+(.*)$",
-                    // File is carried through from above, so we definte the rest of the groups
+                    // File is carried through from above, so we define the rest of the groups
                     "line": 1,
                     "column": 2,
                     "severity": 3,
