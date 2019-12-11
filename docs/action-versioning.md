@@ -7,7 +7,7 @@ Examples:
 ```yaml
 steps:
     - uses: actions/javascript-action@v1        # recommended. starter workflows use this
-    - user: actions/javascript-action@v1.0.0    # if an action offers specific releases 
+    - uses: actions/javascript-action@v1.0.0    # if an action offers specific releases 
     - uses: actions/javascript-action@41775a4   # binding to a specific sha 
 ```
 
