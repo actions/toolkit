@@ -167,10 +167,6 @@ console.log(`We can even get context data, like the repo: ${context.repo.repo}`)
 ```
 <br/>
 
-Recommendations on versioning, releases and tagging your action.
-<br/>
-<br/>
-
 ## Contributing
 
 We welcome contributions.  See [how to contribute](docs/contribute.md).
