@@ -57,7 +57,7 @@ You can also cache files for reuse.
 ```js
 const tc = require('@actions/tool-cache');
 
-tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
+const cachedPath = await tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
 ```
 
 #### Find
