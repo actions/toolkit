@@ -77,6 +77,12 @@ Actions are downloaded and run from the GitHub graph of repos.  This contains gu
 <br/>
 <br/>
 
+:warning: [Problem Matchers](docs/problem-matchers.md)
+
+Problem Matchers are a way to scan the output of actions for a specified regex pattern and surface that information prominently in the UI.
+<br/>
+<br/>
+
 <h3><a href="https://github.com/actions/hello-world-javascript-action">Hello World JavaScript Action</a></h3>
 
 Illustrates how to create a simple hello world javascript action.
