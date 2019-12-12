@@ -42,8 +42,17 @@ Binding to the immutable sha1 may offer more reliability.  However, note that th
 git tag -fa v1 -m "Update v1 tag"
 git push origin v1 --force
 ```
+# Major Versions
 
-4. **Create a new major version if breaking compat**: If the inputs or behavior are breaking, offer a new major version.  Typically, this entails branching the previous major version for critical updates and moving master to the new major version.  Keeping the major versions available to a minimum is desirable as adding new major versions requires end users understanding the breaks (how to adjust their yaml and expectations).  Since you will likely want to innovate on just the latest major version with only critical updates to previous major versions, you will want to encourage users to move to the latest major version.  For that reason, it's best to combine breaking changes with new capabilities.
+All releases for a major version should hold compat including input compatibility and behavior compatibility.
+
+Introduce a major version for compatibility breaks and major rewrites of the action.
+
+Ideally, a major version would carry other benefits to the user to entice them to upgrade their workflows.  Since updating their workflows will need to be done with an understanding of the changes and what compatibility was broken, introducing a new major version shouldn't be taken lightly. 
+
+To get feedback and to set expectations, the new major version can be initially released with `v2-beta` tag to indicate you can try it out but it's still going under some churn.  Upon release the `-beta` can be dropped and there's an expectation of compatibility from that point forward.
+
+[An example of v2-beta with checkout](https://github.com/actions/checkout/tree/c170eefc2657d93cc91397be50a299bff978a052#checkout-v2-beta)
 
 # Sample Workflow
 
