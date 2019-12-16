@@ -48,6 +48,7 @@ if (!tempDirectory || !cacheRoot) {
  * Download a tool from an url and stream it into a file
  *
  * @param url       url of tool to download
+ * @param dest      path to download tool
  * @returns         path to downloaded tool
  */
 export async function downloadTool(
