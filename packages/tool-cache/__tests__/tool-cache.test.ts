@@ -61,7 +61,9 @@ describe('@actions/tool-cache', function() {
     } finally {
       try {
         await fs.promises.unlink(dest)
-      } catch {}
+      } catch {
+        // intentionally empty
+      }
     }
   })
 
@@ -80,7 +82,9 @@ describe('@actions/tool-cache', function() {
       try {
         await fs.promises.unlink(dest)
         await fs.promises.rmdir(path.dirname(dest))
-      } catch {}
+      } catch {
+        // intentionally empty
+      }
     }
   })
 
