@@ -50,7 +50,10 @@ if (!tempDirectory || !cacheRoot) {
  * @param url       url of tool to download
  * @returns         path to downloaded tool
  */
-export async function downloadTool(url: string): Promise<string> {
+export async function downloadTool(
+  url: string,
+  dest?: string
+): Promise<string> {
   // Wrap in a promise so that we can resolve from within stream callbacks
   return new Promise<string>(async (resolve, reject) => {
     try {
@@ -58,14 +61,13 @@ export async function downloadTool(url: string): Promise<string> {
         allowRetries: true,
         maxRetries: 3
       })
-      const destPath = path.join(tempDirectory, uuidV4())
-
-      await io.mkdirP(tempDirectory)
+      dest = dest || path.join(tempDirectory, uuidV4())
+      await io.mkdirP(path.dirname(dest))
       core.debug(`Downloading ${url}`)
-      core.debug(`Downloading ${destPath}`)
+      core.debug(`Downloading ${dest}`)
 
-      if (fs.existsSync(destPath)) {
-        throw new Error(`Destination file path ${destPath} already exists`)
+      if (fs.existsSync(dest)) {
+        throw new Error(`Destination file path ${dest} already exists`)
       }
 
       const response: httpm.HttpClientResponse = await http.get(url)
@@ -80,13 +82,13 @@ export async function downloadTool(url: string): Promise<string> {
         throw err
       }
 
-      const file: NodeJS.WritableStream = fs.createWriteStream(destPath)
+      const file: NodeJS.WritableStream = fs.createWriteStream(dest)
       file.on('open', async () => {
         try {
           const stream = response.message.pipe(file)
           stream.on('close', () => {
             core.debug('download complete')
-            resolve(destPath)
+            resolve(dest)
           })
         } catch (err) {
           core.debug(

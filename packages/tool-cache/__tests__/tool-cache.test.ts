@@ -47,6 +47,43 @@ describe('@actions/tool-cache', function() {
     expect(fs.statSync(downPath).size).toBe(35)
   })
 
+  it('downloads a 35 byte file (dest)', async () => {
+    const dest = 'test-download-file'
+    try {
+      const downPath: string = await tc.downloadTool(
+        'http://example.com/bytes/35',
+        dest
+      )
+
+      expect(downPath).toEqual(dest)
+      expect(fs.existsSync(downPath)).toBeTruthy()
+      expect(fs.statSync(downPath).size).toBe(35)
+    } finally {
+      try {
+        await fs.promises.unlink(dest)
+      } catch {}
+    }
+  })
+
+  it('downloads a 35 byte file (dest requires mkdirp)', async () => {
+    const dest = 'test-download-dir/test-download-file'
+    try {
+      const downPath: string = await tc.downloadTool(
+        'http://example.com/bytes/35',
+        dest
+      )
+
+      expect(downPath).toEqual(dest)
+      expect(fs.existsSync(downPath)).toBeTruthy()
+      expect(fs.statSync(downPath).size).toBe(35)
+    } finally {
+      try {
+        await fs.promises.unlink(dest)
+        await fs.promises.rmdir(path.dirname(dest))
+      } catch {}
+    }
+  })
+
   it('downloads a 35 byte file after a redirect', async () => {
     nock('http://example.com')
       .get('/redirect-to')
