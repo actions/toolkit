@@ -4,7 +4,7 @@
 
 #### Basic
 
-You can use this package to execute your tools on the command line in a cross platform way:
+You can use this package to execute tools in a cross platform way:
 
 ```js
 const exec = require('@actions/exec');
