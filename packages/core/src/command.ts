@@ -51,13 +51,20 @@ class Command {
 
     if (this.properties && Object.keys(this.properties).length > 0) {
       cmdStr += ' '
+      let first = true
       for (const key in this.properties) {
         if (this.properties.hasOwnProperty(key)) {
           const val = this.properties[key]
           if (val) {
+            if (first) {
+              first = false
+            } else {
+              cmdStr += ','
+            }
+
             // safely append the val - avoid blowing up when attempting to
             // call .replace() if message is not a string for some reason
-            cmdStr += `${key}=${escape(`${val || ''}`)},`
+            cmdStr += `${key}=${escape(`${val || ''}`)}`
           }
         }
       }
