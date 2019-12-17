@@ -53,7 +53,7 @@ describe('@actions/exec', () => {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
@@ -83,7 +83,7 @@ describe('@actions/exec', () => {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
@@ -113,7 +113,7 @@ describe('@actions/exec', () => {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
@@ -205,7 +205,7 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     expect(outstream.write).toBeCalledWith(
-      new Buffer('this is output to stderr')
+      Buffer.from('this is output to stderr')
     )
   })
 
@@ -229,7 +229,7 @@ describe('@actions/exec', () => {
 
     expect(failed).toBe(true)
     expect(errstream.write).toBeCalledWith(
-      new Buffer('this is output to stderr')
+      Buffer.from('this is output to stderr')
     )
   })
 
@@ -264,11 +264,11 @@ describe('@actions/exec', () => {
     const _testExecOptions = getExecOptions()
     _testExecOptions.listeners = {
       stdout: (data: Buffer) => {
-        expect(data).toEqual(new Buffer('this is output to stdout'))
+        expect(data).toEqual(Buffer.from('this is output to stdout'))
         stdoutCalled = true
       },
       stderr: (data: Buffer) => {
-        expect(data).toEqual(new Buffer('this is output to stderr'))
+        expect(data).toEqual(Buffer.from('this is output to stderr'))
         stderrCalled = true
       }
     }
