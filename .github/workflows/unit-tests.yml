@@ -20,7 +20,6 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
 
     steps:
-    - run: echo ::add-path::C:\Windows\System32 # temp edit
     - name: Checkout
       uses: actions/checkout@v1
 
