@@ -207,7 +207,7 @@ export async function extractTar(
   const args = [flags]
   if (IS_WINDOWS) {
     let versionOutput = ''
-    exec('tar --version', [], {
+    await exec('tar --version', [], {
       ignoreReturnCode: true,
       listeners: {
         stdout: (data: Buffer) => (versionOutput += data.toString()),
