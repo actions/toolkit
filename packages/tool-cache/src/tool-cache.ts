@@ -203,8 +203,25 @@ export async function extractTar(
   }
 
   dest = await _createExtractFolder(dest)
-  const tarPath: string = await io.which('tar', true)
-  await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
+  let destArg = dest
+  const args = [flags]
+  if (IS_WINDOWS) {
+    let versionOutput = ''
+    exec('tar --version', [], {
+      ignoreReturnCode: true,
+      listeners: {
+        stdout: (data: Buffer) => (versionOutput += data.toString()),
+        stderr: (data: Buffer) => (versionOutput += data.toString())
+      }
+    })
+
+    if (versionOutput.toUpperCase().includes('GNU TAR')) {
+      args.push('--force-local')
+      destArg = dest.replace(/\\/g, '/')
+    }
+  }
+  args.push('-C', destArg, '-f', file)
+  await exec(`tar`, args)
 
   return dest
 }
