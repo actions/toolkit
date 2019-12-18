@@ -205,7 +205,7 @@ export async function extractTar(
   // Create dest
   dest = await _createExtractFolder(dest)
 
-  // Determine whther GNU tar
+  // Determine whether GNU tar
   let versionOutput = ''
   await exec('tar --version', [], {
     ignoreReturnCode: true,
