@@ -3,8 +3,6 @@ import * as minimatch from 'minimatch'
 import * as path from 'path'
 import * as pathHelpers from './internal-path-helpers'
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 const IS_WINDOWS = process.platform === 'win32'
 
 export class Pattern {
@@ -38,7 +36,7 @@ export class Pattern {
       // Escape special glob characters
       let root = process.cwd()
       root = (IS_WINDOWS ? root : root.replace(/\\/g, '\\\\')) // escape '\' on macOS/Linux
-        .replace(/(\[)(?=[^\/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
+        .replace(/(\[)(?=[^/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
         .replace(/\?/g, '[?]') // escape '?'
         .replace(/\*/g, '[*]') // escape '*'
       pattern = pathHelpers.ensureRooted(root, pattern)
@@ -54,11 +52,11 @@ export class Pattern {
     }
 
     // Push all segments, while not at the root
-    let dirname = path.dirname(pattern)
-    while (dirname != pattern) {
+    const dirname = path.dirname(pattern)
+    while (dirname !== pattern) {
       // Append the last segment
       const segment = path.basename(pattern)
-      if (segment != '.') {
+      if (segment !== '.') {
         assert(
           segment !== '..',
           `Path segment '..' is invalid in match pattern '${originalPattern}'`
@@ -84,12 +82,10 @@ export class Segment {
   literal: string = ''
   regexp: RegExp | undefined
   globstar: boolean = false
-  private caseInsensitiveOptions: minimatch.IOptions = this.createOptions(true)
-  private caseSensitiveOptions: minimatch.IOptions = this.createOptions(false)
 
   constructor(segment: string) {
     // Check globstar
-    if (segment == '**') {
+    if (segment === '**') {
       this.globstar = true
       return
     }
@@ -97,13 +93,13 @@ export class Segment {
     // Windows
     if (IS_WINDOWS) {
       // Try case sensitive
-      let expression = this.getExpression(segment, this.caseSensitiveOptions)
+      let expression = this.getExpression(segment)
       if (typeof expression === 'string') {
         this.literal = expression
       }
 
       // Try case insensitive
-      expression = this.getExpression(segment, this.caseInsensitiveOptions)
+      expression = this.getExpression(segment, true)
       if (typeof expression === 'object') {
         this.regexp = expression
       }
@@ -111,11 +107,11 @@ export class Segment {
     // Linux/macOS
     else {
       // Set literal or regex
-      const expression = this.getExpression(segment, this.caseSensitiveOptions)
+      const expression = this.getExpression(segment)
       if (typeof expression === 'string') {
-        this.literal = expression as string
+        this.literal = expression
       } else {
-        this.regexp = expression as RegExp
+        this.regexp = expression
       }
     }
 
@@ -128,25 +124,22 @@ export class Segment {
 
   private getExpression(
     segment: string,
-    options: minimatch.IOptions
+    nocase: boolean = false
   ): string | RegExp {
-    const minimatchObj = new minimatch.Minimatch(segment, options)
-    assert(
-      minimatchObj.set.length == 1 && minimatchObj.set[0].length == 1,
-      `Unexpected expression from pattern segment '${segment}'`
-    )
-    return minimatchObj.set[0][0]
-  }
-
-  private createOptions(nocase: boolean): minimatch.IOptions {
-    return {
+    const options: minimatch.IOptions = {
       dot: true,
       nobrace: true,
-      nocase: nocase,
+      nocase,
       nocomment: true,
       noext: true,
       nonegate: true,
       noglobstar: true
-    } as minimatch.IOptions
+    }
+    const minimatchObj = new minimatch.Minimatch(segment, options)
+    assert(
+      minimatchObj.set.length === 1 && minimatchObj.set[0].length === 1,
+      `Unexpected expression from pattern segment '${segment}'`
+    )
+    return minimatchObj.set[0][0]
   }
 }

@@ -1,9 +1,5 @@
 import {Pattern} from './internal-pattern-helpers'
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
-const IS_WINDOWS = process.platform === 'win32'
-
 /**
  * Properties to control glob behavior
  */
@@ -45,8 +41,7 @@ export async function glob(
 ): Promise<string[]> {
   const patternObj = new Pattern(pattern)
   options = options || new GlobOptions()
-
-  throw new Error('not implemented')
+  throw new Error(`not implemented ${patternObj} ${options}`)
 }
 
 /**
@@ -54,8 +49,7 @@ export async function glob(
  *
  * For example, '/foo/bar*' returns '/foo'.
  */
-export function getSearchPath(pattern: string, options?: GlobOptions): string {
+export function getSearchPath(pattern: string): string {
   const patternObj = new Pattern(pattern)
-  options = options || new GlobOptions()
   return patternObj.searchPath
 }

@@ -1,13 +1,11 @@
 import * as path from 'path'
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 const IS_WINDOWS = process.platform === 'win32'
 
 /**
  * Roots the path if not already rooted
  */
-export function ensureRooted(root: string, p: string) {
+export function ensureRooted(root: string, p: string): string {
   if (!root) {
     throw new Error('ensureRooted() parameter "root" cannot be empty')
   }
@@ -54,7 +52,7 @@ export function safeTrimTrailingPathSeparator(p: string): string {
   }
 
   // Check '/' on macOS/Linux and '\' on Windows
-  if (p == path.sep) {
+  if (p === path.sep) {
     return p
   }
 
@@ -128,7 +126,7 @@ export function normalizeSeparators(p: string): string {
     p = p.replace(/\//g, '\\')
 
     // remove redundant slashes
-    let isUnc = /^\\\\+[^\\]/.test(p) // e.g. \\hello
+    const isUnc = /^\\\\+[^\\]/.test(p) // e.g. \\hello
     return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\') // preserve leading // for UNC
   }
 
