@@ -37,21 +37,21 @@ describe('@actions/core', () => {
 
   it('exportVariable produces the correct command and sets the env', () => {
     core.exportVariable('my var', 'var val')
-    assertWriteCalls([`::set-env name=my var,::var val${os.EOL}`])
+    assertWriteCalls([`::set-env name=my var::var val${os.EOL}`])
   })
 
   it('exportVariable escapes variable names', () => {
     core.exportVariable('special char var \r\n];', 'special val')
     expect(process.env['special char var \r\n];']).toBe('special val')
     assertWriteCalls([
-      `::set-env name=special char var %0D%0A%5D%3B,::special val${os.EOL}`
+      `::set-env name=special char var %0D%0A%5D%3B::special val${os.EOL}`
     ])
   })
 
   it('exportVariable escapes variable values', () => {
     core.exportVariable('my var2', 'var val\r\n')
     expect(process.env['my var2']).toBe('var val\r\n')
-    assertWriteCalls([`::set-env name=my var2,::var val%0D%0A${os.EOL}`])
+    assertWriteCalls([`::set-env name=my var2::var val%0D%0A${os.EOL}`])
   })
 
   it('setSecret produces the correct command', () => {
@@ -101,7 +101,7 @@ describe('@actions/core', () => {
 
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
-    assertWriteCalls([`::set-output name=some output,::some value${os.EOL}`])
+    assertWriteCalls([`::set-output name=some output::some value${os.EOL}`])
   })
 
   it('setFailure sets the correct exit code and failure message', () => {
@@ -171,7 +171,7 @@ describe('@actions/core', () => {
 
   it('saveState produces the correct command', () => {
     core.saveState('state_1', 'some value')
-    assertWriteCalls([`::save-state name=state_1,::some value${os.EOL}`])
+    assertWriteCalls([`::save-state name=state_1::some value${os.EOL}`])
   })
 
   it('getState gets wrapper action state', () => {
