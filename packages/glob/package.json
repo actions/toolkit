@@ -34,6 +34,7 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
+    "@actions/core": "^1.2.0",
     "minimatch": "^3.0.4"
   }
 }

@@ -52,19 +52,21 @@ export class Pattern {
     }
 
     // Push all segments, while not at the root
-    const dirname = path.dirname(pattern)
+    let dirname = pathHelpers.dirname(pattern)
     while (dirname !== pattern) {
-      // Append the last segment
-      const segment = path.basename(pattern)
-      if (segment !== '.') {
+      // Push the segment
+      const basename = path.basename(pattern)
+      if (basename !== '.') {
         assert(
-          segment !== '..',
+          basename !== '..',
           `Path segment '..' is invalid in match pattern '${originalPattern}'`
         )
-        this.segments.push(new Segment(segment))
+        this.segments.push(new Segment(basename))
       }
 
+      // Truncate the last segment
       pattern = dirname
+      dirname = pathHelpers.dirname(pattern)
     }
 
     // Remainder is the root

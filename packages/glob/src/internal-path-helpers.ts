@@ -18,8 +18,8 @@ export function ensureRooted(root: string, p: string): string {
     return p
   }
 
+  // Check for root like C: on Windows
   if (IS_WINDOWS && root.match(/^[A-Z]:$/i)) {
-    // e.g. C:
     return root + p
   }
 
