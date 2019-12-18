@@ -32,5 +32,8 @@
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
+  },
+  "dependencies": {
+    "minimatch": "^3.0.4"
   }
 }
