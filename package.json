@@ -8,7 +8,6 @@
     "format": "prettier --write packages/**/*.ts",
     "format-check": "prettier --check packages/**/*.ts",
     "lint": "eslint packages/**/*.ts",
-    "new-package": "scripts/create-package",
     "test": "jest"
   },
   "devDependencies": {
