@@ -1,10 +1,9 @@
 import * as core from '@actions/core'
 import * as fs from 'fs'
+import * as path from 'path'
 import * as patternHelper from './internal-pattern-helper'
-import {MatchResult, Pattern} from './internal-pattern-helper'
-import {Stats} from 'fs'
-
-const IS_WINDOWS = process.platform === 'win32'
+import {MatchResult, Pattern} from './internal-pattern'
+import {SearchState} from './internal-search-state'
 
 /**
  * Properties to control glob behavior
@@ -45,6 +44,7 @@ export async function glob(
   pattern: string,
   options?: GlobOptions
 ): Promise<string[]> {
+  // Default options
   options = options || new GlobOptions()
   core.debug(`options.expandDirectories '${options.expandDirectories}'`)
   core.debug(`options.followSymbolicLinks '${options.followSymbolicLinks}'`)
@@ -52,8 +52,8 @@ export async function glob(
     `options.omitBrokenSymbolicLinks '${options.omitBrokenSymbolicLinks}'`
   )
 
-  // Parse glob patterns
-  const patterns: Pattern[] = patternHelper.parsePatterns([pattern])
+  // Parse patterns
+  const patterns: Pattern[] = patternHelper.parse([pattern])
 
   // Get search paths
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
@@ -62,122 +62,48 @@ export async function glob(
   const result: string[] = []
   for (const searchPath of searchPaths) {
     // Skip if not exists
-    if (!await searchPathExists(searchPath)) {
+    if (!(await searchPathExists(searchPath))) {
       continue
     }
 
     // Push the first item
-    let stack: SearchState[] = [new SearchState(searchPath, 1)]
-    let traversalChain: string[] = [] // used to detect cycles
+    const stack: SearchState[] = [new SearchState(searchPath, 1)]
+    const traversalChain: string[] = [] // used to detect cycles
 
     while (stack.length) {
       // Pop
       const item = stack.pop() as SearchState
+      const stats: fs.Stats | undefined = await stat(
+        item,
+        options,
+        traversalChain
+      )
+
+      // Broken symlink or symlink cycle detected
+      if (!stats) {
+        continue
+      }
 
       // Match
       const matchResult = patternHelper.match(patterns, item.path)
       if (matchResult) {
-
-        const stats: Stats | undefined = await stat(item, options, traversalChain)
-        if (!stats) {
+        if (matchResult === MatchResult.Directory && !stats.isDirectory()) {
           continue
         }
 
-        
-        // if (matchResult == MatchResult.Directory)
-        // result.push(item.path)
+        result.push(item.path)
+      }
 
-
-//               // push the child items in reverse onto the stack
-//               let childLevel: number = item.level + 1;
-//               let childItems: _FindItem[] =
-//                   fs.readdirSync(item.path)
-//                       .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
-//               for (var i = childItems.length - 1; i >= 0; i--) {
-//                   stack.push(childItems[i]);
-//               }
+      // Descend?
+      if (stats.isDirectory() && patternHelper.descend(patterns, item.path)) {
+        // Push the child items in reverse
+        const childLevel = item.level + 1
+        const childItems = (await fs.promises.readdir(item.path)).map(
+          x => new SearchState(path.join(item.path, x), childLevel)
+        )
+        stack.push(...childItems.reverse())
       }
     }
-
-//       // push the first item
-//       let stack: _FindItem[] = [new _FindItem(findPath, 1)];
-//       let traversalChain: string[] = []; // used to detect cycles
-
-//       while (stack.length) {
-//           // pop the next item and push to the result array
-//           let item = stack.pop()!; // non-null because `stack.length` was truthy
-//           result.push(item.path);
-
-//           // stat the item.  the stat info is used further below to determine whether to traverse deeper
-//           //
-//           // stat returns info about the target of a symlink (or symlink chain),
-//           // lstat returns info about a symlink itself
-//           let stats: fs.Stats;
-//           if (options.followSymbolicLinks) {
-//               try {
-//                   // use stat (following all symlinks)
-//                   stats = fs.statSync(item.path);
-//               }
-//               catch (err) {
-//                   if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
-//                       // fallback to lstat (broken symlinks allowed)
-//                       stats = fs.lstatSync(item.path);
-//                       debug(`  ${item.path} (broken symlink)`);
-//                   }
-//                   else {
-//                       throw err;
-//                   }
-//               }
-//           }
-//           else {
-//               // use lstat (not following symlinks)
-//               stats = fs.lstatSync(item.path);
-//           }
-
-//           // note, isDirectory() returns false for the lstat of a symlink
-//           if (stats.isDirectory()) {
-//               debug(`  ${item.path} (directory)`);
-
-//               if (options.followSymbolicLinks) {
-//                   // get the realpath
-//                   let realPath: string = fs.realpathSync(item.path);
-
-//                   // fixup the traversal chain to match the item level
-//                   while (traversalChain.length >= item.level) {
-//                       traversalChain.pop();
-//                   }
-
-//                   // test for a cycle
-//                   if (traversalChain.some((x: string) => x == realPath)) {
-//                       debug('    cycle detected');
-//                       continue;
-//                   }
-
-//                   // update the traversal chain
-//                   traversalChain.push(realPath);
-//               }
-
-//               // push the child items in reverse onto the stack
-//               let childLevel: number = item.level + 1;
-//               let childItems: _FindItem[] =
-//                   fs.readdirSync(item.path)
-//                       .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
-//               for (var i = childItems.length - 1; i >= 0; i--) {
-//                   stack.push(childItems[i]);
-//               }
-//           }
-//           else {
-//               debug(`  ${item.path} (file)`);
-//           }
-//       }
-
-//       debug(`${result.length} results`);
-//       return result;
-
-
-
-
-
   }
 
   return result
@@ -189,7 +115,7 @@ export async function glob(
  * For example, '/foo/bar*' returns '/foo'.
  */
 export function getSearchPath(pattern: string): string {
-  const patterns: Pattern[] = patternHelper.parsePatterns([pattern])
+  const patterns: Pattern[] = patternHelper.parse([pattern])
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
   return searchPaths.length > 0 ? searchPaths[0] : ''
 }
@@ -221,224 +147,64 @@ async function searchPathExists(searchPath: string): Promise<boolean> {
   return true
 }
 
-async function stat(item: SearchState, options: GlobOptions, traversalChain: string[]): Promise<Stats | undefined> {
+async function stat(
+  item: SearchState,
+  options: GlobOptions,
+  traversalChain: string[]
+): Promise<fs.Stats | undefined> {
   // Stat the item. The stat info is used further below to determine whether to traverse deeper
   //
   // `stat` returns info about the target of a symlink (or symlink chain)
   // `lstat` returns info about a symlink itself
-  let stats: Stats;
+  let stats: fs.Stats
   if (options.followSymbolicLinks) {
     try {
       // Use `stat` (following symlinks)
-      stats = await fs.promises.stat(item.path);
-    }
-    catch (err) {
+      stats = await fs.promises.stat(item.path)
+    } catch (err) {
       if (err.code === 'ENOENT') {
         if (options.omitBrokenSymbolicLinks) {
           core.debug(`Broken symlink '${item.path}'`)
           return undefined
         }
 
-        throw new Error(`No information found for the path '${item.path}'. This may indicate a broken symbolic link.`)
+        throw new Error(
+          `No information found for the path '${
+            item.path
+          }'. This may indicate a broken symbolic link.`
+        )
       }
 
       throw err
     }
-  }
-  else {
+  } else {
     // Use `lstat` (not following symlinks)
     stats = await fs.promises.lstat(item.path)
   }
 
   // Note, isDirectory() returns false for the lstat of a symlink
   if (stats.isDirectory() && options.followSymbolicLinks) {
-      // Get the realpath
-      const realPath: string = await fs.promises.realpath(item.path);
+    // Get the realpath
+    const realPath: string = await fs.promises.realpath(item.path)
 
-      // Fixup the traversal chain to match the item level
-      while (traversalChain.length >= item.level) {
-        traversalChain.pop();
-      }
+    // Fixup the traversal chain to match the item level
+    while (traversalChain.length >= item.level) {
+      traversalChain.pop()
+    }
 
-      // Test for a cycle
-      if (traversalChain.some((x: string) => x == realPath)) {
-        core.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
-        return undefined
-      }
+    // Test for a cycle
+    if (traversalChain.some((x: string) => x === realPath)) {
+      core.debug(
+        `Symlink cycle detected for path '${
+          item.path
+        }' and realpath '${realPath}'`
+      )
+      return undefined
+    }
 
-      // Update the traversal chain
-      traversalChain.push(realPath);
+    // Update the traversal chain
+    traversalChain.push(realPath)
   }
 
   return stats
 }
-
-class SearchState {
-  path: string
-  level: number
-
-  constructor(path: string, level: number) {
-    this.path = path
-    this.level = level
-  }
-}
-
-// class _FindItem {
-//   public path: string;
-//   public level: number;
-
-//   public constructor(path: string, level: number) {
-//       this.path = path;
-//       this.level = level;
-//   }
-// }
-
-// /**
-//  * Recursively finds all paths a given path. Returns an array of paths.
-//  *
-//  * @param     findPath  path to search
-//  * @param     options   optional. defaults to { followSymbolicLinks: true }. following soft links is generally appropriate unless deleting files.
-//  * @returns   string[]
-//  */
-// export function find(findPath: string, options?: FindOptions): string[] {
-//   if (!findPath) {
-//       debug('no path specified');
-//       return [];
-//   }
-
-//   // normalize the path, otherwise the first result is inconsistently formatted from the rest of the results
-//   // because path.join() performs normalization.
-//   findPath = path.normalize(findPath);
-
-//   // debug trace the parameters
-//   debug(`findPath: '${findPath}'`);
-//   options = options || _getDefaultFindOptions();
-//   _debugFindOptions(options)
-
-//   // return empty if not exists
-//   try {
-//       fs.lstatSync(findPath);
-//   }
-//   catch (err) {
-//       if (err.code == 'ENOENT') {
-//           debug('0 results')
-//           return [];
-//       }
-
-//       throw err;
-//   }
-
-//   try {
-//       let result: string[] = [];
-
-//       // push the first item
-//       let stack: _FindItem[] = [new _FindItem(findPath, 1)];
-//       let traversalChain: string[] = []; // used to detect cycles
-
-//       while (stack.length) {
-//           // pop the next item and push to the result array
-//           let item = stack.pop()!; // non-null because `stack.length` was truthy
-//           result.push(item.path);
-
-//           // stat the item.  the stat info is used further below to determine whether to traverse deeper
-//           //
-//           // stat returns info about the target of a symlink (or symlink chain),
-//           // lstat returns info about a symlink itself
-//           let stats: fs.Stats;
-//           if (options.followSymbolicLinks) {
-//               try {
-//                   // use stat (following all symlinks)
-//                   stats = fs.statSync(item.path);
-//               }
-//               catch (err) {
-//                   if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
-//                       // fallback to lstat (broken symlinks allowed)
-//                       stats = fs.lstatSync(item.path);
-//                       debug(`  ${item.path} (broken symlink)`);
-//                   }
-//                   else {
-//                       throw err;
-//                   }
-//               }
-//           }
-//           else if (options.followSpecifiedSymbolicLink && result.length == 1) {
-//               try {
-//                   // use stat (following symlinks for the specified path and this is the specified path)
-//                   stats = fs.statSync(item.path);
-//               }
-//               catch (err) {
-//                   if (err.code == 'ENOENT' && options.allowBrokenSymbolicLinks) {
-//                       // fallback to lstat (broken symlinks allowed)
-//                       stats = fs.lstatSync(item.path);
-//                       debug(`  ${item.path} (broken symlink)`);
-//                   }
-//                   else {
-//                       throw err;
-//                   }
-//               }
-//           }
-//           else {
-//               // use lstat (not following symlinks)
-//               stats = fs.lstatSync(item.path);
-//           }
-
-//           // note, isDirectory() returns false for the lstat of a symlink
-//           if (stats.isDirectory()) {
-//               debug(`  ${item.path} (directory)`);
-
-//               if (options.followSymbolicLinks) {
-//                   // get the realpath
-//                   let realPath: string = fs.realpathSync(item.path);
-
-//                   // fixup the traversal chain to match the item level
-//                   while (traversalChain.length >= item.level) {
-//                       traversalChain.pop();
-//                   }
-
-//                   // test for a cycle
-//                   if (traversalChain.some((x: string) => x == realPath)) {
-//                       debug('    cycle detected');
-//                       continue;
-//                   }
-
-//                   // update the traversal chain
-//                   traversalChain.push(realPath);
-//               }
-
-//               // push the child items in reverse onto the stack
-//               let childLevel: number = item.level + 1;
-//               let childItems: _FindItem[] =
-//                   fs.readdirSync(item.path)
-//                       .map((childName: string) => new _FindItem(path.join(item.path, childName), childLevel));
-//               for (var i = childItems.length - 1; i >= 0; i--) {
-//                   stack.push(childItems[i]);
-//               }
-//           }
-//           else {
-//               debug(`  ${item.path} (file)`);
-//           }
-//       }
-
-//       debug(`${result.length} results`);
-//       return result;
-//   }
-//   catch (err) {
-//       throw new Error(loc('LIB_OperationFailed', 'find', err.message));
-//   }
-// }
-
-// class _FindItem {
-//   public path: string;
-//   public level: number;
-
-//   public constructor(path: string, level: number) {
-//       this.path = path;
-//       this.level = level;
-//   }
-// }
-
-// function _debugFindOptions(options: FindOptions): void {
-//   debug(`findOptions.allowBrokenSymbolicLinks: '${options.allowBrokenSymbolicLinks}'`);
-//   debug(`findOptions.followSpecifiedSymbolicLink: '${options.followSpecifiedSymbolicLink}'`);
-//   debug(`findOptions.followSymbolicLinks: '${options.followSymbolicLinks}'`);
-// }
