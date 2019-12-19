@@ -2,7 +2,8 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as patternHelper from './internal-pattern-helper'
-import {MatchResult, Pattern} from './internal-pattern'
+import {MatchResult} from './internal-match-result'
+import {Pattern} from './internal-pattern'
 import {SearchState} from './internal-search-state'
 
 /**

@@ -1,5 +1,6 @@
 import * as pathHelper from './internal-path-helper'
-import {MatchResult, Pattern} from './internal-pattern'
+import {MatchResult} from './internal-match-result'
+import {Pattern} from './internal-pattern'
 
 const IS_WINDOWS = process.platform === 'win32'
 
