@@ -220,9 +220,14 @@ export async function extractTar(
   const args = [flags]
 
   let destArg = dest
+  let fileArg = file
   if (IS_WINDOWS && isGnuTar) {
     args.push('--force-local')
     destArg = dest.replace(/\\/g, '/')
+
+    // Technically only the dest needs to have `/` but for aesthetic consistency
+    // convert slashes in the file arg too.
+    fileArg = file.replace(/\\/g, '/')
   }
 
   if (isGnuTar) {
@@ -230,7 +235,7 @@ export async function extractTar(
     args.push('--warning=no-unknown-keyword')
   }
 
-  args.push('-C', destArg, '-f', file)
+  args.push('-C', destArg, '-f', fileArg)
   await exec(`tar`, args)
 
   return dest
