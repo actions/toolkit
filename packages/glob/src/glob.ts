@@ -1,4 +1,3 @@
-import * as assert from 'assert'
 import * as core from '@actions/core'
 import * as fs from 'fs'
 import * as pathHelpers from './internal-path-helpers'
@@ -42,16 +41,18 @@ export class GlobOptions {
  * Returns files and directories matching the specified glob pattern.
  */
 export async function glob(
-  glob: string,
+  pattern: string,
   options?: GlobOptions
 ): Promise<string[]> {
   options = options || new GlobOptions()
   core.debug(`options.expandDirectories '${options.expandDirectories}'`)
   core.debug(`options.followSymbolicLinks '${options.followSymbolicLinks}'`)
-  core.debug(`options.omitBrokenSymbolicLinks '${options.omitBrokenSymbolicLinks}'`)
+  core.debug(
+    `options.omitBrokenSymbolicLinks '${options.omitBrokenSymbolicLinks}'`
+  )
 
   // Create patterns
-  const patterns: Pattern[] = createPatterns([glob])
+  const patterns: Pattern[] = createPatterns([pattern])
 
   // Get search paths
   const searchPaths: string[] = getSearchPaths(patterns)
@@ -63,14 +64,13 @@ export async function glob(
 
     // Skip if not exists
     try {
-      fs.lstatSync(searchPath);
-    }
-    catch (err) {
-      if (err.code == 'ENOENT') {
-          continue
+      fs.lstatSync(searchPath)
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        continue
       }
 
-      throw err;
+      throw err
     }
   }
 
@@ -82,18 +82,17 @@ export async function glob(
  *
  * For example, '/foo/bar*' returns '/foo'.
  */
-export function getSearchPath(glob: string): string {
-  const patterns: Pattern[] = createPatterns([glob])
+export function getSearchPath(pattern: string): string {
+  const patterns: Pattern[] = createPatterns([pattern])
   const searchPaths: string[] = getSearchPaths(patterns)
   return searchPaths.length > 0 ? searchPaths[0] : ''
 }
 
 function createPatterns(globs: string[]): Pattern[] {
+  const result: Pattern[] = []
 
-  let result: Pattern[] = []
-
-  for (const glob of globs) {
-    const pattern = new Pattern(glob)
+  for (const globItem of globs) {
+    const pattern = new Pattern(globItem)
     if (!pattern.comment) {
       result.push(pattern)
     }
@@ -103,23 +102,25 @@ function createPatterns(globs: string[]): Pattern[] {
 }
 
 function getSearchPaths(patterns: Pattern[]): string[] {
-
   // Ignore comment and negate patterns
   patterns = patterns.filter(x => !x.comment && !x.negate)
 
   // Create a map of all search paths
   const searchPathMap: {[key: string]: string} = {}
   for (const pattern of patterns) {
-    const key = IS_WINDOWS ? pattern.searchPath.toUpperCase() : pattern.searchPath
+    const key = IS_WINDOWS
+      ? pattern.searchPath.toUpperCase()
+      : pattern.searchPath
     searchPathMap[key] = 'candidate'
   }
 
   // Build an array of search paths
   const searchPaths: string[] = []
   for (const pattern of patterns.filter(x => !x.comment && !x.negate)) {
-
     // Check if already included
-    const key = IS_WINDOWS ? pattern.searchPath.toUpperCase() : pattern.searchPath
+    const key = IS_WINDOWS
+      ? pattern.searchPath.toUpperCase()
+      : pattern.searchPath
     if (searchPathMap[key] === 'included') {
       continue
     }
@@ -131,13 +132,13 @@ function getSearchPaths(patterns: Pattern[]): string[] {
     while (parent !== tempKey) {
       if (searchPathMap[parent]) {
         foundAncestor = true
-        break;
+        break
       }
-    
+
       tempKey = parent
       parent = pathHelpers.dirname(tempKey)
     }
-  
+
     if (!foundAncestor) {
       searchPaths.push(pattern.searchPath)
       searchPathMap[key] = 'included'
@@ -149,7 +150,7 @@ function getSearchPaths(patterns: Pattern[]): string[] {
 
 // class SearchState {
 //   path: string
-//   patterns: 
+//   patterns:
 //   // level: number
 //   // inGlobstar: boolean
 
@@ -169,7 +170,6 @@ function getSearchPaths(patterns: Pattern[]): string[] {
 //       this.level = level;
 //   }
 // }
-
 
 // /**
 //  * Recursively finds all paths a given path. Returns an array of paths.
