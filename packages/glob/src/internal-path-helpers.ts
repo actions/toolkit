@@ -1,33 +1,65 @@
+import * as assert from 'assert'
 import * as path from 'path'
 
 const IS_WINDOWS = process.platform === 'win32'
+
+export class Path {
+  segments: string[] = []
+
+  constructor(rootedPath: string) {
+    assert(rootedPath, `Parameter 'rootedPath' cannot be empty`)
+    assert(isRooted(rootedPath), `Parameter 'rootedPath' must be rooted. Invalid path: '${rootedPath}'`)
+
+    // Normalize slashes
+    rootedPath = normalizeSeparators(rootedPath)
+
+    // Trim trailing slash
+    rootedPath = safeTrimTrailingSeparator(rootedPath)
+
+    // Push all segments, while not at the root
+    let remaining = rootedPath
+    let dir = dirname(remaining)
+    while (dir !== remaining) {
+      // Push the segment
+      const basename = path.basename(remaining)
+      assert(basename !== '.', `Unexpected segment '.' in path '${rootedPath}'`)
+      assert(basename !== '..', `Unexpected segment '..' in path '${rootedPath}'`)
+      this.segments.push(basename)
+
+      // Truncate the last segment
+      remaining = dir
+      dir = dirname(remaining)
+    }
+
+    // Remainder is the root
+    // On Windows, convert any slashes in the root to '/'
+    this.segments.push(IS_WINDOWS ? remaining.replace(/\\/g, '/') : remaining)
+  }
+}
 
 /**
  * Roots the path if not already rooted
  */
 export function ensureRooted(root: string, p: string): string {
-  if (!root) {
-    throw new Error('ensureRooted() parameter "root" cannot be empty')
-  }
+  assert(root, `ensureRooted parameter 'root' cannot be empty`)
+  assert(p, `ensureRooted parameter 'p' cannot be empty`)
 
-  if (!p) {
-    throw new Error('ensureRooted() parameter "p" cannot be empty')
-  }
-
+  // Already rooted
   if (isRooted(p)) {
     return p
   }
 
-  // Check for root like C: on Windows
+  // On Windows, check for root like C:
   if (IS_WINDOWS && root.match(/^[A-Z]:$/i)) {
     return root + p
   }
 
-  // ensure root ends with a separator
+  // Otherwise ensure root ends with a separator
   if (root.endsWith('/') || (IS_WINDOWS && root.endsWith('\\'))) {
-    // root already ends with a separator
+    // Intentionally empty
   } else {
-    root += path.sep // append separator
+    // Append separator
+    root += path.sep
   }
 
   return root + p
@@ -37,7 +69,7 @@ export function ensureRooted(root: string, p: string): string {
  * Normalizes the path and trims the trailing separator (when safe).
  * For example, '/foo/' => '/foo' but '/' => '/'
  */
-export function safeTrimTrailingPathSeparator(p: string): string {
+export function safeTrimTrailingSeparator(p: string): string {
   // Short-circuit if empty
   if (!p) {
     return ''
@@ -46,7 +78,7 @@ export function safeTrimTrailingPathSeparator(p: string): string {
   // Normalize separators
   p = normalizeSeparators(p)
 
-  // Check if ends with slash
+  // No trailing slash
   if (!p.endsWith(path.sep)) {
     return p
   }
@@ -84,17 +116,24 @@ export function safeTrimTrailingPathSeparator(p: string): string {
  */
 export function dirname(p: string): string {
   // Normalize separators
-  p = normalizeSeparators(p)
-
   // Trim unnecessary trailing slash
-  p = safeTrimTrailingPathSeparator(p)
+  p = normalizeSeparators(p)
+  p = safeTrimTrailingSeparator(p)
 
   // Windows UNC root, e.g. \\hello or \\hello\world
   if (IS_WINDOWS && /^\\\\[^\\]+(\\[^\\]+)?$/.test(p)) {
     return p
   }
 
-  return path.dirname(p)
+  // Get dirname
+  let result = path.dirname(p)
+
+  // Trim trailing slash for Windows UNC root, e.g. \\hello\world\
+  if (IS_WINDOWS && /^\\\\[^\\]+\\[^\\]+\\$/.test(result)) {
+    result = safeTrimTrailingSeparator(result)
+  }
+
+  return result
 }
 
 /**
@@ -102,18 +141,22 @@ export function dirname(p: string): string {
  * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
  */
 export function isRooted(p: string): boolean {
+  assert(p, `isRooted parameter 'p' cannot be empty`)
+
+  // Normalize separators
   p = normalizeSeparators(p)
-  if (!p) {
-    throw new Error("isRooted() parameter 'p' cannot be empty")
-  }
 
+  // Windows
   if (IS_WINDOWS) {
+    // E.g. \ or \hello or \\hello
+    // E.g. C: or C:\hello
     return (
-      p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
-    ) // e.g. C: or C:\hello
+      p.startsWith('\\') || /^[A-Z]:/i.test(p)
+    )
   }
 
-  return p.startsWith('/') // e.g. /hello
+  // E.g. /hello
+  return p.startsWith('/')
 }
 
 /**
@@ -121,15 +164,17 @@ export function isRooted(p: string): boolean {
  */
 export function normalizeSeparators(p: string): string {
   p = p || ''
+
+  // Windows
   if (IS_WINDOWS) {
-    // convert slashes on Windows
+    // Convert slashes on Windows
     p = p.replace(/\//g, '\\')
 
-    // remove redundant slashes
+    // Remove redundant slashes
     const isUnc = /^\\\\+[^\\]/.test(p) // e.g. \\hello
-    return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\') // preserve leading // for UNC
+    return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\') // preserve leading \\ for UNC
   }
 
-  // remove redundant slashes
+  // Remove redundant slashes
   return p.replace(/\/\/+/g, '/')
 }

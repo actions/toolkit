@@ -9,31 +9,31 @@ export class Pattern {
   comment: boolean = false
   negate: boolean = false
   searchPath: string = ''
-  segments: Segment[] = []
+  segments: PatternSegment[] = []
   trailingSlash: boolean = false
 
   constructor(pattern: string) {
     pattern = pattern || ''
     const originalPattern = pattern
 
-    // Determine comment
+    // Comment
     if (pattern.startsWith('#')) {
       this.comment = true
       return
     }
 
-    // Determine negate
+    // Negate
     while (pattern.startsWith('!')) {
       this.negate = !this.negate
       pattern = pattern.substr(1)
     }
 
-    // Validate not empty
+    // Empty pattern
     assert(pattern, 'pattern cannot be empty')
 
     // Root the pattern
     if (!pathHelpers.isRooted(pattern)) {
-      // Escape special glob characters
+      // Escape glob characters
       let root = process.cwd()
       root = (IS_WINDOWS ? root : root.replace(/\\/g, '\\\\')) // escape '\' on macOS/Linux
         .replace(/(\[)(?=[^/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
@@ -42,45 +42,43 @@ export class Pattern {
       pattern = pathHelpers.ensureRooted(root, pattern)
     }
 
-    // Normalize slashes
-    pattern = pathHelpers.normalizeSeparators(pattern)
-
     // Trailing slash indicates the pattern should only match directories, not regular files
-    if (pattern.endsWith(path.sep)) {
-      this.trailingSlash = true
-      pattern = pathHelpers.safeTrimTrailingPathSeparator(pattern)
-    }
+    this.trailingSlash = pathHelpers.safeTrimTrailingSeparator(pattern).endsWith(path.sep)
 
-    // Push all segments, while not at the root
-    let dirname = pathHelpers.dirname(pattern)
-    while (dirname !== pattern) {
-      // Push the segment
-      const basename = path.basename(pattern)
-      if (basename !== '.') {
-        assert(
-          basename !== '..',
-          `Path segment '..' is invalid in match pattern '${originalPattern}'`
-        )
-        this.segments.push(new Segment(basename))
-      }
+    // Create pattern segments
+    const parsedPath = new pathHelpers.Path(pattern)
+    this.segments = parsedPath.segments.map(x => new PatternSegment(x))
 
-      // Truncate the last segment
-      pattern = dirname
-      dirname = pathHelpers.dirname(pattern)
-    }
+    // // Push all segments, while not at the root
+    // let dirname = pathHelpers.dirname(pattern)
+    // while (dirname !== pattern) {
+    //   // Push the segment
+    //   const basename = path.basename(pattern)
+    //   if (basename !== '.') {
+    //     assert(
+    //       basename !== '..',
+    //       `Path segment '..' is invalid in match pattern '${originalPattern}'`
+    //     )
+    //     this.segments.push(new PatternSegment(basename))
+    //   }
 
-    // Remainder is the root
-    this.searchPath = pattern
+    //   // Truncate the last segment
+    //   pattern = dirname
+    //   dirname = pathHelpers.dirname(pattern)
+    // }
 
-    // Remove leading literal segments and build search path
-    while (this.segments.length > 0 && this.segments[0].literal) {
-      this.searchPath = path.join(this.searchPath, this.segments[0].literal)
-      this.segments.splice(0, 1)
-    }
+    // // Remainder is the root
+    // this.searchPath = pattern
+
+    // // Remove leading literal segments and build search path
+    // while (this.segments.length > 0 && this.segments[0].literal) {
+    //   this.searchPath = path.join(this.searchPath, this.segments[0].literal)
+    //   this.segments.splice(0, 1)
+    // }
   }
 }
 
-export class Segment {
+export class PatternSegment {
   literal: string = ''
   regexp: RegExp | undefined
   globstar: boolean = false
@@ -89,6 +87,7 @@ export class Segment {
     // Check globstar
     if (segment === '**') {
       this.globstar = true
+      this.regexp = /^()?$/
       return
     }
 
@@ -143,5 +142,13 @@ export class Segment {
       `Unexpected expression from pattern segment '${segment}'`
     )
     return minimatchObj.set[0][0]
+  }
+
+  /**
+   * Escapes regexp special characters: [ \ ^ $ . | ? * + ( )
+   * For more information, refer to https://javascript.info/regexp-escaping
+   */
+  private regExpEscape(s: string) {
+    return s.replace(/[\[\\\^\$\.\|\?\*\+\(\)]/g, '\\$&')
   }
 }
