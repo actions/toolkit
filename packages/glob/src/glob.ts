@@ -10,14 +10,6 @@ import {SearchState} from './internal-search-state'
  */
 export class GlobOptions {
   /**
-   * Indicates whether broken symbolic should be ignored and omitted from the
-   * result set. Otherwise an error will be thrown.
-   *
-   * Default is true.
-   */
-  omitBrokenSymbolicLinks: boolean = true
-
-  /**
    * Indicates whether to follow symbolic links. Generally should be true
    * unless deleting files.
    *
@@ -26,15 +18,23 @@ export class GlobOptions {
   followSymbolicLinks: boolean = true
 
   /**
-   * Indicates whether directories that match the glob pattern, should cause
-   * all descendant paths to be included in the result set also.
+   * Indicates whether directories that match a glob pattern, should implicitly
+   * cause all descendant paths to be matched.
    *
    * For example, given the directory 'my-dir', the following glob patterns
    * would produce the same results: 'my-dir/**', 'my-dir/', 'my-dir'
    *
    * Default is true.
    */
-  expandDirectories: boolean = true
+  implicitDescendants: boolean = true
+
+  /**
+   * Indicates whether broken symbolic should be ignored and omitted from the
+   * result set. Otherwise an error will be thrown.
+   *
+   * Default is true.
+   */
+  omitBrokenSymbolicLinks: boolean = true
 }
 
 /**
@@ -46,14 +46,17 @@ export async function glob(
 ): Promise<string[]> {
   // Default options
   options = options || new GlobOptions()
-  core.debug(`options.expandDirectories '${options.expandDirectories}'`)
   core.debug(`options.followSymbolicLinks '${options.followSymbolicLinks}'`)
+  core.debug(`options.implicitDescendants '${options.implicitDescendants}'`)
   core.debug(
     `options.omitBrokenSymbolicLinks '${options.omitBrokenSymbolicLinks}'`
   )
 
   // Parse patterns
-  const patterns: Pattern[] = patternHelper.parse([pattern])
+  const patterns: Pattern[] = patternHelper.parse(
+    [pattern],
+    options.implicitDescendants
+  )
 
   // Get search paths
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
@@ -91,22 +94,29 @@ export async function glob(
 
       // Match
       const matchResult = patternHelper.match(patterns, item.path)
-      if (matchResult) {
-        if (matchResult === MatchResult.Directory && !stats.isDirectory()) {
-          continue
+
+      // Directory
+      if (stats.isDirectory()) {
+        if (matchResult & MatchResult.Directory) {
+          result.push(item.path)
         }
 
-        result.push(item.path)
+        // Descend?
+        if (
+          matchResult & MatchResult.Directory ||
+          patternHelper.partialMatch(patterns, item.path)
+        ) {
+          // Push the child items in reverse
+          const childLevel = item.level + 1
+          const childItems = (await fs.promises.readdir(item.path)).map(
+            x => new SearchState(path.join(item.path, x), childLevel)
+          )
+          stack.push(...childItems.reverse())
+        }
       }
-
-      // Descend?
-      if (stats.isDirectory() && patternHelper.descend(patterns, item.path)) {
-        // Push the child items in reverse
-        const childLevel = item.level + 1
-        const childItems = (await fs.promises.readdir(item.path)).map(
-          x => new SearchState(path.join(item.path, x), childLevel)
-        )
-        stack.push(...childItems.reverse())
+      // File
+      else if (matchResult & MatchResult.File) {
+        result.push(item.path)
       }
     }
   }
@@ -120,7 +130,7 @@ export async function glob(
  * For example, '/foo/bar*' returns '/foo'.
  */
 export function getSearchPath(pattern: string): string {
-  const patterns: Pattern[] = patternHelper.parse([pattern])
+  const patterns: Pattern[] = patternHelper.parse([pattern], false)
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
   return searchPaths.length > 0 ? searchPaths[0] : ''
 }
