@@ -3,17 +3,23 @@ import * as path from 'path'
 
 const IS_WINDOWS = process.platform === 'win32'
 
+/**
+ * Helper class for parsing paths into segments. The first separator is always
+ * the root. On Windows, any slashes in the root segment are converted to `/`.
+ */
 export class Path {
   segments: string[] = []
 
   constructor(rootedPath: string) {
     assert(rootedPath, `Parameter 'rootedPath' cannot be empty`)
-    assert(isRooted(rootedPath), `Parameter 'rootedPath' must be rooted. Invalid path: '${rootedPath}'`)
+    assert(
+      isRooted(rootedPath),
+      `Parameter 'rootedPath' must be rooted. Invalid path: '${rootedPath}'`
+    )
 
     // Normalize slashes
-    rootedPath = normalizeSeparators(rootedPath)
-
     // Trim trailing slash
+    rootedPath = normalizeSeparators(rootedPath)
     rootedPath = safeTrimTrailingSeparator(rootedPath)
 
     // Push all segments, while not at the root
@@ -23,7 +29,10 @@ export class Path {
       // Push the segment
       const basename = path.basename(remaining)
       assert(basename !== '.', `Unexpected segment '.' in path '${rootedPath}'`)
-      assert(basename !== '..', `Unexpected segment '..' in path '${rootedPath}'`)
+      assert(
+        basename !== '..',
+        `Unexpected segment '..' in path '${rootedPath}'`
+      )
       this.segments.push(basename)
 
       // Truncate the last segment
@@ -67,7 +76,7 @@ export function ensureRooted(root: string, p: string): string {
 
 /**
  * Normalizes the path and trims the trailing separator (when safe).
- * For example, '/foo/' => '/foo' but '/' => '/'
+ * For example, `/foo/ => /foo` but `/ => /`
  */
 export function safeTrimTrailingSeparator(p: string): string {
   // Short-circuit if empty
@@ -83,7 +92,7 @@ export function safeTrimTrailingSeparator(p: string): string {
     return p
   }
 
-  // Check '/' on macOS/Linux and '\' on Windows
+  // Check '/' on Linux/macOS and '\' on Windows
   if (p === path.sep) {
     return p
   }
@@ -100,19 +109,19 @@ export function safeTrimTrailingSeparator(p: string): string {
 /**
  * Similar to path.dirname except normalizes the path separators and slightly better handling for Windows UNC paths.
  *
- * For example, on macOS/Linux:
- *   /               => /
- *   /hello          => /
+ * For example, on Linux/macOS:
+ * - `/               => /`
+ * - `/hello          => /`
  *
  * For example, on Windows:
- *   C:\             => C:\
- *   C:\hello        => C:\
- *   C:              => C:
- *   C:hello         => C:
- *   \               => \
- *   \hello          => \
- *   \\hello         => \\hello
- *   \\hello\world   => \\hello\world
+ * - `C:\             => C:\`
+ * - `C:\hello        => C:\`
+ * - `C:              => C:`
+ * - `C:hello         => C:`
+ * - `\               => \`
+ * - `\hello          => \`
+ * - `\\hello         => \\hello`
+ * - `\\hello\world   => \\hello\world`
  */
 export function dirname(p: string): string {
   // Normalize separators
@@ -137,8 +146,8 @@ export function dirname(p: string): string {
 }
 
 /**
- * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
- * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
+ * On OSX/Linux, true if path starts with `/`. On Windows, true for paths like:
+ * `\`, `\hello`, `\\hello\share`, `C:`, and `C:\hello` (and using alternate separator).
  */
 export function isRooted(p: string): boolean {
   assert(p, `isRooted parameter 'p' cannot be empty`)
@@ -150,9 +159,7 @@ export function isRooted(p: string): boolean {
   if (IS_WINDOWS) {
     // E.g. \ or \hello or \\hello
     // E.g. C: or C:\hello
-    return (
-      p.startsWith('\\') || /^[A-Z]:/i.test(p)
-    )
+    return p.startsWith('\\') || /^[A-Z]:/i.test(p)
   }
 
   // E.g. /hello
@@ -160,7 +167,7 @@ export function isRooted(p: string): boolean {
 }
 
 /**
- * Removes redundant slashes and converts '/' to '\' on Windows
+ * Removes redundant slashes and converts `/` to `\` on Windows
  */
 export function normalizeSeparators(p: string): string {
   p = p || ''
