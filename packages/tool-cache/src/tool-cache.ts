@@ -202,9 +202,41 @@ export async function extractTar(
     throw new Error("parameter 'file' is required")
   }
 
+  // Create dest
   dest = await _createExtractFolder(dest)
-  const tarPath: string = await io.which('tar', true)
-  await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
+
+  // Determine whether GNU tar
+  let versionOutput = ''
+  await exec('tar --version', [], {
+    ignoreReturnCode: true,
+    listeners: {
+      stdout: (data: Buffer) => (versionOutput += data.toString()),
+      stderr: (data: Buffer) => (versionOutput += data.toString())
+    }
+  })
+  const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR')
+
+  // Initialize args
+  const args = [flags]
+
+  let destArg = dest
+  let fileArg = file
+  if (IS_WINDOWS && isGnuTar) {
+    args.push('--force-local')
+    destArg = dest.replace(/\\/g, '/')
+
+    // Technically only the dest needs to have `/` but for aesthetic consistency
+    // convert slashes in the file arg too.
+    fileArg = file.replace(/\\/g, '/')
+  }
+
+  if (isGnuTar) {
+    // Suppress warnings when using GNU tar to extract archives created by BSD tar
+    args.push('--warning=no-unknown-keyword')
+  }
+
+  args.push('-C', destArg, '-f', fileArg)
+  await exec(`tar`, args)
 
   return dest
 }

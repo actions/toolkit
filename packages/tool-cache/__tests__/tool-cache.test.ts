@@ -268,96 +268,88 @@ describe('@actions/tool-cache', function() {
         await io.rmRF(tempDir)
       }
     })
-  } else {
-    it('extract .tar.gz', async () => {
-      const tempDir = path.join(tempPath, 'test-install-tar.gz')
-
-      await io.mkdirP(tempDir)
-
-      // copy the .tar.gz file to the test dir
-      const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
-      await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
-
-      // extract/cache
-      const extPath: string = await tc.extractTar(_tgzFile)
-      await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
-      const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
-
-      expect(fs.existsSync(toolPath)).toBeTruthy()
-      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
-      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
-      ).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
-      ).toBeTruthy()
-      expect(
-        fs.readFileSync(
-          path.join(toolPath, 'folder', 'nested-file.txt'),
-          'utf8'
-        )
-      ).toBe('folder/nested-file.txt contents')
-    })
-
-    it('extract .tar.gz to a directory that does not exist', async () => {
-      const tempDir = path.join(tempPath, 'test-install-tar.gz')
-      const destDir = path.join(tempDir, 'not-exist')
-
-      await io.mkdirP(tempDir)
-
-      // copy the .tar.gz file to the test dir
-      const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
-      await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
-
-      // extract/cache
-      const extPath: string = await tc.extractTar(_tgzFile, destDir)
-      await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
-      const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
-
-      expect(extPath).toContain('not-exist')
-      expect(fs.existsSync(toolPath)).toBeTruthy()
-      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
-      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
-      ).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
-      ).toBeTruthy()
-      expect(
-        fs.readFileSync(
-          path.join(toolPath, 'folder', 'nested-file.txt'),
-          'utf8'
-        )
-      ).toBe('folder/nested-file.txt contents')
-    })
-
-    it('extract .tar.xz', async () => {
-      const tempDir = path.join(tempPath, 'test-install-tar.xz')
-
-      await io.mkdirP(tempDir)
-
-      // copy the .tar.gz file to the test dir
-      const _txzFile: string = path.join(tempDir, 'test.tar.xz')
-      await io.cp(path.join(__dirname, 'data', 'test.tar.xz'), _txzFile)
-
-      // extract/cache
-      const extPath: string = await tc.extractTar(_txzFile, undefined, 'x')
-      await tc.cacheDir(extPath, 'my-txz-contents', '1.1.0')
-      const toolPath: string = tc.find('my-txz-contents', '1.1.0')
-
-      expect(fs.existsSync(toolPath)).toBeTruthy()
-      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
-      expect(fs.existsSync(path.join(toolPath, 'bar.txt'))).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'foo', 'hello.txt'))
-      ).toBeTruthy()
-      expect(
-        fs.readFileSync(path.join(toolPath, 'foo', 'hello.txt'), 'utf8')
-      ).toBe('foo/hello: world')
-    })
   }
+
+  it('extract .tar.gz', async () => {
+    const tempDir = path.join(tempPath, 'test-install-tar.gz')
+
+    await io.mkdirP(tempDir)
+
+    // copy the .tar.gz file to the test dir
+    const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
+    await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
+
+    // extract/cache
+    const extPath: string = await tc.extractTar(_tgzFile)
+    await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
+    const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
+
+    expect(fs.existsSync(toolPath)).toBeTruthy()
+    expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+    expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+    expect(
+      fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+    ).toBeTruthy()
+    expect(
+      fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+    ).toBeTruthy()
+    expect(
+      fs.readFileSync(path.join(toolPath, 'folder', 'nested-file.txt'), 'utf8')
+    ).toBe('folder/nested-file.txt contents')
+  })
+
+  it('extract .tar.gz to a directory that does not exist', async () => {
+    const tempDir = path.join(tempPath, 'test-install-tar.gz')
+    const destDir = path.join(tempDir, 'not-exist')
+
+    await io.mkdirP(tempDir)
+
+    // copy the .tar.gz file to the test dir
+    const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
+    await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
+
+    // extract/cache
+    const extPath: string = await tc.extractTar(_tgzFile, destDir)
+    await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
+    const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
+
+    expect(extPath).toContain('not-exist')
+    expect(fs.existsSync(toolPath)).toBeTruthy()
+    expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+    expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+    expect(
+      fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
+    ).toBeTruthy()
+    expect(
+      fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+    ).toBeTruthy()
+    expect(
+      fs.readFileSync(path.join(toolPath, 'folder', 'nested-file.txt'), 'utf8')
+    ).toBe('folder/nested-file.txt contents')
+  })
+
+  it('extract .tar.xz', async () => {
+    const tempDir = path.join(tempPath, 'test-install-tar.xz')
+
+    await io.mkdirP(tempDir)
+
+    // copy the .tar.gz file to the test dir
+    const _txzFile: string = path.join(tempDir, 'test.tar.xz')
+    await io.cp(path.join(__dirname, 'data', 'test.tar.xz'), _txzFile)
+
+    // extract/cache
+    const extPath: string = await tc.extractTar(_txzFile, undefined, 'x')
+    await tc.cacheDir(extPath, 'my-txz-contents', '1.1.0')
+    const toolPath: string = tc.find('my-txz-contents', '1.1.0')
+
+    expect(fs.existsSync(toolPath)).toBeTruthy()
+    expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+    expect(fs.existsSync(path.join(toolPath, 'bar.txt'))).toBeTruthy()
+    expect(fs.existsSync(path.join(toolPath, 'foo', 'hello.txt'))).toBeTruthy()
+    expect(
+      fs.readFileSync(path.join(toolPath, 'foo', 'hello.txt'), 'utf8')
+    ).toBe('foo/hello: world')
+  })
 
   it('installs a zip and finds it', async () => {
     const tempDir = path.join(__dirname, 'test-install-zip')
