@@ -62,8 +62,13 @@ export async function glob(
   const result: string[] = []
   for (const searchPath of searchPaths) {
     // Skip if not exists
-    if (!(await searchPathExists(searchPath))) {
-      continue
+    try {
+      await fs.promises.lstat(searchPath)
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        continue
+      }
+      throw err
     }
 
     // Push the first item
@@ -118,33 +123,6 @@ export function getSearchPath(pattern: string): string {
   const patterns: Pattern[] = patternHelper.parse([pattern])
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
   return searchPaths.length > 0 ? searchPaths[0] : ''
-}
-
-// class SearchState {
-//   path: string
-//   patterns:
-//   // level: number
-//   // inGlobstar: boolean
-
-//   public constructor(path: string, level: number, inGlobstar: boolean) {
-//     this.path = path
-//     this.level = level
-//     this.inGlobstar = inGlobstar
-//   }
-// }
-
-async function searchPathExists(searchPath: string): Promise<boolean> {
-  try {
-    await fs.promises.lstat(searchPath)
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      return false
-    }
-
-    throw err
-  }
-
-  return true
 }
 
 async function stat(
