@@ -1,42 +1,13 @@
 import * as core from '@actions/core'
 import * as fs from 'fs'
+import * as globOptions from './internal-glob-options'
 import * as path from 'path'
 import * as patternHelper from './internal-pattern-helper'
 import {MatchResult} from './internal-match-result'
 import {Pattern} from './internal-pattern'
 import {SearchState} from './internal-search-state'
 
-/**
- * Properties to control glob behavior
- */
-export class GlobOptions {
-  /**
-   * Indicates whether to follow symbolic links. Generally should be true
-   * unless deleting files.
-   *
-   * Default is true.
-   */
-  followSymbolicLinks: boolean = true
-
-  /**
-   * Indicates whether directories that match a glob pattern, should implicitly
-   * cause all descendant paths to be matched.
-   *
-   * For example, given the directory 'my-dir', the following glob patterns
-   * would produce the same results: 'my-dir/**', 'my-dir/', 'my-dir'
-   *
-   * Default is true.
-   */
-  implicitDescendants: boolean = true
-
-  /**
-   * Indicates whether broken symbolic should be ignored and omitted from the
-   * result set. Otherwise an error will be thrown.
-   *
-   * Default is true.
-   */
-  omitBrokenSymbolicLinks: boolean = true
-}
+export class GlobOptions extends globOptions.GlobOptions {}
 
 /**
  * Returns files and directories matching the specified glob pattern.
@@ -54,10 +25,7 @@ export async function glob(
   )
 
   // Parse patterns
-  const patterns: Pattern[] = patternHelper.parse(
-    [pattern],
-    options.implicitDescendants
-  )
+  const patterns: Pattern[] = patternHelper.parse([pattern], options)
 
   // Get search paths
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
@@ -96,28 +64,30 @@ export async function glob(
       // Match
       const matchResult = patternHelper.match(patterns, item.path)
 
+      // File
+      if (stats.isFile()) {
+        // Matched
+        if (matchResult & MatchResult.File) {
+          result.push(item.path)
+        }
+      }
       // Directory
-      if (stats.isDirectory()) {
+      else {
+        // Matched
         if (matchResult & MatchResult.Directory) {
           result.push(item.path)
         }
-
         // Descend?
-        if (
-          matchResult & MatchResult.Directory ||
-          patternHelper.partialMatch(patterns, item.path)
-        ) {
-          // Push the child items in reverse
-          const childLevel = item.level + 1
-          const childItems = (await fs.promises.readdir(item.path)).map(
-            x => new SearchState(path.join(item.path, x), childLevel)
-          )
-          stack.push(...childItems.reverse())
+        else if (!patternHelper.partialMatch(patterns, item.path)) {
+          continue
         }
-      }
-      // File
-      else if (matchResult & MatchResult.File) {
-        result.push(item.path)
+
+        // Push the child items in reverse
+        const childLevel = item.level + 1
+        const childItems = (await fs.promises.readdir(item.path)).map(
+          x => new SearchState(path.join(item.path, x), childLevel)
+        )
+        stack.push(...childItems.reverse())
       }
     }
   }
@@ -131,7 +101,7 @@ export async function glob(
  * For example, '/foo/bar*' returns '/foo'.
  */
 export function getSearchPath(pattern: string): string {
-  const patterns: Pattern[] = patternHelper.parse([pattern], false)
+  const patterns: Pattern[] = patternHelper.parse([pattern], new GlobOptions())
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
   return searchPaths.length > 0 ? searchPaths[0] : ''
 }
@@ -141,8 +111,7 @@ async function stat(
   options: GlobOptions,
   traversalChain: string[]
 ): Promise<fs.Stats | undefined> {
-  // Stat the item. The stat info is used further below to determine whether to traverse deeper
-  //
+  // Note:
   // `stat` returns info about the target of a symlink (or symlink chain)
   // `lstat` returns info about a symlink itself
   let stats: fs.Stats

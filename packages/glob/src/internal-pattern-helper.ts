@@ -1,4 +1,5 @@
 import * as pathHelper from './internal-path-helper'
+import {GlobOptions} from './internal-glob-options'
 import {MatchResult} from './internal-match-result'
 import {Pattern} from './internal-pattern'
 
@@ -79,10 +80,7 @@ export function match(patterns: Pattern[], itemPath: string): MatchResult {
 /**
  * Parses the pattern strings into Pattern objects
  */
-export function parse(
-  patterns: string[],
-  implicitDescendants: boolean
-): Pattern[] {
+export function parse(patterns: string[], options: GlobOptions): Pattern[] {
   const result: Pattern[] = []
   for (let patternString of patterns) {
     // Parse
@@ -97,7 +95,7 @@ export function parse(
     result.push(pattern)
 
     // Implicitly match descendant paths
-    if (implicitDescendants) {
+    if (options.implicitDescendants) {
       // Ensure trailing slash
       if (IS_WINDOWS) {
         if (!patternString.endsWith('/') && !patternString.endsWith('\\')) {
