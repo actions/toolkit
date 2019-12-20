@@ -341,148 +341,72 @@ describe('glob (search)', () => {
     expect(itemPaths).toHaveLength(0)
   })
 
-  // it('detects cycle', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('detects cycle', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/file
+    //   <root>/symDir -> <root>
+    const root = path.join(getTestTemp(), 'search_detects_cycle')
+    await fs.mkdir(root)
+    await fs.writeFile(path.join(root, 'file'), 'test file content')
+    await createSymlinkDir(root, path.join(root, 'symDir'))
 
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/file
-  //     //   <root>/symDir -> <root>
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_detects_cycle');
-  //     tl.mkdirP(root);
-  //     fs.writeFileSync(path.join(root, 'file'), 'test file content');
-  //     testutil.createSymlinkDir(root, path.join(root, 'symDir'));
+    const itemPaths = await glob.glob(root)
+    expect(itemPaths).toHaveLength(2)
+    expect(itemPaths[0]).toBe(root)
+    expect(itemPaths[1]).toBe(path.join(root, 'file'))
+    // todo: ? expect(itemPaths[2]).toBe(path.join(root, 'symDir'))
+  })
 
-  //     let itemPaths: string[] = tl.find(root, { followSymbolicLinks: true } as tl.FindOptions);
-  //     assert.equal(itemPaths.length, 3);
-  //     assert.equal(itemPaths[0], root);
-  //     assert.equal(itemPaths[1], path.join(root, 'file'));
-  //     assert.equal(itemPaths[2], path.join(root, 'symDir'));
+  it('detects cycle starting from symlink', async () => {
+      // Create the following layout:
+      //   <root>
+      //   <root>/file
+      //   <root>/symDir -> <root>
+      const root: string = path.join(getTestTemp(), 'search_detects_cycle_starting_from_symlink');
+      await fs.mkdir(root, {recursive: true});
+      await fs.writeFile(path.join(root, 'file'), 'test file content');
+      await createSymlinkDir(root, path.join(root, 'symDir'));
 
-  //     done();
-  // });
+      const itemPaths = await glob.glob(path.join(root, 'symDir'));
+      expect(itemPaths).toHaveLength(2);
+      expect(itemPaths[0]).toBe(path.join(root, 'symDir'));
+      expect(itemPaths[1]).toBe(path.join(root, 'symDir', 'file'));
+      // todo: ? expect(itemPaths[2]).toBe(path.join(root, 'symDir', 'symDir'));
+  });
 
-  // it('detects cycle starting from symlink', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('detects deep cycle starting from middle', async () => {
+      // Create the following layout:
+      //   <root>
+      //   <root>/file_under_root
+      //   <root>/folder_a
+      //   <root>/folder_a/file_under_a
+      //   <root>/folder_a/folder_b
+      //   <root>/folder_a/folder_b/file_under_b
+      //   <root>/folder_a/folder_b/folder_c
+      //   <root>/folder_a/folder_b/folder_c/file_under_c
+      //   <root>/folder_a/folder_b/folder_c/sym_folder -> <root>
+      const root = path.join(getTestTemp(), 'search_detects_deep_cycle_starting_from_middle');
+      await fs.mkdir(path.join(root, 'folder_a', 'folder_b', 'folder_c'), {recursive: true});
+      await fs.writeFile(path.join(root, 'file_under_root'), 'test file under root contents');
+      await fs.writeFile(path.join(root, 'folder_a', 'file_under_a'), 'test file under a contents');
+      await fs.writeFile(path.join(root, 'folder_a', 'folder_b', 'file_under_b'), 'test file under b contents');
+      await fs.writeFile(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'), 'test file under c contents');
+      await createSymlinkDir(root, path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
+      await fs.stat(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root'))
 
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/file
-  //     //   <root>/symDir -> <root>
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_detects_cycle_starting_from_symlink');
-  //     tl.mkdirP(root);
-  //     fs.writeFileSync(path.join(root, 'file'), 'test file content');
-  //     testutil.createSymlinkDir(root, path.join(root, 'symDir'));
-
-  //     let itemPaths: string[] = tl.find(path.join(root, 'symDir'), { followSymbolicLinks: true } as tl.FindOptions);
-  //     assert.equal(itemPaths.length, 3);
-  //     assert.equal(itemPaths[0], path.join(root, 'symDir'));
-  //     assert.equal(itemPaths[1], path.join(root, 'symDir', 'file'));
-  //     assert.equal(itemPaths[2], path.join(root, 'symDir', 'symDir'));
-
-  //     done();
-  // });
-
-  // it('detects deep cycle starting from middle', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/file_under_root
-  //     //   <root>/folder_a
-  //     //   <root>/folder_a/file_under_a
-  //     //   <root>/folder_a/folder_b
-  //     //   <root>/folder_a/folder_b/file_under_b
-  //     //   <root>/folder_a/folder_b/folder_c
-  //     //   <root>/folder_a/folder_b/folder_c/file_under_c
-  //     //   <root>/folder_a/folder_b/folder_c/sym_folder -> <root>
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_detects_deep_cycle_starting_from_middle');
-  //     tl.mkdirP(path.join(root, 'folder_a', 'folder_b', 'folder_c'));
-  //     fs.writeFileSync(path.join(root, 'file_under_root'), 'test file under root contents');
-  //     fs.writeFileSync(path.join(root, 'folder_a', 'file_under_a'), 'test file under a contents');
-  //     fs.writeFileSync(path.join(root, 'folder_a', 'folder_b', 'file_under_b'), 'test file under b contents');
-  //     fs.writeFileSync(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'), 'test file under c contents');
-  //     testutil.createSymlinkDir(root, path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
-  //     assert.doesNotThrow(
-  //         () => fs.statSync(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root')),
-  //         'symlink_folder should be created properly');
-
-  //     let itemPaths: string[] = tl.find(path.join(root, 'folder_a', 'folder_b'), { followSymbolicLinks: true } as tl.FindOptions);
-  //     assert.equal(itemPaths.length, 9);
-  //     assert.equal(itemPaths[0], path.join(root, 'folder_a', 'folder_b'));
-  //     assert.equal(itemPaths[1], path.join(root, 'folder_a', 'folder_b', 'file_under_b'));
-  //     assert.equal(itemPaths[2], path.join(root, 'folder_a', 'folder_b', 'folder_c'));
-  //     assert.equal(itemPaths[3], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'));
-  //     assert.equal(itemPaths[4], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
-  //     assert.equal(itemPaths[5], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root'));
-  //     assert.equal(itemPaths[6], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a'));
-  //     assert.equal(itemPaths[7], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'file_under_a'));
-  //     assert.equal(itemPaths[8], path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'folder_b'));
-
-  //     done();
-  // });
-
-  // it('default options', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/real_folder
-  //     //   <root>/real_folder/file_under_real_folder
-  //     //   <root>/sym_folder -> real_folder
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_default_options');
-  //     tl.mkdirP(path.join(root, 'real_folder'));
-  //     fs.writeFileSync(path.join(root, 'real_folder', 'file_under_real_folder'), 'test file under real folder');
-  //     testutil.createSymlinkDir(path.join(root, 'real_folder'), path.join(root, 'sym_folder'));
-  //     assert.doesNotThrow(
-  //         () => fs.statSync(path.join(root, 'sym_folder', 'file_under_real_folder')),
-  //         'sym_folder should be created properly');
-
-  //     // assert the expected files are returned
-  //     let actual: string[] = tl.find(root);
-  //     let expected: string[] = [
-  //         root,
-  //         path.join(root, 'real_folder'),
-  //         path.join(root, 'real_folder', 'file_under_real_folder'),
-  //         path.join(root, 'sym_folder'),
-  //         path.join(root, 'sym_folder', 'file_under_real_folder'),
-  //     ];
-  //     assert.deepEqual(actual, expected);
-
-  //     done();
-  // });
-
-  // it('default options do not allow broken symlinks', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/broken_symlink -> no_such_file
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_default_options_broken_symlink');
-  //     tl.mkdirP(root);
-  //     testutil.createSymlinkDir(path.join(root, 'no_such_file'), path.join(root, 'broken_symlink'));
-
-  //     // assert the broken symlink is a problem
-  //     try {
-  //         tl.find(root);
-  //         throw new Error('Expected tl.find to throw');
-  //     }
-  //     catch (err) {
-  //         assert(err.message.match(/ENOENT.*broken_symlink/), `Expected broken symlink error message, actual: '${err.message}'`);
-  //     }
-
-  //     done();
-  // });
-
-  // it('empty find path returns empty array', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     let actual: string[] = tl.find('');
-  //     assert.equal(typeof actual, 'object');
-  //     assert.equal(actual.length, 0);
-
-  //     done();
-  // });
+      const itemPaths = await glob.glob(path.join(root, 'folder_a', 'folder_b'));
+      expect(itemPaths).toHaveLength(8);
+      expect(itemPaths[0]).toBe(path.join(root, 'folder_a', 'folder_b'));
+      expect(itemPaths[1]).toBe(path.join(root, 'folder_a', 'folder_b', 'file_under_b'));
+      expect(itemPaths[2]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c'));
+      expect(itemPaths[3]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'));
+      expect(itemPaths[4]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
+      expect(itemPaths[5]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root'));
+      expect(itemPaths[6]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a'));
+      expect(itemPaths[7]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'file_under_a'));
+      // todo: ? expect(itemPaths[8]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'folder_b'));
+  });
 
   // it('normalizes find path', (done: MochaDone) => {
   //     this.timeout(1000);
@@ -503,14 +427,6 @@ describe('glob (search)', () => {
   //     done();
   // });
 })
-
-// function chmod(file: string, mode: string): void {
-//   const result = child.spawnSync('chmod', [mode, file])
-//   if (result.status !== 0) {
-//     const message: string = (result.output || []).join(' ').trim()
-//     throw new Error(`Command failed: "chmod ${mode} ${file}".  ${message}`)
-//   }
-// }
 
 async function createHiddenDirectory(dir: string): Promise<void> {
   if (!path.basename(dir).match(/^\./)) {
