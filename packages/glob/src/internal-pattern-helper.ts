@@ -86,7 +86,7 @@ export function parse(patterns: string[], options: GlobOptions): Pattern[] {
     // Parse
     const pattern = new Pattern(patternString)
 
-    // Skip comment
+    // Comment
     if (pattern.comment) {
       continue
     }
@@ -97,6 +97,7 @@ export function parse(patterns: string[], options: GlobOptions): Pattern[] {
     // Implicitly match descendant paths
     if (options.implicitDescendants) {
       // Ensure trailing slash
+      // Note, this is OK because Pattern.ctor() asserts the path is not like C: or C:foo
       if (IS_WINDOWS) {
         if (!patternString.endsWith('/') && !patternString.endsWith('\\')) {
           patternString += '\\'
@@ -110,17 +111,16 @@ export function parse(patterns: string[], options: GlobOptions): Pattern[] {
       // Append globstar
       patternString += '**'
 
+      // Push
       result.push(new Pattern(patternString))
     }
   }
-  return patterns.map(x => new Pattern(x)).filter(x => !x.comment)
+  return result
 }
 
 /**
  * Checks whether to descend further into the directory
  */
 export function partialMatch(patterns: Pattern[], itemPath: string): boolean {
-  return patterns
-    .filter(x => !x.comment && !x.negate)
-    .some(x => x.partialMatch(itemPath))
+  return patterns.some(x => !x.comment && !x.negate && x.partialMatch(itemPath))
 }
