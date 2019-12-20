@@ -1,13 +1,13 @@
 import * as core from '@actions/core'
 import * as fs from 'fs'
-import * as globOptions from './internal-glob-options'
 import * as path from 'path'
 import * as patternHelper from './internal-pattern-helper'
+import {IGlobOptions} from './internal-glob-options'
 import {MatchResult} from './internal-match-result'
 import {Pattern} from './internal-pattern'
 import {SearchState} from './internal-search-state'
 
-export class GlobOptions extends globOptions.GlobOptions {}
+export {IGlobOptions}
 
 /**
  * Returns files and directories matching the specified glob pattern.
@@ -16,15 +16,10 @@ export class GlobOptions extends globOptions.GlobOptions {}
  */
 export async function glob(
   pattern: string,
-  options?: GlobOptions
+  options?: IGlobOptions
 ): Promise<string[]> {
-  // Default options
-  options = options || new GlobOptions()
-  core.debug(`options.followSymbolicLinks '${options.followSymbolicLinks}'`)
-  core.debug(`options.implicitDescendants '${options.implicitDescendants}'`)
-  core.debug(
-    `options.omitBrokenSymbolicLinks '${options.omitBrokenSymbolicLinks}'`
-  )
+  // Set defaults options
+  options = getOptions(options)
 
   // Parse patterns
   const patterns: Pattern[] = patternHelper.parse([pattern], options)
@@ -66,15 +61,8 @@ export async function glob(
       // Match
       const matchResult = patternHelper.match(patterns, item.path)
 
-      // File
-      if (stats.isFile()) {
-        // Matched
-        if (matchResult & MatchResult.File) {
-          result.push(item.path)
-        }
-      }
       // Directory
-      else {
+      if (stats.isDirectory()) {
         // Matched
         if (matchResult & MatchResult.Directory) {
           result.push(item.path)
@@ -91,6 +79,10 @@ export async function glob(
         )
         stack.push(...childItems.reverse())
       }
+      // File
+      else if (matchResult & MatchResult.File) {
+        result.push(item.path)
+      }
     }
   }
 
@@ -103,14 +95,14 @@ export async function glob(
  * For example, '/foo/bar*' returns '/foo'.
  */
 export function getSearchPath(pattern: string): string {
-  const patterns: Pattern[] = patternHelper.parse([pattern], new GlobOptions())
+  const patterns: Pattern[] = patternHelper.parse([pattern], getOptions())
   const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
   return searchPaths.length > 0 ? searchPaths[0] : ''
 }
 
 async function stat(
   item: SearchState,
-  options: GlobOptions,
+  options: IGlobOptions,
   traversalChain: string[]
 ): Promise<fs.Stats | undefined> {
   // Note:
@@ -167,4 +159,31 @@ async function stat(
   }
 
   return stats
+}
+
+function getOptions(copy?: IGlobOptions): IGlobOptions {
+  const result: IGlobOptions = {
+    followSymbolicLinks: true,
+    implicitDescendants: true,
+    omitBrokenSymbolicLinks: true
+  }
+
+  if (copy) {
+    if (typeof copy.followSymbolicLinks === 'boolean') {
+      result.followSymbolicLinks = copy.followSymbolicLinks
+      core.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`)
+    }
+
+    if (typeof copy.implicitDescendants === 'boolean') {
+      result.implicitDescendants = copy.implicitDescendants
+      core.debug(`implicitDescendants '${result.implicitDescendants}'`)
+    }
+
+    if (typeof copy.omitBrokenSymbolicLinks === 'boolean') {
+      result.omitBrokenSymbolicLinks = copy.omitBrokenSymbolicLinks
+      core.debug(`omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`)
+    }
+  }
+
+  return result
 }

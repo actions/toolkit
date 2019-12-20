@@ -24,7 +24,7 @@ describe('glob (search)', () => {
     //   search_hidden_files/.file
     //   search_hidden_files/.folder
     //   search_hidden_files/.folder/file
-    const root: string = path.join(getTestTemp(), 'search_hidden_files')
+    const root = path.join(getTestTemp(), 'search_hidden_files')
     await createHiddenDirectory(path.join(root, '.emptyFolder'))
     await createHiddenDirectory(path.join(root, '.folder'))
     await createHiddenFile(path.join(root, '.file'), 'test .file content')
@@ -33,7 +33,7 @@ describe('glob (search)', () => {
       'test .folder/file content'
     )
 
-    const itemPaths: string[] = await glob.glob(root)
+    const itemPaths = await glob.glob(root)
     expect(itemPaths).toHaveLength(5)
     expect(itemPaths[0]).toBe(root)
     expect(itemPaths[1]).toBe(path.join(root, '.emptyFolder'))
@@ -51,7 +51,7 @@ describe('glob (search)', () => {
     //   find_depth_first/b_folder/b_folder/file
     //   find_depth_first/b_folder/c_file
     //   find_depth_first/c_file
-    const root: string = path.join(getTestTemp(), 'search_depth_first')
+    const root = path.join(getTestTemp(), 'search_depth_first')
     await fs.mkdir(path.join(root, 'b_folder', 'b_folder'), {recursive: true})
     await fs.writeFile(path.join(root, 'a_file'), 'test a_file content')
     await fs.writeFile(
@@ -68,7 +68,7 @@ describe('glob (search)', () => {
     )
     await fs.writeFile(path.join(root, 'c_file'), 'test c_file content')
 
-    const itemPaths: string[] = await glob.glob(root)
+    const itemPaths = await glob.glob(root)
     expect(itemPaths).toHaveLength(8)
     expect(itemPaths[0]).toBe(root)
     expect(itemPaths[1]).toBe(path.join(root, 'a_file'))
@@ -81,369 +81,265 @@ describe('glob (search)', () => {
   })
 
   it('returns empty when not exists', async () => {
-    const itemPaths: string[] = await glob.glob(
-      path.join(getTestTemp(), 'nosuch')
-    )
+    const itemPaths = await glob.glob(path.join(getTestTemp(), 'nosuch'))
     expect(itemPaths).toHaveLength(0)
   })
 
-  // it('does not follow specified symlink', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('does not follow specified symlink when follow symlink false', async () => {
+    // Create the following layout:
+    //   realDir
+    //   realDir/file
+    //   symDir -> realDir
+    const root = path.join(getTestTemp(), 'search_no_follow_specified_symlink')
+    await fs.mkdir(path.join(root, 'realDir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'realDir'),
+      path.join(root, 'symDir')
+    )
 
-  //     // create the following layout:
-  //     //   realDir
-  //     //   realDir/file
-  //     //   symDir -> realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_specified_symlink');
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+    const itemPaths = await glob.glob(path.join(root, 'symDir'), {
+      followSymbolicLinks: false
+    })
+    expect(itemPaths).toHaveLength(1)
+    expect(itemPaths[0]).toBe(path.join(root, 'symDir'))
+  })
 
-  //     let itemPaths: string[] = tl.find(path.join(root, 'symDir'), <tl.FindOptions>{ });
-  //     assert.equal(itemPaths.length, 1);
-  //     assert.equal(itemPaths[0], path.join(root, 'symDir'));
+  it('follows specified symlink', async () => {
+    // Create the following layout:
+    //   realDir
+    //   realDir/file
+    //   symDir -> realDir
+    const root = path.join(getTestTemp(), 'search_follow_specified_symlink')
+    await fs.mkdir(path.join(root, 'realDir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'realDir'),
+      path.join(root, 'symDir')
+    )
 
-  //     done();
-  // });
+    const itemPaths = await glob.glob(path.join(root, 'symDir'))
+    expect(itemPaths).toHaveLength(2)
+    expect(itemPaths[0]).toBe(path.join(root, 'symDir'))
+    expect(itemPaths[1]).toBe(path.join(root, 'symDir', 'file'))
+  })
 
-  // it('follows specified symlink when -H', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('does not follow symlink when follow symlink false', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/realDir
+    //   <root>/realDir/file
+    //   <root>/symDir -> <root>/realDir
+    const root = path.join(getTestTemp(), 'search_no_follow_symlink')
+    await fs.mkdir(path.join(root, 'realDir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'realDir'),
+      path.join(root, 'symDir')
+    )
 
-  //     // create the following layout:
-  //     //   realDir
-  //     //   realDir/file
-  //     //   symDir -> realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_follow_specified_symlink_when_-H');
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+    const itemPaths = await glob.glob(root, {followSymbolicLinks: false})
+    expect(itemPaths).toHaveLength(4)
+    expect(itemPaths[0]).toBe(root)
+    expect(itemPaths[1]).toBe(path.join(root, 'realDir'))
+    expect(itemPaths[2]).toBe(path.join(root, 'realDir', 'file'))
+    expect(itemPaths[3]).toBe(path.join(root, 'symDir'))
+  })
 
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSpecifiedSymbolicLink = true; // equivalent to "find -H"
-  //     let itemPaths: string[] = tl.find(path.join(root, 'symDir'), options);
-  //     assert.equal(itemPaths.length, 2);
-  //     assert.equal(itemPaths[0], path.join(root, 'symDir'));
-  //     assert.equal(itemPaths[1], path.join(root, 'symDir', 'file'));
+  it('follows symlink', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/realDir
+    //   <root>/realDir/file
+    //   <root>/symDir -> <root>/realDir
+    const root = path.join(getTestTemp(), 'search_follow_symlink')
+    await fs.mkdir(path.join(root, 'realDir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'realDir'),
+      path.join(root, 'symDir')
+    )
 
-  //     done();
-  // });
+    const itemPaths = await glob.glob(root)
+    expect(itemPaths).toHaveLength(5)
+    expect(itemPaths[0]).toBe(root)
+    expect(itemPaths[1]).toBe(path.join(root, 'realDir'))
+    expect(itemPaths[2]).toBe(path.join(root, 'realDir', 'file'))
+    expect(itemPaths[3]).toBe(path.join(root, 'symDir'))
+    expect(itemPaths[4]).toBe(path.join(root, 'symDir', 'file'))
+  })
 
-  // it('follows specified symlink when -L', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('result includes broken symlink when follow symlink false', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/brokenSym -> <root>/noSuch
+    //   <root>/realDir
+    //   <root>/realDir/file
+    //   <root>/symDir -> <root>/realDir
+    const root = path.join(
+      getTestTemp(),
+      'search_no_follow_symlink_result_includes_broken_symlink'
+    )
+    await fs.mkdir(root, {recursive: true})
+    await createSymlinkDir(
+      path.join(root, 'noSuch'),
+      path.join(root, 'brokenSym')
+    )
+    await fs.mkdir(path.join(root, 'realDir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'realDir'),
+      path.join(root, 'symDir')
+    )
 
-  //     // create the following layout:
-  //     //   realDir
-  //     //   realDir/file
-  //     //   symDir -> realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_follow_specified_symlink_when_-L');
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+    const itemPaths = await glob.glob(root, {followSymbolicLinks: false})
+    expect(itemPaths).toHaveLength(5)
+    expect(itemPaths[0]).toBe(root)
+    expect(itemPaths[1]).toBe(path.join(root, 'brokenSym'))
+    expect(itemPaths[2]).toBe(path.join(root, 'realDir'))
+    expect(itemPaths[3]).toBe(path.join(root, 'realDir', 'file'))
+    expect(itemPaths[4]).toBe(path.join(root, 'symDir'))
+  })
 
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSymbolicLinks = true; // equivalent to "find -L"
-  //     let itemPaths: string[] = tl.find(path.join(root, 'symDir'), options);
-  //     assert.equal(itemPaths.length, 2);
-  //     assert.equal(itemPaths[0], path.join(root, 'symDir'));
-  //     assert.equal(itemPaths[1], path.join(root, 'symDir', 'file'));
+  it('result includes specified broken symlink when follow symlink false', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/brokenSym -> <root>/noSuch
+    const root = path.join(
+      getTestTemp(),
+      'search_no_follow_symlink_result_includes_specified_broken_symlink'
+    )
+    await fs.mkdir(root, {recursive: true})
+    const brokenSymPath = path.join(root, 'brokenSym')
+    await createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath)
 
-  //     done();
-  // });
+    const itemPaths = await glob.glob(brokenSymPath, {
+      followSymbolicLinks: false
+    })
+    expect(itemPaths).toHaveLength(1)
+    expect(itemPaths[0]).toBe(brokenSymPath)
+  })
 
-  // it('does not follow symlink', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('result includes nested broken symlink when follow symlink false', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/brokenSym -> <root>/noSuch
+    //   <root>/realDir
+    //   <root>/realDir/file
+    //   <root>/symDir -> <root>/realDir
+    const root = path.join(
+      getTestTemp(),
+      'search_no_follow_symlink_result_includes_nested_broken_symlink'
+    )
+    await fs.mkdir(root, {recursive: true})
+    await createSymlinkDir(
+      path.join(root, 'noSuch'),
+      path.join(root, 'brokenSym')
+    )
+    await fs.mkdir(path.join(root, 'realDir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'realDir'),
+      path.join(root, 'symDir')
+    )
 
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/realDir
-  //     //   <root>/realDir/file
-  //     //   <root>/symDir -> <root>/realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink');
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+    const itemPaths = await glob.glob(root, {followSymbolicLinks: false})
+    expect(itemPaths).toHaveLength(5)
+    expect(itemPaths[0]).toBe(root)
+    expect(itemPaths[1]).toBe(path.join(root, 'brokenSym'))
+    expect(itemPaths[2]).toBe(path.join(root, 'realDir'))
+    expect(itemPaths[3]).toBe(path.join(root, 'realDir', 'file'))
+    expect(itemPaths[4]).toBe(path.join(root, 'symDir'))
+  })
 
-  //     let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
-  //     assert.equal(itemPaths.length, 4);
-  //     assert.equal(itemPaths[0], root);
-  //     assert.equal(itemPaths[1], path.join(root, 'realDir'));
-  //     assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
-  //     assert.equal(itemPaths[3], path.join(root, 'symDir'));
+  it('does not allow specified broken symlink when omit broken symlinks false', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/brokenSym -> <root>/noSuch
+    const root = path.join(
+      getTestTemp(),
+      'search_throws_when_specified_broken_symlink_and_omit_broken_symlink_false'
+    )
+    await fs.mkdir(root, {recursive: true})
+    const brokenSymPath = path.join(root, 'brokenSym')
+    await createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath)
+    await fs.lstat(brokenSymPath)
 
-  //     done();
-  // });
+    try {
+      await glob.glob(brokenSymPath, {omitBrokenSymbolicLinks: false})
+      throw new Error('Expected tl.find to throw')
+    } catch (err) {
+      expect(err.message).toMatch(/broken symbolic link/)
+    }
+  })
 
-  // it('does not follow symlink when -H', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('does not allow broken symlink when omit broken symlinks false', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/brokenSym -> <root>/noSuch
+    const root = path.join(
+      getTestTemp(),
+      'search_not_allow_broken_symlink_when_omit_broken_symlink_false'
+    )
+    await fs.mkdir(root, {recursive: true})
+    await createSymlinkDir(
+      path.join(root, 'noSuch'),
+      path.join(root, 'brokenSym')
+    )
 
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/realDir
-  //     //   <root>/realDir/file
-  //     //   <root>/symDir -> <root>/realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink_when_-H');
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
+    try {
+      await glob.glob(root, {omitBrokenSymbolicLinks: false})
+      throw new Error('Expected tl.find to throw')
+    } catch (err) {
+      expect(err.message).toMatch(/broken symbolic link/)
+    }
+  })
 
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSpecifiedSymbolicLink = true;
-  //     let itemPaths: string[] = tl.find(root, options);
-  //     assert.equal(itemPaths.length, 4);
-  //     assert.equal(itemPaths[0], root);
-  //     assert.equal(itemPaths[1], path.join(root, 'realDir'));
-  //     assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
-  //     assert.equal(itemPaths[3], path.join(root, 'symDir'));
+  it('omit broken symlink', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/brokenSym -> <root>/noSuch
+    //   <root>/realDir
+    //   <root>/realDir/file
+    //   <root>/symDir -> <root>/realDir
+    const root = path.join(getTestTemp(), 'search_omit_broken_symlink')
+    await fs.mkdir(root, {recursive: true})
+    await createSymlinkDir(
+      path.join(root, 'noSuch'),
+      path.join(root, 'brokenSym')
+    )
+    await fs.mkdir(path.join(root, 'realDir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'realDir'),
+      path.join(root, 'symDir')
+    )
 
-  //     done();
-  // });
+    const itemPaths = await glob.glob(root)
+    expect(itemPaths).toHaveLength(5)
+    expect(itemPaths[0]).toBe(root)
+    expect(itemPaths[1]).toBe(path.join(root, 'realDir'))
+    expect(itemPaths[2]).toBe(path.join(root, 'realDir', 'file'))
+    expect(itemPaths[3]).toBe(path.join(root, 'symDir'))
+    expect(itemPaths[4]).toBe(path.join(root, 'symDir', 'file'))
+  })
 
-  // it('follows symlink when -L', (done: MochaDone) => {
-  //     this.timeout(1000);
+  it('omit specified broken symlink', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/brokenSym -> <root>/noSuch
+    const root = path.join(
+      getTestTemp(),
+      'search_omit_specified_broken_symlink'
+    )
+    await fs.mkdir(root, {recursive: true})
+    const brokenSymPath = path.join(root, 'brokenSym')
+    await createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath)
+    await fs.lstat(brokenSymPath)
 
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/realDir
-  //     //   <root>/realDir/file
-  //     //   <root>/symDir -> <root>/realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_follow_symlink_when_-L');
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSymbolicLinks = true;
-  //     let itemPaths: string[] = tl.find(root, options);
-  //     assert.equal(itemPaths.length, 5);
-  //     assert.equal(itemPaths[0], root);
-  //     assert.equal(itemPaths[1], path.join(root, 'realDir'));
-  //     assert.equal(itemPaths[2], path.join(root, 'realDir', 'file'));
-  //     assert.equal(itemPaths[3], path.join(root, 'symDir'));
-  //     assert.equal(itemPaths[4], path.join(root, 'symDir', 'file'));
-
-  //     done();
-  // });
-
-  // it('allows broken symlink', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     //   <root>/realDir
-  //     //   <root>/realDir/file
-  //     //   <root>/symDir -> <root>/realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink_allows_broken_symlink');
-  //     tl.mkdirP(root);
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
-
-  //     let itemPaths: string[] = tl.find(root, <tl.FindOptions>{ });
-  //     assert.equal(itemPaths.length, 5);
-  //     assert.equal(itemPaths[0], root);
-  //     assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
-  //     assert.equal(itemPaths[2], path.join(root, 'realDir'));
-  //     assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
-  //     assert.equal(itemPaths[4], path.join(root, 'symDir'));
-
-  //     done();
-  // });
-
-  // it('allows specified broken symlink', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_no_follow_symlink_allows_specified_broken_symlink');
-  //     tl.mkdirP(root);
-  //     let brokenSymPath = path.join(root, 'brokenSym');
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
-
-  //     let itemPaths: string[] = tl.find(brokenSymPath, <tl.FindOptions>{ });
-  //     assert.equal(itemPaths.length, 1);
-  //     assert.equal(itemPaths[0], brokenSymPath);
-
-  //     done();
-  // });
-
-  // it('allows nested broken symlink when -H', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     //   <root>/realDir
-  //     //   <root>/realDir/file
-  //     //   <root>/symDir -> <root>/realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_allows_nested_broken_symlink_when_-H');
-  //     tl.mkdirP(root);
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSpecifiedSymbolicLink = true;
-  //     let itemPaths: string[] = tl.find(root, options);
-  //     assert.equal(itemPaths.length, 5);
-  //     assert.equal(itemPaths[0], root);
-  //     assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
-  //     assert.equal(itemPaths[2], path.join(root, 'realDir'));
-  //     assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
-  //     assert.equal(itemPaths[4], path.join(root, 'symDir'));
-
-  //     done();
-  // });
-
-  // it('allows specified broken symlink with -H', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_allows_specified_broken_symlink_with_-H');
-  //     tl.mkdirP(root);
-  //     let brokenSymPath = path.join(root, 'brokenSym');
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.allowBrokenSymbolicLinks = true;
-  //     options.followSpecifiedSymbolicLink = true;
-  //     let itemPaths: string[] = tl.find(brokenSymPath, options);
-  //     assert.equal(itemPaths.length, 1);
-  //     assert.equal(itemPaths[0], brokenSymPath);
-
-  //     done();
-  // });
-
-  // it('does not allow specified broken symlink when only -H', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_not_allow_specified_broken_sym_when_only_-H');
-  //     tl.mkdirP(root);
-  //     let brokenSymPath = path.join(root, 'brokenSym');
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
-  //     fs.lstatSync(brokenSymPath);
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSpecifiedSymbolicLink = true;
-  //     try {
-  //         tl.find(brokenSymPath, options);
-  //         throw new Error('Expected tl.find to throw');
-  //     }
-  //     catch (err) {
-  //         assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
-  //     }
-
-  //     done();
-  // });
-
-  // it('does not allow broken symlink when only -L', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_not_allow_broken_sym_when_only_-L');
-  //     tl.mkdirP(root);
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSymbolicLinks = true;
-  //     try {
-  //         tl.find(root, options);
-  //         throw new Error('Expected tl.find to throw');
-  //     }
-  //     catch (err) {
-  //         assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
-  //     }
-
-  //     done();
-  // });
-
-  // it('does not allow specied broken symlink when only -L', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_not_allow_specified_broken_sym_when_only_-L');
-  //     tl.mkdirP(root);
-  //     let brokenSymPath = path.join(root, 'brokenSym');
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
-  //     fs.lstatSync(brokenSymPath);
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.followSymbolicLinks = true;
-  //     try {
-  //         tl.find(brokenSymPath, options);
-  //         throw new Error('Expected tl.find to throw');
-  //     }
-  //     catch (err) {
-  //         assert(err.message.match(/ENOENT.*brokenSym/), `Expected broken symlink error message, actual: '${err.message}'`);
-  //     }
-
-  //     done();
-  // });
-
-  // it('allow broken symlink with -L', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     //   <root>/realDir
-  //     //   <root>/realDir/file
-  //     //   <root>/symDir -> <root>/realDir
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_allow_broken_sym_with_-L');
-  //     tl.mkdirP(root);
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'brokenSym'));
-  //     tl.mkdirP(path.join(root, 'realDir'));
-  //     fs.writeFileSync(path.join(root, 'realDir', 'file'), 'test file content');
-  //     testutil.createSymlinkDir(path.join(root, 'realDir'), path.join(root, 'symDir'));
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.allowBrokenSymbolicLinks = true;
-  //     options.followSymbolicLinks = true;
-  //     let itemPaths: string[] = tl.find(root, options);
-  //     assert.equal(itemPaths.length, 6);
-  //     assert.equal(itemPaths[0], root);
-  //     assert.equal(itemPaths[1], path.join(root, 'brokenSym'));
-  //     assert.equal(itemPaths[2], path.join(root, 'realDir'));
-  //     assert.equal(itemPaths[3], path.join(root, 'realDir', 'file'));
-  //     assert.equal(itemPaths[4], path.join(root, 'symDir'));
-  //     assert.equal(itemPaths[5], path.join(root, 'symDir', 'file'));
-
-  //     done();
-  // });
-
-  // it('allow specified broken symlink with -L', (done: MochaDone) => {
-  //     this.timeout(1000);
-
-  //     // create the following layout:
-  //     //   <root>
-  //     //   <root>/brokenSym -> <root>/noSuch
-  //     let root: string = path.join(testutil.getTestTemp(), 'find_allow_specified_broken_sym_with_-L');
-  //     tl.mkdirP(root);
-  //     let brokenSymPath = path.join(root, 'brokenSym');
-  //     testutil.createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath);
-  //     fs.lstatSync(brokenSymPath);
-
-  //     let options: tl.FindOptions = {} as tl.FindOptions;
-  //     options.allowBrokenSymbolicLinks = true;
-  //     options.followSymbolicLinks = true;
-  //     let itemPaths: string[] = tl.find(brokenSymPath, options);
-  //     assert.equal(itemPaths.length, 1);
-  //     assert.equal(itemPaths[0], brokenSymPath);
-
-  //     done();
-  // });
+    const itemPaths = await glob.glob(brokenSymPath)
+    expect(itemPaths).toHaveLength(0)
+  })
 
   // it('detects cycle', (done: MochaDone) => {
   //     this.timeout(1000);
@@ -656,14 +552,14 @@ function getTestTemp(): string {
   return path.join(__dirname, '_temp')
 }
 
-// /**
-//  * Creates a symlink directory on OSX/Linux, and a junction point directory on Windows.
-//  * A symlink directory is not created on Windows since it requires an elevated context.
-//  */
-// async function createSymlinkDir(real: string, link: string): Promise<void> {
-//   if (IS_WINDOWS) {
-//     await fs.symlink(real, link, 'junction')
-//   } else {
-//     await fs.symlink(real, link)
-//   }
-// }
+/**
+ * Creates a symlink directory on OSX/Linux, and a junction point directory on Windows.
+ * A symlink directory is not created on Windows since it requires an elevated context.
+ */
+async function createSymlinkDir(real: string, link: string): Promise<void> {
+  if (IS_WINDOWS) {
+    await fs.symlink(real, link, 'junction')
+  } else {
+    await fs.symlink(real, link)
+  }
+}

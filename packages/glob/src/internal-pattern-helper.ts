@@ -1,5 +1,5 @@
 import * as pathHelper from './internal-path-helper'
-import {GlobOptions} from './internal-glob-options'
+import {IGlobOptions} from './internal-glob-options'
 import {MatchResult} from './internal-match-result'
 import {Pattern} from './internal-pattern'
 
@@ -62,6 +62,7 @@ export function getSearchPaths(patterns: Pattern[]): string[] {
  */
 export function match(patterns: Pattern[], itemPath: string): MatchResult {
   let result: MatchResult = MatchResult.None
+
   for (const pattern of patterns) {
     if (pattern.comment) {
       continue
@@ -80,8 +81,9 @@ export function match(patterns: Pattern[], itemPath: string): MatchResult {
 /**
  * Parses the pattern strings into Pattern objects
  */
-export function parse(patterns: string[], options: GlobOptions): Pattern[] {
+export function parse(patterns: string[], options: IGlobOptions): Pattern[] {
   const result: Pattern[] = []
+
   for (let patternString of patterns) {
     // Parse
     const pattern = new Pattern(patternString)
@@ -95,7 +97,7 @@ export function parse(patterns: string[], options: GlobOptions): Pattern[] {
     result.push(pattern)
 
     // Implicitly match descendant paths
-    if (options.implicitDescendants) {
+    if (options.implicitDescendants && !endsWithGlobstar(patternString)) {
       // Ensure trailing slash
       // Note, this is OK because Pattern.ctor() asserts the path is not like C: or C:foo
       if (IS_WINDOWS) {
@@ -115,6 +117,7 @@ export function parse(patterns: string[], options: GlobOptions): Pattern[] {
       result.push(new Pattern(patternString))
     }
   }
+
   return result
 }
 
@@ -123,4 +126,17 @@ export function parse(patterns: string[], options: GlobOptions): Pattern[] {
  */
 export function partialMatch(patterns: Pattern[], itemPath: string): boolean {
   return patterns.some(x => !x.comment && !x.negate && x.partialMatch(itemPath))
+}
+
+/**
+ * Determines whether the pattern ends with globstar
+ */
+function endsWithGlobstar(pattern: string): boolean {
+  if (pattern === '**' || pattern.endsWith('/**')) {
+    return true
+  } else if (IS_WINDOWS && pattern.endsWith('\\**')) {
+    return true
+  }
+
+  return false
 }
