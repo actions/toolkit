@@ -23,18 +23,18 @@ export class Path {
     rootedPath = pathHelper.normalizeSeparators(rootedPath)
     rootedPath = pathHelper.safeTrimTrailingSeparator(rootedPath)
 
-    // Push all segments, while not at the root
+    // Add all segments, while not at the root
     let remaining = rootedPath
     let dir = pathHelper.dirname(remaining)
     while (dir !== remaining) {
-      // Push the segment
+      // Add the segment
       const basename = path.basename(remaining)
       assert(basename !== '.', `Unexpected segment '.' in path '${rootedPath}'`)
       assert(
         basename !== '..',
         `Unexpected segment '..' in path '${rootedPath}'`
       )
-      this.segments.push(basename)
+      this.segments.unshift(basename)
 
       // Truncate the last segment
       remaining = dir
@@ -43,6 +43,8 @@ export class Path {
 
     // Remainder is the root
     // On Windows, convert any slashes in the root to '/'
-    this.segments.push(IS_WINDOWS ? remaining.replace(/\\/g, '/') : remaining)
+    this.segments.unshift(
+      IS_WINDOWS ? remaining.replace(/\\/g, '/') : remaining
+    )
   }
 }

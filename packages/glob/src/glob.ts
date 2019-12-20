@@ -11,6 +11,8 @@ export class GlobOptions extends globOptions.GlobOptions {}
 
 /**
  * Returns files and directories matching the specified glob pattern.
+ *
+ * Order of the results is not guaranteed.
  */
 export async function glob(
   pattern: string,
