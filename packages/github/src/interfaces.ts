@@ -5,7 +5,7 @@ export interface WebhookPayload {
   [key: string]: any
   repository?: Webhooks.PayloadRepository
   issue?: Webhooks.WebhookPayloadIssuesIssue
-  pull_request?: Webhooks.WebhookPayloadPullRequest
+  pull_request?: WebhookPayloadPullRequestPullRequest
   sender?: {
     [key: string]: any
     type: string
