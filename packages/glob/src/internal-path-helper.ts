@@ -7,8 +7,8 @@ const IS_WINDOWS = process.platform === 'win32'
  * Roots the path if not already rooted
  */
 export function ensureRooted(root: string, p: string): string {
-  assert(root, `ensureRooted parameter 'root' cannot be empty`)
-  assert(p, `ensureRooted parameter 'p' cannot be empty`)
+  assert(root, `ensureRooted parameter 'root' must not be empty`)
+  assert(p, `ensureRooted parameter 'p' must not be empty`)
 
   // Already rooted
   if (isRooted(p)) {
@@ -107,7 +107,7 @@ export function dirname(p: string): string {
  * `\`, `\hello`, `\\hello\share`, `C:`, and `C:\hello` (and using alternate separator).
  */
 export function isRooted(p: string): boolean {
-  assert(p, `isRooted parameter 'p' cannot be empty`)
+  assert(p, `isRooted parameter 'p' must not be empty`)
 
   // Normalize separators
   p = normalizeSeparators(p)

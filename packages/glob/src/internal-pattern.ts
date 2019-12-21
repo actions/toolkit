@@ -89,23 +89,23 @@ export class Pattern {
     // Empty
     assert(pattern, 'pattern cannot be empty')
 
-    // Path formats C: and C:foo not allowed on Windows (for simplicity)
+    // Must not use C: and C:foo format on Windows (for simplicity)
     const literalSegments = this.getLiterals(pattern)
     assert(
       !IS_WINDOWS || !/^[A-Z]:$/i.test(literalSegments[0]),
       `The pattern '${pattern}' uses an unsupported root-directory prefix. When a drive letter is specified, use absolute path syntax.`
     )
 
-    // `.` only allowed as first segment
-    // `..` not allowed
+    // Must not be `.` unless first segment
+    // Must not be `..`
     assert(
       literalSegments.every((x, i) => (x !== '.' || i === 0) && x !== '..'),
       `Invalid pattern '${pattern}'. Relative pathing '.' and '..' is not allowed.`
     )
 
-    // Root segment must not contain globs, e.g. \\foo\b*
+    // Must not contain globs in root, e.g. \\foo\b*
     assert(
-      !pathHelper.isRooted(pattern) || literalSegments[0],
+      literalSegments[0] || !pathHelper.isRooted(pattern),
       `Invalid pattern '${pattern}'. Root segment must not contain globs`
     )
 

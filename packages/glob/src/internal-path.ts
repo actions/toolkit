@@ -49,10 +49,13 @@ export class Path {
     }
     // Array
     else {
+      // Must not be empty
       assert(
         itemPath.length > 0,
         `Parameter 'itemPath' must not be an empty array`
       )
+
+      // Each segment
       for (let i = 0; i < itemPath.length; i++) {
         let segment = itemPath[i]
 
@@ -69,7 +72,7 @@ export class Path {
         if (i === 0 && pathHelper.isRooted(segment)) {
           this.segments.push(pathHelper.safeTrimTrailingSeparator(segment))
         }
-        // Other segments
+        // All other segments
         else {
           // Must not contain slash
           assert(
