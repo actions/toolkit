@@ -370,6 +370,7 @@ describe('glob (search)', () => {
     await fs.mkdir(root, {recursive: true})
     await fs.writeFile(path.join(root, 'file'), 'test file content')
     await createSymlinkDir(root, path.join(root, 'symDir'))
+    await fs.stat(path.join(root, 'symDir'))
 
     const itemPaths = await glob.glob(path.join(root, 'symDir'))
     expect(itemPaths).toHaveLength(2)

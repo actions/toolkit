@@ -2,7 +2,7 @@ import * as assert from 'assert'
 import * as path from 'path'
 import * as pathHelper from './internal-path-helper'
 import {Minimatch, IMinimatch, IOptions as IMinimatchOptions} from 'minimatch'
-import {MatchResult} from './internal-match-result'
+import {MatchKind} from './internal-match-kind'
 import {Path} from './internal-path'
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -64,16 +64,16 @@ export class Pattern {
   /**
    * Matches the pattern against the specified path
    */
-  match(itemPath: string): MatchResult {
+  match(itemPath: string): MatchKind {
     if (this.comment) {
-      return MatchResult.None
+      return MatchKind.None
     }
 
     if (this.minimatch.match(itemPath)) {
-      return this.trailingSlash ? MatchResult.Directory : MatchResult.All
+      return this.trailingSlash ? MatchKind.Directory : MatchKind.All
     }
 
-    return MatchResult.None
+    return MatchKind.None
   }
 
   /**
@@ -146,11 +146,11 @@ export class Pattern {
   private initializePaths(pattern: string): void {
     // Build the search path
     const searchSegments: string[] = []
-    for (const literalSegment of this.getLiterals(pattern)) {
-      if (!literalSegment) {
+    for (const literal of this.getLiterals(pattern)) {
+      if (!literal) {
         break
       }
-      searchSegments.push(literalSegment)
+      searchSegments.push(literal)
     }
     this.searchPath = new Path(searchSegments).toString()
 

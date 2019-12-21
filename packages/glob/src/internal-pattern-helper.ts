@@ -1,6 +1,6 @@
 import * as pathHelper from './internal-path-helper'
 import {IGlobOptions} from './internal-glob-options'
-import {MatchResult} from './internal-match-result'
+import {MatchKind} from './internal-match-kind'
 import {Pattern} from './internal-pattern'
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -60,8 +60,8 @@ export function getSearchPaths(patterns: Pattern[]): string[] {
 /**
  * Matches the patterns against the path
  */
-export function match(patterns: Pattern[], itemPath: string): MatchResult {
-  let result: MatchResult = MatchResult.None
+export function match(patterns: Pattern[], itemPath: string): MatchKind {
+  let result: MatchKind = MatchKind.None
 
   for (const pattern of patterns) {
     if (pattern.comment) {

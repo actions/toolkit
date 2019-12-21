@@ -76,6 +76,7 @@ export class Path {
             !segment.includes(path.sep),
             `Parameter 'itemPath' contains unexpected path separators`
           )
+          this.segments.push(segment)
         }
       }
     }

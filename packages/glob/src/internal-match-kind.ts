@@ -1,7 +1,7 @@
 /**
  * Indicates whether a pattern matches a path
  */
-export enum MatchResult {
+export enum MatchKind {
   /** Not matched */
   None = 0,
 

@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as patternHelper from './internal-pattern-helper'
 import {IGlobOptions} from './internal-glob-options'
-import {MatchResult} from './internal-match-result'
+import {MatchKind} from './internal-match-kind'
 import {Pattern} from './internal-pattern'
 import {SearchState} from './internal-search-state'
 
@@ -24,12 +24,9 @@ export async function glob(
   // Parse patterns
   const patterns: Pattern[] = patternHelper.parse([pattern], options)
 
-  // Get search paths
-  const searchPaths: string[] = patternHelper.getSearchPaths(patterns)
-
-  // Search
-  const result: string[] = []
-  for (const searchPath of searchPaths) {
+  // Push the search paths
+  const stack: SearchState[] = []
+  for (const searchPath of patternHelper.getSearchPaths(patterns)) {
     // Exists? Note, intentionally using lstat. Detection for broken symlink
     // will be performed later (if following symlinks).
     try {
@@ -41,49 +38,56 @@ export async function glob(
       throw err
     }
 
-    // Push the first item
-    const stack: SearchState[] = [new SearchState(searchPath, 1)]
-    const traversalChain: string[] = [] // used to detect cycles
+    stack.unshift(new SearchState(searchPath, 1))
+  }
 
-    while (stack.length) {
-      // Pop
-      const item = stack.pop() as SearchState
-      const stats: fs.Stats | undefined = await stat(
-        item,
-        options,
-        traversalChain
-      )
+  const result: string[] = []
 
-      // Broken symlink or symlink cycle detected
-      if (!stats) {
+  // Search
+  const traversalChain: string[] = [] // used to detect cycles
+  while (stack.length) {
+    // Pop
+    const item = stack.pop() as SearchState
+
+    // Match
+    const match = patternHelper.match(patterns, item.path)
+    if (!match) {
+      continue
+    }
+
+    // Stat
+    const stats: fs.Stats | undefined = await stat(
+      item,
+      options,
+      traversalChain
+    )
+
+    // Broken symlink, or symlink cycle detected, or no longer exists
+    if (!stats) {
+      continue
+    }
+
+    // Directory
+    if (stats.isDirectory()) {
+      // Matched
+      if (match & MatchKind.Directory) {
+        result.push(item.path)
+      }
+      // Descend?
+      else if (!patternHelper.partialMatch(patterns, item.path)) {
         continue
       }
 
-      // Match
-      const matchResult = patternHelper.match(patterns, item.path)
-
-      // Directory
-      if (stats.isDirectory()) {
-        // Matched
-        if (matchResult & MatchResult.Directory) {
-          result.push(item.path)
-        }
-        // Descend?
-        else if (!patternHelper.partialMatch(patterns, item.path)) {
-          continue
-        }
-
-        // Push the child items in reverse
-        const childLevel = item.level + 1
-        const childItems = (await fs.promises.readdir(item.path)).map(
-          x => new SearchState(path.join(item.path, x), childLevel)
-        )
-        stack.push(...childItems.reverse())
-      }
-      // File
-      else if (matchResult & MatchResult.File) {
-        result.push(item.path)
-      }
+      // Push the child items in reverse
+      const childLevel = item.level + 1
+      const childItems = (await fs.promises.readdir(item.path)).map(
+        x => new SearchState(path.join(item.path, x), childLevel)
+      )
+      stack.push(...childItems.reverse())
+    }
+    // File
+    else if (match & MatchKind.File) {
+      result.push(item.path)
     }
   }
 
