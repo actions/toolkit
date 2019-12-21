@@ -97,30 +97,39 @@ export class Pattern {
   }
 
   /**
-   * Normalizes slashes and roots the pattern
+   * Normalizes slashes and ensures rooted
    */
   private fixupPattern(pattern: string): string {
     // Empty
     assert(pattern, 'pattern cannot be empty')
 
-    // Replace leading `.` segment
+    // Path formats C: and C:foo not allowed on Windows (for simplicity)
+    const literalSegments = this.getLiterals(pattern)
+    assert(
+      !IS_WINDOWS || !/^[A-Z]:$/i.test(literalSegments[0]),
+      `The pattern '${pattern}' uses an unsupported root-directory prefix. When a drive letter is specified, use absolute path syntax.`
+    )
+
+    // `.` only allowed as first segment
+    // `..` not allowed
+    assert(
+      literalSegments.every((x, i) => (x !== '.' || i === 0) && x !== '..'),
+      `Invalid pattern '${pattern}'. Relative pathing '.' and '..' is not allowed.`
+    )
+
+    // Root segment must not contain globs, e.g. \\foo\b*
+    assert(
+      !pathHelper.isRooted(pattern) || literalSegments[0],
+      `Invalid pattern '${pattern}'. Root segment must not contain globs`
+    )
+
+    // Normalize slashes
     pattern = pathHelper.normalizeSeparators(pattern)
+
+    // Replace leading `.` segment
     if (pattern === '.' || pattern.startsWith(`.${path.sep}`)) {
       pattern = this.globEscape(process.cwd()) + pattern.substr(1)
-    }
-
-    // Otherwise `.` and `..` segments not allowed
-    if (
-      pattern === '..' ||
-      pattern.startsWith(`..${path.sep}`) ||
-      pattern.includes(`${path.sep}.${path.sep}`) ||
-      pattern.includes(`${path.sep}..${path.sep}`) ||
-      pattern.endsWith(`${path.sep}.`) ||
-      pattern.endsWith(`${path.sep}..`)
-    ) {
-      throw new Error(
-        `Invalid pattern '${pattern}'. Relative pathing '.' and '..' is not allowed.`
-      )
+      pattern = pathHelper.normalizeSeparators(pattern)
     }
 
     // Root the pattern
@@ -135,61 +144,36 @@ export class Pattern {
    * Initializes the search path and root regexp
    */
   private initializePaths(pattern: string): void {
-    // Parse the pattern as a path
-    const patternPath = new Path(pattern)
-
-    // On Windows, do not allow paths like C: and C:foo (for simplicity)
-    assert(
-      !IS_WINDOWS || !/^[A-Z]:$/i.test(patternPath.segments[0]),
-      `The pattern '${pattern}' uses an unsupported root-directory prefix. When a drive letter is specified, use absolute path syntax.`
-    )
-
-    // No relative pathing
-    for (const patternSegment of patternPath.segments) {
-      const literal = this.convertToLiteral(patternSegment)
-      assert(
-        literal !== '.' && literal !== '..',
-        `Invalid pattern. Relative pathing '.' and '..' is not allowed. Pattern '${pattern}'`
-      )
-    }
-
     // Build the search path
-    this.searchPath = ''
-    for (const patternSegment of patternPath.segments) {
-      // Convert
-      const literal = this.convertToLiteral(patternSegment)
-      if (!literal) {
+    const searchSegments: string[] = []
+    for (const literalSegment of this.getLiterals(pattern)) {
+      if (!literalSegment) {
         break
       }
-
-      // Append slash
-      // Note, this is OK because Pattern.ctor() asserts the path is not like C: or C:foo
-      if (this.searchPath && !this.searchPath.endsWith(path.sep)) {
-        this.searchPath += path.sep
-      }
-
-      // Append literal segment
-      this.searchPath += literal
+      searchSegments.push(literalSegment)
     }
+    this.searchPath = new Path(searchSegments).toString()
 
     // Store the root segment (required when determining partial match)
-    const rootSegment = new Path(pattern).segments[0]
     this.rootRegExp = new RegExp(
-      this.regExpEscape(rootSegment),
+      this.regExpEscape(searchSegments[0]),
       IS_WINDOWS ? 'i' : ''
     )
+  }
 
-    // Set the root regexp
-    this.rootRegExp = new RegExp(
-      this.regExpEscape(this.convertToLiteral(patternPath.segments[0]))
-    )
+  /**
+   * Splits a pattern into segments and attempts to unescape each segment
+   * to create a literal segment. Otherwise creates an empty segment.
+   */
+  private getLiterals(pattern: string): string[] {
+    return new Path(pattern).segments.map(x => this.getLiteral(x))
   }
 
   /**
    * Attempts to unescape a pattern segment to create a literal path segment.
    * Otherwise returns empty string.
    */
-  private convertToLiteral(segment: string): string {
+  private getLiteral(segment: string): string {
     let literal = ''
     for (let i = 0; i < segment.length; i++) {
       const c = segment[i]
