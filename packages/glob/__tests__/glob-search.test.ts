@@ -359,54 +359,122 @@ describe('glob (search)', () => {
   })
 
   it('detects cycle starting from symlink', async () => {
-      // Create the following layout:
-      //   <root>
-      //   <root>/file
-      //   <root>/symDir -> <root>
-      const root: string = path.join(getTestTemp(), 'search_detects_cycle_starting_from_symlink');
-      await fs.mkdir(root, {recursive: true});
-      await fs.writeFile(path.join(root, 'file'), 'test file content');
-      await createSymlinkDir(root, path.join(root, 'symDir'));
+    // Create the following layout:
+    //   <root>
+    //   <root>/file
+    //   <root>/symDir -> <root>
+    const root: string = path.join(
+      getTestTemp(),
+      'search_detects_cycle_starting_from_symlink'
+    )
+    await fs.mkdir(root, {recursive: true})
+    await fs.writeFile(path.join(root, 'file'), 'test file content')
+    await createSymlinkDir(root, path.join(root, 'symDir'))
 
-      const itemPaths = await glob.glob(path.join(root, 'symDir'));
-      expect(itemPaths).toHaveLength(2);
-      expect(itemPaths[0]).toBe(path.join(root, 'symDir'));
-      expect(itemPaths[1]).toBe(path.join(root, 'symDir', 'file'));
-      // todo: ? expect(itemPaths[2]).toBe(path.join(root, 'symDir', 'symDir'));
-  });
+    const itemPaths = await glob.glob(path.join(root, 'symDir'))
+    expect(itemPaths).toHaveLength(2)
+    expect(itemPaths[0]).toBe(path.join(root, 'symDir'))
+    expect(itemPaths[1]).toBe(path.join(root, 'symDir', 'file'))
+    // todo: ? expect(itemPaths[2]).toBe(path.join(root, 'symDir', 'symDir'));
+  })
 
   it('detects deep cycle starting from middle', async () => {
-      // Create the following layout:
-      //   <root>
-      //   <root>/file_under_root
-      //   <root>/folder_a
-      //   <root>/folder_a/file_under_a
-      //   <root>/folder_a/folder_b
-      //   <root>/folder_a/folder_b/file_under_b
-      //   <root>/folder_a/folder_b/folder_c
-      //   <root>/folder_a/folder_b/folder_c/file_under_c
-      //   <root>/folder_a/folder_b/folder_c/sym_folder -> <root>
-      const root = path.join(getTestTemp(), 'search_detects_deep_cycle_starting_from_middle');
-      await fs.mkdir(path.join(root, 'folder_a', 'folder_b', 'folder_c'), {recursive: true});
-      await fs.writeFile(path.join(root, 'file_under_root'), 'test file under root contents');
-      await fs.writeFile(path.join(root, 'folder_a', 'file_under_a'), 'test file under a contents');
-      await fs.writeFile(path.join(root, 'folder_a', 'folder_b', 'file_under_b'), 'test file under b contents');
-      await fs.writeFile(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'), 'test file under c contents');
-      await createSymlinkDir(root, path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
-      await fs.stat(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root'))
+    // Create the following layout:
+    //   <root>
+    //   <root>/file_under_root
+    //   <root>/folder_a
+    //   <root>/folder_a/file_under_a
+    //   <root>/folder_a/folder_b
+    //   <root>/folder_a/folder_b/file_under_b
+    //   <root>/folder_a/folder_b/folder_c
+    //   <root>/folder_a/folder_b/folder_c/file_under_c
+    //   <root>/folder_a/folder_b/folder_c/sym_folder -> <root>
+    const root = path.join(
+      getTestTemp(),
+      'search_detects_deep_cycle_starting_from_middle'
+    )
+    await fs.mkdir(path.join(root, 'folder_a', 'folder_b', 'folder_c'), {
+      recursive: true
+    })
+    await fs.writeFile(
+      path.join(root, 'file_under_root'),
+      'test file under root contents'
+    )
+    await fs.writeFile(
+      path.join(root, 'folder_a', 'file_under_a'),
+      'test file under a contents'
+    )
+    await fs.writeFile(
+      path.join(root, 'folder_a', 'folder_b', 'file_under_b'),
+      'test file under b contents'
+    )
+    await fs.writeFile(
+      path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'),
+      'test file under c contents'
+    )
+    await createSymlinkDir(
+      root,
+      path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder')
+    )
+    await fs.stat(
+      path.join(
+        root,
+        'folder_a',
+        'folder_b',
+        'folder_c',
+        'sym_folder',
+        'file_under_root'
+      )
+    )
 
-      const itemPaths = await glob.glob(path.join(root, 'folder_a', 'folder_b'));
-      expect(itemPaths).toHaveLength(8);
-      expect(itemPaths[0]).toBe(path.join(root, 'folder_a', 'folder_b'));
-      expect(itemPaths[1]).toBe(path.join(root, 'folder_a', 'folder_b', 'file_under_b'));
-      expect(itemPaths[2]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c'));
-      expect(itemPaths[3]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c'));
-      expect(itemPaths[4]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder'));
-      expect(itemPaths[5]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'file_under_root'));
-      expect(itemPaths[6]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a'));
-      expect(itemPaths[7]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'file_under_a'));
-      // todo: ? expect(itemPaths[8]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'folder_b'));
-  });
+    const itemPaths = await glob.glob(path.join(root, 'folder_a', 'folder_b'))
+    expect(itemPaths).toHaveLength(8)
+    expect(itemPaths[0]).toBe(path.join(root, 'folder_a', 'folder_b'))
+    expect(itemPaths[1]).toBe(
+      path.join(root, 'folder_a', 'folder_b', 'file_under_b')
+    )
+    expect(itemPaths[2]).toBe(
+      path.join(root, 'folder_a', 'folder_b', 'folder_c')
+    )
+    expect(itemPaths[3]).toBe(
+      path.join(root, 'folder_a', 'folder_b', 'folder_c', 'file_under_c')
+    )
+    expect(itemPaths[4]).toBe(
+      path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder')
+    )
+    expect(itemPaths[5]).toBe(
+      path.join(
+        root,
+        'folder_a',
+        'folder_b',
+        'folder_c',
+        'sym_folder',
+        'file_under_root'
+      )
+    )
+    expect(itemPaths[6]).toBe(
+      path.join(
+        root,
+        'folder_a',
+        'folder_b',
+        'folder_c',
+        'sym_folder',
+        'folder_a'
+      )
+    )
+    expect(itemPaths[7]).toBe(
+      path.join(
+        root,
+        'folder_a',
+        'folder_b',
+        'folder_c',
+        'sym_folder',
+        'folder_a',
+        'file_under_a'
+      )
+    )
+    // todo: ? expect(itemPaths[8]).toBe(path.join(root, 'folder_a', 'folder_b', 'folder_c', 'sym_folder', 'folder_a', 'folder_b'));
+  })
 
   // it('normalizes find path', (done: MochaDone) => {
   //     this.timeout(1000);

@@ -33,28 +33,8 @@ export class Pattern {
       pattern = pattern.substr(1)
     }
 
-    // Empty
-    assert(pattern, 'pattern cannot be empty')
-
-    // On Windows, do not allow paths like C: and C:foo (for simplicity)
-    assert(
-      !IS_WINDOWS || !/^([A-Z]:|[A-Z]:[^\\/].*)$/i.test(pattern),
-      `The pattern '${pattern}' uses an unsupported root-directory prefix. When a drive letter is specified, use absolute path syntax.`
-    )
-
-    // Root the pattern
-    if (!pathHelper.isRooted(pattern)) {
-      // Escape glob characters
-      let root = process.cwd()
-      root = (IS_WINDOWS ? root : root.replace(/\\/g, '\\\\')) // escape '\' on Linux/macOS
-        .replace(/(\[)(?=[^/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
-        .replace(/\?/g, '[?]') // escape '?'
-        .replace(/\*/g, '[*]') // escape '*'
-      pattern = pathHelper.ensureRooted(root, pattern)
-    }
-
-    // Normalize slashes
-    pattern = pathHelper.normalizeSeparators(pattern)
+    // Normalize slashes and ensure rooted
+    pattern = this.fixupPattern(pattern)
 
     // Trailing slash indicates the pattern should only match directories, not regular files
     this.trailingSlash = pathHelper
@@ -117,11 +97,61 @@ export class Pattern {
   }
 
   /**
+   * Normalizes slashes and roots the pattern
+   */
+  private fixupPattern(pattern: string): string {
+    // Empty
+    assert(pattern, 'pattern cannot be empty')
+
+    // Replace leading `.` segment
+    pattern = pathHelper.normalizeSeparators(pattern)
+    if (pattern === '.' || pattern.startsWith(`.${path.sep}`)) {
+      pattern = this.globEscape(process.cwd()) + pattern.substr(1)
+    }
+
+    // Otherwise `.` and `..` segments not allowed
+    if (
+      pattern === '..' ||
+      pattern.startsWith(`..${path.sep}`) ||
+      pattern.includes(`${path.sep}.${path.sep}`) ||
+      pattern.includes(`${path.sep}..${path.sep}`) ||
+      pattern.endsWith(`${path.sep}.`) ||
+      pattern.endsWith(`${path.sep}..`)
+    ) {
+      throw new Error(
+        `Invalid pattern '${pattern}'. Relative pathing '.' and '..' is not allowed.`
+      )
+    }
+
+    // Root the pattern
+    if (!pathHelper.isRooted(pattern)) {
+      pattern = pathHelper.ensureRooted(this.globEscape(process.cwd()), pattern)
+    }
+
+    return pattern
+  }
+
+  /**
    * Initializes the search path and root regexp
    */
   private initializePaths(pattern: string): void {
     // Parse the pattern as a path
     const patternPath = new Path(pattern)
+
+    // On Windows, do not allow paths like C: and C:foo (for simplicity)
+    assert(
+      !IS_WINDOWS || !/^[A-Z]:$/i.test(patternPath.segments[0]),
+      `The pattern '${pattern}' uses an unsupported root-directory prefix. When a drive letter is specified, use absolute path syntax.`
+    )
+
+    // No relative pathing
+    for (const patternSegment of patternPath.segments) {
+      const literal = this.convertToLiteral(patternSegment)
+      assert(
+        literal !== '.' && literal !== '..',
+        `Invalid pattern. Relative pathing '.' and '..' is not allowed. Pattern '${pattern}'`
+      )
+    }
 
     // Build the search path
     this.searchPath = ''
@@ -215,6 +245,16 @@ export class Pattern {
     }
 
     return literal
+  }
+
+  /**
+   * Escapes glob patterns within a path
+   */
+  private globEscape(s: string): string {
+    return (IS_WINDOWS ? s : s.replace(/\\/g, '\\\\')) // escape '\' on Linux/macOS
+      .replace(/(\[)(?=[^/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
+      .replace(/\?/g, '[?]') // escape '?'
+      .replace(/\*/g, '[*]') // escape '*'
   }
 
   /**

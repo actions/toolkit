@@ -30,7 +30,8 @@ export async function glob(
   // Search
   const result: string[] = []
   for (const searchPath of searchPaths) {
-    // Skip if not exists
+    // Exists? Note, intentionally using lstat. Detection for broken symlink
+    // will be performed later (if following symlinks).
     try {
       await fs.promises.lstat(searchPath)
     } catch (err) {
