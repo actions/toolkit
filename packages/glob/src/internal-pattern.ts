@@ -33,13 +33,7 @@ export class Pattern {
     pattern = pathHelper.safeTrimTrailingSeparator(pattern)
 
     // Search path
-    const searchSegments: string[] = []
-    for (const literal of this.getLiterals(pattern)) {
-      if (!literal) {
-        break
-      }
-      searchSegments.push(literal)
-    }
+    const searchSegments = this.getLiterals(pattern, true)
     this.searchPath = new Path(searchSegments).toString()
 
     // Root RegExp (required when determining partial match)
@@ -133,11 +127,31 @@ export class Pattern {
   }
 
   /**
-   * Splits a pattern into segments and attempts to unescape each segment
-   * to create a literal segment. Otherwise creates an empty segment.
+   * Splits a pattern into segments and attempts to unescape each segment to create a
+   * literal segment. Otherwise creates an empty segment.
+   * @param pattern        The pattern
+   * @param stopWhenEmpty  Indicates whether to only include segments prior to the first
+   *                       empty segment (empty indicates failure to convert to literal)
    */
-  private getLiterals(pattern: string): string[] {
-    return new Path(pattern).segments.map(x => this.getLiteral(x))
+  private getLiterals(
+    pattern: string,
+    stopWhenEmpty: boolean = false
+  ): string[] {
+    // All
+    const literals = new Path(pattern).segments.map(x => this.getLiteral(x))
+    if (!stopWhenEmpty) {
+      return literals
+    }
+
+    // Filtered
+    const result: string[] = []
+    for (const literal of literals) {
+      if (!literal) {
+        break
+      }
+      result.push(literal)
+    }
+    return result
   }
 
   /**
