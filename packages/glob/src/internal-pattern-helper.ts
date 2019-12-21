@@ -1,6 +1,7 @@
 import * as pathHelper from './internal-path-helper'
 import {IGlobOptions} from './internal-glob-options'
 import {MatchKind} from './internal-match-kind'
+import {Path} from './internal-path'
 import {Pattern} from './internal-pattern'
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -10,8 +11,8 @@ const IS_WINDOWS = process.platform === 'win32'
  * Duplicates and paths under other included paths are filtered out.
  */
 export function getSearchPaths(patterns: Pattern[]): string[] {
-  // Ignore comment and negate patterns
-  patterns = patterns.filter(x => !x.comment && !x.negate)
+  // Ignore negate patterns
+  patterns = patterns.filter(x => !x.negate)
 
   // Create a map of all search paths
   const searchPathMap: {[key: string]: string} = {}
@@ -64,10 +65,6 @@ export function match(patterns: Pattern[], itemPath: string): MatchKind {
   let result: MatchKind = MatchKind.None
 
   for (const pattern of patterns) {
-    if (pattern.comment) {
-      continue
-    }
-
     if (pattern.negate) {
       result &= ~pattern.match(itemPath)
     } else {
@@ -85,36 +82,24 @@ export function parse(patterns: string[], options: IGlobOptions): Pattern[] {
   const result: Pattern[] = []
 
   for (let patternString of patterns) {
-    // Parse
-    const pattern = new Pattern(patternString)
-
     // Comment
-    if (pattern.comment) {
+    if (patternString.startsWith('#')) {
       continue
     }
 
     // Push
-    result.push(pattern)
+    result.push(new Pattern(patternString))
 
     // Implicitly match descendant paths
-    if (options.implicitDescendants && !endsWithGlobstar(patternString)) {
-      // Ensure trailing slash
-      // Note, this is OK because Pattern.ctor() asserts the path is not like C: or C:foo
-      if (IS_WINDOWS) {
-        if (!patternString.endsWith('/') && !patternString.endsWith('\\')) {
-          patternString += '\\'
-        }
-      } else {
-        if (!patternString.endsWith('/')) {
-          patternString += '/'
-        }
+    if (options.implicitDescendants) {
+      // Trailing globstar?
+      const segments = new Path(patternString).segments
+      if (segments[segments.length - 1] !== '**') {
+        // Push
+        segments.push('**')
+        patternString = new Path(segments).toString()
+        result.push(new Pattern(patternString))
       }
-
-      // Append globstar
-      patternString += '**'
-
-      // Push
-      result.push(new Pattern(patternString))
     }
   }
 
@@ -125,18 +110,5 @@ export function parse(patterns: string[], options: IGlobOptions): Pattern[] {
  * Checks whether to descend further into the directory
  */
 export function partialMatch(patterns: Pattern[], itemPath: string): boolean {
-  return patterns.some(x => !x.comment && !x.negate && x.partialMatch(itemPath))
-}
-
-/**
- * Determines whether the pattern ends with globstar
- */
-function endsWithGlobstar(pattern: string): boolean {
-  if (pattern === '**' || pattern.endsWith('/**')) {
-    return true
-  } else if (IS_WINDOWS && pattern.endsWith('\\**')) {
-    return true
-  }
-
-  return false
+  return patterns.some(x => !x.negate && x.partialMatch(itemPath))
 }

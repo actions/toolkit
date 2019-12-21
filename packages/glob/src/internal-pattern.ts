@@ -8,7 +8,6 @@ import {Path} from './internal-path'
 const IS_WINDOWS = process.platform === 'win32'
 
 export class Pattern {
-  comment: boolean = false
   negate: boolean = false
   searchPath: string
   private minimatch: IMinimatch
@@ -17,15 +16,6 @@ export class Pattern {
 
   constructor(pattern: string) {
     pattern = pattern || ''
-
-    // Comment
-    if (pattern.startsWith('#')) {
-      this.comment = true
-      this.searchPath = (undefined as unknown) as string
-      this.minimatch = (undefined as unknown) as IMinimatch
-      this.rootRegExp = (undefined as unknown) as RegExp
-      return
-    }
 
     // Negate
     while (pattern.startsWith('!')) {
@@ -65,10 +55,6 @@ export class Pattern {
    * Matches the pattern against the specified path
    */
   match(itemPath: string): MatchKind {
-    if (this.comment) {
-      return MatchKind.None
-    }
-
     if (this.minimatch.match(itemPath)) {
       return this.trailingSlash ? MatchKind.Directory : MatchKind.All
     }
@@ -80,10 +66,6 @@ export class Pattern {
    * Indicates whether the pattern may match descendants of the specified path
    */
   partialMatch(itemPath: string): boolean {
-    if (this.comment) {
-      return false
-    }
-
     // matchOne does not handle root path correctly
     if (pathHelper.dirname(itemPath) === itemPath) {
       return this.rootRegExp.test(itemPath)
