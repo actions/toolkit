@@ -12,7 +12,7 @@ export class Pattern {
   searchPath: string
   private minimatch: IMinimatch
   private rootRegExp: RegExp
-  private trailingSlash: boolean = false
+  private trailingSlash: boolean
 
   constructor(pattern: string) {
     pattern = pattern || ''
@@ -32,11 +32,21 @@ export class Pattern {
       .endsWith(path.sep)
     pattern = pathHelper.safeTrimTrailingSeparator(pattern)
 
-    // Set search path
-    // Set root regexp
-    this.searchPath = (undefined as unknown) as string
-    this.rootRegExp = (undefined as unknown) as RegExp
-    this.initializePaths(pattern)
+    // Search path
+    const searchSegments: string[] = []
+    for (const literal of this.getLiterals(pattern)) {
+      if (!literal) {
+        break
+      }
+      searchSegments.push(literal)
+    }
+    this.searchPath = new Path(searchSegments).toString()
+
+    // Root RegExp (required when determining partial match)
+    this.rootRegExp = new RegExp(
+      this.regExpEscape(searchSegments[0]),
+      IS_WINDOWS ? 'i' : ''
+    )
 
     // Create minimatch
     const minimatchOptions: IMinimatchOptions = {
@@ -120,27 +130,6 @@ export class Pattern {
     }
 
     return pattern
-  }
-
-  /**
-   * Initializes the search path and root regexp
-   */
-  private initializePaths(pattern: string): void {
-    // Build the search path
-    const searchSegments: string[] = []
-    for (const literal of this.getLiterals(pattern)) {
-      if (!literal) {
-        break
-      }
-      searchSegments.push(literal)
-    }
-    this.searchPath = new Path(searchSegments).toString()
-
-    // Store the root segment (required when determining partial match)
-    this.rootRegExp = new RegExp(
-      this.regExpEscape(searchSegments[0]),
-      IS_WINDOWS ? 'i' : ''
-    )
   }
 
   /**
