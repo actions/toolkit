@@ -8,7 +8,7 @@ Note that a complete version of this action can be found at https://github.com/d
 
 ## Prerequisites
 
-This walkthrough assumes that you have gone through the basic [javascript action walkthrough](./javascript-action.md) and have a basic action set up. If not, we recommend you go through that first.
+This walkthrough assumes that you have gone through the basic [javascript action walkthrough](https://github.com/actions/javascript-action) and have a basic action set up. If not, we recommend you go through that first.
 
 ## Installing dependencies
 
@@ -159,7 +159,7 @@ run();
 
 ## Writing unit tests for your action
 
-Next, we're going to write a basic unit test for our action using jest. If you followed the [javascript walkthrough](./javascript-action.md), you should have a file `__tests__/main.test.ts` that runs tests when `npm test` is called. We're going to start by populating that with one test:
+Next, we're going to write a basic unit test for our action using jest. If you followed the [javascript walkthrough](https://github.com/actions/javascript-action), you should have a file `__tests__/main.test.ts` that runs tests when `npm test` is called. We're going to start by populating that with one test:
 
 ```ts
 const nock = require('nock');
