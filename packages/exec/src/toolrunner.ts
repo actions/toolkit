@@ -639,23 +639,15 @@ class ExecState extends events.EventEmitter {
     if (this.processExited) {
       if (this.processError) {
         error = new Error(
-          `There was an error when attempting to execute the process '${
-            this.toolPath
-          }'. This may indicate the process failed to start. Error: ${
-            this.processError
-          }`
+          `There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`
         )
       } else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
         error = new Error(
-          `The process '${this.toolPath}' failed with exit code ${
-            this.processExitCode
-          }`
+          `The process '${this.toolPath}' failed with exit code ${this.processExitCode}`
         )
       } else if (this.processStderr && this.options.failOnStdErr) {
         error = new Error(
-          `The process '${
-            this.toolPath
-          }' failed because one or more lines were written to the STDERR stream`
+          `The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`
         )
       }
     }

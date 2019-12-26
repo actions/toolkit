@@ -76,9 +76,7 @@ export async function downloadTool(
       if (response.message.statusCode !== 200) {
         const err = new HTTPError(response.message.statusCode)
         core.debug(
-          `Failed to download from "${url}". Code(${
-            response.message.statusCode
-          }) Message(${response.message.statusMessage})`
+          `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
         )
         throw err
       }
@@ -93,9 +91,7 @@ export async function downloadTool(
           })
         } catch (err) {
           core.debug(
-            `Failed to download from "${url}". Code(${
-              response.message.statusCode
-            }) Message(${response.message.statusMessage})`
+            `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
           )
           reject(err)
         }

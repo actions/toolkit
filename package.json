@@ -23,8 +23,8 @@
     "jest": "^24.9.0",
     "jest-circus": "^24.7.1",
     "lerna": "^3.18.4",
-    "prettier": "^1.17.0",
+    "prettier": "^1.19.1",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.6.2"
+    "typescript": "^3.7.4"
   }
 }
