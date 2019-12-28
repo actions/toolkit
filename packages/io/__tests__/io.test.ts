@@ -1171,9 +1171,9 @@ describe('which', () => {
       const originalPath = process.env['PATH']
       try {
         // modify PATH
-        process.env['PATH'] = `${process.env['PATH']}${
-          path.delimiter
-        }${testPath}`
+        process.env[
+          'PATH'
+        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
 
         // find each file
         for (const fileName of Object.keys(files)) {
@@ -1244,9 +1244,9 @@ describe('which', () => {
       await fs.writeFile(notExpectedFilePath, '')
       const originalPath = process.env['PATH']
       try {
-        process.env['PATH'] = `${process.env['PATH']}${
-          path.delimiter
-        }${testPath}`
+        process.env[
+          'PATH'
+        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
         expect(await io.which(fileName)).toBe(expectedFilePath)
       } finally {
         process.env['PATH'] = originalPath

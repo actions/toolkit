@@ -748,9 +748,7 @@ describe('@actions/exec', () => {
       const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
       expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]${
-          process.env.ComSpec
-        } /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`
+        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`
       )
       expect(output.trim()).toBe(
         'args[0]: "<quote>my arg 1<quote>"\r\n' +
@@ -780,9 +778,7 @@ describe('@actions/exec', () => {
         const exitCode = await exec.exec(`${cmd}`, args, options)
         expect(exitCode).toBe(0)
         expect(outStream.getContents().split(os.EOL)[0]).toBe(
-          `[command]${
-            process.env.ComSpec
-          } /D /S /C "${cmdPath} "my arg 1" "my arg 2""`
+          `[command]${process.env.ComSpec} /D /S /C "${cmdPath} "my arg 1" "my arg 2""`
         )
         expect(output.trim()).toBe(
           'args[0]: "<quote>my arg 1<quote>"\r\n' +
