@@ -146,9 +146,7 @@ async function stat(
         }
 
         throw new Error(
-          `No information found for the path '${
-            item.path
-          }'. This may indicate a broken symbolic link.`
+          `No information found for the path '${item.path}'. This may indicate a broken symbolic link.`
         )
       }
 
@@ -172,9 +170,7 @@ async function stat(
     // Test for a cycle
     if (traversalChain.some((x: string) => x === realPath)) {
       core.debug(
-        `Symlink cycle detected for path '${
-          item.path
-        }' and realpath '${realPath}'`
+        `Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`
       )
       return undefined
     }
