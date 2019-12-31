@@ -255,7 +255,7 @@ describe('glob', () => {
       path.join(root, 'realDir2', 'nested2', 'symDir')
     )
 
-    const options: glob.IGlobOptions = {
+    const options: glob.GlobOptions = {
       followSymbolicLinks: true,
       omitBrokenSymbolicLinks: false
     }
@@ -291,7 +291,7 @@ describe('glob', () => {
     await fs.writeFile(path.join(root, 'realDir', 'file'), 'test file content')
     await createSymlinkDir(path.join(root, 'noSuch'), path.join(root, 'symDir'))
 
-    const options: glob.IGlobOptions = {
+    const options: glob.GlobOptions = {
       followSymbolicLinks: true,
       omitBrokenSymbolicLinks: false
     }

@@ -1,9 +1,8 @@
-export interface IGlobOptions {
+export interface GlobOptions {
   /**
-   * Indicates whether to follow symbolic links. Generally should be true
-   * unless deleting files.
+   * Indicates whether to follow symbolic links
    *
-   * @default true
+   * @default false
    */
   followSymbolicLinks?: boolean
 
