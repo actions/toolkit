@@ -1,6 +1,4 @@
-import * as core from '@actions/core'
 import * as pathHelper from './internal-path-helper'
-import {GlobOptions} from './internal-glob-options'
 import {MatchKind} from './internal-match-kind'
 import {Pattern} from './internal-pattern'
 

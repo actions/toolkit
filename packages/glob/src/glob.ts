@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {Globber, GlobberImpl} from './internal-globber'
+import {Globber, DefaultGlobber} from './internal-globber'
 import {GlobOptions} from './internal-glob-options'
 
 export {Globber, GlobOptions}
@@ -8,8 +8,8 @@ export async function getInput(
   name: string,
   options?: core.InputOptions
 ): Promise<Globber> {
-  let input = core.getInput(name, options)
-  return await GlobberImpl.parse(input)
+  const input = core.getInput(name, options)
+  return await DefaultGlobber.parse(input)
 }
 
 // ```

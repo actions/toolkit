@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as fs from 'fs'
+import * as globOptionsHelper from './internal-glob-options-helper'
 import * as path from 'path'
 import * as patternHelper from './internal-pattern-helper'
 import {GlobOptions} from './internal-glob-options'
@@ -39,7 +40,7 @@ export interface Globber {
   globGenerator(): AsyncGenerator<string, void>
 }
 
-export class GlobberImpl implements Globber {
+export class DefaultGlobber implements Globber {
   options: GlobOptions = {}
   private readonly patterns: Pattern[] = []
   private readonly searchPaths: string[] = []
@@ -61,7 +62,7 @@ export class GlobberImpl implements Globber {
 
   async *globGenerator(): AsyncGenerator<string, void> {
     // Fill in defaults options
-    const options = GlobberImpl.getOptions(this.options)
+    const options = globOptionsHelper.getOptions(this.options)
 
     // Implicit descendants?
     const patterns: Pattern[] = []
@@ -113,7 +114,7 @@ export class GlobberImpl implements Globber {
       }
 
       // Stat
-      const stats: fs.Stats | undefined = await GlobberImpl.stat(
+      const stats: fs.Stats | undefined = await DefaultGlobber.stat(
         item,
         options,
         traversalChain
@@ -152,8 +153,8 @@ export class GlobberImpl implements Globber {
   /**
    * Parses the input options and patterns to construct a new GlobberImpl instance.
    */
-  static async parse(input: string): Promise<GlobberImpl> {
-    const result = new GlobberImpl()
+  static async parse(input: string): Promise<DefaultGlobber> {
+    const result = new DefaultGlobber()
 
     if (IS_WINDOWS) {
       input = input.replace(/\r\n/g, '\n')
@@ -186,38 +187,6 @@ export class GlobberImpl implements Globber {
     }
 
     result.searchPaths.push(...patternHelper.getSearchPaths(result.patterns))
-    return result
-  }
-
-  /**
-   * Returns a copy with defaults filled in.
-   */
-  static getOptions(copy?: GlobOptions): GlobOptions {
-    const result: GlobOptions = {
-      followSymbolicLinks: false,
-      implicitDescendants: true,
-      omitBrokenSymbolicLinks: true
-    }
-
-    if (copy) {
-      if (typeof copy.followSymbolicLinks === 'boolean') {
-        result.followSymbolicLinks = copy.followSymbolicLinks
-        core.debug(`followSymbolicLinks '${result.followSymbolicLinks}'`)
-      }
-
-      if (typeof copy.implicitDescendants === 'boolean') {
-        result.implicitDescendants = copy.implicitDescendants
-        core.debug(`implicitDescendants '${result.implicitDescendants}'`)
-      }
-
-      if (typeof copy.omitBrokenSymbolicLinks === 'boolean') {
-        result.omitBrokenSymbolicLinks = copy.omitBrokenSymbolicLinks
-        core.debug(
-          `omitBrokenSymbolicLinks '${result.omitBrokenSymbolicLinks}'`
-        )
-      }
-    }
-
     return result
   }
 
