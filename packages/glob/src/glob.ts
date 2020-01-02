@@ -25,17 +25,3 @@ export async function getInput(
 export async function parse(patterns: string): Promise<Globber> {
   return await DefaultGlobber.parse(patterns)
 }
-
-// ```
-// jobs:
-//   foo:
-//     steps:
-//       - uses: actions/upload-artifact@v1
-//         with:
-//           path: |
-//             --follow-symbolic-links
-//             **/*.tar.gz
-//       - uses: actions/cache@v1
-//         with:
-//           hash: ${{ hashFiles('--follow-symbolic-links', '**/package-lock.json') }}
-// ```
