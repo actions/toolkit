@@ -103,6 +103,13 @@ export function setFailed(message: string): void {
 //-----------------------------------------------------------------------
 
 /**
+ * Gets whether Actions Step Debug is on or not
+ */
+export function isDebug(): boolean {
+  return process.env['RUNNER_DEBUG'] === '1'
+}
+
+/**
  * Writes debug message to user log
  * @param message debug message
  */

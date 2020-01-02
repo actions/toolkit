@@ -82,6 +82,12 @@ try {
     core.warning('myInput was not set');
   }
   
+  if (core.isDebug()) {
+    // curl -v https://github.com
+  } else {
+    // curl https://github.com
+  }
+
   // Do stuff
 }
 catch (err) {
