@@ -1,3 +1,6 @@
+/**
+ * Options to control globbing behavior
+ */
 export interface GlobOptions {
   /**
    * Indicates whether to follow symbolic links

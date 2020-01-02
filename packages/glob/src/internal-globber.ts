@@ -12,7 +12,13 @@ const IS_WINDOWS = process.platform === 'win32'
 
 export {GlobOptions}
 
+/**
+ * Used to match files and directories
+ */
 export interface Globber {
+  /**
+   * Controls globbing behavior
+   */
   options: GlobOptions
 
   /**
