@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
+    "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
