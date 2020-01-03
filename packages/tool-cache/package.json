@@ -28,6 +28,7 @@
     "directory": "packages/tool-cache"
   },
   "scripts": {
+    "audit-moderate": "npm audit --audit-level=moderate",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc"
   },
@@ -35,8 +36,8 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.1.0",
-    "@actions/exec": "^1.0.1",
+    "@actions/core": "^1.2.0",
+    "@actions/exec": "^1.0.0",
     "@actions/io": "^1.0.1",
     "semver": "^6.1.0",
     "typed-rest-client": "^1.4.0",

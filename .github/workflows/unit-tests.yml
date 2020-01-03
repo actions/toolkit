@@ -48,5 +48,9 @@ jobs:
     - name: Format
       run: npm run format-check
 
-    - name: audit vulnerabilities
+    - name: audit tools
       run: npm audit --audit-level=moderate
+
+    - name: audit packages
+      run: npm run audit-all
+      working-directory: ./packages/core

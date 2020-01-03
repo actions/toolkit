@@ -28,6 +28,7 @@
     "directory": "packages/glob"
   },
   "scripts": {
+    "audit-moderate": "npm audit --audit-level=moderate",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc"
   },
