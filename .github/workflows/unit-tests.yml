@@ -47,3 +47,6 @@ jobs:
 
     - name: Format
       run: npm run format-check
+
+    - name: audit vulnerabilities
+      run: npm audit --audit-level=moderate
