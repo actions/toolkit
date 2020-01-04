@@ -50,6 +50,8 @@ jobs:
 
     - name: audit tools
       run: npm audit --audit-level=moderate
+      if: matrix.runs-on == 'ubuntu-latest'
 
     - name: audit packages
       run: npm run audit-all
+      if: matrix.runs-on == 'ubuntu-latest'
