@@ -170,6 +170,7 @@ describe('@actions/exec', () => {
     expect(exitCode).toBe(0)
   })
 
+
   it('Exec fails with error on bad call', async () => {
     const _testExecOptions = getExecOptions()
 
@@ -303,7 +304,7 @@ describe('@actions/exec', () => {
     expect(stderrCalled).toBeTruthy()
   })
 
-  it('Handles child process holding streams open', async function () {
+  it('Handles child process holding streams open', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -349,7 +350,7 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
-  it('Handles child process holding streams open and non-zero exit code', async function () {
+  it('Handles child process holding streams open and non-zero exit code', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -403,7 +404,7 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
-  it('Handles child process holding streams open and stderr', async function () {
+  it('Handles child process holding streams open and stderr', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -671,16 +672,16 @@ describe('@actions/exec', () => {
       expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]${exePath} /c echo` +
-        ` helloworld` +
-        ` "hello world"` +
-        ` "hello:\\"world again\\""` +
-        ` hello,world`
+          ` helloworld` +
+          ` "hello world"` +
+          ` "hello:\\"world again\\""` +
+          ` hello,world`
       )
       expect(output.trim()).toBe(
         'helloworld' +
-        ' "hello world"' +
-        ' "hello:\\"world again\\""' +
-        ' hello,world'
+          ' "hello world"' +
+          ' "hello:\\"world again\\""' +
+          ' hello,world'
       )
     })
 
@@ -769,7 +770,7 @@ describe('@actions/exec', () => {
       )
       expect(output.trim()).toBe(
         'args[0]: "<quote>my arg 1<quote>"\r\n' +
-        'args[1]: "<quote>my arg 2<quote>"'
+          'args[1]: "<quote>my arg 2<quote>"'
       )
     })
 
@@ -799,7 +800,7 @@ describe('@actions/exec', () => {
         )
         expect(output.trim()).toBe(
           'args[0]: "<quote>my arg 1<quote>"\r\n' +
-          'args[1]: "<quote>my arg 2<quote>"'
+            'args[1]: "<quote>my arg 2<quote>"'
         )
       } catch (err) {
         process.env['Path'] = originalPath
@@ -855,57 +856,57 @@ describe('@actions/exec', () => {
       expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
         `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}"` +
-        ` helloworld` +
-        ` "hello world"` +
-        ` "hello\tworld"` +
-        ` "hello&world"` +
-        ` "hello(world"` +
-        ` "hello)world"` +
-        ` "hello[world"` +
-        ` "hello]world"` +
-        ` "hello{world"` +
-        ` "hello}world"` +
-        ` "hello^world"` +
-        ` "hello=world"` +
-        ` "hello;world"` +
-        ` "hello!world"` +
-        ` "hello'world"` +
-        ` "hello+world"` +
-        ` "hello,world"` +
-        ` "hello\`world"` +
-        ` "hello~world"` +
-        ` "hello|world"` +
-        ` "hello<world"` +
-        ` "hello>world"` +
-        ` "hello:""world again"""` +
-        ` "hello world\\\\"` +
-        `"`
+          ` helloworld` +
+          ` "hello world"` +
+          ` "hello\tworld"` +
+          ` "hello&world"` +
+          ` "hello(world"` +
+          ` "hello)world"` +
+          ` "hello[world"` +
+          ` "hello]world"` +
+          ` "hello{world"` +
+          ` "hello}world"` +
+          ` "hello^world"` +
+          ` "hello=world"` +
+          ` "hello;world"` +
+          ` "hello!world"` +
+          ` "hello'world"` +
+          ` "hello+world"` +
+          ` "hello,world"` +
+          ` "hello\`world"` +
+          ` "hello~world"` +
+          ` "hello|world"` +
+          ` "hello<world"` +
+          ` "hello>world"` +
+          ` "hello:""world again"""` +
+          ` "hello world\\\\"` +
+          `"`
       )
       expect(output.trim()).toBe(
         'args[0]: "helloworld"\r\n' +
-        'args[1]: "<quote>hello world<quote>"\r\n' +
-        'args[2]: "<quote>hello\tworld<quote>"\r\n' +
-        'args[3]: "<quote>hello&world<quote>"\r\n' +
-        'args[4]: "<quote>hello(world<quote>"\r\n' +
-        'args[5]: "<quote>hello)world<quote>"\r\n' +
-        'args[6]: "<quote>hello[world<quote>"\r\n' +
-        'args[7]: "<quote>hello]world<quote>"\r\n' +
-        'args[8]: "<quote>hello{world<quote>"\r\n' +
-        'args[9]: "<quote>hello}world<quote>"\r\n' +
-        'args[10]: "<quote>hello^world<quote>"\r\n' +
-        'args[11]: "<quote>hello=world<quote>"\r\n' +
-        'args[12]: "<quote>hello;world<quote>"\r\n' +
-        'args[13]: "<quote>hello!world<quote>"\r\n' +
-        'args[14]: "<quote>hello\'world<quote>"\r\n' +
-        'args[15]: "<quote>hello+world<quote>"\r\n' +
-        'args[16]: "<quote>hello,world<quote>"\r\n' +
-        'args[17]: "<quote>hello`world<quote>"\r\n' +
-        'args[18]: "<quote>hello~world<quote>"\r\n' +
-        'args[19]: "<quote>hello|world<quote>"\r\n' +
-        'args[20]: "<quote>hello<world<quote>"\r\n' +
-        'args[21]: "<quote>hello>world<quote>"\r\n' +
-        'args[22]: "<quote>hello:<quote><quote>world again<quote><quote><quote>"\r\n' +
-        'args[23]: "<quote>hello world\\\\<quote>"'
+          'args[1]: "<quote>hello world<quote>"\r\n' +
+          'args[2]: "<quote>hello\tworld<quote>"\r\n' +
+          'args[3]: "<quote>hello&world<quote>"\r\n' +
+          'args[4]: "<quote>hello(world<quote>"\r\n' +
+          'args[5]: "<quote>hello)world<quote>"\r\n' +
+          'args[6]: "<quote>hello[world<quote>"\r\n' +
+          'args[7]: "<quote>hello]world<quote>"\r\n' +
+          'args[8]: "<quote>hello{world<quote>"\r\n' +
+          'args[9]: "<quote>hello}world<quote>"\r\n' +
+          'args[10]: "<quote>hello^world<quote>"\r\n' +
+          'args[11]: "<quote>hello=world<quote>"\r\n' +
+          'args[12]: "<quote>hello;world<quote>"\r\n' +
+          'args[13]: "<quote>hello!world<quote>"\r\n' +
+          'args[14]: "<quote>hello\'world<quote>"\r\n' +
+          'args[15]: "<quote>hello+world<quote>"\r\n' +
+          'args[16]: "<quote>hello,world<quote>"\r\n' +
+          'args[17]: "<quote>hello`world<quote>"\r\n' +
+          'args[18]: "<quote>hello~world<quote>"\r\n' +
+          'args[19]: "<quote>hello|world<quote>"\r\n' +
+          'args[20]: "<quote>hello<world<quote>"\r\n' +
+          'args[21]: "<quote>hello>world<quote>"\r\n' +
+          'args[22]: "<quote>hello:<quote><quote>world again<quote><quote><quote>"\r\n' +
+          'args[23]: "<quote>hello world\\\\<quote>"'
       )
     })
   }
