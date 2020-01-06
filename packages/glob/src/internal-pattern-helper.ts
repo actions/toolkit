@@ -73,36 +73,6 @@ export function match(patterns: Pattern[], itemPath: string): MatchKind {
   return result
 }
 
-// /**
-//  * Parses the pattern strings into Pattern objects
-//  */
-// export function parse(patterns: string[], options: GlobOptions): Pattern[] {
-//   const result: Pattern[] = []
-
-//   for (const patternString of patterns.map(x => x.trim())) {
-//     // Skip empty or comment
-//     if (!patternString || patternString.startsWith('#')) {
-//       continue
-//     }
-
-//     // Push
-//     const pattern = new Pattern(patternString)
-//     result.push(pattern)
-
-//     // Implicit descendants?
-//     if (
-//       options.implicitDescendants &&
-//       (pattern.trailingSeparator ||
-//         pattern.segments[pattern.segments.length - 1] !== '**')
-//     ) {
-//       // Push
-//       result.push(new Pattern(pattern.negate, pattern.segments.concat('**')))
-//     }
-//   }
-
-//   return result
-// }
-
 /**
  * Checks whether to descend further into the directory
  */
