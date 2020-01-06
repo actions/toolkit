@@ -170,7 +170,6 @@ describe('@actions/exec', () => {
     expect(exitCode).toBe(0)
   })
 
-
   it('Exec fails with error on bad call', async () => {
     const _testExecOptions = getExecOptions()
 
