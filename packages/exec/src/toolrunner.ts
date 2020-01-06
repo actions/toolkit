@@ -377,6 +377,7 @@ export class ToolRunner extends events.EventEmitter {
     const result = <child.SpawnOptions>{}
     result.cwd = options.cwd
     result.env = options.env
+    result.shell = options.shell
     result['windowsVerbatimArguments'] =
       options.windowsVerbatimArguments || this._isCmdFile()
     if (options.windowsVerbatimArguments) {

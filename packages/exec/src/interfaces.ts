@@ -12,6 +12,9 @@ export interface ExecOptions {
   /** optional.  defaults to false */
   silent?: boolean
 
+  /** optional. Runs command inside of a shell. A different shell can be specified as a string. Defaults to false */
+  shell?: boolean | string
+
   /** optional out stream to use. Defaults to process.stdout */
   outStream?: stream.Writable
 
