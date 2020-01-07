@@ -1,39 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export interface PayloadRepository {
-  [key: string]: any
-  full_name?: string
-  name: string
-  owner: {
-    [key: string]: any
-    login: string
-    name?: string
-  }
-  html_url?: string
-}
+import Webhooks from '@octokit/webhooks'
+type WebhookPayload =
+  | Webhooks.WebhookPayloadPush
+  | Webhooks.WebhookPayloadPullRequest
+  | Webhooks.WebhookPayloadPullRequestReview
+  | Webhooks.WebhookPayloadPullRequestReviewComment
+  | Webhooks.WebhookPayloadStatus
+  | Webhooks.WebhookPayloadIssues
+  | Webhooks.WebhookPayloadIssueComment
+  | Webhooks.WebhookPayloadRelease
+  | Webhooks.WebhookPayloadRepositoryDispatch
+  | Webhooks.WebhookPayloadCheckRun
+  | Webhooks.WebhookPayloadDeployment
+  | Webhooks.WebhookPayloadCheckSuite
+  | Webhooks.WebhookPayloadWatch
+  | Webhooks.WebhookPayloadDeploymentStatus
+  | Webhooks.WebhookPayloadCreate
+  | Webhooks.WebhookPayloadDelete
+  | Webhooks.WebhookPayloadProjectCard
+  | Webhooks.WebhookPayloadPageBuild
+  | Webhooks.WebhookPayloadFork
+  | Webhooks.WebhookPayloadGollum
+  | Webhooks.WebhookPayloadMilestone
+  | Webhooks.WebhookPayloadProject
+  | Webhooks.WebhookPayloadLabel
+  | any
 
-export interface WebhookPayload {
-  [key: string]: any
-  repository?: PayloadRepository
-  issue?: {
-    [key: string]: any
-    number: number
-    html_url?: string
-    body?: string
-  }
-  pull_request?: {
-    [key: string]: any
-    number: number
-    html_url?: string
-    body?: string
-  }
-  sender?: {
-    [key: string]: any
-    type: string
-  }
-  action?: string
-  installation?: {
-    id: number
-    [key: string]: any
-  }
-}
+export {Webhooks, WebhookPayload}

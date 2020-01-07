@@ -1,5 +1,5 @@
 // Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/master/src/context.ts
-import {WebhookPayload} from './interfaces'
+import {WebhookPayload, Webhooks} from './interfaces'
 import {readFileSync, existsSync} from 'fs'
 import {EOL} from 'os'
 
@@ -41,10 +41,9 @@ export class Context {
 
   get issue(): {owner: string; repo: string; number: number} {
     const payload = this.payload
-
     return {
       ...this.repo,
-      number: (payload.issue || payload.pullRequest || payload).number
+      number: (payload.issue || payload.pull_request || payload).number
     }
   }
 
