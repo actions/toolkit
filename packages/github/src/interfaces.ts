@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import Webhooks from '@octokit/webhooks'
 type WebhookPayload =
   | Webhooks.WebhookPayloadPush

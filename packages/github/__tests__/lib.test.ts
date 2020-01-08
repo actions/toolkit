@@ -1,7 +1,7 @@
 import * as path from 'path'
 import {Context} from '../src/context'
-import { PayloadRepository } from '@octokit/webhooks'
-import { WebhookPayload } from '../src/interfaces'
+import {PayloadRepository} from '@octokit/webhooks'
+import {WebhookPayload} from '../src/interfaces'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
@@ -26,7 +26,7 @@ describe('@actions/context', () => {
   })
 
   it('returns an undefined payload if the GITHUB_EVENT_PATH environment variable does not point to a file', () => {
-    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'this_is_a_fake_file.json')
+    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'invalidfile.json')
 
     context = new Context()
     expect(context.payload).toEqual(undefined)
@@ -59,6 +59,7 @@ describe('@actions/context', () => {
   it('works with pullRequest payloads', () => {
     delete process.env.GITHUB_REPOSITORY
     context.payload = {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       pull_request: {number: 2},
       repository: {owner: {login: 'user'}, name: 'test'} as PayloadRepository
     } as WebhookPayload

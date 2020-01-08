@@ -1,5 +1,5 @@
 // Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/master/src/context.ts
-import {WebhookPayload, Webhooks} from './interfaces'
+import {WebhookPayload} from './interfaces'
 import {readFileSync, existsSync} from 'fs'
 import {EOL} from 'os'
 
@@ -39,7 +39,8 @@ export class Context {
   }
 
   get issue(): {owner: string; repo: string; number: number} {
-    const payload = this.payload as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload = this.payload as any
     return {
       ...this.repo,
       number: (payload.issue || payload.pull_request || payload).number
