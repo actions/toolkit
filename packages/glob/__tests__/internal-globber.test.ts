@@ -50,6 +50,78 @@ describe('globber', () => {
     }
   })
 
+  it('defaults to followSymbolicLinks=true', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/folder-a
+    //   <root>/folder-a/file
+    //   <root>/symDir -> <root>/folder-a
+    const root = path.join(
+      getTestTemp(),
+      'defaults-to-follow-symbolic-links-true'
+    )
+    await fs.mkdir(path.join(root, 'folder-a'), {recursive: true})
+    await fs.writeFile(path.join(root, 'folder-a', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'folder-a'),
+      path.join(root, 'symDir')
+    )
+
+    const itemPaths = await glob(root, {})
+    expect(itemPaths).toEqual([
+      root,
+      path.join(root, 'folder-a'),
+      path.join(root, 'folder-a', 'file'),
+      path.join(root, 'symDir'),
+      path.join(root, 'symDir', 'file')
+    ])
+  })
+
+  it('defaults to implicitDescendants=true', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/folder-a
+    //   <root>/folder-a/file
+    const root = path.join(
+      getTestTemp(),
+      'defaults-to-implicit-descendants-true'
+    )
+    await fs.mkdir(path.join(root, 'folder-a'), {recursive: true})
+    await fs.writeFile(path.join(root, 'folder-a', 'file'), 'test file content')
+
+    const itemPaths = await glob(root, {})
+    expect(itemPaths).toEqual([
+      root,
+      path.join(root, 'folder-a'),
+      path.join(root, 'folder-a', 'file')
+    ])
+  })
+
+  it('defaults to omitBrokenSymbolicLinks=true', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/folder-a
+    //   <root>/folder-a/file
+    //   <root>/symDir -> <root>/no-such
+    const root = path.join(
+      getTestTemp(),
+      'defaults-to-omit-broken-symbolic-links-true'
+    )
+    await fs.mkdir(path.join(root, 'folder-a'), {recursive: true})
+    await fs.writeFile(path.join(root, 'folder-a', 'file'), 'test file content')
+    await createSymlinkDir(
+      path.join(root, 'no-such'),
+      path.join(root, 'symDir')
+    )
+
+    const itemPaths = await glob(root, {})
+    expect(itemPaths).toEqual([
+      root,
+      path.join(root, 'folder-a'),
+      path.join(root, 'folder-a', 'file')
+    ])
+  })
+
   it('detects cycle when followSymbolicLinks=true', async () => {
     // Create the following layout:
     //   <root>
