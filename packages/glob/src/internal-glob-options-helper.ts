@@ -6,7 +6,7 @@ import {GlobOptions} from './internal-glob-options'
  */
 export function getOptions(copy?: GlobOptions): GlobOptions {
   const result: GlobOptions = {
-    followSymbolicLinks: false,
+    followSymbolicLinks: true,
     implicitDescendants: true,
     omitBrokenSymbolicLinks: true
   }

@@ -3,9 +3,10 @@
  */
 export interface GlobOptions {
   /**
-   * Indicates whether to follow symbolic links
+   * Indicates whether to follow symbolic links. Generally should set to false
+   * when deleting files.
    *
-   * @default false
+   * @default true
    */
   followSymbolicLinks?: boolean
 

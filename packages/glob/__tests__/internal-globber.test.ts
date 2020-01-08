@@ -38,7 +38,7 @@ describe('globber', () => {
     const originalCwd = process.cwd()
     try {
       process.chdir(path.join(root, 'first-cwd'))
-      const globber = await DefaultGlobber.parse('*')
+      const globber = await DefaultGlobber.create('*')
       process.chdir(path.join(root, 'second-cwd'))
       expect(globber.getSearchPaths()).toEqual([path.join(root, 'first-cwd')])
       const itemPaths = await globber.glob()
@@ -175,7 +175,7 @@ describe('globber', () => {
     // todo: ? expect(itemPaths[2]).toBe(path.join(root, 'symDir', 'symDir'));
   })
 
-  it('does not follow symlink when followSymbolicLink=false', async () => {
+  it('does not follow symlink when followSymbolicLinks=false', async () => {
     // Create the following layout:
     //   <root>
     //   <root>/realDir
@@ -192,7 +192,7 @@ describe('globber', () => {
       path.join(root, 'symDir')
     )
 
-    const itemPaths = await glob(root)
+    const itemPaths = await glob(root, {followSymbolicLinks: false})
     expect(itemPaths).toEqual([
       root,
       path.join(root, 'realDir'),
@@ -201,7 +201,7 @@ describe('globber', () => {
     ])
   })
 
-  it('does not follow symlink when search path is symlink and followSymbolicLink=false', async () => {
+  it('does not follow symlink when search path is symlink and followSymbolicLinks=false', async () => {
     // Create the following layout:
     //   realDir
     //   realDir/file
@@ -217,7 +217,9 @@ describe('globber', () => {
       path.join(root, 'symDir')
     )
 
-    const itemPaths = await glob(path.join(root, 'symDir'))
+    const itemPaths = await glob(path.join(root, 'symDir'), {
+      followSymbolicLinks: false
+    })
     expect(itemPaths).toEqual([path.join(root, 'symDir')])
   })
 
@@ -406,20 +408,6 @@ describe('globber', () => {
     ])
   })
 
-  it('parses options', async () => {
-    let globber: Globber
-    globber = await DefaultGlobber.parse(
-      `--follow-symbolic-links${os.EOL}/foo/*`
-    )
-    expect(globber.options.followSymbolicLinks).toBeTruthy()
-    expect(globber.getSearchPaths()).toHaveLength(1)
-    globber = await DefaultGlobber.parse(`/foo/*`) // sanity check
-    expect(globber.options.implicitDescendants === undefined).toBeTruthy()
-    expect(globber.options.followSymbolicLinks === undefined).toBeTruthy()
-    expect(globber.options.omitBrokenSymbolicLinks === undefined).toBeTruthy()
-    expect(globber.getSearchPaths()).toHaveLength(1)
-  })
-
   it('returns broken symlink when followSymbolicLinks=false', async () => {
     // Create the following layout:
     //   <root>
@@ -443,7 +431,7 @@ describe('globber', () => {
       path.join(root, 'symDir')
     )
 
-    const itemPaths = await glob(root)
+    const itemPaths = await glob(root, {followSymbolicLinks: false})
     expect(itemPaths).toEqual([
       root,
       path.join(root, 'brokenSym'),
@@ -465,7 +453,7 @@ describe('globber', () => {
     const brokenSymPath = path.join(root, 'brokenSym')
     await createSymlinkDir(path.join(root, 'noSuch'), brokenSymPath)
 
-    const itemPaths = await glob(brokenSymPath)
+    const itemPaths = await glob(brokenSymPath, {followSymbolicLinks: false})
     expect(itemPaths).toEqual([brokenSymPath])
   })
 
@@ -753,13 +741,15 @@ async function createSymlinkDir(real: string, link: string): Promise<void> {
   }
 }
 
-async function getSearchPaths(input: string): Promise<string[]> {
-  const globber: Globber = await DefaultGlobber.parse(input)
+async function getSearchPaths(patterns: string): Promise<string[]> {
+  const globber: Globber = await DefaultGlobber.create(patterns)
   return globber.getSearchPaths()
 }
 
-async function glob(input: string, options?: GlobOptions): Promise<string[]> {
-  const globber: Globber = await DefaultGlobber.parse(input)
-  globber.options = {...(globber.options || {}), ...(options || {})}
+async function glob(
+  patterns: string,
+  options?: GlobOptions
+): Promise<string[]> {
+  const globber: Globber = await DefaultGlobber.create(patterns, options)
   return await globber.glob()
 }

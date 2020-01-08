@@ -7,7 +7,11 @@ export {Globber, GlobOptions}
  * Constructs a globber
  *
  * @param patterns  Patterns separated by newlines
+ * @param options   Glob options
  */
-export async function create(patterns: string): Promise<Globber> {
-  return await DefaultGlobber.parse(patterns)
+export async function create(
+  patterns: string,
+  options?: GlobOptions
+): Promise<Globber> {
+  return await DefaultGlobber.create(patterns, options)
 }

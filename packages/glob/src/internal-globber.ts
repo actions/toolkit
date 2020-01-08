@@ -17,11 +17,6 @@ export {GlobOptions}
  */
 export interface Globber {
   /**
-   * Controls globbing behavior
-   */
-  options: GlobOptions
-
-  /**
    * Returns the search path preceeding the first glob segment, from each pattern.
    * Duplicates and descendants of other paths are filtered out.
    *
@@ -47,11 +42,13 @@ export interface Globber {
 }
 
 export class DefaultGlobber implements Globber {
-  options: GlobOptions = {}
+  private readonly options: GlobOptions
   private readonly patterns: Pattern[] = []
   private readonly searchPaths: string[] = []
 
-  private constructor() {}
+  private constructor(options?: GlobOptions) {
+    this.options = globOptionsHelper.getOptions(options)
+  }
 
   getSearchPaths(): string[] {
     // Return a copy
@@ -157,34 +154,24 @@ export class DefaultGlobber implements Globber {
   }
 
   /**
-   * Parses the input options and patterns to construct a new GlobberImpl instance.
+   * Constructs a DefaultGlobber
    */
-  static async parse(input: string): Promise<DefaultGlobber> {
-    const result = new DefaultGlobber()
+  static async create(
+    patterns: string,
+    options?: GlobOptions
+  ): Promise<DefaultGlobber> {
+    const result = new DefaultGlobber(options)
 
     if (IS_WINDOWS) {
-      input = input.replace(/\r\n/g, '\n')
-      input = input.replace(/\r/g, '\n')
+      patterns = patterns.replace(/\r\n/g, '\n')
+      patterns = patterns.replace(/\r/g, '\n')
     }
 
-    const lines = input.split('\n').map(x => x.trim())
+    const lines = patterns.split('\n').map(x => x.trim())
     for (const line of lines) {
       // Empty or comment
       if (!line || line.startsWith('#')) {
         continue
-      }
-      // Options
-      else if (line.startsWith('-')) {
-        const options = line.split(/ +/g)
-        for (const option of options) {
-          switch (option) {
-            case '--follow-symbolic-links':
-              result.options.followSymbolicLinks = true
-              break
-            default:
-              throw new Error(`Unknown glob options '${option}'`)
-          }
-        }
       }
       // Pattern
       else {
