@@ -76,7 +76,7 @@ There may be cases where multiple events have a field you need. For example, we 
 ```js
 const github = require('@actions/github');
 const payload = github.context.payload
-if ("issue" in payload) {
+if (payload && "issue" in payload) {
   core.info(`The issue number is: ${JSON.stringify(payload.issue.number)}`)
 }
 ```
