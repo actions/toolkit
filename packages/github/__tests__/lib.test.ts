@@ -5,6 +5,9 @@ import {WebhookPayload} from '../src/interfaces'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+// TODO: https://github.com/actions/toolkit/issues/291, ESLint chokes on the a?.b syntax introduced in Typescript 3.7
+/* eslint-disable @typescript-eslint/no-object-literal-type-assertion */
+
 describe('@actions/context', () => {
   let context: Context
 

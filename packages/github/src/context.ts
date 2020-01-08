@@ -39,7 +39,8 @@ export class Context {
   }
 
   get issue(): {owner: string; repo: string; number: number} {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // TODO: https://github.com/actions/toolkit/issues/291 to remove no-unnecessary-type-assertion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-assertion
     const payload = this.payload as any
     return {
       ...this.repo,

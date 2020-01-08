@@ -1,3 +1,5 @@
+// TODO: https://github.com/actions/toolkit/issues/291, ESLint chokes on the | syntax
+/* eslint-disable no-undef */
 import Webhooks from '@octokit/webhooks'
 type WebhookPayload =
   | Webhooks.WebhookPayloadPush
