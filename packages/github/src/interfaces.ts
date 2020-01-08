@@ -25,6 +25,5 @@ type WebhookPayload =
   | Webhooks.WebhookPayloadMilestone
   | Webhooks.WebhookPayloadProject
   | Webhooks.WebhookPayloadLabel
-  | any
 
 export {Webhooks, WebhookPayload}

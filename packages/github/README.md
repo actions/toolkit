@@ -55,3 +55,29 @@ const newIssue = await octokit.issues.create({
   body: 'Hello Universe!'
 });
 ```
+
+### Context Payload Casting
+The [GitHub Webhook Event](https://developer.github.com/webhooks/#events) payload is provided as a part of the context. Based on the type of event that [triggered your workflow](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows), the structure of that object may change. You can cast this field to access these members in a type safe way.
+
+```js
+const github = require('@actions/github');
+
+const payload = github.context.payload
+if ((payload as Webhooks.WebhookPayloadPush).head_commit) {
+  core.info(
+    `The head commit is: ${
+      (payload as Webhooks.WebhookPayloadPush).head_commit
+    }`
+  )
+}
+```
+
+There may be cases where multiple events have a field you need. For example, we can get the issue number field from the `issue` event and the `issue_comment` event
+```js
+const github = require('@actions/github');
+const payload = github.context.payload
+if ("issue" in payload) {
+  core.info(`The issue number is: ${JSON.stringify(payload.issue.number)}`)
+}
+```
+

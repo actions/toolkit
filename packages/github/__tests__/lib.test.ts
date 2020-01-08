@@ -1,5 +1,7 @@
 import * as path from 'path'
 import {Context} from '../src/context'
+import { PayloadRepository } from '@octokit/webhooks'
+import { WebhookPayload } from '../src/interfaces'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
@@ -16,11 +18,18 @@ describe('@actions/context', () => {
     expect(context.payload).toEqual(require('./payload.json'))
   })
 
-  it('returns an empty payload if the GITHUB_EVENT_PATH environment variable is falsey', () => {
+  it('returns an undefined payload if the GITHUB_EVENT_PATH environment variable is falsey', () => {
     delete process.env.GITHUB_EVENT_PATH
 
     context = new Context()
-    expect(context.payload).toEqual({})
+    expect(context.payload).toEqual(undefined)
+  })
+
+  it('returns an undefined payload if the GITHUB_EVENT_PATH environment variable does not point to a file', () => {
+    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'this_is_a_fake_file.json')
+
+    context = new Context()
+    expect(context.payload).toEqual(undefined)
   })
 
   it('returns attributes from the GITHUB_REPOSITORY', () => {
@@ -29,18 +38,13 @@ describe('@actions/context', () => {
 
   it('returns attributes from the repository payload', () => {
     delete process.env.GITHUB_REPOSITORY
-
-    context.payload.repository = {
-      name: 'test',
-      owner: {login: 'user'}
-    }
     expect(context.repo).toEqual({owner: 'user', repo: 'test'})
   })
 
   it("return error for context.repo when repository doesn't exist", () => {
     delete process.env.GITHUB_REPOSITORY
-
-    context.payload.repository = undefined
+    delete process.env.GITHUB_EVENT_PATH
+    context = new Context()
     expect(() => context.repo).toThrowErrorMatchingSnapshot()
   })
 
@@ -56,8 +60,8 @@ describe('@actions/context', () => {
     delete process.env.GITHUB_REPOSITORY
     context.payload = {
       pull_request: {number: 2},
-      repository: {owner: {login: 'user'}, name: 'test'}
-    }
+      repository: {owner: {login: 'user'}, name: 'test'} as PayloadRepository
+    } as WebhookPayload
     expect(context.issue).toEqual({
       number: 2,
       owner: 'user',
@@ -69,8 +73,8 @@ describe('@actions/context', () => {
     delete process.env.GITHUB_REPOSITORY
     context.payload = {
       number: 2,
-      repository: {owner: {login: 'user'}, name: 'test'}
-    }
+      repository: {owner: {login: 'user'}, name: 'test'} as PayloadRepository
+    } as WebhookPayload
     expect(context.issue).toEqual({
       number: 2,
       owner: 'user',

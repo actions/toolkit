@@ -7,7 +7,7 @@ export class Context {
   /**
    * Webhook payload object that triggered the workflow
    */
-  payload: WebhookPayload
+  payload?: WebhookPayload
 
   eventName: string
   sha: string
@@ -20,7 +20,6 @@ export class Context {
    * Hydrate the context from the environment
    */
   constructor() {
-    this.payload = {}
     if (process.env.GITHUB_EVENT_PATH) {
       if (existsSync(process.env.GITHUB_EVENT_PATH)) {
         this.payload = JSON.parse(
@@ -40,7 +39,7 @@ export class Context {
   }
 
   get issue(): {owner: string; repo: string; number: number} {
-    const payload = this.payload
+    const payload = this.payload as any;
     return {
       ...this.repo,
       number: (payload.issue || payload.pull_request || payload).number
@@ -53,10 +52,10 @@ export class Context {
       return {owner, repo}
     }
 
-    if (this.payload.repository) {
+    if (this.payload?.repository) {
       return {
-        owner: this.payload.repository.owner.login,
-        repo: this.payload.repository.name
+        owner: this.payload?.repository.owner.login,
+        repo: this.payload?.repository.name
       }
     }
 
