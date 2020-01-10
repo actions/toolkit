@@ -1,6 +1,6 @@
 # `@actions/glob`
 
-## Toolkit usage
+## Usage
 
 ### Basic
 
@@ -11,6 +11,15 @@ const glob = require('@actions/glob');
 
 const patterns = ['**/tar.gz', '**/tar.bz']
 const globber = await glob.create(patterns.join('\n'))
+const files = await globber.glob()
+```
+
+### Opt out of following symbolic links
+
+```js
+const glob = require('@actions/glob');
+
+const globber = await glob.create('**', {followSymbolicLinks: false})
 const files = await globber.glob()
 ```
 
@@ -25,15 +34,6 @@ const globber = await glob.create('**')
 for await (const file of globber.globGenerator()) {
   console.log(file)
 }
-```
-
-### Opt out of following symbolic links
-
-```js
-const glob = require('@actions/glob');
-
-const globber = await glob.create('**', {followSymbolicLinks: false})
-const files = await globber.glob()
 ```
 
 ## Recommended action inputs
