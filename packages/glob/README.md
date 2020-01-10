@@ -40,12 +40,12 @@ for await (const file of globber.globGenerator()) {
 
 Glob follows symbolic links by default. Following is often appropriate unless deleting files.
 
-Also users may want to opt-out from following symbolic links for other reasons.
-For example, excessive amounts of symbolic links can create the appearance of very,
-very many files and slow the search.
+Users may want to opt-out from following symbolic links for other reasons. For example,
+excessive amounts of symbolic links can create the appearance of very, very many files
+and slow the search.
 
-When an action allows a user to specify input patterns, it is generally recommended to also
-alow users to opt-out from following symbolic links.
+When an action allows a user to specify input patterns, it is generally recommended to
+allow users to opt-out from following symbolic links.
 
 Snippet from `action.yml`:
 
