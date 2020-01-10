@@ -134,7 +134,6 @@ describe('globber', () => {
 
     const itemPaths = await glob(root, {followSymbolicLinks: true})
     expect(itemPaths).toEqual([root, path.join(root, 'file')])
-    // todo: ? expect(itemPaths[2]).toBe(path.join(root, 'symDir'))
   })
 
   it('detects deep cycle starting from middle when followSymbolicLinks=true', async () => {
@@ -244,7 +243,6 @@ describe('globber', () => {
       path.join(root, 'symDir'),
       path.join(root, 'symDir', 'file')
     ])
-    // todo: ? expect(itemPaths[2]).toBe(path.join(root, 'symDir', 'symDir'));
   })
 
   it('does not follow symlink when followSymbolicLinks=false', async () => {
