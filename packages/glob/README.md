@@ -38,6 +38,15 @@ for await (const file of globber.globGenerator()) {
 
 ## Recommended action inputs
 
+Glob follows symbolic links by default. Following is often appropriate unless deleting files.
+
+Also users may want to opt-out from following symbolic links for other reasons.
+For example, excessive amounts of symbolic links can create the appearance of very,
+very many files and slow the search.
+
+When an action allows a user to specify input patterns, it is generally recommended to also
+alow users to opt-out from following symbolic links.
+
 Snippet from `action.yml`:
 
 ```yaml
@@ -50,7 +59,7 @@ inputs:
     default: true
 ```
 
-Toolkit consumption:
+And corresponding toolkit consumption:
 
 ```js
 const core = require('@actions/core')
