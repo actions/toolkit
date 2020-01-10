@@ -27,9 +27,7 @@ for await (const file of globber.globGenerator()) {
 }
 ```
 
-### Do not follow symbolic links
-
-Opt-out of following symbolic links:
+### Opt out of following symbolic links
 
 ```js
 const glob = require('@actions/glob');
