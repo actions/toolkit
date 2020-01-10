@@ -36,7 +36,7 @@ $ npm install @actions/exec --save
 ```
 <br/>
 
-:asterisk: [@actions/glob](packages/glob)
+:ice_cream: [@actions/glob](packages/glob)
 
 Provides functions to search for files matching glob patterns. Read more [here](packages/glob)
 
