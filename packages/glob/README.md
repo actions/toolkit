@@ -6,6 +6,8 @@
 
 You can use this package to search for files matching glob patterns.
 
+Relative paths and absolute paths are both allowed. Relative paths are rooted against the current working directory.
+
 ```js
 const glob = require('@actions/glob');
 
