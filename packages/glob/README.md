@@ -86,7 +86,7 @@ Example:
 
 ### Comments
 
-Patterns that begin with # are treated as comments.
+Patterns that begin with `#` are treated as comments.
 
 ### Exclude patterns
 
