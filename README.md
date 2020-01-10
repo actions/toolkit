@@ -36,6 +36,15 @@ $ npm install @actions/exec --save
 ```
 <br/>
 
+:ice_cream: [@actions/glob](packages/glob)
+
+Provides functions to search for files matching glob patterns. Read more [here](packages/glob)
+
+```bash
+$ npm install @actions/glob --save
+```
+<br/>
+
 :pencil2: [@actions/io](packages/io) 
 
 Provides disk i/o functions like cp, mv, rmRF, find etc. Read more [here](packages/io)
