@@ -27,6 +27,51 @@ describe('@actions/core/src/command', () => {
     assertWriteCalls([`::some-command::${os.EOL}`])
   })
 
+  it('command escapes message', () => {
+    // Verify replaces each instance, not just first instance
+    command.issueCommand(
+      'some-command',
+      {},
+      'percent % percent % cr \r cr \r lf \n lf \n'
+    )
+    assertWriteCalls([
+      `::some-command::percent %25 percent %25 cr %0D cr %0D lf %0A lf %0A${os.EOL}`
+    ])
+
+    // Verify literal escape sequences
+    process.stdout.write = jest.fn()
+    command.issueCommand('some-command', {}, '%25 %25 %0D %0D %0A %0A')
+    assertWriteCalls([
+      `::some-command::%2525 %2525 %250D %250D %250A %250A${os.EOL}`
+    ])
+  })
+
+  it('command escapes property', () => {
+    // Verify replaces each instance, not just first instance
+    command.issueCommand(
+      'some-command',
+      {
+        name:
+          'percent % percent % cr \r cr \r lf \n lf \n colon : colon : comma , comma ,'
+      },
+      ''
+    )
+    assertWriteCalls([
+      `::some-command name=percent %25 percent %25 cr %0D cr %0D lf %0A lf %0A colon %3A colon %3A comma %2C comma %2C::${os.EOL}`
+    ])
+
+    // Verify literal escape sequences
+    process.stdout.write = jest.fn()
+    command.issueCommand(
+      'some-command',
+      {},
+      '%25 %25 %0D %0D %0A %0A %3A %3A %2C %2C'
+    )
+    assertWriteCalls([
+      `::some-command::%2525 %2525 %250D %250D %250A %250A %253A %253A %252C %252C${os.EOL}`
+    ])
+  })
+
   it('command with message', () => {
     command.issueCommand('some-command', {}, 'some message')
     assertWriteCalls([`::some-command::some message${os.EOL}`])
