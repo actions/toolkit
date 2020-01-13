@@ -2,7 +2,7 @@ import {debug} from '@actions/core'
 import {HttpCodes} from '@actions/http-client'
 import {IHeaders} from '@actions/http-client/interfaces'
 
-const apiVersion: string = '6.0-preview'
+const apiVersion = '6.0-preview'
 
 /**
  * Parses a env variable that is a number
@@ -55,12 +55,12 @@ export function getArtifactUrl(): string {
 
 export function getRequestOptions(): IHeaders {
   const requestOptions: IHeaders = {
-    Accept: createAcceptHeader('application/json', apiVersion)
+    Accept: createAcceptHeader('application/json')
   }
   return requestOptions
 }
 
-export function createAcceptHeader(type: string, apiVersion: string): string {
+export function createAcceptHeader(type: string): string {
   return `${type};api-version=${apiVersion}`
 }
 
@@ -69,7 +69,7 @@ function getWorkFlowRunId(): string {
   if (!workFlowrunId) {
     throw new Error('Unable to get workFlowRunId')
   }
-  return workFlowrunId!
+  return workFlowrunId
 }
 
 /**
@@ -83,12 +83,12 @@ const invalidCharacters = ['\\', '/', '"', ':', '<', '>', '|', '*', '?']
 /**
  * Scans the name of the item being uploaded to make sure there are no illegal characters
  */
-export function checkArtifactName(name: string) {
-  invalidCharacters.forEach(function(invalidChar) {
-    if (name.indexOf(invalidChar) > -1) {
+export function checkArtifactName(name: string): void {
+  for (const invalidChar of invalidCharacters) {
+    if (name.includes(invalidChar)) {
       throw new Error(
         `Artifact name is not valid: ${name}. Contains character: "${invalidChar}". Invalid characters include: ${invalidCharacters.toString()}.`
       )
     }
-  })
+  }
 }

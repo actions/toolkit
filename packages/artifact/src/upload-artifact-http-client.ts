@@ -36,26 +36,25 @@ export async function createArtifactInFileContainer(
   const requestOptions = getRequestOptions()
   requestOptions['Content-Type'] = 'application/json'
 
-  let client: HttpClient = new HttpClient('actions/artifact', [
+  const client: HttpClient = new HttpClient('actions/artifact', [
     bearerCredentialHandler
   ])
-  let parameters: CreateArtifactParameters = <CreateArtifactParameters>{
+  const parameters: CreateArtifactParameters = {
     Type: 'actions_storage',
     Name: artifactName
   }
-  let data: string = JSON.stringify(parameters, null, 2)
-
-  const artifactUrl: string = getArtifactUrl()
+  const data: string = JSON.stringify(parameters, null, 2)
   const rawResponse: HttpClientResponse = await client.post(
-    artifactUrl,
+    getArtifactUrl(),
     data,
     requestOptions
   )
-  let body: string = await rawResponse.readBody()
-  let response: CreateArtifactResponse = JSON.parse(body)
+
+  const body: string = await rawResponse.readBody()
+  const response: CreateArtifactResponse = JSON.parse(body)
   console.log(response)
 
-  if (rawResponse.message.statusCode == 201 && response) {
+  if (rawResponse.message.statusCode === 201 && response) {
     return response
   } else {
     throw new Error(
@@ -76,7 +75,7 @@ export async function uploadArtifactToFileContainer(
 ): Promise<number> {
   const token = process.env['ACTIONS_RUNTIME_TOKEN'] || ''
   const bearerCredentialHandler = new BearerCredentialHandler(token)
-  let client: HttpClient = new HttpClient('actions/artifact', [
+  const client: HttpClient = new HttpClient('actions/artifact', [
     bearerCredentialHandler
   ])
 
@@ -92,44 +91,44 @@ export async function uploadArtifactToFileContainer(
     `File Concurrency: ${FILE_CONCURRENCY}, Chunk Concurrency: ${CHUNK_CONCURRENCY} and Chunk Size: ${MAX_CHUNK_SIZE}`
   )
 
-  let parameters: UploadFileParameters[] = []
+  const parameters: UploadFileParameters[] = []
 
   // Prepare the necessary parameters to upload all the files
-  filesToUpload.forEach(function(item) {
-    let resourceUrl = new URL(uploadUrl)
+  for (const file of filesToUpload) {
+    const resourceUrl = new URL(uploadUrl)
     resourceUrl.searchParams.append(
       'scope',
       '00000000-0000-0000-0000-000000000000'
     )
-    resourceUrl.searchParams.append('itemPath', item.uploadFilePath)
+    resourceUrl.searchParams.append('itemPath', file.uploadFilePath)
     parameters.push({
-      file: item.absoluteFilePath,
+      file: file.absoluteFilePath,
       resourceUrl: resourceUrl.toString(),
       restClient: client,
       concurrency: CHUNK_CONCURRENCY,
       maxChunkSize: MAX_CHUNK_SIZE
     })
-  })
+  }
 
   const parallelUploads = [...new Array(FILE_CONCURRENCY).keys()]
+  const fileSizes: number[] = []
   let uploadedFiles = 0
-  let fileSizes: number[] = []
 
   // Only allow a certain amount of files to be uploaded at once, this is done to reduce errors if
   // trying to upload everything at once
   await Promise.all(
     parallelUploads.map(async () => {
       while (uploadedFiles < filesToUpload.length) {
-        let currentFileParameters = parameters[uploadedFiles]
+        const currentFileParameters = parameters[uploadedFiles]
         uploadedFiles += 1
         fileSizes.push(await uploadFileAsync(currentFileParameters))
       }
     })
   )
 
-  let sum: number = 0
-  for (var i = 0; i < fileSizes.length; i++) {
-    sum += fileSizes[i]
+  let sum = 0
+  for (const fileSize of fileSizes) {
+    sum += fileSize
   }
   console.log(`Total size of all the files uploaded ${sum}`)
   return sum
@@ -258,32 +257,32 @@ export async function patchArtifactSize(
   const requestOptions = getRequestOptions()
   requestOptions['Content-Type'] = 'application/json'
 
-  let resourceUrl = new URL(getArtifactUrl())
+  const resourceUrl = new URL(getArtifactUrl())
   resourceUrl.searchParams.append('artifactName', artifactName)
 
-  let parameters: PatchArtifactSize = <PatchArtifactSize>{Size: size}
-  let data: string = JSON.stringify(parameters, null, 2)
+  const parameters: PatchArtifactSize = {Size: size}
+  const data: string = JSON.stringify(parameters, null, 2)
 
   const token = process.env['ACTIONS_RUNTIME_TOKEN'] || ''
   const bearerCredentialHandler = new BearerCredentialHandler(token)
-  let client: HttpClient = new HttpClient('actions/artifact', [
+  const client: HttpClient = new HttpClient('actions/artifact', [
     bearerCredentialHandler
   ])
 
   console.log(`URL is ${resourceUrl.toString()}`)
 
-  let rawResponse: HttpClientResponse = await client.patch(
+  const rawResponse: HttpClientResponse = await client.patch(
     resourceUrl.toString(),
     data,
     requestOptions
   )
-  let body: string = await rawResponse.readBody()
+  const body: string = await rawResponse.readBody()
 
-  if (rawResponse.message.statusCode == 200) {
-    let successResponse: PatchArtifactSizeSuccessResponse = JSON.parse(body)
+  if (rawResponse.message.statusCode === 200) {
+    const successResponse: PatchArtifactSizeSuccessResponse = JSON.parse(body)
     console.log('Artifact size was succesfully updated!')
     console.log(successResponse)
-  } else if (rawResponse.message.statusCode == 404) {
+  } else if (rawResponse.message.statusCode === 404) {
     throw new Error(`An Artifact with the name ${artifactName} was not found`)
   } else {
     console.log(body)

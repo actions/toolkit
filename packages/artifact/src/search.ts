@@ -18,30 +18,31 @@ export async function findFilesToUpload(
   artifactName: string,
   searchPath: string
 ): Promise<SearchResult[]> {
-  let searchResults: SearchResult[] = []
-  let itemsToUpload: string[] = []
-  let options: glob.GlobOptions = {
+  const searchResults: SearchResult[] = []
+  const itemsToUpload: string[] = []
+  const options: glob.GlobOptions = {
     followSymbolicLinks: true,
     implicitDescendants: true,
     omitBrokenSymbolicLinks: true
   }
-  let globber = await glob.create(searchPath, options)
+  const globber = await glob.create(searchPath, options)
 
-  let rawSearchResults: string[] = await globber.glob()
+  const rawSearchResults: string[] = await globber.glob()
   /**
    * Directories will be rejected if attempted to be uploaded. This includes just empty
    * directories so filter any directories out from the raw search results
    */
-
-  rawSearchResults.forEach(function(item) {
-    if (!lstatSync(item).isDirectory()) {
-      itemsToUpload.push(item)
+  for (const searchResult of rawSearchResults) {
+    if (!lstatSync(searchResult).isDirectory()) {
+      itemsToUpload.push(searchResult)
     } else {
-      debug(`Removing ${item} from rawSearchResults because it is a directory`)
+      debug(
+        `Removing ${searchResult} from rawSearchResults because it is a directory`
+      )
     }
-  })
+  }
 
-  if (itemsToUpload.length == 0) {
+  if (itemsToUpload.length === 0) {
     return searchResults
   }
   console.log(
@@ -53,7 +54,7 @@ export async function findFilesToUpload(
    * Only a single search pattern is being included so only 1 searchResult is expected. In the future if multiple search patterns are
    * simultaneously supported this will change
    */
-  let searchPaths: string[] = await globber.getSearchPaths()
+  const searchPaths: string[] = globber.getSearchPaths()
   if (searchResults.length > 1) {
     console.log(searchResults)
     throw new Error('Only 1 search path should be returned')
@@ -63,7 +64,7 @@ export async function findFilesToUpload(
    * Creates the path that the artifact will be uploaded with. The artifact name will always be the root directory so that
    * it can be distinguished from other artifacts that are uploaded to the same file Container/glob storage during a run
    */
-  if (itemsToUpload.length == 1) {
+  if (itemsToUpload.length === 1) {
     // A single artifact will be uploaded, the upload path will always be in the form ${artifactName}\${singleArtifactName}
     searchResults.push({
       absoluteFilePath: itemsToUpload[0],
@@ -75,21 +76,21 @@ export async function findFilesToUpload(
      * The search path denotes the base path that was used to find the file. It will be removed from the absolute path and
      * the artifact name will be prepended to create the path used during upload
      */
-    itemsToUpload.forEach(function(file) {
-      let uploadPath: string = file.replace(searchPaths[0], '')
+    for (const uploadItem of itemsToUpload) {
+      const uploadPath: string = uploadItem.replace(searchPaths[0], '')
       searchResults.push({
-        absoluteFilePath: file,
+        absoluteFilePath: uploadItem,
         uploadFilePath: artifactName.concat(uploadPath)
       })
-    })
+    }
   }
 
   debug('SearchResult includes the following information:')
-  searchResults.forEach(function(item) {
+  for (const searchResult of searchResults) {
     debug(
-      `Absolute File Path: ${item.absoluteFilePath}\nUpload file path: ${item.uploadFilePath}`
+      `Absolute File Path: ${searchResult.absoluteFilePath}\nUpload file path: ${searchResult.uploadFilePath}`
     )
-  })
+  }
 
   return searchResults
 }
