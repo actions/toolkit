@@ -1,5 +1,5 @@
-import {HttpCodes, HttpClient} from '@actions/http-client'
 import {debug} from '@actions/core'
+import {HttpCodes} from '@actions/http-client'
 import {IHeaders} from '@actions/http-client/interfaces'
 
 const apiVersion: string = '6.0-preview'

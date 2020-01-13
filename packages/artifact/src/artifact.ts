@@ -1,13 +1,13 @@
-import {UploadInfo} from './upload-info'
+import * as core from '@actions/core'
+import {CreateArtifactResponse} from './contracts'
+import {SearchResult, findFilesToUpload} from './search'
 import {
   createArtifactInFileContainer,
   uploadArtifactToFileContainer,
   patchArtifactSize
 } from './upload-artifact-http-client'
+import {UploadInfo} from './upload-info'
 import {checkArtifactName} from './utils'
-import * as core from '@actions/core'
-import {CreateArtifactResponse} from './contracts'
-import {SearchResult, findFilesToUpload} from './search'
 
 /**
  * Uploads an artifact

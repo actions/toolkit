@@ -1,13 +1,16 @@
 import {debug} from '@actions/core'
-import * as fs from 'fs'
-import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
+import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
+import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {
   CreateArtifactResponse,
   CreateArtifactParameters,
   PatchArtifactSize,
   PatchArtifactSizeSuccessResponse
 } from './contracts'
+import * as fs from 'fs'
+import {SearchResult} from './search'
+import {URL} from 'url'
 import {
   parseEnvNumber,
   getArtifactUrl,
@@ -16,9 +19,6 @@ import {
   getRequestOptions,
   getContentRange
 } from './utils'
-import {SearchResult} from './search'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
-import {URL} from 'url'
 
 const defaultChunkUploadConcurrency = 3
 const defaultFileUploadConcurrency = 2

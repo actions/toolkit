@@ -1,7 +1,7 @@
-import * as glob from '@actions/glob'
-import {join, basename} from 'path'
 import {debug} from '@actions/core'
+import * as glob from '@actions/glob'
 import {lstatSync} from 'fs'
+import {join, basename} from 'path'
 
 export interface SearchResult {
   absoluteFilePath: string
