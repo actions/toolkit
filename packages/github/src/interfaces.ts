@@ -1,7 +1,7 @@
 // TODO: https://github.com/actions/toolkit/issues/291, ESLint chokes on the | syntax
 /* eslint-disable no-undef */
 import Webhooks from '@octokit/webhooks'
-type WebhookPayload =
+export type WebhookPayload =
   | Webhooks.WebhookPayloadPush
   | Webhooks.WebhookPayloadPullRequest
   | Webhooks.WebhookPayloadPullRequestReview
@@ -25,5 +25,3 @@ type WebhookPayload =
   | Webhooks.WebhookPayloadMilestone
   | Webhooks.WebhookPayloadProject
   | Webhooks.WebhookPayloadLabel
-
-export {Webhooks, WebhookPayload}

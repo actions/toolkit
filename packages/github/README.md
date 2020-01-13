@@ -60,24 +60,26 @@ const newIssue = await octokit.issues.create({
 The [GitHub Webhook Event](https://developer.github.com/webhooks/#events) payload is provided as a part of the context. Based on the type of event that [triggered your workflow](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows), the structure of that object may change. You can cast this field to access these members in a type safe way.
 
 ```ts
-const github = require('@actions/github');
+import * as core from '@actions/core'
+import * as github from '@actions/github'
+import * as Webhooks from '@octokit/webhooks'
 
 const payload = github.context.payload
-if ((payload as Webhooks.WebhookPayloadPush).head_commit) {
-  core.info(
-    `The head commit is: ${
-      (payload as Webhooks.WebhookPayloadPush).head_commit
-    }`
-  )
+if (github.context.eventName === 'push') {
+  const pushPayload = github.context.payload as Webhooks.WebhookPayloadPush
+  core.info(`The head commit is: ${pushPayload.head_commit}`)
 }
 ```
 
 There may be cases where multiple events have a field you need. For example, we can get the issue number field from the `issue` event and the `issue_comment` event
 ```ts
-const github = require('@actions/github');
+import * as core from '@actions/core'
+import * as github from '@actions/github'
+import * as Webhooks from '@octokit/webhooks'
+
 const payload = github.context.payload
-if (payload && "issue" in payload) {
-  core.info(`The issue number is: ${payload.issue.number}`)
+if (payload && 'pull_request' in payload) {
+  core.info(`The issue is: ${JSON.stringify(payload.pull_request.number)}`)
 }
 ```
 
