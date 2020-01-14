@@ -1,9 +1,5 @@
 # @actions/tool-cache Releases
 
-### 1.3.0
-
-- [Uses @actions/http-client](https://github.com/actions/http-client)
-
 ### 1.1.2
 
 - [Use zip and unzip from PATH](https://github.com/actions/toolkit/pull/161)

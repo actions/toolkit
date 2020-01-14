@@ -21,7 +21,6 @@
     "eslint": "^5.16.0",
     "eslint-plugin-github": "^2.0.0",
     "eslint-plugin-jest": "^22.5.1",
-    "flow-bin": "^0.115.0",
     "jest": "^24.9.0",
     "jest-circus": "^24.7.1",
     "lerna": "^3.18.4",
