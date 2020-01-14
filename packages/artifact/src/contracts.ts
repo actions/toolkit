@@ -1,11 +1,11 @@
 export interface CreateArtifactResponse {
-  containerId?: string
-  size?: number
-  signedContent?: string
-  fileContainerResourceUrl?: string
-  type?: string
-  name?: string
-  url?: string
+  containerId: string
+  size: number
+  signedContent: string
+  fileContainerResourceUrl: string
+  type: string
+  name: string
+  url: string
 }
 
 export interface CreateArtifactParameters {

@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import {CreateArtifactResponse} from './contracts'
 import {SearchResult, findFilesToUpload} from './search'
 import {
   createArtifactInFileContainer,
@@ -20,11 +19,6 @@ export async function uploadArtifact(
   name: string,
   path: string
 ): Promise<UploadInfo> {
-  // Check that the required inputs are valid
-  if (!name) {
-    throw new Error('Artifact name must be provided')
-  }
-
   checkArtifactName(name)
 
   if (!path) {
@@ -48,15 +42,14 @@ export async function uploadArtifact(
      * Step 1 of 3
      * Create an entry for the artifact in the file container
      */
-    const response: CreateArtifactResponse = await createArtifactInFileContainer(
-      name
-    )
+    const response = await createArtifactInFileContainer(name)
     if (!response.fileContainerResourceUrl) {
-      // eslint-disable-next-line no-console
-      console.log(response)
-      throw new Error('Unable to get fileContainerResourceUrl')
+      core.debug(response.toString())
+      throw new Error(
+        'No URL provided by the Artifact Service to upload an artifact to'
+      )
     }
-    core.debug(`We will be uploading to: ${response.fileContainerResourceUrl}`)
+    core.debug(`Upload Resource URL: ${response.fileContainerResourceUrl}`)
 
     /**
      * Step 2 of 3
@@ -70,7 +63,9 @@ export async function uploadArtifact(
     )
     uploadingArtifact.then(async size => {
       // eslint-disable-next-line no-console
-      console.log(`Size of what we just uploaded is ${size}`)
+      console.log(
+        `All files for artifact ${name} have finished uploading. Reported upload size is ${size} bytes`
+      )
       /**
        * Step 3 of 3
        * Update the size of the artifact to indicate we are done uploading

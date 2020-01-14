@@ -75,7 +75,7 @@ function getWorkFlowRunId(): string {
 /**
  * Invalid characters that cannot be in the artifact name or an uploaded file. Will be rejected
  * from the server if attempted to be sent over. These characters are not allowed due to limitations with certain
- * file systems such as NTFS. To maitain platform-agnostic behavior, all characters that are not supported by an
+ * file systems such as NTFS. To maintain platform-agnostic behavior, all characters that are not supported by an
  * individual filesystem/platform will not be supported on all filesystems/platforms
  */
 const invalidCharacters = ['\\', '/', '"', ':', '<', '>', '|', '*', '?']
@@ -84,6 +84,9 @@ const invalidCharacters = ['\\', '/', '"', ':', '<', '>', '|', '*', '?']
  * Scans the name of the item being uploaded to make sure there are no illegal characters
  */
 export function checkArtifactName(name: string): void {
+  if (!name) {
+    throw new Error(`Artifact name: ${name}, is incorrectly provided`)
+  }
   for (const invalidChar of invalidCharacters) {
     if (name.includes(invalidChar)) {
       throw new Error(

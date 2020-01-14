@@ -127,10 +127,8 @@ export async function uploadArtifactToFileContainer(
     })
   )
 
-  let sum = 0
-  for (const fileSize of fileSizes) {
-    sum += fileSize
-  }
+  // Sum up all the files that were uploaded
+  const sum = fileSizes.reduce((acc, val) => acc + val)
   // eslint-disable-next-line no-console
   console.log(`Total size of all the files uploaded ${sum}`)
   return sum
@@ -175,7 +173,7 @@ async function uploadFileAsync(
       }
     })
   )
-  return fs.statSync(parameters.file).size
+  return fileSize
 }
 
 /**
@@ -288,7 +286,9 @@ export async function patchArtifactSize(
   if (rawResponse.message.statusCode === 200) {
     const successResponse: PatchArtifactSizeSuccessResponse = JSON.parse(body)
     // eslint-disable-next-line no-console
-    console.log('Artifact size was succesfully updated!')
+    console.log(
+      `Artifact ${artifactName} uploaded successfully, total size ${size}`
+    )
     // eslint-disable-next-line no-console
     console.log(successResponse)
   } else if (rawResponse.message.statusCode === 404) {
@@ -296,7 +296,7 @@ export async function patchArtifactSize(
   } else {
     // eslint-disable-next-line no-console
     console.log(body)
-    throw new Error('Unable to update the artifact size')
+    throw new Error(`Unable to finish uploading artifact ${artifactName}`)
   }
 }
 
