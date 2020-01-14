@@ -52,6 +52,7 @@ export async function createArtifactInFileContainer(
 
   const body: string = await rawResponse.readBody()
   const response: CreateArtifactResponse = JSON.parse(body)
+  // eslint-disable-next-line no-console
   console.log(response)
 
   if (rawResponse.message.statusCode === 201 && response) {
@@ -130,6 +131,7 @@ export async function uploadArtifactToFileContainer(
   for (const fileSize of fileSizes) {
     sum += fileSize
   }
+  // eslint-disable-next-line no-console
   console.log(`Total size of all the files uploaded ${sum}`)
   return sum
 }
@@ -194,6 +196,7 @@ async function uploadChunk(
   end: number,
   totalSize: number
 ): Promise<void> {
+  // eslint-disable-next-line no-console
   console.log(
     `Uploading chunk of size ${end -
       start +
@@ -216,6 +219,7 @@ async function uploadChunk(
   const response = await uploadChunkRequest()
 
   if (!response.message.statusCode) {
+    // eslint-disable-next-line no-console
     console.log(response)
     throw new Error('No Status Code returned with response')
   }
@@ -227,14 +231,17 @@ async function uploadChunk(
     return
   }
   if (isRetryableStatusCode(response.message.statusCode)) {
+    // eslint-disable-next-line no-console
     console.log(
       `Received ${response.message.statusCode}, will retry chunk at offset ${start} after 10 seconds.`
     )
     await new Promise(resolve => setTimeout(resolve, 10000))
+    // eslint-disable-next-line no-console
     console.log(`Retrying chunk at offset ${start}`)
 
     const retryResponse = await uploadChunkRequest()
     if (!retryResponse.message.statusCode) {
+      // eslint-disable-next-line no-console
       console.log(retryResponse)
       throw new Error('No Status Code returne with response')
     }
@@ -268,7 +275,7 @@ export async function patchArtifactSize(
   const client: HttpClient = new HttpClient('actions/artifact', [
     bearerCredentialHandler
   ])
-
+  // eslint-disable-next-line no-console
   console.log(`URL is ${resourceUrl.toString()}`)
 
   const rawResponse: HttpClientResponse = await client.patch(
@@ -280,11 +287,14 @@ export async function patchArtifactSize(
 
   if (rawResponse.message.statusCode === 200) {
     const successResponse: PatchArtifactSizeSuccessResponse = JSON.parse(body)
+    // eslint-disable-next-line no-console
     console.log('Artifact size was succesfully updated!')
+    // eslint-disable-next-line no-console
     console.log(successResponse)
   } else if (rawResponse.message.statusCode === 404) {
     throw new Error(`An Artifact with the name ${artifactName} was not found`)
   } else {
+    // eslint-disable-next-line no-console
     console.log(body)
     throw new Error('Unable to update the artifact size')
   }

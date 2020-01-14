@@ -52,6 +52,7 @@ export async function uploadArtifact(
       name
     )
     if (!response.fileContainerResourceUrl) {
+      // eslint-disable-next-line no-console
       console.log(response)
       throw new Error('Unable to get fileContainerResourceUrl')
     }
@@ -68,6 +69,7 @@ export async function uploadArtifact(
       )
     )
     uploadingArtifact.then(async size => {
+      // eslint-disable-next-line no-console
       console.log(`Size of what we just uploaded is ${size}`)
       /**
        * Step 3 of 3

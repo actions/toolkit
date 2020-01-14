@@ -45,9 +45,11 @@ export async function findFilesToUpload(
   if (itemsToUpload.length === 0) {
     return searchResults
   }
+  // eslint-disable-next-line no-console
   console.log(
     `Found the following ${itemsToUpload.length} items that will be uploaded as part of the artifact:`
   )
+  // eslint-disable-next-line no-console
   console.log(itemsToUpload)
 
   /**
@@ -56,6 +58,7 @@ export async function findFilesToUpload(
    */
   const searchPaths: string[] = globber.getSearchPaths()
   if (searchResults.length > 1) {
+    // eslint-disable-next-line no-console
     console.log(searchResults)
     throw new Error('Only 1 search path should be returned')
   }
