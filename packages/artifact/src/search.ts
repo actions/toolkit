@@ -71,7 +71,7 @@ export async function findFilesToUpload(
     // A single artifact will be uploaded, the upload path will always be in the form ${artifactName}\${singleArtifactName}
     searchResults.push({
       absoluteFilePath: itemsToUpload[0],
-      uploadFilePath: join(artifactName, basename(searchPaths[0]))
+      uploadFilePath: join(artifactName, basename(itemsToUpload[0]))
     })
   } else {
     /**
