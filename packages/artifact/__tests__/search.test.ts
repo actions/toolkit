@@ -1,7 +1,7 @@
-import {findFilesToUpload} from '../src/search'
-import * as path from 'path'
-import * as io from '../../io/src/io'
 import {promises as fs} from 'fs'
+import * as path from 'path'
+import {findFilesToUpload} from '../src/search'
+import * as io from '../../io/src/io'
 
 describe('search', () => {
   // Remove temp directory after each test

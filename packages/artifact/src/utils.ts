@@ -78,7 +78,7 @@ function getWorkFlowRunId(): string {
  * file systems such as NTFS. To maintain platform-agnostic behavior, all characters that are not supported by an
  * individual filesystem/platform will not be supported on all filesystems/platforms
  */
-const invalidCharacters = ['\\', '/', '"', ':', '<', '>', '|', '*', '?']
+const invalidCharacters = ['\\', '/', '"', ':', '<', '>', '|', '*', '?', ' ']
 
 /**
  * Scans the name of the item being uploaded to make sure there are no illegal characters
