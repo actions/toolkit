@@ -12,7 +12,6 @@ import {
 import Octokit from '@octokit/rest'
 import * as Context from './context'
 import * as http from 'http'
-import * as url from 'url'
 import {HttpClient} from '@actions/http-client'
 
 // We need this in order to extend Octokit
@@ -27,83 +26,110 @@ export class GitHub extends Octokit {
   // Disable no-dupe-class-members due to false positive for method overload
   // https://github.com/typescript-eslint/typescript-eslint/issues/291
 
+  /**
+   * Sets up the REST client and GraphQL client with auth and proxy support.
+   * The parameter `token` or `opts.auth` must be supplied. The GraphQL client
+   * authorization is not setup when `opts.auth` is a function or object.
+   *
+   * @param token  Auth token
+   * @param opts   Octokit options
+   */
   constructor(token: string, opts?: Octokit.Options)
   constructor(opts: Octokit.Options)
   constructor(token: string | Octokit.Options, opts?: Octokit.Options) {
-    super(
-      GitHub.getOctokitOptions(
-        typeof token === 'string' ? token : '',
-        typeof token === 'object' ? (token as Octokit.Options) : opts || {}
-      )
-    )
+    super(GitHub.getOctokitOptions(GitHub.disambiguate(token, opts)))
 
-    this.graphql = GitHub.getGraphQL(typeof token === 'string' ? token : '')
+    this.graphql = GitHub.getGraphQL(GitHub.disambiguate(token, opts))
+  }
+
+  /**
+   * Disambiguates the constructor overload parameters
+   */
+  private static disambiguate(
+    token: string | Octokit.Options,
+    opts?: Octokit.Options
+  ): [string, Octokit.Options] {
+    return [
+      typeof token === 'string' ? token : '',
+      typeof token === 'object' ? (token as Octokit.Options) : opts || {}
+    ]
   }
 
   /* eslint-disable @typescript-eslint/promise-function-async */
   private static getOctokitOptions(
-    token: string,
-    opts: Octokit.Options
+    args: [string, Octokit.Options]
   ): Octokit.Options {
-    // Shallow clone the options - don't mutate the object provided by the caller
-    opts = {...opts}
+    const token = args[0]
+    const options = {...args[1]} // Shallow clone - don't mutate the object provided by the caller
 
-    // Validate args
-    if (!token && !opts.auth) {
-      throw new Error('Parameter token or opts.auth is required')
-    } else if (token && opts.auth) {
-      throw new Error('Parameter token and opts.auth may not both be specified')
-    }
-
-    // Token
-    if (token) {
-      opts.auth = `token ${token}`
+    // Auth
+    const auth = GitHub.getAuthString(token, options)
+    if (auth) {
+      options.auth = auth
     }
 
     // Proxy
-    if (!opts.request || !opts.request.agent) {
-      const agent = GitHub.getProxyAgent()
-      if (agent) {
-        // Shallow clone the request object - don't mutate the object provided by the caller
-        opts.request = opts.request ? {...opts.request} : {}
+    const agent = GitHub.getProxyAgent(options)
+    if (agent) {
+      // Shallow clone - don't mutate the object provided by the caller
+      options.request = options.request ? {...options.request} : {}
 
-        // Set the agent
-        opts.request.agent = agent
-      }
+      // Set the agent
+      options.request.agent = agent
     }
 
-    return opts
+    return options
   }
 
-  private static getGraphQL(token: string): GraphQL {
+  private static getGraphQL(args: [string, Octokit.Options]): GraphQL {
     const defaults: GraphQLRequestParameters = {}
+    const token = args[0]
+    const options = args[1]
 
-    // Token
-    if (token) {
+    // Authorization
+    const auth = this.getAuthString(token, options)
+    if (auth) {
       defaults.headers = {
-        authorization: `token ${token}`
+        authorization: auth
       }
     }
 
     // Proxy
-    if (!defaults.request || !defaults.request.agent) {
-      const agent = GitHub.getProxyAgent()
-      if (agent) {
-        defaults.request = {agent}
-      }
+    const agent = GitHub.getProxyAgent(options)
+    if (agent) {
+      defaults.request = {agent}
     }
 
     return graphql.defaults(defaults)
   }
 
-  private static getProxyAgent(): http.Agent | null {
-    const proxyUrl = process.env['https_proxy']
-    if (proxyUrl) {
-      const httpClient = new HttpClient()
-      const apiUrl = url.parse('https://api.github.com')
-      return httpClient.getAgent(apiUrl)
+  private static getAuthString(
+    token: string,
+    options: Octokit.Options
+  ): string | undefined {
+    // Validate args
+    if (!token && !options.auth) {
+      throw new Error('Parameter token or opts.auth is required')
+    } else if (token && options.auth) {
+      throw new Error(
+        'Parameters token and opts.auth may not both be specified'
+      )
     }
 
-    return null
+    return typeof options.auth === 'string' ? options.auth : `token ${token}`
+  }
+
+  private static getProxyAgent(
+    options: Octokit.Options
+  ): http.Agent | undefined {
+    if (!options.request?.agent) {
+      const proxyUrl = process.env['https_proxy']
+      if (proxyUrl) {
+        const httpClient = new HttpClient()
+        return httpClient.getAgent('https://api.github.com')
+      }
+    }
+
+    return undefined
   }
 }

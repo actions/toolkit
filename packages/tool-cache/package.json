@@ -38,7 +38,7 @@
   "dependencies": {
     "@actions/core": "^1.2.0",
     "@actions/exec": "^1.0.0",
-    "@actions/http-client": "^1.0.1",
+    "@actions/http-client": "^1.0.2",
     "@actions/io": "^1.0.1",
     "semver": "^6.1.0",
     "uuid": "^3.3.2"
