@@ -1,5 +1,4 @@
 import * as http from 'http'
-import * as proxy from 'proxy'
 import {GitHub} from '../src/github'
 
 describe('@actions/github', () => {
@@ -7,30 +6,32 @@ describe('@actions/github', () => {
   let proxyServer: http.Server
   let proxyUrl = 'http://127.0.0.1:8080'
   let originalProxyUrl = process.env['https_proxy']
-  
+  let first = true
+
   beforeAll(async () => {
     // Start proxy server
-    proxyServer = proxy()
-    await new Promise((resolve) => {
-        const port = Number(proxyUrl.split(':')[2])
-        proxyServer.listen(port, () => resolve())
+    const proxy = require('proxy')
+    proxyServer = proxy() as http.Server
+    await new Promise(resolve => {
+      const port = Number(proxyUrl.split(':')[2])
+      proxyServer.listen(port, () => resolve())
     })
-    proxyServer.on('connect', (req) => {
-        proxyConnects.push(req.url)
-    });
+    proxyServer.on('connect', req => {
+      proxyConnects.push(req.url)
+    })
 
     delete process.env['https_proxy']
-})
+  })
 
   beforeEach(() => {
     proxyConnects = []
   })
 
-  afterAll(async() => {
+  afterAll(async () => {
     // Stop proxy server
-    await new Promise((resolve) => {
-        proxyServer.once('close', () => resolve())
-        proxyServer.close()
+    await new Promise(resolve => {
+      proxyServer.once('close', () => resolve())
+      proxyServer.close()
     })
 
     if (originalProxyUrl) {
@@ -39,13 +40,77 @@ describe('@actions/github', () => {
   })
 
   it('basic REST client', async () => {
-    if (!process.env['GITHUB_TOKEN']) {
-      process.stdout.write('Skipped. Requires $GITHUB_TOKEN\n')
+    const token = getToken()
+    if (!token) {
       return
     }
 
-    const github = new GitHub(process.env['GITHUB_TOKEN'])
-    const branch = await github.repos.getBranch({owner: 'actions', repo: 'toolkit', branch: 'master'})
-    expect(branch.data.name).toBe('m')
+    const octokit = new GitHub(token)
+    const branch = await (octokit as any).repos.getBranch({
+      owner: 'actions',
+      repo: 'toolkit',
+      branch: 'master'
+    })
+    expect(branch.data.name).toBe('master')
+    expect(proxyConnects).toHaveLength(0)
   })
+
+  it('basic REST client with custom auth', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+
+    // Valid token
+    let octokit = new GitHub({auth: `token ${token}`})
+    let branch = await (octokit as any).repos.getBranch({
+      owner: 'actions',
+      repo: 'toolkit',
+      branch: 'master'
+    })
+    expect(branch.data.name).toBe('master')
+    expect(proxyConnects).toHaveLength(0)
+
+    // Invalid token
+    octokit = new GitHub({auth: `token asdf`})
+    let failed = false
+    try {
+      await (octokit as any).repos.getBranch({
+        owner: 'actions',
+        repo: 'toolkit',
+        branch: 'master'
+      })
+    } catch (err) {
+      failed = true
+    }
+  })
+
+  it('basic REST client with proxy', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+
+    process.env['https_proxy'] = proxyUrl
+    const octokit = new GitHub(token)
+    const branch = await (octokit as any).repos.getBranch({
+      owner: 'actions',
+      repo: 'toolkit',
+      branch: 'master'
+    })
+    expect(branch.data.name).toBe('master')
+    expect(proxyConnects).toEqual(['api.github.com:443'])
+  })
+
+  function getToken(): string {
+    const token = process.env['GITHUB_TOKEN'] || ''
+    if (!token && first) {
+      console.warn(
+        'Skipping GitHub tests. Set $GITHUB_TOKEN to run REST client and GraphQL client tests'
+      )
+      first = false
+    }
+
+    return token
+  }
 })

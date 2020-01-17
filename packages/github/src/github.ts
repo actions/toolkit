@@ -123,7 +123,7 @@ export class GitHub extends Octokit {
     options: Octokit.Options
   ): http.Agent | undefined {
     if (!options.request?.agent) {
-      const proxyUrl = process.env['https_proxy']
+      const proxyUrl = process.env['https_proxy'] || process.env['HTTPS_PROXY']
       if (proxyUrl) {
         const httpClient = new HttpClient()
         return httpClient.getAgent('https://api.github.com')
