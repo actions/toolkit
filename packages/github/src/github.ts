@@ -101,10 +101,7 @@ export class GitHub extends Octokit {
     if (proxyUrl) {
       const httpClient = new HttpClient()
       const apiUrl = url.parse('https://api.github.com')
-      const getAgent = ((httpClient as unknown) as {[key: string]: Function})[
-        '_getAgent'
-      ]
-      return getAgent.call(httpClient, apiUrl) as http.Agent
+      return httpClient.getAgent(apiUrl)
     }
 
     return null
