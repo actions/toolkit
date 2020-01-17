@@ -42,6 +42,7 @@
     "@octokit/rest": "^16.15.0"
   },
   "devDependencies": {
-    "jest": "^24.7.1"
+    "jest": "^24.7.1",
+    "proxy": "^1.0.1"
   }
 }

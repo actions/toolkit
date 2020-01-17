@@ -1,3 +1,4 @@
+import * as http from 'http'
 import * as path from 'path'
 import {Context} from '../src/context'
 
