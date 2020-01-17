@@ -50,7 +50,11 @@ export class Pattern {
   constructor(pattern: string)
   constructor(pattern: string, segments: undefined, homedir: string)
   constructor(negate: boolean, segments: string[])
-  constructor(patternOrNegate: string | boolean, segments?: string[], homedir?: string) {
+  constructor(
+    patternOrNegate: string | boolean,
+    segments?: string[],
+    homedir?: string
+  ) {
     // Pattern overload
     let pattern: string
     if (typeof patternOrNegate === 'string') {
