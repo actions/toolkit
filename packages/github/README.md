@@ -4,7 +4,7 @@
 
 ## Usage
 
-Returns an Octokit client. See https://octokit.github.io/rest.js for the API.
+Returns an authenticated Octokit client that follows the machine [proxy settings](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/about-self-hosted-runners#using-a-proxy-server-with-self-hosted-runners). See https://octokit.github.io/rest.js for the API.
 
 ```js
 const github = require('@actions/github');
@@ -34,7 +34,7 @@ async function run() {
 run();
 ```
 
-You can pass client options (except `auth`, which is handled by the token argument), as specified by [Octokit](https://octokit.github.io/rest.js/), as a second argument to the `GitHub` constructor.
+You can pass client options, as specified by [Octokit](https://octokit.github.io/rest.js/), as a second argument to the `GitHub` constructor.
 
 You can also make GraphQL requests. See https://github.com/octokit/graphql.js for the API.
 
