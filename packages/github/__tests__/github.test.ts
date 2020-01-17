@@ -19,11 +19,10 @@ describe('@actions/github', () => {
     proxyServer.on('connect', req => {
       proxyConnects.push(req.url)
     })
-
-    delete process.env['https_proxy']
   })
 
   beforeEach(() => {
+    delete process.env['https_proxy']
     proxyConnects = []
   })
 
@@ -46,7 +45,7 @@ describe('@actions/github', () => {
     }
 
     const octokit = new GitHub(token)
-    const branch = await (octokit as any).repos.getBranch({
+    const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'master'
@@ -63,7 +62,7 @@ describe('@actions/github', () => {
 
     // Valid token
     let octokit = new GitHub({auth: `token ${token}`})
-    let branch = await (octokit as any).repos.getBranch({
+    let branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'master'
@@ -75,7 +74,7 @@ describe('@actions/github', () => {
     octokit = new GitHub({auth: `token asdf`})
     let failed = false
     try {
-      await (octokit as any).repos.getBranch({
+      await octokit.repos.getBranch({
         owner: 'actions',
         repo: 'toolkit',
         branch: 'master'
@@ -93,12 +92,67 @@ describe('@actions/github', () => {
 
     process.env['https_proxy'] = proxyUrl
     const octokit = new GitHub(token)
-    const branch = await (octokit as any).repos.getBranch({
+    const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'master'
     })
     expect(branch.data.name).toBe('master')
+    expect(proxyConnects).toEqual(['api.github.com:443'])
+  })
+
+  it('basic GraphQL client', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+
+    const octokit = new GitHub(token)
+    const repository = await octokit.graphql(
+      '{repository(owner:"actions", name:"toolkit"){name}}'
+    )
+    expect(repository).toEqual({repository: {name: 'toolkit'}})
+    expect(proxyConnects).toHaveLength(0)
+  })
+
+  it('basic GraphQL client with custom auth', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+
+    // Valid token
+    let octokit = new GitHub(token)
+    const repository = await octokit.graphql(
+      '{repository(owner:"actions", name:"toolkit"){name}}'
+    )
+    expect(repository).toEqual({repository: {name: 'toolkit'}})
+    expect(proxyConnects).toHaveLength(0)
+
+    // Invalid token
+    octokit = new GitHub({auth: `token asdf`})
+    let failed = false
+    try {
+      await octokit.graphql(
+        '{repository(owner:"actions", name:"toolkit"){name}}'
+      )
+    } catch (err) {
+      failed = true
+    }
+  })
+
+  it('basic GraphQL client with proxy', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+
+    process.env['https_proxy'] = proxyUrl
+    const octokit = new GitHub(token)
+    const repository = await octokit.graphql(
+      '{repository(owner:"actions", name:"toolkit"){name}}'
+    )
+    expect(repository).toEqual({repository: {name: 'toolkit'}})
     expect(proxyConnects).toEqual(['api.github.com:443'])
   })
 
