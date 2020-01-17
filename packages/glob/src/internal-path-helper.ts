@@ -1,5 +1,5 @@
-import * as assert from 'assert'
 import * as path from 'path'
+import assert from 'assert'
 
 const IS_WINDOWS = process.platform === 'win32'
 

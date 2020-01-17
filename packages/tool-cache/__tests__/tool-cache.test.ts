@@ -1,8 +1,8 @@
 import * as fs from 'fs'
-import * as nock from 'nock'
 import * as path from 'path'
 import * as io from '@actions/io'
 import * as exec from '@actions/exec'
+import nock from 'nock'
 
 const cachePath = path.join(__dirname, 'CACHE')
 const tempPath = path.join(__dirname, 'TEMP')

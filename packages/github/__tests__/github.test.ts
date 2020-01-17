@@ -1,16 +1,16 @@
 import * as http from 'http'
+import proxy from 'proxy'
 import {GitHub} from '../src/github'
 
 describe('@actions/github', () => {
+  const proxyUrl = 'http://127.0.0.1:8080'
+  const originalProxyUrl = process.env['https_proxy']
   let proxyConnects: string[]
   let proxyServer: http.Server
-  let proxyUrl = 'http://127.0.0.1:8080'
-  let originalProxyUrl = process.env['https_proxy']
   let first = true
 
   beforeAll(async () => {
     // Start proxy server
-    const proxy = require('proxy')
     proxyServer = proxy() as http.Server
     await new Promise(resolve => {
       const port = Number(proxyUrl.split(':')[2])
@@ -62,7 +62,7 @@ describe('@actions/github', () => {
 
     // Valid token
     let octokit = new GitHub({auth: `token ${token}`})
-    let branch = await octokit.repos.getBranch({
+    const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'master'
@@ -82,6 +82,7 @@ describe('@actions/github', () => {
     } catch (err) {
       failed = true
     }
+    expect(failed).toBeTruthy()
   })
 
   it('basic REST client with proxy', async () => {
@@ -139,6 +140,7 @@ describe('@actions/github', () => {
     } catch (err) {
       failed = true
     }
+    expect(failed).toBeTruthy()
   })
 
   it('basic GraphQL client with proxy', async () => {
@@ -159,6 +161,7 @@ describe('@actions/github', () => {
   function getToken(): string {
     const token = process.env['GITHUB_TOKEN'] || ''
     if (!token && first) {
+      /* eslint-disable-next-line no-console */
       console.warn(
         'Skipping GitHub tests. Set $GITHUB_TOKEN to run REST client and GraphQL client tests'
       )

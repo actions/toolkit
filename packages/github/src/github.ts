@@ -34,7 +34,7 @@ export class GitHub extends Octokit {
    * @param token  Auth token
    * @param opts   Octokit options
    */
-  constructor(token: string, opts?: Octokit.Options)
+  constructor(token: string, opts?: Omit<Octokit.Options, 'auth'>)
   constructor(opts: Octokit.Options)
   constructor(token: string | Octokit.Options, opts?: Octokit.Options) {
     super(GitHub.getOctokitOptions(GitHub.disambiguate(token, opts)))
@@ -51,11 +51,10 @@ export class GitHub extends Octokit {
   ): [string, Octokit.Options] {
     return [
       typeof token === 'string' ? token : '',
-      typeof token === 'object' ? (token as Octokit.Options) : opts || {}
+      typeof token === 'object' ? token : opts || {}
     ]
   }
 
-  /* eslint-disable @typescript-eslint/promise-function-async */
   private static getOctokitOptions(
     args: [string, Octokit.Options]
   ): Octokit.Options {

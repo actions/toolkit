@@ -1,7 +1,7 @@
-import * as assert from 'assert'
 import * as os from 'os'
 import * as path from 'path'
 import * as pathHelper from './internal-path-helper'
+import assert from 'assert'
 import {Minimatch, IMinimatch, IOptions as IMinimatchOptions} from 'minimatch'
 import {MatchKind} from './internal-match-kind'
 import {Path} from './internal-path'
@@ -48,8 +48,9 @@ export class Pattern {
   // https://github.com/typescript-eslint/typescript-eslint/issues/291
 
   constructor(pattern: string)
+  constructor(pattern: string, segments: undefined, homedir: string)
   constructor(negate: boolean, segments: string[])
-  constructor(patternOrNegate: string | boolean, segments?: string[]) {
+  constructor(patternOrNegate: string | boolean, segments?: string[], homedir?: string) {
     // Pattern overload
     let pattern: string
     if (typeof patternOrNegate === 'string') {
@@ -78,7 +79,7 @@ export class Pattern {
     }
 
     // Normalize slashes and ensures absolute root
-    pattern = Pattern.fixupPattern(pattern)
+    pattern = Pattern.fixupPattern(pattern, homedir)
 
     // Segments
     this.segments = new Path(pattern).segments
@@ -177,7 +178,7 @@ export class Pattern {
   /**
    * Normalizes slashes and ensures absolute root
    */
-  private static fixupPattern(pattern: string): string {
+  private static fixupPattern(pattern: string, homedir?: string): string {
     // Empty
     assert(pattern, 'pattern cannot be empty')
 
@@ -206,7 +207,7 @@ export class Pattern {
     }
     // Replace leading `~` segment
     else if (pattern === '~' || pattern.startsWith(`~${path.sep}`)) {
-      const homedir = os.homedir()
+      homedir = homedir || os.homedir()
       assert(homedir, 'Unable to determine HOME directory')
       assert(
         pathHelper.hasAbsoluteRoot(homedir),

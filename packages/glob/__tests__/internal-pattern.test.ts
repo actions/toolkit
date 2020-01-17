@@ -1,17 +1,9 @@
 import * as io from '../../io/src/io'
+import * as os from 'os'
 import * as path from 'path'
 import {MatchKind} from '../src/internal-match-kind'
 import {promises as fs} from 'fs'
-
-// Mock 'os' before importing Pattern
-/* eslint-disable import/first */
-/* eslint-disable @typescript-eslint/promise-function-async */
-// Note, @typescript-eslint/promise-function-async is a false positive due to the
-// mock factory delegate which returns any. Fixed in a future version of jest.
-jest.mock('os', () => jest.requireActual('os'))
-const os = jest.requireMock('os')
 import {Pattern} from '../src/internal-pattern'
-jest.resetModuleRegistry()
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -32,19 +24,13 @@ describe('pattern', () => {
   })
 
   it('escapes homedir', async () => {
-    const originalHomedir = os.homedir
     const home = path.join(getTestTemp(), 'home-with-[and]')
     await fs.mkdir(home, {recursive: true})
-    try {
-      os.homedir = () => home
-      const pattern = new Pattern('~/m*')
+    const pattern = new Pattern('~/m*', undefined, home)
 
-      expect(pattern.searchPath).toBe(home)
-      expect(pattern.match(path.join(home, 'match'))).toBeTruthy()
-      expect(pattern.match(path.join(home, 'not-match'))).toBeFalsy()
-    } finally {
-      os.homedir = originalHomedir
-    }
+    expect(pattern.searchPath).toBe(home)
+    expect(pattern.match(path.join(home, 'match'))).toBeTruthy()
+    expect(pattern.match(path.join(home, 'not-match'))).toBeFalsy()
   })
 
   it('escapes root', async () => {
