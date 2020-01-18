@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -37,10 +37,12 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
+    "@actions/http-client": "^1.0.2",
     "@octokit/graphql": "^4.3.1",
     "@octokit/rest": "^16.15.0"
   },
   "devDependencies": {
-    "jest": "^24.7.1"
+    "jest": "^24.7.1",
+    "proxy": "^1.0.1"
   }
 }
