@@ -10,11 +10,11 @@ interface CommandProperties {
  * Commands
  *
  * Command Format:
- *   ##[name key=value;key=value]message
+ *   ::name key=value,key=value::message
  *
  * Examples:
- *   ##[warning]This is the user warning message
- *   ##[set-secret name=mypassword]definitelyNotAPassword!
+ *   ::warning::This is the message
+ *   ::set-env name=MY_VAR::some value
  */
 export function issueCommand(
   command: string,
@@ -62,33 +62,29 @@ class Command {
               cmdStr += ','
             }
 
-            // safely append the val - avoid blowing up when attempting to
-            // call .replace() if message is not a string for some reason
-            cmdStr += `${key}=${escape(`${val || ''}`)}`
+            cmdStr += `${key}=${escapeProperty(val)}`
           }
         }
       }
     }
 
-    cmdStr += CMD_STRING
-
-    // safely append the message - avoid blowing up when attempting to
-    // call .replace() if message is not a string for some reason
-    const message = `${this.message || ''}`
-    cmdStr += escapeData(message)
-
+    cmdStr += `${CMD_STRING}${escapeData(this.message)}`
     return cmdStr
   }
 }
 
 function escapeData(s: string): string {
-  return s.replace(/\r/g, '%0D').replace(/\n/g, '%0A')
-}
-
-function escape(s: string): string {
-  return s
+  return (s || '')
+    .replace(/%/g, '%25')
     .replace(/\r/g, '%0D')
     .replace(/\n/g, '%0A')
-    .replace(/]/g, '%5D')
-    .replace(/;/g, '%3B')
+}
+
+function escapeProperty(s: string): string {
+  return (s || '')
+    .replace(/%/g, '%25')
+    .replace(/\r/g, '%0D')
+    .replace(/\n/g, '%0A')
+    .replace(/:/g, '%3A')
+    .replace(/,/g, '%2C')
 }

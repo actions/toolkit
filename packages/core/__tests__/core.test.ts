@@ -41,10 +41,10 @@ describe('@actions/core', () => {
   })
 
   it('exportVariable escapes variable names', () => {
-    core.exportVariable('special char var \r\n];', 'special val')
-    expect(process.env['special char var \r\n];']).toBe('special val')
+    core.exportVariable('special char var \r\n,:', 'special val')
+    expect(process.env['special char var \r\n,:']).toBe('special val')
     assertWriteCalls([
-      `::set-env name=special char var %0D%0A%5D%3B::special val${os.EOL}`
+      `::set-env name=special char var %0D%0A%2C%3A::special val${os.EOL}`
     ])
   })
 
