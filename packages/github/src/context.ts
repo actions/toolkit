@@ -44,7 +44,7 @@ export class Context {
 
     return {
       ...this.repo,
-      number: (payload.issue || payload.pullRequest || payload).number
+      number: (payload.issue || payload.pull_request || payload).number
     }
   }
 
