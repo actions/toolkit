@@ -1,5 +1,9 @@
 # @actions/tool-cache Releases
 
+### 1.3.1
+
+- [Increase http-client min version](https://github.com/actions/toolkit/pull/314)
+
 ### 1.3.0
 
 - [Uses @actions/http-client](https://github.com/actions/http-client)
