@@ -2,7 +2,7 @@
 
 ### 1.3.1
 
-- Increase http-client min version
+- [Increase http-client min version](https://github.com/actions/toolkit/pull/314)
 
 ### 1.3.0
 
