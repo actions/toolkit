@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 2.0.2
+
+- [Octokit client follows proxy settings](https://github.com/actions/toolkit/pull/314)
+- [Fix issue number for pull request comment events](https://github.com/actions/toolkit/pull/311)
+
 ### 2.0.1
 
 - [Add \"types\" to package.json](https://github.com/actions/toolkit/pull/221)

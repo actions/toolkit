@@ -1,5 +1,9 @@
 # @actions/core Releases
 
+### 1.2.2
+
+- [Fix escaping for runner commands](https://github.com/actions/toolkit/pull/302)
+
 ### 1.2.1
 
 - [Remove trailing comma from commands](https://github.com/actions/toolkit/pull/263)
