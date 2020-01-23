@@ -12,7 +12,7 @@ import {
 import Octokit from '@octokit/rest'
 import * as Context from './context'
 import * as http from 'http'
-import {HttpClient} from '@actions/http-client'
+import * as httpClient from '@actions/http-client'
 
 // We need this in order to extend Octokit
 Octokit.prototype = new Octokit()
@@ -122,10 +122,10 @@ export class GitHub extends Octokit {
     options: Octokit.Options
   ): http.Agent | undefined {
     if (!options.request?.agent) {
-      const proxyUrl = process.env['https_proxy'] || process.env['HTTPS_PROXY']
-      if (proxyUrl) {
-        const httpClient = new HttpClient()
-        return httpClient.getAgent('https://api.github.com')
+      const serverUrl = 'https://api.github.com'
+      if (httpClient.getProxyUrl(serverUrl)) {
+        const hc = new httpClient.HttpClient()
+        return hc.getAgent(serverUrl)
       }
     }
 
