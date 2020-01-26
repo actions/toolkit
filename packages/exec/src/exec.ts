@@ -1,5 +1,7 @@
-import * as im from './interfaces'
+import {ExecOptions} from './interfaces'
 import * as tr from './toolrunner'
+
+export {ExecOptions}
 
 /**
  * Exec a command.
@@ -14,7 +16,7 @@ import * as tr from './toolrunner'
 export async function exec(
   commandLine: string,
   args?: string[],
-  options?: im.ExecOptions
+  options?: ExecOptions
 ): Promise<number> {
   const commandArgs = tr.argStringToArray(commandLine)
   if (commandArgs.length === 0) {
