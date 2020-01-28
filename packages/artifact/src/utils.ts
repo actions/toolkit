@@ -55,13 +55,13 @@ export function createAcceptHeader(type: string): string {
   return `${type};api-version=${apiVersion}`
 }
 
-export function createHttpClient(userAgent: string): HttpClient {
-  const token = process.env['ACTIONS_RUNTIME_TOKEN']
-  if (!token) {
-    throw new Error('Unable to get ACTIONS_RUNTIME_TOKEN')
-  }
+export function createHttpClient(): HttpClient {
+  const token = process.env["ACTIONS_RUNTIME_TOKEN"] || "";
+  const bearerCredentialHandler = new BearerCredentialHandler(token);
 
-  return new HttpClient(userAgent, [new BearerCredentialHandler(token)])
+  return new HttpClient('action/artifact', [
+    bearerCredentialHandler
+  ])
 }
 
 export function getArtifactUrl(): string {

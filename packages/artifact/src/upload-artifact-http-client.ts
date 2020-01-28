@@ -24,7 +24,6 @@ import {
 
 const defaultChunkUploadConcurrency = 3
 const defaultFileUploadConcurrency = 2
-const userAgent = 'actions/artifact'
 
 /**
  * Step 1 of 3 when uploading an artifact. Creates a file container for the new artifact in the remote blob storage/file service
@@ -34,7 +33,7 @@ const userAgent = 'actions/artifact'
 export async function createArtifactInFileContainer(
   artifactName: string
 ): Promise<CreateArtifactResponse> {
-  const client = createHttpClient(userAgent)
+  const client = createHttpClient()
   const parameters: CreateArtifactParameters = {
     Type: 'actions_storage',
     Name: artifactName
@@ -73,7 +72,7 @@ export async function uploadArtifactToFileContainer(
   filesToUpload: SearchResult[],
   options?: UploadOptions
 ): Promise<UploadResults> {
-  const client = createHttpClient(userAgent)
+  const client = createHttpClient()
 
   const FILE_CONCURRENCY =
     parseEnvNumber('ARTIFACT_FILE_UPLOAD_CONCURRENCY') ||
@@ -260,7 +259,7 @@ export async function patchArtifactSize(
   size: number,
   artifactName: string
 ): Promise<void> {
-  const client = createHttpClient(userAgent)
+  const client = createHttpClient()
   const requestOptions = getRequestOptions()
   requestOptions['Content-Type'] = 'application/json'
 
