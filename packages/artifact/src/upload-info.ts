@@ -5,7 +5,7 @@ export interface UploadInfo {
   artifactName: string
 
   /**
-   * A list of items that were uploaded as part of the artifact
+   * A list of all items found using the provided path that are intended to be uploaded as part of the artfiact
    */
   artifactItems: string[]
 
@@ -13,4 +13,10 @@ export interface UploadInfo {
    * Total size of the artifact in bytes that was uploaded
    */
   size: number
+
+  /**
+   * A list of items that were not uploaded as part of the artifact (includes queued items that were not uploaded if
+   * continueOnError is set to false). This is a subset of artifactItems.
+   */
+  failedItems: string[]
 }

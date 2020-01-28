@@ -1,27 +1,30 @@
 import {debug} from '@actions/core'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {
   CreateArtifactResponse,
   CreateArtifactParameters,
   PatchArtifactSize,
-  PatchArtifactSizeSuccessResponse
+  PatchArtifactSizeSuccessResponse,
+  UploadResults
 } from './contracts'
 import * as fs from 'fs'
 import {SearchResult} from './search'
+import {UploadOptions} from './upload-options'
 import {URL} from 'url'
 import {
-  parseEnvNumber,
+  createHttpClient,
   getArtifactUrl,
+  getContentRange,
+  getRequestOptions,
   isSuccessStatusCode,
   isRetryableStatusCode,
-  getRequestOptions,
-  getContentRange
+  parseEnvNumber
 } from './utils'
 
 const defaultChunkUploadConcurrency = 3
 const defaultFileUploadConcurrency = 2
+const userAgent = 'actions/artifact'
 
 /**
  * Step 1 of 3 when uploading an artifact. Creates a file container for the new artifact in the remote blob storage/file service
@@ -31,19 +34,14 @@ const defaultFileUploadConcurrency = 2
 export async function createArtifactInFileContainer(
   artifactName: string
 ): Promise<CreateArtifactResponse> {
-  const token = process.env['ACTIONS_RUNTIME_TOKEN'] || ''
-  const bearerCredentialHandler = new BearerCredentialHandler(token)
-  const requestOptions = getRequestOptions()
-  requestOptions['Content-Type'] = 'application/json'
-
-  const client: HttpClient = new HttpClient('actions/artifact', [
-    bearerCredentialHandler
-  ])
+  const client = createHttpClient(userAgent)
   const parameters: CreateArtifactParameters = {
     Type: 'actions_storage',
     Name: artifactName
   }
   const data: string = JSON.stringify(parameters, null, 2)
+  const requestOptions = getRequestOptions()
+  requestOptions['Content-Type'] = 'application/json'
   const rawResponse: HttpClientResponse = await client.post(
     getArtifactUrl(),
     data,
@@ -72,13 +70,10 @@ export async function createArtifactInFileContainer(
  */
 export async function uploadArtifactToFileContainer(
   uploadUrl: string,
-  filesToUpload: SearchResult[]
-): Promise<number> {
-  const token = process.env['ACTIONS_RUNTIME_TOKEN'] || ''
-  const bearerCredentialHandler = new BearerCredentialHandler(token)
-  const client: HttpClient = new HttpClient('actions/artifact', [
-    bearerCredentialHandler
-  ])
+  filesToUpload: SearchResult[],
+  options?: UploadOptions
+): Promise<UploadResults> {
+  const client = createHttpClient(userAgent)
 
   const FILE_CONCURRENCY =
     parseEnvNumber('ARTIFACT_FILE_UPLOAD_CONCURRENCY') ||
@@ -111,6 +106,9 @@ export async function uploadArtifactToFileContainer(
     })
   }
 
+  // eslint-disable-next-line no-console
+  console.log(options) // TODO remove, temp
+
   const parallelUploads = [...new Array(FILE_CONCURRENCY).keys()]
   const fileSizes: number[] = []
   let uploadedFiles = 0
@@ -131,7 +129,10 @@ export async function uploadArtifactToFileContainer(
   const sum = fileSizes.reduce((acc, val) => acc + val)
   // eslint-disable-next-line no-console
   console.log(`Total size of all the files uploaded ${sum}`)
-  return sum
+  return {
+    size: sum,
+    failedItems: []
+  }
 }
 
 /**
@@ -259,6 +260,7 @@ export async function patchArtifactSize(
   size: number,
   artifactName: string
 ): Promise<void> {
+  const client = createHttpClient(userAgent)
   const requestOptions = getRequestOptions()
   requestOptions['Content-Type'] = 'application/json'
 
@@ -268,11 +270,6 @@ export async function patchArtifactSize(
   const parameters: PatchArtifactSize = {Size: size}
   const data: string = JSON.stringify(parameters, null, 2)
 
-  const token = process.env['ACTIONS_RUNTIME_TOKEN'] || ''
-  const bearerCredentialHandler = new BearerCredentialHandler(token)
-  const client: HttpClient = new HttpClient('actions/artifact', [
-    bearerCredentialHandler
-  ])
   // eslint-disable-next-line no-console
   console.log(`URL is ${resourceUrl.toString()}`)
 

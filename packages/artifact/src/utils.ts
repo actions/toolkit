@@ -1,5 +1,6 @@
 import {debug} from '@actions/core'
-import {HttpCodes} from '@actions/http-client'
+import {HttpCodes, HttpClient} from '@actions/http-client'
+import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {IHeaders} from '@actions/http-client/interfaces'
 
 const apiVersion = '6.0-preview'
@@ -43,16 +44,6 @@ export function getContentRange(
   return `bytes ${start}-${end}/${total}`
 }
 
-export function getArtifactUrl(): string {
-  const runtimeUrl = process.env['ACTIONS_RUNTIME_URL']
-  if (!runtimeUrl) {
-    throw new Error('Runtime url not found, unable to create artifact.')
-  }
-  const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${apiVersion}`
-  debug(`Artifact Url: ${artifactUrl}`)
-  return artifactUrl
-}
-
 export function getRequestOptions(): IHeaders {
   const requestOptions: IHeaders = {
     Accept: createAcceptHeader('application/json')
@@ -62,6 +53,25 @@ export function getRequestOptions(): IHeaders {
 
 export function createAcceptHeader(type: string): string {
   return `${type};api-version=${apiVersion}`
+}
+
+export function createHttpClient(userAgent: string): HttpClient {
+  const token = process.env['ACTIONS_RUNTIME_TOKEN']
+  if (!token) {
+    throw new Error('Unable to get ACTIONS_RUNTIME_TOKEN')
+  }
+
+  return new HttpClient(userAgent, [new BearerCredentialHandler(token)])
+}
+
+export function getArtifactUrl(): string {
+  const runtimeUrl = process.env['ACTIONS_RUNTIME_URL']
+  if (!runtimeUrl) {
+    throw new Error('Runtime url not found, unable to create artifact.')
+  }
+  const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${apiVersion}`
+  debug(`Artifact Url: ${artifactUrl}`)
+  return artifactUrl
 }
 
 function getWorkFlowRunId(): string {

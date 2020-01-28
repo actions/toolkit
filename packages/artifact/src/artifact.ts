@@ -6,6 +6,7 @@ import {
   patchArtifactSize
 } from './upload-artifact-http-client'
 import {UploadInfo} from './upload-info'
+import {UploadOptions} from './upload-options'
 import {checkArtifactName} from './utils'
 
 /**
@@ -13,11 +14,13 @@ import {checkArtifactName} from './utils'
  *
  * @param name the name of the artifact, required
  * @param path the directory, file, or glob pattern to denote what will be uploaded, required
+ * @param options extra options for customizing the upload behavior
  * @returns single UploadInfo object
  */
 export async function uploadArtifact(
   name: string,
-  path: string
+  path: string,
+  options?: UploadOptions
 ): Promise<UploadInfo> {
   checkArtifactName(name)
 
@@ -27,16 +30,21 @@ export async function uploadArtifact(
 
   // Search for the items that will be uploaded
   const filesToUpload: SearchResult[] = await findFilesToUpload(name, path)
-  let reportedSize = -1
 
   if (filesToUpload === undefined) {
-    core.setFailed(
-      `Unable to succesfully search fo files to upload with the provided path: ${path}`
+    throw new Error(
+      `Unable to succesfully search for files to upload with the provided path: ${path}`
     )
   } else if (filesToUpload.length === 0) {
     core.warning(
       `No files were found for the provided path: ${path}. No artifacts will be uploaded.`
     )
+    return {
+      artifactName: name,
+      artifactItems: [],
+      size: 0,
+      failedItems: []
+    }
   } else {
     /**
      * Step 1 of 3
@@ -55,30 +63,28 @@ export async function uploadArtifact(
      * Step 2 of 3
      * Upload each of the files that were found concurrently
      */
-    const uploadingArtifact: Promise<number> = Promise.resolve(
-      uploadArtifactToFileContainer(
-        response.fileContainerResourceUrl,
-        filesToUpload
-      )
+    const uploadResult = await uploadArtifactToFileContainer(
+      response.fileContainerResourceUrl,
+      filesToUpload,
+      options
     )
-    uploadingArtifact.then(async size => {
-      // eslint-disable-next-line no-console
-      console.log(
-        `All files for artifact ${name} have finished uploading. Reported upload size is ${size} bytes`
-      )
-      /**
-       * Step 3 of 3
-       * Update the size of the artifact to indicate we are done uploading
-       */
-      await patchArtifactSize(size, name)
-      reportedSize = size
-    })
-  }
+    // eslint-disable-next-line no-console
+    console.log(
+      `Finished uploading artifact ${name}. Reported size is ${uploadResult.size} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
+    )
 
-  return {
-    artifactName: name,
-    artifactItems: filesToUpload.map(item => item.absoluteFilePath),
-    size: reportedSize
+    /**
+     * Step 3 of 3
+     * Update the size of the artifact to indicate we are done uploading
+     */
+    await patchArtifactSize(uploadResult.size, name)
+
+    return {
+      artifactName: name,
+      artifactItems: filesToUpload.map(item => item.absoluteFilePath),
+      size: uploadResult.size,
+      failedItems: uploadResult.failedItems
+    }
   }
 }
 
@@ -88,7 +94,7 @@ Downloads a single artifact associated with a run
 export async function downloadArtifact(
     name: string,
     path?: string,
-    createArtifactFolder?:boolean
+    options?: DownloadOptions
   ): Promise<DownloadInfo> {
 
     TODO

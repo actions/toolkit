@@ -28,9 +28,27 @@ describe('search', () => {
       'file-under-c.txt'
     )
     await fs.writeFile(itemPath, 'sample file under folder c')
+    /*
+      Directory structure of files that were created:
+      root/
+        folder-a/
+          folder-b/
+            folder-c/
+              file-under-c.txt  
+    */
 
     const exepectedUploadFilePath = path.join(artifactName, 'file-under-c.txt')
     const searchResult = await findFilesToUpload(artifactName, itemPath)
+    /*
+      searchResult[] should be equal to:
+      [
+        {
+          absoluteFilePath: itemPath
+          uploadFilePath: my-artifact/file-under-c.txt
+        }
+      ]
+    */
+
     expect(searchResult.length).toEqual(1)
     expect(searchResult[0].uploadFilePath).toEqual(exepectedUploadFilePath)
     expect(searchResult[0].absoluteFilePath).toEqual(itemPath)
@@ -55,9 +73,28 @@ describe('search', () => {
       'item1.txt'
     )
     await fs.writeFile(itemPath, 'sample file under folder c')
+    /*
+      Directory structure of files that were created:
+      root/
+        folder-a/
+          folder-b/
+            folder-c/
+              item1.txt  
+    */
+
     const searchPath = path.join(root, '**/*m1.txt')
     const exepectedUploadFilePath = path.join(artifactName, 'item1.txt')
     const searchResult = await findFilesToUpload(artifactName, searchPath)
+    /*
+      searchResult should be equal to:
+      [
+        {
+          absoluteFilePath: itemPath
+          uploadFilePath: my-artifact/item1.txt
+        }
+      ]
+    */
+
     expect(searchResult.length).toEqual(1)
     expect(searchResult[0].uploadFilePath).toEqual(exepectedUploadFilePath)
     expect(searchResult[0].absoluteFilePath).toEqual(itemPath)
@@ -93,19 +130,45 @@ describe('search', () => {
     await fs.writeFile(item4Path, 'item4 file')
     await fs.writeFile(item5Path, 'item5 file')
     /*
-        Directory structure of files that were created:
-        root/
-            folder-a/
-                folder-b/
-                    folder-c/
-                        item1.txt
-            folder-d/
-                item2.txt
-                item3.txt
-                item4.txt
-            item5.txt
-        */
+      Directory structure of files that were created:
+      root/
+          folder-a/
+              folder-b/
+                  folder-c/
+                      item1.txt
+          folder-d/
+              item2.txt
+              item3.txt
+              item4.txt
+          item5.txt
+    */
+
     const searchResult = await findFilesToUpload(artifactName, root)
+    /*
+      searchResult should be equal to:
+      [
+        {
+          absoluteFilePath: item1Path
+          uploadFilePath: my-artifact/folder-a/folder-b/folder-c/item1.txt
+        },
+        {
+          absoluteFilePath: item2Path
+          uploadFilePath: my-artifact/folder-d/item2.txt
+        },
+        {
+          absoluteFilePath: item3Path
+          uploadFilePath: my-artifact/folder-d/item3.txt
+        },
+        {
+          absoluteFilePath: item4Path
+          uploadFilePath: my-artifact/folder-d/item4.txt
+        },
+        {
+          absoluteFilePath: item5Path
+          uploadFilePath: my-artifact/item5.txt
+        }
+      ]
+    */
     expect(searchResult.length).toEqual(5)
 
     const absolutePaths = searchResult.map(item => item.absoluteFilePath)
@@ -192,24 +255,51 @@ describe('search', () => {
     await fs.writeFile(item4Path, 'item4 file')
     await fs.writeFile(item5Path, 'item5 file')
     /*
-        Directory structure of files that were created:
-        root/
-            folder-a/
-                folder-b/
-                    folder-c/
-                        item1.txt
-                    folder-e/
-            folder-d/
-                item2.txt
-                item3.txt
-                item4.txt
-            folder-f/
-            folder-g/
-            folder-h/
-                folder-i/
-            item5.txt
-        */
+      Directory structure of files that were created:
+      root/
+          folder-a/
+              folder-b/
+                  folder-c/
+                      item1.txt
+                  folder-e/
+          folder-d/
+              item2.txt
+              item3.txt
+              item4.txt
+          folder-f/
+          folder-g/
+          folder-h/
+              folder-i/
+          item5.txt
+    */
+
     const searchResult = await findFilesToUpload(artifactName, root)
+    /*
+      searchResult should be equal to:
+      [
+        {
+          absoluteFilePath: item1Path
+          uploadFilePath: my-artifact/folder-a/folder-b/folder-c/item1.txt
+        },
+        {
+          absoluteFilePath: item2Path
+          uploadFilePath: my-artifact/folder-d/item2.txt
+        },
+        {
+          absoluteFilePath: item3Path
+          uploadFilePath: my-artifact/folder-d/item3.txt
+        },
+        {
+          absoluteFilePath: item4Path
+          uploadFilePath: my-artifact/folder-d/item4.txt
+        },
+        {
+          absoluteFilePath: item5Path
+          uploadFilePath: my-artifact/item5.txt
+        }
+      ]
+    */
+
     expect(searchResult.length).toEqual(5)
 
     const absolutePaths = searchResult.map(item => item.absoluteFilePath)
@@ -322,32 +412,58 @@ describe('search', () => {
     await fs.writeFile(badItem3Path, 'bad item3 file')
     await fs.writeFile(badItem4Path, 'bad item4 file')
     await fs.writeFile(badItem5Path, 'bad item5 file')
-
     /*
-        Directory structure of files that were created:
-        root/
-            folder-a/
-                folder-b/
-                    folder-c/
-                        good-item1.txt
-                        bad-item1.txt
-                    folder-e/
-            folder-d/
-                good-item2.txt
-                good-item3.txt
-                good-item4.txt
-                bad-item2.txt
-            folder-f/
-                bad-item3.txt
-            folder-g/
-            folder-h/
-                folder-i/
-                    bad-item4.txt
-                    bad-item5.txt
-            good-item5.txt
-        */
+      Directory structure of files that were created:
+      root/
+          folder-a/
+              folder-b/
+                  folder-c/
+                      good-item1.txt
+                      bad-item1.txt
+                  folder-e/
+          folder-d/
+              good-item2.txt
+              good-item3.txt
+              good-item4.txt
+              bad-item2.txt
+          folder-f/
+              bad-item3.txt
+          folder-g/
+          folder-h/
+              folder-i/
+                  bad-item4.txt
+                  bad-item5.txt
+          good-item5.txt
+    */
+
     const searchPath = path.join(root, '**/good*')
     const searchResult = await findFilesToUpload(artifactName, searchPath)
+    /*
+      searchResult should be equal to:
+      [
+        {
+          absoluteFilePath: goodItem1Path
+          uploadFilePath: my-artifact/folder-a/folder-b/folder-c/good-item1.txt
+        },
+        {
+          absoluteFilePath: goodItem2Path
+          uploadFilePath: my-artifact/folder-d/good-item2.txt
+        },
+        {
+          absoluteFilePath: goodItem3Path
+          uploadFilePath: my-artifact/folder-d/good-item3.txt
+        },
+        {
+          absoluteFilePath: goodItem4Path
+          uploadFilePath: my-artifact/folder-d/good-item4.txt
+        },
+        {
+          absoluteFilePath: goodItem5Path
+          uploadFilePath: my-artifact/good-item5.txt
+        }
+      ]
+    */
+
     expect(searchResult.length).toEqual(5)
 
     const absolutePaths = searchResult.map(item => item.absoluteFilePath)
@@ -393,6 +509,6 @@ describe('search', () => {
   })
 
   function getTestTemp(): string {
-    return path.join(__dirname, '_temp', 'artifact')
+    return path.join(__dirname, '_temp', 'artifact-search')
   }
 })
