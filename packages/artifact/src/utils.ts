@@ -3,8 +3,6 @@ import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {IHeaders} from '@actions/http-client/interfaces'
 
-const apiVersion = '6.0-preview'
-
 /**
  * Parses a env variable that is a number
  */
@@ -19,6 +17,10 @@ export function parseEnvNumber(key: string): number | undefined {
 /**
  * Various utlity functions to help with the neceesary API calls
  */
+export function getApiVerion(): string {
+  return '6.0-preview'
+}
+
 export function isSuccessStatusCode(statusCode: number): boolean {
   return statusCode >= 200 && statusCode < 300
 }
@@ -44,45 +46,57 @@ export function getContentRange(
   return `bytes ${start}-${end}/${total}`
 }
 
-export function getRequestOptions(): IHeaders {
+export function getRequestOptions(
+  acceptType: string,
+  contentType?: string,
+  contentLenght?: number,
+  contentRange?: string
+): IHeaders {
   const requestOptions: IHeaders = {
-    Accept: createAcceptHeader('application/json')
+    Accept: `${acceptType};api-version=${getApiVerion()}`
+  }
+  if (contentType) {
+    requestOptions['Content-Type'] = contentType
+  }
+  if (contentLenght) {
+    requestOptions['Content-Length'] = contentLenght
+  }
+  if (contentRange) {
+    requestOptions['Content-Range'] = contentRange
   }
   return requestOptions
 }
 
-export function createAcceptHeader(type: string): string {
-  return `${type};api-version=${apiVersion}`
+export function createHttpClient(token: string): HttpClient {
+  return new HttpClient('action/artifact', [new BearerCredentialHandler(token)])
 }
 
-export function createHttpClient(): HttpClient {
-  // eslint-disable-next-line no-console
-  console.log(process.env)
-  const token = process.env["ACTIONS_RUNTIME_TOKEN"] || ""
-  const bearerCredentialHandler = new BearerCredentialHandler(token)
-
-  return new HttpClient('action/artifact', [
-    bearerCredentialHandler
-  ])
-}
-
-export function getArtifactUrl(): string {
-  const runtimeUrl = process.env['ACTIONS_RUNTIME_URL'] || ""
-  const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${apiVersion}`
+export function getArtifactUrl(runtimeUrl: string, runId: string): string {
+  const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${getApiVerion()}`
   debug(`Artifact Url: ${artifactUrl}`)
-  // eslint-disable-next-line no-console
-  console.log(artifactUrl)
-  // eslint-disable-next-line no-console
-  console.log(process.env)
   return artifactUrl
 }
 
-function getWorkFlowRunId(): string {
-  const workFlowrunId = process.env['GITHUB_RUN_ID'] || ''
+export function getRuntimeToken(): string {
+  const token = process.env['ACTIONS_RUNTIME_TOKEN']
+  if (!token) {
+    throw new Error('Unable to get ACTIONS_RUNTIME_TOKEN env variable')
+  }
+  return token
+}
+
+export function getRuntimeUrl(): string {
+  const runtimeUrl = process.env['ACTIONS_RUNTIME_URL']
+  if (!runtimeUrl) {
+    throw new Error('Unable to get ACTIONS_RUNTIME_URL env variable')
+  }
+  return runtimeUrl
+}
+
+export function getWorkFlowRunId(): string {
+  const workFlowrunId = process.env['GITHUB_RUN_ID']
   if (!workFlowrunId) {
-    // eslint-disable-next-line no-console
-    console.log(process.env)
-    throw new Error('Unable to get workFlowRunId')
+    throw new Error('Unable to get GITHUB_RUN_ID env variable')
   }
   return workFlowrunId
 }

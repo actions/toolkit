@@ -16,9 +16,12 @@ import {
   createHttpClient,
   getArtifactUrl,
   getContentRange,
+  getRuntimeToken,
+  getRuntimeUrl,
   getRequestOptions,
-  isSuccessStatusCode,
+  getWorkFlowRunId,
   isRetryableStatusCode,
+  isSuccessStatusCode,
   parseEnvNumber
 } from './utils'
 
@@ -33,16 +36,18 @@ const defaultFileUploadConcurrency = 2
 export async function createArtifactInFileContainer(
   artifactName: string
 ): Promise<CreateArtifactResponse> {
-  const client = createHttpClient()
+  const client = createHttpClient(getRuntimeToken())
   const parameters: CreateArtifactParameters = {
     Type: 'actions_storage',
     Name: artifactName
   }
   const data: string = JSON.stringify(parameters, null, 2)
-  const requestOptions = getRequestOptions()
-  requestOptions['Content-Type'] = 'application/json'
+  const requestOptions = getRequestOptions(
+    'application/json',
+    'application/json'
+  )
   const rawResponse: HttpClientResponse = await client.post(
-    getArtifactUrl(),
+    getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId()),
     data,
     requestOptions
   )
@@ -72,7 +77,7 @@ export async function uploadArtifactToFileContainer(
   filesToUpload: SearchResult[],
   options?: UploadOptions
 ): Promise<UploadResults> {
-  const client = createHttpClient()
+  const client = createHttpClient(getRuntimeToken())
 
   const FILE_CONCURRENCY =
     parseEnvNumber('ARTIFACT_FILE_UPLOAD_CONCURRENCY') ||
@@ -205,10 +210,12 @@ async function uploadChunk(
     )}`
   )
 
-  const requestOptions = getRequestOptions()
-  requestOptions['Content-Type'] = 'application/octet-stream'
-  requestOptions['Content-Length'] = totalSize
-  requestOptions['Content-Range'] = getContentRange(start, end, totalSize)
+  const requestOptions = getRequestOptions(
+    'application/json',
+    'application/octet-stream',
+    totalSize,
+    getContentRange(start, end, totalSize)
+  )
 
   const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
     return await restClient.sendStream('PUT', resourceUrl, data, requestOptions)
@@ -259,11 +266,14 @@ export async function patchArtifactSize(
   size: number,
   artifactName: string
 ): Promise<void> {
-  const client = createHttpClient()
-  const requestOptions = getRequestOptions()
-  requestOptions['Content-Type'] = 'application/json'
-
-  const resourceUrl = new URL(getArtifactUrl())
+  const client = createHttpClient(getRuntimeToken())
+  const requestOptions = getRequestOptions(
+    'application/json',
+    'application/json'
+  )
+  const resourceUrl = new URL(
+    getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId())
+  )
   resourceUrl.searchParams.append('artifactName', artifactName)
 
   const parameters: PatchArtifactSize = {Size: size}
