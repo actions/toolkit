@@ -56,8 +56,8 @@ export function createAcceptHeader(type: string): string {
 }
 
 export function createHttpClient(): HttpClient {
-  const token = process.env["ACTIONS_RUNTIME_TOKEN"] || "";
-  const bearerCredentialHandler = new BearerCredentialHandler(token);
+  const token = process.env["ACTIONS_RUNTIME_TOKEN"] || ""
+  const bearerCredentialHandler = new BearerCredentialHandler(token)
 
   return new HttpClient('action/artifact', [
     bearerCredentialHandler
@@ -65,10 +65,7 @@ export function createHttpClient(): HttpClient {
 }
 
 export function getArtifactUrl(): string {
-  const runtimeUrl = process.env['ACTIONS_RUNTIME_URL']
-  if (!runtimeUrl) {
-    throw new Error('Runtime url not found, unable to create artifact.')
-  }
+  const runtimeUrl = process.env['ACTIONS_RUNTIME_URL'] || ""
   const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${apiVersion}`
   debug(`Artifact Url: ${artifactUrl}`)
   return artifactUrl
@@ -77,6 +74,8 @@ export function getArtifactUrl(): string {
 function getWorkFlowRunId(): string {
   const workFlowrunId = process.env['GITHUB_RUN_ID'] || ''
   if (!workFlowrunId) {
+    // eslint-disable-next-line no-console
+    console.log(process.env)
     throw new Error('Unable to get workFlowRunId')
   }
   return workFlowrunId
