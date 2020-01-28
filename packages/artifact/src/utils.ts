@@ -68,6 +68,10 @@ export function getArtifactUrl(): string {
   const runtimeUrl = process.env['ACTIONS_RUNTIME_URL'] || ""
   const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${apiVersion}`
   debug(`Artifact Url: ${artifactUrl}`)
+  // eslint-disable-next-line no-console
+  console.log(artifactUrl)
+  // eslint-disable-next-line no-console
+  console.log(process.env)
   return artifactUrl
 }
 
