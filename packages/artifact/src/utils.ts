@@ -56,6 +56,8 @@ export function createAcceptHeader(type: string): string {
 }
 
 export function createHttpClient(): HttpClient {
+  // eslint-disable-next-line no-console
+  console.log(process.env)
   const token = process.env["ACTIONS_RUNTIME_TOKEN"] || ""
   const bearerCredentialHandler = new BearerCredentialHandler(token)
 
