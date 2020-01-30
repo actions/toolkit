@@ -47,13 +47,12 @@ export function getContentRange(
 }
 
 export function getRequestOptions(
-  acceptType: string,
   contentType?: string,
   contentLength?: number,
   contentRange?: string
 ): IHeaders {
   const requestOptions: IHeaders = {
-    Accept: `${acceptType};api-version=${getApiVersion()}`
+    Accept: `application/json;api-version=${getApiVersion()}`
   }
   if (contentType) {
     requestOptions['Content-Type'] = contentType

@@ -34,7 +34,7 @@ const extraFileInFolderCPath = path.join(
   'folder-c',
   'extra-file-in-folder-c.txt'
 )
-const amazingFileinFolderHPath = path.join(root, 'folder-h', 'amazing-item.txt')
+const amazingFileInFolderHPath = path.join(root, 'folder-h', 'amazing-item.txt')
 
 describe('Search', () => {
   beforeAll(async () => {
@@ -73,7 +73,7 @@ describe('Search', () => {
 
     await fs.writeFile(extraFileInFolderCPath, 'extra file')
 
-    await fs.writeFile(amazingFileinFolderHPath, 'amazing file')
+    await fs.writeFile(amazingFileInFolderHPath, 'amazing file')
     /*
       Directory structure of files that were created:
       root/
@@ -111,7 +111,7 @@ describe('Search', () => {
    *  Only 1 item is expected to be found so the uploadFilePath is expected to be {artifactName}/file-under-c.txt
    */
   it('Single file search - full path', async () => {
-    const exepectedUploadFilePath = path.join(
+    const expectedUploadFilePath = path.join(
       artifactName,
       'extra-file-in-folder-c.txt'
     )
@@ -130,7 +130,7 @@ describe('Search', () => {
     */
 
     expect(searchResult.length).toEqual(1)
-    expect(searchResult[0].uploadFilePath).toEqual(exepectedUploadFilePath)
+    expect(searchResult[0].uploadFilePath).toEqual(expectedUploadFilePath)
     expect(searchResult[0].absoluteFilePath).toEqual(extraFileInFolderCPath)
   })
 
@@ -141,7 +141,7 @@ describe('Search', () => {
    */
   it('Single file search - wildcard pattern', async () => {
     const searchPath = path.join(root, '**/good*m1.txt')
-    const exepectedUploadFilePath = path.join(artifactName, 'good-item1.txt')
+    const expectedUploadFilePath = path.join(artifactName, 'good-item1.txt')
     const searchResult = await findFilesToUpload(artifactName, searchPath)
     /*
       searchResult should be equal to:
@@ -154,7 +154,7 @@ describe('Search', () => {
     */
 
     expect(searchResult.length).toEqual(1)
-    expect(searchResult[0].uploadFilePath).toEqual(exepectedUploadFilePath)
+    expect(searchResult[0].uploadFilePath).toEqual(expectedUploadFilePath)
     expect(searchResult[0].absoluteFilePath).toEqual(goodItem1Path)
   })
 
@@ -162,7 +162,7 @@ describe('Search', () => {
    *  Creates a directory with multiple files and subdirectories, includes some empty directories and misc files
    *  Only files corresponding to the good* pattern should be found
    */
-  it('Wildcard search for mulitple files', async () => {
+  it('Wildcard search for multiple files', async () => {
     const searchPath = path.join(root, '**/good*')
     const searchResult = await findFilesToUpload(artifactName, searchPath)
     /*
@@ -248,7 +248,7 @@ describe('Search', () => {
       searchResult should be equal to:
       [
         {
-          absoluteFilePath: amazingFileinFolderHPath
+          absoluteFilePath: amazingFileInFolderHPath
           uploadFilePath: my-artifact/folder-h/amazing-item.txt
         },
         {
@@ -265,12 +265,12 @@ describe('Search', () => {
     expect(searchResult.length).toEqual(3)
 
     const absolutePaths = searchResult.map(item => item.absoluteFilePath)
-    expect(absolutePaths.includes(amazingFileinFolderHPath)).toEqual(true)
+    expect(absolutePaths.includes(amazingFileInFolderHPath)).toEqual(true)
     expect(absolutePaths.includes(badItem4Path)).toEqual(true)
     expect(absolutePaths.includes(badItem5Path)).toEqual(true)
 
     for (const result of searchResult) {
-      if (result.absoluteFilePath === amazingFileinFolderHPath) {
+      if (result.absoluteFilePath === amazingFileInFolderHPath) {
         expect(result.uploadFilePath).toEqual(
           path.join(artifactName, 'amazing-item.txt')
         )

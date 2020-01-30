@@ -41,15 +41,16 @@ export async function createArtifactInFileContainer(
   const data: string = JSON.stringify(parameters, null, 2)
   const artifactUrl = getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId())
   const client = createHttpClient(getRuntimeToken())
-  const requestOptions = getRequestOptions(
-    'application/json',
-    'application/json'
-  )
+  const requestOptions = getRequestOptions('application/json')
 
   const rawResponse = await client.post(artifactUrl, data, requestOptions)
   const body: string = await rawResponse.readBody()
 
-  if (rawResponse.message.statusCode && isSuccessStatusCode(rawResponse.message.statusCode) && body) {
+  if (
+    rawResponse.message.statusCode &&
+    isSuccessStatusCode(rawResponse.message.statusCode) &&
+    body
+  ) {
     return JSON.parse(body)
   } else {
     // eslint-disable-next-line no-console
@@ -86,6 +87,7 @@ export async function uploadArtifactToFileContainer(
   )
 
   const parameters: UploadFileParameters[] = []
+  const continueOnError = options?.continueOnError || true
 
   // Prepare the necessary parameters to upload all the files
   for (const file of filesToUpload) {
@@ -100,55 +102,74 @@ export async function uploadArtifactToFileContainer(
       resourceUrl: resourceUrl.toString(),
       restClient: client,
       concurrency: CHUNK_CONCURRENCY,
-      maxChunkSize: MAX_CHUNK_SIZE
+      maxChunkSize: MAX_CHUNK_SIZE,
+      continueOnError
     })
   }
 
-  // eslint-disable-next-line no-console
-  console.log(options) // TODO remove, temp
-
   const parallelUploads = [...new Array(FILE_CONCURRENCY).keys()]
-  const fileSizes: number[] = []
+  const failedItemsToReport: string[] = []
   let uploadedFiles = 0
+  let fileSizes = 0
+  let abortPendingFileUploads = false
 
-  // Only allow a certain amount of files to be uploaded at once, this is done to reduce errors if
-  // trying to upload everything at once
+  // Only allow a certain amount of files to be uploaded at once, this is done to reduce potential errors
   await Promise.all(
     parallelUploads.map(async () => {
       while (uploadedFiles < filesToUpload.length) {
         const currentFileParameters = parameters[uploadedFiles]
         uploadedFiles += 1
-        fileSizes.push(await uploadFileAsync(currentFileParameters))
+        if (abortPendingFileUploads) {
+          failedItemsToReport.push(currentFileParameters.file)
+          continue
+        }
+
+        const uploadFileResult = await uploadFileAsync(currentFileParameters)
+        fileSizes += uploadFileResult.successfulUploadSize
+        if (uploadFileResult.isSuccess === false) {
+          failedItemsToReport.push(currentFileParameters.file)
+          if (!continueOnError) {
+            // Existing uploads will be able to finish however all pending uploads will fail fast
+            abortPendingFileUploads = true
+          }
+        }
       }
     })
   )
 
-  // Sum up all the files that were uploaded
-  const sum = fileSizes.reduce((acc, val) => acc + val)
   // eslint-disable-next-line no-console
-  console.log(`Total size of all the files uploaded ${sum}`)
+  console.log(`Total size of all the files uploaded ${fileSizes}`)
   return {
-    size: sum,
-    failedItems: []
+    size: fileSizes,
+    failedItems: failedItemsToReport
   }
 }
 
 /**
  * Asynchronously uploads a file. If the file is bigger than the max chunk size it will be uploaded via multiple calls
- * @param {UploadFileParameters} parameters Information about the files that need to be uploaded
- * @returns The size of the file that was uploaded in bytes
+ * @param {UploadFileParameters} parameters Information about the file that needs to be uploaded
+ * @returns The size of the file that was uploaded in bytes along with any failed uploads
  */
 async function uploadFileAsync(
   parameters: UploadFileParameters
-): Promise<number> {
+): Promise<UploadFileResult> {
   const fileSize: number = fs.statSync(parameters.file).size
   const parallelUploads = [...new Array(parameters.concurrency).keys()]
   let offset = 0
+  let isUploadSuccessful = true
+  let failedChunkSizes = 0
+  let abortFileUpload = false
 
   await Promise.all(
     parallelUploads.map(async () => {
       while (offset < fileSize) {
         const chunkSize = Math.min(fileSize - offset, parameters.maxChunkSize)
+        if (abortFileUpload) {
+          // if we don't want to continue on error, any pending upload chunk will be marked as failed
+          failedChunkSizes += chunkSize
+          continue
+        }
+
         const start = offset
         const end = offset + chunkSize - 1
         offset += parameters.maxChunkSize
@@ -161,7 +182,7 @@ async function uploadFileAsync(
           }
         )
 
-        await uploadChunk(
+        const result = await uploadChunk(
           parameters.restClient,
           parameters.resourceUrl,
           chunk,
@@ -169,10 +190,28 @@ async function uploadFileAsync(
           end,
           fileSize
         )
+        if (!result) {
+          /**
+           * Chunk failed to upload, report as failed but continue if desired. It is possible that part of a chunk was
+           * successfully uploaded so the server may report a different size for what was uploaded
+           **/
+
+          isUploadSuccessful = false
+          failedChunkSizes += chunkSize
+          if (!parameters.continueOnError) {
+            // Any currently uploading chunks will be able to finish, however pending chunks will not upload
+            // eslint-disable-next-line no-console
+            console.log(`Aborting upload for ${parameters.file} due to failure`)
+            abortFileUpload = true
+          }
+        }
       }
     })
   )
-  return fileSize
+  return {
+    isSuccess: isUploadSuccessful,
+    successfulUploadSize: fileSize - failedChunkSizes
+  }
 }
 
 /**
@@ -184,6 +223,7 @@ async function uploadFileAsync(
  * @param {number} start Starting byte index of file that the chunk belongs to
  * @param {number} end Ending byte index of file that the chunk belongs to
  * @param {number} totalSize Total size of the file in bytes that is being uploaded
+ * @returns if the chunk was successfully uploaded
  */
 async function uploadChunk(
   restClient: HttpClient,
@@ -192,7 +232,7 @@ async function uploadChunk(
   start: number,
   end: number,
   totalSize: number
-): Promise<void> {
+): Promise<boolean> {
   // eslint-disable-next-line no-console
   console.log(
     `Uploading chunk of size ${end -
@@ -205,7 +245,6 @@ async function uploadChunk(
   )
 
   const requestOptions = getRequestOptions(
-    'application/json',
     'application/octet-stream',
     totalSize,
     getContentRange(start, end, totalSize)
@@ -216,38 +255,40 @@ async function uploadChunk(
   }
 
   const response = await uploadChunkRequest()
-
-  if (!response.message.statusCode) {
-    // eslint-disable-next-line no-console
-    console.log(response)
-    throw new Error('No Status Code returned with response')
-  }
-
-  if (isSuccessStatusCode(response.message.statusCode)) {
+  if (
+    response.message.statusCode &&
+    isSuccessStatusCode(response.message.statusCode)
+  ) {
     debug(
-      `Chunk for ${start}:${end} was succesfully uploaded to ${resourceUrl}`
+      `Chunk for ${start}:${end} was successfully uploaded to ${resourceUrl}`
     )
-    return
-  }
-  if (isRetryableStatusCode(response.message.statusCode)) {
+    return true
+  } else if (
+    response.message.statusCode &&
+    isRetryableStatusCode(response.message.statusCode)
+  ) {
     // eslint-disable-next-line no-console
     console.log(
-      `Received ${response.message.statusCode}, will retry chunk at offset ${start} after 10 seconds.`
+      `Received http ${response.message.statusCode} during chunk upload, will retry at offset ${start} after 10 seconds.`
     )
     await new Promise(resolve => setTimeout(resolve, 10000))
-    // eslint-disable-next-line no-console
-    console.log(`Retrying chunk at offset ${start}`)
-
     const retryResponse = await uploadChunkRequest()
-    if (!retryResponse.message.statusCode) {
+    if (
+      retryResponse.message.statusCode &&
+      isSuccessStatusCode(retryResponse.message.statusCode)
+    ) {
+      return true
+    } else {
       // eslint-disable-next-line no-console
-      console.log(retryResponse)
-      throw new Error('No Status Code returned with response')
-    }
-    if (isSuccessStatusCode(retryResponse.message.statusCode)) {
-      return
+      console.log(`Unable to upload chunk even after retrying`)
+      return false
     }
   }
+
+  // Upload must have failed spectacularly somehow, log full result for diagnostic purposes
+  // eslint-disable-next-line no-console
+  console.log(response)
+  return false
 }
 
 /**
@@ -260,10 +301,7 @@ export async function patchArtifactSize(
   artifactName: string
 ): Promise<void> {
   const client = createHttpClient(getRuntimeToken())
-  const requestOptions = getRequestOptions(
-    'application/json',
-    'application/json'
-  )
+  const requestOptions = getRequestOptions('application/json')
   const resourceUrl = new URL(
     getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId())
   )
@@ -303,4 +341,10 @@ interface UploadFileParameters {
   restClient: HttpClient
   concurrency: number
   maxChunkSize: number
+  continueOnError: boolean
+}
+
+interface UploadFileResult {
+  isSuccess: boolean
+  successfulUploadSize: number
 }

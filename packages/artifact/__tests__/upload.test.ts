@@ -40,7 +40,7 @@ describe('Upload Tests', () => {
   it('Create Artifact - Failure', async () => {
     const artifactName = 'invalid-artifact-name'
     expect(
-      await uploadHttpClient.createArtifactInFileContainer(artifactName)
+      uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
       new Error(
         'Unable to create a container for the artifact invalid-artifact-name'
@@ -50,12 +50,12 @@ describe('Upload Tests', () => {
 
   it('Associate Artifact - Success', async () => {
     expect(async () => {
-      await uploadHttpClient.patchArtifactSize(130, 'my-artifact')
+      uploadHttpClient.patchArtifactSize(130, 'my-artifact')
     }).not.toThrow()
   })
 
   it('Associate Artifact - Not Found', async () => {
-    await expect(
+    expect(
       uploadHttpClient.patchArtifactSize(100, 'non-existent-artifact')
     ).rejects.toThrow(
       'An Artifact with the name non-existent-artifact was not found'
@@ -63,7 +63,7 @@ describe('Upload Tests', () => {
   })
 
   it('Associate Artifact - Error', async () => {
-    await expect(
+    expect(
       uploadHttpClient.patchArtifactSize(-2, 'my-artifact')
     ).rejects.toThrow('Unable to finish uploading artifact my-artifact')
   })

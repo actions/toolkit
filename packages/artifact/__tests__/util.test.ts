@@ -42,30 +42,29 @@ describe('Utils', () => {
     const runId = '15'
     const artifactUrl = utils.getArtifactUrl(runtimeUrl, runId)
     expect(artifactUrl).toEqual(
-      `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${utils.getApiVerion()}`
+      `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${utils.getApiVersion()}`
     )
   })
 
-  it('Test constucting headers with all optional parametesr', () => {
+  it('Test constructing headers with all optional parameters', () => {
     const type = 'application/json'
     const size = 24
     const range = 'bytes 0-199/200'
-    const options = utils.getRequestOptions(type, type, size, range)
+    const options = utils.getRequestOptions(type, size, range)
     expect(Object.keys(options).length).toEqual(4)
     expect(options['Accept']).toEqual(
-      `${type};api-version=${utils.getApiVerion()}`
+      `${type};api-version=${utils.getApiVersion()}`
     )
     expect(options['Content-Type']).toEqual(type)
     expect(options['Content-Length']).toEqual(size)
     expect(options['Content-Range']).toEqual(range)
   })
 
-  it('Test constucting headers with only required parameter', () => {
-    const type = 'application/json'
-    const options = utils.getRequestOptions(type)
+  it('Test constructing headers with only required parameter', () => {
+    const options = utils.getRequestOptions()
     expect(Object.keys(options).length).toEqual(1)
     expect(options['Accept']).toEqual(
-      `${type};api-version=${utils.getApiVerion()}`
+      `application/json;api-version=${utils.getApiVersion()}`
     )
   })
 
