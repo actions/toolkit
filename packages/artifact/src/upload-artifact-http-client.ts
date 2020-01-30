@@ -16,14 +16,12 @@ import {
   createHttpClient,
   getArtifactUrl,
   getContentRange,
-  getRuntimeToken,
-  getRuntimeUrl,
   getRequestOptions,
-  getWorkFlowRunId,
   isRetryableStatusCode,
   isSuccessStatusCode,
   parseEnvNumber
 } from './utils'
+import {getRuntimeToken, getRuntimeUrl, getWorkFlowRunId} from './env-variables'
 
 const defaultChunkUploadConcurrency = 3
 const defaultFileUploadConcurrency = 2
@@ -36,30 +34,26 @@ const defaultFileUploadConcurrency = 2
 export async function createArtifactInFileContainer(
   artifactName: string
 ): Promise<CreateArtifactResponse> {
-  const client = createHttpClient(getRuntimeToken())
   const parameters: CreateArtifactParameters = {
     Type: 'actions_storage',
     Name: artifactName
   }
   const data: string = JSON.stringify(parameters, null, 2)
+  const artifactUrl = getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId())
+  const client = createHttpClient(getRuntimeToken())
   const requestOptions = getRequestOptions(
     'application/json',
     'application/json'
   )
-  const rawResponse: HttpClientResponse = await client.post(
-    getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId()),
-    data,
-    requestOptions
-  )
 
+  const rawResponse = await client.post(artifactUrl, data, requestOptions)
   const body: string = await rawResponse.readBody()
-  const response: CreateArtifactResponse = JSON.parse(body)
-  // eslint-disable-next-line no-console
-  console.log(response)
 
-  if (rawResponse.message.statusCode === 201 && response) {
-    return response
+  if (rawResponse.message.statusCode === 201 && body) {
+    return JSON.parse(body)
   } else {
+    // eslint-disable-next-line no-console
+    console.log(rawResponse)
     throw new Error(
       'Non 201 status code when creating file container for new artifact'
     )
@@ -278,9 +272,7 @@ export async function patchArtifactSize(
 
   const parameters: PatchArtifactSize = {Size: size}
   const data: string = JSON.stringify(parameters, null, 2)
-
-  // eslint-disable-next-line no-console
-  console.log(`URL is ${resourceUrl.toString()}`)
+  debug(`URL is ${resourceUrl.toString()}`)
 
   const rawResponse: HttpClientResponse = await client.patch(
     resourceUrl.toString(),

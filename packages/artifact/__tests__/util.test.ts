@@ -1,7 +1,10 @@
 import * as utils from '../src/utils'
 import {HttpCodes} from '@actions/http-client'
 
-describe('utils', () => {
+// use the actual implementation of for these tests @actions/http-client
+jest.unmock('@actions/http-client')
+
+describe('Utils', () => {
   it('Check Artifact Name for any invalid characters', () => {
     const invalidNames = [
       'my\\artifact',
