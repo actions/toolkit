@@ -27,9 +27,9 @@ const defaultChunkUploadConcurrency = 3
 const defaultFileUploadConcurrency = 2
 
 /**
- * Step 1 of 3 when uploading an artifact. Creates a file container for the new artifact in the remote blob storage/file service
+ * Creates a file container for the new artifact in the remote blob storage/file service
  * @param {string} artifactName Name of the artifact being created
- * @returns The response from the Artifact Service if the file container was succesfully created
+ * @returns The response from the Artifact Service if the file container was successfully created
  */
 export async function createArtifactInFileContainer(
   artifactName: string
@@ -49,19 +49,19 @@ export async function createArtifactInFileContainer(
   const rawResponse = await client.post(artifactUrl, data, requestOptions)
   const body: string = await rawResponse.readBody()
 
-  if (rawResponse.message.statusCode === 201 && body) {
+  if (rawResponse.message.statusCode && isSuccessStatusCode(rawResponse.message.statusCode) && body) {
     return JSON.parse(body)
   } else {
     // eslint-disable-next-line no-console
     console.log(rawResponse)
     throw new Error(
-      'Non 201 status code when creating file container for new artifact'
+      `Unable to create a container for the artifact ${artifactName}`
     )
   }
 }
 
 /**
- * Step 2 of 3 when uploading an artifact. Concurrently upload all of the files in chunks
+ * Concurrently upload all of the files in chunks
  * @param {string} uploadUrl Base Url for the artifact that was created
  * @param {SearchResult[]} filesToUpload A list of information about the files being uploaded
  * @returns The size of all the files uploaded in bytes
@@ -134,7 +134,7 @@ export async function uploadArtifactToFileContainer(
 }
 
 /**
- * Asyncronously uploads a file. If the file is bigger than the max chunk size it will be uploaded via multiple calls
+ * Asynchronously uploads a file. If the file is bigger than the max chunk size it will be uploaded via multiple calls
  * @param {UploadFileParameters} parameters Information about the files that need to be uploaded
  * @returns The size of the file that was uploaded in bytes
  */
@@ -242,7 +242,7 @@ async function uploadChunk(
     if (!retryResponse.message.statusCode) {
       // eslint-disable-next-line no-console
       console.log(retryResponse)
-      throw new Error('No Status Code returne with response')
+      throw new Error('No Status Code returned with response')
     }
     if (isSuccessStatusCode(retryResponse.message.statusCode)) {
       return
@@ -251,10 +251,9 @@ async function uploadChunk(
 }
 
 /**
- * Step 3 of 3 when uploading an artifact
- * Updates the size of the artifact from -1 which was initially set during step 1. Updating the size indicates that we are
- * done uploading all the contents of the artifact. A server side check will be run to check that the artifact size is correct
- * for billing purposes
+ * Updates the size of the artifact from -1 which was initially set when the container was first created for the artifact.
+ * Updating the size indicates that we are done uploading all the contents of the artifact. A server side check will be run
+ * to check that the artifact size is correct for billing purposes
  */
 export async function patchArtifactSize(
   size: number,

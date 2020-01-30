@@ -15,9 +15,9 @@ export function parseEnvNumber(key: string): number | undefined {
 }
 
 /**
- * Various utlity functions to help with the neceesary API calls
+ * Various utility functions to help with the necessary API calls
  */
-export function getApiVerion(): string {
+export function getApiVersion(): string {
   return '6.0-preview'
 }
 
@@ -39,7 +39,7 @@ export function getContentRange(
   end: number,
   total: number
 ): string {
-  // Format: `bytes start-end/filesize
+  // Format: `bytes start-end/fileSize
   // start and end are inclusive
   // For a 200 byte chunk starting at byte 0:
   // Content-Range: bytes 0-199/200
@@ -49,17 +49,17 @@ export function getContentRange(
 export function getRequestOptions(
   acceptType: string,
   contentType?: string,
-  contentLenght?: number,
+  contentLength?: number,
   contentRange?: string
 ): IHeaders {
   const requestOptions: IHeaders = {
-    Accept: `${acceptType};api-version=${getApiVerion()}`
+    Accept: `${acceptType};api-version=${getApiVersion()}`
   }
   if (contentType) {
     requestOptions['Content-Type'] = contentType
   }
-  if (contentLenght) {
-    requestOptions['Content-Length'] = contentLenght
+  if (contentLength) {
+    requestOptions['Content-Length'] = contentLength
   }
   if (contentRange) {
     requestOptions['Content-Range'] = contentRange
@@ -72,7 +72,7 @@ export function createHttpClient(token: string): HttpClient {
 }
 
 export function getArtifactUrl(runtimeUrl: string, runId: string): string {
-  const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${getApiVerion()}`
+  const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${getApiVersion()}`
   debug(`Artifact Url: ${artifactUrl}`)
   return artifactUrl
 }
@@ -81,7 +81,7 @@ export function getArtifactUrl(runtimeUrl: string, runId: string): string {
  * Invalid characters that cannot be in the artifact name or an uploaded file. Will be rejected
  * from the server if attempted to be sent over. These characters are not allowed due to limitations with certain
  * file systems such as NTFS. To maintain platform-agnostic behavior, all characters that are not supported by an
- * individual filesystem/platform will not be supported on all filesystems/platforms
+ * individual filesystem/platform will not be supported on all fileSystems/platforms
  */
 const invalidCharacters = ['\\', '/', '"', ':', '<', '>', '|', '*', '?', ' ']
 

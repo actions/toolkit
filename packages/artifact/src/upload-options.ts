@@ -5,8 +5,8 @@ export interface UploadOptions {
    * download at the end. The size reported will be the amount of storage that the user or org will be
    * charged for the partial artifact. Defaults to true if not specified
    *
-   * If set to false, and an error is encountered, all other uploads will stop and any files or chunkes
-   * that were queued will not be attempted to be uploaded. The partial artifact avaiable will only
+   * If set to false, and an error is encountered, all other uploads will stop and any files or chunks
+   * that were queued will not be attempted to be uploaded. The partial artifact available will only
    * include files and chunks up until the failure
    *
    * If set to true and an error is encountered, the failed file will be skipped and ignored and all

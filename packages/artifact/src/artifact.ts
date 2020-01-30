@@ -33,7 +33,7 @@ export async function uploadArtifact(
 
   if (filesToUpload === undefined) {
     throw new Error(
-      `Unable to succesfully search for files to upload with the provided path: ${path}`
+      `Unable to successfully search for files to upload with the provided path: ${path}`
     )
   } else if (filesToUpload.length === 0) {
     core.warning(

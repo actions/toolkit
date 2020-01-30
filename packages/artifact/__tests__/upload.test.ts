@@ -40,10 +40,10 @@ describe('Upload Tests', () => {
   it('Create Artifact - Failure', async () => {
     const artifactName = 'invalid-artifact-name'
     expect(
-      uploadHttpClient.createArtifactInFileContainer(artifactName)
+      await uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
       new Error(
-        'Non 201 status code when creating file container for new artifact'
+        'Unable to create a container for the artifact invalid-artifact-name'
       )
     )
   })
