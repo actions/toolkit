@@ -138,7 +138,7 @@ export async function uploadArtifactToFileContainer(
   )
 
   // eslint-disable-next-line no-console
-  console.log(`Total size of all the files uploaded ${fileSizes}`)
+  console.log(`Total size of all the files uploaded is ${fileSizes} bytes`)
   return {
     size: fileSizes,
     failedItems: failedItemsToReport
@@ -320,12 +320,8 @@ export async function patchArtifactSize(
 
   if (rawResponse.message.statusCode === 200) {
     const successResponse: PatchArtifactSizeSuccessResponse = JSON.parse(body)
-    // eslint-disable-next-line no-console
-    console.log(
-      `Artifact ${artifactName} uploaded successfully, total size ${size}`
-    )
-    // eslint-disable-next-line no-console
-    console.log(successResponse)
+    debug(`Artifact ${artifactName} uploaded successfully, total size ${size}`)
+    debug(successResponse.toString())
   } else if (rawResponse.message.statusCode === 404) {
     throw new Error(`An Artifact with the name ${artifactName} was not found`)
   } else {

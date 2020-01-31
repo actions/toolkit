@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as uploadHttpClient from '../src/upload-artifact-http-client'
 import {promises as fs} from 'fs'
 import {getRuntimeUrl} from '../src/config-variables'
-import {HttpClient, HttpClientResponse} from '@actions/http-client/index'
+import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {
   CreateArtifactResponse,
   PatchArtifactSizeSuccessResponse
@@ -268,44 +268,43 @@ describe('Upload Tests', () => {
 
   function mockHttpPost(): void {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    HttpClient.prototype.post = async (
-      requestdata,
-      data
-    ): Promise<HttpClientResponse> => {
-      // parse the input data and use the provided artifact name as part of the response
-      const inputData = JSON.parse(data)
-      const mockMessage = new http.IncomingMessage(new net.Socket())
-      let mockReadBody = mockReadBodyEmpty
+    HttpClient.prototype.post = jest.fn(
+      async (requestdata, data): Promise<HttpClientResponse> => {
+        // parse the input data and use the provided artifact name as part of the response
+        const inputData = JSON.parse(data)
+        const mockMessage = new http.IncomingMessage(new net.Socket())
+        let mockReadBody = mockReadBodyEmpty
 
-      if (inputData.Name === 'invalid-artifact-name') {
-        mockMessage.statusCode = 400
-      } else {
-        mockMessage.statusCode = 201
-        const response: CreateArtifactResponse = {
-          containerId: '13',
-          size: -1,
-          signedContent: 'false',
-          fileContainerResourceUrl: `${getRuntimeUrl()}_apis/resources/Containers/13`,
-          type: 'actions_storage',
-          name: inputData.Name,
-          url: `${getRuntimeUrl()}_apis/pipelines/1/runs/1/artifacts?artifactName=${
-            inputData.Name
-          }`
+        if (inputData.Name === 'invalid-artifact-name') {
+          mockMessage.statusCode = 400
+        } else {
+          mockMessage.statusCode = 201
+          const response: CreateArtifactResponse = {
+            containerId: '13',
+            size: -1,
+            signedContent: 'false',
+            fileContainerResourceUrl: `${getRuntimeUrl()}_apis/resources/Containers/13`,
+            type: 'actions_storage',
+            name: inputData.Name,
+            url: `${getRuntimeUrl()}_apis/pipelines/1/runs/1/artifacts?artifactName=${
+              inputData.Name
+            }`
+          }
+          const returnData: string = JSON.stringify(response, null, 2)
+          mockReadBody = async function(): Promise<string> {
+            return new Promise(resolve => {
+              resolve(returnData)
+            })
+          }
         }
-        const returnData: string = JSON.stringify(response, null, 2)
-        mockReadBody = async function(): Promise<string> {
-          return new Promise(resolve => {
-            resolve(returnData)
+        return new Promise<HttpClientResponse>(resolve => {
+          resolve({
+            message: mockMessage,
+            readBody: mockReadBody
           })
-        }
-      }
-      return new Promise<HttpClientResponse>(resolve => {
-        resolve({
-          message: mockMessage,
-          readBody: mockReadBody
         })
-      })
-    }
+      }
+    )
   }
 
   function mockHttpSendStream(): void {
