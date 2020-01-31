@@ -106,9 +106,8 @@ describe('Search', () => {
   })
 
   /**
-   *  Creates a single item in <TempDir>/single-file-artifact/folder-a/folder-b/folder-b/file-under-c.txt
-   *  Expected to find that item with full file path provided
-   *  Only 1 item is expected to be found so the uploadFilePath is expected to be {artifactName}/file-under-c.txt
+   *  Expected to find one item with full file path provided
+   *  Only 1 item is expected to be found so the uploadFilePath is expected to be {artifactName}/extra-file-in-folder-c.txt
    */
   it('Single file search - full path', async () => {
     const expectedUploadFilePath = path.join(
@@ -135,9 +134,8 @@ describe('Search', () => {
   })
 
   /**
-   *  Creates a single item in <TempDir>/single-file-artifact/folder-a/folder-b/folder-b/file-under-c.txt
-   *  Expected to find that one item with a provided wildcard pattern
-   *  Only 1 item is expected to be found so the uploadFilePath is expected to be {artifactName}/file-under-c.txt
+   *  Expected to find one item with the provided wildcard pattern
+   *  Only 1 item is expected to be found so the uploadFilePath is expected to be {artifactName}/good-item1.txt
    */
   it('Single file search - wildcard pattern', async () => {
     const searchPath = path.join(root, '**/good*m1.txt')

@@ -18,13 +18,16 @@ import {
   getContentRange,
   getRequestOptions,
   isRetryableStatusCode,
-  isSuccessStatusCode,
-  parseEnvNumber
+  isSuccessStatusCode
 } from './utils'
-import {getRuntimeToken, getRuntimeUrl, getWorkFlowRunId} from './env-variables'
-
-const defaultChunkUploadConcurrency = 3
-const defaultFileUploadConcurrency = 2
+import {
+  getRuntimeToken,
+  getRuntimeUrl,
+  getWorkFlowRunId,
+  getUploadChunkConcurrency,
+  getUploadChunkSize,
+  getUploadFileConcurrency
+} from './config-variables'
 
 /**
  * Creates a file container for the new artifact in the remote blob storage/file service
@@ -73,21 +76,18 @@ export async function uploadArtifactToFileContainer(
   options?: UploadOptions
 ): Promise<UploadResults> {
   const client = createHttpClient(getRuntimeToken())
-
-  const FILE_CONCURRENCY =
-    parseEnvNumber('ARTIFACT_FILE_UPLOAD_CONCURRENCY') ||
-    defaultFileUploadConcurrency
-  const CHUNK_CONCURRENCY =
-    parseEnvNumber('ARTIFACT_CHUNK_UPLOAD_CONCURRENCY') ||
-    defaultChunkUploadConcurrency
-  const MAX_CHUNK_SIZE =
-    parseEnvNumber('ARTIFACT_UPLOAD_CHUNK_SIZE') || 4 * 1024 * 1024 // 4 MB Chunks
+  const FILE_CONCURRENCY = getUploadFileConcurrency()
+  const CHUNK_CONCURRENCY = getUploadChunkConcurrency()
+  const MAX_CHUNK_SIZE = getUploadChunkSize()
   debug(
     `File Concurrency: ${FILE_CONCURRENCY}, Chunk Concurrency: ${CHUNK_CONCURRENCY} and Chunk Size: ${MAX_CHUNK_SIZE}`
   )
 
   const parameters: UploadFileParameters[] = []
-  const continueOnError = options?.continueOnError || true
+  let continueOnError = true
+  if (options) {
+    continueOnError = options.continueOnError
+  }
 
   // Prepare the necessary parameters to upload all the files
   for (const file of filesToUpload) {
@@ -190,12 +190,12 @@ async function uploadFileAsync(
           end,
           fileSize
         )
+
         if (!result) {
           /**
            * Chunk failed to upload, report as failed but continue if desired. It is possible that part of a chunk was
            * successfully uploaded so the server may report a different size for what was uploaded
            **/
-
           isUploadSuccessful = false
           failedChunkSizes += chunkSize
           if (!parameters.continueOnError) {

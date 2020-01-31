@@ -1,3 +1,15 @@
+export function getUploadFileConcurrency(): number {
+  return 2
+}
+
+export function getUploadChunkConcurrency(): number {
+  return 3
+}
+
+export function getUploadChunkSize(): number {
+  return 4 * 1024 * 1024 // 4 MB Chunks
+}
+
 export function getRuntimeToken(): string {
   const token = process.env['ACTIONS_RUNTIME_TOKEN']
   if (!token) {
