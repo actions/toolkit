@@ -31,11 +31,7 @@ export async function uploadArtifact(
   // Search for the items that will be uploaded
   const filesToUpload: SearchResult[] = await findFilesToUpload(name, path)
 
-  if (filesToUpload === undefined) {
-    throw new Error(
-      `Unable to successfully search for files to upload with the provided path: ${path}`
-    )
-  } else if (filesToUpload.length === 0) {
+  if (filesToUpload.length === 0) {
     core.warning(
       `No files were found for the provided path: ${path}. No artifacts will be uploaded.`
     )
@@ -47,7 +43,6 @@ export async function uploadArtifact(
     }
   } else {
     /**
-     * Step 1 of 3
      * Create an entry for the artifact in the file container
      */
     const response = await createArtifactInFileContainer(name)
@@ -60,7 +55,6 @@ export async function uploadArtifact(
     core.debug(`Upload Resource URL: ${response.fileContainerResourceUrl}`)
 
     /**
-     * Step 2 of 3
      * Upload each of the files that were found concurrently
      */
     const uploadResult = await uploadArtifactToFileContainer(
@@ -68,16 +62,16 @@ export async function uploadArtifact(
       filesToUpload,
       options
     )
+
+    /**
+     * Update the size of the artifact to indicate we are done uploading
+     */
+    await patchArtifactSize(uploadResult.size, name)
+    
     // eslint-disable-next-line no-console
     console.log(
       `Finished uploading artifact ${name}. Reported size is ${uploadResult.size} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
     )
-
-    /**
-     * Step 3 of 3
-     * Update the size of the artifact to indicate we are done uploading
-     */
-    await patchArtifactSize(uploadResult.size, name)
 
     return {
       artifactName: name,
