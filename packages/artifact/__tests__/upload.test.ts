@@ -317,15 +317,13 @@ describe('Upload Tests', () => {
      */
     jest
       .spyOn(HttpClient.prototype, 'sendStream')
-      .mockImplementation(async (verb, requestUrl, stream) => {
+      .mockImplementation(async (verb, requestUrl) => {
         const mockMessage = new http.IncomingMessage(new net.Socket())
         mockMessage.statusCode = 200
-        if (!stream.readable) {
-          throw new Error('Unable to read provided stream')
-        }
         if (requestUrl.includes('fail')) {
           mockMessage.statusCode = 500
         }
+
         return new Promise<HttpClientResponse>(resolve => {
           resolve({
             message: mockMessage,
