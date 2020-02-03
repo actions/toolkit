@@ -44,7 +44,7 @@ describe('Upload Tests', () => {
     await fs.writeFile(file4Path, 'this is file 4')
     await fs.writeFile(file5Path, 'this is file 5')
     /*
-      Directory structure for files that were created:
+      Directory structure for files that get created:
       root/
         file1.txt
         file2.txt
@@ -61,11 +61,6 @@ describe('Upload Tests', () => {
     file3Size = (await fs.stat(file3Path)).size
     file4Size = (await fs.stat(file4Path)).size
     file5Size = (await fs.stat(file5Path)).size
-  })
-
-  afterAll(async () => {
-    jest.resetAllMocks()
-    await io.rmRF(root)
   })
 
   /**

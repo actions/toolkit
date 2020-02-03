@@ -75,7 +75,7 @@ describe('Search', () => {
 
     await fs.writeFile(amazingFileInFolderHPath, 'amazing file')
     /*
-      Directory structure of files that were created:
+      Directory structure of files that get created:
       root/
           folder-a/
               folder-b/
@@ -99,10 +99,6 @@ describe('Search', () => {
                   bad-item5.txt
           good-item5.txt
     */
-  })
-
-  afterAll(async () => {
-    await io.rmRF(root)
   })
 
   /**
