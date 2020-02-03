@@ -17,6 +17,16 @@ export interface PatchArtifactSize {
   Size: number
 }
 
+export interface PatchArtifactSizeSuccessResponse {
+  containerId: number
+  size: number
+  signedContent: string
+  type: string
+  name: string
+  url: string
+  uploadUrl: string
+}
+
 export interface UploadResults {
   size: number
   failedItems: string[]
