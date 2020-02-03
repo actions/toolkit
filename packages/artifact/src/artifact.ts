@@ -30,7 +30,7 @@ export async function uploadArtifact(
 
   // Search for the items that will be uploaded
   const filesToUpload: SearchResult[] = await findFilesToUpload(name, path)
-  let uploadInfo: UploadInfo = {
+  const uploadInfo: UploadInfo = {
     artifactName: name,
     artifactItems: [],
     size: 0,
@@ -74,8 +74,8 @@ export async function uploadArtifact(
     )
 
     uploadInfo.artifactItems = filesToUpload.map(item => item.absoluteFilePath)
-    uploadResult.size = uploadResult.size
-    uploadResult.failedItems = uploadResult.failedItems
+    uploadInfo.size = uploadResult.size
+    uploadInfo.failedItems = uploadResult.failedItems
   }
   return uploadInfo
 }

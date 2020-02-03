@@ -5,7 +5,6 @@ import {
   CreateArtifactResponse,
   CreateArtifactParameters,
   PatchArtifactSize,
-  PatchArtifactSizeSuccessResponse,
   UploadResults
 } from './contracts'
 import * as fs from 'fs'
