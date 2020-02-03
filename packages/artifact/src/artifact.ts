@@ -30,17 +30,17 @@ export async function uploadArtifact(
 
   // Search for the items that will be uploaded
   const filesToUpload: SearchResult[] = await findFilesToUpload(name, path)
+  let uploadInfo: UploadInfo = {
+    artifactName: name,
+    artifactItems: [],
+    size: 0,
+    failedItems: []
+  }
 
   if (filesToUpload.length === 0) {
     core.warning(
       `No files were found for the provided path: ${path}. No artifacts will be uploaded.`
     )
-    return {
-      artifactName: name,
-      artifactItems: [],
-      size: 0,
-      failedItems: []
-    }
   } else {
     /**
      * Create an entry for the artifact in the file container
@@ -73,13 +73,11 @@ export async function uploadArtifact(
       `Finished uploading artifact ${name}. Reported size is ${uploadResult.size} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
     )
 
-    return {
-      artifactName: name,
-      artifactItems: filesToUpload.map(item => item.absoluteFilePath),
-      size: uploadResult.size,
-      failedItems: uploadResult.failedItems
-    }
+    uploadInfo.artifactItems = filesToUpload.map(item => item.absoluteFilePath)
+    uploadResult.size = uploadResult.size
+    uploadResult.failedItems = uploadResult.failedItems
   }
+  return uploadInfo
 }
 
 /*

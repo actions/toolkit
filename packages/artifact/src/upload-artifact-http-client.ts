@@ -277,6 +277,8 @@ async function uploadChunk(
     } else {
       // eslint-disable-next-line no-console
       console.log(`Unable to upload chunk even after retrying`)
+      // eslint-disable-next-line no-console
+      console.log(response)
       return false
     }
   }
@@ -314,10 +316,13 @@ export async function patchArtifactSize(
   )
   const body: string = await rawResponse.readBody()
 
-  if (rawResponse.message.statusCode === 200) {
-    const successResponse: PatchArtifactSizeSuccessResponse = JSON.parse(body)
-    debug(`Artifact ${artifactName} uploaded successfully, total size ${size}`)
-    debug(successResponse.toString())
+  if (
+    rawResponse.message.statusCode &&
+    isSuccessStatusCode(rawResponse.message.statusCode)
+  ) {
+    debug(
+      `Artifact ${artifactName} has been successfully uploaded, total size ${size}`
+    )
   } else if (rawResponse.message.statusCode === 404) {
     throw new Error(`An Artifact with the name ${artifactName} was not found`)
   } else {
