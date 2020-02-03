@@ -92,10 +92,6 @@ export async function uploadArtifactToFileContainer(
   // Prepare the necessary parameters to upload all the files
   for (const file of filesToUpload) {
     const resourceUrl = new URL(uploadUrl)
-    resourceUrl.searchParams.append(
-      'scope',
-      '00000000-0000-0000-0000-000000000000'
-    )
     resourceUrl.searchParams.append('itemPath', file.uploadFilePath)
     parameters.push({
       file: file.absoluteFilePath,
