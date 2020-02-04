@@ -8,7 +8,7 @@ import {
   UploadResults
 } from './contracts'
 import * as fs from 'fs'
-import {SearchResult} from './search'
+import {UploadSpecification} from './upload-specification'
 import {UploadOptions} from './upload-options'
 import {URL} from 'url'
 import {
@@ -71,7 +71,7 @@ export async function createArtifactInFileContainer(
  */
 export async function uploadArtifactToFileContainer(
   uploadUrl: string,
-  filesToUpload: SearchResult[],
+  filesToUpload: UploadSpecification[],
   options?: UploadOptions
 ): Promise<UploadResults> {
   const client = createHttpClient(getRuntimeToken())

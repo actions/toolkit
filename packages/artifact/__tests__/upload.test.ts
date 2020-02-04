@@ -10,7 +10,7 @@ import {
   CreateArtifactResponse,
   PatchArtifactSizeSuccessResponse
 } from '../src/contracts'
-import {SearchResult} from '../src/search'
+import {UploadSpecification} from '../src/upload-specification'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')
@@ -104,7 +104,7 @@ describe('Upload Tests', () => {
      * focuses solely on the upload APIs so searchResult[] will be hard-coded
      */
     const artifactName = 'successful-artifact'
-    const searchResult: SearchResult[] = [
+    const uploadSpecification: UploadSpecification[] = [
       {
         absoluteFilePath: file1Path,
         uploadFilePath: `${artifactName}/file1.txt`
@@ -132,14 +132,14 @@ describe('Upload Tests', () => {
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
-      searchResult
+      uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(0)
     expect(uploadResult.size).toEqual(expectedTotalSize)
   })
 
   it('Upload Artifact - Failed Single File Upload', async () => {
-    const searchResult: SearchResult[] = [
+    const uploadSpecification: UploadSpecification[] = [
       {
         absoluteFilePath: file1Path,
         uploadFilePath: `this-file-upload-will-fail`
@@ -149,7 +149,7 @@ describe('Upload Tests', () => {
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
-      searchResult
+      uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(1)
     expect(uploadResult.size).toEqual(0)
@@ -157,7 +157,7 @@ describe('Upload Tests', () => {
 
   it('Upload Artifact - Partial Upload Continue On Error', async () => {
     const artifactName = 'partial-artifact'
-    const searchResult: SearchResult[] = [
+    const uploadSpecification: UploadSpecification[] = [
       {
         absoluteFilePath: file1Path,
         uploadFilePath: `${artifactName}/file1.txt`
@@ -184,7 +184,7 @@ describe('Upload Tests', () => {
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
-      searchResult,
+      uploadSpecification,
       {continueOnError: true}
     )
     expect(uploadResult.failedItems.length).toEqual(1)
@@ -193,7 +193,7 @@ describe('Upload Tests', () => {
 
   it('Upload Artifact - Partial Upload Fail Fast', async () => {
     const artifactName = 'partial-artifact'
-    const searchResult: SearchResult[] = [
+    const uploadSpecification: UploadSpecification[] = [
       {
         absoluteFilePath: file1Path,
         uploadFilePath: `${artifactName}/file1.txt`
@@ -220,7 +220,7 @@ describe('Upload Tests', () => {
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
-      searchResult,
+      uploadSpecification,
       {continueOnError: false}
     )
     expect(uploadResult.failedItems.length).toEqual(2)

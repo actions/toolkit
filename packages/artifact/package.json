@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "@actions/core": "^1.2.1",
-    "@actions/glob": "^0.1.0",
     "@actions/http-client": "^1.0.1"
   }
 }

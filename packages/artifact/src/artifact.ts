@@ -1,5 +1,8 @@
 import * as core from '@actions/core'
-import {SearchResult, findFilesToUpload} from './search'
+import {
+  UploadSpecification,
+  getUploadSpecification
+} from './upload-specification'
 import {
   createArtifactInFileContainer,
   uploadArtifactToFileContainer,
@@ -13,23 +16,25 @@ import {checkArtifactName} from './utils'
  * Uploads an artifact
  *
  * @param name the name of the artifact, required
- * @param path the directory, file, or glob pattern to denote what will be uploaded, required
+ * @param files a list of absolute paths that denote what files should be uploaded
+ * @param rootDirectory an absolute file path that denotes the root parent directory of the files being uploaded
  * @param options extra options for customizing the upload behavior
  * @returns single UploadInfo object
  */
 export async function uploadArtifact(
   name: string,
-  path: string,
+  files: string[],
+  rootDirectory: string,
   options?: UploadOptions
 ): Promise<UploadInfo> {
   checkArtifactName(name)
 
-  if (!path) {
-    throw new Error('Upload path must be provided')
-  }
-
-  // Search for the items that will be uploaded
-  const filesToUpload: SearchResult[] = await findFilesToUpload(name, path)
+  // Get specification for the files being uploaded
+  const uploadSpecification: UploadSpecification[] = getUploadSpecification(
+    name,
+    rootDirectory,
+    files
+  )
   const uploadInfo: UploadInfo = {
     artifactName: name,
     artifactItems: [],
@@ -37,14 +42,10 @@ export async function uploadArtifact(
     failedItems: []
   }
 
-  if (filesToUpload.length === 0) {
-    core.warning(
-      `No files were found for the provided path: ${path}. No artifacts will be uploaded.`
-    )
+  if (uploadSpecification.length === 0) {
+    core.warning(`No files found that can be uploaded`)
   } else {
-    /**
-     * Create an entry for the artifact in the file container
-     */
+    // Create an entry for the artifact in the file container
     const response = await createArtifactInFileContainer(name)
     if (!response.fileContainerResourceUrl) {
       core.debug(response.toString())
@@ -54,18 +55,14 @@ export async function uploadArtifact(
     }
     core.debug(`Upload Resource URL: ${response.fileContainerResourceUrl}`)
 
-    /**
-     * Upload each of the files that were found concurrently
-     */
+    // Upload each of the files that were found concurrently
     const uploadResult = await uploadArtifactToFileContainer(
       response.fileContainerResourceUrl,
-      filesToUpload,
+      uploadSpecification,
       options
     )
 
-    /**
-     * Update the size of the artifact to indicate we are done uploading
-     */
+    //Update the size of the artifact to indicate we are done uploading
     await patchArtifactSize(uploadResult.size, name)
 
     // eslint-disable-next-line no-console
@@ -73,7 +70,9 @@ export async function uploadArtifact(
       `Finished uploading artifact ${name}. Reported size is ${uploadResult.size} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
     )
 
-    uploadInfo.artifactItems = filesToUpload.map(item => item.absoluteFilePath)
+    uploadInfo.artifactItems = uploadSpecification.map(
+      item => item.absoluteFilePath
+    )
     uploadInfo.size = uploadResult.size
     uploadInfo.failedItems = uploadResult.failedItems
   }
