@@ -1,4 +1,4 @@
-export interface CreateArtifactResponse {
+export interface ArtifactResponse {
   containerId: string
   size: number
   signedContent: string

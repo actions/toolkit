@@ -2,12 +2,12 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import * as uploadHttpClient from '../src/upload-artifact-http-client'
+import * as uploadHttpClient from '../src/upload-http-client'
 import {promises as fs} from 'fs'
 import {getRuntimeUrl} from '../src/config-variables'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {
-  CreateArtifactResponse,
+  ArtifactResponse,
   PatchArtifactSizeSuccessResponse
 } from '../src/contracts'
 import {UploadSpecification} from '../src/upload-specification'
@@ -278,7 +278,7 @@ describe('Upload Tests', () => {
           mockMessage.statusCode = 400
         } else {
           mockMessage.statusCode = 201
-          const response: CreateArtifactResponse = {
+          const response: ArtifactResponse = {
             containerId: '13',
             size: -1,
             signedContent: 'false',

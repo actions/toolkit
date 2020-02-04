@@ -7,7 +7,7 @@ import {
   createArtifactInFileContainer,
   uploadArtifactToFileContainer,
   patchArtifactSize
-} from './upload-artifact-http-client'
+} from './upload-http-client'
 import {UploadInfo} from './upload-info'
 import {UploadOptions} from './upload-options'
 import {checkArtifactName} from './utils'
@@ -88,7 +88,7 @@ export async function downloadArtifact(
     options?: DownloadOptions
   ): Promise<DownloadInfo> {
 
-    TODO
+  TODO
 }
 
 Downloads all artifacts associated with a run. Because there are multiple artifacts being downloaded, a folder will be created for each one in the specified or default directory

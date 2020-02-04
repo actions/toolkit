@@ -2,7 +2,7 @@ import {debug} from '@actions/core'
 import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {
-  CreateArtifactResponse,
+  ArtifactResponse,
   CreateArtifactParameters,
   PatchArtifactSize,
   UploadResults
@@ -32,7 +32,7 @@ import {
  */
 export async function createArtifactInFileContainer(
   artifactName: string
-): Promise<CreateArtifactResponse> {
+): Promise<ArtifactResponse> {
   const parameters: CreateArtifactParameters = {
     Type: 'actions_storage',
     Name: artifactName
