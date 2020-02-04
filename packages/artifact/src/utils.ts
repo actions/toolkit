@@ -2,6 +2,11 @@ import {debug} from '@actions/core'
 import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {IHeaders} from '@actions/http-client/interfaces'
+import {
+  getRuntimeToken,
+  getRuntimeUrl,
+  getWorkFlowRunId
+} from './config-variables'
 
 /**
  * Parses a env variable that is a number
@@ -66,12 +71,14 @@ export function getRequestOptions(
   return requestOptions
 }
 
-export function createHttpClient(token: string): HttpClient {
-  return new HttpClient('action/artifact', [new BearerCredentialHandler(token)])
+export function createHttpClient(): HttpClient {
+  return new HttpClient('action/artifact', [
+    new BearerCredentialHandler(getRuntimeToken())
+  ])
 }
 
-export function getArtifactUrl(runtimeUrl: string, runId: string): string {
-  const artifactUrl = `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${getApiVersion()}`
+export function getArtifactUrl(): string {
+  const artifactUrl = `${getRuntimeUrl()}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${getApiVersion()}`
   debug(`Artifact Url: ${artifactUrl}`)
   return artifactUrl
 }

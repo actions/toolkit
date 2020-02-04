@@ -1,8 +1,8 @@
 import * as utils from '../src/utils'
 import {HttpCodes} from '@actions/http-client'
+import {getRuntimeUrl, getWorkFlowRunId} from '../src/config-variables'
 
-// use the actual implementation of for these tests @actions/http-client
-jest.unmock('@actions/http-client')
+jest.mock('../src/config-variables')
 
 describe('Utils', () => {
   it('Check Artifact Name for any invalid characters', () => {
@@ -38,9 +38,9 @@ describe('Utils', () => {
   })
 
   it('Test constructing artifact URL', () => {
-    const runtimeUrl = 'https://pipelines.actions.githubusercontent.com/abcd/'
-    const runId = '15'
-    const artifactUrl = utils.getArtifactUrl(runtimeUrl, runId)
+    const runtimeUrl = getRuntimeUrl()
+    const runId = getWorkFlowRunId()
+    const artifactUrl = utils.getArtifactUrl()
     expect(artifactUrl).toEqual(
       `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${utils.getApiVersion()}`
     )

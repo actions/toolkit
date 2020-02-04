@@ -20,9 +20,6 @@ import {
   isSuccessStatusCode
 } from './utils'
 import {
-  getRuntimeToken,
-  getRuntimeUrl,
-  getWorkFlowRunId,
   getUploadChunkConcurrency,
   getUploadChunkSize,
   getUploadFileConcurrency
@@ -41,8 +38,8 @@ export async function createArtifactInFileContainer(
     Name: artifactName
   }
   const data: string = JSON.stringify(parameters, null, 2)
-  const artifactUrl = getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId())
-  const client = createHttpClient(getRuntimeToken())
+  const artifactUrl = getArtifactUrl()
+  const client = createHttpClient()
   const requestOptions = getRequestOptions('application/json')
 
   const rawResponse = await client.post(artifactUrl, data, requestOptions)
@@ -74,7 +71,7 @@ export async function uploadArtifactToFileContainer(
   filesToUpload: UploadSpecification[],
   options?: UploadOptions
 ): Promise<UploadResults> {
-  const client = createHttpClient(getRuntimeToken())
+  const client = createHttpClient()
   const FILE_CONCURRENCY = getUploadFileConcurrency()
   const CHUNK_CONCURRENCY = getUploadChunkConcurrency()
   const MAX_CHUNK_SIZE = getUploadChunkSize()
@@ -297,11 +294,9 @@ export async function patchArtifactSize(
   size: number,
   artifactName: string
 ): Promise<void> {
-  const client = createHttpClient(getRuntimeToken())
+  const client = createHttpClient()
   const requestOptions = getRequestOptions('application/json')
-  const resourceUrl = new URL(
-    getArtifactUrl(getRuntimeUrl(), getWorkFlowRunId())
-  )
+  const resourceUrl = new URL(getArtifactUrl())
   resourceUrl.searchParams.append('artifactName', artifactName)
 
   const parameters: PatchArtifactSize = {Size: size}
