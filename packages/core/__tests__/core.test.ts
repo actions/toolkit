@@ -19,6 +19,13 @@ const testEnvVars = {
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
   INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
 
+  // Set input lists
+  /**
+   * why `'\n'` instead of an `[]`: https://github.com/actions/cache/issues/44#issuecomment-549399196
+   * the FR for this feature + tracking of the previous one: https://github.com/actions/toolkit/issues/184
+   */
+  INPUT_MY_INPUT_LIST: 'val1\nval2\nval3',
+
   // Save inputs
   STATE_TEST_1: 'state_val'
 }
@@ -97,6 +104,10 @@ describe('@actions/core', () => {
     expect(core.getInput('multiple spaces variable')).toBe(
       'I have multiple spaces'
     )
+  })
+
+  it('getInputList works', () => {
+    expect(core.getInputList('my input list')).toEqual(['val1', 'val2', 'val3'])
   })
 
   it('setOutput produces the correct command', () => {
