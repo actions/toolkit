@@ -80,6 +80,11 @@ export function getInput(name: string, options?: InputOptions): string {
  * @param     name     name of the input list to get
  * @param     options  optional. See InputOptions.
  * @returns   string[]
+ *
+ * See also:
+ *
+ * why `'\n'` instead of an `[]`: https://github.com/actions/cache/issues/44#issuecomment-549399196
+ * the FR for this feature + tracking of the previous one: https://github.com/actions/toolkit/issues/184
  */
 export function getInputList(name: string, options?: InputOptions): string[] {
   const inputs: string[] = getInput(name, options)
