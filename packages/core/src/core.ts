@@ -75,6 +75,21 @@ export function getInput(name: string, options?: InputOptions): string {
 }
 
 /**
+ * Gets the values of an input list.  Each value is also trimmed.
+ *
+ * @param     name     name of the input list to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string[]
+ */
+export function getInputList(name: string, options?: InputOptions): string[] {
+  const inputs: string[] = getInput(name, options)
+    .split('\n')
+    .filter(x => x !== '')
+
+  return inputs
+}
+
+/**
  * Sets the value of an output.
  *
  * @param     name     name of the output to set
