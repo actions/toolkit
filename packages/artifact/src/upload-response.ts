@@ -1,4 +1,4 @@
-export interface UploadInfo {
+export interface UploadResponse {
   /**
    * The name of the artifact that was uploaded
    */

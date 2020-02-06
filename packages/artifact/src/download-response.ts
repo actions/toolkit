@@ -1,4 +1,4 @@
-export interface DownloadInfo {
+export interface DownloadResponse {
   /**
    * The name of the artifact that was downloaded
    */

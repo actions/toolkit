@@ -8,7 +8,7 @@ import {
   uploadArtifactToFileContainer,
   patchArtifactSize
 } from './upload-http-client'
-import {UploadInfo} from './upload-info'
+import {UploadResponse} from './upload-response'
 import {UploadOptions} from './upload-options'
 import {checkArtifactName} from './utils'
 
@@ -26,7 +26,7 @@ export async function uploadArtifact(
   files: string[],
   rootDirectory: string,
   options?: UploadOptions
-): Promise<UploadInfo> {
+): Promise<UploadResponse> {
   checkArtifactName(name)
 
   // Get specification for the files being uploaded
@@ -35,7 +35,7 @@ export async function uploadArtifact(
     rootDirectory,
     files
   )
-  const uploadInfo: UploadInfo = {
+  const uploadResponse: UploadResponse = {
     artifactName: name,
     artifactItems: [],
     size: 0,
@@ -70,13 +70,13 @@ export async function uploadArtifact(
       `Finished uploading artifact ${name}. Reported size is ${uploadResult.size} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
     )
 
-    uploadInfo.artifactItems = uploadSpecification.map(
+    uploadResponse.artifactItems = uploadSpecification.map(
       item => item.absoluteFilePath
     )
-    uploadInfo.size = uploadResult.size
-    uploadInfo.failedItems = uploadResult.failedItems
+    uploadResponse.size = uploadResult.size
+    uploadResponse.failedItems = uploadResult.failedItems
   }
-  return uploadInfo
+  return uploadResponse
 }
 
 /*
@@ -86,7 +86,7 @@ export async function downloadArtifact(
     name: string,
     path?: string,
     options?: DownloadOptions
-  ): Promise<DownloadInfo> {
+  ): Promise<DownloadResponse> {
 
   TODO
 }
@@ -95,7 +95,7 @@ Downloads all artifacts associated with a run. Because there are multiple artifa
 
 export async function downloadAllArtifacts(
     path?: string
-  ): Promise<DownloadInfo[]>{
+  ): Promise<DownloadResponse[]>{
 
     TODO
 }
