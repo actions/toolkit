@@ -45,10 +45,7 @@ export async function createArtifactInFileContainer(
   const rawResponse = await client.post(artifactUrl, data, requestOptions)
   const body: string = await rawResponse.readBody()
 
-  if (
-    isSuccessStatusCode(rawResponse.message.statusCode) &&
-    body
-  ) {
+  if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
     return JSON.parse(body)
   } else {
     // eslint-disable-next-line no-console
@@ -246,25 +243,19 @@ async function uploadChunk(
   }
 
   const response = await uploadChunkRequest()
-  if (
-    isSuccessStatusCode(response.message.statusCode)
-  ) {
+  if (isSuccessStatusCode(response.message.statusCode)) {
     debug(
       `Chunk for ${start}:${end} was successfully uploaded to ${resourceUrl}`
     )
     return true
-  } else if (
-    isRetryableStatusCode(response.message.statusCode)
-  ) {
+  } else if (isRetryableStatusCode(response.message.statusCode)) {
     // eslint-disable-next-line no-console
     console.log(
       `Received http ${response.message.statusCode} during chunk upload, will retry at offset ${start} after 10 seconds.`
     )
     await new Promise(resolve => setTimeout(resolve, 10000))
     const retryResponse = await uploadChunkRequest()
-    if (
-      isSuccessStatusCode(retryResponse.message.statusCode)
-    ) {
+    if (isSuccessStatusCode(retryResponse.message.statusCode)) {
       return true
     } else {
       // eslint-disable-next-line no-console
@@ -306,9 +297,7 @@ export async function patchArtifactSize(
   )
   const body: string = await rawResponse.readBody()
 
-  if (
-    isSuccessStatusCode(rawResponse.message.statusCode)
-  ) {
+  if (isSuccessStatusCode(rawResponse.message.statusCode)) {
     debug(
       `Artifact ${artifactName} has been successfully uploaded, total size ${size}`
     )
