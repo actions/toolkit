@@ -1,7 +1,7 @@
-import {promises as fs} from 'fs'
-import * as path from 'path'
-import {getUploadSpecification} from '../src/upload-specification'
 import * as io from '../../io/src/io'
+import * as path from 'path'
+import {promises as fs} from 'fs'
+import {getUploadSpecification} from '../src/upload-specification'
 
 const artifactName = 'my-artifact'
 const root = path.join(__dirname, '_temp', 'upload-specification')

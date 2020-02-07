@@ -26,11 +26,18 @@ export function getApiVersion(): string {
   return '6.0-preview'
 }
 
-export function isSuccessStatusCode(statusCode: number): boolean {
+export function isSuccessStatusCode(statusCode?: number): boolean {
+  if (!statusCode) {
+    return false
+  }
   return statusCode >= 200 && statusCode < 300
 }
 
-export function isRetryableStatusCode(statusCode: number): boolean {
+export function isRetryableStatusCode(statusCode?: number): boolean {
+  if (!statusCode) {
+    return false
+  }
+
   const retryableStatusCodes = [
     HttpCodes.BadGateway,
     HttpCodes.ServiceUnavailable,

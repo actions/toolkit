@@ -46,7 +46,6 @@ export async function createArtifactInFileContainer(
   const body: string = await rawResponse.readBody()
 
   if (
-    rawResponse.message.statusCode &&
     isSuccessStatusCode(rawResponse.message.statusCode) &&
     body
   ) {
@@ -248,7 +247,6 @@ async function uploadChunk(
 
   const response = await uploadChunkRequest()
   if (
-    response.message.statusCode &&
     isSuccessStatusCode(response.message.statusCode)
   ) {
     debug(
@@ -256,7 +254,6 @@ async function uploadChunk(
     )
     return true
   } else if (
-    response.message.statusCode &&
     isRetryableStatusCode(response.message.statusCode)
   ) {
     // eslint-disable-next-line no-console
@@ -266,7 +263,6 @@ async function uploadChunk(
     await new Promise(resolve => setTimeout(resolve, 10000))
     const retryResponse = await uploadChunkRequest()
     if (
-      retryResponse.message.statusCode &&
       isSuccessStatusCode(retryResponse.message.statusCode)
     ) {
       return true
@@ -311,7 +307,6 @@ export async function patchArtifactSize(
   const body: string = await rawResponse.readBody()
 
   if (
-    rawResponse.message.statusCode &&
     isSuccessStatusCode(rawResponse.message.statusCode)
   ) {
     debug(
