@@ -227,6 +227,41 @@ describe('Upload Tests', () => {
     expect(uploadResult.size).toEqual(expectedPartialSize)
   })
 
+  it('Upload Artifact - Failed upload with no options', async () => {
+    const artifactName = 'partial-artifact'
+    const uploadSpecification: UploadSpecification[] = [
+      {
+        absoluteFilePath: file1Path,
+        uploadFilePath: `${artifactName}/file1.txt`
+      },
+      {
+        absoluteFilePath: file2Path,
+        uploadFilePath: `${artifactName}/file2.txt`
+      },
+      {
+        absoluteFilePath: file3Path,
+        uploadFilePath: `${artifactName}/folder1/file3.txt`
+      },
+      {
+        absoluteFilePath: file4Path,
+        uploadFilePath: `this-file-upload-will-fail`
+      },
+      {
+        absoluteFilePath: file5Path,
+        uploadFilePath: `${artifactName}/folder1/folder2/folder3/file5.txt`
+      }
+    ]
+
+    const expectedPartialSize = file1Size + file2Size + file3Size + file5Size
+    const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
+      uploadUrl,
+      uploadSpecification
+    )
+    expect(uploadResult.failedItems.length).toEqual(1)
+    expect(uploadResult.size).toEqual(expectedPartialSize)
+  })
+
   /**
    * Artifact Association Tests
    */

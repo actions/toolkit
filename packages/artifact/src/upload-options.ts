@@ -14,5 +14,5 @@ export interface UploadOptions {
    * files with the exception of the problematic files(s)/chunks(s) that failed to upload
    *
    */
-  continueOnError: boolean
+  continueOnError?: boolean
 }

@@ -3,7 +3,7 @@ export function getUploadFileConcurrency(): number {
 }
 
 export function getUploadChunkConcurrency(): number {
-  return 3
+  return 1
 }
 
 export function getUploadChunkSize(): number {

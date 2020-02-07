@@ -76,9 +76,13 @@ export async function uploadArtifactToFileContainer(
   )
 
   const parameters: UploadFileParameters[] = []
+
+  // by default, file uploads will continue if there is an error unless specified differently in the options
   let continueOnError = true
   if (options) {
-    continueOnError = options.continueOnError
+    if (options.continueOnError === false) {
+      continueOnError = false
+    }
   }
 
   // Prepare the necessary parameters to upload all the files
@@ -181,17 +185,14 @@ async function uploadFileAsync(
 
         if (!result) {
           /**
-           * Chunk failed to upload, report as failed but continue if desired. It is possible that part of a chunk was
+           * Chunk failed to upload, report as failed and do not continue uploading any more chunks for the file. It is possible that part of a chunk was
            * successfully uploaded so the server may report a different size for what was uploaded
            **/
           isUploadSuccessful = false
           failedChunkSizes += chunkSize
-          if (!parameters.continueOnError) {
-            // Any currently uploading chunks will be able to finish, however pending chunks will not upload
-            // eslint-disable-next-line no-console
-            console.log(`Aborting upload for ${parameters.file} due to failure`)
-            abortFileUpload = true
-          }
+          // eslint-disable-next-line no-console
+          console.log(`Aborting upload for ${parameters.file} due to failure`)
+          abortFileUpload = true
         }
       }
     })
