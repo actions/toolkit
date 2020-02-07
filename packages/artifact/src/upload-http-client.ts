@@ -1,4 +1,4 @@
-import {debug} from '@actions/core'
+import {debug, warning} from '@actions/core'
 import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {
@@ -190,8 +190,7 @@ async function uploadFileAsync(
            **/
           isUploadSuccessful = false
           failedChunkSizes += chunkSize
-          // eslint-disable-next-line no-console
-          console.log(`Aborting upload for ${parameters.file} due to failure`)
+          warning(`Aborting upload for ${parameters.file} due to failure`)
           abortFileUpload = true
         }
       }
