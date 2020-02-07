@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import {debug} from '@actions/core'
-import {join, normalize} from 'path'
+import {join, normalize, resolve} from 'path'
 import {checkArtifactName} from './utils'
 
 export interface UploadSpecification {
@@ -31,7 +31,10 @@ export function getUploadSpecification(
       `Provided rootDirectory ${rootDirectory} is not a valid directory`
     )
   }
+  // Normalize and resolve, this allows for either absolute or relative paths to be used
   rootDirectory = normalize(rootDirectory)
+  rootDirectory = resolve(rootDirectory)
+
   /*
      Example to demonstrate behavior
      
@@ -57,7 +60,9 @@ export function getUploadSpecification(
     }
 
     if (!fs.lstatSync(file).isDirectory()) {
+      // Normalize and resolve, this allows for either absolute or relative paths to be used
       file = normalize(file)
+      file = resolve(file)
       if (!file.startsWith(rootDirectory)) {
         throw new Error(
           `The rootDirectory: ${rootDirectory} is not a parent directory of the file: ${file}`

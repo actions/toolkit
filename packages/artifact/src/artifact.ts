@@ -16,8 +16,8 @@ import {checkArtifactName} from './utils'
  * Uploads an artifact
  *
  * @param name the name of the artifact, required
- * @param files a list of absolute paths that denote what files should be uploaded
- * @param rootDirectory an absolute file path that denotes the root parent directory of the files being uploaded
+ * @param files a list of absolute or relative paths that denote what files should be uploaded
+ * @param rootDirectory an absolute or relative file path that denotes the root parent directory of the files being uploaded
  * @param options extra options for customizing the upload behavior
  * @returns single UploadInfo object
  */
