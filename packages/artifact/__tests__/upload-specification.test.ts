@@ -189,28 +189,23 @@ describe('Search', () => {
             'good-item1.txt'
           )
         )
-      }
-      if (specification.absoluteFilePath === goodItem2Path) {
+      } else if (specification.absoluteFilePath === goodItem2Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item2.txt')
         )
-      }
-      if (specification.absoluteFilePath === goodItem3Path) {
+      } else if (specification.absoluteFilePath === goodItem3Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item3.txt')
         )
-      }
-      if (specification.absoluteFilePath === goodItem4Path) {
+      } else if (specification.absoluteFilePath === goodItem4Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item4.txt')
         )
-      }
-      if (specification.absoluteFilePath === goodItem5Path) {
+      } else if (specification.absoluteFilePath === goodItem5Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'good-item5.txt')
         )
-      }
-      if (specification.absoluteFilePath === extraFileInFolderCPath) {
+      } else if (specification.absoluteFilePath === extraFileInFolderCPath) {
         expect(specification.uploadFilePath).toEqual(
           path.join(
             artifactName,
@@ -220,11 +215,12 @@ describe('Search', () => {
             'extra-file-in-folder-c.txt'
           )
         )
-      }
-      if (specification.absoluteFilePath === amazingFileInFolderHPath) {
+      } else if (specification.absoluteFilePath === amazingFileInFolderHPath) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-h', 'amazing-item.txt')
         )
+      } else {
+        throw new Error('this should never be reached')
       }
     }
   })
@@ -258,28 +254,23 @@ describe('Search', () => {
             'good-item1.txt'
           )
         )
-      }
-      if (specification.absoluteFilePath === goodItem2Path) {
+      } else if (specification.absoluteFilePath === goodItem2Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item2.txt')
         )
-      }
-      if (specification.absoluteFilePath === goodItem3Path) {
+      } else if (specification.absoluteFilePath === goodItem3Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item3.txt')
         )
-      }
-      if (specification.absoluteFilePath === goodItem4Path) {
+      } else if (specification.absoluteFilePath === goodItem4Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item4.txt')
         )
-      }
-      if (specification.absoluteFilePath === goodItem5Path) {
+      } else if (specification.absoluteFilePath === goodItem5Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'good-item5.txt')
         )
-      }
-      if (specification.absoluteFilePath === extraFileInFolderCPath) {
+      } else if (specification.absoluteFilePath === extraFileInFolderCPath) {
         expect(specification.uploadFilePath).toEqual(
           path.join(
             artifactName,
@@ -289,11 +280,12 @@ describe('Search', () => {
             'extra-file-in-folder-c.txt'
           )
         )
-      }
-      if (specification.absoluteFilePath === amazingFileInFolderHPath) {
+      } else if (specification.absoluteFilePath === amazingFileInFolderHPath) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-h', 'amazing-item.txt')
         )
+      } else {
+        throw new Error('this should never be reached')
       }
     }
   })
@@ -328,21 +320,20 @@ describe('Search', () => {
             'good-item1.txt'
           )
         )
-      }
-      if (specification.absoluteFilePath === goodItem2Path) {
+      } else if (specification.absoluteFilePath === goodItem2Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item2.txt')
         )
-      }
-      if (specification.absoluteFilePath === goodItem4Path) {
+      } else if (specification.absoluteFilePath === goodItem4Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-d', 'good-item4.txt')
         )
-      }
-      if (specification.absoluteFilePath === badItem3Path) {
+      } else if (specification.absoluteFilePath === badItem3Path) {
         expect(specification.uploadFilePath).toEqual(
           path.join(artifactName, 'folder-f', 'bad-item3.txt')
         )
+      } else {
+        throw new Error('this should never be reached')
       }
     }
   })
