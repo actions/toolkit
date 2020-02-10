@@ -5,7 +5,7 @@ export interface UploadResponse {
   artifactName: string
 
   /**
-   * A list of all items found using the provided path that are intended to be uploaded as part of the artifact
+   * A list of all items that are meant to be uploaded as part of the artifact
    */
   artifactItems: string[]
 
