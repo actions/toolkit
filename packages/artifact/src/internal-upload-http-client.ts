@@ -220,8 +220,7 @@ async function uploadChunk(
   end: number,
   totalSize: number
 ): Promise<boolean> {
-  // eslint-disable-next-line no-console
-  console.log(
+  info(
     `Uploading chunk of size ${end -
       start +
       1} bytes at offset ${start} with content range: ${getContentRange(
