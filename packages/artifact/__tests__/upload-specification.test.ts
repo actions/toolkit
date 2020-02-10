@@ -170,13 +170,13 @@ describe('Search', () => {
     expect(specifications.length).toEqual(7)
 
     const absolutePaths = specifications.map(item => item.absoluteFilePath)
-    expect(absolutePaths.includes(goodItem1Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem2Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem3Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem4Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem5Path)).toEqual(true)
-    expect(absolutePaths.includes(extraFileInFolderCPath)).toEqual(true)
-    expect(absolutePaths.includes(amazingFileInFolderHPath)).toEqual(true)
+    expect(absolutePaths).toContain(goodItem1Path)
+    expect(absolutePaths).toContain(goodItem2Path)
+    expect(absolutePaths).toContain(goodItem3Path)
+    expect(absolutePaths).toContain(goodItem4Path)
+    expect(absolutePaths).toContain(goodItem5Path)
+    expect(absolutePaths).toContain(extraFileInFolderCPath)
+    expect(absolutePaths).toContain(amazingFileInFolderHPath)
 
     for (const specification of specifications) {
       if (specification.absoluteFilePath === goodItem1Path) {
@@ -220,7 +220,9 @@ describe('Search', () => {
           path.join(artifactName, 'folder-h', 'amazing-item.txt')
         )
       } else {
-        throw new Error('this should never be reached')
+        throw new Error(
+          'Invalid specification found. This should never be reached'
+        )
       }
     }
   })
@@ -235,13 +237,13 @@ describe('Search', () => {
     expect(specifications.length).toEqual(7)
 
     const absolutePaths = specifications.map(item => item.absoluteFilePath)
-    expect(absolutePaths.includes(goodItem1Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem2Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem3Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem4Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem5Path)).toEqual(true)
-    expect(absolutePaths.includes(extraFileInFolderCPath)).toEqual(true)
-    expect(absolutePaths.includes(amazingFileInFolderHPath)).toEqual(true)
+    expect(absolutePaths).toContain(goodItem1Path)
+    expect(absolutePaths).toContain(goodItem2Path)
+    expect(absolutePaths).toContain(goodItem3Path)
+    expect(absolutePaths).toContain(goodItem4Path)
+    expect(absolutePaths).toContain(goodItem5Path)
+    expect(absolutePaths).toContain(extraFileInFolderCPath)
+    expect(absolutePaths).toContain(amazingFileInFolderHPath)
 
     for (const specification of specifications) {
       if (specification.absoluteFilePath === goodItem1Path) {
@@ -285,7 +287,9 @@ describe('Search', () => {
           path.join(artifactName, 'folder-h', 'amazing-item.txt')
         )
       } else {
-        throw new Error('this should never be reached')
+        throw new Error(
+          'Invalid specification found. This should never be reached'
+        )
       }
     }
   })
@@ -305,9 +309,9 @@ describe('Search', () => {
     )
     expect(specifications.length).toEqual(3)
     const absolutePaths = specifications.map(item => item.absoluteFilePath)
-    expect(absolutePaths.includes(goodItem1Path)).toEqual(true)
-    expect(absolutePaths.includes(goodItem4Path)).toEqual(true)
-    expect(absolutePaths.includes(badItem3Path)).toEqual(true)
+    expect(absolutePaths).toContain(goodItem1Path)
+    expect(absolutePaths).toContain(goodItem4Path)
+    expect(absolutePaths).toContain(badItem3Path)
 
     for (const specification of specifications) {
       if (specification.absoluteFilePath === goodItem1Path) {
@@ -333,7 +337,9 @@ describe('Search', () => {
           path.join(artifactName, 'folder-f', 'bad-item3.txt')
         )
       } else {
-        throw new Error('this should never be reached')
+        throw new Error(
+          'Invalid specification found. This should never be reached'
+        )
       }
     }
   })

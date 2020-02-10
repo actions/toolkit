@@ -1,4 +1,4 @@
-import {debug, warning} from '@actions/core'
+import {debug, warning, info} from '@actions/core'
 import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {
@@ -129,8 +129,7 @@ export async function uploadArtifactToFileContainer(
     })
   )
 
-  // eslint-disable-next-line no-console
-  console.log(`Total size of all the files uploaded is ${fileSizes} bytes`)
+  info(`Total size of all the files uploaded is ${fileSizes} bytes`)
   return {
     size: fileSizes,
     failedItems: failedItemsToReport
@@ -249,8 +248,7 @@ async function uploadChunk(
     )
     return true
   } else if (isRetryableStatusCode(response.message.statusCode)) {
-    // eslint-disable-next-line no-console
-    console.log(
+    info(
       `Received http ${response.message.statusCode} during chunk upload, will retry at offset ${start} after 10 seconds.`
     )
     await new Promise(resolve => setTimeout(resolve, 10000))
@@ -258,8 +256,7 @@ async function uploadChunk(
     if (isSuccessStatusCode(retryResponse.message.statusCode)) {
       return true
     } else {
-      // eslint-disable-next-line no-console
-      console.log(`Unable to upload chunk even after retrying`)
+      info(`Unable to upload chunk even after retrying`)
       // eslint-disable-next-line no-console
       console.log(response)
       return false

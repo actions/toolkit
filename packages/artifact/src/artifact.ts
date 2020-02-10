@@ -65,8 +65,7 @@ export async function uploadArtifact(
     //Update the size of the artifact to indicate we are done uploading
     await patchArtifactSize(uploadResult.size, name)
 
-    // eslint-disable-next-line no-console
-    console.log(
+    core.info(
       `Finished uploading artifact ${name}. Reported size is ${uploadResult.size} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
     )
 
