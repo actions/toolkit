@@ -1,7 +1,8 @@
 import * as io from '../../io/src/io'
 import * as path from 'path'
 import {promises as fs} from 'fs'
-import {getUploadSpecification} from '../src/upload-specification'
+import * as core from '@actions/core'
+import {getUploadSpecification} from '../src/internal-upload-specification'
 
 const artifactName = 'my-artifact'
 const root = path.join(__dirname, '_temp', 'upload-specification')
@@ -48,6 +49,12 @@ const artifactFilesToUpload = [
 
 describe('Search', () => {
   beforeAll(async () => {
+    // mock all output so that there is less noise when running tests
+    console.log = jest.fn()
+    jest.spyOn(core, 'debug').mockImplementation(() => {})
+    jest.spyOn(core, 'info').mockImplementation(() => {})
+    jest.spyOn(core, 'warning').mockImplementation(() => {})
+
     // clear temp directory
     await io.rmRF(root)
     await fs.mkdir(path.join(root, 'folder-a', 'folder-b', 'folder-c'), {

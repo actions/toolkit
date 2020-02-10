@@ -2,15 +2,16 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import * as uploadHttpClient from '../src/upload-http-client'
+import * as uploadHttpClient from '../src/internal-upload-http-client'
+import * as core from '@actions/core'
 import {promises as fs} from 'fs'
-import {getRuntimeUrl} from '../src/config-variables'
+import {getRuntimeUrl} from '../src/internal-config-variables'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {
   ArtifactResponse,
   PatchArtifactSizeSuccessResponse
-} from '../src/contracts'
-import {UploadSpecification} from '../src/upload-specification'
+} from '../src/internal-contracts'
+import {UploadSpecification} from '../src/internal-upload-specification'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')
@@ -25,11 +26,17 @@ let file3Size = 0
 let file4Size = 0
 let file5Size = 0
 
-jest.mock('../src/config-variables')
+jest.mock('../src/internal-config-variables')
 jest.mock('@actions/http-client')
 
 describe('Upload Tests', () => {
   beforeAll(async () => {
+    // mock all output so that there is less noise when running tests
+    console.log = jest.fn()
+    jest.spyOn(core, 'debug').mockImplementation(() => {})
+    jest.spyOn(core, 'info').mockImplementation(() => {})
+    jest.spyOn(core, 'warning').mockImplementation(() => {})
+
     // setup mocking for calls that got through the HttpClient
     setupHttpClientMock()
 

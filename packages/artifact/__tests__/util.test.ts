@@ -1,10 +1,20 @@
-import * as utils from '../src/utils'
+import * as utils from '../src/internal-utils'
+import * as core from '@actions/core'
 import {HttpCodes} from '@actions/http-client'
-import {getRuntimeUrl, getWorkFlowRunId} from '../src/config-variables'
+import {getRuntimeUrl, getWorkFlowRunId} from '../src/internal-config-variables'
 
-jest.mock('../src/config-variables')
+jest.mock('../src/internal-config-variables')
 
 describe('Utils', () => {
+
+  beforeAll(() => {
+    // mock all output so that there is less noise when running tests
+    console.log = jest.fn()
+    jest.spyOn(core, 'debug').mockImplementation(() => {})
+    jest.spyOn(core, 'info').mockImplementation(() => {})
+    jest.spyOn(core, 'warning').mockImplementation(() => {})
+  })
+
   it('Check Artifact Name for any invalid characters', () => {
     const invalidNames = [
       'my\\artifact',

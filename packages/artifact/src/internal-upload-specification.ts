@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import {debug} from '@actions/core'
 import {join, normalize, resolve} from 'path'
-import {checkArtifactName} from './utils'
+import {checkArtifactName} from './internal-utils'
 
 export interface UploadSpecification {
   absoluteFilePath: string

@@ -6,7 +6,7 @@ import {
   getRuntimeToken,
   getRuntimeUrl,
   getWorkFlowRunId
-} from './config-variables'
+} from './internal-config-variables'
 
 /**
  * Parses a env variable that is a number

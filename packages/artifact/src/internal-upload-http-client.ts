@@ -6,10 +6,10 @@ import {
   CreateArtifactParameters,
   PatchArtifactSize,
   UploadResults
-} from './contracts'
+} from './internal-contracts'
 import * as fs from 'fs'
-import {UploadSpecification} from './upload-specification'
-import {UploadOptions} from './upload-options'
+import {UploadSpecification} from './internal-upload-specification'
+import {UploadOptions} from './internal-upload-options'
 import {URL} from 'url'
 import {
   createHttpClient,
@@ -18,12 +18,12 @@ import {
   getRequestOptions,
   isRetryableStatusCode,
   isSuccessStatusCode
-} from './utils'
+} from './internal-utils'
 import {
   getUploadChunkConcurrency,
   getUploadChunkSize,
   getUploadFileConcurrency
-} from './config-variables'
+} from './internal-config-variables'
 
 /**
  * Creates a file container for the new artifact in the remote blob storage/file service
