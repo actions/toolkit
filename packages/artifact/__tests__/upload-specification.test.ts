@@ -50,7 +50,7 @@ const artifactFilesToUpload = [
 describe('Search', () => {
   beforeAll(async () => {
     // mock all output so that there is less noise when running tests
-    console.log = jest.fn()
+    jest.spyOn(console, 'log').mockImplementation(() => {})
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
