@@ -27,11 +27,7 @@ export async function listArtifacts(): Promise<ListArtifactsResponse> {
 
   const rawResponse = await client.get(artifactUrl, requestOptions)
   const body: string = await rawResponse.readBody()
-  if (
-    rawResponse.message.statusCode &&
-    isSuccessStatusCode(rawResponse.message.statusCode) &&
-    body
-  ) {
+  if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
     return JSON.parse(body)
   } else {
     // eslint-disable-next-line no-console
