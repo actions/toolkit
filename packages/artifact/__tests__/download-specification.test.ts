@@ -194,16 +194,10 @@ describe('Search', () => {
       }
     }
 
-    expect(specification.directoryStructure.length).toEqual(5)
+    expect(specification.directoryStructure.length).toEqual(3)
     expect(specification.directoryStructure).toContain(testDownloadPath)
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, 'dir1')
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, 'dir1', 'dir2')
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, 'dir1', 'dir2', 'dir3')
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, 'dir1', 'dir2', 'dir3', 'dir4')
@@ -282,16 +276,10 @@ describe('Search', () => {
       }
     }
 
-    expect(specification.directoryStructure.length).toEqual(5)
+    expect(specification.directoryStructure.length).toEqual(3)
     expect(specification.directoryStructure).toContain(testDownloadPath)
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, 'dir1')
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, 'dir1', 'dir2')
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, 'dir1', 'dir2', 'dir3')
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, 'dir1', 'dir2', 'dir3', 'dir4')
@@ -388,18 +376,12 @@ describe('Search', () => {
       }
     }
 
-    expect(specification.directoryStructure.length).toEqual(5)
+    expect(specification.directoryStructure.length).toEqual(3)
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, artifactName)
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir1Path)
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, dir2Path)
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, dir3Path)
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir4Path)
@@ -491,18 +473,12 @@ describe('Search', () => {
       }
     }
 
-    expect(specification.directoryStructure.length).toEqual(5)
+    expect(specification.directoryStructure.length).toEqual(3)
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, artifactName)
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir1Path)
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, dir2Path)
-    )
-    expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, dir3Path)
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir4Path)
