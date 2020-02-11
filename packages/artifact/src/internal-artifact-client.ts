@@ -10,7 +10,21 @@ import {
 } from './internal-upload-http-client'
 import {UploadResponse} from './internal-upload-response'
 import {UploadOptions} from './internal-upload-options'
-import {checkArtifactName} from './internal-utils'
+import {DownloadOptions} from './internal-download-options'
+import {DownloadResponse} from './internal-download-response'
+import {checkArtifactName, createDirectoriesForArtifact} from './internal-utils'
+import {
+  listArtifacts,
+  downloadSingleArtifact,
+  getContainerItemsForSingleArtifact,
+  getContainerItemsForAllArtifacts
+} from './internal-download-http-client'
+import {getDownloadSpecification} from './internal-download-specification'
+import {
+  getWorkSpaceDirectory,
+  getDownloadArtifactConcurrency
+} from './internal-config-variables'
+import {normalize, resolve} from 'path'
 
 export {UploadResponse, UploadOptions}
 
@@ -30,6 +44,25 @@ export interface ArtifactClient {
     rootDirectory: string,
     options?: UploadOptions
   ): Promise<UploadResponse>
+
+  /**
+   * Downloads a single artifact associated with a run
+   *
+   * @param name the name of the artifact being downloaded
+   * @param path optional path that denotes where the artifact will be downloaded to
+   * @param options extra options that allow for the customization of the download behavior
+   */
+  downloadArtifact(
+    name: string,
+    path?: string,
+    options?: DownloadOptions
+  ): Promise<DownloadResponse>
+
+  /**
+   * Downloads all artifacts associated with a run. Because there are multiple artifacts being downloaded, a folder will be created for each one in the specified or default directory
+   * @param path optional path that denotes where the artifacts will be downloaded to
+   */
+  downloadAllArtifacts(path?: string): Promise<DownloadResponse[]>
 }
 
 export class DefaultArtifactClient implements ArtifactClient {
@@ -100,25 +133,114 @@ export class DefaultArtifactClient implements ArtifactClient {
     return uploadResponse
   }
 
-  /*
-  Downloads a single artifact associated with a run
+  async downloadArtifact(
+    name: string,
+    path?: string | undefined,
+    options?: DownloadOptions | undefined
+  ): Promise<DownloadResponse> {
+    const artifacts = await listArtifacts()
+    if (artifacts.count === 0) {
+      throw new Error(
+        `Unable to find any artifacts for the associated workflow`
+      )
+    }
 
-  export async function downloadArtifact(
-      name: string,
-      path?: string,
-      options?: DownloadOptions
-    ): Promise<DownloadResponse> {
+    const artifactToDownload = artifacts.value.find(artifact => {
+      return artifact.name === name
+    })
 
-    TODO
+    if (!artifactToDownload) {
+      throw new Error(`Unable to find an artifact with the name: ${name}`)
+    } else {
+      // query container for all items associated with the artifact
+      const items = await getContainerItemsForSingleArtifact(
+        artifactToDownload.name,
+        artifactToDownload.fileContainerResourceUrl
+      )
+
+      if (!path) {
+        path = getWorkSpaceDirectory()
+      }
+
+      // Check only for downloadable items that are not directories. During upload, empty directories are rejected by the remote server so there should be no
+      // artifacts that consist of only empty directories
+      if (items.value.length === 0) {
+        throw new Error(
+          `No downloadable files were found for the artifact: ${artifactToDownload.name}`
+        )
+      } else {
+        const downloadSpecification = getDownloadSpecification(
+          name,
+          items.value,
+          path,
+          options?.createArtifactFolder || false
+        )
+        await createDirectoriesForArtifact(
+          downloadSpecification.directoryStructure
+        )
+        await downloadSingleArtifact(downloadSpecification.filesToDownload)
+
+        return {
+          artifactName: name,
+          downloadPath: downloadSpecification.rootDownloadLocation
+        }
+      }
+    }
   }
 
-  Downloads all artifacts associated with a run. Because there are multiple artifacts being downloaded, a folder will be created for each one in the specified or default directory
+  async downloadAllArtifacts(
+    path?: string | undefined
+  ): Promise<DownloadResponse[]> {
+    const response: DownloadResponse[] = []
+    const artifacts = await listArtifacts()
+    if (artifacts.count === 0) {
+      throw new Error(
+        `Unable to find any artifacts for the associated workflow`
+      )
+    }
 
-  export async function downloadAllArtifacts(
-      path?: string
-    ): Promise<DownloadResponse[]>{
+    if (!path) {
+      path = getWorkSpaceDirectory()
+    }
+    path = normalize(path)
+    path = resolve(path)
 
-      TODO
+    // Get container items for all artifacts. The resource url is the same for all artifacts so one call is sufficient
+    const items = await getContainerItemsForAllArtifacts(
+      artifacts.value[0].fileContainerResourceUrl
+    )
+    if (items.count === 0) {
+      core.warning(`No downloadable files were found for any artifacts`)
+    } else {
+      const ARTIFACT_CONCURRENCY = getDownloadArtifactConcurrency()
+      const parallelDownloads = [...new Array(ARTIFACT_CONCURRENCY).keys()]
+      let downloadedArtifacts = 0
+      await Promise.all(
+        parallelDownloads.map(async () => {
+          while (downloadedArtifacts < artifacts.count) {
+            const currentArtifactToUpload = artifacts.value[downloadedArtifacts]
+            downloadedArtifacts += 1
+
+            // Promise.All is not correctly inferring that 'path' is no longer possibly undefined: https://github.com/microsoft/TypeScript/issues/34925
+            const downloadSpecification = getDownloadSpecification(
+              currentArtifactToUpload.name,
+              items.value,
+              path!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+              true
+            )
+            await createDirectoriesForArtifact(
+              downloadSpecification.directoryStructure
+            )
+            await downloadSingleArtifact(downloadSpecification.filesToDownload)
+
+            response.push({
+              artifactName: currentArtifactToUpload.name,
+              downloadPath: downloadSpecification.rootDownloadLocation
+            })
+          }
+        })
+      )
+    }
+    return response
   }
-  */
 }

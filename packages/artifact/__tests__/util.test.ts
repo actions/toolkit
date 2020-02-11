@@ -1,3 +1,6 @@
+import * as fs from 'fs'
+import * as io from '../../io/src/io'
+import * as path from 'path'
 import * as utils from '../src/internal-utils'
 import * as core from '@actions/core'
 import {HttpCodes} from '@actions/http-client'
@@ -95,5 +98,23 @@ describe('Utils', () => {
     expect(utils.isRetryableStatusCode(HttpCodes.OK)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.NotFound)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.Forbidden)).toEqual(false)
+  })
+
+  it('Test Creating Artifact Directories', async () => {
+    const root = path.join(__dirname, '_temp', 'artifact-download')
+    // remove directory before starting
+    await io.rmRF(root)
+
+    const directory1 = path.join(root, 'folder2', 'folder3')
+    const directory2 = path.join(directory1, 'folder1')
+
+    // Initially should not exist
+    expect(fs.existsSync(directory1)).toEqual(false)
+    expect(fs.existsSync(directory2)).toEqual(false)
+    const directoryStructure = [directory1, directory2]
+    await utils.createDirectoriesForArtifact(directoryStructure)
+    // directories should now be created
+    expect(fs.existsSync(directory1)).toEqual(true)
+    expect(fs.existsSync(directory2)).toEqual(true)
   })
 })
