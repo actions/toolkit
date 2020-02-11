@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
@@ -18,6 +19,12 @@ jest.mock('@actions/http-client')
 describe('Download Tests', () => {
   beforeAll(async () => {
     await io.rmRF(root)
+
+    // mock all output so that there is less noise when running tests
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    jest.spyOn(core, 'debug').mockImplementation(() => {})
+    jest.spyOn(core, 'info').mockImplementation(() => {})
+    jest.spyOn(core, 'warning').mockImplementation(() => {})
   })
 
   /**

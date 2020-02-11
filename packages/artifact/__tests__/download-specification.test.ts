@@ -1,4 +1,5 @@
 import * as path from 'path'
+import * as core from '@actions/core'
 import {URL} from 'url'
 import {getDownloadSpecification} from '../src/internal-download-specification'
 import {ContainerEntry} from '../src/internal-contracts'
@@ -108,6 +109,14 @@ const artifactContainerEntries: ContainerEntry[] = [
 ]
 
 describe('Search', () => {
+  beforeAll(async () => {
+    // mock all output so that there is less noise when running tests
+    jest.spyOn(console, 'log').mockImplementation(() => {})
+    jest.spyOn(core, 'debug').mockImplementation(() => {})
+    jest.spyOn(core, 'info').mockImplementation(() => {})
+    jest.spyOn(core, 'warning').mockImplementation(() => {})
+  })
+
   it('Download Specification - Absolute Path with no root directory', () => {
     const testDownloadPath = path.join(
       __dirname,
