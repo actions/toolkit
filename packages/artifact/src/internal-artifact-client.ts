@@ -151,40 +151,40 @@ export class DefaultArtifactClient implements ArtifactClient {
 
     if (!artifactToDownload) {
       throw new Error(`Unable to find an artifact with the name: ${name}`)
-    } else {
-      // query container for all items associated with the artifact
-      const items = await getContainerItemsForSingleArtifact(
-        artifactToDownload.name,
-        artifactToDownload.fileContainerResourceUrl
+    }
+    // query container for all items associated with the artifact
+    const items = await getContainerItemsForSingleArtifact(
+      artifactToDownload.name,
+      artifactToDownload.fileContainerResourceUrl
+    )
+
+    if (!path) {
+      path = getWorkSpaceDirectory()
+    }
+
+    // During upload, empty directories are rejected by the remote server so there should be no artifacts that consist of only empty directories
+    const downloadSpecification = getDownloadSpecification(
+      name,
+      items.value,
+      path,
+      options?.createArtifactFolder || false
+    )
+
+    if (downloadSpecification.filesToDownload.length === 0) {
+      core.info(
+        `No downloadable files were found for the artifact: ${artifactToDownload.name}`
       )
+    } else {
+      // Create all necessary directories recursively before starting any download
+      await createDirectoriesForArtifact(
+        downloadSpecification.directoryStructure
+      )
+      await downloadSingleArtifact(downloadSpecification.filesToDownload)
+    }
 
-      if (!path) {
-        path = getWorkSpaceDirectory()
-      }
-
-      // Check only for downloadable items that are not directories. During upload, empty directories are rejected by the remote server so there should be no
-      // artifacts that consist of only empty directories
-      if (items.value.length === 0) {
-        throw new Error(
-          `No downloadable files were found for the artifact: ${artifactToDownload.name}`
-        )
-      } else {
-        const downloadSpecification = getDownloadSpecification(
-          name,
-          items.value,
-          path,
-          options?.createArtifactFolder || false
-        )
-        await createDirectoriesForArtifact(
-          downloadSpecification.directoryStructure
-        )
-        await downloadSingleArtifact(downloadSpecification.filesToDownload)
-
-        return {
-          artifactName: name,
-          downloadPath: downloadSpecification.rootDownloadLocation
-        }
-      }
+    return {
+      artifactName: name,
+      downloadPath: downloadSpecification.rootDownloadLocation
     }
   }
 
@@ -194,9 +194,8 @@ export class DefaultArtifactClient implements ArtifactClient {
     const response: DownloadResponse[] = []
     const artifacts = await listArtifacts()
     if (artifacts.count === 0) {
-      throw new Error(
-        `Unable to find any artifacts for the associated workflow`
-      )
+      core.info('Unable to find any artifacts for the associated workflow')
+      return response
     }
 
     if (!path) {
