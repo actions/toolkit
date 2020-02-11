@@ -33,7 +33,7 @@ export function getDownloadSpecification(
   downloadPath: string,
   includeRootDirectory: boolean
 ): DownloadSpecification {
-  const directories: string[] = []
+  const directories = new Set<string>()
 
   const specifications: DownloadSpecification = {
     rootDownloadLocation: includeRootDirectory
@@ -53,13 +53,17 @@ export function getDownloadSpecification(
         includeRootDirectory ? entry.path : entry.path.replace(artifactName, '')
       )
 
-      if (entry.itemType === 'folder') {
-        directories.push(filePath)
-      } else if (entry.itemType === 'file') {
+      if (entry.itemType === 'file') {
+        // get the directories that we need to create from the filePath for each individual file
+        directories.add(path.dirname(filePath))
+
         specifications.filesToDownload.push({
           sourceLocation: entry.contentLocation,
           targetPath: filePath
         })
+      } else if (entry.itemType === 'folder') {
+        // case insensitive folder structure maintained in the backend, not every folder is created so the
+        // path for the file must be used to determine the directory structure
       } else {
         // eslint-disable-next-line no-console
         console.log(entry)
@@ -68,6 +72,6 @@ export function getDownloadSpecification(
     }
   }
 
-  specifications.directoryStructure = directories
+  specifications.directoryStructure = Array.from(directories)
   return specifications
 }
