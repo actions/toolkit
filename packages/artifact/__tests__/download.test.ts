@@ -5,11 +5,14 @@ import * as path from 'path'
 import * as configVariables from '../src/internal-config-variables'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import * as downloadClient from '../src/internal-download-http-client'
-import {ListArtifactsResponse, QueryArtifactResponse} from '../src/internal-contracts'
+import {
+  ListArtifactsResponse,
+  QueryArtifactResponse
+} from '../src/internal-contracts'
 
 const root = path.join(__dirname, '_temp', 'artifact-download')
 
-jest.mock('../src/config-variables')
+jest.mock('../src/internal-config-variables')
 jest.mock('@actions/http-client')
 
 describe('Download Tests', () => {

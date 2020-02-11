@@ -26,7 +26,7 @@ import {
 } from './internal-config-variables'
 import {normalize, resolve} from 'path'
 
-export {UploadResponse, UploadOptions}
+export {UploadResponse, UploadOptions, DownloadResponse, DownloadOptions}
 
 export interface ArtifactClient {
   /**
