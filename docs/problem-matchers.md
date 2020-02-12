@@ -115,3 +115,26 @@ Some of the starter actions are already using problem matchers, for example:
 - [setup-python](https://github.com/actions/setup-python/tree/master/.github)
 - [setup-go](https://github.com/actions/setup-go/tree/master/.github)
 - [setup-dotnet](https://github.com/actions/setup-dotnet/tree/master/.github)
+
+## Troubleshooting
+
+### Regular expression not matching
+
+Use ECMAScript regular expression syntax when testing patterns.
+
+### File property getting dropped
+
+[Enable debug logging](https://help.github.com/en/actions/configuring-and-managing-workflows/managing-a-workflow-run#enabling-debug-logging) to determine why the file is getting dropped.
+
+This usually happens when the file does not exist or is not under the workflow repo.
+
+### Adding from a Docker container action
+
+The matcher config file must first be copied to a volume that is accessible from the runner.
+
+For example:
+
+```sh
+cp /eslint-compact.json "$HOME/"
+echo "::add-matcher::$HOME/eslint-compact.json
+```
