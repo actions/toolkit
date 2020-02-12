@@ -120,11 +120,13 @@ Some of the starter actions are already using problem matchers, for example:
 
 ### Regular expression not matching
 
-Use ECMAScript regular expression syntax when testing patterns
+Use ECMAScript regular expression syntax when testing patterns.
 
 ### File property getting dropped
 
 [Enable debug logging](https://help.github.com/en/actions/configuring-and-managing-workflows/managing-a-workflow-run#enabling-debug-logging) to determine why the file is getting dropped.
+
+This usually happens when the file does not exist or is not under the workflow repo.
 
 ### Adding from a Docker container action
 
