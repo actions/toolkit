@@ -92,6 +92,12 @@ Problem Matchers are a way to scan the output of actions for a specified regex p
 <br/>
 <br/>
 
+:warning: [Proxy Server Support](docs/proxy-support.md)
+
+Self-hosted runners can be configured to run behind proxy servers. 
+<br/>
+<br/>
+
 <h3><a href="https://github.com/actions/hello-world-javascript-action">Hello World JavaScript Action</a></h3>
 
 Illustrates how to create a simple hello world javascript action.
