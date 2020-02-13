@@ -1,4 +1,5 @@
 import {debug} from '@actions/core'
+import {promises as fs} from 'fs'
 import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {IHeaders} from '@actions/http-client/interfaces'
@@ -111,5 +112,15 @@ export function checkArtifactName(name: string): void {
         `Artifact name is not valid: ${name}. Contains character: "${invalidChar}". Invalid characters include: ${invalidCharacters.toString()}.`
       )
     }
+  }
+}
+
+export async function createDirectoriesForArtifact(
+  directories: string[]
+): Promise<void> {
+  for (const directory of directories) {
+    await fs.mkdir(directory, {
+      recursive: true
+    })
   }
 }
