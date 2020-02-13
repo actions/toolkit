@@ -6,10 +6,13 @@ You can use this package to interact with the actions artifacts.
 - [Upload an Artifact](##Upload-an-Artifact)
 - [Download a Single Artifact](##Download-a-Single-Artifact)
 - [Download All Artifacts](##Download-all-Artifacts)
+- [Additional Documentation](##Additional-Documentation)
 
 Relative paths and absolute paths are both allowed. Relative paths are rooted against the current working directory.
 
 ## Upload an Artifact
+
+Method Name: `uploadArtifact`
 
 #### Inputs
  - `name`
@@ -67,7 +70,7 @@ const files = [
     'dir/file3.txt'
 ]
 
-const rootDirectory = '.' // Also possible to specify __dirname
+const rootDirectory = '.' // Also possible to use __dirname
 const options = {
     continueOnError: false
 }
@@ -88,46 +91,9 @@ The returned `UploadResponse` will contain the following information
 - `failedItems`
     - A list of items that were not uploaded successfully (this will include queued items that were not uploaded if `continueOnError` is set to false). This is a subset of `artifactItems`
 
-#### Non-Supported Characters
-
-The inputted `name` and files specified in `files` cannot contain any of the following characters. They will be rejected by the server if attempted to be sent over and the upload will fail. These characters are not allowed due to limitations and restrictions with certain file systems such as NTFS. To maintain platform-agnostic behavior, all characters that are not supported by an individual filesystem/platform will not be supported on all filesystems/platforms.
-
-- "
-- :
-- <
-- \>
-- |
-- \*
-- ?
-- empty space
-
-In addition to the aforementioned characters, the inputted `name` also cannot include the following
-- \
-- /
-
-
-#### Permission loss
-
-Artifacts are uploaded and stored in blob storage rather than a full fledged file system. Because of this, file permissions are not always maintained between uploaded and downloaded artifacts. If file permissions are something that need to be maintained (such as an executable), consider archiving all of the files using something like `tar` and then uploading the single archive. After downloading the artifact, you can `un-tar` the individual file and permissions will be preserved.
-
-```js
-const artifact = require('@actions/artifact');
-const artifactClient = artifact.create()
-const artifactName = 'my-artifact';
-const files = [
-    '/home/user/files/plz-upload/my-archive.tgz',
-]
-const rootDirectory = '/home/user/files/plz-upload'
-const uploadResult = await artifactClient.uploadArtifact(artifactName, files, rootDirectory)
-```
-
-#### Considerations related to the number of files being uploaded
-
-During upload, each file is uploaded concurrently in 4MB chunks using a separate HTTPS connection per file. Chunked uploads are used so that in the event of a failure (which is entirely possible because the internet is not perfect), the upload can be retried. If there is an error, a retry will be attempted after waiting for 10 seconds.
-
-Uploading will be generally be faster if there are fewer files that are larger in size vs if there are lots of smaller files. Depending on the types and quantities of files being uploaded, it might be beneficial to separately compress and archive everything into a single archive (using something like `tar` or `zip`) before starting and artifact upload to speed things up.
-
 ## Download a Single Artifact
+
+Method Name: `downloadArtifact`
 
 #### Inputs
  - `Name`
@@ -159,6 +125,7 @@ const options = {
 }
 
 const downloadResponse = await artifactClient.downloadArtifact(artifactName, path, options)
+
 // Post download, the directory structure will look like this
 /some
     /directory
@@ -189,6 +156,8 @@ The returned `DownloadResponse` will contain the following information
 
 ## Download All Artifacts
 
+Method Name: `downloadAllArtifacts`
+
 #### Inputs
  - `path`
     - Path that denotes where the artifact will be downloaded to
@@ -206,15 +175,13 @@ for (response in downloadResponse) {
 }
 ```
 
-Because there are multiple artifacts, an extra directory (denoted by the name of the artifact) will be created for each artifact in the path. With 2 artifacts for example (`my-artifact-1` and `my-artifact-2`) and the default path, the directory structure will be as follows:
+Because there are multiple artifacts, an extra directory (denoted by the name of the artifact) will be created for each artifact in the path. With 2 artifacts(`my-artifact-1` and `my-artifact-2` for example) and the default path, the directory structure will be as follows:
 ```js
 /GITHUB_WORKSPACE
     /my-artifact-1
         / .. contents of `my-artifact-1`
     /my-artifact-2
         / .. contents of `my-artifact-2`
-```
-
 ```
 
 #### Download Result
@@ -226,3 +193,7 @@ Each artifact will have the same `DownloadResponse` as if it was individually do
     - The name of the artifact that was downloaded
   - `downloadPath`
     - The full Path to where the artifact was downloaded
+
+## Additional Documentation
+
+Check out [additional-information](additional-information.md) for extra documentation.
