@@ -3,10 +3,10 @@
 ## Usage
 
 You can use this package to interact with the actions artifacts.
-- [Upload an Artifact](##Upload-an-Artifact)
-- [Download a Single Artifact](##Download-a-Single-Artifact)
-- [Download All Artifacts](##Download-all-Artifacts)
-- [Additional Documentation](##Additional-Documentation)
+- [Upload an Artifact](#Upload-an-Artifact)
+- [Download a Single Artifact](#Download-a-Single-Artifact)
+- [Download All Artifacts](#Download-all-Artifacts)
+- [Additional Documentation](#Additional-Documentation)
 
 Relative paths and absolute paths are both allowed. Relative paths are rooted against the current working directory.
 
