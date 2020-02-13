@@ -79,16 +79,15 @@ function createContentLocation(relativePath: string): string {
 */
 
 // main artfact
-// path.join() would create backward slash on Windows. Entries will always be returned with a forward slash so hardcode with backward slashes
-const file1Path = `${artifact1Name}/file1.txt`
-const file2Path = `${artifact1Name}/file2.txt`
-const dir1Path = `${artifact1Name}/dir1`
-const file3Path = `${dir1Path}/file3.txt`
-const dir2Path = `${dir1Path}/dir2`
-const dir3Path = `${dir2Path}/dir3`
-const dir4Path = `${dir3Path}/dir4`
-const file4Path = `${dir4Path}/file4.txt`
-const file5Path = `${dir4Path}/file5.txt`
+const file1Path = path.join(artifact1Name, 'file1.txt')
+const file2Path = path.join(artifact1Name, 'file2.txt')
+const dir1Path = path.join(artifact1Name, 'dir1')
+const file3Path = path.join(dir1Path, 'file3.txt')
+const dir2Path = path.join(dir1Path, 'dir2')
+const dir3Path = path.join(dir2Path, 'dir3')
+const dir4Path = path.join(dir3Path, 'dir4')
+const file4Path = path.join(dir4Path, 'file4.txt')
+const file5Path = path.join(dir4Path, 'file5.txt')
 
 const rootDirectoryEntry = createDirectoryEntry(artifact1Name)
 const directoryEntry1 = createDirectoryEntry(dir1Path)
@@ -102,7 +101,7 @@ const fileEntry4 = createFileEntry(file4Path)
 const fileEntry5 = createFileEntry(file5Path)
 
 // extra artifact
-const artifact2File1Path = `${artifact2Name}\\file1.txt`
+const artifact2File1Path = path.join(artifact2Name, 'file1.txt')
 const rootDirectoryEntry2 = createDirectoryEntry(artifact2Name)
 const extraFileEntry = createFileEntry(artifact2File1Path)
 
