@@ -127,14 +127,3 @@ Use ECMAScript regular expression syntax when testing patterns.
 [Enable debug logging](https://help.github.com/en/actions/configuring-and-managing-workflows/managing-a-workflow-run#enabling-debug-logging) to determine why the file is getting dropped.
 
 This usually happens when the file does not exist or is not under the workflow repo.
-
-### Adding from a Docker container action
-
-The matcher config file must first be copied to a volume that is accessible from the runner.
-
-For example:
-
-```sh
-cp /eslint-compact.json "$HOME/"
-echo "::add-matcher::$HOME/eslint-compact.json
-```
