@@ -12,7 +12,7 @@ Relative paths and absolute paths are both allowed. Relative paths are rooted ag
 ## Upload an Artifact
 
 #### Inputs
- - `Name`
+ - `name`
     - The name of the artifact that is being uploaded
     - Required
  - `files`
