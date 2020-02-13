@@ -217,12 +217,13 @@ export class DefaultArtifactClient implements ArtifactClient {
       await Promise.all(
         parallelDownloads.map(async () => {
           while (downloadedArtifacts < artifacts.count) {
-            const currentArtifactToUpload = artifacts.value[downloadedArtifacts]
+            const currentArtifactToDownload =
+              artifacts.value[downloadedArtifacts]
             downloadedArtifacts += 1
 
             // Promise.All is not correctly inferring that 'path' is no longer possibly undefined: https://github.com/microsoft/TypeScript/issues/34925
             const downloadSpecification = getDownloadSpecification(
-              currentArtifactToUpload.name,
+              currentArtifactToDownload.name,
               items.value,
               path!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
               true
@@ -233,7 +234,7 @@ export class DefaultArtifactClient implements ArtifactClient {
             await downloadSingleArtifact(downloadSpecification.filesToDownload)
 
             response.push({
-              artifactName: currentArtifactToUpload.name,
+              artifactName: currentArtifactToDownload.name,
               downloadPath: downloadSpecification.rootDownloadLocation
             })
           }

@@ -53,21 +53,16 @@ export function getDownloadSpecification(
         includeRootDirectory ? entry.path : entry.path.replace(artifactName, '')
       )
 
+      // Case insensitive folder structure maintained in the backend, not every folder is created so the 'folder'
+      // itemType cannot be relied upon. The file must be used to determine the directory structure
       if (entry.itemType === 'file') {
-        // get the directories that we need to create from the filePath for each individual file
+        // Get the directories that we need to create from the filePath for each individual file
         directories.add(path.dirname(filePath))
 
         specifications.filesToDownload.push({
           sourceLocation: entry.contentLocation,
           targetPath: filePath
         })
-      } else if (entry.itemType === 'folder') {
-        // case insensitive folder structure maintained in the backend, not every folder is created so the
-        // path for the file must be used to determine the directory structure
-      } else {
-        // eslint-disable-next-line no-console
-        console.log(entry)
-        throw new Error(`Unsupported item type: ${entry.itemType}`)
       }
     }
   }

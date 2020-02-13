@@ -2,7 +2,7 @@
 
 ## Usage
 
-You can use this package to interact with the actions artifact service to upload and download artifacts.
+You can use this package to interact with the actions artifacts.
 - [Upload an Artifact](##Upload-an-Artifact)
 - [Download a Single Artifact](##Download-a-Single-Artifact)
 - [Download All Artifacts](##Download-all-Artifacts)
@@ -67,7 +67,7 @@ const files = [
     'dir/file3.txt'
 ]
 
-const rootDirectory = '.' // Also possible to specify __dirname if using node
+const rootDirectory = '.' // Also possible to specify __dirname
 const options = {
     continueOnError: false
 }
