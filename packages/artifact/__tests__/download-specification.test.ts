@@ -4,7 +4,8 @@ import {URL} from 'url'
 import {getDownloadSpecification} from '../src/internal-download-specification'
 import {ContainerEntry} from '../src/internal-contracts'
 
-const artifactName = 'my-artifact'
+const artifact1Name = 'my-artifact'
+const artifact2Name = 'my-artifact-extra'
 
 // Populating with only the information that is necessary
 function getPartialContainerEntry(): ContainerEntry {
@@ -60,7 +61,7 @@ function createContentLocation(relativePath: string): string {
 }
 
 /*
-    Represents a set of container entries for the following directory structure
+    Represents a set of container entries for two artifacts with the following directory structure
 
     /my-artifact
         /file1.txt
@@ -72,28 +73,38 @@ function createContentLocation(relativePath: string): string {
                     /dir4
                         file4.txt
                         file5.txt
-*/
-const file1Path = path.join(artifactName, 'file1.txt')
-const file2Path = path.join(artifactName, 'file2.txt')
-const dir1Path = path.join(artifactName, 'dir1')
-const file3Path = path.join(dir1Path, 'file3.txt')
-const dir2Path = path.join(dir1Path, 'dir2')
-const dir3Path = path.join(dir2Path, 'dir3')
-const dir4Path = path.join(dir3Path, 'dir4')
-const file4Path = path.join(dir4Path, 'file4.txt')
-const file5Path = path.join(dir4Path, 'file5.txt')
 
-const rootDirectoryEntry = createDirectoryEntry(artifactName)
+    /my-artifact-extra
+        /file1.txt
+*/
+
+// main artfact
+// path.join() would create backward slash on Windows. Entries will always be returned with a forward slash so hardcode with backward slashes
+const file1Path = `${artifact1Name}/file1.txt`
+const file2Path = `${artifact1Name}/file2.txt`
+const dir1Path = `${artifact1Name}/dir1`
+const file3Path = `${dir1Path}/file3.txt`
+const dir2Path = `${dir1Path}/dir2`
+const dir3Path = `${dir2Path}/dir3`
+const dir4Path = `${dir3Path}/dir4`
+const file4Path = `${dir4Path}/file4.txt`
+const file5Path = `${dir4Path}/file5.txt`
+
+const rootDirectoryEntry = createDirectoryEntry(artifact1Name)
 const directoryEntry1 = createDirectoryEntry(dir1Path)
 const directoryEntry2 = createDirectoryEntry(dir2Path)
 const directoryEntry3 = createDirectoryEntry(dir3Path)
 const directoryEntry4 = createDirectoryEntry(dir4Path)
-
 const fileEntry1 = createFileEntry(file1Path)
 const fileEntry2 = createFileEntry(file2Path)
 const fileEntry3 = createFileEntry(file3Path)
 const fileEntry4 = createFileEntry(file4Path)
 const fileEntry5 = createFileEntry(file5Path)
+
+// extra artifact
+const artifact2File1Path = `${artifact2Name}\\file1.txt`
+const rootDirectoryEntry2 = createDirectoryEntry(artifact2Name)
+const extraFileEntry = createFileEntry(artifact2File1Path)
 
 const artifactContainerEntries: ContainerEntry[] = [
   rootDirectoryEntry,
@@ -105,7 +116,9 @@ const artifactContainerEntries: ContainerEntry[] = [
   directoryEntry3,
   directoryEntry4,
   fileEntry4,
-  fileEntry5
+  fileEntry5,
+  rootDirectoryEntry2,
+  extraFileEntry
 ]
 
 describe('Search', () => {
@@ -126,7 +139,7 @@ describe('Search', () => {
     )
 
     const specification = getDownloadSpecification(
-      artifactName,
+      artifact1Name,
       artifactContainerEntries,
       testDownloadPath,
       false
@@ -208,7 +221,7 @@ describe('Search', () => {
     const testDownloadPath = path.join('some', 'destination', 'folder')
 
     const specification = getDownloadSpecification(
-      artifactName,
+      artifact1Name,
       artifactContainerEntries,
       testDownloadPath,
       false
@@ -295,36 +308,36 @@ describe('Search', () => {
     )
 
     const specification = getDownloadSpecification(
-      artifactName,
+      artifact1Name,
       artifactContainerEntries,
       testDownloadPath,
       true
     )
 
     expect(specification.rootDownloadLocation).toEqual(
-      path.join(testDownloadPath, artifactName)
+      path.join(testDownloadPath, artifact1Name)
     )
     expect(specification.filesToDownload.length).toEqual(5)
 
     const item1ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'file1.txt'
     )
     const item2ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'file2.txt'
     )
     const item3ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'dir1',
       'file3.txt'
     )
     const item4ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'dir1',
       'dir2',
       'dir3',
@@ -333,7 +346,7 @@ describe('Search', () => {
     )
     const item5ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'dir1',
       'dir2',
       'dir3',
@@ -378,7 +391,7 @@ describe('Search', () => {
 
     expect(specification.directoryStructure.length).toEqual(3)
     expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, artifactName)
+      path.join(testDownloadPath, artifact1Name)
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir1Path)
@@ -392,36 +405,36 @@ describe('Search', () => {
     const testDownloadPath = path.join('some', 'destination', 'folder')
 
     const specification = getDownloadSpecification(
-      artifactName,
+      artifact1Name,
       artifactContainerEntries,
       testDownloadPath,
       true
     )
 
     expect(specification.rootDownloadLocation).toEqual(
-      path.join(testDownloadPath, artifactName)
+      path.join(testDownloadPath, artifact1Name)
     )
     expect(specification.filesToDownload.length).toEqual(5)
 
     const item1ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'file1.txt'
     )
     const item2ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'file2.txt'
     )
     const item3ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'dir1',
       'file3.txt'
     )
     const item4ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'dir1',
       'dir2',
       'dir3',
@@ -430,7 +443,7 @@ describe('Search', () => {
     )
     const item5ExpectedTargetPath = path.join(
       testDownloadPath,
-      artifactName,
+      artifact1Name,
       'dir1',
       'dir2',
       'dir3',
@@ -475,7 +488,7 @@ describe('Search', () => {
 
     expect(specification.directoryStructure.length).toEqual(3)
     expect(specification.directoryStructure).toContain(
-      path.join(testDownloadPath, artifactName)
+      path.join(testDownloadPath, artifact1Name)
     )
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir1Path)

@@ -43,8 +43,11 @@ export function getDownloadSpecification(
     filesToDownload: []
   }
 
+  // file paths entries will always use forward slashes
+  const artifactNameToCheck = `${artifactName}/`
+
   for (const entry of artifactEntries) {
-    if (!entry.path.startsWith(artifactName)) {
+    if (!entry.path.startsWith(artifactNameToCheck)) {
       // Ignore other artifacts in the container that don't begin with the same name
     } else {
       // entry.path always starts with the artifact name, if includeRootDirectory is false, remove the name from the beginning of the path
