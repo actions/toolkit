@@ -202,14 +202,17 @@ export async function extractTar(
   dest = await _createExtractFolder(dest)
 
   // Determine whether GNU tar
+  core.debug('Checking tar --version')
   let versionOutput = ''
   await exec('tar --version', [], {
     ignoreReturnCode: true,
+    silent: true,
     listeners: {
       stdout: (data: Buffer) => (versionOutput += data.toString()),
       stderr: (data: Buffer) => (versionOutput += data.toString())
     }
   })
+  core.debug(versionOutput.trim())
   const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR')
 
   // Initialize args
