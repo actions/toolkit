@@ -1,9 +1,9 @@
 # Additional Information
 
 Extra information 
-- [Non-Supported Characters](##Non-Supported-Characters)
-- [Permission loss](##Permission-loss)
-- [Considerations](##Considerations)
+- [Non-Supported Characters](#Non-Supported-Characters)
+- [Permission loss](#Permission-Loss)
+- [Considerations](#Considerations)
 
 ## Non-Supported Characters
 
@@ -23,7 +23,7 @@ In addition to the aforementioned characters, the inputted `name` also cannot in
 - /
 
 
-## Permission loss
+## Permission Loss
 
 File permissions are not maintained between uploaded and downloaded artifacts. If file permissions are something that need to be maintained (such as an executable), consider archiving all of the files using something like `tar` and then uploading the single archive. After downloading the artifact, you can `un-tar` the individual file and permissions will be preserved.
 
