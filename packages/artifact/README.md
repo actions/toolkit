@@ -96,8 +96,8 @@ The returned `UploadResponse` will contain the following information
 Method Name: `downloadArtifact`
 
 #### Inputs
- - `Name`
-    - The name of the artifact that is being downloaded
+ - `name`
+    - The name of the artifact to download
     - Required
  - `path`
     - Path that denotes where the artifact will be downloaded to
