@@ -45,13 +45,18 @@ export function getDownloadSpecification(
 
   for (const entry of artifactEntries) {
     // Ignore artifacts in the container that don't begin with the same name
-    if (entry.path.startsWith(`${artifactName}/`) || entry.path.startsWith(`${artifactName}\\`)) {
+    if (
+      entry.path.startsWith(`${artifactName}/`) ||
+      entry.path.startsWith(`${artifactName}\\`)
+    ) {
       // normalize all separators to the local OS
       const normalizedPathEntry = path.normalize(entry.path)
       // entry.path always starts with the artifact name, if includeRootDirectory is false, remove the name from the beginning of the path
       const filePath = path.join(
         downloadPath,
-        includeRootDirectory ? normalizedPathEntry : normalizedPathEntry.replace(artifactName, '')
+        includeRootDirectory
+          ? normalizedPathEntry
+          : normalizedPathEntry.replace(artifactName, '')
       )
 
       // Case insensitive folder structure maintained in the backend, not every folder is created so the 'folder'

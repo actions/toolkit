@@ -37,37 +37,20 @@ export async function listArtifacts(): Promise<ListArtifactsResponse> {
 }
 
 /**
- * Fetches a set of container items that describe the contents of a single artifact
+ * Fetches a set of container items that describe the contents of an artifact
  * @param artifactName the name of the artifact
  * @param containerUrl the artifact container URL for the run
  */
-export async function getContainerItemsForSingleArtifact(
+export async function getContainerItems(
   artifactName: string,
   containerUrl: string
 ): Promise<QueryArtifactResponse> {
+  // The itemPath search parameter controls which containers will be returned
   const resourceUrl = new URL(containerUrl)
-  // The itemPath search parameter controls which containers will be returned. The artifact name acts as the root folder in the
-  // container for all files associated with that particular artifact
   resourceUrl.searchParams.append('itemPath', artifactName)
-  return queryForArtifactContainerItems(resourceUrl.toString())
-}
 
-/**
- * Fetches a set of container items that describe the contents of all available artifacts
- * @param containerUrl the artifact container ULR for the run
- */
-export async function getContainerItemsForAllArtifacts(
-  containerUrl: string
-): Promise<QueryArtifactResponse> {
-  // no itemPath search parameter is included so container items for all artifacts will be returned
-  return queryForArtifactContainerItems(containerUrl)
-}
-
-export async function queryForArtifactContainerItems(
-  resourceUrl: string
-): Promise<QueryArtifactResponse> {
   const client = createHttpClient()
-  const rawResponse = await client.get(resourceUrl)
+  const rawResponse = await client.get(resourceUrl.toString())
   const body: string = await rawResponse.readBody()
   if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
     return JSON.parse(body)

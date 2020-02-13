@@ -16,8 +16,7 @@ import {checkArtifactName, createDirectoriesForArtifact} from './internal-utils'
 import {
   listArtifacts,
   downloadSingleArtifact,
-  getContainerItemsForSingleArtifact,
-  getContainerItemsForAllArtifacts
+  getContainerItems
 } from './internal-download-http-client'
 import {getDownloadSpecification} from './internal-download-specification'
 import {
@@ -148,12 +147,11 @@ export class DefaultArtifactClient implements ArtifactClient {
     const artifactToDownload = artifacts.value.find(artifact => {
       return artifact.name === name
     })
-
     if (!artifactToDownload) {
       throw new Error(`Unable to find an artifact with the name: ${name}`)
     }
-    // query container for all items associated with the artifact
-    const items = await getContainerItemsForSingleArtifact(
+
+    const items = await getContainerItems(
       artifactToDownload.name,
       artifactToDownload.fileContainerResourceUrl
     )
@@ -161,6 +159,8 @@ export class DefaultArtifactClient implements ArtifactClient {
     if (!path) {
       path = getWorkSpaceDirectory()
     }
+    path = normalize(path)
+    path = resolve(path)
 
     // During upload, empty directories are rejected by the remote server so there should be no artifacts that consist of only empty directories
     const downloadSpecification = getDownloadSpecification(
@@ -204,43 +204,46 @@ export class DefaultArtifactClient implements ArtifactClient {
     path = normalize(path)
     path = resolve(path)
 
-    // Get container items for all artifacts. The resource url is the same for all artifacts so one call is sufficient
-    const items = await getContainerItemsForAllArtifacts(
-      artifacts.value[0].fileContainerResourceUrl
-    )
-    if (items.count === 0) {
-      core.warning(`No downloadable files were found for any artifacts`)
-    } else {
-      const ARTIFACT_CONCURRENCY = getDownloadArtifactConcurrency()
-      const parallelDownloads = [...new Array(ARTIFACT_CONCURRENCY).keys()]
-      let downloadedArtifacts = 0
-      await Promise.all(
-        parallelDownloads.map(async () => {
-          while (downloadedArtifacts < artifacts.count) {
-            const currentArtifactToDownload =
-              artifacts.value[downloadedArtifacts]
-            downloadedArtifacts += 1
+    const ARTIFACT_CONCURRENCY = getDownloadArtifactConcurrency()
+    const parallelDownloads = [...new Array(ARTIFACT_CONCURRENCY).keys()]
+    let downloadedArtifacts = 0
+    await Promise.all(
+      parallelDownloads.map(async () => {
+        while (downloadedArtifacts < artifacts.count) {
+          const currentArtifactToDownload = artifacts.value[downloadedArtifacts]
+          downloadedArtifacts += 1
 
-            // Promise.All is not correctly inferring that 'path' is no longer possibly undefined: https://github.com/microsoft/TypeScript/issues/34925
-            const downloadSpecification = getDownloadSpecification(
-              currentArtifactToDownload.name,
-              items.value,
-              path!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-              true
+          // Get container entries for the specific artifact
+          const items = await getContainerItems(
+            currentArtifactToDownload.name,
+            currentArtifactToDownload.fileContainerResourceUrl
+          )
+
+          // Promise.All is not correctly inferring that 'path' is no longer possibly undefined: https://github.com/microsoft/TypeScript/issues/34925
+          const downloadSpecification = getDownloadSpecification(
+            currentArtifactToDownload.name,
+            items.value,
+            path!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
+            true
+          )
+          if (downloadSpecification.filesToDownload.length === 0) {
+            core.info(
+              `No downloadable files were found for any artifact ${currentArtifactToDownload.name}`
             )
+          } else {
             await createDirectoriesForArtifact(
               downloadSpecification.directoryStructure
             )
             await downloadSingleArtifact(downloadSpecification.filesToDownload)
-
-            response.push({
-              artifactName: currentArtifactToDownload.name,
-              downloadPath: downloadSpecification.rootDownloadLocation
-            })
           }
-        })
-      )
-    }
+
+          response.push({
+            artifactName: currentArtifactToDownload.name,
+            downloadPath: downloadSpecification.rootDownloadLocation
+          })
+        }
+      })
+    )
     return response
   }
 }

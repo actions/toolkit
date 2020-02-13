@@ -68,7 +68,8 @@ describe('Download Tests', () => {
    */
   it('Container Items - Success', async () => {
     setupSuccessfulContainerItemsResponse()
-    const response = await downloadClient.getContainerItemsForAllArtifacts(
+    const response = await downloadClient.getContainerItems(
+      'artifact-name',
       configVariables.getRuntimeUrl()
     )
     expect(response.count).toEqual(2)
@@ -93,7 +94,8 @@ describe('Download Tests', () => {
   it('Container Items - Failure', async () => {
     setupFailedResponse()
     expect(
-      downloadClient.getContainerItemsForAllArtifacts(
+      downloadClient.getContainerItems(
+        'artifact-name',
         configVariables.getRuntimeUrl()
       )
     ).rejects.toThrow(
