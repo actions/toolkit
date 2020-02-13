@@ -1,5 +1,3 @@
-import {cpus} from 'os'
-
 export function getUploadFileConcurrency(): number {
   return 2
 }
@@ -13,8 +11,7 @@ export function getUploadChunkSize(): number {
 }
 
 export function getDownloadFileConcurrency(): number {
-  // limit the number of concurrent file downloads per artifact to the number of CPU cores available
-  return cpus().length
+  return 2
 }
 
 export function getDownloadArtifactConcurrency(): number {

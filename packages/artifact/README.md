@@ -34,9 +34,9 @@ Method Name: `uploadArtifact`
 #### Available Options
 
  - `continueOnError`
-    - Indicates if the artifact upload should continue in the event a file or chunk fails to upload. If there is a error during upload, a partial artifact will always be created and available for download at the end. The `size` reported will be the amount of storage that the user or org will be charged for the partial artifact.
-    - If set to `false`, and an error is encountered, all other uploads will stop and any files or chunks that were queued will not be attempted to be uploaded. The partial artifact available will only include files and chunks up until the failure
-    - If set to `true` and an error is encountered, the failed file will be skipped and ignored and all other queued files will be attempted to be uploaded. There will be a an artifact available for download at the end with everything excluding the file/chunks that failed to upload
+    - Indicates if the artifact upload should continue in the event a file fails to upload. If there is a error during upload, a partial artifact will always be created and available for download at the end. The `size` reported will be the amount of storage that the user or org will be charged for the partial artifact.
+    - If set to `false`, and an error is encountered, all other uploads will stop and any files that were queued will not be attempted to be uploaded. The partial artifact available will only include files up until the failure.
+    - If set to `true` and an error is encountered, the failed file will be skipped and ignored and all other queued files will be attempted to be uploaded. There will be an artifact available for download at the end with everything excluding the file that failed to upload
     - Optional, defaults to `true` if not specified
 
 #### Example using Absolute File Paths

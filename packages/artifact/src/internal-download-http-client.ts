@@ -29,11 +29,10 @@ export async function listArtifacts(): Promise<ListArtifactsResponse> {
   const body: string = await rawResponse.readBody()
   if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
     return JSON.parse(body)
-  } else {
-    // eslint-disable-next-line no-console
-    console.log(rawResponse)
-    throw new Error(`Unable to list artifacts for the run`)
   }
+  // eslint-disable-next-line no-console
+  console.log(rawResponse)
+  throw new Error(`Unable to list artifacts for the run`)
 }
 
 /**
@@ -55,6 +54,8 @@ export async function getContainerItems(
   if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
     return JSON.parse(body)
   }
+  // eslint-disable-next-line no-console
+  console.log(rawResponse)
   throw new Error(`Unable to get ContainersItems from ${resourceUrl}`)
 }
 
