@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 2.1.1
+
+- [Use import {Octokit}](https://github.com/actions/toolkit/pull/332)
+- [Check proxy bypass before setting proxy agent](https://github.com/actions/toolkit/pull/320)
+
 ### 2.1.0
 
 - [Octokit client follows proxy settings](https://github.com/actions/toolkit/pull/314)
