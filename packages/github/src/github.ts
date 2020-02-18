@@ -9,7 +9,7 @@ import {
   RequestParameters as GraphQLRequestParameters
 } from '@octokit/graphql/dist-types/types'
 
-import {Octokit} from '@octokit/rest'
+import Octokit from '@octokit/rest'
 import * as Context from './context'
 import * as http from 'http'
 import * as httpClient from '@actions/http-client'

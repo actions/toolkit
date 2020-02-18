@@ -39,7 +39,7 @@
   "dependencies": {
     "@actions/http-client": "^1.0.3",
     "@octokit/graphql": "^4.3.1",
-    "@octokit/rest": "^16.43.1"
+    "@octokit/rest": "^16.15.0"
   },
   "devDependencies": {
     "jest": "^24.7.1",
