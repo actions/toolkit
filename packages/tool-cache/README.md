@@ -37,7 +37,7 @@ else {
 
 #### Cache
 
-Finally, you can cache these directories in our tool-cache. This is useful if you want to switch back and forth between versions of a tool, or save a tool between runs for private runners (private runners are still in development but are on the roadmap).
+Finally, you can cache these directories in our tool-cache. This is useful if you want to switch back and forth between versions of a tool, or save a tool between runs for self-hosted runners.
 
 You'll often want to add it to the path as part of this step:
 
