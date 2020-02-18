@@ -11,7 +11,7 @@ Thank you 🙇‍♀ for wanting to create an issue in this repository. Before y
 
 * If you have found a security issue [please submit it here](https://hackerone.com/github)
 * If you have questions about writing workflows or action files, then please [visit the GitHub Community Forum's Actions Board](https://github.community/t5/GitHub-Actions/bd-p/actions)
-* If you are having an issue or question about GitHub Actions then please [contact customer support](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/about-github-actions#contacting-support)
+* If you are having an issue or question about GitHub Actions then please [contact customer support](https://help.github.com/en/articles/about-github-actions#contacting-support)
 
 If your issue is relevant to this repository, please include the information below:
 
