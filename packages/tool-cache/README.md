@@ -2,6 +2,11 @@
 
 > Functions necessary for downloading and caching tools.
 
+The tool-cache caches downloads in the environment in which an action runs.
+
+For hosted runners, the lifetime of the cache is therefore limited to the Job because the Job defines the lifetime of the VM in which the action that exploits the cache runs.
+This does not mean that the tool-cache is redundant for downloads that occur only once in a Job, because many popular tools are pre-populated in the tool-cache for hosted runners.
+
 ## Usage
 
 #### Download
