@@ -10,15 +10,6 @@ export function getUploadChunkSize(): number {
   return 4 * 1024 * 1024 // 4 MB Chunks
 }
 
-export function getDownloadFileConcurrency(): number {
-  return 2
-}
-
-export function getDownloadArtifactConcurrency(): number {
-  // when downloading all artifact at once, this is number of concurrent artifacts being downloaded
-  return 1
-}
-
 export function getRuntimeToken(): string {
   const token = process.env['ACTIONS_RUNTIME_TOKEN']
   if (!token) {
@@ -41,12 +32,4 @@ export function getWorkFlowRunId(): string {
     throw new Error('Unable to get GITHUB_RUN_ID env variable')
   }
   return workFlowRunId
-}
-
-export function getWorkSpaceDirectory(): string {
-  const workspaceDirectory = process.env['GITHUB_WORKSPACE']
-  if (!workspaceDirectory) {
-    throw new Error('Unable to get GITHUB_WORKSPACE env variable')
-  }
-  return workspaceDirectory
 }
