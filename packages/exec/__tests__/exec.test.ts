@@ -303,7 +303,7 @@ describe('@actions/exec', () => {
 
     _testExecOptions.stdin = Buffer.from('this is my input')
 
-    let exitCode = await exec.exec(`"${waitForInput}"`, [], _testExecOptions)
+    const exitCode = await exec.exec(`"${waitForInput}"`, [], _testExecOptions)
     expect(exitCode).toBe(0)
   })
 
