@@ -524,6 +524,16 @@ export class ToolRunner extends events.EventEmitter {
           resolve(exitCode)
         }
       })
+
+      if (this.options.stdin) {
+        if (!cp.stdin) {
+          throw new Error('child process missing stdin')
+        }
+
+        cp.stdin.setDefaultEncoding('utf-8')
+        cp.stdin.write(this.options.stdin)
+        cp.stdin.end()
+      }
     })
   }
 }

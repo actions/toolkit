@@ -286,6 +286,27 @@ describe('@actions/exec', () => {
     expect(stderrCalled).toBeTruthy()
   })
 
+  it('Handles stdin', async () => {
+    const waitForInput: string = path.join(
+      __dirname,
+      'scripts',
+      'wait-for-input.sh'
+    )
+
+    const _testExecOptions = getExecOptions()
+
+    _testExecOptions.listeners = {
+      stdout: (data: Buffer) => {
+        expect(data).toEqual(Buffer.from('this is my input\n'))
+      }
+    }
+
+    _testExecOptions.stdin = Buffer.from('this is my input')
+
+    let exitCode = await exec.exec(`"${waitForInput}"`, [], _testExecOptions)
+    expect(exitCode).toBe(0)
+  })
+
   it('Handles child process holding streams open', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
