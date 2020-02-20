@@ -72,6 +72,15 @@ $ npm install @actions/github --save
 ```
 <br/>
 
+:floppy_disk: [@actions/artifact](packages/artifact) 
+
+Provides functions to interact with actions artifacts. Read more [here](packages/artifact)
+
+```bash
+$ npm install @actions/artifact --save
+```
+<br/>
+
 ## Creating an Action with the Toolkit
 
 :question: [Choosing an action type](docs/action-types.md)
