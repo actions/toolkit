@@ -57,18 +57,27 @@ export function addPath(inputPath: string): void {
   process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`
 }
 
+const isBoolRegex = /^(y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF)$/
+const isTrueRegex = /^(y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON)$/
 /**
  * Gets the value of an input.  The value is also trimmed.
  *
  * @param     name     name of the input to get
  * @param     options  optional. See InputOptions.
- * @returns   string
+ * @returns   {(string|boolean)}
  */
-export function getInput(name: string, options?: InputOptions): string {
+export function getInput(
+  name: string,
+  options?: InputOptions
+): string | boolean {
   const val: string =
-    process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
-  if (options && options.required && !val) {
+    process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] ?? ''
+  if (options?.required && val === '') {
     throw new Error(`Input required and not supplied: ${name}`)
+  }
+
+  if (isBoolRegex.test(val)) {
+    return isTrueRegex.test(val)
   }
 
   return val.trim()

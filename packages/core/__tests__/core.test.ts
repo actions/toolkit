@@ -18,6 +18,8 @@ const testEnvVars = {
   INPUT_MISSING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
   INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
+  INPUT_YAML_BOOLEAN_FALSE: 'OFF',
+  INPUT_YAML_BOOLEAN_TRUE: 'y',
 
   // Save inputs
   STATE_TEST_1: 'state_val'
@@ -97,6 +99,11 @@ describe('@actions/core', () => {
     expect(core.getInput('multiple spaces variable')).toBe(
       'I have multiple spaces'
     )
+  })
+
+  it('getInput handles boolean values', () => {
+    expect(core.getInput('yaml boolean false')).toBe(false)
+    expect(core.getInput('yaml boolean true')).toBe(true)
   })
 
   it('setOutput produces the correct command', () => {
