@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import {debug} from '@actions/core'
 import {join, normalize, resolve} from 'path'
-import {checkArtifactName} from './internal-utils'
+import {checkArtifactName, checkArtifactFilePath} from './internal-utils'
 
 export interface UploadSpecification {
   absoluteFilePath: string
@@ -58,7 +58,6 @@ export function getUploadSpecification(
     if (!fs.existsSync(file)) {
       throw new Error(`File ${file} does not exist`)
     }
-
     if (!fs.lstatSync(file).isDirectory()) {
       // Normalize and resolve, this allows for either absolute or relative paths to be used
       file = normalize(file)
@@ -68,6 +67,10 @@ export function getUploadSpecification(
           `The rootDirectory: ${rootDirectory} is not a parent directory of the file: ${file}`
         )
       }
+
+      // Check for forbidden characters in file paths that will be rejected during upload
+      const uploadPath = file.replace(rootDirectory, '')
+      checkArtifactFilePath(uploadPath)
 
       /*
         uploadFilePath denotes where the file will be uploaded in the file container on the server. During a run, if multiple artifacts are uploaded, they will all
@@ -81,7 +84,7 @@ export function getUploadSpecification(
       */
       specifications.push({
         absoluteFilePath: file,
-        uploadFilePath: join(artifactName, file.replace(rootDirectory, ''))
+        uploadFilePath: join(artifactName, uploadPath)
       })
     } else {
       // Directories are rejected by the server during upload

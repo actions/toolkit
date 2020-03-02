@@ -37,6 +37,9 @@
   },
   "dependencies": {
     "@actions/core": "^1.2.1",
-    "@actions/http-client": "^1.0.6"
+    "@actions/http-client": "^1.0.6",
+    "@types/tmp": "^0.1.0",
+    "tmp": "^0.1.0",
+    "tmp-promise": "^2.0.2"
   }
 }

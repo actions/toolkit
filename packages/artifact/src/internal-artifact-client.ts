@@ -116,17 +116,18 @@ export class DefaultArtifactClient implements ArtifactClient {
         options
       )
 
-      //Update the size of the artifact to indicate we are done uploading
-      await patchArtifactSize(uploadResult.size, name)
+      // Update the size of the artifact to indicate we are done uploading
+      // The uncompressed size is used for display when downloading a zip of the artifact from the UI
+      await patchArtifactSize(uploadResult.uncompressedSize, name)
 
       core.info(
-        `Finished uploading artifact ${name}. Reported size is ${uploadResult.size} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
+        `Finished uploading artifact ${name}. Reported size is ${uploadResult.uploadSize} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
       )
 
       uploadResponse.artifactItems = uploadSpecification.map(
         item => item.absoluteFilePath
       )
-      uploadResponse.size = uploadResult.size
+      uploadResponse.size = uploadResult.uploadSize
       uploadResponse.failedItems = uploadResult.failedItems
     }
     return uploadResponse
