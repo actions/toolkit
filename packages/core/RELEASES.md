@@ -1,5 +1,9 @@
 # @actions/core Releases
 
+### 1.2.3
+
+- [IsDebug logging](README.md#logging)
+
 ### 1.2.2
 
 - [Fix escaping for runner commands](https://github.com/actions/toolkit/pull/302)
