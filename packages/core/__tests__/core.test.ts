@@ -177,6 +177,19 @@ describe('@actions/core', () => {
   it('getState gets wrapper action state', () => {
     expect(core.getState('TEST_1')).toBe('state_val')
   })
+
+  it('isDebug check debug state', () => {
+    const current = process.env['RUNNER_DEBUG']
+    try {
+      delete process.env.RUNNER_DEBUG
+      expect(core.isDebug()).toBe(false)
+
+      process.env['RUNNER_DEBUG'] = '1'
+      expect(core.isDebug()).toBe(true)
+    } finally {
+      process.env['RUNNER_DEBUG'] = current
+    }
+  })
 })
 
 // Assert that process.stdout.write calls called only with the given arguments.
