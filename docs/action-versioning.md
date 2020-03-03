@@ -8,7 +8,7 @@ Examples:
 steps:
     - uses: actions/javascript-action@v1        # recommended. starter workflows use this
     - uses: actions/javascript-action@v1.0.0    # if an action offers specific releases 
-    - uses: actions/javascript-action@41775a4   # binding to a specific sha 
+    - uses: actions/javascript-action@41775a4da8ffae865553a738ab8ac1cd5a3c0044 # sha
 ```
 
 # Compatibility
@@ -26,7 +26,7 @@ steps:
     - uses: actions/javascript-action@master  # do not do this
 ```
 
-Binding to the immutable sha1 may offer more reliability.  However, note that the hosted images toolsets (e.g. ubuntu-latest) move forward and if there is a tool breaking issue, actions may react with a patch to a major version to compensate so binding to a specific SHA may prevent you from getting fixes.
+Binding to the immutable full sha1 may offer more reliability.  However, note that the hosted images toolsets (e.g. ubuntu-latest) move forward and if there is a tool breaking issue, actions may react with a patch to a major version to compensate so binding to a specific SHA may prevent you from getting fixes.
 
 > Recommendation: bind to major versions to get functionality and fixes but reserve binding to a specific release or SHA as a mitigation strategy for unforeseen breaks. 
 
