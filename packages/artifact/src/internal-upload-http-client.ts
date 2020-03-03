@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as zlib from 'zlib'
 import * as tmp from 'tmp-promise'
+import * as stream from 'stream'
 import {debug, warning, info} from '@actions/core'
 import {HttpClientResponse} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
@@ -10,7 +11,7 @@ import {
   PatchArtifactSize,
   UploadResults
 } from './internal-contracts'
-import {HttpManager} from './internal-http-manager'
+import {UploadManager} from './internal-http-upload-manager'
 import {UploadSpecification} from './internal-upload-specification'
 import {UploadOptions} from './internal-upload-options'
 import {URL} from 'url'
@@ -45,7 +46,7 @@ export async function createArtifactInFileContainer(
   const artifactUrl = getArtifactUrl()
 
   // No concurrent calls, a single httpClient is sufficient
-  const httpManagerInstance = HttpManager.getInstance()
+  const httpManagerInstance = UploadManager.getInstance()
   httpManagerInstance.createClients(1)
   const client = httpManagerInstance.getClient(0)
 
@@ -106,7 +107,7 @@ export async function uploadArtifactToFileContainer(
 
   const parallelUploads = [...new Array(FILE_CONCURRENCY).keys()]
   // each parallel upload gets its own http client
-  const httpManagerInstance = HttpManager.getInstance()
+  const httpManagerInstance = UploadManager.getInstance()
   httpManagerInstance.createClients(FILE_CONCURRENCY)
   const failedItemsToReport: string[] = []
   let currentFile = 0
@@ -173,7 +174,7 @@ export async function uploadArtifactToFileContainer(
 }
 
 /**
- * Asynchronously uploads a file. The file is compressed and uploaded using GZip if it is determined to save space. 
+ * Asynchronously uploads a file. The file is compressed and uploaded using GZip if it is determined to save space.
  * If the upload file is bigger than the max chunk size it will be uploaded via multiple calls
  * @param {number} httpClientIndex The index of the httpClient that is being used to make all of the calls
  * @param {UploadFileParameters} parameters Information about the file that needs to be uploaded
@@ -189,114 +190,134 @@ async function uploadFileAsync(
   let failedChunkSizes = 0
   let abortFileUpload = false
   let uploadFileSize = 0
+  let isGzip = true
 
-  // using npm tmp-promise to help create a temporary file that can be used for compression
-  return tmp
-    .file()
-    .then(async temporary => {
-      // Create a GZip file of the original file being uploaded. The original file should not be modified in any way
-      uploadFileSize = await CreateGZipFileOnDisk(
-        parameters.file,
-        temporary.path
+  // file is less than 64k in size, to increase thoroughput and minimize disk I/O for creating a new GZip file, an in-memory buffer will be used
+  if (originalFileSize < 65536) {
+    const buffer = await CreateGZipFileInBuffer(parameters.file)
+    uploadFileSize = buffer.byteLength
+
+    if (originalFileSize < uploadFileSize) {
+      // compression did not help with reducing the size, use the original file for upload
+      uploadFileSize = originalFileSize
+      isGzip = false
+    }
+
+    // if using a buffer, the entire file should be uploaded in a single chunk with a single call
+    if (uploadFileSize > parameters.maxChunkSize) {
+      throw new Error(
+        'Chunk size is too large to upload using buffer with a single call'
       )
-      let uploadFilePath = temporary.path
-      let isGzip = true
+    }
+    const chunkSize = Math.min(uploadFileSize - offset, parameters.maxChunkSize)
 
-      if (originalFileSize < uploadFileSize) {
-        // compression did not help with reducing the size, use the original file for upload
-        uploadFileSize = originalFileSize
-        uploadFilePath = parameters.file
-        isGzip = false
+    // Create a readable stream using a PassThrough stream and the in-memory buffer
+    const passThrough = new stream.PassThrough()
+    passThrough.end(buffer)
 
-        // immediatly delete the temporary GZip file that was created
-        temporary.cleanup()
-      }
-
-      // upload only a single chunk at a time
-      while (offset < uploadFileSize) {
-        const chunkSize = Math.min(
-          uploadFileSize - offset,
-          parameters.maxChunkSize
-        )
-        if (abortFileUpload) {
-          // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
-          failedChunkSizes += chunkSize
-          continue
-        }
-
-        const start = offset
-        const end = offset + chunkSize - 1
-        offset += parameters.maxChunkSize
-
-        const chunk = fs.createReadStream(uploadFilePath, {
-          start,
-          end,
-          autoClose: false
-        })
-
-        const result = await uploadChunk(
-          httpClientIndex,
-          parameters.resourceUrl,
-          chunk,
-          start,
-          end,
-          uploadFileSize,
-          isGzip,
-          originalFileSize
-        )
-
-        if (!result) {
-          /**
-           * Chunk failed to upload, report as failed and do not continue uploading any more chunks for the file. It is possible that part of a chunk was
-           * successfully uploaded so the server may report a different size for what was uploaded
-           **/
-          isUploadSuccessful = false
-          failedChunkSizes += chunkSize
-          warning(`Aborting upload for ${parameters.file} due to failure`)
-          abortFileUpload = true
-        }
-      }
-    })
-    .then(
-      async (): Promise<UploadFileResult> => {
-        // After the file upload is complete and the temporary file is deleted, return the UploadResult
-        return new Promise(resolve => {
-          resolve({
-            isSuccess: isUploadSuccessful,
-            successfullUploadSize: uploadFileSize - failedChunkSizes,
-            uncompressedSize: originalFileSize
-          })
-        })
-      }
+    const result = await uploadChunk(
+      httpClientIndex,
+      parameters.resourceUrl,
+      passThrough,
+      offset,
+      offset + chunkSize - 1,
+      uploadFileSize,
+      isGzip,
+      originalFileSize
     )
-}
 
-/**
- * Creates a Gzip compressed file of an original file at the provided temporary filepath location
- * @param {string} originalFilePath filepath of whatever will be compressed. The original file will be unmodified
- * @param {string} tempFilePath the location of where the Gzip file will be created
- * @returns the size of gzip file that gets created
- */
-async function CreateGZipFileOnDisk(
-  originalFilePath: string,
-  tempFilePath: string
-): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const inputStream = fs.createReadStream(originalFilePath)
-    const gzip = zlib.createGzip()
-    const outputStream = fs.createWriteStream(tempFilePath)
-    inputStream.pipe(gzip).pipe(outputStream)
-    outputStream.on('finish', () => {
-      // The final size of the Gzip file is needed as part of the Content-Length header when starting an upload
-      const size = fs.statSync(tempFilePath).size
-      resolve(size)
-    })
-    outputStream.on('error', error => {
-      // eslint-disable-next-line no-console
-      console.log(error)
-      reject
-    })
-  })
+    if (!result) {
+      // Chunk failed to upload
+      isUploadSuccessful = false
+      failedChunkSizes += chunkSize
+      warning(`Aborting upload for ${parameters.file} due to failure`)
+    }
+
+    return {
+      isSuccess: isUploadSuccessful,
+      successfullUploadSize: uploadFileSize - failedChunkSizes,
+      uncompressedSize: originalFileSize
+    }
+  } else {
+    // using npm tmp-promise to help create a temporary file that can be used for compression
+    return tmp
+      .file()
+      .then(async temporary => {
+        // Create a GZip file of the original file being uploaded. The original file should not be modified in any way
+        uploadFileSize = await CreateGZipFileOnDisk(
+          parameters.file,
+          temporary.path
+        )
+        let uploadFilePath = temporary.path
+
+        if (originalFileSize < uploadFileSize) {
+          // compression did not help with reducing the size, use the original file for upload
+          uploadFileSize = originalFileSize
+          uploadFilePath = parameters.file
+          isGzip = false
+
+          // immediatly delete the temporary GZip file that was created
+          temporary.cleanup()
+        }
+
+        // upload only a single chunk at a time
+        while (offset < uploadFileSize) {
+          const chunkSize = Math.min(
+            uploadFileSize - offset,
+            parameters.maxChunkSize
+          )
+          if (abortFileUpload) {
+            // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
+            failedChunkSizes += chunkSize
+            continue
+          }
+
+          const start = offset
+          const end = offset + chunkSize - 1
+          offset += parameters.maxChunkSize
+
+          const chunk = fs.createReadStream(uploadFilePath, {
+            start,
+            end,
+            autoClose: false
+          })
+
+          const result = await uploadChunk(
+            httpClientIndex,
+            parameters.resourceUrl,
+            chunk,
+            start,
+            end,
+            uploadFileSize,
+            isGzip,
+            originalFileSize
+          )
+
+          if (!result) {
+            /**
+             * Chunk failed to upload, report as failed and do not continue uploading any more chunks for the file. It is possible that part of a chunk was
+             * successfully uploaded so the server may report a different size for what was uploaded
+             **/
+            isUploadSuccessful = false
+            failedChunkSizes += chunkSize
+            warning(`Aborting upload for ${parameters.file} due to failure`)
+            abortFileUpload = true
+          }
+        }
+      })
+      .then(
+        async (): Promise<UploadFileResult> => {
+          // After the file upload is complete and the temporary file is deleted, return the UploadResult
+          return new Promise(resolve => {
+            resolve({
+              isSuccess: isUploadSuccessful,
+              successfullUploadSize: uploadFileSize - failedChunkSizes,
+              uncompressedSize: originalFileSize
+            })
+          })
+        }
+      )
+  }
 }
 
 /**
@@ -322,6 +343,7 @@ async function uploadChunk(
   isGzip: boolean,
   uncompressedSize: number
 ): Promise<boolean> {
+  // Prepare all the necessary headers before making any http call
   const requestOptions = getRequestOptions(
     'application/octet-stream',
     true,
@@ -331,7 +353,7 @@ async function uploadChunk(
     getContentRange(start, end, totalSize)
   )
 
-  const httpManager = HttpManager.getInstance()
+  const httpManager = UploadManager.getInstance()
 
   const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
     return await httpManager
@@ -375,7 +397,7 @@ async function uploadChunk(
         return false
       }
     } catch (error) {
-      // If an error is thrown, it is most likely due to a timeout, dispose of the connection, wait and retry with a new connection
+      // if an error is thrown, it is most likely due to a timeout, dispose of the connection, wait and retry with a new connection
       httpManager.disposeClient(httpClientIndex)
 
       retryCount++
@@ -395,16 +417,64 @@ async function uploadChunk(
 }
 
 /**
+ * Creates a Gzip compressed file of an original file at the provided temporary filepath location
+ * @param {string} originalFilePath filepath of whatever will be compressed. The original file will be unmodified
+ * @param {string} tempFilePath the location of where the Gzip file will be created
+ * @returns the size of gzip file that gets created
+ */
+async function CreateGZipFileOnDisk(
+  originalFilePath: string,
+  tempFilePath: string
+): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const inputStream = fs.createReadStream(originalFilePath)
+    const gzip = zlib.createGzip()
+    const outputStream = fs.createWriteStream(tempFilePath)
+    inputStream.pipe(gzip).pipe(outputStream)
+    outputStream.on('finish', () => {
+      // The final size of the Gzip file is needed as part of the Content-Length header when starting an upload. The stream needs to finish before the size can be calculated
+      const size = fs.statSync(tempFilePath).size
+      resolve(size)
+    })
+    outputStream.on('error', error => {
+      // eslint-disable-next-line no-console
+      console.log(error)
+      reject
+    })
+  })
+}
+
+/**
+ * Creates a GZip file in memory using a buffer. Should be used for smaller files to reduce disk I/O
+ * @param originalFilePath the path to the original file that is being GZipped
+ * @returns a buffer with the GZip file
+ */
+async function CreateGZipFileInBuffer(
+  originalFilePath: string
+): Promise<Buffer> {
+  return new Promise(async resolve => {
+    const inputStream = fs.createReadStream(originalFilePath)
+    const gzip = zlib.createGzip()
+    inputStream.pipe(gzip)
+    // Read stream into buffer, using experimental async itterators see https://github.com/nodejs/readable-stream/issues/403#issuecomment-479069043
+    const chunks = []
+    for await (const chunk of gzip) {
+      chunks.push(chunk)
+    }
+    resolve(Buffer.concat(chunks))
+  })
+}
+
+/**
  * Updates the size of the artifact from -1 which was initially set when the container was first created for the artifact.
- * Updating the size indicates that we are done uploading all the contents of the artifact. A server side check will be run
- * to check that the artifact size is correct for billing purposes
+ * Updating the size indicates that we are done uploading all the contents of the artifact
  */
 export async function patchArtifactSize(
   size: number,
   artifactName: string
 ): Promise<void> {
   // No concurrent calls, a single httpClient is sufficient
-  const httpManagerInstance = HttpManager.getInstance()
+  const httpManagerInstance = UploadManager.getInstance()
   httpManagerInstance.createClients(1)
   const client = httpManagerInstance.getClient(0)
 
