@@ -63,8 +63,15 @@ describe('Utils', () => {
     const size = 24
     const uncompressedLength = 100
     const range = 'bytes 0-199/200'
-    const options = utils.getRequestOptions(type, true, true, uncompressedLength, size, range)
-    expect(Object.keys(options).length).toEqual(4)
+    const options = utils.getRequestOptions(
+      type,
+      true,
+      true,
+      uncompressedLength,
+      size,
+      range
+    )
+    expect(Object.keys(options).length).toEqual(8)
     expect(options['Accept']).toEqual(
       `${type};api-version=${utils.getApiVersion()}`
     )
