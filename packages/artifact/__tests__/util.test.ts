@@ -61,13 +61,18 @@ describe('Utils', () => {
   it('Test constructing headers with all optional parameters', () => {
     const type = 'application/json'
     const size = 24
+    const uncompressedLength = 100
     const range = 'bytes 0-199/200'
-    const options = utils.getRequestOptions(type, size, range)
+    const options = utils.getRequestOptions(type, true, true, uncompressedLength, size, range)
     expect(Object.keys(options).length).toEqual(4)
     expect(options['Accept']).toEqual(
       `${type};api-version=${utils.getApiVersion()}`
     )
     expect(options['Content-Type']).toEqual(type)
+    expect(options['Connection']).toEqual('Keep-Alive')
+    expect(options['Keep-Alive']).toEqual('10')
+    expect(options['Content-Encoding']).toEqual('gzip')
+    expect(options['x-tfs-filelength']).toEqual(uncompressedLength)
     expect(options['Content-Length']).toEqual(size)
     expect(options['Content-Range']).toEqual(range)
   })

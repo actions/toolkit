@@ -142,7 +142,7 @@ describe('Upload Tests', () => {
       uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(0)
-    expect(uploadResult.size).toEqual(expectedTotalSize)
+    expect(uploadResult.uploadSize).toEqual(expectedTotalSize)
   })
 
   it('Upload Artifact - Failed Single File Upload', async () => {
@@ -159,7 +159,7 @@ describe('Upload Tests', () => {
       uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(0)
+    expect(uploadResult.uploadSize).toEqual(0)
   })
 
   it('Upload Artifact - Partial Upload Continue On Error', async () => {
@@ -195,7 +195,7 @@ describe('Upload Tests', () => {
       {continueOnError: true}
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   it('Upload Artifact - Partial Upload Fail Fast', async () => {
@@ -231,7 +231,7 @@ describe('Upload Tests', () => {
       {continueOnError: false}
     )
     expect(uploadResult.failedItems.length).toEqual(2)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   it('Upload Artifact - Failed upload with no options', async () => {
@@ -266,7 +266,7 @@ describe('Upload Tests', () => {
       uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   it('Upload Artifact - Failed upload with empty options', async () => {
@@ -302,7 +302,7 @@ describe('Upload Tests', () => {
       {}
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   /**

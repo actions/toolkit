@@ -499,7 +499,6 @@ export async function patchArtifactSize(
     debug(
       `Artifact ${artifactName} has been successfully uploaded, total size ${size}`
     )
-    debug(body)
   } else if (rawResponse.message.statusCode === 404) {
     throw new Error(`An Artifact with the name ${artifactName} was not found`)
   } else {
