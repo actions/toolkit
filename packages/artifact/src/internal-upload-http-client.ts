@@ -279,12 +279,14 @@ export class UploadHttpClient {
 
             // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
             if (uploadFileSize > 104857600) {
+              // display 1 decimal place without any rounding
+              const percentage = ((offset / uploadFileSize) * 100).toString()
               this.statusReporter.updateLargeFileStatus(
                 parameters.file,
-                `Uploading ${parameters.file} (${(
-                  (offset / uploadFileSize) *
-                  100
-                ).toFixed(1)}%)`
+                `Uploading ${parameters.file} (${percentage.slice(
+                  0,
+                  percentage.indexOf('.') + 2
+                )}%)`
               )
             }
 

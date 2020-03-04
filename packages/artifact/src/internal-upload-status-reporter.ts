@@ -22,13 +22,18 @@ export class UploadStatusReporter {
 
     // displays information about the total upload status every 10 seconds
     this.totalUploadStatus = setInterval(function() {
+      // display 1 decimal place without any rounding
+      const percentage = (
+        (_this.processedCount / _this.totalNumberOfFilesToUpload) *
+        100
+      ).toString()
       info(
         `Total file(s): ${
           _this.totalNumberOfFilesToUpload
-        } ---- Processed file #${_this.processedCount} (${(
-          (_this.processedCount / _this.totalNumberOfFilesToUpload) *
-          100
-        ).toFixed(1)}%)`
+        } ---- Processed file #${_this.processedCount} (${percentage.slice(
+          0,
+          percentage.indexOf('.') + 2
+        )}%)`
       )
     }, 10000)
 
