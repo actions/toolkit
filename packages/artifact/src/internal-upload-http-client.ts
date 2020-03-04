@@ -132,7 +132,6 @@ export class UploadHttpClient {
       parallelUploads.map(async index => {
         while (currentFile < filesToUpload.length) {
           const currentFileParameters = parameters[currentFile]
-          this.statusReporter.incrementProcessedCount()
           currentFile += 1
           if (abortPendingFileUploads) {
             failedItemsToReport.push(currentFileParameters.file)
@@ -161,6 +160,7 @@ export class UploadHttpClient {
               abortPendingFileUploads = true
             }
           }
+          this.statusReporter.incrementProcessedCount()
         }
       })
     )
@@ -217,9 +217,7 @@ export class UploadHttpClient {
 
       // the entire file should be uploaded with a single call
       if (uploadFileSize > parameters.maxChunkSize) {
-        throw new Error(
-          'Chunk size is too large to upload with a single call'
-        )
+        throw new Error('Chunk size is too large to upload with a single call')
       }
 
       const result = await this.uploadChunk(
@@ -277,6 +275,11 @@ export class UploadHttpClient {
               // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
               failedChunkSizes += chunkSize
               continue
+            }
+
+            // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
+            if (uploadFileSize > 104857600){
+              this.statusReporter.updateLargeFileStatus(parameters.file, `Uploading ${parameters.file} (${((offset/uploadFileSize)*100).toFixed(1)}%)`)
             }
 
             const start = offset
@@ -374,10 +377,10 @@ export class UploadHttpClient {
     while (retryCount <= retryLimit) {
       try {
         const response = await uploadChunkRequest()
-        // read the body to properly drain the response before possibly reusing the connection
-        await response.readBody()
 
         if (isSuccessStatusCode(response.message.statusCode)) {
+          // read the body to properly drain the response before possibly reusing the connection
+          await response.readBody()
           return true
         } else if (isRetryableStatusCode(response.message.statusCode)) {
           // dispose the existing connection and create a new one
@@ -390,7 +393,7 @@ export class UploadHttpClient {
             return false
           } else {
             info(
-              `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after 10 seconds. Retry count #${retryCount}. URL ${resourceUrl}`
+              `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after ${getRetryWaitTime} milliseconds. Retry count #${retryCount}. URL ${resourceUrl}`
             )
             await new Promise(resolve =>
               setTimeout(resolve, getRetryWaitTime())
@@ -406,6 +409,9 @@ export class UploadHttpClient {
       } catch (error) {
         // if an error is thrown, it is most likely due to a timeout, dispose of the connection, wait and retry with a new connection
         this.uploadHttpManager.disposeClient(httpClientIndex)
+
+        // eslint-disable-next-line no-console
+        console.log(error)
 
         retryCount++
         if (retryCount > retryLimit) {

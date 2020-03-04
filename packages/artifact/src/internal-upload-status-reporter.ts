@@ -1,14 +1,16 @@
 import {info} from '@actions/core'
 
-// Displays information about the progress/status of an artifact being uploaded
+// displays information about the progress/status of an artifact being uploaded
 export class UploadStatusReporter {
-  private displayDelay = 10000
   private totalNumberOfFilesToUpload = 0
   private processedCount = 0
-  private uploadStatus: NodeJS.Timeout | undefined
+  private largeUploads = new Map<string, string>()
+  private totalUploadStatus: NodeJS.Timeout | undefined
+  private largeFileUploadStatus: NodeJS.Timeout | undefined
 
   constructor() {
-    this.uploadStatus = undefined
+    this.totalUploadStatus = undefined
+    this.largeFileUploadStatus = undefined
   }
 
   setTotalNumberOfFilesToUpload(fileTotal: number): void {
@@ -17,7 +19,9 @@ export class UploadStatusReporter {
 
   startDisplayingStatus(): void {
     const _this = this
-    this.uploadStatus = setInterval(function() {
+
+    // displays information about the total upload status every 10 seconds
+    this.totalUploadStatus = setInterval(function() {
       info(
         `Total file(s): ${
           _this.totalNumberOfFilesToUpload
@@ -26,12 +30,30 @@ export class UploadStatusReporter {
           100
         ).toFixed(1)}%)`
       )
-    }, this.displayDelay)
+    }, 10000)
+
+    // displays extra information about any large files that take a significant amount of time to upload every 1 second
+    this.largeFileUploadStatus = setInterval(function() {
+      for (const value of Array.from(_this.largeUploads.values())) {
+        info(value)
+      }
+      // delete all entires in the map after displaying the information so it will not be displayed again unless explicitly added
+      _this.largeUploads = new Map<string, string>()
+    }, 1000)
+  }
+
+  updateLargeFileStatus(fileName: string, displayInformation: string): void {
+    // any previously added display information should be overwritten for the specific large file because a map is being used
+    this.largeUploads.set(fileName, displayInformation)
   }
 
   stopDisplayingStatus(): void {
-    if (this.uploadStatus) {
-      clearInterval(this.uploadStatus)
+    if (this.totalUploadStatus) {
+      clearInterval(this.totalUploadStatus)
+    }
+
+    if (this.largeFileUploadStatus) {
+      clearInterval(this.largeFileUploadStatus)
     }
   }
 
