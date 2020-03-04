@@ -197,42 +197,37 @@ export class UploadHttpClient {
     let uploadFileSize = 0
     let isGzip = true
 
-    // file is less than 64k in size, to increase thoroughput and minimize disk I/O for creating a new GZip file, an in-memory buffer will be used
+    // file is less than 64k in size, to increase thoroughput and minimize disk I/O for creating a new GZip file, an in-memory buffer is used
     if (originalFileSize < 65536) {
       const buffer = await this.CreateGZipFileInBuffer(parameters.file)
       let uploadStream: NodeJS.ReadableStream
-      uploadFileSize = buffer.byteLength
 
-      if (originalFileSize < uploadFileSize) {
+      if (originalFileSize < buffer.byteLength) {
         // compression did not help with reducing the size, use a readable stream from the original file for upload
-        uploadFileSize = originalFileSize
-        isGzip = false
         uploadStream = fs.createReadStream(parameters.file)
+        isGzip = false
+        uploadFileSize = originalFileSize
       } else {
         // Create a readable stream using a PassThrough stream and the in-memory buffer. A PassThrought stream is both a readable stream and writable stream
         const passThrough = new stream.PassThrough()
         passThrough.end(buffer)
         uploadStream = passThrough
+        uploadFileSize = buffer.byteLength
       }
 
-      // the entire file should be uploaded in a single chunk with a single call
+      // the entire file should be uploaded with a single call
       if (uploadFileSize > parameters.maxChunkSize) {
         throw new Error(
-          'Chunk size is too large to upload using buffer with a single call'
+          'Chunk size is too large to upload with a single call'
         )
       }
-
-      const chunkSize = Math.min(
-        uploadFileSize - offset,
-        parameters.maxChunkSize
-      )
 
       const result = await this.uploadChunk(
         httpClientIndex,
         parameters.resourceUrl,
         uploadStream,
-        offset,
-        offset + chunkSize - 1,
+        0,
+        uploadFileSize - 1,
         uploadFileSize,
         isGzip,
         originalFileSize
@@ -241,7 +236,7 @@ export class UploadHttpClient {
       if (!result) {
         // Chunk failed to upload
         isUploadSuccessful = false
-        failedChunkSizes += chunkSize
+        failedChunkSizes += uploadFileSize
         warning(`Aborting upload for ${parameters.file} due to failure`)
       }
 
