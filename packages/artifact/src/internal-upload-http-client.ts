@@ -200,33 +200,37 @@ export class UploadHttpClient {
     // file is less than 64k in size, to increase thoroughput and minimize disk I/O for creating a new GZip file, an in-memory buffer will be used
     if (originalFileSize < 65536) {
       const buffer = await this.CreateGZipFileInBuffer(parameters.file)
+      let uploadStream: NodeJS.ReadableStream
       uploadFileSize = buffer.byteLength
 
       if (originalFileSize < uploadFileSize) {
-        // compression did not help with reducing the size, use the original file for upload
+        // compression did not help with reducing the size, use a readable stream from the original file for upload
         uploadFileSize = originalFileSize
         isGzip = false
+        uploadStream = fs.createReadStream(parameters.file)
+      } else {
+        // Create a readable stream using a PassThrough stream and the in-memory buffer. A PassThrought stream is both a readable stream and writable stream
+        const passThrough = new stream.PassThrough()
+        passThrough.end(buffer)
+        uploadStream = passThrough
       }
 
-      // if using a buffer, the entire file should be uploaded in a single chunk with a single call
+      // the entire file should be uploaded in a single chunk with a single call
       if (uploadFileSize > parameters.maxChunkSize) {
         throw new Error(
           'Chunk size is too large to upload using buffer with a single call'
         )
       }
+
       const chunkSize = Math.min(
         uploadFileSize - offset,
         parameters.maxChunkSize
       )
 
-      // Create a readable stream using a PassThrough stream and the in-memory buffer
-      const passThrough = new stream.PassThrough()
-      passThrough.end(buffer)
-
       const result = await this.uploadChunk(
         httpClientIndex,
         parameters.resourceUrl,
-        passThrough,
+        uploadStream,
         offset,
         offset + chunkSize - 1,
         uploadFileSize,
