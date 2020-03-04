@@ -26,7 +26,9 @@ export class UploadStatusReporter {
       const percentage = (
         (_this.processedCount / _this.totalNumberOfFilesToUpload) *
         100
-      ).toString()
+      )
+        .toFixed(4) // toFixed() rounds, so use extra precision to display accurate information
+        .toString()
       info(
         `Total file(s): ${
           _this.totalNumberOfFilesToUpload
