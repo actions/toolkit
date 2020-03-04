@@ -278,8 +278,14 @@ export class UploadHttpClient {
             }
 
             // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
-            if (uploadFileSize > 104857600){
-              this.statusReporter.updateLargeFileStatus(parameters.file, `Uploading ${parameters.file} (${((offset/uploadFileSize)*100).toFixed(1)}%)`)
+            if (uploadFileSize > 104857600) {
+              this.statusReporter.updateLargeFileStatus(
+                parameters.file,
+                `Uploading ${parameters.file} (${(
+                  (offset / uploadFileSize) *
+                  100
+                ).toFixed(1)}%)`
+              )
             }
 
             const start = offset
