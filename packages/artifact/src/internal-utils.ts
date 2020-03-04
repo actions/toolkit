@@ -66,7 +66,7 @@ export function getContentRange(
  * @param {boolean} isKeepAlive is the same connection being used to make multiple calls
  * @param {boolean} isGzip is the connection being used to upload GZip compressed content
  * @param {number} uncompressedLength the original size of the content if something is being uploaded that has been compressed
- * @param {number} contentLength the lenght of the content that is being uploaded
+ * @param {number} contentLength the length of the content that is being uploaded
  * @param {string} contentRange the range of the content that is being uploaded
  * @returns appropriate request options to make a specific http call
  */
