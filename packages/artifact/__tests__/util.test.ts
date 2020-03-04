@@ -63,7 +63,7 @@ describe('Utils', () => {
     ]
     for (const invalidName of invalidNames) {
       expect(() => {
-        utils.checkArtifactName(invalidName)
+        utils.checkArtifactFilePath(invalidName)
       }).toThrow()
     }
 
@@ -74,7 +74,7 @@ describe('Utils', () => {
     ]
     for (const validName of validNames) {
       expect(() => {
-        utils.checkArtifactName(validName)
+        utils.checkArtifactFilePath(validName)
       }).not.toThrow()
     }
   })

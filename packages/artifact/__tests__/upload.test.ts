@@ -2,7 +2,7 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import * as uploadHttpClient from '../src/internal-upload-http-client'
+import {UploadHttpClient} from '../src/internal-upload-http-client'
 import * as core from '@actions/core'
 import {promises as fs} from 'fs'
 import {getRuntimeUrl} from '../src/internal-config-variables'
@@ -75,6 +75,7 @@ describe('Upload Tests', () => {
    */
   it('Create Artifact - Success', async () => {
     const artifactName = 'valid-artifact-name'
+    const uploadHttpClient = new UploadHttpClient()
     const response = await uploadHttpClient.createArtifactInFileContainer(
       artifactName
     )
@@ -93,6 +94,7 @@ describe('Upload Tests', () => {
 
   it('Create Artifact - Failure', async () => {
     const artifactName = 'invalid-artifact-name'
+    const uploadHttpClient = new UploadHttpClient()
     expect(
       uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
@@ -137,6 +139,7 @@ describe('Upload Tests', () => {
     const expectedTotalSize =
       file1Size + file2Size + file3Size + file4Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification
@@ -154,6 +157,7 @@ describe('Upload Tests', () => {
     ]
 
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification
@@ -189,6 +193,7 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file4Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
@@ -225,6 +230,7 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file3Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
@@ -261,6 +267,7 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file3Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification
@@ -296,6 +303,7 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file3Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
@@ -309,12 +317,14 @@ describe('Upload Tests', () => {
    * Artifact Association Tests
    */
   it('Associate Artifact - Success', async () => {
+    const uploadHttpClient = new UploadHttpClient()
     expect(async () => {
       uploadHttpClient.patchArtifactSize(130, 'my-artifact')
     }).not.toThrow()
   })
 
   it('Associate Artifact - Not Found', async () => {
+    const uploadHttpClient = new UploadHttpClient()
     expect(
       uploadHttpClient.patchArtifactSize(100, 'non-existent-artifact')
     ).rejects.toThrow(
@@ -323,6 +333,7 @@ describe('Upload Tests', () => {
   })
 
   it('Associate Artifact - Error', async () => {
+    const uploadHttpClient = new UploadHttpClient()
     expect(
       uploadHttpClient.patchArtifactSize(-2, 'my-artifact')
     ).rejects.toThrow('Unable to finish uploading artifact my-artifact')

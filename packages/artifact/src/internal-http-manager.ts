@@ -2,10 +2,10 @@ import {HttpClient} from '@actions/http-client/index'
 import {createHttpClient} from './internal-utils'
 
 /**
- * Used for managing all http Connections during either upload and download in order to limit the number of tcp connections created
+ * Used for managing all http Connections during either upload or download in order to limit the number of tcp connections created
  * Separate clients for download and upload are used so that there are no conflicts if both are used at the same time
  */
-export abstract class HttpManager {
+export class HttpManager {
   private clients: HttpClient[]
 
   constructor() {

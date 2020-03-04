@@ -3,21 +3,13 @@ import {
   UploadSpecification,
   getUploadSpecification
 } from './internal-upload-specification'
-import {
-  createArtifactInFileContainer,
-  uploadArtifactToFileContainer,
-  patchArtifactSize
-} from './internal-upload-http-client'
+import {UploadHttpClient} from './internal-upload-http-client'
 import {UploadResponse} from './internal-upload-response'
 import {UploadOptions} from './internal-upload-options'
 import {DownloadOptions} from './internal-download-options'
 import {DownloadResponse} from './internal-download-response'
 import {checkArtifactName, createDirectoriesForArtifact} from './internal-utils'
-import {
-  listArtifacts,
-  downloadSingleArtifact,
-  getContainerItems
-} from './internal-download-http-client'
+import {DownloadHttpClient} from './internal-download-http-client'
 import {getDownloadSpecification} from './internal-download-specification'
 import {
   getWorkSpaceDirectory,
@@ -96,11 +88,15 @@ export class DefaultArtifactClient implements ArtifactClient {
       failedItems: []
     }
 
+    const uploadHttpClient = new UploadHttpClient()
+
     if (uploadSpecification.length === 0) {
       core.warning(`No files found that can be uploaded`)
     } else {
       // Create an entry for the artifact in the file container
-      const response = await createArtifactInFileContainer(name)
+      const response = await uploadHttpClient.createArtifactInFileContainer(
+        name
+      )
       if (!response.fileContainerResourceUrl) {
         core.debug(response.toString())
         throw new Error(
@@ -110,7 +106,7 @@ export class DefaultArtifactClient implements ArtifactClient {
       core.debug(`Upload Resource URL: ${response.fileContainerResourceUrl}`)
 
       // Upload each of the files that were found concurrently
-      const uploadResult = await uploadArtifactToFileContainer(
+      const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
         response.fileContainerResourceUrl,
         uploadSpecification,
         options
@@ -118,7 +114,10 @@ export class DefaultArtifactClient implements ArtifactClient {
 
       // Update the size of the artifact to indicate we are done uploading
       // The uncompressed size is used for display when downloading a zip of the artifact from the UI
-      await patchArtifactSize(uploadResult.uncompressedSize, name)
+      await uploadHttpClient.patchArtifactSize(
+        uploadResult.uncompressedSize,
+        name
+      )
 
       core.info(
         `Finished uploading artifact ${name}. Reported size is ${uploadResult.uploadSize} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
@@ -138,7 +137,9 @@ export class DefaultArtifactClient implements ArtifactClient {
     path?: string | undefined,
     options?: DownloadOptions | undefined
   ): Promise<DownloadResponse> {
-    const artifacts = await listArtifacts()
+    const downloadHttpClient = new DownloadHttpClient()
+
+    const artifacts = await downloadHttpClient.listArtifacts()
     if (artifacts.count === 0) {
       throw new Error(
         `Unable to find any artifacts for the associated workflow`
@@ -152,7 +153,7 @@ export class DefaultArtifactClient implements ArtifactClient {
       throw new Error(`Unable to find an artifact with the name: ${name}`)
     }
 
-    const items = await getContainerItems(
+    const items = await downloadHttpClient.getContainerItems(
       artifactToDownload.name,
       artifactToDownload.fileContainerResourceUrl
     )
@@ -180,7 +181,9 @@ export class DefaultArtifactClient implements ArtifactClient {
       await createDirectoriesForArtifact(
         downloadSpecification.directoryStructure
       )
-      await downloadSingleArtifact(downloadSpecification.filesToDownload)
+      await downloadHttpClient.downloadSingleArtifact(
+        downloadSpecification.filesToDownload
+      )
     }
 
     return {
@@ -192,8 +195,10 @@ export class DefaultArtifactClient implements ArtifactClient {
   async downloadAllArtifacts(
     path?: string | undefined
   ): Promise<DownloadResponse[]> {
+    const downloadHttpClient = new DownloadHttpClient()
+
     const response: DownloadResponse[] = []
-    const artifacts = await listArtifacts()
+    const artifacts = await downloadHttpClient.listArtifacts()
     if (artifacts.count === 0) {
       core.info('Unable to find any artifacts for the associated workflow')
       return response
@@ -215,7 +220,7 @@ export class DefaultArtifactClient implements ArtifactClient {
           downloadedArtifacts += 1
 
           // Get container entries for the specific artifact
-          const items = await getContainerItems(
+          const items = await downloadHttpClient.getContainerItems(
             currentArtifactToDownload.name,
             currentArtifactToDownload.fileContainerResourceUrl
           )
@@ -235,7 +240,9 @@ export class DefaultArtifactClient implements ArtifactClient {
             await createDirectoriesForArtifact(
               downloadSpecification.directoryStructure
             )
-            await downloadSingleArtifact(downloadSpecification.filesToDownload)
+            await downloadHttpClient.downloadSingleArtifact(
+              downloadSpecification.filesToDownload
+            )
           }
 
           response.push({
