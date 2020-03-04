@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as io from '@actions/io'
 import * as exec from '@actions/exec'
+import * as stream from 'stream'
 import nock from 'nock'
 
 const cachePath = path.join(__dirname, 'CACHE')
@@ -24,6 +25,8 @@ describe('@actions/tool-cache', function() {
         username: 'abc',
         password: 'def'
       })
+    setGlobal('TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS', 0)
+    setGlobal('TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS', 0)
   })
 
   beforeEach(async function() {
@@ -33,9 +36,15 @@ describe('@actions/tool-cache', function() {
     await io.mkdirP(tempPath)
   })
 
+  afterEach(function() {
+    setResponseMessageFactory(undefined)
+  })
+
   afterAll(async function() {
     await io.rmRF(tempPath)
     await io.rmRF(cachePath)
+    setGlobal('TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS', undefined)
+    setGlobal('TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS', undefined)
   })
 
   it('downloads a 35 byte file', async () => {
@@ -90,6 +99,7 @@ describe('@actions/tool-cache', function() {
 
   it('downloads a 35 byte file after a redirect', async () => {
     nock('http://example.com')
+      .persist()
       .get('/redirect-to')
       .reply(303, undefined, {
         location: 'http://example.com/bytes/35'
@@ -103,8 +113,75 @@ describe('@actions/tool-cache', function() {
     expect(fs.statSync(downPath).size).toBe(35)
   })
 
+  it('handles error from response message stream', async () => {
+    nock('http://example.com')
+      .persist()
+      .get('/error-from-response-message-stream')
+      .reply(200, {})
+
+    setResponseMessageFactory(() => {
+      const readStream = new stream.Readable()
+      /* eslint-disable @typescript-eslint/unbound-method */
+      readStream._read = () => {
+        readStream.destroy(new Error('uh oh'))
+      }
+      /* eslint-enable @typescript-eslint/unbound-method */
+      return readStream
+    })
+
+    let error = new Error('unexpected')
+    try {
+      await tc.downloadTool(
+        'http://example.com/error-from-response-message-stream'
+      )
+    } catch (err) {
+      error = err
+    }
+
+    expect(error).not.toBeUndefined()
+    expect(error.message).toBe('uh oh')
+  })
+
+  it('retries error from response message stream', async () => {
+    nock('http://example.com')
+      .persist()
+      .get('/retries-error-from-response-message-stream')
+      .reply(200, {})
+
+    /* eslint-disable @typescript-eslint/unbound-method */
+    let attempt = 1
+    setResponseMessageFactory(() => {
+      const readStream = new stream.Readable()
+      let failsafe = 0
+      readStream._read = () => {
+        // First attempt fails
+        if (attempt++ === 1) {
+          readStream.destroy(new Error('uh oh'))
+          return
+        }
+
+        // Write some data
+        if (failsafe++ === 0) {
+          readStream.push(''.padEnd(35))
+          readStream.push(null) // no more data
+        }
+      }
+
+      return readStream
+    })
+    /* eslint-enable @typescript-eslint/unbound-method */
+
+    const downPath = await tc.downloadTool(
+      'http://example.com/retries-error-from-response-message-stream'
+    )
+
+    expect(fs.existsSync(downPath)).toBeTruthy()
+    expect(fs.statSync(downPath).size).toBe(35)
+  })
+
   it('has status code in exception dictionary for HTTP error code responses', async () => {
     nock('http://example.com')
+      .persist()
       .get('/bytes/bad')
       .reply(400, {
         username: 'bad',
@@ -124,6 +201,7 @@ describe('@actions/tool-cache', function() {
 
   it('works with redirect code 302', async function() {
     nock('http://example.com')
+      .persist()
       .get('/redirect-to')
       .reply(302, undefined, {
         location: 'http://example.com/bytes/35'
@@ -542,3 +620,27 @@ describe('@actions/tool-cache', function() {
     }
   })
 })
+
+/**
+ * Sets up a mock response body for downloadTool. This function works around a limitation with
+ * nock when the response stream emits an error.
+ */
+function setResponseMessageFactory(
+  factory: (() => stream.Readable) | undefined
+): void {
+  setGlobal('TEST_DOWNLOAD_TOOL_RESPONSE_MESSAGE_FACTORY', factory)
+}
+
+/**
+ * Sets a global variable
+ */
+function setGlobal<T>(key: string, value: T | undefined): void {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const g = global as any
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  if (value === undefined) {
+    delete g[key]
+  } else {
+    g[key] = value
+  }
+}
