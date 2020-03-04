@@ -120,9 +120,31 @@ export function getArtifactUrl(): string {
  * from the server if attempted to be sent over. These characters are not allowed due to limitations with certain
  * file systems such as NTFS. To maintain platform-agnostic behavior, all characters that are not supported by an
  * individual filesystem/platform will not be supported on all fileSystems/platforms
+ *
+ * FilePaths can include characters such as \ and / which are not permitted in the artifact name alone
  */
-const invalidArtifactFileCharacters = ['"', ':', '<', '>', '|', '*', '?', ' ']
-const invalidArtifactNameCharacters = ['\\', '/']
+const invalidArtifactFilePathCharacters = [
+  '"',
+  ':',
+  '<',
+  '>',
+  '|',
+  '*',
+  '?',
+  ' '
+]
+const invalidArtifactNameCharacters = [
+  '"',
+  ':',
+  '<',
+  '>',
+  '|',
+  '*',
+  '?',
+  ' ',
+  '\\',
+  '/'
+]
 
 /**
  * Scans the name of the artifact to make sure there are no illegal characters
@@ -132,14 +154,10 @@ export function checkArtifactName(name: string): void {
     throw new Error(`Artifact name: ${name}, is incorrectly provided`)
   }
 
-  // The artifact name is the most restrictive in terms of invalid characters
-  const invalidCharacters = invalidArtifactFileCharacters.concat(
-    invalidArtifactNameCharacters
-  )
-  for (const invalidChar of invalidCharacters) {
+  for (const invalidChar of invalidArtifactNameCharacters) {
     if (name.includes(invalidChar)) {
       throw new Error(
-        `Artifact name is not valid: ${name}. Contains character: "${invalidChar}". Invalid artifact name characters include: ${invalidCharacters.toString()}.`
+        `Artifact name is not valid: ${name}. Contains character: "${invalidChar}". Invalid artifact name characters include: ${invalidArtifactNameCharacters.toString()}.`
       )
     }
   }
@@ -153,10 +171,10 @@ export function checkArtifactFilePath(path: string): void {
     throw new Error(`Artifact path: ${path}, is incorrectly provided`)
   }
 
-  for (const invalidChar of invalidArtifactFileCharacters) {
+  for (const invalidChar of invalidArtifactFilePathCharacters) {
     if (path.includes(invalidChar)) {
       throw new Error(
-        `Artifact path is not valid: ${path}. Contains character: "${invalidChar}". Invalid characters include: ${invalidArtifactFileCharacters.toString()}.`
+        `Artifact path is not valid: ${path}. Contains character: "${invalidChar}". Invalid characters include: ${invalidArtifactFilePathCharacters.toString()}.`
       )
     }
   }

@@ -49,6 +49,36 @@ describe('Utils', () => {
     }
   })
 
+  it('Check Artifact File Path for any invalid characters', () => {
+    const invalidNames = [
+      'some/invalid"artifact/path',
+      'some/invalid:artifact/path',
+      'some/invalid<artifact/path',
+      'some/invalid>artifact/path',
+      'some/invalid|artifact/path',
+      'some/invalid*artifact/path',
+      'some/invalid?artifact/path',
+      'some/invalid artifact/path',
+      ''
+    ]
+    for (const invalidName of invalidNames) {
+      expect(() => {
+        utils.checkArtifactName(invalidName)
+      }).toThrow()
+    }
+
+    const validNames = [
+      'my/perfectly-normal/artifact-path',
+      'my/perfectly\\Normal/Artifact-path',
+      'm¥/ñðrmål/Är†ï£å¢†'
+    ]
+    for (const validName of validNames) {
+      expect(() => {
+        utils.checkArtifactName(validName)
+      }).not.toThrow()
+    }
+  })
+
   it('Test constructing artifact URL', () => {
     const runtimeUrl = getRuntimeUrl()
     const runId = getWorkFlowRunId()
