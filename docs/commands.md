@@ -120,6 +120,8 @@ Save state to be used in the corresponding wrapper (finally) post job entry poin
 echo "::save-state name=FOO::foovalue"
 ```
 
+In future steps, an environment variable named `STATE_FOO` will be available for use. 
+
 ### Log Level
 
 Finally, there are several commands to emit different levels of log output:
