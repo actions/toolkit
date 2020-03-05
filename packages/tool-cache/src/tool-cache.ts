@@ -5,10 +5,13 @@ import * as os from 'os'
 import * as path from 'path'
 import * as httpm from '@actions/http-client'
 import * as semver from 'semver'
+import * as stream from 'stream'
+import * as util from 'util'
 import uuidV4 from 'uuid/v4'
 import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
+import {RetryHelper} from './retry-helper'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -55,55 +58,68 @@ export async function downloadTool(
   url: string,
   dest?: string
 ): Promise<string> {
-  // Wrap in a promise so that we can resolve from within stream callbacks
-  return new Promise<string>(async (resolve, reject) => {
-    try {
-      const http = new httpm.HttpClient(userAgent, [], {
-        allowRetries: true,
-        maxRetries: 3
-      })
-      dest = dest || path.join(tempDirectory, uuidV4())
-      await io.mkdirP(path.dirname(dest))
-      core.debug(`Downloading ${url}`)
-      core.debug(`Downloading ${dest}`)
+  dest = dest || path.join(tempDirectory, uuidV4())
+  await io.mkdirP(path.dirname(dest))
+  core.debug(`Downloading ${url}`)
+  core.debug(`Destination ${dest}`)
 
-      if (fs.existsSync(dest)) {
-        throw new Error(`Destination file path ${dest} already exists`)
-      }
+  const maxAttempts = 3
+  const minSeconds = getGlobal<number>(
+    'TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS',
+    10
+  )
+  const maxSeconds = getGlobal<number>(
+    'TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS',
+    20
+  )
+  const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
+  return await retryHelper.execute(
+    async () => await downloadToolAttempt(url, dest || '')
+  )
+}
 
-      const response: httpm.HttpClientResponse = await http.get(url)
+async function downloadToolAttempt(url: string, dest: string): Promise<string> {
+  if (fs.existsSync(dest)) {
+    throw new Error(`Destination file path ${dest} already exists`)
+  }
 
-      if (response.message.statusCode !== 200) {
-        const err = new HTTPError(response.message.statusCode)
-        core.debug(
-          `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
-        )
-        throw err
-      }
-
-      const file: NodeJS.WritableStream = fs.createWriteStream(dest)
-      file.on('open', async () => {
-        try {
-          const stream = response.message.pipe(file)
-          stream.on('close', () => {
-            core.debug('download complete')
-            resolve(dest)
-          })
-        } catch (err) {
-          core.debug(
-            `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
-          )
-          reject(err)
-        }
-      })
-      file.on('error', err => {
-        file.end()
-        reject(err)
-      })
-    } catch (err) {
-      reject(err)
-    }
+  // Get the response headers
+  const http = new httpm.HttpClient(userAgent, [], {
+    allowRetries: false
   })
+  const response: httpm.HttpClientResponse = await http.get(url)
+  if (response.message.statusCode !== 200) {
+    const err = new HTTPError(response.message.statusCode)
+    core.debug(
+      `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
+    )
+    throw err
+  }
+
+  // Download the response body
+  const pipeline = util.promisify(stream.pipeline)
+  const responseMessageFactory = getGlobal<() => stream.Readable>(
+    'TEST_DOWNLOAD_TOOL_RESPONSE_MESSAGE_FACTORY',
+    () => response.message
+  )
+  const readStream = responseMessageFactory()
+  let succeeded = false
+  try {
+    await pipeline(readStream, fs.createWriteStream(dest))
+    core.debug('download complete')
+    succeeded = true
+    return dest
+  } finally {
+    // Error, delete dest before retry
+    if (!succeeded) {
+      core.debug('download failed')
+      try {
+        await io.rmRF(dest)
+      } catch (err) {
+        core.debug(`Failed to delete '${dest}'. ${err.message}`)
+      }
+    }
+  }
 }
 
 /**
@@ -515,4 +531,14 @@ function _evaluateVersions(versions: string[], versionSpec: string): string {
   }
 
   return version
+}
+
+/**
+ * Gets a global variable
+ */
+function getGlobal<T>(key: string, defaultValue: T): T {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const value = (global as any)[key] as T | undefined
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  return value !== undefined ? value : defaultValue
 }

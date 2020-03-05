@@ -1,5 +1,9 @@
 # @actions/tool-cache Releases
 
+### 1.3.2
+
+- [Update downloadTool with better error handling and retries](https://github.com/actions/toolkit/pull/369)
+
 ### 1.3.1
 
 - [Increase http-client min version](https://github.com/actions/toolkit/pull/314)
