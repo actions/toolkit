@@ -55,7 +55,7 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
-    // No concurrent calls, a single httpClient is sufficient
+    // no concurrent calls, a single httpClient is sufficient
     this.uploadHttpManager.createClients(1)
     const client = this.uploadHttpManager.getClient(0)
 
@@ -102,7 +102,7 @@ export class UploadHttpClient {
       }
     }
 
-    // Prepare the necessary parameters to upload all the files
+    // prepare the necessary parameters to upload all the files
     for (const file of filesToUpload) {
       const resourceUrl = new URL(uploadUrl)
       resourceUrl.searchParams.append('itemPath', file.uploadFilePath)
@@ -127,7 +127,7 @@ export class UploadHttpClient {
     this.statusReporter.setTotalNumberOfFilesToUpload(filesToUpload.length)
     this.statusReporter.startDisplayingStatus()
 
-    // Only allow a certain amount of files to be uploaded at once, this is done to reduce potential errors
+    // only allow a certain amount of files to be uploaded at once, this is done to reduce potential errors
     await Promise.all(
       parallelUploads.map(async index => {
         while (currentFile < filesToUpload.length) {
@@ -156,7 +156,7 @@ export class UploadHttpClient {
           if (uploadFileResult.isSuccess === false) {
             failedItemsToReport.push(currentFileParameters.file)
             if (!continueOnError) {
-              // Existing uploads will be able to finish however all pending uploads will fail fast
+              // existing uploads will be able to finish however all pending uploads will fail fast
               abortPendingFileUploads = true
             }
           }
@@ -208,7 +208,7 @@ export class UploadHttpClient {
         isGzip = false
         uploadFileSize = originalFileSize
       } else {
-        // Create a readable stream using a PassThrough stream and the in-memory buffer. A PassThrought stream is both a readable stream and writable stream
+        // create a readable stream using a PassThrough stream and the in-memory buffer. A PassThrought stream is both a readable stream and writable stream
         const passThrough = new stream.PassThrough()
         passThrough.end(buffer)
         uploadStream = passThrough
@@ -248,7 +248,7 @@ export class UploadHttpClient {
       return tmp
         .file()
         .then(async temporary => {
-          // Create a GZip file of the original file being uploaded. The original file should not be modified in any way
+          // create a GZip file of the original file being uploaded, the original file should not be modified in any way
           uploadFileSize = await this.CreateGZipFileOnDisk(
             parameters.file,
             temporary.path
@@ -327,7 +327,7 @@ export class UploadHttpClient {
         })
         .then(
           async (): Promise<UploadFileResult> => {
-            // After the file upload is complete and the temporary file is deleted, return the UploadResult
+            // after the file upload is complete and the temporary file is deleted, return the UploadResult
             return new Promise(resolve => {
               resolve({
                 isSuccess: isUploadSuccessful,
@@ -363,7 +363,7 @@ export class UploadHttpClient {
     isGzip: boolean,
     uncompressedSize: number
   ): Promise<boolean> {
-    // Prepare all the necessary headers before making any http call
+    // prepare all the necessary headers before making any http call
     const requestOptions = getRequestOptions(
       'application/octet-stream',
       true,
@@ -382,8 +382,7 @@ export class UploadHttpClient {
     let retryCount = 0
     const retryLimit = getUploadRetryCount()
 
-    // Allow for failed chunks to be retried multiple times
-    // change this to a nice for with retryCount incrementing
+    // allow for failed chunks to be retried multiple times
     while (retryCount <= retryLimit) {
       try {
         const response = await uploadChunkRequest()
@@ -455,7 +454,7 @@ export class UploadHttpClient {
       const outputStream = fs.createWriteStream(tempFilePath)
       inputStream.pipe(gzip).pipe(outputStream)
       outputStream.on('finish', () => {
-        // The final size of the Gzip file is needed as part of the Content-Length header when starting an upload. The stream needs to finish before the size can be calculated
+        // wait for stream to finish before calculating the size which is needed as part of the Content-Length header when starting an upload
         const size = fs.statSync(tempFilePath).size
         resolve(size)
       })
@@ -479,7 +478,7 @@ export class UploadHttpClient {
       const inputStream = fs.createReadStream(originalFilePath)
       const gzip = zlib.createGzip()
       inputStream.pipe(gzip)
-      // Read stream into buffer, using experimental async itterators see https://github.com/nodejs/readable-stream/issues/403#issuecomment-479069043
+      // read stream into buffer, using experimental async itterators see https://github.com/nodejs/readable-stream/issues/403#issuecomment-479069043
       const chunks = []
       for await (const chunk of gzip) {
         chunks.push(chunk)
@@ -493,7 +492,7 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    // No concurrent calls, a single httpClient is sufficient
+    // no concurrent calls, a single httpClient is sufficient
     this.uploadHttpManager.createClients(1)
     const client = this.uploadHttpManager.getClient(0)
 

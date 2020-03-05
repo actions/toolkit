@@ -14,7 +14,10 @@ import {
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './internal-http-manager'
 import {DownloadItem} from './internal-download-specification'
-import {getDownloadFileConcurrency} from './internal-config-variables'
+import {
+  getDownloadFileConcurrency,
+  getRetryWaitTime
+} from './internal-config-variables'
 import {warning} from '@actions/core'
 
 export class DownloadHttpClient {
@@ -52,7 +55,7 @@ export class DownloadHttpClient {
     artifactName: string,
     containerUrl: string
   ): Promise<QueryArtifactResponse> {
-    // The itemPath search parameter controls which containers will be returned
+    // the itemPath search parameter controls which containers will be returned
     const resourceUrl = new URL(containerUrl)
     resourceUrl.searchParams.append('itemPath', artifactName)
     this.downloadHttpManager.createClients(1)
@@ -74,7 +77,7 @@ export class DownloadHttpClient {
    */
   async downloadSingleArtifact(downloadItems: DownloadItem[]): Promise<void> {
     const DOWNLOAD_CONCURRENCY = getDownloadFileConcurrency()
-    // Limit the number of files downloaded at a single time
+    // limit the number of files downloaded at a single time
     const parallelDownloads = [...new Array(DOWNLOAD_CONCURRENCY).keys()]
     this.downloadHttpManager.createClients(DOWNLOAD_CONCURRENCY)
     let downloadedFiles = 0
@@ -124,9 +127,9 @@ export class DownloadHttpClient {
       warning(
         `Received http ${response.message.statusCode} during file download, will retry ${artifactLocation} after 10 seconds`
       )
-      // If an error is encountered, dispose of the http connection, wait, and create a new one
+      // if an error is encountered, dispose of the http connection, wait, and create a new one
       this.downloadHttpManager.disposeClient(httpClientIndex)
-      await new Promise(resolve => setTimeout(resolve, 10000))
+      await new Promise(resolve => setTimeout(resolve, getRetryWaitTime()))
       this.downloadHttpManager.replaceClient(httpClientIndex)
       const retryResponse = await client.get(artifactLocation)
       if (isSuccessStatusCode(retryResponse.message.statusCode)) {

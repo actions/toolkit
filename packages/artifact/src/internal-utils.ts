@@ -132,7 +132,11 @@ const invalidArtifactFilePathCharacters = [
   '?',
   ' '
 ]
-const invalidArtifactNameCharacters = [...invalidArtifactFilePathCharacters, '\\', '/']
+const invalidArtifactNameCharacters = [
+  ...invalidArtifactFilePathCharacters,
+  '\\',
+  '/'
+]
 
 /**
  * Scans the name of the artifact to make sure there are no illegal characters
