@@ -279,16 +279,10 @@ export class UploadHttpClient {
 
             // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
             if (uploadFileSize > 104857600) {
-              // display 1 decimal place without any rounding
-              const percentage = ((offset / uploadFileSize) * 100)
-                .toFixed(4) // toFixed() rounds, so use extra precision to display accurate information
-                .toString()
               this.statusReporter.updateLargeFileStatus(
                 parameters.file,
-                `Uploading ${parameters.file} (${percentage.slice(
-                  0,
-                  percentage.indexOf('.') + 2
-                )}%)`
+                offset,
+                uploadFileSize
               )
             }
 
@@ -386,10 +380,10 @@ export class UploadHttpClient {
     while (retryCount <= retryLimit) {
       try {
         const response = await uploadChunkRequest()
+        // read the body to properly drain the response before possibly reusing the connection
+        await response.readBody()
 
         if (isSuccessStatusCode(response.message.statusCode)) {
-          // read the body to properly drain the response before possibly reusing the connection
-          await response.readBody()
           return true
         } else if (isRetryableStatusCode(response.message.statusCode)) {
           // dispose the existing connection and create a new one

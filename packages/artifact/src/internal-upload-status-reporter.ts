@@ -23,12 +23,10 @@ export class UploadStatusReporter {
     // displays information about the total upload status every 10 seconds
     this.totalUploadStatus = setInterval(function() {
       // display 1 decimal place without any rounding
-      const percentage = (
-        (_this.processedCount / _this.totalNumberOfFilesToUpload) *
-        100
+      const percentage = _this.formatPercentage(
+        _this.processedCount,
+        _this.totalNumberOfFilesToUpload
       )
-        .toFixed(4) // toFixed() rounds, so use extra precision to display accurate information
-        .toString()
       info(
         `Total file(s): ${
           _this.totalNumberOfFilesToUpload
@@ -49,7 +47,18 @@ export class UploadStatusReporter {
     }, 1000)
   }
 
-  updateLargeFileStatus(fileName: string, displayInformation: string): void {
+  updateLargeFileStatus(
+    fileName: string,
+    numerator: number,
+    denomiator: number
+  ): void {
+    // display 1 decimal place without any rounding
+    const percentage = this.formatPercentage(numerator, denomiator)
+    const displayInformation = `Uploading ${fileName} (${percentage.slice(
+      0,
+      percentage.indexOf('.') + 2
+    )}%)`
+
     // any previously added display information should be overwritten for the specific large file because a map is being used
     this.largeUploads.set(fileName, displayInformation)
   }
@@ -66,5 +75,10 @@ export class UploadStatusReporter {
 
   incrementProcessedCount(): void {
     this.processedCount++
+  }
+
+  private formatPercentage(numerator: number, denominator: number): string {
+    // toFixed() rounds, so use extra precision to display accurate information even though 4 decimal places are not displayed
+    return ((numerator / denominator) * 100).toFixed(4).toString()
   }
 }
