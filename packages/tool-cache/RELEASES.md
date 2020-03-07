@@ -1,5 +1,9 @@
 # @actions/tool-cache Releases
 
+### 1.3.3
+
+- [Update downloadTool to only retry 500s and 408 and 429](https://github.com/actions/toolkit/pull/373)
+
 ### 1.3.2
 
 - [Update downloadTool with better error handling and retries](https://github.com/actions/toolkit/pull/369)

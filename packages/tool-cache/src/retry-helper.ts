@@ -21,13 +21,20 @@ export class RetryHelper {
     }
   }
 
-  async execute<T>(action: () => Promise<T>): Promise<T> {
+  async execute<T>(
+    action: () => Promise<T>,
+    isRetryable?: (e: Error) => boolean
+  ): Promise<T> {
     let attempt = 1
     while (attempt < this.maxAttempts) {
       // Try
       try {
         return await action()
       } catch (err) {
+        if (isRetryable && !isRetryable(err)) {
+          throw err
+        }
+
         core.info(err.message)
       }
 
