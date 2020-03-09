@@ -619,6 +619,39 @@ describe('@actions/tool-cache', function() {
       expect(err.toString()).toContain('502')
     }
   })
+
+  it('retries 429s', async function() {
+    nock('http://example.com')
+      .get('/too-many-requests-429')
+      .times(2)
+      .reply(429, undefined)
+    nock('http://example.com')
+      .get('/too-many-requests-429')
+      .reply(500, undefined)
+
+    try {
+      const statusCodeUrl = 'http://example.com/too-many-requests-429'
+      await tc.downloadTool(statusCodeUrl)
+    } catch (err) {
+      expect(err.toString()).toContain('500')
+    }
+  })
+
+  it("doesn't retry 404", async function() {
+    nock('http://example.com')
+      .get('/not-found-404')
+      .reply(404, undefined)
+    nock('http://example.com')
+      .get('/not-found-404')
+      .reply(500, undefined)
+
+    try {
+      const statusCodeUrl = 'http://example.com/not-found-404'
+      await tc.downloadTool(statusCodeUrl)
+    } catch (err) {
+      expect(err.toString()).toContain('404')
+    }
+  })
 })
 
 /**

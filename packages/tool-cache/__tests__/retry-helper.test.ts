@@ -66,7 +66,7 @@ describe('retry-helper tests', () => {
     expect(info[3]).toMatch(/Waiting .+ seconds before trying again/)
   })
 
-  it('all attempts fail succeeds', async () => {
+  it('all attempts fail', async () => {
     let attempts = 0
     let error: Error = (null as unknown) as Error
     try {
@@ -83,5 +83,43 @@ describe('retry-helper tests', () => {
     expect(info[1]).toMatch(/Waiting .+ seconds before trying again/)
     expect(info[2]).toBe('some error 2')
     expect(info[3]).toMatch(/Waiting .+ seconds before trying again/)
+  })
+
+  it('checks retryable after first attempt', async () => {
+    let attempts = 0
+    let error: Error = (null as unknown) as Error
+    try {
+      await retryHelper.execute(
+        async () => {
+          throw new Error(`some error ${++attempts}`)
+        },
+        () => false
+      )
+    } catch (err) {
+      error = err
+    }
+    expect(error.message).toBe('some error 1')
+    expect(attempts).toBe(1)
+    expect(info).toHaveLength(0)
+  })
+
+  it('checks retryable after second attempt', async () => {
+    let attempts = 0
+    let error: Error = (null as unknown) as Error
+    try {
+      await retryHelper.execute(
+        async () => {
+          throw new Error(`some error ${++attempts}`)
+        },
+        (e: Error) => e.message === 'some error 1'
+      )
+    } catch (err) {
+      error = err
+    }
+    expect(error.message).toBe('some error 2')
+    expect(attempts).toBe(2)
+    expect(info).toHaveLength(2)
+    expect(info[0]).toBe('some error 1')
+    expect(info[1]).toMatch(/Waiting .+ seconds before trying again/)
   })
 })

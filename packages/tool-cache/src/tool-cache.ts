@@ -23,30 +23,6 @@ export class HTTPError extends Error {
 const IS_WINDOWS = process.platform === 'win32'
 const userAgent = 'actions/tool-cache'
 
-// On load grab temp directory and cache directory and remove them from env (currently don't want to expose this)
-let tempDirectory: string = process.env['RUNNER_TEMP'] || ''
-let cacheRoot: string = process.env['RUNNER_TOOL_CACHE'] || ''
-// If directories not found, place them in common temp locations
-if (!tempDirectory || !cacheRoot) {
-  let baseLocation: string
-  if (IS_WINDOWS) {
-    // On windows use the USERPROFILE env variable
-    baseLocation = process.env['USERPROFILE'] || 'C:\\'
-  } else {
-    if (process.platform === 'darwin') {
-      baseLocation = '/Users'
-    } else {
-      baseLocation = '/home'
-    }
-  }
-  if (!tempDirectory) {
-    tempDirectory = path.join(baseLocation, 'actions', 'temp')
-  }
-  if (!cacheRoot) {
-    cacheRoot = path.join(baseLocation, 'actions', 'cache')
-  }
-}
-
 /**
  * Download a tool from an url and stream it into a file
  *
@@ -58,23 +34,40 @@ export async function downloadTool(
   url: string,
   dest?: string
 ): Promise<string> {
-  dest = dest || path.join(tempDirectory, uuidV4())
+  dest = dest || path.join(_getTempDirectory(), uuidV4())
   await io.mkdirP(path.dirname(dest))
   core.debug(`Downloading ${url}`)
   core.debug(`Destination ${dest}`)
 
   const maxAttempts = 3
-  const minSeconds = getGlobal<number>(
+  const minSeconds = _getGlobal<number>(
     'TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS',
     10
   )
-  const maxSeconds = getGlobal<number>(
+  const maxSeconds = _getGlobal<number>(
     'TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS',
     20
   )
   const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
   return await retryHelper.execute(
-    async () => await downloadToolAttempt(url, dest || '')
+    async () => {
+      return await downloadToolAttempt(url, dest || '')
+    },
+    (err: Error) => {
+      if (err instanceof HTTPError && err.httpStatusCode) {
+        // Don't retry anything less than 500, except 408 Request Timeout and 429 Too Many Requests
+        if (
+          err.httpStatusCode < 500 &&
+          err.httpStatusCode !== 408 &&
+          err.httpStatusCode !== 429
+        ) {
+          return false
+        }
+      }
+
+      // Otherwise retry
+      return true
+    }
   )
 }
 
@@ -98,7 +91,7 @@ async function downloadToolAttempt(url: string, dest: string): Promise<string> {
 
   // Download the response body
   const pipeline = util.promisify(stream.pipeline)
-  const responseMessageFactory = getGlobal<() => stream.Readable>(
+  const responseMessageFactory = _getGlobal<() => stream.Readable>(
     'TEST_DOWNLOAD_TOOL_RESPONSE_MESSAGE_FACTORY',
     () => response.message
   )
@@ -417,7 +410,12 @@ export function find(
   let toolPath = ''
   if (versionSpec) {
     versionSpec = semver.clean(versionSpec) || ''
-    const cachePath = path.join(cacheRoot, toolName, versionSpec, arch)
+    const cachePath = path.join(
+      _getCacheDirectory(),
+      toolName,
+      versionSpec,
+      arch
+    )
     core.debug(`checking cache: ${cachePath}`)
     if (fs.existsSync(cachePath) && fs.existsSync(`${cachePath}.complete`)) {
       core.debug(`Found tool in cache ${toolName} ${versionSpec} ${arch}`)
@@ -439,7 +437,7 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
   const versions: string[] = []
 
   arch = arch || os.arch()
-  const toolPath = path.join(cacheRoot, toolName)
+  const toolPath = path.join(_getCacheDirectory(), toolName)
 
   if (fs.existsSync(toolPath)) {
     const children: string[] = fs.readdirSync(toolPath)
@@ -459,7 +457,7 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(tempDirectory, uuidV4())
+    dest = path.join(_getTempDirectory(), uuidV4())
   }
   await io.mkdirP(dest)
   return dest
@@ -471,7 +469,7 @@ async function _createToolPath(
   arch?: string
 ): Promise<string> {
   const folderPath = path.join(
-    cacheRoot,
+    _getCacheDirectory(),
     tool,
     semver.clean(version) || version,
     arch || ''
@@ -486,7 +484,7 @@ async function _createToolPath(
 
 function _completeToolPath(tool: string, version: string, arch?: string): void {
   const folderPath = path.join(
-    cacheRoot,
+    _getCacheDirectory(),
     tool,
     semver.clean(version) || version,
     arch || ''
@@ -534,9 +532,27 @@ function _evaluateVersions(versions: string[], versionSpec: string): string {
 }
 
 /**
+ * Gets RUNNER_TOOL_CACHE
+ */
+function _getCacheDirectory(): string {
+  const cacheDirectory = process.env['RUNNER_TOOL_CACHE'] || ''
+  ok(cacheDirectory, 'Expected RUNNER_TOOL_CACHE to be defined')
+  return cacheDirectory
+}
+
+/**
+ * Gets RUNNER_TEMP
+ */
+function _getTempDirectory(): string {
+  const tempDirectory = process.env['RUNNER_TEMP'] || ''
+  ok(tempDirectory, 'Expected RUNNER_TEMP to be defined')
+  return tempDirectory
+}
+
+/**
  * Gets a global variable
  */
-function getGlobal<T>(key: string, defaultValue: T): T {
+function _getGlobal<T>(key: string, defaultValue: T): T {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const value = (global as any)[key] as T | undefined
   /* eslint-enable @typescript-eslint/no-explicit-any */
