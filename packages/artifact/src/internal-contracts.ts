@@ -29,7 +29,7 @@ export interface PatchArtifactSizeSuccessResponse {
 
 export interface UploadResults {
   uploadSize: number
-  uncompressedSize: number
+  totalSize: number
   failedItems: string[]
 }
 

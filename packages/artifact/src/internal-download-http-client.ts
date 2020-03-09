@@ -4,7 +4,8 @@ import {
   getArtifactUrl,
   getRequestOptions,
   isSuccessStatusCode,
-  isRetryableStatusCode
+  isRetryableStatusCode,
+  createHttpClient
 } from './internal-utils'
 import {URL} from 'url'
 import {
@@ -16,7 +17,7 @@ import {HttpManager} from './internal-http-manager'
 import {DownloadItem} from './internal-download-specification'
 import {
   getDownloadFileConcurrency,
-  getRetryWaitTime
+  getRetryWaitTimeInMilliseconds
 } from './internal-config-variables'
 import {warning} from '@actions/core'
 
@@ -58,8 +59,11 @@ export class DownloadHttpClient {
     // the itemPath search parameter controls which containers will be returned
     const resourceUrl = new URL(containerUrl)
     resourceUrl.searchParams.append('itemPath', artifactName)
-    this.downloadHttpManager.createClients(1)
-    const client = this.downloadHttpManager.getClient(0)
+
+    // no concurrent calls so a single httpClient without the http-manager is sufficient
+    const client = createHttpClient()
+
+    // no keep-alive header, client disposal is not necessary
     const requestOptions = getRequestOptions('application/json')
     const rawResponse = await client.get(resourceUrl.toString(), requestOptions)
     const body: string = await rawResponse.readBody()
@@ -129,7 +133,9 @@ export class DownloadHttpClient {
       )
       // if an error is encountered, dispose of the http connection, wait, and create a new one
       this.downloadHttpManager.disposeClient(httpClientIndex)
-      await new Promise(resolve => setTimeout(resolve, getRetryWaitTime()))
+      await new Promise(resolve =>
+        setTimeout(resolve, getRetryWaitTimeInMilliseconds())
+      )
       this.downloadHttpManager.replaceClient(httpClientIndex)
       const retryResponse = await client.get(artifactLocation)
       if (isSuccessStatusCode(retryResponse.message.statusCode)) {

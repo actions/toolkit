@@ -21,13 +21,14 @@ import {
   getContentRange,
   getRequestOptions,
   isRetryableStatusCode,
-  isSuccessStatusCode
+  isSuccessStatusCode,
+  createHttpClient
 } from './internal-utils'
 import {
   getUploadChunkSize,
   getUploadFileConcurrency,
   getUploadRetryCount,
-  getRetryWaitTime
+  getRetryWaitTimeInMilliseconds
 } from './internal-config-variables'
 import {performance} from 'perf_hooks'
 
@@ -55,11 +56,10 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
-    // no concurrent calls, a single httpClient is sufficient
-    this.uploadHttpManager.createClients(1)
-    const client = this.uploadHttpManager.getClient(0)
+    // no concurrent calls so a single httpClient without the http-manager is sufficient
+    const client = createHttpClient()
 
-    // no keep-alive header, so client disposal is not necessary
+    // no keep-alive header, client disposal is not necessary
     const requestOptions = getRequestOptions('application/json', false, false)
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
     const body: string = await rawResponse.readBody()
@@ -121,7 +121,7 @@ export class UploadHttpClient {
     let currentFile = 0
     let completedFiles = 0
     let uploadFileSize = 0
-    let uncompressedFileSize = 0
+    let totalFileSize = 0
     let abortPendingFileUploads = false
 
     this.statusReporter.setTotalNumberOfFilesToUpload(filesToUpload.length)
@@ -152,7 +152,7 @@ export class UploadHttpClient {
             )} milliseconds to finish upload`
           )
           uploadFileSize += uploadFileResult.successfullUploadSize
-          uncompressedFileSize += uploadFileResult.uncompressedSize
+          totalFileSize += uploadFileResult.totalSize
           if (uploadFileResult.isSuccess === false) {
             failedItemsToReport.push(currentFileParameters.file)
             if (!continueOnError) {
@@ -173,7 +173,7 @@ export class UploadHttpClient {
     info(`Total size of all the files uploaded is ${uploadFileSize} bytes`)
     return {
       uploadSize: uploadFileSize,
-      uncompressedSize: uncompressedFileSize,
+      totalSize: totalFileSize,
       failedItems: failedItemsToReport
     }
   }
@@ -189,7 +189,7 @@ export class UploadHttpClient {
     httpClientIndex: number,
     parameters: UploadFileParameters
   ): Promise<UploadFileResult> {
-    const originalFileSize: number = fs.statSync(parameters.file).size
+    const totalFileSize: number = fs.statSync(parameters.file).size
     let offset = 0
     let isUploadSuccessful = true
     let failedChunkSizes = 0
@@ -198,15 +198,15 @@ export class UploadHttpClient {
     let isGzip = true
 
     // file is less than 64k in size, to increase thoroughput and minimize disk I/O for creating a new GZip file, an in-memory buffer is used
-    if (originalFileSize < 65536) {
+    if (totalFileSize < 65536) {
       const buffer = await this.CreateGZipFileInBuffer(parameters.file)
       let uploadStream: NodeJS.ReadableStream
 
-      if (originalFileSize < buffer.byteLength) {
+      if (totalFileSize < buffer.byteLength) {
         // compression did not help with reducing the size, use a readable stream from the original file for upload
         uploadStream = fs.createReadStream(parameters.file)
         isGzip = false
-        uploadFileSize = originalFileSize
+        uploadFileSize = totalFileSize
       } else {
         // create a readable stream using a PassThrough stream and the in-memory buffer. A PassThrought stream is both a readable stream and writable stream
         const passThrough = new stream.PassThrough()
@@ -228,7 +228,7 @@ export class UploadHttpClient {
         uploadFileSize - 1,
         uploadFileSize,
         isGzip,
-        originalFileSize
+        totalFileSize
       )
 
       if (!result) {
@@ -241,7 +241,7 @@ export class UploadHttpClient {
       return {
         isSuccess: isUploadSuccessful,
         successfullUploadSize: uploadFileSize - failedChunkSizes,
-        uncompressedSize: originalFileSize
+        totalSize: totalFileSize
       }
     } else {
       // using npm tmp-promise to help create a temporary file that can be used for compression
@@ -255,9 +255,9 @@ export class UploadHttpClient {
           )
           let uploadFilePath = temporary.path
 
-          if (originalFileSize < uploadFileSize) {
+          if (totalFileSize < uploadFileSize) {
             // compression did not help with reducing the size, use the original file for upload
-            uploadFileSize = originalFileSize
+            uploadFileSize = totalFileSize
             uploadFilePath = parameters.file
             isGzip = false
 
@@ -304,7 +304,7 @@ export class UploadHttpClient {
               end,
               uploadFileSize,
               isGzip,
-              originalFileSize
+              totalFileSize
             )
 
             if (!result) {
@@ -326,7 +326,7 @@ export class UploadHttpClient {
               resolve({
                 isSuccess: isUploadSuccessful,
                 successfullUploadSize: uploadFileSize - failedChunkSizes,
-                uncompressedSize: originalFileSize
+                totalSize: totalFileSize
               })
             })
           }
@@ -396,10 +396,10 @@ export class UploadHttpClient {
             return false
           } else {
             info(
-              `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after ${getRetryWaitTime} milliseconds. Retry count #${retryCount}. URL ${resourceUrl}`
+              `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after ${getRetryWaitTimeInMilliseconds} milliseconds. Retry count #${retryCount}. URL ${resourceUrl}`
             )
             await new Promise(resolve =>
-              setTimeout(resolve, getRetryWaitTime())
+              setTimeout(resolve, getRetryWaitTimeInMilliseconds())
             )
             this.uploadHttpManager.replaceClient(httpClientIndex)
           }
@@ -424,7 +424,9 @@ export class UploadHttpClient {
           return false
         } else {
           info(`Retrying chunk upload after encountering an error`)
-          await new Promise(resolve => setTimeout(resolve, getRetryWaitTime()))
+          await new Promise(resolve =>
+            setTimeout(resolve, getRetryWaitTimeInMilliseconds())
+          )
           this.uploadHttpManager.replaceClient(httpClientIndex)
         }
       }
@@ -486,9 +488,8 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    // no concurrent calls, a single httpClient is sufficient
-    this.uploadHttpManager.createClients(1)
-    const client = this.uploadHttpManager.getClient(0)
+    // no concurrent calls so a single httpClient without the http-manager is sufficient
+    const client = createHttpClient()
 
     // no keep-alive header so no client disposal is not necessary
     const requestOptions = getRequestOptions('application/json', false, false)
@@ -531,5 +532,5 @@ interface UploadFileParameters {
 interface UploadFileResult {
   isSuccess: boolean
   successfullUploadSize: number
-  uncompressedSize: number
+  totalSize: number
 }

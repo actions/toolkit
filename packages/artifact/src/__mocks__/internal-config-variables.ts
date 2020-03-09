@@ -17,7 +17,7 @@ export function getUploadRetryCount(): number {
   return 1
 }
 
-export function getRetryWaitTime(): number {
+export function getRetryWaitTimeInMilliseconds(): number {
   return 1
 }
 /**

@@ -2,8 +2,8 @@ import {HttpClient} from '@actions/http-client/index'
 import {createHttpClient} from './internal-utils'
 
 /**
- * Used for managing all http Connections during either upload or download in order to limit the number of tcp connections created
- * Separate clients for download and upload are used so that there are no conflicts if both are used at the same time
+ * Used for managing concurrent http Connections during either upload or download in order to limit the number of tcp connections created
+ * If an http call is made with the `keep-alive` header. Client disposal is necessary if a connection needed to be closed
  */
 export class HttpManager {
   private clients: HttpClient[]
