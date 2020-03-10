@@ -3,13 +3,13 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import * as configVariables from '../src/internal-config-variables'
+import * as configVariables from '../src/internal/config-variables'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
-import {DownloadHttpClient} from '../src/internal-download-http-client'
+import {DownloadHttpClient} from '../src/internal/download-http-client'
 import {
   ListArtifactsResponse,
   QueryArtifactResponse
-} from '../src/internal-contracts'
+} from '../src/internal/contracts'
 
 const root = path.join(__dirname, '_temp', 'artifact-download')
 

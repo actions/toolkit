@@ -1,21 +1,12 @@
 import * as fs from 'fs'
-import * as zlib from 'zlib'
 import * as tmp from 'tmp-promise'
 import * as stream from 'stream'
-import {UploadStatusReporter} from './internal-upload-status-reporter'
-import {debug, warning, info} from '@actions/core'
-import {HttpClientResponse} from '@actions/http-client/index'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {
   ArtifactResponse,
   CreateArtifactParameters,
   PatchArtifactSize,
   UploadResults
-} from './internal-contracts'
-import {HttpManager} from './internal-http-manager'
-import {UploadSpecification} from './internal-upload-specification'
-import {UploadOptions} from './internal-upload-options'
-import {URL} from 'url'
+} from './contracts'
 import {
   getArtifactUrl,
   getContentRange,
@@ -23,14 +14,23 @@ import {
   isRetryableStatusCode,
   isSuccessStatusCode,
   createHttpClient
-} from './internal-utils'
+} from './utils'
 import {
   getUploadChunkSize,
   getUploadFileConcurrency,
   getUploadRetryCount,
   getRetryWaitTimeInMilliseconds
-} from './internal-config-variables'
+} from './config-variables'
+import {createGZipFileOnDisk, createGZipFileInBuffer} from './upload-gzip'
+import {URL} from 'url'
 import {performance} from 'perf_hooks'
+import {UploadStatusReporter} from './upload-status-reporter'
+import {debug, warning, info} from '@actions/core'
+import {HttpClientResponse} from '@actions/http-client/index'
+import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpManager} from './http-manager'
+import {UploadSpecification} from './upload-specification'
+import {UploadOptions} from './upload-options'
 
 export class UploadHttpClient {
   private uploadHttpManager: HttpManager
@@ -59,7 +59,7 @@ export class UploadHttpClient {
     // no concurrent calls so a single httpClient without the http-manager is sufficient
     const client = createHttpClient()
 
-    // no keep-alive header, client disposal is not necessary
+    // no keep-alive header, so client disposal is not necessary
     const requestOptions = getRequestOptions('application/json', false, false)
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
     const body: string = await rawResponse.readBody()
@@ -199,7 +199,7 @@ export class UploadHttpClient {
 
     // file is less than 64k in size, to increase thoroughput and minimize disk I/O for creating a new GZip file, an in-memory buffer is used
     if (totalFileSize < 65536) {
-      const buffer = await this.CreateGZipFileInBuffer(parameters.file)
+      const buffer = await createGZipFileInBuffer(parameters.file)
       let uploadStream: NodeJS.ReadableStream
 
       if (totalFileSize < buffer.byteLength) {
@@ -249,7 +249,7 @@ export class UploadHttpClient {
         .file()
         .then(async temporary => {
           // create a GZip file of the original file being uploaded, the original file should not be modified in any way
-          uploadFileSize = await this.CreateGZipFileOnDisk(
+          uploadFileSize = await createGZipFileOnDisk(
             parameters.file,
             temporary.path
           )
@@ -435,63 +435,13 @@ export class UploadHttpClient {
   }
 
   /**
-   * Creates a Gzip compressed file of an original file at the provided temporary filepath location
-   * @param {string} originalFilePath filepath of whatever will be compressed. The original file will be unmodified
-   * @param {string} tempFilePath the location of where the Gzip file will be created
-   * @returns the size of gzip file that gets created
-   */
-  private async CreateGZipFileOnDisk(
-    originalFilePath: string,
-    tempFilePath: string
-  ): Promise<number> {
-    return new Promise((resolve, reject) => {
-      const inputStream = fs.createReadStream(originalFilePath)
-      const gzip = zlib.createGzip()
-      const outputStream = fs.createWriteStream(tempFilePath)
-      inputStream.pipe(gzip).pipe(outputStream)
-      outputStream.on('finish', () => {
-        // wait for stream to finish before calculating the size which is needed as part of the Content-Length header when starting an upload
-        const size = fs.statSync(tempFilePath).size
-        resolve(size)
-      })
-      outputStream.on('error', error => {
-        // eslint-disable-next-line no-console
-        console.log(error)
-        reject
-      })
-    })
-  }
-
-  /**
-   * Creates a GZip file in memory using a buffer. Should be used for smaller files to reduce disk I/O
-   * @param originalFilePath the path to the original file that is being GZipped
-   * @returns a buffer with the GZip file
-   */
-  private async CreateGZipFileInBuffer(
-    originalFilePath: string
-  ): Promise<Buffer> {
-    return new Promise(async resolve => {
-      const inputStream = fs.createReadStream(originalFilePath)
-      const gzip = zlib.createGzip()
-      inputStream.pipe(gzip)
-      // read stream into buffer, using experimental async itterators see https://github.com/nodejs/readable-stream/issues/403#issuecomment-479069043
-      const chunks = []
-      for await (const chunk of gzip) {
-        chunks.push(chunk)
-      }
-      resolve(Buffer.concat(chunks))
-    })
-  }
-
-  /**
    * Updates the size of the artifact from -1 which was initially set when the container was first created for the artifact.
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
     // no concurrent calls so a single httpClient without the http-manager is sufficient
     const client = createHttpClient()
-
-    // no keep-alive header so no client disposal is not necessary
+    // no keep-alive header so no client disposal is necessary
     const requestOptions = getRequestOptions('application/json', false, false)
 
     const resourceUrl = new URL(getArtifactUrl())

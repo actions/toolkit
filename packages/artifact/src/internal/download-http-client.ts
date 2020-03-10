@@ -6,22 +6,20 @@ import {
   isSuccessStatusCode,
   isRetryableStatusCode,
   createHttpClient
-} from './internal-utils'
+} from './utils'
 import {URL} from 'url'
-import {
-  ListArtifactsResponse,
-  QueryArtifactResponse
-} from './internal-contracts'
+import {ListArtifactsResponse, QueryArtifactResponse} from './contracts'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
-import {HttpManager} from './internal-http-manager'
-import {DownloadItem} from './internal-download-specification'
+import {HttpManager} from './http-manager'
+import {DownloadItem} from './download-specification'
 import {
   getDownloadFileConcurrency,
   getRetryWaitTimeInMilliseconds
-} from './internal-config-variables'
+} from './config-variables'
 import {warning} from '@actions/core'
 
 export class DownloadHttpClient {
+  // http manager is used for concurrent connection when downloading mulitple files at once
   private downloadHttpManager: HttpManager
 
   constructor() {

@@ -2,16 +2,16 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import {UploadHttpClient} from '../src/internal-upload-http-client'
+import {UploadHttpClient} from '../src/internal/upload-http-client'
 import * as core from '@actions/core'
 import {promises as fs} from 'fs'
-import {getRuntimeUrl} from '../src/internal-config-variables'
+import {getRuntimeUrl} from '../src/internal/config-variables'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {
   ArtifactResponse,
   PatchArtifactSizeSuccessResponse
-} from '../src/internal-contracts'
-import {UploadSpecification} from '../src/internal-upload-specification'
+} from '../src/internal/contracts'
+import {UploadSpecification} from '../src/internal/upload-specification'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')

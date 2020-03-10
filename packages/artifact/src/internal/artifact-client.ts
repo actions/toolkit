@@ -2,22 +2,20 @@ import * as core from '@actions/core'
 import {
   UploadSpecification,
   getUploadSpecification
-} from './internal-upload-specification'
-import {UploadHttpClient} from './internal-upload-http-client'
-import {UploadResponse} from './internal-upload-response'
-import {UploadOptions} from './internal-upload-options'
-import {DownloadOptions} from './internal-download-options'
-import {DownloadResponse} from './internal-download-response'
-import {checkArtifactName, createDirectoriesForArtifact} from './internal-utils'
-import {DownloadHttpClient} from './internal-download-http-client'
-import {getDownloadSpecification} from './internal-download-specification'
+} from './upload-specification'
+import {UploadHttpClient} from './upload-http-client'
+import {UploadResponse} from './upload-response'
+import {UploadOptions} from './upload-options'
+import {DownloadOptions} from './download-options'
+import {DownloadResponse} from './download-response'
+import {checkArtifactName, createDirectoriesForArtifact} from './utils'
+import {DownloadHttpClient} from './download-http-client'
+import {getDownloadSpecification} from './download-specification'
 import {
   getWorkSpaceDirectory,
   getDownloadArtifactConcurrency
-} from './internal-config-variables'
+} from './config-variables'
 import {normalize, resolve} from 'path'
-
-export {UploadResponse, UploadOptions, DownloadResponse, DownloadOptions}
 
 export interface ArtifactClient {
   /**

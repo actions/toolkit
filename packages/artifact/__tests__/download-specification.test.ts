@@ -1,8 +1,8 @@
 import * as path from 'path'
 import * as core from '@actions/core'
 import {URL} from 'url'
-import {getDownloadSpecification} from '../src/internal-download-specification'
-import {ContainerEntry} from '../src/internal-contracts'
+import {getDownloadSpecification} from '../src/internal/download-specification'
+import {ContainerEntry} from '../src/internal/contracts'
 
 const artifact1Name = 'my-artifact'
 const artifact2Name = 'my-artifact-extra'

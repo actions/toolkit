@@ -1,5 +1,5 @@
 import {HttpClient} from '@actions/http-client/index'
-import {createHttpClient} from './internal-utils'
+import {createHttpClient} from './utils'
 
 /**
  * Used for managing concurrent http Connections during either upload or download in order to limit the number of tcp connections created
