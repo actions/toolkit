@@ -6,7 +6,7 @@ import * as core from '@actions/core'
 import {HttpCodes} from '@actions/http-client'
 import {getRuntimeUrl, getWorkFlowRunId} from '../src/internal/config-variables'
 
-jest.mock('../src/internal-config-variables')
+jest.mock('../src/internal/config-variables')
 
 describe('Utils', () => {
   beforeAll(() => {

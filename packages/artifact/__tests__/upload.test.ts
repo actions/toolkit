@@ -26,7 +26,7 @@ let file3Size = 0
 let file4Size = 0
 let file5Size = 0
 
-jest.mock('../src/internal-config-variables')
+jest.mock('../src/internal/config-variables')
 jest.mock('@actions/http-client')
 
 describe('Upload Tests', () => {
