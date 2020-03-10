@@ -17,7 +17,8 @@ export class UploadStatusReporter {
     this.totalNumberOfFilesToUpload = fileTotal
   }
 
-  startDisplayingStatus(): void {
+  // start displaying information about the status of an upload
+  start(): void {
     const _this = this
 
     // displays information about the total upload status every 10 seconds
@@ -63,7 +64,8 @@ export class UploadStatusReporter {
     this.largeUploads.set(fileName, displayInformation)
   }
 
-  stopDisplayingStatus(): void {
+  // stop displaying information about the status of an upload
+  stop(): void {
     if (this.totalUploadStatus) {
       clearInterval(this.totalUploadStatus)
     }

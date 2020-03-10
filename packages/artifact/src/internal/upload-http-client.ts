@@ -125,7 +125,7 @@ export class UploadHttpClient {
     let abortPendingFileUploads = false
 
     this.statusReporter.setTotalNumberOfFilesToUpload(filesToUpload.length)
-    this.statusReporter.startDisplayingStatus()
+    this.statusReporter.start()
 
     // only allow a certain amount of files to be uploaded at once, this is done to reduce potential errors
     await Promise.all(
@@ -165,7 +165,7 @@ export class UploadHttpClient {
       })
     )
 
-    this.statusReporter.stopDisplayingStatus()
+    this.statusReporter.stop()
 
     // done uploading, safety dispose all connections
     this.uploadHttpManager.disposeAllConnections()
@@ -197,7 +197,8 @@ export class UploadHttpClient {
     let uploadFileSize = 0
     let isGzip = true
 
-    // file is less than 64k in size, to increase thoroughput and minimize disk I/O for creating a new GZip file, an in-memory buffer is used
+    // the file that is being uploaded is less than 64k in size, to increase thoroughput and to minimize disk I/O
+    // for creating a new GZip file, an in-memory buffer is used for compression
     if (totalFileSize < 65536) {
       const buffer = await createGZipFileInBuffer(parameters.file)
       let uploadStream: NodeJS.ReadableStream
@@ -208,16 +209,11 @@ export class UploadHttpClient {
         isGzip = false
         uploadFileSize = totalFileSize
       } else {
-        // create a readable stream using a PassThrough stream and the in-memory buffer. A PassThrought stream is both a readable stream and writable stream
+        // create a readable stream using a PassThrough stream that is both readable and writable
         const passThrough = new stream.PassThrough()
         passThrough.end(buffer)
         uploadStream = passThrough
         uploadFileSize = buffer.byteLength
-      }
-
-      // the entire file should be uploaded with a single call
-      if (uploadFileSize > parameters.maxChunkSize) {
-        throw new Error('Chunk size is too large to upload with a single call')
       }
 
       const result = await this.uploadChunk(
@@ -232,7 +228,7 @@ export class UploadHttpClient {
       )
 
       if (!result) {
-        // Chunk failed to upload
+        // chunk failed to upload
         isUploadSuccessful = false
         failedChunkSizes += uploadFileSize
         warning(`Aborting upload for ${parameters.file} due to failure`)
@@ -244,25 +240,24 @@ export class UploadHttpClient {
         totalSize: totalFileSize
       }
     } else {
-      // using npm tmp-promise to help create a temporary file that can be used for compression
+      // the file that is being uploaded is greater than 64k in size, a temprorary file gets created on disk using the
+      // npm tmp-promise package and this file gets used during compression for the GZip file that gets created
       return tmp
         .file()
-        .then(async temporary => {
+        .then(async tmpFile => {
           // create a GZip file of the original file being uploaded, the original file should not be modified in any way
           uploadFileSize = await createGZipFileOnDisk(
             parameters.file,
-            temporary.path
+            tmpFile.path
           )
-          let uploadFilePath = temporary.path
+          let uploadFilePath = tmpFile.path
 
-          if (totalFileSize < uploadFileSize) {
-            // compression did not help with reducing the size, use the original file for upload
+          // compression did not help with size reduction, use the original file for upload and delete the temp GZip file
+          if (totalFileSize < uploadFileSize) {        
             uploadFileSize = totalFileSize
             uploadFilePath = parameters.file
             isGzip = false
-
-            // immediatly delete the temporary GZip file that was created
-            temporary.cleanup()
+            tmpFile.cleanup()
           }
 
           // upload only a single chunk at a time
@@ -290,16 +285,14 @@ export class UploadHttpClient {
             const end = offset + chunkSize - 1
             offset += parameters.maxChunkSize
 
-            const chunk = fs.createReadStream(uploadFilePath, {
-              start,
-              end,
-              autoClose: false
-            })
-
             const result = await this.uploadChunk(
               httpClientIndex,
               parameters.resourceUrl,
-              chunk,
+              fs.createReadStream(uploadFilePath, {
+                start,
+                end,
+                autoClose: false
+              }),
               start,
               end,
               uploadFileSize,
@@ -308,10 +301,8 @@ export class UploadHttpClient {
             )
 
             if (!result) {
-              /**
-               * Chunk failed to upload, report as failed and do not continue uploading any more chunks for the file. It is possible that part of a chunk was
-               * successfully uploaded so the server may report a different size for what was uploaded
-               **/
+              // Chunk failed to upload, report as failed and do not continue uploading any more chunks for the file. It is possible that part of a chunk was
+              // successfully uploaded so the server may report a different size for what was uploaded
               isUploadSuccessful = false
               failedChunkSizes += chunkSize
               warning(`Aborting upload for ${parameters.file} due to failure`)
@@ -321,7 +312,7 @@ export class UploadHttpClient {
         })
         .then(
           async (): Promise<UploadFileResult> => {
-            // after the file upload is complete and the temporary file is deleted, return the UploadResult
+            // only after the file upload is complete and the temporary file is deleted, return the UploadResult
             return new Promise(resolve => {
               resolve({
                 isSuccess: isUploadSuccessful,
@@ -342,9 +333,9 @@ export class UploadHttpClient {
    * @param {NodeJS.ReadableStream} data Stream of the file that will be uploaded
    * @param {number} start Starting byte index of file that the chunk belongs to
    * @param {number} end Ending byte index of file that the chunk belongs to
-   * @param {number} totalSize Total size of the file in bytes that is being uploaded
+   * @param {number} uploadFileSize Total size of the file in bytes that is being uploaded
    * @param {boolean} isGzip Denotes if we are uploading a Gzip compressed stream
-   * @param {number} uncompressedSize Original size of the file that is being uploaded
+   * @param {number} totalFileSize Original total size of the file that is being uploaded
    * @returns if the chunk was successfully uploaded
    */
   private async uploadChunk(
@@ -353,18 +344,18 @@ export class UploadHttpClient {
     data: NodeJS.ReadableStream,
     start: number,
     end: number,
-    totalSize: number,
+    uploadFileSize: number,
     isGzip: boolean,
-    uncompressedSize: number
+    totalFileSize: number
   ): Promise<boolean> {
     // prepare all the necessary headers before making any http call
     const requestOptions = getRequestOptions(
       'application/octet-stream',
       true,
       isGzip,
-      uncompressedSize,
+      totalFileSize,
       end - start + 1,
-      getContentRange(start, end, totalSize)
+      getContentRange(start, end, uploadFileSize)
     )
 
     const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
