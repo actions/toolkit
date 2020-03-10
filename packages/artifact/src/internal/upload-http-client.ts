@@ -253,7 +253,7 @@ export class UploadHttpClient {
           let uploadFilePath = tmpFile.path
 
           // compression did not help with size reduction, use the original file for upload and delete the temp GZip file
-          if (totalFileSize < uploadFileSize) {        
+          if (totalFileSize < uploadFileSize) {
             uploadFileSize = totalFileSize
             uploadFilePath = parameters.file
             isGzip = false

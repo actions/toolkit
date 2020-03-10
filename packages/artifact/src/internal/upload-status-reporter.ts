@@ -1,6 +1,12 @@
 import {info} from '@actions/core'
 
-// displays information about the progress/status of an artifact being uploaded
+/**
+ * Upload Status Reporter that displays information about the progress/status of an artifact that is being uploaded
+ *
+ * Every 10 seconds, the total status of the upload gets displayed. If there is a large file that is being uploaded,
+ * extra information about the individual status of an upload can also be displayed
+ */
+
 export class UploadStatusReporter {
   private totalNumberOfFilesToUpload = 0
   private processedCount = 0
@@ -17,7 +23,6 @@ export class UploadStatusReporter {
     this.totalNumberOfFilesToUpload = fileTotal
   }
 
-  // start displaying information about the status of an upload
   start(): void {
     const _this = this
 
@@ -64,7 +69,6 @@ export class UploadStatusReporter {
     this.largeUploads.set(fileName, displayInformation)
   }
 
-  // stop displaying information about the status of an upload
   stop(): void {
     if (this.totalUploadStatus) {
       clearInterval(this.totalUploadStatus)
