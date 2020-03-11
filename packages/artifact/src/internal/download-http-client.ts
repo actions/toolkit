@@ -31,7 +31,8 @@ export class DownloadHttpClient {
    */
   async listArtifacts(): Promise<ListArtifactsResponse> {
     const artifactUrl = getArtifactUrl()
-    const client = this.downloadHttpManager.getStandardClient()
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    const client = this.downloadHttpManager.getClient(0)
     const requestOptions = getRequestOptions('application/json')
 
     const rawResponse = await client.get(artifactUrl, requestOptions)
@@ -96,7 +97,7 @@ export class DownloadHttpClient {
     )
 
     // done downloading, safety dispose all connections
-    this.downloadHttpManager.disposeAllConcurrentClients()
+    this.downloadHttpManager.disposeAndReplaceAllClients()
   }
 
   /**
@@ -111,7 +112,7 @@ export class DownloadHttpClient {
     downloadPath: string
   ): Promise<void> {
     const stream = fs.createWriteStream(downloadPath)
-    const client = this.downloadHttpManager.getConcurrentClient(httpClientIndex)
+    const client = this.downloadHttpManager.getClient(httpClientIndex)
     const requestOptions = getRequestOptions('application/octet-stream', true)
     const response = await client.get(artifactLocation, requestOptions)
 
@@ -133,9 +134,7 @@ export class DownloadHttpClient {
         `Received http ${response.message.statusCode} during file download, will retry ${artifactLocation} after 10 seconds`
       )
       // if an error is encountered, dispose of the http connection, and create a new one
-      this.downloadHttpManager.disposeAndReplaceConcurrentClient(
-        httpClientIndex
-      )
+      this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
       await new Promise(resolve =>
         setTimeout(resolve, getRetryWaitTimeInMilliseconds())
       )

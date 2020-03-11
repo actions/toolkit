@@ -56,7 +56,8 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
-    const client = this.uploadHttpManager.getStandardClient()
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    const client = this.uploadHttpManager.getClient(0)
     const requestOptions = getRequestOptions('application/json', false, false)
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
     const body: string = await rawResponse.readBody()
@@ -162,10 +163,8 @@ export class UploadHttpClient {
     )
 
     this.statusReporter.stop()
-    this.uploadHttpManager.disposeAllConcurrentClients()
-
     // done uploading, safety dispose all connections
-    // this.uploadHttpManager.disposeAllConnections()
+    this.uploadHttpManager.disposeAndReplaceAllClients()
 
     info(`Total size of all the files uploaded is ${uploadFileSize} bytes`)
     return {
@@ -356,7 +355,7 @@ export class UploadHttpClient {
     )
 
     const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
-      const client = this.uploadHttpManager.getConcurrentClient(httpClientIndex)
+      const client = this.uploadHttpManager.getClient(httpClientIndex)
       return await client.sendStream('PUT', resourceUrl, data, requestOptions)
     }
 
@@ -385,9 +384,7 @@ export class UploadHttpClient {
             info(
               `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after ${getRetryWaitTimeInMilliseconds} milliseconds. Retry count #${retryCount}. URL ${resourceUrl}`
             )
-            this.uploadHttpManager.disposeAndReplaceConcurrentClient(
-              httpClientIndex
-            )
+            this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
             await new Promise(resolve =>
               setTimeout(resolve, getRetryWaitTimeInMilliseconds())
             )
@@ -410,9 +407,7 @@ export class UploadHttpClient {
           return false
         } else {
           info(`Retrying chunk upload after encountering an error`)
-          this.uploadHttpManager.disposeAndReplaceConcurrentClient(
-            httpClientIndex
-          )
+          this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
           await new Promise(resolve =>
             setTimeout(resolve, getRetryWaitTimeInMilliseconds())
           )
@@ -435,7 +430,8 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     debug(`URL is ${resourceUrl.toString()}`)
 
-    const client = this.uploadHttpManager.getStandardClient()
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    const client = this.uploadHttpManager.getClient(0)
     const rawResponse: HttpClientResponse = await client.patch(
       resourceUrl.toString(),
       data,
