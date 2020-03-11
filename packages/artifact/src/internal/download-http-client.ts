@@ -116,17 +116,12 @@ export class DownloadHttpClient {
     const client = this.downloadHttpManager.getClient(httpClientIndex)
     const requestOptions = getRequestOptions('application/octet-stream', true)
     const response = await client.get(artifactLocation, requestOptions)
-    await response.readBody()
 
     // check the response headers to determine if the file was compressed using gzip
     const isGzip = (headers: IncomingHttpHeaders): boolean => {
-      if (
-        headers['content-encoding'] &&
-        headers['content-encoding'] === 'gzip'
-      ) {
-        return true
-      }
-      return false
+      return (
+        'content-encoding' in headers && headers['content-encoding'] === 'gzip'
+      )
     }
 
     if (isSuccessStatusCode(response.message.statusCode)) {
@@ -145,7 +140,6 @@ export class DownloadHttpClient {
         setTimeout(resolve, getRetryWaitTimeInMilliseconds())
       )
       const retryResponse = await client.get(artifactLocation)
-      await retryResponse.readBody()
       if (isSuccessStatusCode(retryResponse.message.statusCode)) {
         await this.pipeResponseToStream(
           response,

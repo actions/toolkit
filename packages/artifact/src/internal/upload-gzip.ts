@@ -1,5 +1,7 @@
 import * as fs from 'fs'
 import * as zlib from 'zlib'
+import {promisify} from 'util'
+const stat = promisify(fs.stat)
 
 /**
  * Creates a Gzip compressed file of an original file at the provided temporary filepath location
@@ -16,9 +18,9 @@ export async function createGZipFileOnDisk(
     const gzip = zlib.createGzip()
     const outputStream = fs.createWriteStream(tempFilePath)
     inputStream.pipe(gzip).pipe(outputStream)
-    outputStream.on('finish', () => {
+    outputStream.on('finish', async () => {
       // wait for stream to finish before calculating the size which is needed as part of the Content-Length header when starting an upload
-      const size = fs.statSync(tempFilePath).size
+      const size = (await stat(tempFilePath)).size
       resolve(size)
     })
     outputStream.on('error', error => {
