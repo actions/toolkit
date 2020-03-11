@@ -12,8 +12,7 @@ import {
   getContentRange,
   getRequestOptions,
   isRetryableStatusCode,
-  isSuccessStatusCode,
-  createHttpClient
+  isSuccessStatusCode
 } from './utils'
 import {
   getUploadChunkSize,
@@ -21,16 +20,18 @@ import {
   getUploadRetryCount,
   getRetryWaitTimeInMilliseconds
 } from './config-variables'
-import {createGZipFileOnDisk, createGZipFileInBuffer} from './upload-gzip'
+import {promisify} from 'util'
 import {URL} from 'url'
 import {performance} from 'perf_hooks'
 import {UploadStatusReporter} from './upload-status-reporter'
 import {debug, warning, info} from '@actions/core'
-import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
+import {HttpClientResponse} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './http-manager'
 import {UploadSpecification} from './upload-specification'
 import {UploadOptions} from './upload-options'
+import {createGZipFileOnDisk, createGZipFileInBuffer} from './upload-gzip'
+const stat = promisify(fs.stat)
 
 export class UploadHttpClient {
   private uploadHttpManager: HttpManager
@@ -112,8 +113,6 @@ export class UploadHttpClient {
     }
 
     const parallelUploads = [...new Array(FILE_CONCURRENCY).keys()]
-    // each parallel upload gets its own http client
-    //this.uploadHttpManager.createClients(FILE_CONCURRENCY)
     const failedItemsToReport: string[] = []
     let currentFile = 0
     let completedFiles = 0
@@ -185,11 +184,10 @@ export class UploadHttpClient {
     httpClientIndex: number,
     parameters: UploadFileParameters
   ): Promise<UploadFileResult> {
-    const totalFileSize: number = fs.statSync(parameters.file).size
+    const totalFileSize: number = (await stat(parameters.file)).size
     let offset = 0
     let isUploadSuccessful = true
     let failedChunkSizes = 0
-    let abortFileUpload = false
     let uploadFileSize = 0
     let isGzip = true
 
@@ -256,6 +254,7 @@ export class UploadHttpClient {
             tmpFile.cleanup()
           }
 
+          let abortFileUpload = false
           // upload only a single chunk at a time
           while (offset < uploadFileSize) {
             const chunkSize = Math.min(
