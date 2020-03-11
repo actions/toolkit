@@ -2,13 +2,13 @@
 
 ## Proxy support
 
-This package uses the `@actions/http-client` internally which supports proxied requests out of the box. 
+This package uses the `@actions/http-client` NPM package internally which supports proxied requests out of the box. 
 
 ## HttpManager
 
 ### `keep-alive` header
 
-When an http call is made to upload or download an individual file, the server will close the http connection after the upload/download is complete and respond with a header indicating `Connection: close`.
+When an HTTP call is made to upload or download an individual file, the server will close the HTTP connection after the upload/download is complete and respond with a header indicating `Connection: close`.
 
 [HTTP closed connection header information](https://tools.ietf.org/html/rfc2616#section-14.10)
 
@@ -22,15 +22,15 @@ In order for connections to not close immediately, the `keep-alive` header is us
 [@actions/http-client client disposal](https://github.com/actions/http-client/blob/04e5ad73cd3fd1f5610a32116b0759eddf6570d2/index.ts#L292)
 
 
-### Multiple http clients
+### Multiple HTTP clients
 
-During an artifact upload or download, files are concurrently uploaded or downloaded using `async/await`. When an error or retry is encountered, the `HttpClient` that made a call is disposed of and a new one is created. If a single `HttpClient` was used for all http calls and it had to be disposed, it could inadvertently effect any other calls that could be concurrently happening.
+During an artifact upload or download, files are concurrently uploaded or downloaded using `async/await`. When an error or retry is encountered, the `HttpClient` that made a call is disposed of and a new one is created. If a single `HttpClient` was used for all HTTP calls and it had to be disposed, it could inadvertently effect any other calls that could be concurrently happening.
 
 Any other concurrent uploads or downloads should be left untouched. Because of this, each concurrent upload or download gets its own `HttpClient`. The `http-manager` is used to manage all available clients and each concurrent upload or download maintains a `httpClientIndex` that keep track of which client should be used (and potentially disposed and recycled if necessary)
 
 ### Potential resource leaks
 
-When an http response is received, it consists of two parts
+When an HTTP response is received, it consists of two parts
 - `message`
 - `body`
 
@@ -40,4 +40,4 @@ TCP connections consist of an input and output buffer to manage what is sent and
 
 ### Non Concurrent calls
 
-If an http call has to be made that does not require the `keep-alive` header (such as when calling `listArtifacts` or `patchArtifactSize`), the first `HttpClient` in the `HttpManager` is used. 
+Both `upload-http-client` and `download-http-client` do not instantiate or create any HTTP clients (the `HttpManager` has that responsibility). If an HTTP call has to be made that does not require the `keep-alive` header (such as when calling `listArtifacts` or `patchArtifactSize`), the first `HttpClient` in the `HttpManager` is used. The number of available clients is equal to the upload or download concurrency and there will always be at least one available.
