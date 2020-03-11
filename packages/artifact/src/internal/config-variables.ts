@@ -18,11 +18,6 @@ export function getDownloadFileConcurrency(): number {
   return 2
 }
 
-export function getDownloadArtifactConcurrency(): number {
-  // when downloading all artifacts at once, this is number of concurrent artifacts being downloaded
-  return 1
-}
-
 export function getRuntimeToken(): string {
   const token = process.env['ACTIONS_RUNTIME_TOKEN']
   if (!token) {

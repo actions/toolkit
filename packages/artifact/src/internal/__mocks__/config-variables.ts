@@ -25,10 +25,6 @@ export function getDownloadFileConcurrency(): number {
   return 1
 }
 
-export function getDownloadArtifactConcurrency(): number {
-  return 1
-}
-
 /**
  * Mocks the 'ACTIONS_RUNTIME_TOKEN', 'ACTIONS_RUNTIME_URL' and 'GITHUB_RUN_ID' env variables
  * that are only available from a node context on the runner. This allows for tests to run

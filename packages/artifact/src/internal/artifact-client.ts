@@ -11,10 +11,7 @@ import {DownloadResponse} from './download-response'
 import {checkArtifactName, createDirectoriesForArtifact} from './utils'
 import {DownloadHttpClient} from './download-http-client'
 import {getDownloadSpecification} from './download-specification'
-import {
-  getWorkSpaceDirectory,
-  getDownloadArtifactConcurrency
-} from './config-variables'
+import {getWorkSpaceDirectory} from './config-variables'
 import {normalize, resolve} from 'path'
 
 export interface ArtifactClient {
@@ -205,48 +202,41 @@ export class DefaultArtifactClient implements ArtifactClient {
     path = normalize(path)
     path = resolve(path)
 
-    const ARTIFACT_CONCURRENCY = getDownloadArtifactConcurrency()
-    const parallelDownloads = [...new Array(ARTIFACT_CONCURRENCY).keys()]
     let downloadedArtifacts = 0
-    await Promise.all(
-      parallelDownloads.map(async () => {
-        while (downloadedArtifacts < artifacts.count) {
-          const currentArtifactToDownload = artifacts.value[downloadedArtifacts]
-          downloadedArtifacts += 1
+    while (downloadedArtifacts < artifacts.count) {
+      const currentArtifactToDownload = artifacts.value[downloadedArtifacts]
+      downloadedArtifacts += 1
 
-          // Get container entries for the specific artifact
-          const items = await downloadHttpClient.getContainerItems(
-            currentArtifactToDownload.name,
-            currentArtifactToDownload.fileContainerResourceUrl
-          )
+      // Get container entries for the specific artifact
+      const items = await downloadHttpClient.getContainerItems(
+        currentArtifactToDownload.name,
+        currentArtifactToDownload.fileContainerResourceUrl
+      )
 
-          // Promise.All is not correctly inferring that 'path' is no longer possibly undefined: https://github.com/microsoft/TypeScript/issues/34925
-          const downloadSpecification = getDownloadSpecification(
-            currentArtifactToDownload.name,
-            items.value,
-            path!, // eslint-disable-line @typescript-eslint/no-non-null-assertion
-            true
-          )
-          if (downloadSpecification.filesToDownload.length === 0) {
-            core.info(
-              `No downloadable files were found for any artifact ${currentArtifactToDownload.name}`
-            )
-          } else {
-            await createDirectoriesForArtifact(
-              downloadSpecification.directoryStructure
-            )
-            await downloadHttpClient.downloadSingleArtifact(
-              downloadSpecification.filesToDownload
-            )
-          }
+      const downloadSpecification = getDownloadSpecification(
+        currentArtifactToDownload.name,
+        items.value,
+        path,
+        true
+      )
+      if (downloadSpecification.filesToDownload.length === 0) {
+        core.info(
+          `No downloadable files were found for any artifact ${currentArtifactToDownload.name}`
+        )
+      } else {
+        await createDirectoriesForArtifact(
+          downloadSpecification.directoryStructure
+        )
+        await downloadHttpClient.downloadSingleArtifact(
+          downloadSpecification.filesToDownload
+        )
+      }
 
-          response.push({
-            artifactName: currentArtifactToDownload.name,
-            downloadPath: downloadSpecification.rootDownloadLocation
-          })
-        }
+      response.push({
+        artifactName: currentArtifactToDownload.name,
+        downloadPath: downloadSpecification.rootDownloadLocation
       })
-    )
+    }
     return response
   }
 }
