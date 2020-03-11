@@ -17,7 +17,7 @@ import {
   getRetryWaitTimeInMilliseconds
 } from './config-variables'
 import {warning} from '@actions/core'
-import { IncomingHttpHeaders } from 'http'
+import {IncomingHttpHeaders} from 'http'
 
 export class DownloadHttpClient {
   // http manager is used for concurrent connection when downloading mulitple files at once
@@ -116,6 +116,7 @@ export class DownloadHttpClient {
     const client = this.downloadHttpManager.getClient(httpClientIndex)
     const requestOptions = getRequestOptions('application/octet-stream', true)
     const response = await client.get(artifactLocation, requestOptions)
+    await response.readBody()
 
     // check the response headers to determine if the file was compressed using gzip
     const isGzip = (headers: IncomingHttpHeaders): boolean => {
@@ -129,7 +130,11 @@ export class DownloadHttpClient {
     }
 
     if (isSuccessStatusCode(response.message.statusCode)) {
-      await this.pipeResponseToStream(response, stream, isGzip(response.message.headers))
+      await this.pipeResponseToStream(
+        response,
+        stream,
+        isGzip(response.message.headers)
+      )
     } else if (isRetryableStatusCode(response.message.statusCode)) {
       warning(
         `Received http ${response.message.statusCode} during file download, will retry ${artifactLocation} after 10 seconds`
@@ -140,8 +145,13 @@ export class DownloadHttpClient {
         setTimeout(resolve, getRetryWaitTimeInMilliseconds())
       )
       const retryResponse = await client.get(artifactLocation)
+      await retryResponse.readBody()
       if (isSuccessStatusCode(retryResponse.message.statusCode)) {
-        await this.pipeResponseToStream(response, stream, isGzip(response.message.headers))
+        await this.pipeResponseToStream(
+          response,
+          stream,
+          isGzip(response.message.headers)
+        )
       } else {
         // eslint-disable-next-line no-console
         console.log(retryResponse)
