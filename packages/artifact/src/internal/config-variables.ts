@@ -19,7 +19,7 @@ export function getDownloadFileConcurrency(): number {
 }
 
 export function getDownloadArtifactConcurrency(): number {
-  // when downloading all artifact at once, this is number of concurrent artifacts being downloaded
+  // when downloading all artifacts at once, this is number of concurrent artifacts being downloaded
   return 1
 }
 

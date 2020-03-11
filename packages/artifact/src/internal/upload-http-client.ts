@@ -26,7 +26,7 @@ import {URL} from 'url'
 import {performance} from 'perf_hooks'
 import {UploadStatusReporter} from './upload-status-reporter'
 import {debug, warning, info} from '@actions/core'
-import {HttpClientResponse} from '@actions/http-client/index'
+import {HttpClientResponse, HttpClient} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './http-manager'
 import {UploadSpecification} from './upload-specification'
@@ -37,7 +37,7 @@ export class UploadHttpClient {
   private statusReporter: UploadStatusReporter
 
   constructor() {
-    this.uploadHttpManager = new HttpManager()
+    this.uploadHttpManager = new HttpManager(getUploadFileConcurrency())
     this.statusReporter = new UploadStatusReporter()
   }
 
@@ -56,10 +56,7 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
-    // no concurrent calls so a single httpClient without the http-manager is sufficient
-    const client = createHttpClient()
-
-    // no keep-alive header, so client disposal is not necessary
+    const client = this.uploadHttpManager.getStandardClient()
     const requestOptions = getRequestOptions('application/json', false, false)
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
     const body: string = await rawResponse.readBody()
@@ -93,7 +90,6 @@ export class UploadHttpClient {
     )
 
     const parameters: UploadFileParameters[] = []
-
     // by default, file uploads will continue if there is an error unless specified differently in the options
     let continueOnError = true
     if (options) {
@@ -116,7 +112,7 @@ export class UploadHttpClient {
 
     const parallelUploads = [...new Array(FILE_CONCURRENCY).keys()]
     // each parallel upload gets its own http client
-    this.uploadHttpManager.createClients(FILE_CONCURRENCY)
+    //this.uploadHttpManager.createClients(FILE_CONCURRENCY)
     const failedItemsToReport: string[] = []
     let currentFile = 0
     let completedFiles = 0
@@ -166,9 +162,10 @@ export class UploadHttpClient {
     )
 
     this.statusReporter.stop()
+    this.uploadHttpManager.disposeAllConcurrentClients()
 
     // done uploading, safety dispose all connections
-    this.uploadHttpManager.disposeAllConnections()
+    // this.uploadHttpManager.disposeAllConnections()
 
     info(`Total size of all the files uploaded is ${uploadFileSize} bytes`)
     return {
@@ -359,9 +356,8 @@ export class UploadHttpClient {
     )
 
     const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
-      return await this.uploadHttpManager
-        .getClient(httpClientIndex)
-        .sendStream('PUT', resourceUrl, data, requestOptions)
+      const client = this.uploadHttpManager.getConcurrentClient(httpClientIndex)
+      return await client.sendStream('PUT', resourceUrl, data, requestOptions)
     }
 
     let retryCount = 0
@@ -371,14 +367,14 @@ export class UploadHttpClient {
     while (retryCount <= retryLimit) {
       try {
         const response = await uploadChunkRequest()
-        // read the body to properly drain the response before possibly reusing the connection
+
+        // Always read the body of the response. There is potential for a resource leak if the body is not read which will
+        // result in the connection remaining open along with unintended consequences when trying to dispose of the client
         await response.readBody()
 
         if (isSuccessStatusCode(response.message.statusCode)) {
           return true
         } else if (isRetryableStatusCode(response.message.statusCode)) {
-          // dispose the existing connection and create a new one
-          this.uploadHttpManager.disposeClient(httpClientIndex)
           retryCount++
           if (retryCount > retryLimit) {
             info(
@@ -389,10 +385,12 @@ export class UploadHttpClient {
             info(
               `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after ${getRetryWaitTimeInMilliseconds} milliseconds. Retry count #${retryCount}. URL ${resourceUrl}`
             )
+            this.uploadHttpManager.disposeAndReplaceConcurrentClient(
+              httpClientIndex
+            )
             await new Promise(resolve =>
               setTimeout(resolve, getRetryWaitTimeInMilliseconds())
             )
-            this.uploadHttpManager.replaceClient(httpClientIndex)
           }
         } else {
           info(`#ERROR# Unable to upload chunk to ${resourceUrl}`)
@@ -401,9 +399,6 @@ export class UploadHttpClient {
           return false
         }
       } catch (error) {
-        // if an error is thrown, it is most likely due to a timeout, dispose of the connection, wait and retry with a new connection
-        this.uploadHttpManager.disposeClient(httpClientIndex)
-
         // eslint-disable-next-line no-console
         console.log(error)
 
@@ -415,10 +410,12 @@ export class UploadHttpClient {
           return false
         } else {
           info(`Retrying chunk upload after encountering an error`)
+          this.uploadHttpManager.disposeAndReplaceConcurrentClient(
+            httpClientIndex
+          )
           await new Promise(resolve =>
             setTimeout(resolve, getRetryWaitTimeInMilliseconds())
           )
-          this.uploadHttpManager.replaceClient(httpClientIndex)
         }
       }
     }
@@ -430,11 +427,7 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    // no concurrent calls so a single httpClient without the http-manager is sufficient
-    const client = createHttpClient()
-    // no keep-alive header so no client disposal is necessary
     const requestOptions = getRequestOptions('application/json', false, false)
-
     const resourceUrl = new URL(getArtifactUrl())
     resourceUrl.searchParams.append('artifactName', artifactName)
 
@@ -442,13 +435,13 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     debug(`URL is ${resourceUrl.toString()}`)
 
+    const client = this.uploadHttpManager.getStandardClient()
     const rawResponse: HttpClientResponse = await client.patch(
       resourceUrl.toString(),
       data,
       requestOptions
     )
     const body: string = await rawResponse.readBody()
-
     if (isSuccessStatusCode(rawResponse.message.statusCode)) {
       debug(
         `Artifact ${artifactName} has been successfully uploaded, total size ${size}`
