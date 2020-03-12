@@ -3,17 +3,17 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import * as configVariables from '../src/internal-config-variables'
+import * as configVariables from '../src/internal/config-variables'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
-import * as downloadClient from '../src/internal-download-http-client'
+import {DownloadHttpClient} from '../src/internal/download-http-client'
 import {
   ListArtifactsResponse,
   QueryArtifactResponse
-} from '../src/internal-contracts'
+} from '../src/internal/contracts'
 
 const root = path.join(__dirname, '_temp', 'artifact-download')
 
-jest.mock('../src/internal-config-variables')
+jest.mock('../src/internal/config-variables')
 jest.mock('@actions/http-client')
 
 describe('Download Tests', () => {
@@ -32,7 +32,8 @@ describe('Download Tests', () => {
    */
   it('List Artifacts - Success', async () => {
     setupSuccessfulListArtifactsResponse()
-    const artifacts = await downloadClient.listArtifacts()
+    const downloadHttpClient = new DownloadHttpClient()
+    const artifacts = await downloadHttpClient.listArtifacts()
     expect(artifacts.count).toEqual(2)
 
     const artifactNames = artifacts.value.map(item => item.name)
@@ -58,7 +59,8 @@ describe('Download Tests', () => {
 
   it('List Artifacts - Failure', async () => {
     setupFailedResponse()
-    expect(downloadClient.listArtifacts()).rejects.toThrow(
+    const downloadHttpClient = new DownloadHttpClient()
+    expect(downloadHttpClient.listArtifacts()).rejects.toThrow(
       'Unable to list artifacts for the run'
     )
   })
@@ -68,7 +70,8 @@ describe('Download Tests', () => {
    */
   it('Container Items - Success', async () => {
     setupSuccessfulContainerItemsResponse()
-    const response = await downloadClient.getContainerItems(
+    const downloadHttpClient = new DownloadHttpClient()
+    const response = await downloadHttpClient.getContainerItems(
       'artifact-name',
       configVariables.getRuntimeUrl()
     )
@@ -93,8 +96,9 @@ describe('Download Tests', () => {
 
   it('Container Items - Failure', async () => {
     setupFailedResponse()
+    const downloadHttpClient = new DownloadHttpClient()
     expect(
-      downloadClient.getContainerItems(
+      downloadHttpClient.getContainerItems(
         'artifact-name',
         configVariables.getRuntimeUrl()
       )

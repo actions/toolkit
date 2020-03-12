@@ -196,4 +196,6 @@ Each artifact will have the same `DownloadResponse` as if it was individually do
 
 ## Additional Documentation
 
-Check out [additional-information](additional-information.md) for extra documentation.
+Check out [additional-information](docs/additional-information.md) for extra documentation around usage, restrictions and behavior.
+
+Check out [implementation-details](docs/implementation-details.md) for extra information about the implementation of this package.

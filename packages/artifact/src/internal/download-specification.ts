@@ -1,5 +1,5 @@
 import * as path from 'path'
-import {ContainerEntry} from './internal-contracts'
+import {ContainerEntry} from './contracts'
 
 export interface DownloadSpecification {
   // root download location for the artifact

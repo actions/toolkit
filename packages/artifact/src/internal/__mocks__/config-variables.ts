@@ -12,6 +12,19 @@ export function getUploadChunkConcurrency(): number {
 export function getUploadChunkSize(): number {
   return 4 * 1024 * 1024 // 4 MB Chunks
 }
+
+export function getUploadRetryCount(): number {
+  return 1
+}
+
+export function getRetryWaitTimeInMilliseconds(): number {
+  return 1
+}
+
+export function getDownloadFileConcurrency(): number {
+  return 1
+}
+
 /**
  * Mocks the 'ACTIONS_RUNTIME_TOKEN', 'ACTIONS_RUNTIME_URL' and 'GITHUB_RUN_ID' env variables
  * that are only available from a node context on the runner. This allows for tests to run

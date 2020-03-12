@@ -2,21 +2,20 @@ export function getUploadFileConcurrency(): number {
   return 2
 }
 
-export function getUploadChunkConcurrency(): number {
-  return 1
-}
-
 export function getUploadChunkSize(): number {
   return 4 * 1024 * 1024 // 4 MB Chunks
 }
 
-export function getDownloadFileConcurrency(): number {
-  return 2
+export function getUploadRetryCount(): number {
+  return 3
 }
 
-export function getDownloadArtifactConcurrency(): number {
-  // when downloading all artifact at once, this is number of concurrent artifacts being downloaded
-  return 1
+export function getRetryWaitTimeInMilliseconds(): number {
+  return 10000
+}
+
+export function getDownloadFileConcurrency(): number {
+  return 2
 }
 
 export function getRuntimeToken(): string {
