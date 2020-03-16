@@ -199,7 +199,7 @@ console.log(`We can even get context data, like the repo: ${context.repo.repo}`)
 
 ## Contributing
 
-We welcome contributions.  See [how to contribute](docs/contribute.md).
+We welcome contributions.  See [how to contribute](.github/CONTRIBUTING.md).
 
 ## Code of Conduct
 
