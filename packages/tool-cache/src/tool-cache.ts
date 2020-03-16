@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as io from '@actions/io'
 import * as fs from 'fs'
+import * as mm from './manifest';
 import * as os from 'os'
 import * as path from 'path'
 import * as httpm from '@actions/http-client'
@@ -452,6 +453,58 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
   }
 
   return versions
+}
+
+export async function getManifestFromUrl(url: string): Promise<mm.IToolRelease[] | null> {
+  let http: httpm.HttpClient = new httpm.HttpClient('tool-cache');
+  return (await http.getJson<mm.IToolRelease[]>(url)).result;
+}
+
+export async function cacheToolFromManifest(
+  toolName: string,
+  versionSpec: string,
+  stable: boolean,
+  mamifest: mm.IToolRelease[]
+): Promise<string | undefined> {
+  let toolPath: string | undefined;
+
+  try {
+    let match: mm.IToolRelease | undefined = await mm.findMatch(versionSpec, stable);
+
+    if (match) {
+      // download
+      let releaseFile = match.files[0];
+      core.debug(`match ${match.version}`);
+      let downloadUrl: string = releaseFile.url;
+      console.log(`Downloading from ${downloadUrl}`);
+
+      let downloadPath: string = await downloadTool(downloadUrl);
+      core.debug(`downloaded to ${downloadPath}`);
+
+      // extract
+      console.log('Extracting ...');
+      
+      let extPath: string | undefined;
+      if (releaseFile.kind == 'targz') {
+        extPath = await extractTar(downloadPath);
+      }
+      else if (releaseFile.kind == 'zip') {
+        extPath = await extractZip(downloadPath);
+      }
+      else {
+        throw new Error(`Unknown file kind ${releaseFile.kind}`);
+      }
+      core.debug(`extracted to ${extPath}`);
+
+      // extracts with a root folder that matches the fileName downloaded
+      const toolRoot = path.join(extPath, toolName);
+      toolPath = await cacheDir(toolRoot, toolName, versionSpec);
+    }
+  } catch (error) {
+    throw new Error(`Failed to download version ${versionSpec}: ${error}`);
+  }
+
+  return toolPath;
 }
 
 async function _createExtractFolder(dest?: string): Promise<string> {
