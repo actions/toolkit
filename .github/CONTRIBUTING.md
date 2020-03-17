@@ -12,14 +12,12 @@ Issues in this repository should be for the toolkit packages.  Runner specific i
 
 We ask that before significant effort is put into code changes, that we have agreement on taking the change before time is invested in code changes. 
 
-1. Create a feature request.  Once agreed we will take the enhancment
-2. Create an ADR to agree on the details of the change.
+1. Create a feature request. 
+2. When we agree to take the enhancement, create an ADR to agree on the details of the change.
 
-An ADR is an Architectural Decision Record.  This allows consensus on the direction forward and also serves as a record of the change and motivation. [Read more here](docs/adrs/README.md).
+An ADR is an Architectural Decision Record.  This allows consensus on the direction forward and also serves as a record of the change and motivation. [Read more here](../docs/adrs/README.md).
 
 ## Development Life Cycle
-
-## Development
 
 This repository uses [Lerna](https://github.com/lerna/lerna#readme) to manage multiple packages. Read the documentation there to begin contributing.
 
