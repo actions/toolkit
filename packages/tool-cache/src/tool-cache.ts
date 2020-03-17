@@ -458,7 +458,7 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
 export async function getManifestFromUrl(
   url: string
 ): Promise<mm.IToolRelease[] | null> {
-  let http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
+  const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
   return (await http.getJson<mm.IToolRelease[]>(url)).result
 }
 
@@ -466,33 +466,36 @@ export async function cacheToolFromManifest(
   toolName: string,
   versionSpec: string,
   stable: boolean,
-  mamifest: mm.IToolRelease[]
+  manifest: mm.IToolRelease[]
 ): Promise<string | undefined> {
   let toolPath: string | undefined
 
   try {
-    let match: mm.IToolRelease | undefined = await mm.findMatch(
+    const match: mm.IToolRelease | undefined = await mm.findMatch(
       versionSpec,
-      stable
+      stable,
+      manifest
     )
 
     if (match) {
       // download
-      let releaseFile = match.files[0]
+      const releaseFile = match.files[0]
       core.debug(`match ${match.version}`)
-      let downloadUrl: string = releaseFile.url
+      const downloadUrl: string = releaseFile.url
+      // eslint-disable-next-line no-console
       console.log(`Downloading from ${downloadUrl}`)
 
-      let downloadPath: string = await downloadTool(downloadUrl)
+      const downloadPath: string = await downloadTool(downloadUrl)
       core.debug(`downloaded to ${downloadPath}`)
 
       // extract
+      // eslint-disable-next-line no-console
       console.log('Extracting ...')
 
       let extPath: string | undefined
-      if (releaseFile.kind == 'targz') {
+      if (releaseFile.kind === 'targz') {
         extPath = await extractTar(downloadPath)
-      } else if (releaseFile.kind == 'zip') {
+      } else if (releaseFile.kind === 'zip') {
         extPath = await extractZip(downloadPath)
       } else {
         throw new Error(`Unknown file kind ${releaseFile.kind}`)

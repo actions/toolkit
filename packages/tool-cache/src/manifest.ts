@@ -1,6 +1,4 @@
-import * as path from 'path'
 import * as semver from 'semver'
-import * as httpm from '@actions/http-client'
 import * as os from 'os'
 import {debug} from '@actions/core'
 
@@ -27,26 +25,18 @@ export interface IToolRelease {
 
 export async function findMatch(
   versionSpec: string,
-  stable: boolean
+  stable: boolean,
+  candidates: IToolRelease[]
 ): Promise<IToolRelease | undefined> {
-  let archFilter = os.arch()
-  let platFilter = os.platform()
+  const archFilter = os.arch()
+  const platFilter = os.platform()
 
   let result: IToolRelease | undefined
   let match: IToolRelease | undefined
 
-  const dlUrl: string = 'https://golang.org/dl/?mode=json&include=all'
-  let candidates: IToolRelease[] | null = await module.exports.getVersions(
-    dlUrl
-  )
-  if (!candidates) {
-    throw new Error(`golang download url did not return results`)
-  }
-
   let goFile: IToolReleaseFile | undefined
-  for (let i = 0; i < candidates.length; i++) {
-    let candidate: IToolRelease = candidates[i]
-    let version = candidate.version
+  for (const candidate of candidates) {
+    const version = candidate.version
 
     debug(`check ${version} satisfies ${versionSpec}`)
     if (
@@ -68,7 +58,7 @@ export async function findMatch(
 
   if (match && goFile) {
     // clone since we're mutating the file list to be only the file that matches
-    result = <IToolRelease>Object.assign({}, match)
+    result = Object.assign({}, match)
     result.files = [goFile]
   }
 
