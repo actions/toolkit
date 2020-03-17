@@ -1,6 +1,6 @@
 # Contributions
 
-We welcome contributions in the form of issues and pull requests.  We view the contributions and the process as the same for github and external contributors.
+We welcome contributions in the form of issues and pull requests.  We view the contributions and process as the same for internal and external contributors.
 
 ## Issues
 
