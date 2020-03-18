@@ -279,7 +279,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
   const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
 
   // run powershell
-  const powershellPath = await io.which('powershell')
+  const powershellPath = await io.which('powershell', true)
   const args = [
     '-NoLogo',
     '-Sta',
@@ -294,7 +294,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
 }
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
-  const unzipPath = await io.which('unzip')
+  const unzipPath = await io.which('unzip', true)
   await exec(`"${unzipPath}"`, [file], {cwd: dest})
 }
 
