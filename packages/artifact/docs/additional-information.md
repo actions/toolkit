@@ -4,6 +4,7 @@ Extra information
 - [Non-Supported Characters](#Non-Supported-Characters)
 - [Permission loss](#Permission-Loss)
 - [Considerations](#Considerations)
+- [Compression](#Is-my-artifact-compressed)
 
 ## Non-Supported Characters
 
