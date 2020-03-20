@@ -1,5 +1,11 @@
 # Implementation Details
 
+Warning: Implementation details may change at any time without notice. This is meant to serve as a reference to help users understand the package.
+
+## Upload/Compression flow
+
+![image](https://user-images.githubusercontent.com/16109154/77190819-38685d80-6ada-11ea-8281-4703ff8cc025.png)
+
 ## Proxy support
 
 This package uses the `@actions/http-client` NPM package internally which supports proxied requests out of the box. 
