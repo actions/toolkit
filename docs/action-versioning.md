@@ -15,11 +15,11 @@ steps:
 
 Binding to a major version is the latest of that major version ( e.g. `v1` == "1.*" )
 
-Major versions should guarantee compatibility.  A major version can add net new capabilities but should not break existing input compatibility or break existing workflows. 
+Major versions should guarantee compatibility.  A major version can add new capabilities but should not break existing input compatibility or break existing workflows.
 
-Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `master` branch has the latest code and is unstable to bind to since changes get committed to master and released to the market place by creating a tag.  In addition, a new major version carrying breaking changes will get implemented in master after branching off the previous major version.
+Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `master` branch has the latest code and is unstable to bind to. Changes are committed to master before the changes are ready to be released to the marketplace by creating a tag.  In addition, a new major version may break compatibility will get implemented in master after branching off the previous major version.
 
-> Warning: do not reference `master` since that is the latest code and can be carrying breaking changes of the next major version.
+> Warning: do not reference `master` since that is the latest code and may contain breaking changes of the next major version.
 
 ```yaml
 steps:
@@ -39,8 +39,8 @@ Binding to the immutable full sha1 may offer more reliability.  However, note th
 3. **Make the new release available to those binding to the major version tag**: Move the major version tag (v1, v2, etc.) to point to the ref of the current release. This will act as the stable release for that major version. You should keep this tag updated to the most recent stable minor/patch release.
 
 ```
-git tag -fa v1 -m "Update v1 tag"
-git push origin v1 --force
+git tag --force --annotate -m "Update v1 tag" v1
+git push --force origin v1
 ```
 # Major Versions
 
