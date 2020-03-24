@@ -199,3 +199,9 @@ Each artifact will have the same `DownloadResponse` as if it was individually do
 Check out [additional-information](docs/additional-information.md) for extra documentation around usage, restrictions and behavior.
 
 Check out [implementation-details](docs/implementation-details.md) for extra information about the implementation of this package.
+
+## Contributions
+
+See [contributor guidelines](https://github.com/actions/toolkit/blob/master/.github/CONTRIBUTING.md) for general guidelines and information about toolkit contributions.
+
+For contributions related to this package, see [artifact contributions](docs/artifact-contributions.md) for more information.

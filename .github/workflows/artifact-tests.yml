@@ -1,0 +1,107 @@
+name: artifact-unit-tests
+on:
+  push:
+    paths:
+        - 'packages/artifact/**'
+  pull_request:
+    paths:
+        - 'packages/artifact/**'
+
+jobs:
+
+  build:
+    name: Build
+
+    strategy:
+      matrix:
+        runs-on: [ubuntu-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: npm install
+      run: npm install
+
+    - name: Bootstrap
+      run: npm run bootstrap
+
+    - name: Compile
+      run: npm run build
+
+    - name: Create Temp Upload files
+      run: |
+        mkdir artifact-path
+        echo "hello" > artifact-path/world.txt
+        echo "Some large amount of text that has a compression ratio that is greater than 100%. If greater than 100%, gzip is used to upload the file" > artifact-path/gzip.txt
+
+    - name: Get ACTIONS_RUNTIME_TOKEN
+      uses: konradpabjan/Get-Actions-Env-Variable-From-Node-Context@master
+      with:
+        EnvName: ACTIONS_RUNTIME_TOKEN
+      id: get_runtime_token
+
+    - name: Get ACTIONS_RUNTIME_URL
+      uses: konradpabjan/Get-Actions-Env-Variable-From-Node-Context@master
+      with:
+        EnvName: ACTIONS_RUNTIME_URL
+      id: get_runtime_url
+
+    - name: Get GITHUB_RUN_ID
+      uses: konradpabjan/Get-Actions-Env-Variable-From-Node-Context@master
+      with:
+        EnvName: GITHUB_RUN_ID
+      id: get_run_id
+
+    - name: Upload Artifacts
+      run: |
+        export ACTIONS_RUNTIME_TOKEN="${{ steps.get_runtime_token.outputs.EnvValue }}"
+        export ACTIONS_RUNTIME_URL="${{ steps.get_runtime_url.outputs.EnvValue }}"
+        export GITHUB_RUN_ID="${{ steps.get_run_id.outputs.EnvValue }}"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], '${{ github.workspace }}'))"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-2',['artifact-path/gzip.txt'], '${{ github.workspace }}'))"
+
+    - name: Sleep
+      run: sleep 5.0
+
+    - name: Download Single Artifact
+      run: |
+        export ACTIONS_RUNTIME_TOKEN="${{ steps.get_runtime_token.outputs.EnvValue }}"
+        export ACTIONS_RUNTIME_URL="${{ steps.get_runtime_url.outputs.EnvValue }}"
+        export GITHUB_RUN_ID="${{ steps.get_run_id.outputs.EnvValue }}"
+        mkdir single-artifact-directory
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-1','single-artifact-directory'))"
+    
+    - name: 'Verify First Artifact'
+      run: |
+        pwd
+        cd single-artifact-directory/artifact-path
+        ls
+        cat world.txt
+        $file = "single-artifact-directory/artifact-path/world.txt"  
+        if(!(Test-Path -path $file))
+        {
+            Write-Error "Expected file does not exist"
+        }
+        if(!((Get-Content $file) -ceq 'hello'))
+        {
+            cat $file
+            Write-Error "File contents of downloaded artifact are incorrect"
+        }
+      shell: pwsh
+
+    - name: Download All Artifacts
+      run:
+        export ACTIONS_RUNTIME_TOKEN="${{ steps.get_runtime_token.outputs.EnvValue }}"
+        export ACTIONS_RUNTIME_URL="${{ steps.get_runtime_url.outputs.EnvValue }}"
+        export GITHUB_RUN_ID="${{ steps.get_run_id.outputs.EnvValue }}"
+        mkdir multiple-artifact-directory
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadAllArtifacts('./multiple-artifact-directory'))"
