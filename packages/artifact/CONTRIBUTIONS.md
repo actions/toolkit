@@ -1,6 +1,6 @@
 # Contributions
 
-This package is used internally by the v2+ versions of [upload-artifact](https://github.com/actions/upload-artifact) and [download-artifact](https://github.com/actions/download-artifact). Any changes or updates to this package will propagate updates to these actions so it is important that major changes or updates get properly tested.
+This package is used internally by the v2+ versions of [upload-artifact](https://github.com/actions/upload-artifact) and [download-artifact](https://github.com/actions/download-artifact). This package can also be used by other actions to interact with artifacts. Any changes or updates to this package will propagate updates to these actions so it is important that major changes or updates get properly tested. 
 
 Any issues or feature requests that are related to the artifact actions should be filled in the appropriate repo.
 
