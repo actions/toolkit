@@ -26,7 +26,7 @@ export class StatusReporter {
   start(): void {
     const _this = this
 
-    // displays information about the total upload/download status every 10 seconds
+    // displays information about the total upload/download status every 5 seconds
     this.totalFileStatus = setInterval(function() {
       // display 1 decimal place without any rounding
       const percentage = _this.formatPercentage(
@@ -34,14 +34,14 @@ export class StatusReporter {
         _this.totalNumberOfFilesToProcess
       )
       info(
-        `Total file(s): ${
+        `Total file count: ${
           _this.totalNumberOfFilesToProcess
         } ---- Processed file #${_this.processedCount} (${percentage.slice(
           0,
           percentage.indexOf('.') + 2
         )}%)`
       )
-    }, 10000)
+    }, 5000)
 
     // displays extra information about any large files that take a significant amount of time to upload or download every 1 second
     this.largeFileStatus = setInterval(function() {

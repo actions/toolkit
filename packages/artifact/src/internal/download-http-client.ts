@@ -84,6 +84,7 @@ export class DownloadHttpClient {
   async downloadSingleArtifact(downloadItems: DownloadItem[]): Promise<void> {
     const DOWNLOAD_CONCURRENCY = getDownloadFileConcurrency()
     // limit the number of files downloaded at a single time
+    info(`Download file concurrency is set to ${DOWNLOAD_CONCURRENCY}`)
     const parallelDownloads = [...new Array(DOWNLOAD_CONCURRENCY).keys()]
     let currentFile = 0
     let downloadedFiles = 0
@@ -203,6 +204,7 @@ export class DownloadHttpClient {
             stream,
             isGzip(response.message.headers)
           )
+          return
         } else if (isThrottledStatusCode(response.message.statusCode)) {
           info(
             'A 429 response code has been recieved when attempting to download an artifact'
@@ -227,9 +229,7 @@ export class DownloadHttpClient {
           // Some unexpected response code, fail immediatly and stop the download
           // eslint-disable-next-line no-console
           console.log(response)
-          throw new Error(
-            `###ERROR### Unexpected response. Unable to download ${artifactLocation} ###`
-          )
+          break
         }
       } catch (error) {
         // if an error is catched, it is usually indicative of a timeout so retry the download
@@ -242,6 +242,7 @@ export class DownloadHttpClient {
         await backoffExponentially()
       }
     }
+    throw new Error(`###ERROR### Unable to download ${artifactLocation} ###`)
   }
 
   /**
