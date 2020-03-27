@@ -5,18 +5,18 @@ import {
   getRequestOptions,
   isSuccessStatusCode,
   isRetryableStatusCode,
-  createHttpClient
+  isThrottledStatusCode,
+  getExponentialRetryTimeInMilliseconds,
+  tryGetRetryAfterValueTimeInMilliseconds
 } from './utils'
 import {URL} from 'url'
+import {performance} from 'perf_hooks'
 import {ListArtifactsResponse, QueryArtifactResponse} from './contracts'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
-import {
-  getDownloadFileConcurrency,
-  getRetryWaitTimeInMilliseconds
-} from './config-variables'
-import {warning} from '@actions/core'
+import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
+import {info, debug} from '@actions/core'
 import {IncomingHttpHeaders} from 'http'
 
 export class DownloadHttpClient {
@@ -32,12 +32,13 @@ export class DownloadHttpClient {
    */
   async listArtifacts(): Promise<ListArtifactsResponse> {
     const artifactUrl = getArtifactUrl()
+
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
     const client = this.downloadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json')
-
+    const requestOptions = getRequestOptions('application/json', false)
     const rawResponse = await client.get(artifactUrl, requestOptions)
     const body: string = await rawResponse.readBody()
+
     if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
       return JSON.parse(body)
     }
@@ -59,13 +60,12 @@ export class DownloadHttpClient {
     const resourceUrl = new URL(containerUrl)
     resourceUrl.searchParams.append('itemPath', artifactName)
 
-    // no concurrent calls so a single httpClient without the http-manager is sufficient
-    const client = createHttpClient()
-
-    // no keep-alive header, client disposal is not necessary
-    const requestOptions = getRequestOptions('application/json')
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    const client = this.downloadHttpManager.getClient(0)
+    const requestOptions = getRequestOptions('application/json', false)
     const rawResponse = await client.get(resourceUrl.toString(), requestOptions)
     const body: string = await rawResponse.readBody()
+
     if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
       return JSON.parse(body)
     }
@@ -82,16 +82,32 @@ export class DownloadHttpClient {
     const DOWNLOAD_CONCURRENCY = getDownloadFileConcurrency()
     // limit the number of files downloaded at a single time
     const parallelDownloads = [...new Array(DOWNLOAD_CONCURRENCY).keys()]
+    let currentFile = 0
     let downloadedFiles = 0
+
+    info(
+      `Total number of files that will be downloaded: ${downloadItems.length}`
+    )
+
     await Promise.all(
       parallelDownloads.map(async index => {
-        while (downloadedFiles < downloadItems.length) {
-          const currentFileToDownload = downloadItems[downloadedFiles]
-          downloadedFiles += 1
+        while (currentFile < downloadItems.length) {
+          const currentFileToDownload = downloadItems[currentFile]
+          currentFile += 1
+
+          const startTime = performance.now()
           await this.downloadIndividualFile(
             index,
             currentFileToDownload.sourceLocation,
             currentFileToDownload.targetPath
+          )
+
+          debug(
+            `File: ${++downloadedFiles}/${downloadItems.length}. ${
+              currentFileToDownload.targetPath
+            } took ${(performance.now() - startTime).toFixed(
+              3
+            )} milliseconds to finish downloading`
           )
         }
       })
@@ -112,49 +128,111 @@ export class DownloadHttpClient {
     artifactLocation: string,
     downloadPath: string
   ): Promise<void> {
+    let retryCount = 0
+    const retryLimit = getRetryLimit()
     const stream = fs.createWriteStream(downloadPath)
-    const client = this.downloadHttpManager.getClient(httpClientIndex)
     const requestOptions = getRequestOptions('application/octet-stream', true)
-    const response = await client.get(artifactLocation, requestOptions)
 
-    // check the response headers to determine if the file was compressed using gzip
+    // a single GET request is used to download a file
+    const makeDownloadRequest = async (): Promise<IHttpClientResponse> => {
+      const client = this.downloadHttpManager.getClient(httpClientIndex)
+      return await client.get(artifactLocation, requestOptions)
+    }
+
+    // checks the response headers to determine if the file was compressed using gzip
     const isGzip = (headers: IncomingHttpHeaders): boolean => {
       return (
         'content-encoding' in headers && headers['content-encoding'] === 'gzip'
       )
     }
 
-    if (isSuccessStatusCode(response.message.statusCode)) {
-      await this.pipeResponseToStream(
-        response,
-        stream,
-        isGzip(response.message.headers)
-      )
-    } else if (isRetryableStatusCode(response.message.statusCode)) {
-      warning(
-        `Received http ${response.message.statusCode} during file download, will retry ${artifactLocation} after 10 seconds`
-      )
-      // if an error is encountered, dispose of the http connection, and create a new one
-      this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
-      await new Promise(resolve =>
-        setTimeout(resolve, getRetryWaitTimeInMilliseconds())
-      )
-      const retryResponse = await client.get(artifactLocation)
-      if (isSuccessStatusCode(retryResponse.message.statusCode)) {
-        await this.pipeResponseToStream(
-          response,
-          stream,
-          isGzip(response.message.headers)
+    // checks if the retry limit has been reached. If there have been too many retries, fail so the download stops
+    const checkRetryLimit = (response?: IHttpClientResponse): void => {
+      if (retryCount > retryLimit) {
+        if (response) {
+          // eslint-disable-next-line no-console
+          console.log(response)
+        }
+        throw new Error(
+          `Unable to download ${artifactLocation}. Retry limit has been reached`
         )
-      } else {
-        // eslint-disable-next-line no-console
-        console.log(retryResponse)
-        throw new Error(`Unable to download ${artifactLocation}`)
       }
-    } else {
-      // eslint-disable-next-line no-console
-      console.log(response)
-      throw new Error(`Unable to download ${artifactLocation}`)
+    }
+
+    // Back off exponentially based off of the retry count.
+    const backoffExponentially = async (): Promise<void> => {
+      this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
+      const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
+      info(
+        `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the download`
+      )
+      return new Promise(resolve =>
+        setTimeout(resolve, getExponentialRetryTimeInMilliseconds(retryCount))
+      )
+    }
+
+    const backOffUsingRetryValue = async (
+      retryAfterValue: number
+    ): Promise<void> => {
+      this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
+      info(
+        `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the download`
+      )
+      return new Promise(resolve => setTimeout(resolve, retryAfterValue))
+    }
+
+    while (retryCount <= retryLimit) {
+      try {
+        const response = await makeDownloadRequest()
+
+        // Always read the body of the response. There is potential for a resource leak if the body is not read which will
+        // result in the connection remaining open along with unintended consequences when trying to dispose of the client
+        await response.readBody()
+
+        if (isSuccessStatusCode(response.message.statusCode)) {
+          await this.pipeResponseToStream(
+            response,
+            stream,
+            isGzip(response.message.headers)
+          )
+        } else if (isThrottledStatusCode(response.message.statusCode)) {
+          info(
+            'A 429 response code has been recieved when attempting to download an artifact'
+          )
+
+          const retryAfterValue = tryGetRetryAfterValueTimeInMilliseconds(
+            response.message.headers
+          )
+          if (retryAfterValue) {
+            await backOffUsingRetryValue(retryAfterValue)
+          } else {
+            // no retry time available, differ to standard exponential backoff
+            retryCount++
+            checkRetryLimit(response)
+            await backoffExponentially()
+          }
+        } else if (isRetryableStatusCode(response.message.statusCode)) {
+          retryCount++
+          checkRetryLimit(response)
+          await backoffExponentially()
+        } else {
+          // Some unexpected response code, fail immediatly and stop the download
+          // eslint-disable-next-line no-console
+          console.log(response)
+          throw new Error(
+            `###ERROR### Unexpected response. Unable to download ${artifactLocation} ###`
+          )
+        }
+      } catch (error) {
+        // if an error is catched, it is usually indicative of a timeout so retry the download
+        info('An error has been caught, retrying the download')
+        // eslint-disable-next-line no-console
+        console.log(error)
+
+        retryCount++
+        checkRetryLimit()
+        await backoffExponentially()
+      }
     }
   }
 

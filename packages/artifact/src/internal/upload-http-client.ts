@@ -12,13 +12,15 @@ import {
   getContentRange,
   getRequestOptions,
   isRetryableStatusCode,
-  isSuccessStatusCode
+  isSuccessStatusCode,
+  isThrottledStatusCode,
+  getExponentialRetryTimeInMilliseconds,
+  tryGetRetryAfterValueTimeInMilliseconds
 } from './utils'
 import {
   getUploadChunkSize,
   getUploadFileConcurrency,
-  getUploadRetryCount,
-  getRetryWaitTimeInMilliseconds
+  getRetryLimit
 } from './config-variables'
 import {promisify} from 'util'
 import {URL} from 'url'
@@ -359,7 +361,44 @@ export class UploadHttpClient {
     }
 
     let retryCount = 0
-    const retryLimit = getUploadRetryCount()
+    const retryLimit = getRetryLimit()
+
+    // checks if the retry limit has been reached
+    const isRetryLimitExceeded = (message?: IHttpClientResponse): boolean => {
+      if (retryCount > retryLimit) {
+        if (message) {
+          // eslint-disable-next-line no-console
+          console.log(message)
+        }
+        info(
+          `Retry limit has been reached for chunk at offset ${start} to ${resourceUrl}`
+        )
+        return true
+      }
+      return false
+    }
+
+    // back off exponentially based off of the retry count.
+    const backoffExponentially = async (): Promise<void> => {
+      this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
+      const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
+      info(
+        `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at chunk ${start}`
+      )
+      return new Promise(resolve =>
+        setTimeout(resolve, getExponentialRetryTimeInMilliseconds(retryCount))
+      )
+    }
+
+    const backOffUsingRetryValue = async (
+      retryAfterValue: number
+    ): Promise<void> => {
+      this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
+      info(
+        `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`
+      )
+      return new Promise(resolve => setTimeout(resolve, retryAfterValue))
+    }
 
     // allow for failed chunks to be retried multiple times
     while (retryCount <= retryLimit) {
@@ -372,45 +411,49 @@ export class UploadHttpClient {
 
         if (isSuccessStatusCode(response.message.statusCode)) {
           return true
+        } else if (isThrottledStatusCode(response.message.statusCode)) {
+          info(
+            'A 429 response code has been recieved when attempting to download an artifact'
+          )
+
+          const retryAfterValue = tryGetRetryAfterValueTimeInMilliseconds(
+            response.message.headers
+          )
+          if (retryAfterValue) {
+            await backOffUsingRetryValue(retryAfterValue)
+          } else {
+            // no retry time available, differ to standard exponential backoff
+            retryCount++
+            if (isRetryLimitExceeded(response)) {
+              return false
+            }
+            await backoffExponentially()
+          }
         } else if (isRetryableStatusCode(response.message.statusCode)) {
           retryCount++
-          if (retryCount > retryLimit) {
-            info(
-              `Retry limit has been reached for chunk at offset ${start} to ${resourceUrl}`
-            )
+          if (isRetryLimitExceeded(response)) {
             return false
-          } else {
-            info(
-              `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after ${getRetryWaitTimeInMilliseconds} milliseconds. Retry count #${retryCount}. URL ${resourceUrl}`
-            )
-            this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
-            await new Promise(resolve =>
-              setTimeout(resolve, getRetryWaitTimeInMilliseconds())
-            )
           }
+          await backoffExponentially()
         } else {
-          info(`#ERROR# Unable to upload chunk to ${resourceUrl}`)
+          info(
+            `###ERROR### Unexpected response. Unable to upload chunk to ${resourceUrl}`
+          )
           // eslint-disable-next-line no-console
           console.log(response)
           return false
         }
       } catch (error) {
+        // if an error is catched, it is usually indicative of a timeout so retry the upload
+        info('An error has been caught, retrying the upload')
         // eslint-disable-next-line no-console
         console.log(error)
 
         retryCount++
-        if (retryCount > retryLimit) {
-          info(
-            `Retry limit has been reached for chunk at offset ${start} to ${resourceUrl}`
-          )
+        if (isRetryLimitExceeded()) {
           return false
-        } else {
-          info(`Retrying chunk upload after encountering an error`)
-          this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
-          await new Promise(resolve =>
-            setTimeout(resolve, getRetryWaitTimeInMilliseconds())
-          )
         }
+        await backoffExponentially()
       }
     }
     return false

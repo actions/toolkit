@@ -1,13 +1,37 @@
-import {debug} from '@actions/core'
+import {debug, info} from '@actions/core'
 import {promises as fs} from 'fs'
 import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {IHeaders} from '@actions/http-client/interfaces'
+import {IncomingHttpHeaders} from 'http'
 import {
   getRuntimeToken,
   getRuntimeUrl,
-  getWorkFlowRunId
+  getWorkFlowRunId,
+  getRetryMultiplier,
+  getInitialRetryIntervalInMilliseconds
 } from './config-variables'
+
+/**
+ * Returns a retry time in milliseconds that exponentially gets larger
+ * depending on the amount of retries that have been attempted
+ */
+export function getExponentialRetryTimeInMilliseconds(
+  retryCount: number
+): number {
+  if (retryCount < 0) {
+    throw new Error('RetryCount should not be negative')
+  } else if (retryCount === 0) {
+    return getInitialRetryIntervalInMilliseconds()
+  }
+
+  const minTime =
+    getInitialRetryIntervalInMilliseconds() * getRetryMultiplier() * retryCount
+  const maxTime = minTime * getRetryMultiplier()
+
+  // returns a random number between the minTime (inclusive) and the maxTime (exclusive)
+  return Math.random() * (maxTime - minTime) + minTime
+}
 
 /**
  * Parses a env variable that is a number
@@ -45,6 +69,42 @@ export function isRetryableStatusCode(statusCode?: number): boolean {
     HttpCodes.GatewayTimeout
   ]
   return retryableStatusCodes.includes(statusCode)
+}
+
+export function isThrottledStatusCode(statusCode?: number): boolean {
+  if (!statusCode) {
+    return false
+  }
+
+  // TODO, change when a new version of @actions/http-client gets released
+  return statusCode === 429
+}
+
+/**
+ * Attempts to get the retry-after value from a set of http headers. The retry time
+ * is orginally denoted in seconds, so if present, it is converted to milliseconds
+ * @param headers all the headers received when making an http call
+ */
+export function tryGetRetryAfterValueTimeInMilliseconds(
+  headers: IncomingHttpHeaders
+): number | undefined {
+  if (headers['retry-after']) {
+    const retryTime = Number(headers['retry-after'])
+    if (!isNaN(retryTime)) {
+      info(`retry-after headers is present with a value of ${retryTime}`)
+      return retryTime * 1000
+    }
+    info(
+      `returned retry-after header value: ${retryTime} is non-numberic and cannot be used`
+    )
+    return undefined
+  }
+  info(
+    `no retry-after header was found. Dumping all headers for diagnostic purposes`
+  )
+  // eslint-disable-next-line no-console
+  console.log(headers)
+  return undefined
 }
 
 export function getContentRange(

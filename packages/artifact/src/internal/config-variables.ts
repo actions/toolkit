@@ -6,12 +6,16 @@ export function getUploadChunkSize(): number {
   return 4 * 1024 * 1024 // 4 MB Chunks
 }
 
-export function getUploadRetryCount(): number {
-  return 3
+export function getRetryLimit(): number {
+  return 5
 }
 
-export function getRetryWaitTimeInMilliseconds(): number {
-  return 10000
+export function getRetryMultiplier(): number {
+  return 1.5
+}
+
+export function getInitialRetryIntervalInMilliseconds(): number {
+  return 3000
 }
 
 export function getDownloadFileConcurrency(): number {
