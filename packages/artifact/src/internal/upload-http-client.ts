@@ -25,7 +25,7 @@ import {
 import {promisify} from 'util'
 import {URL} from 'url'
 import {performance} from 'perf_hooks'
-import {UploadStatusReporter} from './upload-status-reporter'
+import {StatusReporter} from './status-reporter'
 import {debug, warning, info} from '@actions/core'
 import {HttpClientResponse} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
@@ -37,11 +37,11 @@ const stat = promisify(fs.stat)
 
 export class UploadHttpClient {
   private uploadHttpManager: HttpManager
-  private statusReporter: UploadStatusReporter
+  private statusReporter: StatusReporter
 
   constructor() {
     this.uploadHttpManager = new HttpManager(getUploadFileConcurrency())
-    this.statusReporter = new UploadStatusReporter()
+    this.statusReporter = new StatusReporter()
   }
 
   /**
@@ -122,7 +122,7 @@ export class UploadHttpClient {
     let totalFileSize = 0
     let abortPendingFileUploads = false
 
-    this.statusReporter.setTotalNumberOfFilesToUpload(filesToUpload.length)
+    this.statusReporter.setTotalNumberOfFilesToProcess(filesToUpload.length)
     this.statusReporter.start()
 
     // only allow a certain amount of files to be uploaded at once, this is done to reduce potential errors

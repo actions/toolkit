@@ -10,6 +10,7 @@ import {
   tryGetRetryAfterValueTimeInMilliseconds
 } from './utils'
 import {URL} from 'url'
+import {StatusReporter} from './status-reporter'
 import {performance} from 'perf_hooks'
 import {ListArtifactsResponse, QueryArtifactResponse} from './contracts'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
@@ -20,11 +21,13 @@ import {info, debug} from '@actions/core'
 import {IncomingHttpHeaders} from 'http'
 
 export class DownloadHttpClient {
-  // http manager is used for concurrent connection when downloading mulitple files at once
+  // http manager is used for concurrent connections when downloading mulitple files at once
   private downloadHttpManager: HttpManager
+  private statusReporter: StatusReporter
 
   constructor() {
     this.downloadHttpManager = new HttpManager(getDownloadFileConcurrency())
+    this.statusReporter = new StatusReporter()
   }
 
   /**
@@ -89,6 +92,9 @@ export class DownloadHttpClient {
       `Total number of files that will be downloaded: ${downloadItems.length}`
     )
 
+    this.statusReporter.setTotalNumberOfFilesToProcess(downloadItems.length)
+    this.statusReporter.start()
+
     await Promise.all(
       parallelDownloads.map(async index => {
         while (currentFile < downloadItems.length) {
@@ -109,10 +115,12 @@ export class DownloadHttpClient {
               3
             )} milliseconds to finish downloading`
           )
+          this.statusReporter.incrementProcessedCount()
         }
       })
     )
 
+    this.statusReporter.stop()
     // done downloading, safety dispose all connections
     this.downloadHttpManager.disposeAndReplaceAllClients()
   }
