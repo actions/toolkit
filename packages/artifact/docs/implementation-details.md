@@ -6,6 +6,10 @@ Warning: Implementation details may change at any time without notice. This is m
 
 ![image](https://user-images.githubusercontent.com/16109154/77190819-38685d80-6ada-11ea-8281-4703ff8cc025.png)
 
+## Retry Logic
+
+![image](https://user-images.githubusercontent.com/16109154/77922017-c98cc080-72a0-11ea-8d2b-6035c73c874f.png)
+
 ## Proxy support
 
 This package uses the `@actions/http-client` NPM package internally which supports proxied requests out of the box. 

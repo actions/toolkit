@@ -431,7 +431,9 @@ export class UploadHttpClient {
             await backoffExponentially()
           }
         } else if (isRetryableStatusCode(response.message.statusCode)) {
-          info(`A ${response.message.statusCode} status code has been recieved, will attempt to retry the upload`)
+          info(
+            `A ${response.message.statusCode} status code has been recieved, will attempt to retry the upload`
+          )
           retryCount++
           if (isRetryLimitExceeded(response)) {
             return false
