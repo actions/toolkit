@@ -12,7 +12,7 @@ Warning: Implementation details may change at any time without notice. This is m
 
 ## Proxy support
 
-This package uses the `@actions/http-client` NPM package internally which supports proxied requests out of the box. 
+This package uses the `@actions/http-client` NPM package internally which supports proxied requests out of the box.
 
 ## HttpManager
 
