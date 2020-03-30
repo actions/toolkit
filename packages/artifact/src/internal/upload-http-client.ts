@@ -41,7 +41,7 @@ export class UploadHttpClient {
 
   constructor() {
     this.uploadHttpManager = new HttpManager(getUploadFileConcurrency())
-    this.statusReporter = new StatusReporter()
+    this.statusReporter = new StatusReporter(10000)
   }
 
   /**
@@ -154,7 +154,8 @@ export class UploadHttpClient {
           if (uploadFileResult.isSuccess === false) {
             failedItemsToReport.push(currentFileParameters.file)
             if (!continueOnError) {
-              // existing uploads will be able to finish however all pending uploads will fail fast
+              // fail fast
+              info(`aborting upload`)
               abortPendingFileUploads = true
             }
           }

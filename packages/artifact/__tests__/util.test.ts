@@ -4,7 +4,12 @@ import * as path from 'path'
 import * as utils from '../src/internal/utils'
 import * as core from '@actions/core'
 import {HttpCodes} from '@actions/http-client'
-import {getRuntimeUrl, getWorkFlowRunId} from '../src/internal/config-variables'
+import {
+  getRuntimeUrl,
+  getWorkFlowRunId,
+  getInitialRetryIntervalInMilliseconds,
+  getRetryMultiplier
+} from '../src/internal/config-variables'
 
 jest.mock('../src/internal/config-variables')
 
@@ -15,6 +20,30 @@ describe('Utils', () => {
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
+  })
+
+  it('Check exponential retry range', () => {
+    // No retries should return the initial retry interval
+    const retryWaitTime0 = utils.getExponentialRetryTimeInMilliseconds(0)
+    expect(retryWaitTime0).toEqual(getInitialRetryIntervalInMilliseconds())
+
+    const testMinMaxRange = (retryCount: number): void => {
+      const retryWaitTime = utils.getExponentialRetryTimeInMilliseconds(
+        retryCount
+      )
+      const minRange =
+        getInitialRetryIntervalInMilliseconds() *
+        getRetryMultiplier() *
+        retryCount
+      const maxRange = minRange * getRetryMultiplier()
+
+      expect(retryWaitTime).toBeGreaterThanOrEqual(minRange)
+      expect(retryWaitTime).toBeLessThan(maxRange)
+    }
+
+    for (let i = 1; i < 10; i++) {
+      testMinMaxRange(i)
+    }
   })
 
   it('Check Artifact Name for any invalid characters', () => {
@@ -140,6 +169,17 @@ describe('Utils', () => {
     expect(utils.isRetryableStatusCode(HttpCodes.OK)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.NotFound)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.Forbidden)).toEqual(false)
+  })
+
+  it('Test Throttled Status Code', () => {
+    expect(utils.isThrottledStatusCode(429)).toEqual(true)
+    expect(utils.isThrottledStatusCode(HttpCodes.InternalServerError)).toEqual(
+      false
+    )
+    expect(utils.isThrottledStatusCode(HttpCodes.BadGateway)).toEqual(false)
+    expect(utils.isThrottledStatusCode(HttpCodes.ServiceUnavailable)).toEqual(
+      false
+    )
   })
 
   it('Test Creating Artifact Directories', async () => {

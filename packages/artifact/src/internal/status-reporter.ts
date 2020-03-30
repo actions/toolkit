@@ -10,13 +10,15 @@ import {info} from '@actions/core'
 export class StatusReporter {
   private totalNumberOfFilesToProcess = 0
   private processedCount = 0
+  private displayFrequencyInMilliseconds: number
   private largeFiles = new Map<string, string>()
   private totalFileStatus: NodeJS.Timeout | undefined
   private largeFileStatus: NodeJS.Timeout | undefined
 
-  constructor() {
+  constructor(displayFrequencyInMilliseconds: number) {
     this.totalFileStatus = undefined
     this.largeFileStatus = undefined
+    this.displayFrequencyInMilliseconds = displayFrequencyInMilliseconds
   }
 
   setTotalNumberOfFilesToProcess(fileTotal: number): void {
@@ -41,7 +43,7 @@ export class StatusReporter {
           percentage.indexOf('.') + 2
         )}%)`
       )
-    }, 5000)
+    }, this.displayFrequencyInMilliseconds)
 
     // displays extra information about any large files that take a significant amount of time to upload or download every 1 second
     this.largeFileStatus = setInterval(function() {

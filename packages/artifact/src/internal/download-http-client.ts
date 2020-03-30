@@ -27,7 +27,8 @@ export class DownloadHttpClient {
 
   constructor() {
     this.downloadHttpManager = new HttpManager(getDownloadFileConcurrency())
-    this.statusReporter = new StatusReporter()
+    // downloads are usually significantly faster than uploads so display status information every second
+    this.statusReporter = new StatusReporter(1000)
   }
 
   /**
@@ -84,7 +85,7 @@ export class DownloadHttpClient {
   async downloadSingleArtifact(downloadItems: DownloadItem[]): Promise<void> {
     const DOWNLOAD_CONCURRENCY = getDownloadFileConcurrency()
     // limit the number of files downloaded at a single time
-    info(`Download file concurrency is set to ${DOWNLOAD_CONCURRENCY}`)
+    debug(`Download file concurrency is set to ${DOWNLOAD_CONCURRENCY}`)
     const parallelDownloads = [...new Array(DOWNLOAD_CONCURRENCY).keys()]
     let currentFile = 0
     let downloadedFiles = 0
