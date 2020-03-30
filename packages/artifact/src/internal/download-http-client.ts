@@ -176,9 +176,13 @@ export class DownloadHttpClient {
       info(
         `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the download`
       )
-      return new Promise(resolve =>
+      await new Promise(resolve =>
         setTimeout(resolve, getExponentialRetryTimeInMilliseconds(retryCount))
       )
+      info(
+        `Finished exponential backoff for retry #${retryCount}, continuing with upload`
+      )
+      return
     }
 
     const backOffUsingRetryValue = async (
@@ -188,7 +192,11 @@ export class DownloadHttpClient {
       info(
         `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the download`
       )
-      return new Promise(resolve => setTimeout(resolve, retryAfterValue))
+      await new Promise(resolve => setTimeout(resolve, retryAfterValue))
+      info(
+        `Finished backoff due to too many requests for retry #${retryCount}, continuing with upload`
+      )
+      return
     }
 
     while (retryCount <= retryLimit) {

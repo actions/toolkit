@@ -155,7 +155,7 @@ export class UploadHttpClient {
             failedItemsToReport.push(currentFileParameters.file)
             if (!continueOnError) {
               // fail fast
-              info(`aborting upload`)
+              info(`aborting artifact upload`)
               abortPendingFileUploads = true
             }
           }
@@ -387,9 +387,11 @@ export class UploadHttpClient {
       info(
         `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at offset ${start}`
       )
-      return new Promise(resolve =>
-        setTimeout(resolve, backoffTime)
+      await new Promise(resolve => setTimeout(resolve, backoffTime))
+      info(
+        `Finished exponential backoff for retry #${retryCount}, continuing with upload`
       )
+      return
     }
 
     const backOffUsingRetryValue = async (
@@ -399,7 +401,10 @@ export class UploadHttpClient {
       info(
         `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`
       )
-      return new Promise(resolve => setTimeout(resolve, retryAfterValue))
+      info(
+        `Finished backoff due to too many requests for retry #${retryCount}, continuing with upload`
+      )
+      return
     }
 
     // allow for failed chunks to be retried multiple times
