@@ -264,11 +264,6 @@ export class UploadHttpClient {
               uploadFileSize - offset,
               parameters.maxChunkSize
             )
-            if (abortFileUpload) {
-              // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
-              failedChunkSizes += chunkSize
-              continue
-            }
 
             // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
             if (uploadFileSize > 104857600) {
@@ -282,6 +277,12 @@ export class UploadHttpClient {
             const start = offset
             const end = offset + chunkSize - 1
             offset += parameters.maxChunkSize
+
+            if (abortFileUpload) {
+              // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
+              failedChunkSizes += chunkSize
+              continue
+            }
 
             const result = await this.uploadChunk(
               httpClientIndex,
@@ -384,10 +385,10 @@ export class UploadHttpClient {
       this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
       const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
       info(
-        `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at chunk ${start}`
+        `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at offset ${start}`
       )
       return new Promise(resolve =>
-        setTimeout(resolve, getExponentialRetryTimeInMilliseconds(retryCount))
+        setTimeout(resolve, backoffTime)
       )
     }
 
