@@ -173,6 +173,7 @@ export class DefaultArtifactClient implements ArtifactClient {
       await createDirectoriesForArtifact(
         downloadSpecification.directoryStructure
       )
+      core.info('Directory structure has been setup for the artifact')
       await downloadHttpClient.downloadSingleArtifact(
         downloadSpecification.filesToDownload
       )

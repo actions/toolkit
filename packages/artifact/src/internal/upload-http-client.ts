@@ -397,6 +397,7 @@ export class UploadHttpClient {
     const backOffUsingRetryValue = async (
       retryAfterValue: number
     ): Promise<void> => {
+      info(`disposing client with index ${httpClientIndex}`)
       this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
       info(
         `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`
@@ -455,7 +456,9 @@ export class UploadHttpClient {
         }
       } catch (error) {
         // if an error is catched, it is usually indicative of a timeout so retry the upload
-        info('An error has been caught, retrying the upload')
+        info(
+          `An error has been caught http-client index ${httpClientIndex}, retrying the upload`
+        )
         // eslint-disable-next-line no-console
         console.log(error)
 

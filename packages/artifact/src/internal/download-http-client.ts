@@ -1,5 +1,4 @@
 import * as fs from 'fs'
-import * as zlib from 'zlib'
 import {
   getArtifactUrl,
   getRequestOptions,
@@ -18,7 +17,6 @@ import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
 import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
 import {info, debug} from '@actions/core'
-import {IncomingHttpHeaders} from 'http'
 
 export class DownloadHttpClient {
   // http manager is used for concurrent connections when downloading mulitple files at once
@@ -140,7 +138,6 @@ export class DownloadHttpClient {
   ): Promise<void> {
     let retryCount = 0
     const retryLimit = getRetryLimit()
-    const stream = fs.createWriteStream(downloadPath)
     const requestOptions = getRequestOptions('application/octet-stream', true)
 
     // a single GET request is used to download a file
@@ -149,12 +146,9 @@ export class DownloadHttpClient {
       return await client.get(artifactLocation, requestOptions)
     }
 
-    // checks the response headers to determine if the file was compressed using gzip
-    const isGzip = (headers: IncomingHttpHeaders): boolean => {
-      return (
-        'content-encoding' in headers && headers['content-encoding'] === 'gzip'
-      )
-    }
+    requestOptions['Accept-Encoding'] = 'gzip'
+    requestOptions['Accept'] =
+      'application/octet-stream;api-version=6.0-preview;res-version=1'
 
     // checks if the retry limit has been reached. If there have been too many retries, fail so the download stops
     const checkRetryLimit = (response?: IHttpClientResponse): void => {
@@ -203,16 +197,10 @@ export class DownloadHttpClient {
       try {
         const response = await makeDownloadRequest()
 
-        // Always read the body of the response. There is potential for a resource leak if the body is not read which will
-        // result in the connection remaining open along with unintended consequences when trying to dispose of the client
-        await response.readBody()
-
         if (isSuccessStatusCode(response.message.statusCode)) {
-          await this.pipeResponseToStream(
-            response,
-            stream,
-            isGzip(response.message.headers)
-          )
+          // The body contains the conents of the file, if it was uploaded using gzip, it will be decompressed by the @actions/http-client
+          const body = await response.readBody()
+          await this.pipeResponseToFile(body, downloadPath)
           return
         } else if (isThrottledStatusCode(response.message.statusCode)) {
           info(
@@ -255,31 +243,24 @@ export class DownloadHttpClient {
   }
 
   /**
-   * Pipes the response from downloading an individual file to the appropriate stream
-   * @param response the http response recieved when downloading a file
-   * @param stream the stream where the file should be written to
-   * @param isGzip does the response need to be be uncompressed
+   * Writes the content of the response body to a file
+   * @param body the decoded response body
+   * @param destinationPath the path to the file that will contain the final downloaded content
    */
-  private async pipeResponseToStream(
-    response: IHttpClientResponse,
-    stream: NodeJS.WritableStream,
-    isGzip: boolean
+  private async pipeResponseToFile(
+    body: string,
+    destinationPath: string
   ): Promise<void> {
-    return new Promise(resolve => {
-      if (isGzip) {
-        // pipe the response into gunzip to decompress
-        const gunzip = zlib.createGunzip()
-        response.message
-          .pipe(gunzip)
-          .pipe(stream)
-          .on('close', () => {
-            resolve()
-          })
-      } else {
-        response.message.pipe(stream).on('close', () => {
-          resolve()
-        })
-      }
+    await new Promise((resolve, reject) => {
+      fs.writeFile(destinationPath, body, err => {
+        if (err) {
+          // eslint-disable-next-line no-console
+          console.log(err)
+          reject(err)
+        }
+        resolve()
+      })
     })
+    return
   }
 }

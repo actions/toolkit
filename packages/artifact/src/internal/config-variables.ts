@@ -19,7 +19,7 @@ export function getInitialRetryIntervalInMilliseconds(): number {
 }
 
 export function getDownloadFileConcurrency(): number {
-  return 2
+  return 3
 }
 
 export function getRuntimeToken(): string {
