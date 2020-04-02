@@ -59,7 +59,7 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
-    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
     const requestOptions = getUploadRequestOptions('application/json', false)
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
@@ -194,7 +194,7 @@ export class UploadHttpClient {
     let uploadFileSize = 0
     let isGzip = true
 
-    // the file that is being uploaded is less than 64k in size, to increase thoroughput and to minimize disk I/O
+    // the file that is being uploaded is less than 64k in size, to increase throughput and to minimize disk I/O
     // for creating a new GZip file, an in-memory buffer is used for compression
     if (totalFileSize < 65536) {
       const buffer = await createGZipFileInBuffer(parameters.file)
@@ -237,7 +237,7 @@ export class UploadHttpClient {
         totalSize: totalFileSize
       }
     } else {
-      // the file that is being uploaded is greater than 64k in size, a temprorary file gets created on disk using the
+      // the file that is being uploaded is greater than 64k in size, a temporary file gets created on disk using the
       // npm tmp-promise package and this file gets used during compression for the GZip file that gets created
       return tmp
         .file()
@@ -425,7 +425,7 @@ export class UploadHttpClient {
           return true
         } else if (isThrottledStatusCode(response.message.statusCode)) {
           info(
-            'A 429 response code has been recieved when attempting to download an artifact'
+            'A 429 response code has been received when attempting to upload an artifact'
           )
 
           const retryAfterValue = tryGetRetryAfterValueTimeInMilliseconds(
@@ -442,7 +442,7 @@ export class UploadHttpClient {
           }
         } else if (isRetryableStatusCode(response.message.statusCode)) {
           info(
-            `A ${response.message.statusCode} status code has been recieved, will attempt to retry the upload`
+            `A ${response.message.statusCode} status code has been received, will attempt to retry the upload`
           )
           if (incrementAndCheckRetryLimit(response)) {
             return false
@@ -457,7 +457,7 @@ export class UploadHttpClient {
           return false
         }
       } catch (error) {
-        // if an error is catched, it is usually indicative of a timeout so retry the upload
+        // if an error is caught, it is usually indicative of a timeout so retry the upload
         info(
           `An error has been caught http-client index ${httpClientIndex}, retrying the upload`
         )
@@ -486,7 +486,7 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     debug(`URL is ${resourceUrl.toString()}`)
 
-    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
     const rawResponse: HttpClientResponse = await client.patch(
       resourceUrl.toString(),

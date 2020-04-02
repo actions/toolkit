@@ -82,7 +82,7 @@ export function isThrottledStatusCode(statusCode?: number): boolean {
 
 /**
  * Attempts to get the retry-after value from a set of http headers. The retry time
- * is orginally denoted in seconds, so if present, it is converted to milliseconds
+ * is originally denoted in seconds, so if present, it is converted to milliseconds
  * @param headers all the headers received when making an http call
  */
 export function tryGetRetryAfterValueTimeInMilliseconds(
@@ -95,7 +95,7 @@ export function tryGetRetryAfterValueTimeInMilliseconds(
       return retryTime * 1000
     }
     info(
-      `returned retry-after header value: ${retryTime} is non-numberic and cannot be used`
+      `returned retry-after header value: ${retryTime} is non-numeric and cannot be used`
     )
     return undefined
   }
