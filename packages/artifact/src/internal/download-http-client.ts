@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import * as zlib from 'zlib'
 import {
   getArtifactUrl,
   getRequestOptions,
@@ -17,6 +18,7 @@ import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
 import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
 import {info, debug} from '@actions/core'
+import {IncomingHttpHeaders} from 'http'
 
 export class DownloadHttpClient {
   // http manager is used for concurrent connections when downloading mulitple files at once
@@ -138,6 +140,7 @@ export class DownloadHttpClient {
   ): Promise<void> {
     let retryCount = 0
     const retryLimit = getRetryLimit()
+    const destinationStream = fs.createWriteStream(downloadPath)
     const requestOptions = getRequestOptions('application/octet-stream', true)
 
     // a single GET request is used to download a file
@@ -179,6 +182,13 @@ export class DownloadHttpClient {
       return
     }
 
+    // check the response headers to determine if the file was compressed using gzip
+    const isGzip = (headers: IncomingHttpHeaders): boolean => {
+      return (
+        'content-encoding' in headers && headers['content-encoding'] === 'gzip'
+      )
+    }
+
     const backOffUsingRetryValue = async (
       retryAfterValue: number
     ): Promise<void> => {
@@ -198,10 +208,24 @@ export class DownloadHttpClient {
         const response = await makeDownloadRequest()
 
         if (isSuccessStatusCode(response.message.statusCode)) {
-          // The body contains the conents of the file, if it was uploaded using gzip, it will be decompressed by the @actions/http-client
-          const body = await response.readBody()
-          await this.pipeResponseToFile(body, downloadPath)
-          return
+          // The body contains the contents of the file however calling response.readBody() casues all the content to be converted to a string
+          // which can cause gzip encoded data to be irreversably damaged.
+          // Instead of using response.readBody(), response.message is a readablestream that can be directly used to get the raw body contents
+          try {
+            await this.pipeResponseToFile(
+              response,
+              destinationStream,
+              isGzip(response.message.headers)
+            )
+            return
+          } catch (error) {
+            info(
+              'An error has been encountered while processing the received file contents'
+            )
+            // eslint-disable-next-line no-console
+            console.log(error)
+            break
+          }
         } else if (isThrottledStatusCode(response.message.statusCode)) {
           info(
             'A 429 response code has been recieved when attempting to download an artifact'
@@ -243,23 +267,38 @@ export class DownloadHttpClient {
   }
 
   /**
-   * Writes the content of the response body to a file
-   * @param body the decoded response body
-   * @param destinationPath the path to the file that will contain the final downloaded content
+   * Pipes the response from downloading an individual file to the appropriate destination stream while decoding gzip content if necessary
+   * @param response the http response recieved when downloading a file
+   * @param destinationStream the path to the file that will contain the final downloaded content
+   * @param isGzip a boolean denoting if the content needs to be gzip decoded
    */
   private async pipeResponseToFile(
-    body: string,
-    destinationPath: string
+    response: IHttpClientResponse,
+    destinationStream: NodeJS.WritableStream,
+    isGzip: boolean
   ): Promise<void> {
     await new Promise((resolve, reject) => {
-      fs.writeFile(destinationPath, body, err => {
-        if (err) {
-          // eslint-disable-next-line no-console
-          console.log(err)
-          reject(err)
-        }
-        resolve()
-      })
+      if (isGzip) {
+        const gunzip = zlib.createGunzip()
+        response.message
+          .pipe(gunzip)
+          .pipe(destinationStream)
+          .on('close', () => {
+            resolve()
+          })
+          .on('error', error => {
+            reject(error)
+          })
+      } else {
+        response.message
+          .pipe(destinationStream)
+          .on('close', () => {
+            resolve()
+          })
+          .on('error', error => {
+            reject(error)
+          })
+      }
     })
     return
   }
