@@ -61,7 +61,7 @@ export class UploadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
     const client = this.uploadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json', false, false)
+    const requestOptions = getRequestOptions('application/json')
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
     const body: string = await rawResponse.readBody()
 
@@ -349,6 +349,7 @@ export class UploadHttpClient {
   ): Promise<boolean> {
     // prepare all the necessary headers before making any http call
     const requestOptions = getRequestOptions(
+      'application/json',
       'application/octet-stream',
       true,
       isGzip,
@@ -477,7 +478,7 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    const requestOptions = getRequestOptions('application/json', false, false)
+    const requestOptions = getRequestOptions('application/json')
     const resourceUrl = new URL(getArtifactUrl())
     resourceUrl.searchParams.append('artifactName', artifactName)
 

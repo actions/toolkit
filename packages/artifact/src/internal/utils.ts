@@ -121,6 +121,7 @@ export function getContentRange(
 
 /**
  * Sets all the necessary headers when making HTTP calls
+ * @param {string} acceptType the type of content taht we can accept
  * @param {string} contentType the type of content being uploaded
  * @param {boolean} isKeepAlive is the same connection being used to make multiple calls
  * @param {boolean} isGzip is the connection being used to upload GZip compressed content
@@ -130,6 +131,7 @@ export function getContentRange(
  * @returns appropriate request options to make a specific http call
  */
 export function getRequestOptions(
+  acceptType: string,
   contentType?: string,
   isKeepAlive?: boolean,
   isGzip?: boolean,
@@ -137,13 +139,15 @@ export function getRequestOptions(
   contentLength?: number,
   contentRange?: string
 ): IHeaders {
-  const requestOptions: IHeaders = {
-    // same Accept type for each http call that gets made
-    Accept: `application/json;api-version=${getApiVersion()}`
-  }
-  if (contentType) {
-    requestOptions['Content-Type'] = contentType
-  }
+  const requestOptions: IHeaders = {}
+  requestOptions['Accept-Encoding'] = 'gzip'
+  requestOptions['Accept'] = `${acceptType};api-version=${getApiVersion()}`
+
+  // default to application/json if no Content-Type is provided
+  contentType
+    ? (requestOptions['Content-Type'] = contentType)
+    : (requestOptions['Content-Type'] = 'application/json')
+
   if (isKeepAlive) {
     requestOptions['Connection'] = 'Keep-Alive'
     // keep alive for at least 10 seconds before closing the connection

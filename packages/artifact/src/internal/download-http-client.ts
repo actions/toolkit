@@ -39,7 +39,7 @@ export class DownloadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
     const client = this.downloadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json', false)
+    const requestOptions = getRequestOptions('application/json')
     const rawResponse = await client.get(artifactUrl, requestOptions)
     const body: string = await rawResponse.readBody()
 
@@ -66,7 +66,7 @@ export class DownloadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
     const client = this.downloadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json', false)
+    const requestOptions = getRequestOptions('application/json')
     const rawResponse = await client.get(resourceUrl.toString(), requestOptions)
     const body: string = await rawResponse.readBody()
 
@@ -141,7 +141,11 @@ export class DownloadHttpClient {
     let retryCount = 0
     const retryLimit = getRetryLimit()
     const destinationStream = fs.createWriteStream(downloadPath)
-    const requestOptions = getRequestOptions('application/octet-stream', true)
+    const requestOptions = getRequestOptions(
+      'application/octet-stream',
+      'application/json',
+      true
+    )
 
     // a single GET request is used to download a file
     const makeDownloadRequest = async (): Promise<IHttpClientResponse> => {
@@ -149,14 +153,15 @@ export class DownloadHttpClient {
       return await client.get(artifactLocation, requestOptions)
     }
 
-    requestOptions['Accept-Encoding'] = 'gzip'
-    requestOptions['Accept'] =
-      'application/octet-stream;api-version=6.0-preview;res-version=1'
-
-    // checks if the retry limit has been reached. If there have been too many retries, fail so the download stops
-    const checkRetryLimit = (response?: IHttpClientResponse): void => {
+    // Increments the current retry count and then checks if the retry limit has been reached
+    // If there have been too many retries, fail so the download stops
+    const incrementAndCheckRetryLimit = (
+      response?: IHttpClientResponse
+    ): void => {
+      retryCount++
       if (retryCount > retryLimit) {
         if (response) {
+          // display extra information if the retry limit has been reached
           // eslint-disable-next-line no-console
           console.log(response)
         }
@@ -198,72 +203,66 @@ export class DownloadHttpClient {
       )
       await new Promise(resolve => setTimeout(resolve, retryAfterValue))
       info(
-        `Finished backoff due to too many requests for retry #${retryCount}, continuing with upload`
+        `Finished backoff due to too many requests for retry #${retryCount}, continuing with download`
       )
       return
     }
 
+    // keep trying to download a file until a retry limit has been reached
     while (retryCount <= retryLimit) {
+      let response: IHttpClientResponse
       try {
-        const response = await makeDownloadRequest()
-
-        if (isSuccessStatusCode(response.message.statusCode)) {
-          // The body contains the contents of the file however calling response.readBody() casues all the content to be converted to a string
-          // which can cause gzip encoded data to be irreversably damaged.
-          // Instead of using response.readBody(), response.message is a readablestream that can be directly used to get the raw body contents
-          try {
-            await this.pipeResponseToFile(
-              response,
-              destinationStream,
-              isGzip(response.message.headers)
-            )
-            return
-          } catch (error) {
-            info(
-              'An error has been encountered while processing the received file contents'
-            )
-            // eslint-disable-next-line no-console
-            console.log(error)
-            break
-          }
-        } else if (isThrottledStatusCode(response.message.statusCode)) {
-          info(
-            'A 429 response code has been recieved when attempting to download an artifact'
-          )
-
-          const retryAfterValue = tryGetRetryAfterValueTimeInMilliseconds(
-            response.message.headers
-          )
-          if (retryAfterValue) {
-            await backOffUsingRetryValue(retryAfterValue)
-          } else {
-            // no retry time available, differ to standard exponential backoff
-            retryCount++
-            checkRetryLimit(response)
-            await backoffExponentially()
-          }
-        } else if (isRetryableStatusCode(response.message.statusCode)) {
-          retryCount++
-          checkRetryLimit(response)
-          await backoffExponentially()
-        } else {
-          // Some unexpected response code, fail immediatly and stop the download
-          // eslint-disable-next-line no-console
-          console.log(response)
-          break
-        }
+        response = await makeDownloadRequest()
       } catch (error) {
         // if an error is catched, it is usually indicative of a timeout so retry the download
-        info('An error has been caught, retrying the download')
+        info('An error has been caught, while attempting to download a file')
         // eslint-disable-next-line no-console
         console.log(error)
 
-        retryCount++
-        checkRetryLimit()
+        // increment the retryCount and use exponential backoff to wait before making the next request
+        incrementAndCheckRetryLimit()
         await backoffExponentially()
+        continue
+      }
+
+      if (isSuccessStatusCode(response.message.statusCode)) {
+        // The body contains the contents of the file however calling response.readBody() casues all the content to be converted to a string
+        // which can cause gzip encoded data to be irreversably damaged.
+        // Instead of using response.readBody(), response.message is a readablestream that can be directly used to get the raw body contents
+        await this.pipeResponseToFile(
+          response,
+          destinationStream,
+          isGzip(response.message.headers)
+        )
+        return
+      } else if (isThrottledStatusCode(response.message.statusCode)) {
+        info(
+          'A 429 response code has been recieved when attempting to download an artifact'
+        )
+
+        const retryAfterValue = tryGetRetryAfterValueTimeInMilliseconds(
+          response.message.headers
+        )
+        if (retryAfterValue) {
+          incrementAndCheckRetryLimit()
+          await backOffUsingRetryValue(retryAfterValue)
+        } else {
+          // no retry time available, differ to standard exponential backoff
+          incrementAndCheckRetryLimit(response)
+          await backoffExponentially()
+        }
+      } else if (isRetryableStatusCode(response.message.statusCode)) {
+        incrementAndCheckRetryLimit(response)
+        await backoffExponentially()
+      } else {
+        // Some unexpected response code, fail immediatly and stop the download
+        // eslint-disable-next-line no-console
+        console.log(response)
+        throw new Error(
+          `###ERROR### Unable to download ${artifactLocation} ###`
+        )
       }
     }
-    throw new Error(`###ERROR### Unable to download ${artifactLocation} ###`)
   }
 
   /**
@@ -287,6 +286,9 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
+            info(
+              'An error has been encountered while processing the downloaded file'
+            )
             reject(error)
           })
       } else {
@@ -296,6 +298,9 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
+            info(
+              'An error has been encountered while processing the downloaded file'
+            )
             reject(error)
           })
       }
