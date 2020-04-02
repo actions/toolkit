@@ -10,7 +10,7 @@ import {
 import {
   getArtifactUrl,
   getContentRange,
-  getRequestOptions,
+  getUploadRequestOptions,
   isRetryableStatusCode,
   isSuccessStatusCode,
   isThrottledStatusCode,
@@ -61,7 +61,7 @@ export class UploadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
     const client = this.uploadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json')
+    const requestOptions = getUploadRequestOptions('application/json', false)
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
     const body: string = await rawResponse.readBody()
 
@@ -348,8 +348,7 @@ export class UploadHttpClient {
     totalFileSize: number
   ): Promise<boolean> {
     // prepare all the necessary headers before making any http call
-    const requestOptions = getRequestOptions(
-      'application/json',
+    const requestOptions = getUploadRequestOptions(
       'application/octet-stream',
       true,
       isGzip,
@@ -366,8 +365,12 @@ export class UploadHttpClient {
     let retryCount = 0
     const retryLimit = getRetryLimit()
 
-    // checks if the retry limit has been reached
-    const isRetryLimitExceeded = (message?: IHttpClientResponse): boolean => {
+    // Increments the current retry count and then checks if the retry limit has been reached
+    // If there have been too many retries, fail so the download stops
+    const incrementAndCheckRetryLimit = (
+      message?: IHttpClientResponse
+    ): boolean => {
+      retryCount++
       if (retryCount > retryLimit) {
         if (message) {
           // eslint-disable-next-line no-console
@@ -432,8 +435,7 @@ export class UploadHttpClient {
             await backOffUsingRetryValue(retryAfterValue)
           } else {
             // no retry time available, differ to standard exponential backoff
-            retryCount++
-            if (isRetryLimitExceeded(response)) {
+            if (incrementAndCheckRetryLimit(response)) {
               return false
             }
             await backoffExponentially()
@@ -442,8 +444,7 @@ export class UploadHttpClient {
           info(
             `A ${response.message.statusCode} status code has been recieved, will attempt to retry the upload`
           )
-          retryCount++
-          if (isRetryLimitExceeded(response)) {
+          if (incrementAndCheckRetryLimit(response)) {
             return false
           }
           await backoffExponentially()
@@ -463,8 +464,7 @@ export class UploadHttpClient {
         // eslint-disable-next-line no-console
         console.log(error)
 
-        retryCount++
-        if (isRetryLimitExceeded()) {
+        if (incrementAndCheckRetryLimit()) {
           return false
         }
         await backoffExponentially()
@@ -478,7 +478,7 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    const requestOptions = getRequestOptions('application/json')
+    const requestOptions = getUploadRequestOptions('application/json', false)
     const resourceUrl = new URL(getArtifactUrl())
     resourceUrl.searchParams.append('artifactName', artifactName)
 

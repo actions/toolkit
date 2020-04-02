@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as zlib from 'zlib'
 import {
   getArtifactUrl,
-  getRequestOptions,
+  getDownloadRequestOptions,
   isSuccessStatusCode,
   isRetryableStatusCode,
   isThrottledStatusCode,
@@ -39,7 +39,7 @@ export class DownloadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
     const client = this.downloadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json')
+    const requestOptions = getDownloadRequestOptions('application/json')
     const rawResponse = await client.get(artifactUrl, requestOptions)
     const body: string = await rawResponse.readBody()
 
@@ -66,7 +66,7 @@ export class DownloadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
     const client = this.downloadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json')
+    const requestOptions = getDownloadRequestOptions('application/json')
     const rawResponse = await client.get(resourceUrl.toString(), requestOptions)
     const body: string = await rawResponse.readBody()
 
@@ -141,9 +141,9 @@ export class DownloadHttpClient {
     let retryCount = 0
     const retryLimit = getRetryLimit()
     const destinationStream = fs.createWriteStream(downloadPath)
-    const requestOptions = getRequestOptions(
-      'application/octet-stream',
+    const requestOptions = getDownloadRequestOptions(
       'application/json',
+      true,
       true
     )
 

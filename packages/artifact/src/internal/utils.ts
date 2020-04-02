@@ -120,19 +120,54 @@ export function getContentRange(
 }
 
 /**
- * Sets all the necessary headers when making HTTP calls
- * @param {string} acceptType the type of content taht we can accept
+ * Sets all the necessary headers when downloading an artifact
+ * @param {string} contentType the type of content being uploaded
+ * @param {boolean} isKeepAlive is the same connection being used to make multiple calls
+ * @param {boolean} acceptGzip can we accept a gzip encoded response
+ * @param {string} acceptType the type of content that we can accept
+ * @returns appropriate request options to make a specific http call during artifact download
+ */
+export function getDownloadRequestOptions(
+  contentType: string,
+  isKeepAlive?: boolean,
+  acceptGzip?: boolean
+): IHeaders {
+  const requestOptions: IHeaders = {}
+
+  if (contentType) {
+    requestOptions['Content-Type'] = contentType
+  }
+  if (isKeepAlive) {
+    requestOptions['Connection'] = 'Keep-Alive'
+    // keep alive for at least 10 seconds before closing the connection
+    requestOptions['Keep-Alive'] = '10'
+  }
+  if (acceptGzip) {
+    // if we are expecting a response with gzip encoding, it should be using an octet-stream in the accept header
+    requestOptions['Accept-Encoding'] = 'gzip'
+    requestOptions[
+      'Accept'
+    ] = `application/octet-stream;api-version=${getApiVersion()}`
+  } else {
+    // default to application/json if we are not working with gzip content
+    requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
+  }
+
+  return requestOptions
+}
+
+/**
+ * Sets all the necessary headers when uploading an artifact
  * @param {string} contentType the type of content being uploaded
  * @param {boolean} isKeepAlive is the same connection being used to make multiple calls
  * @param {boolean} isGzip is the connection being used to upload GZip compressed content
  * @param {number} uncompressedLength the original size of the content if something is being uploaded that has been compressed
  * @param {number} contentLength the length of the content that is being uploaded
  * @param {string} contentRange the range of the content that is being uploaded
- * @returns appropriate request options to make a specific http call
+ * @returns appropriate request options to make a specific http call during artifact upload
  */
-export function getRequestOptions(
-  acceptType: string,
-  contentType?: string,
+export function getUploadRequestOptions(
+  contentType: string,
   isKeepAlive?: boolean,
   isGzip?: boolean,
   uncompressedLength?: number,
@@ -140,14 +175,10 @@ export function getRequestOptions(
   contentRange?: string
 ): IHeaders {
   const requestOptions: IHeaders = {}
-  requestOptions['Accept-Encoding'] = 'gzip'
-  requestOptions['Accept'] = `${acceptType};api-version=${getApiVersion()}`
-
-  // default to application/json if no Content-Type is provided
-  contentType
-    ? (requestOptions['Content-Type'] = contentType)
-    : (requestOptions['Content-Type'] = 'application/json')
-
+  requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
+  if (contentType) {
+    requestOptions['Content-Type'] = contentType
+  }
   if (isKeepAlive) {
     requestOptions['Connection'] = 'Keep-Alive'
     // keep alive for at least 10 seconds before closing the connection
@@ -163,6 +194,7 @@ export function getRequestOptions(
   if (contentRange) {
     requestOptions['Content-Range'] = contentRange
   }
+
   return requestOptions
 }
 
