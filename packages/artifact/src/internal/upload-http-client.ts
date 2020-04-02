@@ -149,7 +149,7 @@ export class UploadHttpClient {
               3
             )} milliseconds to finish upload`
           )
-          uploadFileSize += uploadFileResult.successfullUploadSize
+          uploadFileSize += uploadFileResult.successfulUploadSize
           totalFileSize += uploadFileResult.totalSize
           if (uploadFileResult.isSuccess === false) {
             failedItemsToReport.push(currentFileParameters.file)
@@ -233,7 +233,7 @@ export class UploadHttpClient {
 
       return {
         isSuccess: isUploadSuccessful,
-        successfullUploadSize: uploadFileSize - failedChunkSizes,
+        successfulUploadSize: uploadFileSize - failedChunkSizes,
         totalSize: totalFileSize
       }
     } else {
@@ -315,7 +315,7 @@ export class UploadHttpClient {
             return new Promise(resolve => {
               resolve({
                 isSuccess: isUploadSuccessful,
-                successfullUploadSize: uploadFileSize - failedChunkSizes,
+                successfulUploadSize: uploadFileSize - failedChunkSizes,
                 totalSize: totalFileSize
               })
             })
@@ -517,6 +517,6 @@ interface UploadFileParameters {
 
 interface UploadFileResult {
   isSuccess: boolean
-  successfullUploadSize: number
+  successfulUploadSize: number
   totalSize: number
 }

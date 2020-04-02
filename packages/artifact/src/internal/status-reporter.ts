@@ -59,10 +59,10 @@ export class StatusReporter {
   updateLargeFileStatus(
     fileName: string,
     numerator: number,
-    denomiator: number
+    denominator: number
   ): void {
     // display 1 decimal place without any rounding
-    const percentage = this.formatPercentage(numerator, denomiator)
+    const percentage = this.formatPercentage(numerator, denominator)
     const displayInformation = `Uploading ${fileName} (${percentage.slice(
       0,
       percentage.indexOf('.') + 2
