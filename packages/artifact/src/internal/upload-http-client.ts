@@ -112,7 +112,8 @@ export class UploadHttpClient {
       })
     }
 
-    const parallelUploads = [...new Array(FILE_CONCURRENCY).keys()]
+    // http client indices start at 1 to avoid re-using the main client
+    const parallelUploads = new Array(FILE_CONCURRENCY).fill(0).map((x, i) => i + 1)
     const failedItemsToReport: string[] = []
     let currentFile = 0
     let completedFiles = 0
