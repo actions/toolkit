@@ -8,7 +8,7 @@ Warning: Implementation details may change at any time without notice. This is m
 
 ## Retry Logic when making an http call
 
-![image](https://user-images.githubusercontent.com/16109154/78247198-bbca7b80-74ea-11ea-973e-9a8557dd564d.png)
+![image](https://user-images.githubusercontent.com/16109154/78247510-3dbaa480-74eb-11ea-84fd-085bb0f0e6b8.png)
 
 ## Proxy support
 
