@@ -246,7 +246,7 @@ export class DownloadHttpClient {
    */
   private async pipeResponseToFile(
     response: IHttpClientResponse,
-    destinationStream: NodeJS.WritableStream,
+    destinationStream: fs.WriteStream,
     isGzip: boolean
   ): Promise<void> {
     await new Promise((resolve, reject) => {
@@ -260,7 +260,7 @@ export class DownloadHttpClient {
           })
           .on('error', error => {
             info(
-              'An error has been encountered while processing the downloaded file'
+              `An error has been encountered while gunzipping and writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
           })
@@ -272,7 +272,7 @@ export class DownloadHttpClient {
           })
           .on('error', error => {
             info(
-              'An error has been encountered while processing the downloaded file'
+              `An error has been encountered while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
           })
