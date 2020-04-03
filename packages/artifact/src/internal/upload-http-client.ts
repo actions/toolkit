@@ -384,78 +384,30 @@ export class UploadHttpClient {
       return false
     }
 
-    // back off exponentially based off of the retry count.
-    const backoffExponentially = async (): Promise<void> => {
+    const backOff = async (retryAfterValue?: number): Promise<void> => {
       this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
-      const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
-      info(
-        `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at offset ${start}`
-      )
-      await new Promise(resolve => setTimeout(resolve, backoffTime))
-      info(
-        `Finished exponential backoff for retry #${retryCount}, continuing with upload`
-      )
-      return
-    }
-
-    const backOffUsingRetryValue = async (
-      retryAfterValue: number
-    ): Promise<void> => {
-      info(`disposing client with index ${httpClientIndex}`)
-      this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
-      info(
-        `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`
-      )
-      info(
-        `Finished backoff due to too many requests for retry #${retryCount}, continuing with upload`
-      )
+      if (retryAfterValue) {
+        info(
+          `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`
+        )
+        await new Promise(resolve => setTimeout(resolve, retryAfterValue))
+      } else {
+        const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
+        info(
+          `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at offset ${start}`
+        )
+        await new Promise(resolve => setTimeout(resolve, backoffTime))
+      }
+      info(`Finished backoff for retry #${retryCount}, continuing with upload`)
       return
     }
 
     // allow for failed chunks to be retried multiple times
     while (retryCount <= retryLimit) {
+      let response: IHttpClientResponse
+
       try {
-        const response = await uploadChunkRequest()
-
-        // Always read the body of the response. There is potential for a resource leak if the body is not read which will
-        // result in the connection remaining open along with unintended consequences when trying to dispose of the client
-        await response.readBody()
-
-        if (isSuccessStatusCode(response.message.statusCode)) {
-          return true
-        } else if (isThrottledStatusCode(response.message.statusCode)) {
-          info(
-            'A 429 response code has been received when attempting to upload an artifact'
-          )
-
-          const retryAfterValue = tryGetRetryAfterValueTimeInMilliseconds(
-            response.message.headers
-          )
-          if (retryAfterValue) {
-            await backOffUsingRetryValue(retryAfterValue)
-          } else {
-            // no retry time available, differ to standard exponential backoff
-            if (incrementAndCheckRetryLimit(response)) {
-              return false
-            }
-            await backoffExponentially()
-          }
-        } else if (isRetryableStatusCode(response.message.statusCode)) {
-          info(
-            `A ${response.message.statusCode} status code has been received, will attempt to retry the upload`
-          )
-          if (incrementAndCheckRetryLimit(response)) {
-            return false
-          }
-          await backoffExponentially()
-        } else {
-          info(
-            `###ERROR### Unexpected response. Unable to upload chunk to ${resourceUrl}`
-          )
-          // eslint-disable-next-line no-console
-          console.log(response)
-          return false
-        }
+        response = await uploadChunkRequest()
       } catch (error) {
         // if an error is caught, it is usually indicative of a timeout so retry the upload
         info(
@@ -467,7 +419,35 @@ export class UploadHttpClient {
         if (incrementAndCheckRetryLimit()) {
           return false
         }
-        await backoffExponentially()
+        await backOff()
+        continue
+      }
+
+      // Always read the body of the response. There is potential for a resource leak if the body is not read which will
+      // result in the connection remaining open along with unintended consequences when trying to dispose of the client
+      await response.readBody()
+
+      if (isSuccessStatusCode(response.message.statusCode)) {
+        return true
+      } else if (isRetryableStatusCode(response.message.statusCode)) {
+        info(
+          `A ${response.message.statusCode} status code has been received, will attempt to retry the upload`
+        )
+        if (incrementAndCheckRetryLimit(response)) {
+          return false
+        }
+        isThrottledStatusCode(response.message.statusCode)
+          ? await backOff(
+              tryGetRetryAfterValueTimeInMilliseconds(response.message.headers)
+            )
+          : await backOff()
+      } else {
+        info(
+          `###ERROR### Unexpected response. Unable to upload chunk to ${resourceUrl}`
+        )
+        // eslint-disable-next-line no-console
+        console.log(response)
+        return false
       }
     }
     return false

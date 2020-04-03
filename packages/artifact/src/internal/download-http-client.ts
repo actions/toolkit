@@ -153,40 +153,6 @@ export class DownloadHttpClient {
       return await client.get(artifactLocation, requestOptions)
     }
 
-    // Increments the current retry count and then checks if the retry limit has been reached
-    // If there have been too many retries, fail so the download stops
-    const incrementAndCheckRetryLimit = (
-      response?: IHttpClientResponse
-    ): void => {
-      retryCount++
-      if (retryCount > retryLimit) {
-        if (response) {
-          // display extra information if the retry limit has been reached
-          // eslint-disable-next-line no-console
-          console.log(response)
-        }
-        throw new Error(
-          `Unable to download ${artifactLocation}. Retry limit has been reached`
-        )
-      }
-    }
-
-    // Back off exponentially based off of the retry count
-    const backoffExponentially = async (): Promise<void> => {
-      this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
-      const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
-      info(
-        `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the download`
-      )
-      await new Promise(resolve =>
-        setTimeout(resolve, getExponentialRetryTimeInMilliseconds(retryCount))
-      )
-      info(
-        `Finished exponential backoff for retry #${retryCount}, continuing with upload`
-      )
-      return
-    }
-
     // check the response headers to determine if the file was compressed using gzip
     const isGzip = (headers: IncomingHttpHeaders): boolean => {
       return (
@@ -194,18 +160,35 @@ export class DownloadHttpClient {
       )
     }
 
-    const backOffUsingRetryValue = async (
-      retryAfterValue: number
-    ): Promise<void> => {
-      this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
-      info(
-        `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the download`
-      )
-      await new Promise(resolve => setTimeout(resolve, retryAfterValue))
-      info(
-        `Finished backoff due to too many requests for retry #${retryCount}, continuing with download`
-      )
-      return
+    // Increments the current retry count and then checks if the retry limit has been reached
+    // If there have been too many retries, fail so the download stops. If there is a retryAfterValue value provided,
+    // it will be used
+    const backOff = async (retryAfterValue?: number): Promise<void> => {
+      retryCount++
+      if (retryCount > retryLimit) {
+        throw new Error(
+          `Unable to download ${artifactLocation}. Retry limit has been reached`
+        )
+      } else {
+        this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
+        if (retryAfterValue) {
+          // Back off exponentially based off of the retry count
+          info(
+            `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the download`
+          )
+          await new Promise(resolve => setTimeout(resolve, retryAfterValue))
+        } else {
+          // Back off using an exponential value that depends on the retry count
+          const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
+          info(
+            `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the download`
+          )
+          await new Promise(resolve => setTimeout(resolve, backoffTime))
+        }
+        info(
+          `Finished backoff for retry #${retryCount}, continuing with download`
+        )
+      }
     }
 
     // keep trying to download a file until a retry limit has been reached
@@ -220,8 +203,7 @@ export class DownloadHttpClient {
         console.log(error)
 
         // increment the retryCount and use exponential backoff to wait before making the next request
-        incrementAndCheckRetryLimit()
-        await backoffExponentially()
+        await backOff()
         continue
       }
 
@@ -235,25 +217,16 @@ export class DownloadHttpClient {
           isGzip(response.message.headers)
         )
         return
-      } else if (isThrottledStatusCode(response.message.statusCode)) {
-        info(
-          'A 429 response code has been received when attempting to download an artifact'
-        )
-
-        const retryAfterValue = tryGetRetryAfterValueTimeInMilliseconds(
-          response.message.headers
-        )
-        if (retryAfterValue) {
-          incrementAndCheckRetryLimit()
-          await backOffUsingRetryValue(retryAfterValue)
-        } else {
-          // no retry time available, differ to standard exponential backoff
-          incrementAndCheckRetryLimit(response)
-          await backoffExponentially()
-        }
       } else if (isRetryableStatusCode(response.message.statusCode)) {
-        incrementAndCheckRetryLimit(response)
-        await backoffExponentially()
+        info(
+          `A ${response.message.statusCode} response code has been received while attempting to download an artifact`
+        )
+        // if a throttled status code is received, try to get the retryAfter header value, else differ to standard exponential backoff
+        isThrottledStatusCode(response.message.statusCode)
+          ? await backOff(
+              tryGetRetryAfterValueTimeInMilliseconds(response.message.headers)
+            )
+          : await backOff()
       } else {
         // Some unexpected response code, fail immediately and stop the download
         // eslint-disable-next-line no-console
