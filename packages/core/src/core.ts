@@ -35,9 +35,13 @@ export enum ExitCode {
  * @param name the name of the variable to set
  * @param val the value of the variable
  */
-export function exportVariable(name: string, val: string): void {
-  process.env[name] = val
-  issueCommand('set-env', {name}, val)
+export function exportVariable(
+  name: string,
+  val: string | boolean | number
+): void {
+  const convertedVal = sanitizeInput(val)
+  process.env[name] = convertedVal
+  issueCommand('set-env', {name}, convertedVal)
 }
 
 /**
@@ -80,8 +84,11 @@ export function getInput(name: string, options?: InputOptions): string {
  * @param     name     name of the output to set
  * @param     value    value to store
  */
-export function setOutput(name: string, value: string): void {
-  issueCommand('set-output', {name}, value)
+export function setOutput(
+  name: string,
+  value: string | boolean | number
+): void {
+  issueCommand('set-output', {name}, sanitizeInput(value))
 }
 
 //-----------------------------------------------------------------------
@@ -93,9 +100,9 @@ export function setOutput(name: string, value: string): void {
  * When the action exits it will be with an exit code of 1
  * @param message add error issue message
  */
-export function setFailed(message: string): void {
+export function setFailed(message: string | Error): void {
   process.exitCode = ExitCode.Failure
-  error(message)
+  error(sanitizeInput(message))
 }
 
 //-----------------------------------------------------------------------
@@ -121,8 +128,8 @@ export function debug(message: string): void {
  * Adds an error issue
  * @param message error issue message
  */
-export function error(message: string): void {
-  issue('error', message)
+export function error(message: string | Error): void {
+  issue('error', sanitizeInput(message))
 }
 
 /**
@@ -191,8 +198,11 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
  * @param     name     name of the state to store
  * @param     value    value to store
  */
-export function saveState(name: string, value: string): void {
-  issueCommand('save-state', {name}, value)
+export function saveState(
+  name: string,
+  value: string | number | boolean
+): void {
+  issueCommand('save-state', {name}, sanitizeInput(value))
 }
 
 /**
@@ -203,4 +213,20 @@ export function saveState(name: string, value: string): void {
  */
 export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
+}
+
+/**
+ * Sanatizes an input into a string so it can be passed into issueCommand
+ * @param input Input parameter to sanitize into a string
+ */
+function sanitizeInput(input: any): string {
+  if (input == null) {
+    return ''
+  } else if (typeof input === 'string' || input instanceof String) {
+    return input as string
+  } else if (input instanceof Error) {
+    return (input as Error).toString()
+  } else {
+    return JSON.stringify(input)
+  }
 }

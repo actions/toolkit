@@ -62,13 +62,13 @@ class Command {
               cmdStr += ','
             }
 
-            cmdStr += `${key}=${escapeProperty(val)}`
+            cmdStr += `${key}=${escapeProperty(`${val || ''}`)}`
           }
         }
       }
     }
 
-    cmdStr += `${CMD_STRING}${escapeData(this.message)}`
+    cmdStr += `${CMD_STRING}${escapeData(`${this.message || ''}`)}`
     return cmdStr
   }
 }
