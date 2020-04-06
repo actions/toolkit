@@ -13,7 +13,7 @@ import {
   QueryArtifactResponse
 } from '../src/internal/contracts'
 
-const root = path.join(__dirname, '_temp', 'artifact-download')
+const root = path.join(__dirname, '_temp', 'artifact-download-tests')
 
 jest.mock('../src/internal/config-variables')
 jest.mock('@actions/http-client')

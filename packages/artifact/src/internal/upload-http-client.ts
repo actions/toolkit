@@ -449,7 +449,7 @@ export class UploadHttpClient {
             )
           : await backOff()
       } else {
-        core.info(
+        core.error(
           `###ERROR### Unexpected response. Unable to upload chunk to ${resourceUrl}`
         )
         // eslint-disable-next-line no-console
