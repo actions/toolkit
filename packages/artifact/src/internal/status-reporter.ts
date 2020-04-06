@@ -27,19 +27,18 @@ export class StatusReporter {
   }
 
   start(): void {
-    const _this = this
 
     // displays information about the total upload/download status every 5 seconds
-    this.totalFileStatus = setInterval(function() {
+    this.totalFileStatus = setInterval(() => {
       // display 1 decimal place without any rounding
-      const percentage = _this.formatPercentage(
-        _this.processedCount,
-        _this.totalNumberOfFilesToProcess
+      const percentage = this.formatPercentage(
+        this.processedCount,
+        this.totalNumberOfFilesToProcess
       )
       info(
         `Total file count: ${
-          _this.totalNumberOfFilesToProcess
-        } ---- Processed file #${_this.processedCount} (${percentage.slice(
+          this.totalNumberOfFilesToProcess
+        } ---- Processed file #${this.processedCount} (${percentage.slice(
           0,
           percentage.indexOf('.') + 2
         )}%)`
@@ -47,12 +46,12 @@ export class StatusReporter {
     }, this.displayFrequencyInMilliseconds)
 
     // displays extra information about any large files that take a significant amount of time to upload or download every 1 second
-    this.largeFileStatus = setInterval(function() {
-      for (const value of Array.from(_this.largeFiles.values())) {
+    this.largeFileStatus = setInterval(() => {
+      for (const value of Array.from(this.largeFiles.values())) {
         info(value)
       }
       // delete all entires in the map after displaying the information so it will not be displayed again unless explicitly added
-      _this.largeFiles = new Map<string, string>()
+      this.largeFiles = new Map<string, string>()
     }, 1000)
   }
 
