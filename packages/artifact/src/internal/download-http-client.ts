@@ -8,7 +8,8 @@ import {
   isRetryableStatusCode,
   isThrottledStatusCode,
   getExponentialRetryTimeInMilliseconds,
-  tryGetRetryAfterValueTimeInMilliseconds
+  tryGetRetryAfterValueTimeInMilliseconds,
+  displayHttpDiagnostics
 } from './utils'
 import {URL} from 'url'
 import {StatusReporter} from './status-reporter'
@@ -40,15 +41,16 @@ export class DownloadHttpClient {
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
     const requestOptions = getDownloadRequestOptions('application/json')
-    const rawResponse = await client.get(artifactUrl, requestOptions)
-    const body: string = await rawResponse.readBody()
+    const response = await client.get(artifactUrl, requestOptions)
+    const body: string = await response.readBody()
 
-    if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
+    if (isSuccessStatusCode(response.message.statusCode) && body) {
       return JSON.parse(body)
     }
-    // eslint-disable-next-line no-console
-    console.log(rawResponse)
-    throw new Error(`Unable to list artifacts for the run`)
+    displayHttpDiagnostics(response)
+    throw new Error(
+      `Unable to list artifacts for the run. Resource Url ${artifactUrl}`
+    )
   }
 
   /**
@@ -67,14 +69,13 @@ export class DownloadHttpClient {
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
     const requestOptions = getDownloadRequestOptions('application/json')
-    const rawResponse = await client.get(resourceUrl.toString(), requestOptions)
-    const body: string = await rawResponse.readBody()
+    const response = await client.get(resourceUrl.toString(), requestOptions)
+    const body: string = await response.readBody()
 
-    if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
+    if (isSuccessStatusCode(response.message.statusCode) && body) {
       return JSON.parse(body)
     }
-    // eslint-disable-next-line no-console
-    console.log(rawResponse)
+    displayHttpDiagnostics(response)
     throw new Error(`Unable to get ContainersItems from ${resourceUrl}`)
   }
 
@@ -212,7 +213,6 @@ export class DownloadHttpClient {
         )
         // eslint-disable-next-line no-console
         console.log(error)
-        error()
 
         // increment the retryCount and use exponential backoff to wait before making the next request
         await backOff()
@@ -240,6 +240,7 @@ export class DownloadHttpClient {
           : await backOff()
       } else {
         // Some unexpected response code, fail immediately and stop the download
+        displayHttpDiagnostics(response)
         return Promise.reject(
           new Error(
             `Unexpected http ${response.message.statusCode} during download for ${artifactLocation}`

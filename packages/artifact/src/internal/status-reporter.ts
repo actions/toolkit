@@ -27,7 +27,7 @@ export class StatusReporter {
   }
 
   start(): void {
-    // displays information about the total upload/download status every 5 seconds
+    // displays information about the total upload/download status
     this.totalFileStatus = setInterval(() => {
       // display 1 decimal place without any rounding
       const percentage = this.formatPercentage(

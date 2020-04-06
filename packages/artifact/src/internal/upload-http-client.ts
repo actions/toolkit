@@ -15,6 +15,7 @@ import {
   isRetryableStatusCode,
   isSuccessStatusCode,
   isThrottledStatusCode,
+  displayHttpDiagnostics,
   getExponentialRetryTimeInMilliseconds,
   tryGetRetryAfterValueTimeInMilliseconds
 } from './utils'
@@ -68,10 +69,9 @@ export class UploadHttpClient {
     if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
       return JSON.parse(body)
     } else {
-      // eslint-disable-next-line no-console
-      console.log(rawResponse)
+      displayHttpDiagnostics(rawResponse)
       throw new Error(
-        `Unable to create a container for the artifact ${artifactName}`
+        `Unable to create a container for the artifact ${artifactName} at ${artifactUrl}`
       )
     }
   }
@@ -373,13 +373,12 @@ export class UploadHttpClient {
     // Increments the current retry count and then checks if the retry limit has been reached
     // If there have been too many retries, fail so the download stops
     const incrementAndCheckRetryLimit = (
-      message?: IHttpClientResponse
+      response?: IHttpClientResponse
     ): boolean => {
       retryCount++
       if (retryCount > retryLimit) {
-        if (message) {
-          // eslint-disable-next-line no-console
-          console.log(message)
+        if (response) {
+          displayHttpDiagnostics(response)
         }
         core.info(
           `Retry limit has been reached for chunk at offset ${start} to ${resourceUrl}`
@@ -452,8 +451,7 @@ export class UploadHttpClient {
         core.error(
           `Unexpected response. Unable to upload chunk to ${resourceUrl}`
         )
-        // eslint-disable-next-line no-console
-        console.log(response)
+        displayHttpDiagnostics(response)
         return false
       }
     }
@@ -475,22 +473,24 @@ export class UploadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
-    const rawResponse: HttpClientResponse = await client.patch(
+    const response: HttpClientResponse = await client.patch(
       resourceUrl.toString(),
       data,
       requestOptions
     )
-    const body: string = await rawResponse.readBody()
-    if (isSuccessStatusCode(rawResponse.message.statusCode)) {
+    const body: string = await response.readBody()
+    if (isSuccessStatusCode(response.message.statusCode)) {
       core.debug(
-        `Artifact ${artifactName} has been successfully uploaded, total size ${size}`
+        `Artifact ${artifactName} has been successfully uploaded, total size in bytes: ${size}`
       )
-    } else if (rawResponse.message.statusCode === 404) {
+    } else if (response.message.statusCode === 404) {
       throw new Error(`An Artifact with the name ${artifactName} was not found`)
     } else {
-      // eslint-disable-next-line no-console
-      console.log(body)
-      throw new Error(`Unable to finish uploading artifact ${artifactName}`)
+      displayHttpDiagnostics(response)
+      core.info(body)
+      throw new Error(
+        `Unable to finish uploading artifact ${artifactName} to ${resourceUrl}`
+      )
     }
   }
 }

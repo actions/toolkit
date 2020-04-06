@@ -2,7 +2,7 @@ import {debug, info} from '@actions/core'
 import {promises as fs} from 'fs'
 import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IHeaders} from '@actions/http-client/interfaces'
+import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces'
 import {IncomingHttpHeaders} from 'http'
 import {
   getRuntimeToken,
@@ -208,6 +208,25 @@ export function getArtifactUrl(): string {
   const artifactUrl = `${getRuntimeUrl()}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${getApiVersion()}`
   debug(`Artifact Url: ${artifactUrl}`)
   return artifactUrl
+}
+
+/**
+ * Uh oh! Something might have gone wrong during either upload or download. The IHtttpClientResponse object contains information
+ * about the http call that was made by the actions http client. This information might be useful to display for diagnostic purposes, but
+ * this entire object is really big and most of the information is not really useful. This function takes the response object and displays only
+ * the information that we want.
+ *
+ * Certain information such as the TLSSocket and the Readable state are not really useful for diagnostic purposes so they can be avoided.
+ * Other information such as the headers, the response code and message might be useful, so this is displayed.
+ */
+export function displayHttpDiagnostics(response: IHttpClientResponse): void {
+  info(
+    `##### Begin Diagnostic HTTP information #####
+Status Code: ${response.message.statusCode}
+Status Message: ${response.message.statusMessage}
+Header Information: ${JSON.stringify(response.message.headers, undefined, 2)}
+###### End Diagnostic HTTP information ######`
+  )
 }
 
 /**
