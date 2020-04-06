@@ -216,16 +216,17 @@ export function getState(name: string): string {
 }
 
 /**
- * Sanatizes an input into a string so it can be passed into issueCommand
- * @param input Input parameter to sanitize into a string
+ * Sanatizes an input into a string so it can be passed into issueCommand safely
+ * @param input input to sanitize into a string
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sanitizeInput(input: any): string {
   if (input == null) {
     return ''
   } else if (typeof input === 'string' || input instanceof String) {
     return input as string
   } else if (input instanceof Error) {
-    return (input as Error).toString()
+    return input.toString()
   } else {
     return JSON.stringify(input)
   }
