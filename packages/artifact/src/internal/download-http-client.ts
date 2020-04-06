@@ -121,10 +121,14 @@ export class DownloadHttpClient {
         }
       })
     )
-
-    this.statusReporter.stop()
-    // done downloading, safety dispose all connections
-    this.downloadHttpManager.disposeAndReplaceAllClients()
+      .catch(error => {
+        throw new Error(`###ERROR### Unable to download the artifact: ${error}`)
+      })
+      .finally(() => {
+        this.statusReporter.stop()
+        // safety dispose all connections
+        this.downloadHttpManager.disposeAndReplaceAllClients()
+      })
   }
 
   /**
@@ -166,8 +170,8 @@ export class DownloadHttpClient {
     const backOff = async (retryAfterValue?: number): Promise<void> => {
       retryCount++
       if (retryCount > retryLimit) {
-        throw new Error(
-          `Unable to download ${artifactLocation}. Retry limit has been reached`
+        return Promise.reject(
+          `Retry limit has been reached. Unable to download ${artifactLocation}`
         )
       } else {
         this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
@@ -211,12 +215,11 @@ export class DownloadHttpClient {
         // The body contains the contents of the file however calling response.readBody() causes all the content to be converted to a string
         // which can cause some gzip encoded data to be lost
         // Instead of using response.readBody(), response.message is a readableStream that can be directly used to get the raw body contents
-        await this.pipeResponseToFile(
+        return this.pipeResponseToFile(
           response,
           destinationStream,
           isGzip(response.message.headers)
         )
-        return
       } else if (isRetryableStatusCode(response.message.statusCode)) {
         info(
           `A ${response.message.statusCode} response code has been received while attempting to download an artifact`
@@ -229,10 +232,8 @@ export class DownloadHttpClient {
           : await backOff()
       } else {
         // Some unexpected response code, fail immediately and stop the download
-        // eslint-disable-next-line no-console
-        console.log(response)
-        throw new Error(
-          `###ERROR### Unable to download ${artifactLocation} ###`
+        return Promise.reject(
+          `Unexpected http ${response.message.statusCode} during download for ${artifactLocation}`
         )
       }
     }
@@ -244,7 +245,7 @@ export class DownloadHttpClient {
    * @param destinationStream the stream where the file should be written to
    * @param isGzip a boolean denoting if the content is compressed using gzip and if we need to decode it
    */
-  private async pipeResponseToFile(
+  async pipeResponseToFile(
     response: IHttpClientResponse,
     destinationStream: fs.WriteStream,
     isGzip: boolean

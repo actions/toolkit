@@ -4,6 +4,8 @@ import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
 import * as configVariables from '../src/internal/config-variables'
+import {promises as fs} from 'fs'
+import {DownloadItem} from '../src/internal/download-specification'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {DownloadHttpClient} from '../src/internal/download-http-client'
 import {
@@ -19,6 +21,9 @@ jest.mock('@actions/http-client')
 describe('Download Tests', () => {
   beforeAll(async () => {
     await io.rmRF(root)
+    await fs.mkdir(path.join(root), {
+      recursive: true
+    })
 
     // mock all output so that there is less noise when running tests
     jest.spyOn(console, 'log').mockImplementation(() => {})
@@ -107,6 +112,56 @@ describe('Download Tests', () => {
     )
   })
 
+  it('Test downloading an individual artifact with gzip', async () => {
+    setupDownloadItemResponse(true, 200)
+    const downloadHttpClient = new DownloadHttpClient()
+
+    const items: DownloadItem[] = []
+    items.push({
+      sourceLocation: `${configVariables.getRuntimeUrl()}_apis/resources/Containers/13?itemPath=my-artifact%2FFileA.txt`,
+      targetPath: path.join(root, 'FileA.txt')
+    })
+
+    await expect(
+      downloadHttpClient.downloadSingleArtifact(items)
+    ).resolves.not.toThrow()
+  })
+
+  it('Test downloading an individual artifact without gzip', async () => {
+    setupDownloadItemResponse(false, 200)
+    const downloadHttpClient = new DownloadHttpClient()
+
+    const items: DownloadItem[] = []
+    items.push({
+      sourceLocation: `${configVariables.getRuntimeUrl()}_apis/resources/Containers/13?itemPath=my-artifact%2FFileB.txt`,
+      targetPath: path.join(root, 'FileB.txt')
+    })
+
+    await expect(
+      downloadHttpClient.downloadSingleArtifact(items)
+    ).resolves.not.toThrow()
+  })
+
+  it('Test retryable status codes during artifact download', async () => {
+    // The first http response should return a retryable status call while the subsequent call should return a 200 so
+    // the download should successfully finish
+    const retryableStatusCodes = [429, 502, 503, 504]
+    for (const statusCode of retryableStatusCodes) {
+      setupDownloadItemResponse(false, statusCode)
+      const downloadHttpClient = new DownloadHttpClient()
+
+      const items: DownloadItem[] = []
+      items.push({
+        sourceLocation: `${configVariables.getRuntimeUrl()}_apis/resources/Containers/13?itemPath=my-artifact%2FFileC.txt`,
+        targetPath: path.join(root, 'FileC.txt')
+      })
+
+      await expect(
+        downloadHttpClient.downloadSingleArtifact(items)
+      ).resolves.not.toThrow()
+    }
+  })
+
   /**
    * Helper used to setup mocking for the HttpClient
    */
@@ -162,6 +217,60 @@ describe('Download Tests', () => {
         })
       })
     })
+  }
+
+  /**
+   * Setups up HTTP GET response for downloading items
+   * @param isGzip is the downloaded item gzip encoded
+   * @param firstHttpResponseCode the http response code that should be returned
+   */
+  function setupDownloadItemResponse(
+    isGzip: boolean,
+    firstHttpResponseCode: number
+  ): void {
+    jest
+      .spyOn(DownloadHttpClient.prototype, 'pipeResponseToFile')
+      .mockImplementationOnce(async () => {
+        return new Promise<void>(resolve => {
+          resolve()
+        })
+      })
+
+    jest
+      .spyOn(HttpClient.prototype, 'get')
+      .mockImplementationOnce(async () => {
+        const mockMessage = new http.IncomingMessage(new net.Socket())
+        mockMessage.statusCode = firstHttpResponseCode
+        if (isGzip) {
+          mockMessage.headers = {
+            'content-type': 'gzip'
+          }
+        }
+
+        return new Promise<HttpClientResponse>(resolve => {
+          resolve({
+            message: mockMessage,
+            readBody: emptyMockReadBody
+          })
+        })
+      })
+      .mockImplementationOnce(async () => {
+        // chained response, if the HTTP GET function gets called again, return a successful response
+        const mockMessage = new http.IncomingMessage(new net.Socket())
+        mockMessage.statusCode = 200
+        if (isGzip) {
+          mockMessage.headers = {
+            'content-type': 'gzip'
+          }
+        }
+
+        return new Promise<HttpClientResponse>(resolve => {
+          resolve({
+            message: mockMessage,
+            readBody: emptyMockReadBody
+          })
+        })
+      })
   }
 
   /**

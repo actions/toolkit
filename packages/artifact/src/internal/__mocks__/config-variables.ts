@@ -22,7 +22,7 @@ export function getRetryMultiplier(): number {
 }
 
 export function getInitialRetryIntervalInMilliseconds(): number {
-  return 1000
+  return 10
 }
 
 export function getDownloadFileConcurrency(): number {
