@@ -125,7 +125,7 @@ export class DownloadHttpClient {
       })
     )
       .catch(error => {
-        throw new Error(`###ERROR### Unable to download the artifact: ${error}`)
+        throw new Error(`Unable to download the artifact: ${error}`)
       })
       .finally(() => {
         this.statusReporter.stop()
