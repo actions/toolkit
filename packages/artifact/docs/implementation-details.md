@@ -6,9 +6,9 @@ Warning: Implementation details may change at any time without notice. This is m
 
 ![image](https://user-images.githubusercontent.com/16109154/77190819-38685d80-6ada-11ea-8281-4703ff8cc025.png)
 
-## Retry Logic when making an http call
+## Retry Logic when downloading an individual file
 
-![image](https://user-images.githubusercontent.com/16109154/78247510-3dbaa480-74eb-11ea-84fd-085bb0f0e6b8.png)
+![image](https://user-images.githubusercontent.com/16109154/78555461-5be71400-780d-11ea-9abd-b05b77a95a3f.png)
 
 ## Proxy support
 
