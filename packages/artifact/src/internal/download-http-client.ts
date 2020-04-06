@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import * as core from '@actions/core'
 import * as zlib from 'zlib'
 import {
   getArtifactUrl,
@@ -17,7 +18,6 @@ import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
 import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
-import {info, debug} from '@actions/core'
 import {IncomingHttpHeaders} from 'http'
 
 export class DownloadHttpClient {
@@ -85,12 +85,12 @@ export class DownloadHttpClient {
   async downloadSingleArtifact(downloadItems: DownloadItem[]): Promise<void> {
     const DOWNLOAD_CONCURRENCY = getDownloadFileConcurrency()
     // limit the number of files downloaded at a single time
-    debug(`Download file concurrency is set to ${DOWNLOAD_CONCURRENCY}`)
+    core.debug(`Download file concurrency is set to ${DOWNLOAD_CONCURRENCY}`)
     const parallelDownloads = [...new Array(DOWNLOAD_CONCURRENCY).keys()]
     let currentFile = 0
     let downloadedFiles = 0
 
-    info(
+    core.info(
       `Total number of files that will be downloaded: ${downloadItems.length}`
     )
 
@@ -110,13 +110,16 @@ export class DownloadHttpClient {
             currentFileToDownload.targetPath
           )
 
-          debug(
-            `File: ${++downloadedFiles}/${downloadItems.length}. ${
-              currentFileToDownload.targetPath
-            } took ${(performance.now() - startTime).toFixed(
-              3
-            )} milliseconds to finish downloading`
-          )
+          if (core.isDebug()) {
+            core.debug(
+              `File: ${++downloadedFiles}/${downloadItems.length}. ${
+                currentFileToDownload.targetPath
+              } took ${(performance.now() - startTime).toFixed(
+                3
+              )} milliseconds to finish downloading`
+            )
+          }
+
           this.statusReporter.incrementProcessedCount()
         }
       })
@@ -171,25 +174,27 @@ export class DownloadHttpClient {
       retryCount++
       if (retryCount > retryLimit) {
         return Promise.reject(
-          `Retry limit has been reached. Unable to download ${artifactLocation}`
+          new Error(
+            `Retry limit has been reached. Unable to download ${artifactLocation}`
+          )
         )
       } else {
         this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
         if (retryAfterValue) {
           // Back off exponentially based off of the retry count
-          info(
+          core.info(
             `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the download`
           )
           await new Promise(resolve => setTimeout(resolve, retryAfterValue))
         } else {
           // Back off using an exponential value that depends on the retry count
           const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
-          info(
+          core.info(
             `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the download`
           )
           await new Promise(resolve => setTimeout(resolve, backoffTime))
         }
-        info(
+        core.info(
           `Finished backoff for retry #${retryCount}, continuing with download`
         )
       }
@@ -202,9 +207,12 @@ export class DownloadHttpClient {
         response = await makeDownloadRequest()
       } catch (error) {
         // if an error is caught, it is usually indicative of a timeout so retry the download
-        info('An error has been caught, while attempting to download a file')
+        core.info(
+          'An error has been caught, while attempting to download a file'
+        )
         // eslint-disable-next-line no-console
         console.log(error)
+        error()
 
         // increment the retryCount and use exponential backoff to wait before making the next request
         await backOff()
@@ -221,7 +229,7 @@ export class DownloadHttpClient {
           isGzip(response.message.headers)
         )
       } else if (isRetryableStatusCode(response.message.statusCode)) {
-        info(
+        core.info(
           `A ${response.message.statusCode} response code has been received while attempting to download an artifact`
         )
         // if a throttled status code is received, try to get the retryAfter header value, else differ to standard exponential backoff
@@ -233,7 +241,9 @@ export class DownloadHttpClient {
       } else {
         // Some unexpected response code, fail immediately and stop the download
         return Promise.reject(
-          `Unexpected http ${response.message.statusCode} during download for ${artifactLocation}`
+          new Error(
+            `Unexpected http ${response.message.statusCode} during download for ${artifactLocation}`
+          )
         )
       }
     }
@@ -260,7 +270,7 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
-            info(
+            core.error(
               `An error has been encountered while gunzipping and writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
@@ -272,7 +282,7 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
-            info(
+            core.error(
               `An error has been encountered while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
