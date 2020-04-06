@@ -36,6 +36,7 @@ describe('Upload Tests', () => {
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
+    jest.spyOn(core, 'error').mockImplementation(() => {})
 
     // setup mocking for calls that got through the HttpClient
     setupHttpClientMock()

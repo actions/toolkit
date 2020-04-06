@@ -30,6 +30,7 @@ describe('Download Tests', () => {
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
+    jest.spyOn(core, 'error').mockImplementation(() => {})
   })
 
   /**
