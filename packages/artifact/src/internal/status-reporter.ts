@@ -27,7 +27,6 @@ export class StatusReporter {
   }
 
   start(): void {
-
     // displays information about the total upload/download status every 5 seconds
     this.totalFileStatus = setInterval(() => {
       // display 1 decimal place without any rounding

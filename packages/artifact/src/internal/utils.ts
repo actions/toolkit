@@ -67,7 +67,7 @@ export function isRetryableStatusCode(statusCode?: number): boolean {
     HttpCodes.BadGateway,
     HttpCodes.ServiceUnavailable,
     HttpCodes.GatewayTimeout,
-    429 // TODO, change when a new version of @actions/http-client gets released
+    HttpCodes.TooManyRequests
   ]
   return retryableStatusCodes.includes(statusCode)
 }
@@ -77,8 +77,7 @@ export function isThrottledStatusCode(statusCode?: number): boolean {
     return false
   }
 
-  // TODO, change when a new version of @actions/http-client gets released
-  return statusCode === 429
+  return statusCode === HttpCodes.TooManyRequests
 }
 
 /**
