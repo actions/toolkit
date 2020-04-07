@@ -1,5 +1,8 @@
 import * as semver from 'semver'
 import {debug} from '@actions/core'
+
+// needs to be require for core node modules to be mocked
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import os = require('os')
 
 /*
@@ -54,8 +57,6 @@ export async function _findMatch(
 ): Promise<IToolRelease | undefined> {
   const archFilter = os.arch()
   const platFilter = os.platform()
-
-  console.log(archFilter, platFilter)
 
   let result: IToolRelease | undefined
   let match: IToolRelease | undefined

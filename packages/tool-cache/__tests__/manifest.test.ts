@@ -1,14 +1,20 @@
 import * as tc from '../src/tool-cache'
 import * as mm from '../src/manifest'
+
+// needs to be require for core node modules to be mocked
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import osm = require('os')
 
 // we fetch the manifest file from master of a repo
 const versionsUrl =
   'https://raw.githubusercontent.com/actions/some-tool/master/versions-manifest'
+
+// just loading data and require handles BOMs etc.
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const manifestData = require('./data/versions-manifest.json')
 
 describe('@actions/tool-cache-manifest', () => {
-  let os = {} as any
+  let os: {platform: string; arch: string}
 
   let getSpy: jest.SpyInstance
   let platSpy: jest.SpyInstance
@@ -16,14 +22,15 @@ describe('@actions/tool-cache-manifest', () => {
 
   beforeEach(() => {
     // node
-    os = {}
+    os = {platform: '', arch: ''}
     platSpy = jest.spyOn(osm, 'platform')
-    platSpy.mockImplementation(() => os['platform'])
+
+    platSpy.mockImplementation(() => os.platform)
     archSpy = jest.spyOn(osm, 'arch')
-    archSpy.mockImplementation(() => os['arch'])
+    archSpy.mockImplementation(() => os.arch)
 
     getSpy = jest.spyOn(tc, 'getManifestFromUrl')
-    getSpy.mockImplementation(async () => <mm.IToolRelease[]>manifestData)
+    getSpy.mockImplementation(() => <mm.IToolRelease[]>manifestData)
   })
 
   afterEach(() => {
