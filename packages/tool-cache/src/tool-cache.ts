@@ -455,62 +455,40 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
   return versions
 }
 
-export async function getManifestFromUrl(
-  url: string
-): Promise<mm.IToolRelease[] | null> {
+// versions-manifest
+//
+// typical pattern of a setup-* action that supports JIT would be:
+// 1. resolve semver against local cache
+//
+// 2. if no match, download
+//   a. query versions manifest to match
+//   b. if no match, fall back to source if exists (tool distribution)
+//   c. with download url, download, install and preprent path
+
+export type IToolRelease = mm.IToolRelease
+export type IToolReleaseFile = mm.IToolReleaseFile
+
+export async function getManifestFromUrl(url: string): Promise<IToolRelease[]> {
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
-  return (await http.getJson<mm.IToolRelease[]>(url)).result
+
+  //let versions: IToolRelease[] =
+  return (await http.getJson<IToolRelease[]>(url)).result || []
+  //return
 }
 
-export async function cacheToolFromManifest(
-  toolName: string,
+export async function findFromManifest(
   versionSpec: string,
   stable: boolean,
-  manifest: mm.IToolRelease[]
-): Promise<string | undefined> {
-  let toolPath: string | undefined
+  manifest: IToolRelease[]
+): Promise<IToolRelease | undefined> {
+  // wrap the internal impl
+  const match: mm.IToolRelease | undefined = await mm._findMatch(
+    versionSpec,
+    stable,
+    manifest
+  )
 
-  try {
-    const match: mm.IToolRelease | undefined = await mm.findMatch(
-      versionSpec,
-      stable,
-      manifest
-    )
-
-    if (match) {
-      // download
-      const releaseFile = match.files[0]
-      core.debug(`match ${match.version}`)
-      const downloadUrl: string = releaseFile.url
-      // eslint-disable-next-line no-console
-      console.log(`Downloading from ${downloadUrl}`)
-
-      const downloadPath: string = await downloadTool(downloadUrl)
-      core.debug(`downloaded to ${downloadPath}`)
-
-      // extract
-      // eslint-disable-next-line no-console
-      console.log('Extracting ...')
-
-      let extPath: string | undefined
-      if (releaseFile.kind === 'targz') {
-        extPath = await extractTar(downloadPath)
-      } else if (releaseFile.kind === 'zip') {
-        extPath = await extractZip(downloadPath)
-      } else {
-        throw new Error(`Unknown file kind ${releaseFile.kind}`)
-      }
-      core.debug(`extracted to ${extPath}`)
-
-      // extracts with a root folder that matches the fileName downloaded
-      const toolRoot = path.join(extPath, toolName)
-      toolPath = await cacheDir(toolRoot, toolName, versionSpec)
-    }
-  } catch (error) {
-    throw new Error(`Failed to download version ${versionSpec}: ${error}`)
-  }
-
-  return toolPath
+  return match
 }
 
 async function _createExtractFolder(dest?: string): Promise<string> {
