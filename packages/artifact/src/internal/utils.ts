@@ -91,16 +91,16 @@ export function tryGetRetryAfterValueTimeInMilliseconds(
   if (headers['retry-after']) {
     const retryTime = Number(headers['retry-after'])
     if (!isNaN(retryTime)) {
-      info(`retry-after headers is present with a value of ${retryTime}`)
+      info(`Retry-After header is present with a value of ${retryTime}`)
       return retryTime * 1000
     }
     info(
-      `returned retry-after header value: ${retryTime} is non-numeric and cannot be used`
+      `Returned retry-after header value: ${retryTime} is non-numeric and cannot be used`
     )
     return undefined
   }
   info(
-    `no retry-after header was found. Dumping all headers for diagnostic purposes`
+    `No retry-after header was found. Dumping all headers for diagnostic purposes`
   )
   // eslint-disable-next-line no-console
   console.log(headers)

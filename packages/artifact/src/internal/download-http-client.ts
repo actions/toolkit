@@ -182,7 +182,7 @@ export class DownloadHttpClient {
       } else {
         this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
         if (retryAfterValue) {
-          // Back off exponentially based off of the retry count
+          // Back off by waiting the specified time denoted by the retry-after header
           core.info(
             `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the download`
           )
@@ -208,9 +208,7 @@ export class DownloadHttpClient {
         response = await makeDownloadRequest()
       } catch (error) {
         // if an error is caught, it is usually indicative of a timeout so retry the download
-        core.info(
-          'An error has been caught, while attempting to download a file'
-        )
+        core.info('An error occurred while attempting to download a file')
         // eslint-disable-next-line no-console
         console.log(error)
 
@@ -272,7 +270,7 @@ export class DownloadHttpClient {
           })
           .on('error', error => {
             core.error(
-              `An error has been encountered while gunzipping and writing a downloaded file to ${destinationStream.path}`
+              `An error has been encountered while decompressing and writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
           })

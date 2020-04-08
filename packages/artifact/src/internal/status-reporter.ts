@@ -50,7 +50,7 @@ export class StatusReporter {
         info(value)
       }
       // delete all entires in the map after displaying the information so it will not be displayed again unless explicitly added
-      this.largeFiles = new Map<string, string>()
+      this.largeFiles.clear()
     }, 1000)
   }
 
