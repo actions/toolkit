@@ -531,8 +531,7 @@ export class ToolRunner extends events.EventEmitter {
         }
 
         cp.stdin.setDefaultEncoding('utf-8')
-        cp.stdin.write(this.options.stdin)
-        cp.stdin.end()
+        cp.stdin.end(this.options.stdin)
       }
     })
   }
