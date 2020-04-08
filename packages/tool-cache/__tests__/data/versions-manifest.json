@@ -43,11 +43,19 @@
     "release_url": "https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6",
     "files": [
       {
-        "filename": "sometool-1.2.4-linux-x64.tar.gz",
+        "filename": "sometool-1.2.4-ubuntu1804-x64.tar.gz",
         "arch": "x64",
         "platform": "linux",
-        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-linux-x64.tar.gz"
-      }      
+        "platform_version": "18.04",
+        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-ubuntu1804-x64.tar.gz"
+      },
+      {
+        "filename": "sometool-1.2.4-darwin1015-x64.tar.gz",
+        "arch": "x64",
+        "platform": "darwin",
+        "platform_version": "10.15",
+        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-darwin1015-x64.tar.gz"
+      }            
     ]
   },      
   {
