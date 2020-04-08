@@ -1,4 +1,4 @@
-import {issue, issueCommand} from './command'
+import {issue, issueCommand, toCommandValue} from './command'
 
 import * as os from 'os'
 import * as path from 'path'
@@ -33,13 +33,11 @@ export enum ExitCode {
 /**
  * Sets env variable for this action and future actions in the job
  * @param name the name of the variable to set
- * @param val the value of the variable
+ * @param val the value of the variable. Will be converted to a string via JSON.stringify
  */
-export function exportVariable(
-  name: string,
-  val: string | boolean | number
-): void {
-  const convertedVal = sanitizeInput(val)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function exportVariable(name: string, val: any): void {
+  const convertedVal = toCommandValue(val)
   process.env[name] = convertedVal
   issueCommand('set-env', {name}, convertedVal)
 }
@@ -82,13 +80,11 @@ export function getInput(name: string, options?: InputOptions): string {
  * Sets the value of an output.
  *
  * @param     name     name of the output to set
- * @param     value    value to store
+ * @param     value    value to store. Will be converted to a string via JSON.stringify
  */
-export function setOutput(
-  name: string,
-  value: string | boolean | number
-): void {
-  issueCommand('set-output', {name}, sanitizeInput(value))
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function setOutput(name: string, value: any): void {
+  issueCommand('set-output', {name}, value)
 }
 
 //-----------------------------------------------------------------------
@@ -102,7 +98,8 @@ export function setOutput(
  */
 export function setFailed(message: string | Error): void {
   process.exitCode = ExitCode.Failure
-  error(sanitizeInput(message))
+
+  error(message)
 }
 
 //-----------------------------------------------------------------------
@@ -129,7 +126,7 @@ export function debug(message: string): void {
  * @param message error issue message
  */
 export function error(message: string | Error): void {
-  issue('error', sanitizeInput(message))
+  issue('error', message instanceof Error ? message.toString() : message)
 }
 
 /**
@@ -202,7 +199,7 @@ export function saveState(
   name: string,
   value: string | number | boolean
 ): void {
-  issueCommand('save-state', {name}, sanitizeInput(value))
+  issueCommand('save-state', {name}, value)
 }
 
 /**
@@ -213,21 +210,4 @@ export function saveState(
  */
 export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
-}
-
-/**
- * Sanatizes an input into a string so it can be passed into issueCommand safely
- * @param input input to sanitize into a string
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sanitizeInput(input: any): string {
-  if (input == null) {
-    return ''
-  } else if (typeof input === 'string' || input instanceof String) {
-    return input as string
-  } else if (input instanceof Error) {
-    return input.toString()
-  } else {
-    return JSON.stringify(input)
-  }
 }

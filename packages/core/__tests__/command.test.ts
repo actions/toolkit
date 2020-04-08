@@ -113,7 +113,7 @@ describe('@actions/core/src/command', () => {
     ])
   })
 
-  it('should not crash on bad user input', () => {
+  it('should handle issueing commands for non-string objects', () => {
     command.issueCommand(
       'some-command',
       {
@@ -124,7 +124,7 @@ describe('@actions/core/src/command', () => {
       ({test: 'object'} as unknown) as string
     )
     assertWriteCalls([
-      `::some-command prop1=[object Object],prop2=123,prop3=true::[object Object]${os.EOL}`
+      `::some-command prop1={\"test\"%3A\"object\"},prop2=123,prop3=true::{\"test\":\"object\"}${os.EOL}`
     ])
   })
 })
