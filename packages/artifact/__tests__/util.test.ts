@@ -4,7 +4,12 @@ import * as path from 'path'
 import * as utils from '../src/internal/utils'
 import * as core from '@actions/core'
 import {HttpCodes} from '@actions/http-client'
-import {getRuntimeUrl, getWorkFlowRunId} from '../src/internal/config-variables'
+import {
+  getRuntimeUrl,
+  getWorkFlowRunId,
+  getInitialRetryIntervalInMilliseconds,
+  getRetryMultiplier
+} from '../src/internal/config-variables'
 
 jest.mock('../src/internal/config-variables')
 
@@ -15,6 +20,30 @@ describe('Utils', () => {
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
+  })
+
+  it('Check exponential retry range', () => {
+    // No retries should return the initial retry interval
+    const retryWaitTime0 = utils.getExponentialRetryTimeInMilliseconds(0)
+    expect(retryWaitTime0).toEqual(getInitialRetryIntervalInMilliseconds())
+
+    const testMinMaxRange = (retryCount: number): void => {
+      const retryWaitTime = utils.getExponentialRetryTimeInMilliseconds(
+        retryCount
+      )
+      const minRange =
+        getInitialRetryIntervalInMilliseconds() *
+        getRetryMultiplier() *
+        retryCount
+      const maxRange = minRange * getRetryMultiplier()
+
+      expect(retryWaitTime).toBeGreaterThanOrEqual(minRange)
+      expect(retryWaitTime).toBeLessThan(maxRange)
+    }
+
+    for (let i = 1; i < 10; i++) {
+      testMinMaxRange(i)
+    }
   })
 
   it('Check Artifact Name for any invalid characters', () => {
@@ -88,13 +117,13 @@ describe('Utils', () => {
     )
   })
 
-  it('Test constructing headers with all optional parameters', () => {
-    const type = 'application/json'
+  it('Test constructing upload headers with all optional parameters', () => {
+    const contentType = 'application/octet-stream'
     const size = 24
     const uncompressedLength = 100
     const range = 'bytes 0-199/200'
-    const options = utils.getRequestOptions(
-      type,
+    const options = utils.getUploadRequestOptions(
+      contentType,
       true,
       true,
       uncompressedLength,
@@ -103,9 +132,9 @@ describe('Utils', () => {
     )
     expect(Object.keys(options).length).toEqual(8)
     expect(options['Accept']).toEqual(
-      `${type};api-version=${utils.getApiVersion()}`
+      `application/json;api-version=${utils.getApiVersion()}`
     )
-    expect(options['Content-Type']).toEqual(type)
+    expect(options['Content-Type']).toEqual(contentType)
     expect(options['Connection']).toEqual('Keep-Alive')
     expect(options['Keep-Alive']).toEqual('10')
     expect(options['Content-Encoding']).toEqual('gzip')
@@ -114,9 +143,33 @@ describe('Utils', () => {
     expect(options['Content-Range']).toEqual(range)
   })
 
-  it('Test constructing headers with only required parameter', () => {
-    const options = utils.getRequestOptions()
-    expect(Object.keys(options).length).toEqual(1)
+  it('Test constructing upload headers with only required parameter', () => {
+    const options = utils.getUploadRequestOptions('application/octet-stream')
+    expect(Object.keys(options).length).toEqual(2)
+    expect(options['Accept']).toEqual(
+      `application/json;api-version=${utils.getApiVersion()}`
+    )
+    expect(options['Content-Type']).toEqual('application/octet-stream')
+  })
+
+  it('Test constructing download headers with all optional parameters', () => {
+    const contentType = 'application/json'
+    const options = utils.getDownloadRequestOptions(contentType, true, true)
+    expect(Object.keys(options).length).toEqual(5)
+    expect(options['Content-Type']).toEqual(contentType)
+    expect(options['Connection']).toEqual('Keep-Alive')
+    expect(options['Keep-Alive']).toEqual('10')
+    expect(options['Accept-Encoding']).toEqual('gzip')
+    expect(options['Accept']).toEqual(
+      `application/octet-stream;api-version=${utils.getApiVersion()}`
+    )
+  })
+
+  it('Test constructing download headers with only required parameter', () => {
+    const options = utils.getDownloadRequestOptions('application/octet-stream')
+    expect(Object.keys(options).length).toEqual(2)
+    expect(options['Content-Type']).toEqual('application/octet-stream')
+    // check for default accept type
     expect(options['Accept']).toEqual(
       `application/json;api-version=${utils.getApiVersion()}`
     )
@@ -137,9 +190,21 @@ describe('Utils', () => {
       true
     )
     expect(utils.isRetryableStatusCode(HttpCodes.GatewayTimeout)).toEqual(true)
+    expect(utils.isRetryableStatusCode(429)).toEqual(true)
     expect(utils.isRetryableStatusCode(HttpCodes.OK)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.NotFound)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.Forbidden)).toEqual(false)
+  })
+
+  it('Test Throttled Status Code', () => {
+    expect(utils.isThrottledStatusCode(429)).toEqual(true)
+    expect(utils.isThrottledStatusCode(HttpCodes.InternalServerError)).toEqual(
+      false
+    )
+    expect(utils.isThrottledStatusCode(HttpCodes.BadGateway)).toEqual(false)
+    expect(utils.isThrottledStatusCode(HttpCodes.ServiceUnavailable)).toEqual(
+      false
+    )
   })
 
   it('Test Creating Artifact Directories', async () => {

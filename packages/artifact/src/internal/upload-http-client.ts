@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import * as core from '@actions/core'
 import * as tmp from 'tmp-promise'
 import * as stream from 'stream'
 import {
@@ -10,21 +11,23 @@ import {
 import {
   getArtifactUrl,
   getContentRange,
-  getRequestOptions,
+  getUploadRequestOptions,
   isRetryableStatusCode,
-  isSuccessStatusCode
+  isSuccessStatusCode,
+  isThrottledStatusCode,
+  displayHttpDiagnostics,
+  getExponentialRetryTimeInMilliseconds,
+  tryGetRetryAfterValueTimeInMilliseconds
 } from './utils'
 import {
   getUploadChunkSize,
   getUploadFileConcurrency,
-  getUploadRetryCount,
-  getRetryWaitTimeInMilliseconds
+  getRetryLimit
 } from './config-variables'
 import {promisify} from 'util'
 import {URL} from 'url'
 import {performance} from 'perf_hooks'
-import {UploadStatusReporter} from './upload-status-reporter'
-import {debug, warning, info} from '@actions/core'
+import {StatusReporter} from './status-reporter'
 import {HttpClientResponse} from '@actions/http-client/index'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './http-manager'
@@ -35,11 +38,11 @@ const stat = promisify(fs.stat)
 
 export class UploadHttpClient {
   private uploadHttpManager: HttpManager
-  private statusReporter: UploadStatusReporter
+  private statusReporter: StatusReporter
 
   constructor() {
     this.uploadHttpManager = new HttpManager(getUploadFileConcurrency())
-    this.statusReporter = new UploadStatusReporter()
+    this.statusReporter = new StatusReporter(10000)
   }
 
   /**
@@ -57,19 +60,18 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
-    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
-    const requestOptions = getRequestOptions('application/json', false, false)
+    const requestOptions = getUploadRequestOptions('application/json', false)
     const rawResponse = await client.post(artifactUrl, data, requestOptions)
     const body: string = await rawResponse.readBody()
 
     if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
       return JSON.parse(body)
     } else {
-      // eslint-disable-next-line no-console
-      console.log(rawResponse)
+      displayHttpDiagnostics(rawResponse)
       throw new Error(
-        `Unable to create a container for the artifact ${artifactName}`
+        `Unable to create a container for the artifact ${artifactName} at ${artifactUrl}`
       )
     }
   }
@@ -87,7 +89,7 @@ export class UploadHttpClient {
   ): Promise<UploadResults> {
     const FILE_CONCURRENCY = getUploadFileConcurrency()
     const MAX_CHUNK_SIZE = getUploadChunkSize()
-    debug(
+    core.debug(
       `File Concurrency: ${FILE_CONCURRENCY}, and Chunk Size: ${MAX_CHUNK_SIZE}`
     )
 
@@ -120,7 +122,7 @@ export class UploadHttpClient {
     let totalFileSize = 0
     let abortPendingFileUploads = false
 
-    this.statusReporter.setTotalNumberOfFilesToUpload(filesToUpload.length)
+    this.statusReporter.setTotalNumberOfFilesToProcess(filesToUpload.length)
     this.statusReporter.start()
 
     // only allow a certain amount of files to be uploaded at once, this is done to reduce potential errors
@@ -140,19 +142,23 @@ export class UploadHttpClient {
             currentFileParameters
           )
 
-          debug(
-            `File: ${++completedFiles}/${filesToUpload.length}. ${
-              currentFileParameters.file
-            } took ${(performance.now() - startTime).toFixed(
-              3
-            )} milliseconds to finish upload`
-          )
-          uploadFileSize += uploadFileResult.successfullUploadSize
+          if (core.isDebug()) {
+            core.debug(
+              `File: ${++completedFiles}/${filesToUpload.length}. ${
+                currentFileParameters.file
+              } took ${(performance.now() - startTime).toFixed(
+                3
+              )} milliseconds to finish upload`
+            )
+          }
+
+          uploadFileSize += uploadFileResult.successfulUploadSize
           totalFileSize += uploadFileResult.totalSize
           if (uploadFileResult.isSuccess === false) {
             failedItemsToReport.push(currentFileParameters.file)
             if (!continueOnError) {
-              // existing uploads will be able to finish however all pending uploads will fail fast
+              // fail fast
+              core.error(`aborting artifact upload`)
               abortPendingFileUploads = true
             }
           }
@@ -165,7 +171,7 @@ export class UploadHttpClient {
     // done uploading, safety dispose all connections
     this.uploadHttpManager.disposeAndReplaceAllClients()
 
-    info(`Total size of all the files uploaded is ${uploadFileSize} bytes`)
+    core.info(`Total size of all the files uploaded is ${uploadFileSize} bytes`)
     return {
       uploadSize: uploadFileSize,
       totalSize: totalFileSize,
@@ -191,7 +197,7 @@ export class UploadHttpClient {
     let uploadFileSize = 0
     let isGzip = true
 
-    // the file that is being uploaded is less than 64k in size, to increase thoroughput and to minimize disk I/O
+    // the file that is being uploaded is less than 64k in size, to increase throughput and to minimize disk I/O
     // for creating a new GZip file, an in-memory buffer is used for compression
     if (totalFileSize < 65536) {
       const buffer = await createGZipFileInBuffer(parameters.file)
@@ -225,16 +231,16 @@ export class UploadHttpClient {
         // chunk failed to upload
         isUploadSuccessful = false
         failedChunkSizes += uploadFileSize
-        warning(`Aborting upload for ${parameters.file} due to failure`)
+        core.warning(`Aborting upload for ${parameters.file} due to failure`)
       }
 
       return {
         isSuccess: isUploadSuccessful,
-        successfullUploadSize: uploadFileSize - failedChunkSizes,
+        successfulUploadSize: uploadFileSize - failedChunkSizes,
         totalSize: totalFileSize
       }
     } else {
-      // the file that is being uploaded is greater than 64k in size, a temprorary file gets created on disk using the
+      // the file that is being uploaded is greater than 64k in size, a temporary file gets created on disk using the
       // npm tmp-promise package and this file gets used during compression for the GZip file that gets created
       return tmp
         .file()
@@ -261,11 +267,6 @@ export class UploadHttpClient {
               uploadFileSize - offset,
               parameters.maxChunkSize
             )
-            if (abortFileUpload) {
-              // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
-              failedChunkSizes += chunkSize
-              continue
-            }
 
             // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
             if (uploadFileSize > 104857600) {
@@ -279,6 +280,12 @@ export class UploadHttpClient {
             const start = offset
             const end = offset + chunkSize - 1
             offset += parameters.maxChunkSize
+
+            if (abortFileUpload) {
+              // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
+              failedChunkSizes += chunkSize
+              continue
+            }
 
             const result = await this.uploadChunk(
               httpClientIndex,
@@ -300,7 +307,9 @@ export class UploadHttpClient {
               // successfully uploaded so the server may report a different size for what was uploaded
               isUploadSuccessful = false
               failedChunkSizes += chunkSize
-              warning(`Aborting upload for ${parameters.file} due to failure`)
+              core.warning(
+                `Aborting upload for ${parameters.file} due to failure`
+              )
               abortFileUpload = true
             }
           }
@@ -311,7 +320,7 @@ export class UploadHttpClient {
             return new Promise(resolve => {
               resolve({
                 isSuccess: isUploadSuccessful,
-                successfullUploadSize: uploadFileSize - failedChunkSizes,
+                successfulUploadSize: uploadFileSize - failedChunkSizes,
                 totalSize: totalFileSize
               })
             })
@@ -344,7 +353,7 @@ export class UploadHttpClient {
     totalFileSize: number
   ): Promise<boolean> {
     // prepare all the necessary headers before making any http call
-    const requestOptions = getRequestOptions(
+    const requestOptions = getUploadRequestOptions(
       'application/octet-stream',
       true,
       isGzip,
@@ -359,58 +368,91 @@ export class UploadHttpClient {
     }
 
     let retryCount = 0
-    const retryLimit = getUploadRetryCount()
+    const retryLimit = getRetryLimit()
+
+    // Increments the current retry count and then checks if the retry limit has been reached
+    // If there have been too many retries, fail so the download stops
+    const incrementAndCheckRetryLimit = (
+      response?: IHttpClientResponse
+    ): boolean => {
+      retryCount++
+      if (retryCount > retryLimit) {
+        if (response) {
+          displayHttpDiagnostics(response)
+        }
+        core.info(
+          `Retry limit has been reached for chunk at offset ${start} to ${resourceUrl}`
+        )
+        return true
+      }
+      return false
+    }
+
+    const backOff = async (retryAfterValue?: number): Promise<void> => {
+      this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
+      if (retryAfterValue) {
+        core.info(
+          `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`
+        )
+        await new Promise(resolve => setTimeout(resolve, retryAfterValue))
+      } else {
+        const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
+        core.info(
+          `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at offset ${start}`
+        )
+        await new Promise(resolve => setTimeout(resolve, backoffTime))
+      }
+      core.info(
+        `Finished backoff for retry #${retryCount}, continuing with upload`
+      )
+      return
+    }
 
     // allow for failed chunks to be retried multiple times
     while (retryCount <= retryLimit) {
+      let response: IHttpClientResponse
+
       try {
-        const response = await uploadChunkRequest()
-
-        // Always read the body of the response. There is potential for a resource leak if the body is not read which will
-        // result in the connection remaining open along with unintended consequences when trying to dispose of the client
-        await response.readBody()
-
-        if (isSuccessStatusCode(response.message.statusCode)) {
-          return true
-        } else if (isRetryableStatusCode(response.message.statusCode)) {
-          retryCount++
-          if (retryCount > retryLimit) {
-            info(
-              `Retry limit has been reached for chunk at offset ${start} to ${resourceUrl}`
-            )
-            return false
-          } else {
-            info(
-              `HTTP ${response.message.statusCode} during chunk upload, will retry at offset ${start} after ${getRetryWaitTimeInMilliseconds} milliseconds. Retry count #${retryCount}. URL ${resourceUrl}`
-            )
-            this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
-            await new Promise(resolve =>
-              setTimeout(resolve, getRetryWaitTimeInMilliseconds())
-            )
-          }
-        } else {
-          info(`#ERROR# Unable to upload chunk to ${resourceUrl}`)
-          // eslint-disable-next-line no-console
-          console.log(response)
-          return false
-        }
+        response = await uploadChunkRequest()
       } catch (error) {
+        // if an error is caught, it is usually indicative of a timeout so retry the upload
+        core.info(
+          `An error has been caught http-client index ${httpClientIndex}, retrying the upload`
+        )
         // eslint-disable-next-line no-console
         console.log(error)
 
-        retryCount++
-        if (retryCount > retryLimit) {
-          info(
-            `Retry limit has been reached for chunk at offset ${start} to ${resourceUrl}`
-          )
+        if (incrementAndCheckRetryLimit()) {
           return false
-        } else {
-          info(`Retrying chunk upload after encountering an error`)
-          this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
-          await new Promise(resolve =>
-            setTimeout(resolve, getRetryWaitTimeInMilliseconds())
-          )
         }
+        await backOff()
+        continue
+      }
+
+      // Always read the body of the response. There is potential for a resource leak if the body is not read which will
+      // result in the connection remaining open along with unintended consequences when trying to dispose of the client
+      await response.readBody()
+
+      if (isSuccessStatusCode(response.message.statusCode)) {
+        return true
+      } else if (isRetryableStatusCode(response.message.statusCode)) {
+        core.info(
+          `A ${response.message.statusCode} status code has been received, will attempt to retry the upload`
+        )
+        if (incrementAndCheckRetryLimit(response)) {
+          return false
+        }
+        isThrottledStatusCode(response.message.statusCode)
+          ? await backOff(
+              tryGetRetryAfterValueTimeInMilliseconds(response.message.headers)
+            )
+          : await backOff()
+      } else {
+        core.error(
+          `Unexpected response. Unable to upload chunk to ${resourceUrl}`
+        )
+        displayHttpDiagnostics(response)
+        return false
       }
     }
     return false
@@ -421,32 +463,34 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    const requestOptions = getRequestOptions('application/json', false, false)
+    const requestOptions = getUploadRequestOptions('application/json', false)
     const resourceUrl = new URL(getArtifactUrl())
     resourceUrl.searchParams.append('artifactName', artifactName)
 
     const parameters: PatchArtifactSize = {Size: size}
     const data: string = JSON.stringify(parameters, null, 2)
-    debug(`URL is ${resourceUrl.toString()}`)
+    core.debug(`URL is ${resourceUrl.toString()}`)
 
-    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediatly
+    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
-    const rawResponse: HttpClientResponse = await client.patch(
+    const response: HttpClientResponse = await client.patch(
       resourceUrl.toString(),
       data,
       requestOptions
     )
-    const body: string = await rawResponse.readBody()
-    if (isSuccessStatusCode(rawResponse.message.statusCode)) {
-      debug(
-        `Artifact ${artifactName} has been successfully uploaded, total size ${size}`
+    const body: string = await response.readBody()
+    if (isSuccessStatusCode(response.message.statusCode)) {
+      core.debug(
+        `Artifact ${artifactName} has been successfully uploaded, total size in bytes: ${size}`
       )
-    } else if (rawResponse.message.statusCode === 404) {
+    } else if (response.message.statusCode === 404) {
       throw new Error(`An Artifact with the name ${artifactName} was not found`)
     } else {
-      // eslint-disable-next-line no-console
-      console.log(body)
-      throw new Error(`Unable to finish uploading artifact ${artifactName}`)
+      displayHttpDiagnostics(response)
+      core.info(body)
+      throw new Error(
+        `Unable to finish uploading artifact ${artifactName} to ${resourceUrl}`
+      )
     }
   }
 }
@@ -460,6 +504,6 @@ interface UploadFileParameters {
 
 interface UploadFileResult {
   isSuccess: boolean
-  successfullUploadSize: number
+  successfulUploadSize: number
   totalSize: number
 }

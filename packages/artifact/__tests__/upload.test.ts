@@ -12,6 +12,7 @@ import {
   PatchArtifactSizeSuccessResponse
 } from '../src/internal/contracts'
 import {UploadSpecification} from '../src/internal/upload-specification'
+import {getArtifactUrl} from '../src/internal/utils'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')
@@ -36,6 +37,7 @@ describe('Upload Tests', () => {
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
+    jest.spyOn(core, 'error').mockImplementation(() => {})
 
     // setup mocking for calls that got through the HttpClient
     setupHttpClientMock()
@@ -99,7 +101,7 @@ describe('Upload Tests', () => {
       uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
       new Error(
-        'Unable to create a container for the artifact invalid-artifact-name'
+        `Unable to create a container for the artifact invalid-artifact-name at ${getArtifactUrl()}`
       )
     )
   })
