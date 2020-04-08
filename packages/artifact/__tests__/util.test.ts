@@ -190,14 +190,14 @@ describe('Utils', () => {
       true
     )
     expect(utils.isRetryableStatusCode(HttpCodes.GatewayTimeout)).toEqual(true)
-    expect(utils.isRetryableStatusCode(429)).toEqual(true)
+    expect(utils.isRetryableStatusCode(HttpCodes.TooManyRequests)).toEqual(true)
     expect(utils.isRetryableStatusCode(HttpCodes.OK)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.NotFound)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.Forbidden)).toEqual(false)
   })
 
   it('Test Throttled Status Code', () => {
-    expect(utils.isThrottledStatusCode(429)).toEqual(true)
+    expect(utils.isThrottledStatusCode(HttpCodes.TooManyRequests)).toEqual(true)
     expect(utils.isThrottledStatusCode(HttpCodes.InternalServerError)).toEqual(
       false
     )
@@ -205,6 +205,17 @@ describe('Utils', () => {
     expect(utils.isThrottledStatusCode(HttpCodes.ServiceUnavailable)).toEqual(
       false
     )
+  })
+
+  it('Test Forbidden Status Code', () => {
+    expect(utils.isForbiddenStatusCode(HttpCodes.Forbidden)).toEqual(true)
+    expect(utils.isForbiddenStatusCode(HttpCodes.InternalServerError)).toEqual(
+      false
+    )
+    expect(utils.isForbiddenStatusCode(HttpCodes.TooManyRequests)).toEqual(
+      false
+    )
+    expect(utils.isForbiddenStatusCode(HttpCodes.OK)).toEqual(false)
   })
 
   it('Test Creating Artifact Directories', async () => {

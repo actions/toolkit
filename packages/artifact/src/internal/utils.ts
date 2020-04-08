@@ -58,6 +58,14 @@ export function isSuccessStatusCode(statusCode?: number): boolean {
   return statusCode >= 200 && statusCode < 300
 }
 
+export function isForbiddenStatusCode(statusCode?: number): boolean {
+  if (!statusCode) {
+    return false
+  }
+
+  return statusCode === HttpCodes.Forbidden
+}
+
 export function isRetryableStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
     return false
