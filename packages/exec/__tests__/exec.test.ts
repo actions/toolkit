@@ -287,17 +287,20 @@ describe('@actions/exec', () => {
   })
 
   it('Handles stdin', async () => {
-    const waitForInput: string = path.join(
-      __dirname,
-      'scripts',
-      'wait-for-input.sh'
-    )
+    let command: string
+    if (IS_WINDOWS) {
+      command = 'wait-for-input.cmd'
+    } else {
+      command = 'wait-for-input.sh'
+    }
+
+    const waitForInput: string = path.join(__dirname, 'scripts', command)
 
     const _testExecOptions = getExecOptions()
 
     _testExecOptions.listeners = {
       stdout: (data: Buffer) => {
-        expect(data).toEqual(Buffer.from('this is my input\n'))
+        expect(data).toEqual(Buffer.from(`this is my input${os.EOL}`))
       }
     }
 
