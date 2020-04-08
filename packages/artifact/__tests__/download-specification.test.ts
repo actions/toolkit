@@ -21,7 +21,8 @@ function getPartialContainerEntry(): ContainerEntry {
     lastModifiedBy: '82f0bf89-6e55-4e5a-b8b6-f75eb992578c',
     itemLocation: 'ADD_INFORMATION',
     contentLocation: 'ADD_INFORMATION',
-    contentId: ''
+    contentId: '',
+    fileLength: 100
   }
 }
 
@@ -73,12 +74,12 @@ function createContentLocation(relativePath: string): string {
                     /dir4
                         file4.txt
                         file5.txt
-
+                        file6.txt (empty file)
     /my-artifact-extra
         /file1.txt
 */
 
-// main artfact
+// main artifact
 const file1Path = path.join(artifact1Name, 'file1.txt')
 const file2Path = path.join(artifact1Name, 'file2.txt')
 const dir1Path = path.join(artifact1Name, 'dir1')
@@ -88,6 +89,7 @@ const dir3Path = path.join(dir2Path, 'dir3')
 const dir4Path = path.join(dir3Path, 'dir4')
 const file4Path = path.join(dir4Path, 'file4.txt')
 const file5Path = path.join(dir4Path, 'file5.txt')
+const file6Path = path.join(dir4Path, 'file6.txt')
 
 const rootDirectoryEntry = createDirectoryEntry(artifact1Name)
 const directoryEntry1 = createDirectoryEntry(dir1Path)
@@ -99,6 +101,9 @@ const fileEntry2 = createFileEntry(file2Path)
 const fileEntry3 = createFileEntry(file3Path)
 const fileEntry4 = createFileEntry(file4Path)
 const fileEntry5 = createFileEntry(file5Path)
+const fileEntry6 = createFileEntry(file6Path)
+fileEntry6.fileLength = 0 // empty file path
+fileEntry5.fileLength = undefined // one file does not have a fileLength
 
 // extra artifact
 const artifact2File1Path = path.join(artifact2Name, 'file1.txt')
@@ -116,6 +121,7 @@ const artifactContainerEntries: ContainerEntry[] = [
   directoryEntry4,
   fileEntry4,
   fileEntry5,
+  fileEntry6,
   rootDirectoryEntry2,
   extraFileEntry
 ]
@@ -170,6 +176,14 @@ describe('Search', () => {
       'dir4',
       'file5.txt'
     )
+    const item6ExpectedTargetPath = path.join(
+      testDownloadPath,
+      'dir1',
+      'dir2',
+      'dir3',
+      'dir4',
+      'file6.txt'
+    )
 
     const targetLocations = specification.filesToDownload.map(
       item => item.targetPath
@@ -214,6 +228,9 @@ describe('Search', () => {
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, 'dir1', 'dir2', 'dir3', 'dir4')
     )
+
+    expect(specification.emptyFilesToCreate.length).toEqual(1)
+    expect(specification.emptyFilesToCreate).toContain(item6ExpectedTargetPath)
   })
 
   it('Download Specification - Relative Path with no root directory', () => {
@@ -252,6 +269,14 @@ describe('Search', () => {
       'dir4',
       'file5.txt'
     )
+    const item6ExpectedTargetPath = path.join(
+      testDownloadPath,
+      'dir1',
+      'dir2',
+      'dir3',
+      'dir4',
+      'file6.txt'
+    )
 
     const targetLocations = specification.filesToDownload.map(
       item => item.targetPath
@@ -296,6 +321,9 @@ describe('Search', () => {
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, 'dir1', 'dir2', 'dir3', 'dir4')
     )
+
+    expect(specification.emptyFilesToCreate.length).toEqual(1)
+    expect(specification.emptyFilesToCreate).toContain(item6ExpectedTargetPath)
   })
 
   it('Download Specification - Absolute Path with root directory', () => {
@@ -352,6 +380,15 @@ describe('Search', () => {
       'dir4',
       'file5.txt'
     )
+    const item6ExpectedTargetPath = path.join(
+      testDownloadPath,
+      artifact1Name,
+      'dir1',
+      'dir2',
+      'dir3',
+      'dir4',
+      'file6.txt'
+    )
 
     const targetLocations = specification.filesToDownload.map(
       item => item.targetPath
@@ -398,6 +435,9 @@ describe('Search', () => {
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir4Path)
     )
+
+    expect(specification.emptyFilesToCreate.length).toEqual(1)
+    expect(specification.emptyFilesToCreate).toContain(item6ExpectedTargetPath)
   })
 
   it('Download Specification - Relative Path with root directory', () => {
@@ -449,6 +489,15 @@ describe('Search', () => {
       'dir4',
       'file5.txt'
     )
+    const item6ExpectedTargetPath = path.join(
+      testDownloadPath,
+      artifact1Name,
+      'dir1',
+      'dir2',
+      'dir3',
+      'dir4',
+      'file6.txt'
+    )
 
     const targetLocations = specification.filesToDownload.map(
       item => item.targetPath
@@ -495,5 +544,8 @@ describe('Search', () => {
     expect(specification.directoryStructure).toContain(
       path.join(testDownloadPath, dir4Path)
     )
+
+    expect(specification.emptyFilesToCreate.length).toEqual(1)
+    expect(specification.emptyFilesToCreate).toContain(item6ExpectedTargetPath)
   })
 })

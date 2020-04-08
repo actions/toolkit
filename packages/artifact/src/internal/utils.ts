@@ -304,3 +304,11 @@ export async function createDirectoriesForArtifact(
     })
   }
 }
+
+export async function createEmptyFilesForArtifact(
+  emptyFilesToCreate: string[]
+): Promise<void> {
+  for (const filePath of emptyFilesToCreate) {
+    await (await fs.open(filePath, 'w')).close()
+  }
+}
