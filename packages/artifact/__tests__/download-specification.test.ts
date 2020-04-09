@@ -73,7 +73,7 @@ function createContentLocation(relativePath: string): string {
                 /dir3
                     /dir4
                         file4.txt
-                        file5.txt
+                        file5.txt (no length property)
                         file6.txt (empty file)
     /my-artifact-extra
         /file1.txt
@@ -100,10 +100,11 @@ const fileEntry1 = createFileEntry(file1Path)
 const fileEntry2 = createFileEntry(file2Path)
 const fileEntry3 = createFileEntry(file3Path)
 const fileEntry4 = createFileEntry(file4Path)
-const fileEntry5 = createFileEntry(file5Path)
-const fileEntry6 = createFileEntry(file6Path)
-fileEntry6.fileLength = 0 // empty file path
-fileEntry5.fileLength = undefined // one file does not have a fileLength
+
+const missingLengthFileEntry = createFileEntry(file5Path)
+missingLengthFileEntry.fileLength = undefined // one file does not have a fileLength
+const emptyLengthFileEntry = createFileEntry(file6Path)
+emptyLengthFileEntry.fileLength = 0 // empty file path
 
 // extra artifact
 const artifact2File1Path = path.join(artifact2Name, 'file1.txt')
@@ -120,8 +121,8 @@ const artifactContainerEntries: ContainerEntry[] = [
   directoryEntry3,
   directoryEntry4,
   fileEntry4,
-  fileEntry5,
-  fileEntry6,
+  missingLengthFileEntry,
+  emptyLengthFileEntry,
   rootDirectoryEntry2,
   extraFileEntry
 ]
