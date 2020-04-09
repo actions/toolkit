@@ -31,7 +31,7 @@ export interface ExecOptions {
   delay?: number
 
   /** optional. input to write to the process on STDIN. */
-  stdin?: Buffer
+  input?: Buffer
 
   /** optional. Listeners for output. Callback functions that will be called on these events */
   listeners?: {
