@@ -530,7 +530,6 @@ export class ToolRunner extends events.EventEmitter {
           throw new Error('child process missing stdin')
         }
 
-        cp.stdin.setDefaultEncoding('utf-8')
         cp.stdin.end(this.options.stdin)
       }
     })
