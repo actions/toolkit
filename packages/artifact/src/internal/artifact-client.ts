@@ -8,7 +8,11 @@ import {UploadResponse} from './upload-response'
 import {UploadOptions} from './upload-options'
 import {DownloadOptions} from './download-options'
 import {DownloadResponse} from './download-response'
-import {checkArtifactName, createDirectoriesForArtifact} from './utils'
+import {
+  checkArtifactName,
+  createDirectoriesForArtifact,
+  createEmptyFilesForArtifact
+} from './utils'
 import {DownloadHttpClient} from './download-http-client'
 import {getDownloadSpecification} from './download-specification'
 import {getWorkSpaceDirectory} from './config-variables'
@@ -174,6 +178,9 @@ export class DefaultArtifactClient implements ArtifactClient {
         downloadSpecification.directoryStructure
       )
       core.info('Directory structure has been setup for the artifact')
+      await createEmptyFilesForArtifact(
+        downloadSpecification.emptyFilesToCreate
+      )
       await downloadHttpClient.downloadSingleArtifact(
         downloadSpecification.filesToDownload
       )
@@ -227,6 +234,9 @@ export class DefaultArtifactClient implements ArtifactClient {
       } else {
         await createDirectoriesForArtifact(
           downloadSpecification.directoryStructure
+        )
+        await createEmptyFilesForArtifact(
+          downloadSpecification.emptyFilesToCreate
         )
         await downloadHttpClient.downloadSingleArtifact(
           downloadSpecification.filesToDownload

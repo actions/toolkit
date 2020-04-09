@@ -106,6 +106,18 @@ describe('Upload Tests', () => {
     )
   })
 
+  it('Create Artifact - Storage Quota Error', async () => {
+    const artifactName = 'storage-quota-hit'
+    const uploadHttpClient = new UploadHttpClient()
+    expect(
+      uploadHttpClient.createArtifactInFileContainer(artifactName)
+    ).rejects.toEqual(
+      new Error(
+        'Artifact storage quota has been hit. Unable to upload any new artifacts'
+      )
+    )
+  })
+
   /**
    * Artifact Upload Tests
    */
@@ -367,6 +379,8 @@ describe('Upload Tests', () => {
 
         if (inputData.Name === 'invalid-artifact-name') {
           mockMessage.statusCode = 400
+        } else if (inputData.Name === 'storage-quota-hit') {
+          mockMessage.statusCode = 403
         } else {
           mockMessage.statusCode = 201
           const response: ArtifactResponse = {

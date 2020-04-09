@@ -15,6 +15,7 @@ import {
   isRetryableStatusCode,
   isSuccessStatusCode,
   isThrottledStatusCode,
+  isForbiddenStatusCode,
   displayHttpDiagnostics,
   getExponentialRetryTimeInMilliseconds,
   tryGetRetryAfterValueTimeInMilliseconds
@@ -68,6 +69,12 @@ export class UploadHttpClient {
 
     if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
       return JSON.parse(body)
+    } else if (isForbiddenStatusCode(rawResponse.message.statusCode)) {
+      // if a 403 is returned when trying to create a file container, the customer has exceeded
+      // their storage quota so no new artifact containers can be created
+      throw new Error(
+        `Artifact storage quota has been hit. Unable to upload any new artifacts`
+      )
     } else {
       displayHttpDiagnostics(rawResponse)
       throw new Error(
