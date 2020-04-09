@@ -64,15 +64,13 @@ class Command {
             } else {
               cmdStr += ','
             }
-            // safely escape the property - avoid blowing up when attempting to
-            // call .replace() if property is not a string for some reason
+
             cmdStr += `${key}=${escapeProperty(val)}`
           }
         }
       }
     }
-    // safely append the message - avoid blowing up when attempting to
-    // call .replace() if message is not a string for some reason
+
     cmdStr += `${CMD_STRING}${escapeData(this.message)}`
     return cmdStr
   }
