@@ -321,7 +321,7 @@ describe('@actions/exec', () => {
 
     _testExecOptions.listeners = {
       stdout: (data: Buffer) => {
-        expect(data).toEqual(Buffer.from(`this is my input${os.EOL}`))
+        expect(data).toEqual(Buffer.from(`this is my input`))
       }
     }
 
