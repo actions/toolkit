@@ -2,8 +2,11 @@ import * as os from 'os'
 
 // For internal use, subject to change.
 
+// We use any as a valid input type
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 interface CommandProperties {
-  [key: string]: string
+  [key: string]: any
 }
 
 /**
@@ -19,7 +22,7 @@ interface CommandProperties {
 export function issueCommand(
   command: string,
   properties: CommandProperties,
-  message: string
+  message: any
 ): void {
   const cmd = new Command(command, properties, message)
   process.stdout.write(cmd.toString() + os.EOL)
@@ -73,15 +76,28 @@ class Command {
   }
 }
 
-function escapeData(s: string): string {
-  return (s || '')
+/**
+ * Sanatizes an input into a string so it can be passed into issueCommand safely
+ * @param input input to sanitize into a string
+ */
+export function toCommandValue(input: any): string {
+  if (input === null || input === undefined) {
+    return ''
+  } else if (typeof input === 'string' || input instanceof String) {
+    return input as string
+  }
+  return JSON.stringify(input)
+}
+
+function escapeData(s: any): string {
+  return toCommandValue(s)
     .replace(/%/g, '%25')
     .replace(/\r/g, '%0D')
     .replace(/\n/g, '%0A')
 }
 
-function escapeProperty(s: string): string {
-  return (s || '')
+function escapeProperty(s: any): string {
+  return toCommandValue(s)
     .replace(/%/g, '%25')
     .replace(/\r/g, '%0D')
     .replace(/\n/g, '%0A')
