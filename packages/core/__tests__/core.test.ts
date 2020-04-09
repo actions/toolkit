@@ -169,6 +169,12 @@ describe('@actions/core', () => {
     assertWriteCalls([`::warning::%0D%0Awarning%0A${os.EOL}`])
   })
 
+  it('warning handles an error object', () => {
+    const message = 'this is my error message'
+    core.warning(new Error(message))
+    assertWriteCalls([`::warning::Error: ${message}${os.EOL}`])
+  })
+
   it('startGroup starts a new group', () => {
     core.startGroup('my-group')
     assertWriteCalls([`::group::my-group${os.EOL}`])
