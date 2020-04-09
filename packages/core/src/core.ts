@@ -195,10 +195,8 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
  * @param     name     name of the state to store
  * @param     value    value to store. Non-string values will be converted to a string via JSON.stringify
  */
-export function saveState(
-  name: string,
-  value: any
-): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function saveState(name: string, value: any): void {
   issueCommand('save-state', {name}, value)
 }
 

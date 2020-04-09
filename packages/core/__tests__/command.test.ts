@@ -124,7 +124,7 @@ describe('@actions/core/src/command', () => {
       ({test: 'object'} as unknown) as string
     )
     assertWriteCalls([
-      `::some-command prop1={\"test\"%3A\"object\"},prop2=123,prop3=true::{\"test\":\"object\"}${os.EOL}`
+      `::some-command prop1={"test"%3A"object"},prop2=123,prop3=true::{"test":"object"}${os.EOL}`
     ])
   })
 })
