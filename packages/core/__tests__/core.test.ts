@@ -239,6 +239,16 @@ describe('@actions/core', () => {
       process.env['RUNNER_DEBUG'] = current
     }
   })
+
+  it('setCommandEcho can enable echoing', () => {
+    core.setCommandEcho(true)
+    assertWriteCalls([`::echo::on${os.EOL}`])
+  })
+
+  it('setCommandEcho can disable echoing', () => {
+    core.setCommandEcho(false)
+    assertWriteCalls([`::echo::off${os.EOL}`])
+  })
 })
 
 // Assert that process.stdout.write calls called only with the given arguments.
