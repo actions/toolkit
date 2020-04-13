@@ -87,6 +87,15 @@ export function setOutput(name: string, value: any): void {
   issueCommand('set-output', {name}, value)
 }
 
+/**
+ * Enables or disables the echoing of commands into stdout for the rest of the step.
+ * Echoing is disabled by default if ACTIONS_STEP_DEBUG is not set.
+ *
+ */
+export function setCommandEcho(enabled: boolean): void {
+  issue('echo', enabled ? 'on' : 'off')
+}
+
 //-----------------------------------------------------------------------
 // Results
 //-----------------------------------------------------------------------
