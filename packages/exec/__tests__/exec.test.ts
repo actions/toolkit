@@ -286,6 +286,52 @@ describe('@actions/exec', () => {
     expect(stderrCalled).toBeTruthy()
   })
 
+  it('Handles stdin shell', async () => {
+    let command: string
+    if (IS_WINDOWS) {
+      command = 'wait-for-input.cmd'
+    } else {
+      command = 'wait-for-input.sh'
+    }
+
+    const waitForInput: string = path.join(__dirname, 'scripts', command)
+
+    const _testExecOptions = getExecOptions()
+
+    _testExecOptions.listeners = {
+      stdout: (data: Buffer) => {
+        expect(data).toEqual(Buffer.from(`this is my input${os.EOL}`))
+      }
+    }
+
+    _testExecOptions.input = Buffer.from('this is my input')
+
+    const exitCode = await exec.exec(`"${waitForInput}"`, [], _testExecOptions)
+    expect(exitCode).toBe(0)
+  })
+
+  it('Handles stdin js', async () => {
+    const waitForInput: string = path.join(
+      __dirname,
+      'scripts',
+      'wait-for-input.js'
+    )
+
+    const _testExecOptions = getExecOptions()
+
+    _testExecOptions.listeners = {
+      stdout: (data: Buffer) => {
+        expect(data).toEqual(Buffer.from(`this is my input`))
+      }
+    }
+
+    _testExecOptions.input = Buffer.from('this is my input')
+
+    const nodePath = await io.which('node', true)
+    const exitCode = await exec.exec(nodePath, [waitForInput], _testExecOptions)
+    expect(exitCode).toBe(0)
+  })
+
   it('Handles child process holding streams open', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
