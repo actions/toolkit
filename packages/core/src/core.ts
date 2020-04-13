@@ -92,8 +92,8 @@ export function setOutput(name: string, value: any): void {
  * Echoing is disabled by default if ACTIONS_STEP_DEBUG is not set.
  *
  */
-export function setCommandEcho(enable: boolean): void {
-  issue('echo', enable ? 'on' : 'off')
+export function setCommandEcho(enabled: boolean): void {
+  issue('echo', enabled ? 'on' : 'off')
 }
 
 //-----------------------------------------------------------------------

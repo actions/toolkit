@@ -148,7 +148,7 @@ echo "::echo::off"
 This is wrapped by the core method:
 
 ```javascript
-function setCommandEcho(enable: boolean): void {}
+function setCommandEcho(enabled: boolean): void {}
 ```
 
 The `add-mask`, `debug`, `warning` and `error` commands do not support echoing.
