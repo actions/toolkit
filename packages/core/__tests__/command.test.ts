@@ -113,7 +113,7 @@ describe('@actions/core/src/command', () => {
     ])
   })
 
-  it('should handle issueing commands for non-string objects', () => {
+  it('should handle issuing commands for non-string objects', () => {
     command.issueCommand(
       'some-command',
       {

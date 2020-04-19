@@ -49,7 +49,7 @@ export class StatusReporter {
       for (const value of Array.from(this.largeFiles.values())) {
         info(value)
       }
-      // delete all entires in the map after displaying the information so it will not be displayed again unless explicitly added
+      // delete all entries in the map after displaying the information so it will not be displayed again unless explicitly added
       this.largeFiles.clear()
     }, 1000)
   }
