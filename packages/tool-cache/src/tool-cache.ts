@@ -491,7 +491,7 @@ export async function getManifestFromRepo(
 
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
   const headers: IHeaders = {
-    authorization: `token {token}`
+    authorization: `token ${token}`
   }
 
   const response = await http.getJson<GitHubTree>(treeUrl, headers)
@@ -502,14 +502,22 @@ export async function getManifestFromRepo(
   let manifestUrl = ''
   for (const item of response.result.tree) {
     if (item.path === 'versions-manifest.json') {
-      manifestUrl = item.path
+      manifestUrl = item.url
       break
     }
   }
 
-  const relResponse = await http.getJson<IToolRelease[]>(manifestUrl, headers)
-  if (relResponse.result) {
-    releases = relResponse.result
+  headers['accept'] = 'application/vnd.github.VERSION.raw'
+  let versionsRaw = await (await http.get(manifestUrl, headers)).readBody()
+
+  if (versionsRaw) {
+    // shouldn't be needed but protects against invalid json saved with BOM
+    versionsRaw = versionsRaw.replace(/^\uFEFF/, '')
+    try {
+      releases = JSON.parse(versionsRaw)
+    } catch {
+      core.debug('Invalid json')
+    }
   }
 
   return releases

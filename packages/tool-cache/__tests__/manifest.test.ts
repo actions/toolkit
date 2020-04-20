@@ -6,6 +6,7 @@ import * as mm from '../src/manifest' // --> OFF
 import osm = require('os')
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import cp = require('child_process')
+//import {coerce} from 'semver'
 
 // we fetch the manifest file from master of a repo
 const owner = 'actions'
@@ -49,16 +50,6 @@ describe('@actions/tool-cache-manifest', () => {
 
   afterAll(async () => {}, 100000)
 
-  // function getRealToken(): string {
-  //   const token = process.env['GITHUB_TOKEN'] || ''
-  //   if (!token) {
-  //     /* eslint-disable-next-line no-console */
-  //     console.warn('Skipping test. Set $GITHUB_TOKEN to run this tests')
-  //   }
-
-  //   return token
-  // }
-
   it('can query versions', async () => {
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
       owner,
@@ -92,7 +83,6 @@ describe('@actions/tool-cache-manifest', () => {
     expect(file).toBeDefined()
     expect(file?.arch).toBe('x64')
     expect(file?.platform).toBe('linux')
-    // eslint-disable-next-line @typescript-eslint/camelcase
     expect(file?.download_url).toBe(
       'https://github.com/actions/sometool/releases/tag/2.0.2-20200402.6/sometool-2.0.2-linux-x64.tar.gz'
     )
@@ -120,7 +110,6 @@ describe('@actions/tool-cache-manifest', () => {
     expect(file).toBeDefined()
     expect(file?.arch).toBe('x64')
     expect(file?.platform).toBe('linux')
-    // eslint-disable-next-line @typescript-eslint/camelcase
     expect(file?.download_url).toBe(
       'https://github.com/actions/sometool/releases/tag/1.2.3-20200402.6/sometool-1.2.3-linux-x64.tar.gz'
     )
@@ -155,7 +144,6 @@ describe('@actions/tool-cache-manifest', () => {
     expect(file).toBeDefined()
     expect(file?.arch).toBe('x64')
     expect(file?.platform).toBe('linux')
-    // eslint-disable-next-line @typescript-eslint/camelcase
     expect(file?.download_url).toBe(
       'https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-ubuntu1804-x64.tar.gz'
     )
@@ -185,7 +173,6 @@ describe('@actions/tool-cache-manifest', () => {
     expect(file).toBeDefined()
     expect(file?.arch).toBe('x64')
     expect(file?.platform).toBe('darwin')
-    // eslint-disable-next-line @typescript-eslint/camelcase
     expect(file?.download_url).toBe(
       'https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-darwin1015-x64.tar.gz'
     )
