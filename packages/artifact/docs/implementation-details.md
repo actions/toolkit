@@ -4,7 +4,7 @@ Warning: Implementation details may change at any time without notice. This is m
 
 ## Upload/Compression flow
 
-![image](https://user-images.githubusercontent.com/16109154/77190819-38685d80-6ada-11ea-8281-4703ff8cc025.png)
+![image](https://user-images.githubusercontent.com/16109154/79765587-19522b00-8327-11ea-9679-410bb10e1b13.png)
 
 ## Retry Logic when downloading an individual file
 
