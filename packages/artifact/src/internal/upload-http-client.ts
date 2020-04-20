@@ -318,10 +318,11 @@ export class UploadHttpClient {
         }
       }
 
-      // delete the temporary file that was created as part of the upload
-      await tempFile.cleanup()
+      // Delete the temporary file that was created as part of the upload. Even though this operation is async, we don't need to
+      // await this at it unnecessarily could block other uploads from starting faster. If the temp file does not get manually deleted by
+      // calling cleanup, it gets removed when the node process exits. For more info see: https://www.npmjs.com/package/tmp-promise#about
+      tempFile.cleanup()
 
-      // only after the file upload is complete and the temporary file is deleted, return the UploadResult
       return {
         isSuccess: isUploadSuccessful,
         successfulUploadSize: uploadFileSize - failedChunkSizes,
