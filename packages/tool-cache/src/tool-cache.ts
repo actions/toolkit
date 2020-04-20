@@ -13,6 +13,7 @@ import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
 import {RetryHelper} from './retry-helper'
+import { IHeaders, IHttpClientResponse } from '@actions/http-client/interfaces'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -468,12 +469,45 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
 export type IToolRelease = mm.IToolRelease
 export type IToolReleaseFile = mm.IToolReleaseFile
 
-export async function getManifestFromUrl(url: string): Promise<IToolRelease[]> {
-  const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
+interface GitHubTreeItem {
+  path: string,
+  size: string,
+  url: string
+}
 
-  //let versions: IToolRelease[] =
-  return (await http.getJson<IToolRelease[]>(url)).result || []
-  //return
+interface GitHubTree {
+  tree: GitHubTreeItem[]
+  truncated: boolean
+}
+
+export async function getManifestFromRepo(owner: string, repo: string, token: string, branch = "master"): Promise<IToolRelease[]> {
+  let releases: IToolRelease[] = [];
+  const treeUrl = `https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}`
+  
+  const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
+  let headers: IHeaders = {
+    "authorization": `token {token}`
+  }
+
+  let response = await http.getJson<GitHubTree>(treeUrl, headers);
+  if (!response.result) {
+    return releases;
+  }
+  
+  let manifestUrl: string = ''
+  for (const item of response.result.tree) {
+    if (item.path == 'versions-manifest.json') {
+      manifestUrl = item.path
+      break;
+    }
+  }
+
+  let relResponse = await http.getJson<IToolRelease[]>(manifestUrl, headers);
+  if (!response.result) {
+    releases = response.result;
+  }
+
+  return releases;
 }
 
 export async function findFromManifest(
