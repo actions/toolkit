@@ -252,8 +252,7 @@ const invalidArtifactFilePathCharacters = [
   '>',
   '|',
   '*',
-  '?',
-  ' '
+  '?'
 ]
 const invalidArtifactNameCharacters = [
   ...invalidArtifactFilePathCharacters,

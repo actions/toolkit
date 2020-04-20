@@ -17,7 +17,6 @@ When uploading an artifact, the inputted `name` parameter along with the files s
 - |
 - \*
 - ?
-- empty space
 
 In addition to the aforementioned characters, the inputted `name` also cannot include the following
 - \
