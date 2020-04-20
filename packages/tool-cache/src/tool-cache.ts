@@ -13,7 +13,7 @@ import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
 import {RetryHelper} from './retry-helper'
-import { IHeaders, IHttpClientResponse } from '@actions/http-client/interfaces'
+import {IHeaders} from '@actions/http-client/interfaces'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -470,8 +470,8 @@ export type IToolRelease = mm.IToolRelease
 export type IToolReleaseFile = mm.IToolReleaseFile
 
 interface GitHubTreeItem {
-  path: string,
-  size: string,
+  path: string
+  size: string
   url: string
 }
 
@@ -480,34 +480,39 @@ interface GitHubTree {
   truncated: boolean
 }
 
-export async function getManifestFromRepo(owner: string, repo: string, token: string, branch = "master"): Promise<IToolRelease[]> {
-  let releases: IToolRelease[] = [];
-  const treeUrl = `https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}`
-  
+export async function getManifestFromRepo(
+  owner: string,
+  repo: string,
+  token: string,
+  branch = 'master'
+): Promise<IToolRelease[]> {
+  let releases: IToolRelease[] = []
+  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
+
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
-  let headers: IHeaders = {
-    "authorization": `token {token}`
+  const headers: IHeaders = {
+    authorization: `token {token}`
   }
 
-  let response = await http.getJson<GitHubTree>(treeUrl, headers);
+  const response = await http.getJson<GitHubTree>(treeUrl, headers)
   if (!response.result) {
-    return releases;
+    return releases
   }
-  
-  let manifestUrl: string = ''
+
+  let manifestUrl = ''
   for (const item of response.result.tree) {
-    if (item.path == 'versions-manifest.json') {
+    if (item.path === 'versions-manifest.json') {
       manifestUrl = item.path
-      break;
+      break
     }
   }
 
-  let relResponse = await http.getJson<IToolRelease[]>(manifestUrl, headers);
-  if (!response.result) {
-    releases = response.result;
+  const relResponse = await http.getJson<IToolRelease[]>(manifestUrl, headers)
+  if (relResponse.result) {
+    releases = relResponse.result
   }
 
-  return releases;
+  return releases
 }
 
 export async function findFromManifest(

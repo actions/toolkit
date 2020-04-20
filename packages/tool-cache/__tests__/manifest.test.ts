@@ -8,8 +8,8 @@ import osm = require('os')
 import cp = require('child_process')
 
 // we fetch the manifest file from master of a repo
-const owner = 'actions';
-const repo = 'some-tool';
+const owner = 'actions'
+const repo = 'some-tool'
 const fakeToken = 'notrealtoken'
 
 // just loading data and require handles BOMs etc.
@@ -49,21 +49,21 @@ describe('@actions/tool-cache-manifest', () => {
 
   afterAll(async () => {}, 100000)
 
-  function getRealToken(): string {
-    const token = process.env['GITHUB_TOKEN'] || ''
-    if (!token) {
-      /* eslint-disable-next-line no-console */
-      console.warn(
-        'Skipping test. Set $GITHUB_TOKEN to run this tests'
-      )
-    }
+  // function getRealToken(): string {
+  //   const token = process.env['GITHUB_TOKEN'] || ''
+  //   if (!token) {
+  //     /* eslint-disable-next-line no-console */
+  //     console.warn('Skipping test. Set $GITHUB_TOKEN to run this tests')
+  //   }
 
-    return token
-  }
+  //   return token
+  // }
 
   it('can query versions', async () => {
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
-      owner, repo, fakeToken
+      owner,
+      repo,
+      fakeToken
     )
 
     expect(manifest).toBeDefined()
@@ -76,7 +76,9 @@ describe('@actions/tool-cache-manifest', () => {
     os.arch = 'x64'
 
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
-      owner, repo, fakeToken
+      owner,
+      repo,
+      fakeToken
     )
     const release: tc.IToolRelease | undefined = await tc.findFromManifest(
       '2.x',
@@ -101,7 +103,9 @@ describe('@actions/tool-cache-manifest', () => {
     os.arch = 'x64'
 
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
-      owner, repo, fakeToken
+      owner,
+      repo,
+      fakeToken
     )
     const release: tc.IToolRelease | undefined = await tc.findFromManifest(
       '1.2.3',
@@ -133,7 +137,9 @@ describe('@actions/tool-cache-manifest', () => {
     })
 
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
-      owner, repo, fakeToken
+      owner,
+      repo,
+      fakeToken
     )
     const release: tc.IToolRelease | undefined = await tc.findFromManifest(
       '1.2.4',
@@ -160,7 +166,9 @@ describe('@actions/tool-cache-manifest', () => {
     execSpy.mockImplementation(() => '10.15.1')
 
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
-      owner, repo, fakeToken
+      owner,
+      repo,
+      fakeToken
     )
     const release: tc.IToolRelease | undefined = await tc.findFromManifest(
       '1.2.4',
@@ -192,7 +200,9 @@ describe('@actions/tool-cache-manifest', () => {
     })
 
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
-      owner, repo, fakeToken
+      owner,
+      repo,
+      fakeToken
     )
     const release: tc.IToolRelease | undefined = await tc.findFromManifest(
       '1.2.4',
@@ -209,7 +219,9 @@ describe('@actions/tool-cache-manifest', () => {
     execSpy.mockImplementation(() => '10.14.6')
 
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
-      owner, repo, fakeToken
+      owner,
+      repo,
+      fakeToken
     )
     const release: tc.IToolRelease | undefined = await tc.findFromManifest(
       '1.2.4',
