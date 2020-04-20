@@ -248,91 +248,85 @@ export class UploadHttpClient {
       }
     } else {
       // the file that is being uploaded is greater than 64k in size, a temporary file gets created on disk using the
-      // npm tmp-promise package and this file gets used during compression for the GZip file that gets created
-      return tmp
-        .file()
-        .then(async tmpFile => {
-          // create a GZip file of the original file being uploaded, the original file should not be modified in any way
-          uploadFileSize = await createGZipFileOnDisk(
-            parameters.file,
-            tmpFile.path
-          )
-          let uploadFilePath = tmpFile.path
+      // npm tmp-promise package and this file gets used to create a GZipped file
+      const tempFile = await tmp.file()
 
-          // compression did not help with size reduction, use the original file for upload and delete the temp GZip file
-          if (totalFileSize < uploadFileSize) {
-            uploadFileSize = totalFileSize
-            uploadFilePath = parameters.file
-            isGzip = false
-            tmpFile.cleanup()
-          }
+      // create a GZip file of the original file being uploaded, the original file should not be modified in any way
+      uploadFileSize = await createGZipFileOnDisk(
+        parameters.file,
+        tempFile.path
+      )
 
-          let abortFileUpload = false
-          // upload only a single chunk at a time
-          while (offset < uploadFileSize) {
-            const chunkSize = Math.min(
-              uploadFileSize - offset,
-              parameters.maxChunkSize
-            )
+      let uploadFilePath = tempFile.path
 
-            // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
-            if (uploadFileSize > 104857600) {
-              this.statusReporter.updateLargeFileStatus(
-                parameters.file,
-                offset,
-                uploadFileSize
-              )
-            }
+      // compression did not help with size reduction, use the original file for upload and delete the temp GZip file
+      if (totalFileSize < uploadFileSize) {
+        uploadFileSize = totalFileSize
+        uploadFilePath = parameters.file
+        isGzip = false
+      }
 
-            const start = offset
-            const end = offset + chunkSize - 1
-            offset += parameters.maxChunkSize
-
-            if (abortFileUpload) {
-              // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
-              failedChunkSizes += chunkSize
-              continue
-            }
-
-            const result = await this.uploadChunk(
-              httpClientIndex,
-              parameters.resourceUrl,
-              fs.createReadStream(uploadFilePath, {
-                start,
-                end,
-                autoClose: false
-              }),
-              start,
-              end,
-              uploadFileSize,
-              isGzip,
-              totalFileSize
-            )
-
-            if (!result) {
-              // Chunk failed to upload, report as failed and do not continue uploading any more chunks for the file. It is possible that part of a chunk was
-              // successfully uploaded so the server may report a different size for what was uploaded
-              isUploadSuccessful = false
-              failedChunkSizes += chunkSize
-              core.warning(
-                `Aborting upload for ${parameters.file} due to failure`
-              )
-              abortFileUpload = true
-            }
-          }
-        })
-        .then(
-          async (): Promise<UploadFileResult> => {
-            // only after the file upload is complete and the temporary file is deleted, return the UploadResult
-            return new Promise(resolve => {
-              resolve({
-                isSuccess: isUploadSuccessful,
-                successfulUploadSize: uploadFileSize - failedChunkSizes,
-                totalSize: totalFileSize
-              })
-            })
-          }
+      let abortFileUpload = false
+      // upload only a single chunk at a time
+      while (offset < uploadFileSize) {
+        const chunkSize = Math.min(
+          uploadFileSize - offset,
+          parameters.maxChunkSize
         )
+
+        // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
+        if (uploadFileSize > 104857600) {
+          this.statusReporter.updateLargeFileStatus(
+            parameters.file,
+            offset,
+            uploadFileSize
+          )
+        }
+
+        const start = offset
+        const end = offset + chunkSize - 1
+        offset += parameters.maxChunkSize
+
+        if (abortFileUpload) {
+          // if we don't want to continue in the event of an error, any pending upload chunks will be marked as failed
+          failedChunkSizes += chunkSize
+          continue
+        }
+
+        const result = await this.uploadChunk(
+          httpClientIndex,
+          parameters.resourceUrl,
+          fs.createReadStream(uploadFilePath, {
+            start,
+            end,
+            autoClose: false
+          }),
+          start,
+          end,
+          uploadFileSize,
+          isGzip,
+          totalFileSize
+        )
+
+        if (!result) {
+          // Chunk failed to upload, report as failed and do not continue uploading any more chunks for the file. It is possible that part of a chunk was
+          // successfully uploaded so the server may report a different size for what was uploaded
+          isUploadSuccessful = false
+          failedChunkSizes += chunkSize
+          core.warning(`Aborting upload for ${parameters.file} due to failure`)
+          abortFileUpload = true
+        }
+      }
+
+      // Delete the temporary file that was created as part of the upload. If the temp file does not get manually deleted by
+      // calling cleanup, it gets removed when the node process exits. For more info see: https://www.npmjs.com/package/tmp-promise#about
+      await tempFile.cleanup()
+
+      return {
+        isSuccess: isUploadSuccessful,
+        successfulUploadSize: uploadFileSize - failedChunkSizes,
+        totalSize: totalFileSize
+      }
     }
   }
 

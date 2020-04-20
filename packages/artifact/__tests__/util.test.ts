@@ -57,7 +57,6 @@ describe('Utils', () => {
       'my|artifact',
       'my*artifact',
       'my?artifact',
-      'my artifact',
       ''
     ]
     for (const invalidName of invalidNames) {
@@ -87,7 +86,6 @@ describe('Utils', () => {
       'some/invalid|artifact/path',
       'some/invalid*artifact/path',
       'some/invalid?artifact/path',
-      'some/invalid artifact/path',
       ''
     ]
     for (const invalidName of invalidNames) {
