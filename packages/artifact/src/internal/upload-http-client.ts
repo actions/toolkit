@@ -313,9 +313,7 @@ export class UploadHttpClient {
           // successfully uploaded so the server may report a different size for what was uploaded
           isUploadSuccessful = false
           failedChunkSizes += chunkSize
-          core.warning(
-            `Aborting upload for ${parameters.file} due to failure`
-          )
+          core.warning(`Aborting upload for ${parameters.file} due to failure`)
           abortFileUpload = true
         }
       }
@@ -325,9 +323,9 @@ export class UploadHttpClient {
 
       // only after the file upload is complete and the temporary file is deleted, return the UploadResult
       return {
-          isSuccess: isUploadSuccessful,
-          successfulUploadSize: uploadFileSize - failedChunkSizes,
-          totalSize: totalFileSize
+        isSuccess: isUploadSuccessful,
+        successfulUploadSize: uploadFileSize - failedChunkSizes,
+        totalSize: totalFileSize
       }
     }
   }
