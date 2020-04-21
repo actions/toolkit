@@ -7,6 +7,7 @@ You can use this package to interact with the actions artifacts.
 - [Download a Single Artifact](#Download-a-Single-Artifact)
 - [Download All Artifacts](#Download-all-Artifacts)
 - [Additional Documentation](#Additional-Documentation)
+- [Contributions](#Contributions)
 
 Relative paths and absolute paths are both allowed. Relative paths are rooted against the current working directory.
 
@@ -204,4 +205,4 @@ Check out [implementation-details](docs/implementation-details.md) for extra inf
 
 See [contributor guidelines](https://github.com/actions/toolkit/blob/master/.github/CONTRIBUTING.md) for general guidelines and information about toolkit contributions.
 
-For contributions related to this package, see [artifact contributions](docs/artifact-contributions.md) for more information.
+For contributions related to this package, see [artifact contributions](CONTRIBUTIONS.md) for more information.

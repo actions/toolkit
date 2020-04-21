@@ -8,6 +8,9 @@ export interface DownloadSpecification {
   // directories that need to be created for all the items in the artifact
   directoryStructure: string[]
 
+  // empty files that are part of the artifact that don't require any downloading
+  emptyFilesToCreate: string[]
+
   // individual files that need to be downloaded as part of the artifact
   filesToDownload: DownloadItem[]
 }
@@ -33,6 +36,7 @@ export function getDownloadSpecification(
   downloadPath: string,
   includeRootDirectory: boolean
 ): DownloadSpecification {
+  // use a set for the directory paths so that there are no duplicates
   const directories = new Set<string>()
 
   const specifications: DownloadSpecification = {
@@ -40,6 +44,7 @@ export function getDownloadSpecification(
       ? path.join(downloadPath, artifactName)
       : downloadPath,
     directoryStructure: [],
+    emptyFilesToCreate: [],
     filesToDownload: []
   }
 
@@ -64,11 +69,15 @@ export function getDownloadSpecification(
       if (entry.itemType === 'file') {
         // Get the directories that we need to create from the filePath for each individual file
         directories.add(path.dirname(filePath))
-
-        specifications.filesToDownload.push({
-          sourceLocation: entry.contentLocation,
-          targetPath: filePath
-        })
+        if (entry.fileLength === 0) {
+          // An empty file was uploaded, create the empty files locally so that no extra http calls are made
+          specifications.emptyFilesToCreate.push(filePath)
+        } else {
+          specifications.filesToDownload.push({
+            sourceLocation: entry.contentLocation,
+            targetPath: filePath
+          })
+        }
       }
     }
   }

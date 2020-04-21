@@ -69,7 +69,7 @@ describe('pattern', () => {
     }
   })
 
-  it('globstar matches immediately preceeding directory', () => {
+  it('globstar matches immediately preceding directory', () => {
     const root = IS_WINDOWS ? 'C:\\' : '/'
     const pattern = new Pattern(`${root}foo/bar/**`)
     const actual = [
