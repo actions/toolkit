@@ -41,5 +41,8 @@
     "@types/tmp": "^0.1.0",
     "tmp": "^0.1.0",
     "tmp-promise": "^2.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^3.8.3"
   }
 }
