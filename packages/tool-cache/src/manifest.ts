@@ -62,9 +62,9 @@ export interface IToolRelease {
 export async function _findMatch(
   versionSpec: string,
   stable: boolean,
-  candidates: IToolRelease[]
+  candidates: IToolRelease[],
+  archFilter: string
 ): Promise<IToolRelease | undefined> {
-  const archFilter = os.arch()
   const platFilter = os.platform()
 
   let result: IToolRelease | undefined
