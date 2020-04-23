@@ -47,8 +47,9 @@ jobs:
     - name: Lint
       run: npm run lint
 
-    - name: Format
-      run: npm run format-check
+    # uncomment after reviewing rules
+    # - name: Format
+    #   run: npm run format-check
 
     - name: audit tools
       run: npm audit --audit-level=moderate
