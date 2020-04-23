@@ -7,7 +7,7 @@ jobs:
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest]
+        runs-on: [ubuntu-latest, windows-latest, macOS-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}
@@ -20,8 +20,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    
-    - run: node test.js
 
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
