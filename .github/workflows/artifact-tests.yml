@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest]
+        runs-on: [ubuntu-latest, windows-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}
@@ -65,21 +65,20 @@ jobs:
         EnvName: GITHUB_RUN_ID
       id: get_run_id
 
-    # The env variables that were retrieved in a different step need to be set for each subsequent shell or upload/download will fail
+    - name: Set env variables
+      run: |
+        echo "::set-env name=ACTIONS_RUNTIME_TOKEN::${{ steps.get_runtime_token.outputs.EnvValue }}"
+        echo "::set-env name=ACTIONS_RUNTIME_URL::${{ steps.get_runtime_url.outputs.EnvValue }}"
+        echo "::set-env name=GITHUB_RUN_ID::${{ steps.get_run_id.outputs.EnvValue }}"
+
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
       run: |
-        export ACTIONS_RUNTIME_TOKEN="${{ steps.get_runtime_token.outputs.EnvValue }}"
-        export ACTIONS_RUNTIME_URL="${{ steps.get_runtime_url.outputs.EnvValue }}"
-        export GITHUB_RUN_ID="${{ steps.get_run_id.outputs.EnvValue }}"
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], '${{ github.workspace }}'))"
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-2',['artifact-path/gzip.txt'], '${{ github.workspace }}'))"
 
     - name: Download artifacts using downloadArtifact()
       run: |
-        export ACTIONS_RUNTIME_TOKEN="${{ steps.get_runtime_token.outputs.EnvValue }}"
-        export ACTIONS_RUNTIME_URL="${{ steps.get_runtime_url.outputs.EnvValue }}"
-        export GITHUB_RUN_ID="${{ steps.get_run_id.outputs.EnvValue }}"
         mkdir artifact-1-directory
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-1','artifact-1-directory'))"
         mkdir artifact-2-directory
@@ -112,9 +111,6 @@ jobs:
 
     - name: Download artifacts using downloadAllArtifacts()
       run: |
-        export ACTIONS_RUNTIME_TOKEN="${{ steps.get_runtime_token.outputs.EnvValue }}"
-        export ACTIONS_RUNTIME_URL="${{ steps.get_runtime_url.outputs.EnvValue }}"
-        export GITHUB_RUN_ID="${{ steps.get_run_id.outputs.EnvValue }}"
         mkdir multi-artifact-directory
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadAllArtifacts('multi-artifact-directory'))"
 
