@@ -526,13 +526,15 @@ export async function getManifestFromRepo(
 export async function findFromManifest(
   versionSpec: string,
   stable: boolean,
-  manifest: IToolRelease[]
+  manifest: IToolRelease[],
+  archFilter: string = os.arch()
 ): Promise<IToolRelease | undefined> {
   // wrap the internal impl
   const match: mm.IToolRelease | undefined = await mm._findMatch(
     versionSpec,
     stable,
-    manifest
+    manifest,
+    archFilter
   )
 
   return match
