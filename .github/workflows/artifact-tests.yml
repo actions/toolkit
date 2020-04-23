@@ -21,6 +21,11 @@ jobs:
       with:
         node-version: 12.x
 
+    # In order to upload & download artifacts from a shell script, certain env variables need to be set that are only available in the
+    # node context. This runs a local action that gets and sets the necessary env variables that are needed
+    - name: Set env variables
+      uses: ./packages/artifact/__tests__/ci-test-action/
+
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
     - name: Install root npm packages
@@ -42,33 +47,6 @@ jobs:
         mkdir artifact-path 
         echo ${{ env.non-gzip-artifact-content }} > artifact-path/world.txt
         echo ${{ env.gzip-artifact-content }} > artifact-path/gzip.txt
-
-    # Certain env variables are needed in order to make the necessary API calls. These env variables are not available in a standard shell but they
-    # are available for actions written in node. We're using a hack here to get the necessary env variables from a different context
-    - name: Get ACTIONS_RUNTIME_TOKEN env variable
-      uses: konradpabjan/Get-Actions-Env-Variable-From-Node-Context@4a3142ee3e
-      with:
-        EnvName: ACTIONS_RUNTIME_TOKEN
-      id: get_runtime_token
-
-    - name: Get ACTIONS_RUNTIME_URL env variable
-      uses: konradpabjan/Get-Actions-Env-Variable-From-Node-Context@4a3142ee3e
-      with:
-        EnvName: ACTIONS_RUNTIME_URL
-      id: get_runtime_url
-
-    - name: Get GITHUB_RUN_ID env variable
-      uses: konradpabjan/Get-Actions-Env-Variable-From-Node-Context@4a3142ee3e
-      with:
-        EnvName: GITHUB_RUN_ID
-      id: get_run_id
-
-    # The env variables that were retrieved in a different step need to be set for each subsequent shell or upload/download will fail
-    - name: Set env variables
-      run: |
-        echo "::set-env name=ACTIONS_RUNTIME_TOKEN::${{ steps.get_runtime_token.outputs.EnvValue }}"
-        echo "::set-env name=ACTIONS_RUNTIME_URL::${{ steps.get_runtime_url.outputs.EnvValue }}"
-        echo "::set-env name=GITHUB_RUN_ID::${{ steps.get_run_id.outputs.EnvValue }}"
 
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
