@@ -1,5 +1,9 @@
 # @actions/tool-cache Releases
 
+### 1.3.4
+
+- [Update the http-client to 1.0.8 which had a security fix](https://github.com/actions/toolkit/pull/xxx)
+
 ### 1.3.3
 
 - [Update downloadTool to only retry 500s and 408 and 429](https://github.com/actions/toolkit/pull/373)
