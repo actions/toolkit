@@ -4,7 +4,7 @@
 
 ## Usage
 
-Returns an authenticated Octokit client that follows the machine [proxy settings](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/about-self-hosted-runners#using-a-proxy-server-with-self-hosted-runners). See https://octokit.github.io/rest.js for the API.
+Returns an authenticated Octokit client that follows the machine [proxy settings](https://help.github.com/en/actions/hosting-your-own-runners/using-a-proxy-server-with-self-hosted-runners). See https://octokit.github.io/rest.js for the API.
 
 ```js
 const github = require('@actions/github');

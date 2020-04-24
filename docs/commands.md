@@ -131,7 +131,7 @@ There are several commands to emit different levels of log output:
 | error | `echo "::error::My error message"` |
 
 ### Command Echoing
-By default, the echoing of commands to stdout only occurs if [Step Debugging is enabled](./actions-debugging.md#How-to-Access-Step-Debug-Logs)
+By default, the echoing of commands to stdout only occurs if [Step Debugging is enabled](./action-debugging.md#How-to-Access-Step-Debug-Logs)
 
 You can enable or disable this for the current step by using the `echo` command.
 
