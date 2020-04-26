@@ -20,6 +20,6 @@ fi
 
 actualContent=$(cat $path)
 if [ "$actualContent" != "$expectedContent" ];then
-    echo "File contents are not correct, expected $expectedContent, recieved $actualContent"
+    echo "File contents are not correct, expected $expectedContent, received $actualContent"
     exit 1
 fi
