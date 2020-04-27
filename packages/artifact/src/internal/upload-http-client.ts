@@ -46,6 +46,11 @@ export class UploadHttpClient {
     this.statusReporter = new StatusReporter(10000)
   }
 
+  disposeAllConnections(): void {
+    // safety dispose all connections when we are done making all http calls
+    this.uploadHttpManager.disposeAllClients()
+  }
+
   /**
    * Creates a file container for the new artifact in the remote blob storage/file service
    * @param {string} artifactName Name of the artifact being created
@@ -73,13 +78,13 @@ export class UploadHttpClient {
     } else if (isForbiddenStatusCode(rawResponse.message.statusCode)) {
       // if a 403 is returned when trying to create a file container, the customer has exceeded
       // their storage quota so no new artifact containers can be created
-      this.uploadHttpManager.disposeAllClients()
+      this.disposeAllConnections()
       throw new Error(
         `Artifact storage quota has been hit. Unable to upload any new artifacts`
       )
     } else {
       displayHttpDiagnostics(rawResponse)
-      this.uploadHttpManager.disposeAllClients()
+      this.disposeAllConnections()
       throw new Error(
         `Unable to create a container for the artifact ${artifactName} at ${artifactUrl}`
       )
@@ -483,7 +488,7 @@ export class UploadHttpClient {
     const body: string = await response.readBody()
 
     // safety dispose all connections since we won't be making any more http calls as part of the upload
-    this.uploadHttpManager.disposeAllClients()
+    this.disposeAllConnections()
 
     if (isSuccessStatusCode(response.message.statusCode)) {
       core.debug(

@@ -32,6 +32,11 @@ export class DownloadHttpClient {
     this.statusReporter = new StatusReporter(1000)
   }
 
+  disposeAllConnections(): void {
+    // safety dispose all connections when we are done making all http calls
+    this.downloadHttpManager.disposeAllClients()
+  }
+
   /**
    * Gets a list of all artifacts that are in a specific container
    */
@@ -47,7 +52,7 @@ export class DownloadHttpClient {
       return JSON.parse(body)
     }
     displayHttpDiagnostics(response)
-    this.downloadHttpManager.disposeAllClients()
+    this.disposeAllConnections()
     throw new Error(
       `Unable to list artifacts for the run. Resource Url ${artifactUrl}`
     )
@@ -75,7 +80,7 @@ export class DownloadHttpClient {
       return JSON.parse(body)
     }
     displayHttpDiagnostics(response)
-    this.downloadHttpManager.disposeAllClients()
+    this.disposeAllConnections()
     throw new Error(`Unable to get ContainersItems from ${resourceUrl}`)
   }
 
@@ -130,8 +135,6 @@ export class DownloadHttpClient {
       })
       .finally(() => {
         this.statusReporter.stop()
-        // safety dispose all connections
-        this.downloadHttpManager.disposeAllClients()
       })
   }
 

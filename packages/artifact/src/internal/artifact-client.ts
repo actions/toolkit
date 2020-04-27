@@ -184,6 +184,8 @@ export class DefaultArtifactClient implements ArtifactClient {
       await downloadHttpClient.downloadSingleArtifact(
         downloadSpecification.filesToDownload
       )
+
+      downloadHttpClient.disposeAllConnections()
     }
 
     return {
@@ -248,6 +250,8 @@ export class DefaultArtifactClient implements ArtifactClient {
         downloadPath: downloadSpecification.rootDownloadLocation
       })
     }
+    downloadHttpClient.disposeAllConnections()
+
     return response
   }
 }
