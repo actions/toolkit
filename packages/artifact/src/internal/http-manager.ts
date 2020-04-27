@@ -25,9 +25,9 @@ export class HttpManager {
     this.clients[index] = createHttpClient()
   }
 
-  disposeAndReplaceAllClients(): void {
+  disposeAllClients(): void {
     for (const [index] of this.clients.entries()) {
-      this.disposeAndReplaceClient(index)
+      this.clients[index].dispose()
     }
   }
 }

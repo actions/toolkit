@@ -11,7 +11,7 @@ import {
 import {
   getArtifactUrl,
   getContentRange,
-  getUploadRequestOptions,
+  getUploadHeaders,
   isRetryableStatusCode,
   isSuccessStatusCode,
   isThrottledStatusCode,
@@ -47,6 +47,14 @@ export class UploadHttpClient {
   }
 
   /**
+   * Disposes all http-clients that are used during upload. This needs to be called because we use `keep-alive` when setting up the
+   * http clients. This should be called when we are done making all http calls as part of the artifact upload
+   */
+  disposeAllConnections(): void {
+    this.uploadHttpManager.disposeAllClients()
+  }
+
+  /**
    * Creates a file container for the new artifact in the remote blob storage/file service
    * @param {string} artifactName Name of the artifact being created
    * @returns The response from the Artifact Service if the file container was successfully created
@@ -61,10 +69,11 @@ export class UploadHttpClient {
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
-    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
+    // use the first client from the httpManager, `keep-alive` is used because the same http client will be
+    // used shortly afterwards to start uploading files individually so there is no point in closing the connection
     const client = this.uploadHttpManager.getClient(0)
-    const requestOptions = getUploadRequestOptions('application/json', false)
-    const rawResponse = await client.post(artifactUrl, data, requestOptions)
+    const headers = getUploadHeaders('application/json', true)
+    const rawResponse = await client.post(artifactUrl, data, headers)
     const body: string = await rawResponse.readBody()
 
     if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
@@ -72,11 +81,13 @@ export class UploadHttpClient {
     } else if (isForbiddenStatusCode(rawResponse.message.statusCode)) {
       // if a 403 is returned when trying to create a file container, the customer has exceeded
       // their storage quota so no new artifact containers can be created
+      this.uploadHttpManager.disposeAllClients()
       throw new Error(
         `Artifact storage quota has been hit. Unable to upload any new artifacts`
       )
     } else {
       displayHttpDiagnostics(rawResponse)
+      this.uploadHttpManager.disposeAllClients()
       throw new Error(
         `Unable to create a container for the artifact ${artifactName} at ${artifactUrl}`
       )
@@ -175,8 +186,6 @@ export class UploadHttpClient {
     )
 
     this.statusReporter.stop()
-    // done uploading, safety dispose all connections
-    this.uploadHttpManager.disposeAndReplaceAllClients()
 
     core.info(`Total size of all the files uploaded is ${uploadFileSize} bytes`)
     return {
@@ -322,6 +331,9 @@ export class UploadHttpClient {
       // calling cleanup, it gets removed when the node process exits. For more info see: https://www.npmjs.com/package/tmp-promise#about
       await tempFile.cleanup()
 
+      // done uploading, safety dispose all keep-alive connections
+      this.uploadHttpManager.disposeAllClients()
+
       return {
         isSuccess: isUploadSuccessful,
         successfulUploadSize: uploadFileSize - failedChunkSizes,
@@ -354,7 +366,7 @@ export class UploadHttpClient {
     totalFileSize: number
   ): Promise<boolean> {
     // prepare all the necessary headers before making any http call
-    const requestOptions = getUploadRequestOptions(
+    const headers = getUploadHeaders(
       'application/octet-stream',
       true,
       isGzip,
@@ -365,7 +377,7 @@ export class UploadHttpClient {
 
     const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
       const client = this.uploadHttpManager.getClient(httpClientIndex)
-      return await client.sendStream('PUT', resourceUrl, data, requestOptions)
+      return await client.sendStream('PUT', resourceUrl, data, headers)
     }
 
     let retryCount = 0
@@ -464,7 +476,7 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    const requestOptions = getUploadRequestOptions('application/json', false)
+    const headers = getUploadHeaders('application/json', false)
     const resourceUrl = new URL(getArtifactUrl())
     resourceUrl.searchParams.append('artifactName', artifactName)
 
@@ -477,7 +489,7 @@ export class UploadHttpClient {
     const response: HttpClientResponse = await client.patch(
       resourceUrl.toString(),
       data,
-      requestOptions
+      headers
     )
     const body: string = await response.readBody()
     if (isSuccessStatusCode(response.message.statusCode)) {

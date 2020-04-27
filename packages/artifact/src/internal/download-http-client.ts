@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import * as zlib from 'zlib'
 import {
   getArtifactUrl,
-  getDownloadRequestOptions,
+  getDownloadHeaders,
   isSuccessStatusCode,
   isRetryableStatusCode,
   isThrottledStatusCode,
@@ -38,16 +38,16 @@ export class DownloadHttpClient {
   async listArtifacts(): Promise<ListArtifactsResponse> {
     const artifactUrl = getArtifactUrl()
 
-    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
-    const requestOptions = getDownloadRequestOptions('application/json')
-    const response = await client.get(artifactUrl, requestOptions)
+    const headers = getDownloadHeaders('application/json', true)
+    const response = await client.get(artifactUrl, headers)
     const body: string = await response.readBody()
 
     if (isSuccessStatusCode(response.message.statusCode) && body) {
       return JSON.parse(body)
     }
     displayHttpDiagnostics(response)
+    this.downloadHttpManager.disposeAllClients()
     throw new Error(
       `Unable to list artifacts for the run. Resource Url ${artifactUrl}`
     )
@@ -66,16 +66,16 @@ export class DownloadHttpClient {
     const resourceUrl = new URL(containerUrl)
     resourceUrl.searchParams.append('itemPath', artifactName)
 
-    // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
-    const requestOptions = getDownloadRequestOptions('application/json')
-    const response = await client.get(resourceUrl.toString(), requestOptions)
+    const headers = getDownloadHeaders('application/json', true)
+    const response = await client.get(resourceUrl.toString(), headers)
     const body: string = await response.readBody()
 
     if (isSuccessStatusCode(response.message.statusCode) && body) {
       return JSON.parse(body)
     }
     displayHttpDiagnostics(response)
+    this.downloadHttpManager.disposeAllClients()
     throw new Error(`Unable to get ContainersItems from ${resourceUrl}`)
   }
 
@@ -131,7 +131,7 @@ export class DownloadHttpClient {
       .finally(() => {
         this.statusReporter.stop()
         // safety dispose all connections
-        this.downloadHttpManager.disposeAndReplaceAllClients()
+        this.downloadHttpManager.disposeAllClients()
       })
   }
 
@@ -149,22 +149,19 @@ export class DownloadHttpClient {
     let retryCount = 0
     const retryLimit = getRetryLimit()
     const destinationStream = fs.createWriteStream(downloadPath)
-    const requestOptions = getDownloadRequestOptions(
-      'application/json',
-      true,
-      true
-    )
+    const headers = getDownloadHeaders('application/json', true, true)
 
     // a single GET request is used to download a file
     const makeDownloadRequest = async (): Promise<IHttpClientResponse> => {
       const client = this.downloadHttpManager.getClient(httpClientIndex)
-      return await client.get(artifactLocation, requestOptions)
+      return await client.get(artifactLocation, headers)
     }
 
     // check the response headers to determine if the file was compressed using gzip
-    const isGzip = (headers: IncomingHttpHeaders): boolean => {
+    const isGzip = (incomingHeaders: IncomingHttpHeaders): boolean => {
       return (
-        'content-encoding' in headers && headers['content-encoding'] === 'gzip'
+        'content-encoding' in incomingHeaders &&
+        incomingHeaders['content-encoding'] === 'gzip'
       )
     }
 

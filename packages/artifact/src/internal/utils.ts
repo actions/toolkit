@@ -2,7 +2,11 @@ import {debug, info} from '@actions/core'
 import {promises as fs} from 'fs'
 import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces'
+import {
+  IHeaders,
+  IHttpClientResponse,
+  IRequestOptions
+} from '@actions/http-client/interfaces'
 import {IncomingHttpHeaders} from 'http'
 import {
   getRuntimeToken,
@@ -135,33 +139,33 @@ export function getContentRange(
  * @param {string} acceptType the type of content that we can accept
  * @returns appropriate request options to make a specific http call during artifact download
  */
-export function getDownloadRequestOptions(
+export function getDownloadHeaders(
   contentType: string,
   isKeepAlive?: boolean,
   acceptGzip?: boolean
 ): IHeaders {
-  const requestOptions: IHeaders = {}
+  const headers: IHeaders = {}
 
   if (contentType) {
-    requestOptions['Content-Type'] = contentType
+    headers['Content-Type'] = contentType
   }
   if (isKeepAlive) {
-    requestOptions['Connection'] = 'Keep-Alive'
+    headers['Connection'] = 'Keep-Alive'
     // keep alive for at least 10 seconds before closing the connection
-    requestOptions['Keep-Alive'] = '10'
+    headers['Keep-Alive'] = '10'
   }
   if (acceptGzip) {
     // if we are expecting a response with gzip encoding, it should be using an octet-stream in the accept header
-    requestOptions['Accept-Encoding'] = 'gzip'
-    requestOptions[
+    headers['Accept-Encoding'] = 'gzip'
+    headers[
       'Accept'
     ] = `application/octet-stream;api-version=${getApiVersion()}`
   } else {
     // default to application/json if we are not working with gzip content
-    requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
+    headers['Accept'] = `application/json;api-version=${getApiVersion()}`
   }
 
-  return requestOptions
+  return headers
 }
 
 /**
@@ -172,9 +176,9 @@ export function getDownloadRequestOptions(
  * @param {number} uncompressedLength the original size of the content if something is being uploaded that has been compressed
  * @param {number} contentLength the length of the content that is being uploaded
  * @param {string} contentRange the range of the content that is being uploaded
- * @returns appropriate request options to make a specific http call during artifact upload
+ * @returns appropriate request headers to make a specific http call during artifact upload
  */
-export function getUploadRequestOptions(
+export function getUploadHeaders(
   contentType: string,
   isKeepAlive?: boolean,
   isGzip?: boolean,
@@ -182,34 +186,47 @@ export function getUploadRequestOptions(
   contentLength?: number,
   contentRange?: string
 ): IHeaders {
-  const requestOptions: IHeaders = {}
-  requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
+  const headers: IHeaders = {}
+  headers['Accept'] = `application/json;api-version=${getApiVersion()}`
   if (contentType) {
-    requestOptions['Content-Type'] = contentType
+    headers['Content-Type'] = contentType
   }
   if (isKeepAlive) {
-    requestOptions['Connection'] = 'Keep-Alive'
+    headers['Connection'] = 'Keep-Alive'
     // keep alive for at least 10 seconds before closing the connection
-    requestOptions['Keep-Alive'] = '10'
+    headers['Keep-Alive'] = '10'
   }
   if (isGzip) {
-    requestOptions['Content-Encoding'] = 'gzip'
-    requestOptions['x-tfs-filelength'] = uncompressedLength
+    headers['Content-Encoding'] = 'gzip'
+    headers['x-tfs-filelength'] = uncompressedLength
   }
   if (contentLength) {
-    requestOptions['Content-Length'] = contentLength
+    headers['Content-Length'] = contentLength
   }
   if (contentRange) {
-    requestOptions['Content-Range'] = contentRange
+    headers['Content-Range'] = contentRange
   }
 
-  return requestOptions
+  return headers
 }
 
+/**
+ * Creates a new http client that is used by the http-managers when making calls to either upload or download an artifact
+ */
 export function createHttpClient(): HttpClient {
-  return new HttpClient('action/artifact', [
-    new BearerCredentialHandler(getRuntimeToken())
-  ])
+  const requestOptions: IRequestOptions = {
+    // headers get set individually before each call as they can vary significantly
+    headers: [],
+    // keep alive is configured at the http-client level and is used by each client when making calls, this is independent
+    // of the keep-alive header that is used to let the remove server know how the connection should be treated
+    keepAlive: true
+  }
+
+  return new HttpClient(
+    'actions/artifact',
+    [new BearerCredentialHandler(getRuntimeToken())],
+    requestOptions
+  )
 }
 
 export function getArtifactUrl(): string {
