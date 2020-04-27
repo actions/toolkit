@@ -778,7 +778,7 @@ describe('mkdirP', () => {
     await io.mkdirP(getTestTemp())
     await fs.mkdir(rootPath)
     await fs.mkdir(realDirPath)
-    await fs.writeFile(realFilePath, 'test real_dir/file.txt contet')
+    await fs.writeFile(realFilePath, 'test real_dir/file.txt content')
     await createSymlinkDir(realDirPath, symlinkDirPath)
 
     await io.mkdirP(symlinkDirPath)
@@ -802,7 +802,7 @@ describe('mkdirP', () => {
     await io.mkdirP(getTestTemp())
     await fs.mkdir(rootPath)
     await fs.mkdir(realDirPath)
-    await fs.writeFile(realFilePath, 'test real_dir/file.txt contet')
+    await fs.writeFile(realFilePath, 'test real_dir/file.txt content')
     await createSymlinkDir(realDirPath, symlinkDirPath)
 
     const subDirPath = path.join(symlinkDirPath, 'sub_dir')
