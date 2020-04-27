@@ -305,7 +305,7 @@ export class UploadHttpClient {
           fs.createReadStream(uploadFilePath, {
             start,
             end,
-            autoClose: false
+            autoClose: true
           }),
           start,
           end,
@@ -396,7 +396,6 @@ export class UploadHttpClient {
     }
 
     const backOff = async (retryAfterValue?: number): Promise<void> => {
-      this.uploadHttpManager.disposeAndReplaceClient(httpClientIndex)
       if (retryAfterValue) {
         core.info(
           `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`

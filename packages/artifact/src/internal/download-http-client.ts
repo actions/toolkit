@@ -180,7 +180,6 @@ export class DownloadHttpClient {
           )
         )
       } else {
-        this.downloadHttpManager.disposeAndReplaceClient(httpClientIndex)
         if (retryAfterValue) {
           // Back off by waiting the specified time denoted by the retry-after header
           core.info(
