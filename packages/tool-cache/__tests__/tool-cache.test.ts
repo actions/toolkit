@@ -461,7 +461,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipPath: string = await io.which('zip')
+        const zipPath: string = await io.which('zip', true)
         await exec.exec(`"${zipPath}`, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
@@ -512,7 +512,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipPath: string = await io.which('zip')
+        const zipPath: string = await io.which('zip', true)
         await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
@@ -569,7 +569,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipPath: string = await io.which('zip')
+        const zipPath: string = await io.which('zip', true)
         await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
