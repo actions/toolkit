@@ -9,6 +9,8 @@ import * as path from 'path'
 export interface InputOptions {
   /** Optional. Whether the input is required. If required and not present, will throw. Defaults to false */
   required?: boolean
+  /** Optional. If the input is a secret and should be auto-masked from logs */
+  secret?: boolean
 }
 
 /**
@@ -71,6 +73,9 @@ export function getInput(name: string, options?: InputOptions): string {
     process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
   if (options && options.required && !val) {
     throw new Error(`Input required and not supplied: ${name}`)
+  }
+  if (options && options.secret) {
+    setSecret(val.trim());
   }
 
   return val.trim()

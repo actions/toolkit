@@ -109,6 +109,11 @@ describe('@actions/core', () => {
     )
   })
 
+  it('getInput masks secret inputs', () => {
+    expect(core.getInput('My InPuT', { secret: true })).toBe('val')
+    assertWriteCalls([`::add-mask::val${os.EOL}`])
+  })
+
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
     assertWriteCalls([`::set-output name=some output::some value${os.EOL}`])
