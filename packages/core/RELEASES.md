@@ -1,5 +1,9 @@
 # @actions/core Releases
 
+### 1.2.4
+- [Be more lenient in accepting non-string command inputs](https://github.com/actions/toolkit/pull/405)
+- [Add Echo commands](https://github.com/actions/toolkit/pull/411)
+
 ### 1.2.3
 
 - [IsDebug logging](README.md#logging)
