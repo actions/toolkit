@@ -110,7 +110,7 @@ describe('@actions/core', () => {
   })
 
   it('getInput masks secret inputs', () => {
-    expect(core.getInput('My InPuT', { secret: true })).toBe('val')
+    expect(core.getInput('My InPuT', {secret: true})).toBe('val')
     assertWriteCalls([`::add-mask::val${os.EOL}`])
   })
 

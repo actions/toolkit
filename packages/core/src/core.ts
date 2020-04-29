@@ -75,7 +75,7 @@ export function getInput(name: string, options?: InputOptions): string {
     throw new Error(`Input required and not supplied: ${name}`)
   }
   if (options && options.secret) {
-    setSecret(val.trim());
+    setSecret(val.trim())
   }
 
   return val.trim()
