@@ -189,6 +189,9 @@ describe('Utils', () => {
     )
     expect(utils.isRetryableStatusCode(HttpCodes.GatewayTimeout)).toEqual(true)
     expect(utils.isRetryableStatusCode(HttpCodes.TooManyRequests)).toEqual(true)
+    expect(utils.isRetryableStatusCode(HttpCodes.InternalServerError)).toEqual(
+      true
+    )
     expect(utils.isRetryableStatusCode(HttpCodes.OK)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.NotFound)).toEqual(false)
     expect(utils.isRetryableStatusCode(HttpCodes.Forbidden)).toEqual(false)
