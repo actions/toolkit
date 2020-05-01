@@ -62,7 +62,6 @@ export function isForbiddenStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
     return false
   }
-
   return statusCode === HttpCodes.Forbidden
 }
 
@@ -84,7 +83,6 @@ export function isThrottledStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
     return false
   }
-
   return statusCode === HttpCodes.TooManyRequests
 }
 
@@ -135,7 +133,7 @@ export function getContentRange(
  * @param {string} acceptType the type of content that we can accept
  * @returns appropriate request options to make a specific http call during artifact download
  */
-export function getDownloadRequestOptions(
+export function getDownloadHeaders(
   contentType: string,
   isKeepAlive?: boolean,
   acceptGzip?: boolean
@@ -174,7 +172,7 @@ export function getDownloadRequestOptions(
  * @param {string} contentRange the range of the content that is being uploaded
  * @returns appropriate request options to make a specific http call during artifact upload
  */
-export function getUploadRequestOptions(
+export function getUploadHeaders(
   contentType: string,
   isKeepAlive?: boolean,
   isGzip?: boolean,
@@ -207,7 +205,7 @@ export function getUploadRequestOptions(
 }
 
 export function createHttpClient(): HttpClient {
-  return new HttpClient('action/artifact', [
+  return new HttpClient('actions/artifact', [
     new BearerCredentialHandler(getRuntimeToken())
   ])
 }
