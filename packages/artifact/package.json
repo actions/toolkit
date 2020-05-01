@@ -36,10 +36,10 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.2.1",
-    "@actions/http-client": "^1.0.7",
-    "@types/tmp": "^0.1.0",
-    "tmp": "^0.1.0",
+    "@actions/core": "^1.2.4",
+    "@actions/http-client": "^1.0.8",
+    "@types/tmp": "^0.2.0",
+    "tmp": "^0.2.1",
     "tmp-promise": "^2.0.2"
   },
   "devDependencies": {
