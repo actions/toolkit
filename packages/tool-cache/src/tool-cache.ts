@@ -54,7 +54,7 @@ export async function downloadTool(
   const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
   return await retryHelper.execute(
     async () => {
-      return await downloadToolAttempt(url, dest || '', token);
+      return await downloadToolAttempt(url, dest || '', token)
     },
     (err: Error) => {
       if (err instanceof HTTPError && err.httpStatusCode) {
@@ -74,7 +74,11 @@ export async function downloadTool(
   )
 }
 
-async function downloadToolAttempt(url: string, dest: string, token?:string): Promise<string> {
+async function downloadToolAttempt(
+  url: string,
+  dest: string,
+  token?: string
+): Promise<string> {
   if (fs.existsSync(dest)) {
     throw new Error(`Destination file path ${dest} already exists`)
   }
@@ -84,14 +88,14 @@ async function downloadToolAttempt(url: string, dest: string, token?:string): Pr
     allowRetries: false
   })
 
-  let headers: IHeaders | undefined;
+  let headers: IHeaders | undefined
   if (token) {
     headers = {
       authorization: `token ${token}`
-    }    
+    }
   }
 
-  const response: httpm.HttpClientResponse = await http.get(url, headers);
+  const response: httpm.HttpClientResponse = await http.get(url, headers)
   if (response.message.statusCode !== 200) {
     const err = new HTTPError(response.message.statusCode)
     core.debug(
@@ -212,7 +216,7 @@ export async function extract7z(
 export async function extractTar(
   file: string,
   dest?: string,
-  flags: string = 'xz'
+  flags: string | string[] = 'xz'
 ): Promise<string> {
   if (!file) {
     throw new Error("parameter 'file' is required")
@@ -236,7 +240,12 @@ export async function extractTar(
   const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR')
 
   // Initialize args
-  const args = [flags]
+  let args: string[]
+  if (flags instanceof Array) {
+    args = flags
+  } else {
+    args = [flags]
+  }
 
   let destArg = dest
   let fileArg = file
