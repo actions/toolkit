@@ -350,15 +350,18 @@ describe('@actions/tool-cache', function() {
   } else if (IS_MAC) {
     it('extract .xar', async () => {
       const tempDir = path.join(tempPath, 'test-install.xar')
-
+      const sourcePath = path.join(__dirname, 'data', 'archive-content')
+      const targetPath = path.join(tempDir, 'test.xar')
       await io.mkdirP(tempDir)
 
-      // copy the .xar file to the test dir
-      const _xarFile: string = path.join(tempDir, 'test.xar')
-      await io.cp(path.join(__dirname, 'data', 'test.xar'), _xarFile)
+      // Create test archive
+      const xarPath = await io.which('xar', true)
+      await exec.exec(`${xarPath}`, ['-cf', targetPath, '.'], {
+        cwd: sourcePath
+      })
 
       // extract/cache
-      const extPath: string = await tc.extractXar(_xarFile, undefined, '-x')
+      const extPath: string = await tc.extractXar(targetPath, undefined, '-x')
       await tc.cacheDir(extPath, 'my-xar-contents', '1.1.0')
       const toolPath: string = tc.find('my-xar-contents', '1.1.0')
 

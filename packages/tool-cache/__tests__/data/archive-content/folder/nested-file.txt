@@ -1,0 +1,1 @@
+folder/nested-file.txt contents
