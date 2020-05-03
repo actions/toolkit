@@ -29,6 +29,10 @@ if (process.platform === 'win32') {
   const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.7z');
   const node12ExtractedFolder = await tc.extract7z(node12Path, 'path/to/extract/to');
 }
+else if (process.platform === 'darwin') {
+  const swift5Path = await tc.downloadTool('https://swift.org/builds/swift-5.2.3-release/xcode/swift-5.2.3-RELEASE/swift-5.2.3-RELEASE-osx.pkg');
+  const swift5ExtractedFolder = await tc.extractXar(swift5Path, 'path/to/extract/to');
+}
 else {
   const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz');
   const node12ExtractedFolder = await tc.extractTar(node12Path, 'path/to/extract/to');
