@@ -272,8 +272,14 @@ export async function extractXar(
   ok(file, 'parameter "file" is required')
 
   dest = dest || (await _createExtractFolder(dest))
+  const args = [flags, '-C', dest, '-f', file]
+
+  if (core.isDebug() && !flags.includes('v')) {
+    args.push('-v')
+  }
+
   const xarPath: string = await io.which('xar', true)
-  await exec(`"${xarPath}"`, [flags, '-C', dest, '-f', file])
+  await exec(`"${xarPath}"`, args)
 
   return dest
 }
