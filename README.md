@@ -36,6 +36,15 @@ $ npm install @actions/exec --save
 ```
 <br/>
 
+:ice_cream: [@actions/glob](packages/glob)
+
+Provides functions to search for files matching glob patterns. Read more [here](packages/glob)
+
+```bash
+$ npm install @actions/glob --save
+```
+<br/>
+
 :pencil2: [@actions/io](packages/io) 
 
 Provides disk i/o functions like cp, mv, rmRF, find etc. Read more [here](packages/io)
@@ -63,6 +72,15 @@ $ npm install @actions/github --save
 ```
 <br/>
 
+:floppy_disk: [@actions/artifact](packages/artifact) 
+
+Provides functions to interact with actions artifacts. Read more [here](packages/artifact)
+
+```bash
+$ npm install @actions/artifact --save
+```
+<br/>
+
 ## Creating an Action with the Toolkit
 
 :question: [Choosing an action type](docs/action-types.md)
@@ -74,6 +92,18 @@ Outlines the differences and why you would want to create a JavaScript or a cont
 :curly_loop: [Versioning](docs/action-versioning.md)
 
 Actions are downloaded and run from the GitHub graph of repos.  This contains guidance for versioning actions and safe releases.
+<br/>
+<br/>
+
+:warning: [Problem Matchers](docs/problem-matchers.md)
+
+Problem Matchers are a way to scan the output of actions for a specified regex pattern and surface that information prominently in the UI.
+<br/>
+<br/>
+
+:warning: [Proxy Server Support](docs/proxy-support.md)
+
+Self-hosted runners can be configured to run behind proxy servers. 
 <br/>
 <br/>
 
@@ -167,13 +197,9 @@ console.log(`We can even get context data, like the repo: ${context.repo.repo}`)
 ```
 <br/>
 
-Recommendations on versioning, releases and tagging your action.
-<br/>
-<br/>
-
 ## Contributing
 
-We welcome contributions.  See [how to contribute](docs/contribute.md).
+We welcome contributions.  See [how to contribute](.github/CONTRIBUTING.md).
 
 ## Code of Conduct
 

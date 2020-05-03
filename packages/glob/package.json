@@ -1,0 +1,42 @@
+{
+  "name": "@actions/glob",
+  "version": "0.1.0",
+  "preview": true,
+  "description": "Actions glob lib",
+  "keywords": [
+    "github",
+    "actions",
+    "glob"
+  ],
+  "homepage": "https://github.com/actions/toolkit/tree/master/packages/glob",
+  "license": "MIT",
+  "main": "lib/glob.js",
+  "types": "lib/glob.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/toolkit.git",
+    "directory": "packages/glob"
+  },
+  "scripts": {
+    "audit-moderate": "npm install && npm audit --audit-level=moderate",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/actions/toolkit/issues"
+  },
+  "dependencies": {
+    "@actions/core": "^1.2.0",
+    "minimatch": "^3.0.4"
+  }
+}

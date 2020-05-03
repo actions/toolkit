@@ -4,7 +4,7 @@
 
 #### Basic
 
-You can use this package to execute your tools on the command line in a cross platform way:
+You can use this package to execute tools in a cross platform way:
 
 ```js
 const exec = require('@actions/exec');
@@ -48,13 +48,10 @@ await exec.exec('node', ['index.js', 'foo=bar'], options);
 
 #### Exec tools not in the PATH
 
-You can use it in conjunction with the `which` function from `@actions/io` to execute tools that are not in the PATH:
+You can specify the full path for tools not in the PATH:
 
 ```js
 const exec = require('@actions/exec');
-const io = require('@actions/io');
 
-const pythonPath: string = await io.which('python', true)
-
-await exec.exec(`"${pythonPath}"`, ['main.py']);
+await exec.exec('"/path/to/my-tool"', ['arg1']);
 ```

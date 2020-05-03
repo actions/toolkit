@@ -7,8 +7,8 @@ Examples:
 ```yaml
 steps:
     - uses: actions/javascript-action@v1        # recommended. starter workflows use this
-    - user: actions/javascript-action@v1.0.0    # if an action offers specific releases 
-    - uses: actions/javascript-action@41775a4   # binding to a specific sha 
+    - uses: actions/javascript-action@v1.0.0    # if an action offers specific releases 
+    - uses: actions/javascript-action@41775a4da8ffae865553a738ab8ac1cd5a3c0044 # sha
 ```
 
 # Compatibility
@@ -17,7 +17,7 @@ Binding to a major version is the latest of that major version ( e.g. `v1` == "1
 
 Major versions should guarantee compatibility.  A major version can add net new capabilities but should not break existing input compatibility or break existing workflows. 
 
-Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `master` branch has the latest code and is unstable to bind to since a breaking new major version may first get implemented in master.  
+Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `master` branch has the latest code and is unstable to bind to since changes get committed to master and released to the market place by creating a tag.  In addition, a new major version carrying breaking changes will get implemented in master after branching off the previous major version.
 
 > Warning: do not reference `master` since that is the latest code and can be carrying breaking changes of the next major version.
 
@@ -26,36 +26,35 @@ steps:
     - uses: actions/javascript-action@master  # do not do this
 ```
 
-Binding to the immutable sha1 may offer more reliability.  However, note that the hosted images toolsets (e.g. ubuntu-latest) move forward and if there is a tool breaking issue, actions may react with a patch to a major version to compensate so binding to a specific SHA may prevent you from getting fixes.
+Binding to the immutable full sha1 may offer more reliability.  However, note that the hosted images toolsets (e.g. ubuntu-latest) move forward and if there is a tool breaking issue, actions may react with a patch to a major version to compensate so binding to a specific SHA may prevent you from getting fixes.
 
 > Recommendation: bind to major versions to get functionality and fixes but reserve binding to a specific release or SHA as a mitigation strategy for unforeseen breaks. 
 
 # Recommendations
 
-1. **Create a release branch for each major version**: For example, `releases/v1`.  This will allow for releases of that major version while the development of a different major version proceeds.
+1. **Create a GitHub release for each specific version**: Creating a release like [ v1.0.0 ](https://github.com/actions/javascript-action/releases/tag/v1.0.0) allows users to bind back to a specific version if an issue is encountered with the latest major version.  
 
-2. **Validate changes referencing the release branch**:  
+2. **Publish the specific version to the marketplace**:  When you release a specific version, choose the option to "Publish this Action to the GitHub Marketplace".
 
-```yaml
-steps:
-    - uses: actions/sample-action@releases/v1
-```
+<img src="https://user-images.githubusercontent.com/33549821/78670739-36f5ae00-78ac-11ea-9660-57d5687ce520.png" alt="screenshot" height="250"/>
 
-3. **Create a GitHub release for each specific version**: Creating a release like [ v1.0.0 ](https://github.com/actions/javascript-action/releases/tag/v1.0.0) allows users to bind back to a specific version if an issue is encountered with the latest major version. 
-
-4. **Release that version by updating the major version tag**: Move the major version tag (v1, v2, etc.) to point to the ref of the current release. This will act as the stable release for that major version. You should keep this tag updated to the most recent stable minor/patch release.
+3. **Make the new release available to those binding to the major version tag**: Move the major version tag (v1, v2, etc.) to point to the ref of the current release. This will act as the stable release for that major version. You should keep this tag updated to the most recent stable minor/patch release.
 
 ```
-git checkout releases/v1
 git tag -fa v1 -m "Update v1 tag"
 git push origin v1 --force
 ```
+# Major Versions
 
-This will result in a major version tag and the latest specific version pointing to the same SHA.  See [javascript-action tags](https://github.com/actions/javascript-action/tags) as an example.
+All releases for a major version should hold compat including input compatibility and behavior compatibility.
 
-5. **Compatibility Breaks**:  introduce a new major version branch (releases/v2) and tag (v2) if changes will break existing workflows.  For example, changing inputs.
+Introduce a major version for compatibility breaks and major rewrites of the action.
 
-See [Git-Basics-Tagging](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
+Ideally, a major version would carry other benefits to the user to entice them to upgrade their workflows.  Since updating their workflows will need to be done with an understanding of the changes and what compatibility was broken, introducing a new major version shouldn't be taken lightly. 
+
+To get feedback and to set expectations, the new major version can be initially released with `v2-beta` tag to indicate you can try it out but it's still going under some churn.  Upon release the `-beta` can be dropped and there's an expectation of compatibility from that point forward.
+
+[An example of v2-beta with checkout](https://github.com/actions/checkout/tree/c170eefc2657d93cc91397be50a299bff978a052#checkout-v2-beta)
 
 # Sample Workflow
 

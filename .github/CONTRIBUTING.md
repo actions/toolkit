@@ -1,4 +1,23 @@
-## Development
+# Contributions
+
+We welcome contributions in the form of issues and pull requests.  We view the contributions and process as the same for internal and external contributors.
+
+## Issues
+
+Log issues for both bugs and enhancement requests.  Logging issues are important for the open community.
+
+Issues in this repository should be for the toolkit packages.  Runner specific issues can be filed [in the runner repository](https://github.com/actions/runner).
+
+## Enhancements and Feature Requests
+
+We ask that before significant effort is put into code changes, that we have agreement on taking the change before time is invested in code changes. 
+
+1. Create a feature request. 
+2. When we agree to take the enhancement, create an ADR to agree on the details of the change.
+
+An ADR is an Architectural Decision Record.  This allows consensus on the direction forward and also serves as a record of the change and motivation. [Read more here](../docs/adrs/README.md).
+
+## Development Life Cycle
 
 This repository uses [Lerna](https://github.com/lerna/lerna#readme) to manage multiple packages. Read the documentation there to begin contributing.
 
@@ -37,4 +56,4 @@ This will ask you some questions about the new package. Start with `0.0.0` as th
 }
 ```
 
-3. Start developing 😄 and open a pull request.
+3. Start developing 😄.

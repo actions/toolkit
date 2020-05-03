@@ -27,11 +27,8 @@ export class Context {
           readFileSync(process.env.GITHUB_EVENT_PATH, {encoding: 'utf8'})
         )
       } else {
-        process.stdout.write(
-          `GITHUB_EVENT_PATH ${
-            process.env.GITHUB_EVENT_PATH
-          } does not exist${EOL}`
-        )
+        const path = process.env.GITHUB_EVENT_PATH
+        process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${EOL}`)
       }
     }
     this.eventName = process.env.GITHUB_EVENT_NAME as string
@@ -47,7 +44,7 @@ export class Context {
 
     return {
       ...this.repo,
-      number: (payload.issue || payload.pullRequest || payload).number
+      number: (payload.issue || payload.pull_request || payload).number
     }
   }
 

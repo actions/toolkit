@@ -1,8 +1,11 @@
 import * as os from 'os'
 import * as events from 'events'
 import * as child from 'child_process'
+import * as path from 'path'
 import * as stream from 'stream'
 import * as im from './interfaces'
+import * as io from '@actions/io'
+import * as ioUtil from '@actions/io/lib/io-util'
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -392,6 +395,24 @@ export class ToolRunner extends events.EventEmitter {
    * @returns   number
    */
   async exec(): Promise<number> {
+    // root the tool path if it is unrooted and contains relative pathing
+    if (
+      !ioUtil.isRooted(this.toolPath) &&
+      (this.toolPath.includes('/') ||
+        (IS_WINDOWS && this.toolPath.includes('\\')))
+    ) {
+      // prefer options.cwd if it is specified, however options.cwd may also need to be rooted
+      this.toolPath = path.resolve(
+        process.cwd(),
+        this.options.cwd || process.cwd(),
+        this.toolPath
+      )
+    }
+
+    // if the tool is only a file name, then resolve it from the PATH
+    // otherwise verify it exists (add extension on Windows if necessary)
+    this.toolPath = await io.which(this.toolPath, true)
+
     return new Promise<number>((resolve, reject) => {
       this._debug(`exec tool: ${this.toolPath}`)
       this._debug('arguments:')
@@ -503,6 +524,14 @@ export class ToolRunner extends events.EventEmitter {
           resolve(exitCode)
         }
       })
+
+      if (this.options.input) {
+        if (!cp.stdin) {
+          throw new Error('child process missing stdin')
+        }
+
+        cp.stdin.end(this.options.input)
+      }
     })
   }
 }
@@ -618,23 +647,15 @@ class ExecState extends events.EventEmitter {
     if (this.processExited) {
       if (this.processError) {
         error = new Error(
-          `There was an error when attempting to execute the process '${
-            this.toolPath
-          }'. This may indicate the process failed to start. Error: ${
-            this.processError
-          }`
+          `There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`
         )
       } else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
         error = new Error(
-          `The process '${this.toolPath}' failed with exit code ${
-            this.processExitCode
-          }`
+          `The process '${this.toolPath}' failed with exit code ${this.processExitCode}`
         )
       } else if (this.processStderr && this.options.failOnStdErr) {
         error = new Error(
-          `The process '${
-            this.toolPath
-          }' failed because one or more lines were written to the STDERR stream`
+          `The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`
         )
       }
     }

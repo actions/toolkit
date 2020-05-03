@@ -1,23 +1,34 @@
 name: toolkit-unit-tests
-on: 
+on:
   push:
+    branches:
+      - master
     paths-ignore:
       - '**.md'
   pull_request:
     paths-ignore:
-      - '**.md'     
+      - '**.md'
+
 jobs:
-  Ubuntu:
-    name: Run Ubuntu
-    runs-on: ubuntu-latest
+
+  build:
+    name: Build
+
+    strategy:
+      matrix:
+        runs-on: [ubuntu-latest, macOS-latest, windows-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.runs-on }}
+
     steps:
     - name: Checkout
-      uses: actions/checkout@master
+      uses: actions/checkout@v2
 
-    - name: Set Node.js 10.x
-      uses: actions/setup-node@master
+    - name: Set Node.js 12.x
+      uses: actions/setup-node@v1
       with:
-        node-version: 10.x
+        node-version: 12.x
 
     - name: npm install
       run: npm install
@@ -30,58 +41,19 @@ jobs:
 
     - name: npm test
       run: npm test
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
 
     - name: Lint
       run: npm run lint
 
     - name: Format
       run: npm run format-check
-  macOS:
-    name: Run macOS
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@master
 
-      - name: Set Node.js 10.x
-        uses: actions/setup-node@master
-        with:
-          node-version: 10.x
+    - name: audit tools
+      run: npm audit --audit-level=moderate
+      if: matrix.runs-on == 'ubuntu-latest'
 
-      - name: npm install
-        run: npm install
-
-      - name: Bootstrap
-        run: npm run bootstrap
-
-      - name: Compile
-        run: npm run build
-
-      - name: npm test
-        run: npm test
-  Windows:
-    name: Run Windows
-    runs-on: windows-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@master
-
-    - name: Set Node.js 10.x
-      uses: actions/setup-node@master
-      with:
-        node-version: 10.x
-
-    - name: npm install
-      run: npm install
-
-    - name: Bootstrap
-      run: npm run bootstrap
-
-    - name: Compile
-      run: npm run build
-
-    # TODO: This currently ignores exec due to issues with Node and spawning on Windows, which I think is exacerbated by Jest.
-    # It doesn't seem to affect behavior in actions themselves, just when testing with Jest.
-    # See other similar issues here: https://github.com/nodejs/node/issues/25484
-    - name: npm test
-      run: npm run test-ci
+    - name: audit packages
+      run: npm run audit-all
+      if: matrix.runs-on == 'ubuntu-latest'

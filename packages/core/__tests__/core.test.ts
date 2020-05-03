@@ -37,21 +37,31 @@ describe('@actions/core', () => {
 
   it('exportVariable produces the correct command and sets the env', () => {
     core.exportVariable('my var', 'var val')
-    assertWriteCalls([`::set-env name=my var,::var val${os.EOL}`])
+    assertWriteCalls([`::set-env name=my var::var val${os.EOL}`])
   })
 
   it('exportVariable escapes variable names', () => {
-    core.exportVariable('special char var \r\n];', 'special val')
-    expect(process.env['special char var \r\n];']).toBe('special val')
+    core.exportVariable('special char var \r\n,:', 'special val')
+    expect(process.env['special char var \r\n,:']).toBe('special val')
     assertWriteCalls([
-      `::set-env name=special char var %0D%0A%5D%3B,::special val${os.EOL}`
+      `::set-env name=special char var %0D%0A%2C%3A::special val${os.EOL}`
     ])
   })
 
   it('exportVariable escapes variable values', () => {
     core.exportVariable('my var2', 'var val\r\n')
     expect(process.env['my var2']).toBe('var val\r\n')
-    assertWriteCalls([`::set-env name=my var2,::var val%0D%0A${os.EOL}`])
+    assertWriteCalls([`::set-env name=my var2::var val%0D%0A${os.EOL}`])
+  })
+
+  it('exportVariable handles boolean inputs', () => {
+    core.exportVariable('my var', true)
+    assertWriteCalls([`::set-env name=my var::true${os.EOL}`])
+  })
+
+  it('exportVariable handles number inputs', () => {
+    core.exportVariable('my var', 5)
+    assertWriteCalls([`::set-env name=my var::5${os.EOL}`])
   })
 
   it('setSecret produces the correct command', () => {
@@ -101,19 +111,36 @@ describe('@actions/core', () => {
 
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
-    assertWriteCalls([`::set-output name=some output,::some value${os.EOL}`])
+    assertWriteCalls([`::set-output name=some output::some value${os.EOL}`])
   })
 
-  it('setFailure sets the correct exit code and failure message', () => {
+  it('setOutput handles bools', () => {
+    core.setOutput('some output', false)
+    assertWriteCalls([`::set-output name=some output::false${os.EOL}`])
+  })
+
+  it('setOutput handles numbers', () => {
+    core.setOutput('some output', 1.01)
+    assertWriteCalls([`::set-output name=some output::1.01${os.EOL}`])
+  })
+
+  it('setFailed sets the correct exit code and failure message', () => {
     core.setFailed('Failure message')
     expect(process.exitCode).toBe(core.ExitCode.Failure)
     assertWriteCalls([`::error::Failure message${os.EOL}`])
   })
 
-  it('setFailure escapes the failure message', () => {
+  it('setFailed escapes the failure message', () => {
     core.setFailed('Failure \r\n\nmessage\r')
     expect(process.exitCode).toBe(core.ExitCode.Failure)
     assertWriteCalls([`::error::Failure %0D%0A%0Amessage%0D${os.EOL}`])
+  })
+
+  it('setFailed handles Error', () => {
+    const message = 'this is my error message'
+    core.setFailed(new Error(message))
+    expect(process.exitCode).toBe(core.ExitCode.Failure)
+    assertWriteCalls([`::error::Error: ${message}${os.EOL}`])
   })
 
   it('error sets the correct error message', () => {
@@ -126,6 +153,12 @@ describe('@actions/core', () => {
     assertWriteCalls([`::error::Error message%0D%0A%0A${os.EOL}`])
   })
 
+  it('error handles an error object', () => {
+    const message = 'this is my error message'
+    core.error(new Error(message))
+    assertWriteCalls([`::error::Error: ${message}${os.EOL}`])
+  })
+
   it('warning sets the correct message', () => {
     core.warning('Warning')
     assertWriteCalls([`::warning::Warning${os.EOL}`])
@@ -134,6 +167,12 @@ describe('@actions/core', () => {
   it('warning escapes the message', () => {
     core.warning('\r\nwarning\n')
     assertWriteCalls([`::warning::%0D%0Awarning%0A${os.EOL}`])
+  })
+
+  it('warning handles an error object', () => {
+    const message = 'this is my error message'
+    core.warning(new Error(message))
+    assertWriteCalls([`::warning::Error: ${message}${os.EOL}`])
   })
 
   it('startGroup starts a new group', () => {
@@ -171,11 +210,44 @@ describe('@actions/core', () => {
 
   it('saveState produces the correct command', () => {
     core.saveState('state_1', 'some value')
-    assertWriteCalls([`::save-state name=state_1,::some value${os.EOL}`])
+    assertWriteCalls([`::save-state name=state_1::some value${os.EOL}`])
+  })
+
+  it('saveState handles numbers', () => {
+    core.saveState('state_1', 1)
+    assertWriteCalls([`::save-state name=state_1::1${os.EOL}`])
+  })
+
+  it('saveState handles bools', () => {
+    core.saveState('state_1', true)
+    assertWriteCalls([`::save-state name=state_1::true${os.EOL}`])
   })
 
   it('getState gets wrapper action state', () => {
     expect(core.getState('TEST_1')).toBe('state_val')
+  })
+
+  it('isDebug check debug state', () => {
+    const current = process.env['RUNNER_DEBUG']
+    try {
+      delete process.env.RUNNER_DEBUG
+      expect(core.isDebug()).toBe(false)
+
+      process.env['RUNNER_DEBUG'] = '1'
+      expect(core.isDebug()).toBe(true)
+    } finally {
+      process.env['RUNNER_DEBUG'] = current
+    }
+  })
+
+  it('setCommandEcho can enable echoing', () => {
+    core.setCommandEcho(true)
+    assertWriteCalls([`::echo::on${os.EOL}`])
+  })
+
+  it('setCommandEcho can disable echoing', () => {
+    core.setCommandEcho(false)
+    assertWriteCalls([`::echo::off${os.EOL}`])
   })
 })
 

@@ -1,5 +1,22 @@
 # @actions/core Releases
 
+### 1.2.4
+- [Be more lenient in accepting non-string command inputs](https://github.com/actions/toolkit/pull/405)
+- [Add Echo commands](https://github.com/actions/toolkit/pull/411)
+
+### 1.2.3
+
+- [IsDebug logging](README.md#logging)
+
+### 1.2.2
+
+- [Fix escaping for runner commands](https://github.com/actions/toolkit/pull/302)
+
+### 1.2.1
+
+- [Remove trailing comma from commands](https://github.com/actions/toolkit/pull/263)
+- [Add \"types\" to package.json](https://github.com/actions/toolkit/pull/221)
+
 ### 1.2.0
 
 - saveState and getState functions for wrapper tasks (on finally entry points that run post job)

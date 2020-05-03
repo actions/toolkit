@@ -53,7 +53,7 @@ describe('@actions/exec', () => {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
@@ -83,7 +83,7 @@ describe('@actions/exec', () => {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
@@ -113,12 +113,44 @@ describe('@actions/exec', () => {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(new Buffer(`hello${os.EOL}`))
+      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
       expect(outstream.write).toBeCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
       )
     }
+  })
+
+  it('Runs exec successfully with command from PATH', async () => {
+    const execOptions = getExecOptions()
+    const outStream = new StringStream()
+    execOptions.outStream = outStream
+    let output = ''
+    execOptions.listeners = {
+      stdout: (data: Buffer) => {
+        output += data.toString()
+      }
+    }
+
+    let exitCode = 1
+    let tool: string
+    let args: string[]
+    if (IS_WINDOWS) {
+      tool = 'cmd'
+      args = ['/c', 'echo', 'hello']
+    } else {
+      tool = 'sh'
+      args = ['-c', 'echo hello']
+    }
+
+    exitCode = await exec.exec(tool, args, execOptions)
+
+    expect(exitCode).toBe(0)
+    const rootedTool = await io.which(tool, true)
+    expect(outStream.getContents().split(os.EOL)[0]).toBe(
+      `[command]${rootedTool} ${args.join(' ')}`
+    )
+    expect(output.trim()).toBe(`hello`)
   })
 
   it('Exec fails with error on bad call', async () => {
@@ -173,7 +205,7 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     expect(outstream.write).toBeCalledWith(
-      new Buffer('this is output to stderr')
+      Buffer.from('this is output to stderr')
     )
   })
 
@@ -197,7 +229,7 @@ describe('@actions/exec', () => {
 
     expect(failed).toBe(true)
     expect(errstream.write).toBeCalledWith(
-      new Buffer('this is output to stderr')
+      Buffer.from('this is output to stderr')
     )
   })
 
@@ -232,11 +264,11 @@ describe('@actions/exec', () => {
     const _testExecOptions = getExecOptions()
     _testExecOptions.listeners = {
       stdout: (data: Buffer) => {
-        expect(data).toEqual(new Buffer('this is output to stdout'))
+        expect(data).toEqual(Buffer.from('this is output to stdout'))
         stdoutCalled = true
       },
       stderr: (data: Buffer) => {
-        expect(data).toEqual(new Buffer('this is output to stderr'))
+        expect(data).toEqual(Buffer.from('this is output to stderr'))
         stderrCalled = true
       }
     }
@@ -254,9 +286,53 @@ describe('@actions/exec', () => {
     expect(stderrCalled).toBeTruthy()
   })
 
+  it('Handles stdin shell', async () => {
+    let command: string
+    if (IS_WINDOWS) {
+      command = 'wait-for-input.cmd'
+    } else {
+      command = 'wait-for-input.sh'
+    }
+
+    const waitForInput: string = path.join(__dirname, 'scripts', command)
+
+    const _testExecOptions = getExecOptions()
+
+    _testExecOptions.listeners = {
+      stdout: (data: Buffer) => {
+        expect(data).toEqual(Buffer.from(`this is my input${os.EOL}`))
+      }
+    }
+
+    _testExecOptions.input = Buffer.from('this is my input')
+
+    const exitCode = await exec.exec(`"${waitForInput}"`, [], _testExecOptions)
+    expect(exitCode).toBe(0)
+  })
+
+  it('Handles stdin js', async () => {
+    const waitForInput: string = path.join(
+      __dirname,
+      'scripts',
+      'wait-for-input.js'
+    )
+
+    const _testExecOptions = getExecOptions()
+
+    _testExecOptions.listeners = {
+      stdout: (data: Buffer) => {
+        expect(data).toEqual(Buffer.from(`this is my input`))
+      }
+    }
+
+    _testExecOptions.input = Buffer.from('this is my input')
+
+    const nodePath = await io.which('node', true)
+    const exitCode = await exec.exec(nodePath, [waitForInput], _testExecOptions)
+    expect(exitCode).toBe(0)
+  })
+
   it('Handles child process holding streams open', async function() {
-    // this was timing out on some slower hosted macOS runs at default 5s
-    jest.setTimeout(10000)
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -300,11 +376,9 @@ describe('@actions/exec', () => {
     ).toBe(1)
 
     fs.unlinkSync(semaphorePath)
-  })
+  }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
   it('Handles child process holding streams open and non-zero exit code', async function() {
-    // this was timing out on some slower hosted macOS runs at default 5s
-    jest.setTimeout(10000)
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -356,7 +430,7 @@ describe('@actions/exec', () => {
     ).toBe(1)
 
     fs.unlinkSync(semaphorePath)
-  })
+  }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
   it('Handles child process holding streams open and stderr', async function() {
     const semaphorePath = path.join(
@@ -418,7 +492,165 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   })
 
+  it('Exec roots relative tool path using unrooted options.cwd', async () => {
+    let exitCode: number
+    let command: string
+    if (IS_WINDOWS) {
+      command = './print-args-cmd' // let ToolRunner resolve the extension
+    } else {
+      command = './print-args-sh.sh'
+    }
+    const execOptions = getExecOptions()
+    execOptions.cwd = 'scripts'
+    const outStream = new StringStream()
+    execOptions.outStream = outStream
+    let output = ''
+    execOptions.listeners = {
+      stdout: (data: Buffer) => {
+        output += data.toString()
+      }
+    }
+
+    const originalCwd = process.cwd()
+    try {
+      process.chdir(__dirname)
+      exitCode = await exec.exec(`${command} hello world`, [], execOptions)
+    } catch (err) {
+      process.chdir(originalCwd)
+      throw err
+    }
+
+    expect(exitCode).toBe(0)
+    const toolPath = path.resolve(
+      __dirname,
+      execOptions.cwd,
+      `${command}${IS_WINDOWS ? '.cmd' : ''}`
+    )
+    if (IS_WINDOWS) {
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${process.env.ComSpec} /D /S /C "${toolPath} hello world"`
+      )
+    } else {
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${toolPath} hello world`
+      )
+    }
+    expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
+  })
+
+  it('Exec roots relative tool path using rooted options.cwd', async () => {
+    let command: string
+    if (IS_WINDOWS) {
+      command = './print-args-cmd' // let ToolRunner resolve the extension
+    } else {
+      command = './print-args-sh.sh'
+    }
+    const execOptions = getExecOptions()
+    execOptions.cwd = path.join(__dirname, 'scripts')
+    const outStream = new StringStream()
+    execOptions.outStream = outStream
+    let output = ''
+    execOptions.listeners = {
+      stdout: (data: Buffer) => {
+        output += data.toString()
+      }
+    }
+
+    const exitCode = await exec.exec(`${command} hello world`, [], execOptions)
+
+    expect(exitCode).toBe(0)
+    const toolPath = path.resolve(
+      __dirname,
+      execOptions.cwd,
+      `${command}${IS_WINDOWS ? '.cmd' : ''}`
+    )
+    if (IS_WINDOWS) {
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${process.env.ComSpec} /D /S /C "${toolPath} hello world"`
+      )
+    } else {
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${toolPath} hello world`
+      )
+    }
+    expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
+  })
+
+  it('Exec roots relative tool path using process.cwd', async () => {
+    let exitCode: number
+    let command: string
+    if (IS_WINDOWS) {
+      command = 'scripts/print-args-cmd' // let ToolRunner resolve the extension
+    } else {
+      command = 'scripts/print-args-sh.sh'
+    }
+    const execOptions = getExecOptions()
+    const outStream = new StringStream()
+    execOptions.outStream = outStream
+    let output = ''
+    execOptions.listeners = {
+      stdout: (data: Buffer) => {
+        output += data.toString()
+      }
+    }
+
+    const originalCwd = process.cwd()
+    try {
+      process.chdir(__dirname)
+      exitCode = await exec.exec(`${command} hello world`, [], execOptions)
+    } catch (err) {
+      process.chdir(originalCwd)
+      throw err
+    }
+
+    expect(exitCode).toBe(0)
+    const toolPath = path.resolve(
+      __dirname,
+      `${command}${IS_WINDOWS ? '.cmd' : ''}`
+    )
+    if (IS_WINDOWS) {
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${process.env.ComSpec} /D /S /C "${toolPath} hello world"`
+      )
+    } else {
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${toolPath} hello world`
+      )
+    }
+    expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
+  })
+
   if (IS_WINDOWS) {
+    it('Exec roots relative tool path using process.cwd (Windows path separator)', async () => {
+      let exitCode: number
+      const command = 'scripts\\print-args-cmd' // let ToolRunner resolve the extension
+      const execOptions = getExecOptions()
+      const outStream = new StringStream()
+      execOptions.outStream = outStream
+      let output = ''
+      execOptions.listeners = {
+        stdout: (data: Buffer) => {
+          output += data.toString()
+        }
+      }
+
+      const originalCwd = process.cwd()
+      try {
+        process.chdir(__dirname)
+        exitCode = await exec.exec(`${command} hello world`, [], execOptions)
+      } catch (err) {
+        process.chdir(originalCwd)
+        throw err
+      }
+
+      expect(exitCode).toBe(0)
+      const toolPath = path.resolve(__dirname, `${command}.cmd`)
+      expect(outStream.getContents().split(os.EOL)[0]).toBe(
+        `[command]${process.env.ComSpec} /D /S /C "${toolPath} hello world"`
+      )
+      expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
+    })
+
     // Win specific quoting tests
     it('execs .exe with verbatim args (Windows)', async () => {
       const exePath = process.env.ComSpec
@@ -505,7 +737,7 @@ describe('@actions/exec', () => {
         `[command]"${exePath}" myarg1 myarg2`
       )
       expect(output.trim()).toBe("args[0]: 'myarg1'\r\nargs[1]: 'myarg2'")
-    })
+    }, 20000) // slower windows runs timeout, so upping timeout to 20s (from default of 5s)
 
     it('execs .cmd with a space and with verbatim args (Windows)', async () => {
       // this test validates the quoting that tool runner adds around the script path.
@@ -562,14 +794,46 @@ describe('@actions/exec', () => {
       const exitCode = await exec.exec(`"${cmdPath}"`, args, options)
       expect(exitCode).toBe(0)
       expect(outStream.getContents().split(os.EOL)[0]).toBe(
-        `[command]${
-          process.env.ComSpec
-        } /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`
+        `[command]${process.env.ComSpec} /D /S /C ""${cmdPath}" "my arg 1" "my arg 2""`
       )
       expect(output.trim()).toBe(
         'args[0]: "<quote>my arg 1<quote>"\r\n' +
           'args[1]: "<quote>my arg 2<quote>"'
       )
+    })
+
+    it('execs .cmd from path (Windows)', async () => {
+      // this test validates whether a .cmd is resolved from the PATH when the extension is not specified
+      const cmd = 'print-args-cmd' // note, not print-args-cmd.cmd
+      const cmdPath = path.join(__dirname, 'scripts', `${cmd}.cmd`)
+      const args: string[] = ['my arg 1', 'my arg 2']
+      const outStream = new StringStream()
+      let output = ''
+      const options = {
+        outStream: <stream.Writable>outStream,
+        listeners: {
+          stdout: (data: Buffer) => {
+            output += data.toString()
+          }
+        }
+      }
+
+      const originalPath = process.env['Path']
+      try {
+        process.env['Path'] = `${originalPath};${path.dirname(cmdPath)}`
+        const exitCode = await exec.exec(`${cmd}`, args, options)
+        expect(exitCode).toBe(0)
+        expect(outStream.getContents().split(os.EOL)[0]).toBe(
+          `[command]${process.env.ComSpec} /D /S /C "${cmdPath} "my arg 1" "my arg 2""`
+        )
+        expect(output.trim()).toBe(
+          'args[0]: "<quote>my arg 1<quote>"\r\n' +
+            'args[1]: "<quote>my arg 2<quote>"'
+        )
+      } catch (err) {
+        process.env['Path'] = originalPath
+        throw err
+      }
     })
 
     it('execs .cmd with arg quoting (Windows)', async () => {

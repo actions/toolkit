@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
+    "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
@@ -9,23 +10,23 @@
     "format-check": "prettier --check packages/**/*.ts",
     "lint": "eslint packages/**/*.ts",
     "new-package": "scripts/create-package",
-    "test": "jest",
-    "test-ci": "jest --testPathIgnorePatterns=\"<rootDir>/packages/exec/__tests__/exec.test.ts\""
+    "test": "jest --testTimeout 10000"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "@types/node": "^11.13.5",
     "@types/signale": "^1.2.1",
-    "@typescript-eslint/parser": "^1.9.0",
+    "@typescript-eslint/parser": "^2.2.7",
     "concurrently": "^4.1.0",
     "eslint": "^5.16.0",
     "eslint-plugin-github": "^2.0.0",
     "eslint-plugin-jest": "^22.5.1",
-    "jest": "^24.7.1",
+    "flow-bin": "^0.115.0",
+    "jest": "^25.1.0",
     "jest-circus": "^24.7.1",
-    "lerna": "^3.13.3",
-    "prettier": "^1.17.0",
-    "ts-jest": "^24.0.2",
-    "typescript": "^3.6.2"
+    "lerna": "^3.18.4",
+    "prettier": "^1.19.1",
+    "ts-jest": "^25.4.0",
+    "typescript": "^3.7.4"
   }
 }

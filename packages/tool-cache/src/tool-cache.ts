@@ -3,12 +3,15 @@ import * as io from '@actions/io'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import * as httpm from 'typed-rest-client/HttpClient'
+import * as httpm from '@actions/http-client'
 import * as semver from 'semver'
-import * as uuidV4 from 'uuid/v4'
+import * as stream from 'stream'
+import * as util from 'util'
+import uuidV4 from 'uuid/v4'
 import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
+import {RetryHelper} from './retry-helper'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -21,91 +24,96 @@ const IS_WINDOWS = process.platform === 'win32'
 const IS_MAC = process.platform === 'darwin'
 const userAgent = 'actions/tool-cache'
 
-// On load grab temp directory and cache directory and remove them from env (currently don't want to expose this)
-let tempDirectory: string = process.env['RUNNER_TEMP'] || ''
-let cacheRoot: string = process.env['RUNNER_TOOL_CACHE'] || ''
-// If directories not found, place them in common temp locations
-if (!tempDirectory || !cacheRoot) {
-  let baseLocation: string
-  if (IS_WINDOWS) {
-    // On windows use the USERPROFILE env variable
-    baseLocation = process.env['USERPROFILE'] || 'C:\\'
-  } else {
-    if (process.platform === 'darwin') {
-      baseLocation = '/Users'
-    } else {
-      baseLocation = '/home'
-    }
-  }
-  if (!tempDirectory) {
-    tempDirectory = path.join(baseLocation, 'actions', 'temp')
-  }
-  if (!cacheRoot) {
-    cacheRoot = path.join(baseLocation, 'actions', 'cache')
-  }
-}
-
 /**
  * Download a tool from an url and stream it into a file
  *
  * @param url       url of tool to download
+ * @param dest      path to download tool
  * @returns         path to downloaded tool
  */
-export async function downloadTool(url: string): Promise<string> {
-  // Wrap in a promise so that we can resolve from within stream callbacks
-  return new Promise<string>(async (resolve, reject) => {
-    try {
-      const http = new httpm.HttpClient(userAgent, [], {
-        allowRetries: true,
-        maxRetries: 3
-      })
-      const destPath = path.join(tempDirectory, uuidV4())
+export async function downloadTool(
+  url: string,
+  dest?: string
+): Promise<string> {
+  dest = dest || path.join(_getTempDirectory(), uuidV4())
+  await io.mkdirP(path.dirname(dest))
+  core.debug(`Downloading ${url}`)
+  core.debug(`Destination ${dest}`)
 
-      await io.mkdirP(tempDirectory)
-      core.debug(`Downloading ${url}`)
-      core.debug(`Downloading ${destPath}`)
-
-      if (fs.existsSync(destPath)) {
-        throw new Error(`Destination file path ${destPath} already exists`)
-      }
-
-      const response: httpm.HttpClientResponse = await http.get(url)
-
-      if (response.message.statusCode !== 200) {
-        const err = new HTTPError(response.message.statusCode)
-        core.debug(
-          `Failed to download from "${url}". Code(${
-            response.message.statusCode
-          }) Message(${response.message.statusMessage})`
-        )
-        throw err
-      }
-
-      const file: NodeJS.WritableStream = fs.createWriteStream(destPath)
-      file.on('open', async () => {
-        try {
-          const stream = response.message.pipe(file)
-          stream.on('close', () => {
-            core.debug('download complete')
-            resolve(destPath)
-          })
-        } catch (err) {
-          core.debug(
-            `Failed to download from "${url}". Code(${
-              response.message.statusCode
-            }) Message(${response.message.statusMessage})`
-          )
-          reject(err)
+  const maxAttempts = 3
+  const minSeconds = _getGlobal<number>(
+    'TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS',
+    10
+  )
+  const maxSeconds = _getGlobal<number>(
+    'TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS',
+    20
+  )
+  const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
+  return await retryHelper.execute(
+    async () => {
+      return await downloadToolAttempt(url, dest || '')
+    },
+    (err: Error) => {
+      if (err instanceof HTTPError && err.httpStatusCode) {
+        // Don't retry anything less than 500, except 408 Request Timeout and 429 Too Many Requests
+        if (
+          err.httpStatusCode < 500 &&
+          err.httpStatusCode !== 408 &&
+          err.httpStatusCode !== 429
+        ) {
+          return false
         }
-      })
-      file.on('error', err => {
-        file.end()
-        reject(err)
-      })
-    } catch (err) {
-      reject(err)
+      }
+
+      // Otherwise retry
+      return true
     }
+  )
+}
+
+async function downloadToolAttempt(url: string, dest: string): Promise<string> {
+  if (fs.existsSync(dest)) {
+    throw new Error(`Destination file path ${dest} already exists`)
+  }
+
+  // Get the response headers
+  const http = new httpm.HttpClient(userAgent, [], {
+    allowRetries: false
   })
+  const response: httpm.HttpClientResponse = await http.get(url)
+  if (response.message.statusCode !== 200) {
+    const err = new HTTPError(response.message.statusCode)
+    core.debug(
+      `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
+    )
+    throw err
+  }
+
+  // Download the response body
+  const pipeline = util.promisify(stream.pipeline)
+  const responseMessageFactory = _getGlobal<() => stream.Readable>(
+    'TEST_DOWNLOAD_TOOL_RESPONSE_MESSAGE_FACTORY',
+    () => response.message
+  )
+  const readStream = responseMessageFactory()
+  let succeeded = false
+  try {
+    await pipeline(readStream, fs.createWriteStream(dest))
+    core.debug('download complete')
+    succeeded = true
+    return dest
+  } finally {
+    // Error, delete dest before retry
+    if (!succeeded) {
+      core.debug('download failed')
+      try {
+        await io.rmRF(dest)
+      } catch (err) {
+        core.debug(`Failed to delete '${dest}'. ${err.message}`)
+      }
+    }
+  }
 }
 
 /**
@@ -131,15 +139,16 @@ export async function extract7z(
   ok(IS_WINDOWS, 'extract7z() not supported on current OS')
   ok(file, 'parameter "file" is required')
 
-  dest = dest || (await _createExtractFolder(dest))
+  dest = await _createExtractFolder(dest)
 
   const originalCwd = process.cwd()
   process.chdir(dest)
   if (_7zPath) {
     try {
+      const logLevel = core.isDebug() ? '-bb1' : '-bb0'
       const args: string[] = [
         'x', // eXtract files with full paths
-        '-bb1', // -bb[0-3] : set output log level
+        logLevel, // -bb[0-3] : set output log level
         '-bd', // disable progress indicator
         '-sccUTF-8', // set charset for for console input/output
         file
@@ -184,11 +193,11 @@ export async function extract7z(
 }
 
 /**
- * Extract a tar
+ * Extract a compressed tar archive
  *
  * @param file     path to the tar
  * @param dest     destination directory. Optional.
- * @param flags    flags for the tar. Optional.
+ * @param flags    flags for the tar command to use for extraction. Defaults to 'xz' (extracting gzipped tars). Optional.
  * @returns        path to the destination directory
  */
 export async function extractTar(
@@ -200,9 +209,48 @@ export async function extractTar(
     throw new Error("parameter 'file' is required")
   }
 
-  dest = dest || (await _createExtractFolder(dest))
-  const tarPath: string = await io.which('tar', true)
-  await exec(`"${tarPath}"`, [flags, '-C', dest, '-f', file])
+  // Create dest
+  dest = await _createExtractFolder(dest)
+
+  // Determine whether GNU tar
+  core.debug('Checking tar --version')
+  let versionOutput = ''
+  await exec('tar --version', [], {
+    ignoreReturnCode: true,
+    silent: true,
+    listeners: {
+      stdout: (data: Buffer) => (versionOutput += data.toString()),
+      stderr: (data: Buffer) => (versionOutput += data.toString())
+    }
+  })
+  core.debug(versionOutput.trim())
+  const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR')
+
+  // Initialize args
+  const args = [flags]
+
+  if (core.isDebug() && !flags.includes('v')) {
+    args.push('-v')
+  }
+
+  let destArg = dest
+  let fileArg = file
+  if (IS_WINDOWS && isGnuTar) {
+    args.push('--force-local')
+    destArg = dest.replace(/\\/g, '/')
+
+    // Technically only the dest needs to have `/` but for aesthetic consistency
+    // convert slashes in the file arg too.
+    fileArg = file.replace(/\\/g, '/')
+  }
+
+  if (isGnuTar) {
+    // Suppress warnings when using GNU tar to extract archives created by BSD tar
+    args.push('--warning=no-unknown-keyword')
+  }
+
+  args.push('-C', destArg, '-f', fileArg)
+  await exec(`tar`, args)
 
   return dest
 }
@@ -242,7 +290,7 @@ export async function extractZip(file: string, dest?: string): Promise<string> {
     throw new Error("parameter 'file' is required")
   }
 
-  dest = dest || (await _createExtractFolder(dest))
+  dest = await _createExtractFolder(dest)
 
   if (IS_WINDOWS) {
     await extractZipWin(file, dest)
@@ -260,7 +308,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
   const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
 
   // run powershell
-  const powershellPath = await io.which('powershell')
+  const powershellPath = await io.which('powershell', true)
   const args = [
     '-NoLogo',
     '-Sta',
@@ -275,8 +323,12 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
 }
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
-  const unzipPath = await io.which('unzip')
-  await exec(`"${unzipPath}"`, [file], {cwd: dest})
+  const unzipPath = await io.which('unzip', true)
+  const args = [file]
+  if (!core.isDebug()) {
+    args.unshift('-q')
+  }
+  await exec(`"${unzipPath}"`, args, {cwd: dest})
 }
 
 /**
@@ -391,7 +443,12 @@ export function find(
   let toolPath = ''
   if (versionSpec) {
     versionSpec = semver.clean(versionSpec) || ''
-    const cachePath = path.join(cacheRoot, toolName, versionSpec, arch)
+    const cachePath = path.join(
+      _getCacheDirectory(),
+      toolName,
+      versionSpec,
+      arch
+    )
     core.debug(`checking cache: ${cachePath}`)
     if (fs.existsSync(cachePath) && fs.existsSync(`${cachePath}.complete`)) {
       core.debug(`Found tool in cache ${toolName} ${versionSpec} ${arch}`)
@@ -413,7 +470,7 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
   const versions: string[] = []
 
   arch = arch || os.arch()
-  const toolPath = path.join(cacheRoot, toolName)
+  const toolPath = path.join(_getCacheDirectory(), toolName)
 
   if (fs.existsSync(toolPath)) {
     const children: string[] = fs.readdirSync(toolPath)
@@ -433,7 +490,7 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(tempDirectory, uuidV4())
+    dest = path.join(_getTempDirectory(), uuidV4())
   }
   await io.mkdirP(dest)
   return dest
@@ -445,7 +502,7 @@ async function _createToolPath(
   arch?: string
 ): Promise<string> {
   const folderPath = path.join(
-    cacheRoot,
+    _getCacheDirectory(),
     tool,
     semver.clean(version) || version,
     arch || ''
@@ -460,7 +517,7 @@ async function _createToolPath(
 
 function _completeToolPath(tool: string, version: string, arch?: string): void {
   const folderPath = path.join(
-    cacheRoot,
+    _getCacheDirectory(),
     tool,
     semver.clean(version) || version,
     arch || ''
@@ -505,4 +562,32 @@ function _evaluateVersions(versions: string[], versionSpec: string): string {
   }
 
   return version
+}
+
+/**
+ * Gets RUNNER_TOOL_CACHE
+ */
+function _getCacheDirectory(): string {
+  const cacheDirectory = process.env['RUNNER_TOOL_CACHE'] || ''
+  ok(cacheDirectory, 'Expected RUNNER_TOOL_CACHE to be defined')
+  return cacheDirectory
+}
+
+/**
+ * Gets RUNNER_TEMP
+ */
+function _getTempDirectory(): string {
+  const tempDirectory = process.env['RUNNER_TEMP'] || ''
+  ok(tempDirectory, 'Expected RUNNER_TEMP to be defined')
+  return tempDirectory
+}
+
+/**
+ * Gets a global variable
+ */
+function _getGlobal<T>(key: string, defaultValue: T): T {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const value = (global as any)[key] as T | undefined
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  return value !== undefined ? value : defaultValue
 }

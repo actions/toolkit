@@ -22,11 +22,11 @@ These can then be extracted in platform specific ways:
 const tc = require('@actions/tool-cache');
 
 if (process.platform === 'win32') {
-  const node12Path = tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip');
+  const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip');
   const node12ExtractedFolder = await tc.extractZip(node12Path, 'path/to/extract/to');
 
   // Or alternately
-  const node12Path = tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.7z');
+  const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.7z');
   const node12ExtractedFolder = await tc.extract7z(node12Path, 'path/to/extract/to');
 }
 else {
@@ -37,7 +37,7 @@ else {
 
 #### Cache
 
-Finally, you can cache these directories in our tool-cache. This is useful if you want to switch back and forth between versions of a tool, or save a tool between runs for private runners (private runners are still in development but are on the roadmap).
+Finally, you can cache these directories in our tool-cache. This is useful if you want to switch back and forth between versions of a tool, or save a tool between runs for self-hosted runners.
 
 You'll often want to add it to the path as part of this step:
 
@@ -57,7 +57,7 @@ You can also cache files for reuse.
 ```js
 const tc = require('@actions/tool-cache');
 
-tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
+const cachedPath = await tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
 ```
 
 #### Find
