@@ -3,7 +3,7 @@ import {WebhookPayload} from './interfaces'
 import {readFileSync, existsSync} from 'fs'
 import {EOL} from 'os'
 
-export class Context {
+export class Context {959266237511]
   /**
    * Webhook payload object that triggered the workflow
    */
