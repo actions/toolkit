@@ -20,112 +20,95 @@ beforeAll(() => {
 })
 
 test('restore with no path should fail', async () => {
-  const inputPath = ''
+  const paths: string[] = []
   const key = 'node-test'
-  const failedMock = jest.spyOn(core, 'setFailed')
-  await restoreCache(inputPath, key)
-  expect(failedMock).toHaveBeenCalledWith(
-    'Input required and not supplied: path'
+  await expect(restoreCache(paths, key)).rejects.toThrowError(
+    `Path Validation Error: At least one directory or file path is required`
   )
 })
 
 test('restore with too many keys should fail', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'node-test'
   const restoreKeys = [...Array(20).keys()].map(x => x.toString())
-  const failedMock = jest.spyOn(core, 'setFailed')
-  await restoreCache(inputPath, key, restoreKeys)
-  expect(failedMock).toHaveBeenCalledWith(
+  await expect(restoreCache(paths, key, restoreKeys)).rejects.toThrowError(
     `Key Validation Error: Keys are limited to a maximum of 10.`
   )
 })
 
 test('restore with large key should fail', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'foo'.repeat(512) // Over the 512 character limit
-  const failedMock = jest.spyOn(core, 'setFailed')
-  await restoreCache(inputPath, key)
-  expect(failedMock).toHaveBeenCalledWith(
+  await expect(restoreCache(paths, key)).rejects.toThrowError(
     `Key Validation Error: ${key} cannot be larger than 512 characters.`
   )
 })
 
 test('restore with invalid key should fail', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'comma,comma'
-  const failedMock = jest.spyOn(core, 'setFailed')
-  await restoreCache(inputPath, key)
-  expect(failedMock).toHaveBeenCalledWith(
+  await expect(restoreCache(paths, key)).rejects.toThrowError(
     `Key Validation Error: ${key} cannot contain commas.`
   )
 })
 
 test('restore with no cache found', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'node-test'
 
   const infoMock = jest.spyOn(core, 'info')
-  const failedMock = jest.spyOn(core, 'setFailed')
-
   const clientMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
   clientMock.mockImplementation(async () => {
     return Promise.resolve(null)
   })
 
-  await restoreCache(inputPath, key)
+  const cacheKey = await restoreCache(paths, key)
 
-  expect(failedMock).toHaveBeenCalledTimes(0)
+  expect(cacheKey).toBe(undefined)
   expect(infoMock).toHaveBeenCalledWith(
     `Cache not found for input keys: ${key}`
   )
 })
 
 test('restore with server error should fail', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'node-test'
-
-  const logWarningMock = jest.spyOn(cacheUtils, 'logWarning')
-  const failedMock = jest.spyOn(core, 'setFailed')
 
   const clientMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
   clientMock.mockImplementation(() => {
     throw new Error('HTTP Error Occurred')
   })
 
-  await restoreCache(inputPath, key)
-
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
-  expect(logWarningMock).toHaveBeenCalledWith('HTTP Error Occurred')
-  expect(failedMock).toHaveBeenCalledTimes(0)
+  await expect(restoreCache(paths, key)).rejects.toThrowError(
+    'HTTP Error Occurred'
+  )
 })
 
 test('restore with restore keys and no cache found', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'node-test'
   const restoreKey = 'node-'
 
   const infoMock = jest.spyOn(core, 'info')
-  const failedMock = jest.spyOn(core, 'setFailed')
 
   const clientMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
   clientMock.mockImplementation(async () => {
     return Promise.resolve(null)
   })
 
-  await restoreCache(inputPath, key, [restoreKey])
+  const cacheKey = await restoreCache(paths, key, [restoreKey])
 
-  expect(failedMock).toHaveBeenCalledTimes(0)
+  expect(cacheKey).toBe(undefined)
   expect(infoMock).toHaveBeenCalledWith(
     `Cache not found for input keys: ${key}, ${restoreKey}`
   )
 })
 
 test('restore with gzip compressed cache found', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'node-test'
 
   const infoMock = jest.spyOn(core, 'info')
-  const failedMock = jest.spyOn(core, 'setFailed')
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: key,
@@ -160,9 +143,10 @@ test('restore with gzip compressed cache found', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValue(Promise.resolve(compression))
 
-  await restoreCache(inputPath, key)
+  const cacheKey = await restoreCache(paths, key)
 
-  expect(getCacheMock).toHaveBeenCalledWith([key], inputPath, {
+  expect(cacheKey).toBe(key)
+  expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
     compressionMethod: compression
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
@@ -179,16 +163,14 @@ test('restore with gzip compressed cache found', async () => {
   expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
 
   expect(infoMock).toHaveBeenCalledWith(`Cache restored from key: ${key}`)
-  expect(failedMock).toHaveBeenCalledTimes(0)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
 test('restore with a pull request event and zstd compressed cache found', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'node-test'
 
   const infoMock = jest.spyOn(core, 'info')
-  const failedMock = jest.spyOn(core, 'setFailed')
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: key,
@@ -220,9 +202,10 @@ test('restore with a pull request event and zstd compressed cache found', async 
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValue(Promise.resolve(compression))
 
-  await restoreCache(inputPath, key)
+  const cacheKey = await restoreCache(paths, key)
 
-  expect(getCacheMock).toHaveBeenCalledWith([key], inputPath, {
+  expect(cacheKey).toBe(key)
+  expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
     compressionMethod: compression
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
@@ -237,17 +220,15 @@ test('restore with a pull request event and zstd compressed cache found', async 
   expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
 
   expect(infoMock).toHaveBeenCalledWith(`Cache restored from key: ${key}`)
-  expect(failedMock).toHaveBeenCalledTimes(0)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
 test('restore with cache found for restore key', async () => {
-  const inputPath = 'node_modules'
+  const paths = ['node_modules']
   const key = 'node-test'
   const restoreKey = 'node-'
 
   const infoMock = jest.spyOn(core, 'info')
-  const failedMock = jest.spyOn(core, 'setFailed')
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: restoreKey,
@@ -279,9 +260,10 @@ test('restore with cache found for restore key', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValue(Promise.resolve(compression))
 
-  await restoreCache(inputPath, key, [restoreKey])
+  const cacheKey = await restoreCache(paths, key, [restoreKey])
 
-  expect(getCacheMock).toHaveBeenCalledWith([key, restoreKey], inputPath, {
+  expect(cacheKey).toBe(restoreKey)
+  expect(getCacheMock).toHaveBeenCalledWith([key, restoreKey], paths, {
     compressionMethod: compression
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
@@ -298,6 +280,5 @@ test('restore with cache found for restore key', async () => {
   expect(infoMock).toHaveBeenCalledWith(
     `Cache restored from key: ${restoreKey}`
   )
-  expect(failedMock).toHaveBeenCalledTimes(0)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })

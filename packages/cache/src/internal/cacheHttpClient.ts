@@ -84,10 +84,10 @@ function createHttpClient(): HttpClient {
 }
 
 export function getCacheVersion(
-  inputPath: string,
+  paths: string[],
   compressionMethod?: CompressionMethod
 ): string {
-  const components = [inputPath].concat(
+  const components = paths.concat(
     compressionMethod === CompressionMethod.Zstd ? [compressionMethod] : []
   )
 
@@ -102,11 +102,11 @@ export function getCacheVersion(
 
 export async function getCacheEntry(
   keys: string[],
-  inputPath: string,
+  paths: string[],
   options?: CacheOptions
 ): Promise<ArtifactCacheEntry | null> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(inputPath, options?.compressionMethod)
+  const version = getCacheVersion(paths, options?.compressionMethod)
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
   )}&version=${version}`
@@ -177,11 +177,11 @@ export async function downloadCache(
 // Reserve Cache
 export async function reserveCache(
   key: string,
-  inputPath: string,
+  paths: string[],
   options?: CacheOptions
 ): Promise<number> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(inputPath, options?.compressionMethod)
+  const version = getCacheVersion(paths, options?.compressionMethod)
 
   const reserveCacheRequest: ReserveCacheRequest = {
     key,

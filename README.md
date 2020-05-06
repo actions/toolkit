@@ -87,7 +87,7 @@ $ npm install @actions/artifact --save
 Provides functions to interact with actions cache. Read more [here](packages/cache)
 
 ```bash
-$ npm install @actions/artifact --save
+$ npm install @actions/cache --save
 ```
 <br/>
 
