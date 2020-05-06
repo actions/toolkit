@@ -1,0 +1,49 @@
+{
+  "name": "@actions/cache",
+  "version": "0.0.0",
+  "preview": true,
+  "description": "Actions artifact cache lib",
+  "keywords": [
+    "github",
+    "actions",
+    "cache"
+  ],
+  "homepage": "https://github.com/actions/toolkit/tree/master/packages/cache",
+  "license": "MIT",
+  "main": "lib/cache.js",
+  "types": "lib/cache.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/toolkit.git",
+    "directory": "packages/cache"
+  },
+  "scripts": {
+    "audit-moderate": "npm install && npm audit --audit-level=moderate",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/actions/toolkit/issues"
+  },
+  "dependencies": {
+    "@actions/core": "^1.2.4",
+    "@actions/exec": "^1.0.1",
+    "@actions/glob": "^0.1.0",
+    "@actions/http-client": "^1.0.8",
+    "@actions/io": "^1.0.1",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/uuid": "^3.4.5"
+  }
+}

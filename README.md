@@ -82,6 +82,15 @@ $ npm install @actions/artifact --save
 ```
 <br/>
 
+:dart: [@actions/cache](packages/cache) 
+
+Provides functions to interact with actions cache. Read more [here](packages/cache)
+
+```bash
+$ npm install @actions/artifact --save
+```
+<br/>
+
 ## Creating an Action with the Toolkit
 
 :question: [Choosing an action type](docs/action-types.md)
