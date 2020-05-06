@@ -6,7 +6,7 @@ We welcome contributions in the form of issues and pull requests.  We view the c
 
 Log issues for both bugs and enhancement requests.  Logging issues are important for the open community.
 
-Issues in this repository should be for the toolkit packages.  Runner specific issues can be filed [in the runner repository](https://github.com/actions/runner).
+Issues in this repository should be for the toolkit packages. General feedback for GitHub Actions should be filed in the [community forums.](https://github.community/t5/GitHub-Actions/bd-p/actions) Runner specific issues can be filed [in the runner repository](https://github.com/actions/runner).
 
 ## Enhancements and Feature Requests
 
