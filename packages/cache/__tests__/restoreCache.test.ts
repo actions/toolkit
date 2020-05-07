@@ -57,8 +57,7 @@ test('restore with no cache found', async () => {
   const key = 'node-test'
 
   const infoMock = jest.spyOn(core, 'info')
-  const clientMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
-  clientMock.mockImplementation(async () => {
+  jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
     return Promise.resolve(null)
   })
 
@@ -74,8 +73,7 @@ test('restore with server error should fail', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
 
-  const clientMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
-  clientMock.mockImplementation(() => {
+  jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(() => {
     throw new Error('HTTP Error Occurred')
   })
 
@@ -91,8 +89,7 @@ test('restore with restore keys and no cache found', async () => {
 
   const infoMock = jest.spyOn(core, 'info')
 
-  const clientMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
-  clientMock.mockImplementation(async () => {
+  jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
     return Promise.resolve(null)
   })
 

@@ -42,7 +42,7 @@ test('save with large cache outputs should fail', async () => {
   const createTarMock = jest.spyOn(tar, 'createTar')
 
   const cacheSize = 6 * 1024 * 1024 * 1024 //~6GB, over the 5GB limit
-  jest.spyOn(cacheUtils, 'getArchiveFileSize').mockReturnValue(cacheSize)
+  jest.spyOn(cacheUtils, 'getArchiveFileSize').mockReturnValueOnce(cacheSize)
   const compression = CompressionMethod.Gzip
   const getCompressionMock = jest
     .spyOn(cacheUtils, 'getCompressionMethod')
@@ -108,7 +108,7 @@ test('save with server error should fail', async () => {
 
   const saveCacheMock = jest
     .spyOn(cacheHttpClient, 'saveCache')
-    .mockImplementationOnce(async () => {
+    .mockImplementationOnce(() => {
       throw new Error('HTTP Error Occurred')
     })
   const compression = CompressionMethod.Zstd
@@ -116,7 +116,7 @@ test('save with server error should fail', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-  await expect(await saveCache([filePath], primaryKey)).rejects.toThrowError(
+  await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
     'HTTP Error Occurred'
   )
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
