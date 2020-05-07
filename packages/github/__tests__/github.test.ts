@@ -1,6 +1,6 @@
 import * as http from 'http'
 import proxy from 'proxy'
-import {GitHub} from '../src/github'
+import {GitHub, GitHubEnterprise} from '../src/github'
 
 describe('@actions/github', () => {
   const proxyUrl = 'http://127.0.0.1:8080'
@@ -156,6 +156,36 @@ describe('@actions/github', () => {
     )
     expect(repository).toEqual({repository: {name: 'toolkit'}})
     expect(proxyConnects).toEqual(['api.github.com:443'])
+  })
+
+  it('basic REST client enterprise', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+
+    const octokit = new GitHubEnterprise(token)
+    const branch = await octokit.repos.getBranch({
+      owner: 'actions',
+      repo: 'toolkit',
+      branch: 'master'
+    })
+    expect(branch.data.name).toBe('master')
+    expect(proxyConnects).toHaveLength(0)
+  })
+
+  it('basic REST client enterprise call', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+    const octokit = new GitHubEnterprise(token)
+    // will fail endpoint does not exist on dotcom, but it makes the call
+    try {
+      await octokit.enterpriseAdmin.checkMaintenanceStatus()
+    } catch (error) {
+      expect(error.toString()).toBe('HttpError: Not Found')
+    }
   })
 
   function getToken(): string {
