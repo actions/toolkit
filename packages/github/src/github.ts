@@ -61,6 +61,9 @@ export class GitHub extends Octokit {
     const token = args[0]
     const options = {...args[1]} // Shallow clone - don't mutate the object provided by the caller
 
+    // Base URL - GHES or Dotcom
+    options.baseUrl = options.baseUrl || this.getApiBaseUrl()
+
     // Auth
     const auth = GitHub.getAuthString(token, options)
     if (auth) {
@@ -68,7 +71,7 @@ export class GitHub extends Octokit {
     }
 
     // Proxy
-    const agent = GitHub.getProxyAgent(options)
+    const agent = GitHub.getProxyAgent(options.baseUrl, options)
     if (agent) {
       // Shallow clone - don't mutate the object provided by the caller
       options.request = options.request ? {...options.request} : {}
@@ -82,6 +85,7 @@ export class GitHub extends Octokit {
 
   private static getGraphQL(args: [string, Octokit.Options]): GraphQL {
     const defaults: GraphQLRequestParameters = {}
+    defaults.baseUrl = this.getGraphQLBaseUrl()
     const token = args[0]
     const options = args[1]
 
@@ -94,7 +98,7 @@ export class GitHub extends Octokit {
     }
 
     // Proxy
-    const agent = GitHub.getProxyAgent(options)
+    const agent = GitHub.getProxyAgent(defaults.baseUrl, options)
     if (agent) {
       defaults.request = {agent}
     }
@@ -119,16 +123,36 @@ export class GitHub extends Octokit {
   }
 
   private static getProxyAgent(
+    destinationUrl: string,
     options: Octokit.Options
   ): http.Agent | undefined {
     if (!options.request?.agent) {
-      const serverUrl = 'https://api.github.com'
-      if (httpClient.getProxyUrl(serverUrl)) {
+      if (httpClient.getProxyUrl(destinationUrl)) {
         const hc = new httpClient.HttpClient()
-        return hc.getAgent(serverUrl)
+        return hc.getAgent(destinationUrl)
       }
     }
 
     return undefined
+  }
+
+  private static getApiBaseUrl(): string {
+    return process.env['GITHUB_API_URL'] || 'https://api.github.com'
+  }
+
+  private static getGraphQLBaseUrl(): string {
+    let url =
+      process.env['GITHUB_GRAPHQL_URL'] || 'https://api.github.com/graphql'
+
+    // Shouldn't be a trailing slash, but remove if so
+    if (url.endsWith('/')) {
+      url = url.substr(0, url.length - 1)
+    }
+
+    // Remove trailing "/graphql"
+    if (url.toUpperCase().endsWith('/GRAPHQL')) {
+      url = url.substr(0, url.length - '/graphql'.length)
+    }
+    return url
   }
 }
