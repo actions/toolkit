@@ -38,8 +38,10 @@
   },
   "dependencies": {
     "@actions/http-client": "^1.0.3",
+    "@octokit/core": "^2.5.0",
     "@octokit/graphql": "^4.3.1",
-    "@octokit/rest": "^16.43.1"
+    "@octokit/plugin-paginate-rest": "^2.2.0",
+    "@octokit/plugin-rest-endpoint-methods": "^3.10.0"
   },
   "devDependencies": {
     "jest": "^25.1.0",

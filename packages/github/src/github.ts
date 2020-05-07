@@ -1,4 +1,8 @@
-// Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/master/src/github.ts
+// we need this to setup our constructors, it is not exported by default
+import {OctokitOptions} from '@octokit/core/dist-types/types'
+import * as Context from './context'
+import * as http from 'http'
+import * as httpClient from '@actions/http-client'
 import {graphql} from '@octokit/graphql'
 
 // we need this type to set up a property on the GitHub object
@@ -9,19 +13,19 @@ import {
   RequestParameters as GraphQLRequestParameters
 } from '@octokit/graphql/dist-types/types'
 
-import {Octokit} from '@octokit/rest'
-import * as Context from './context'
-import * as http from 'http'
-import * as httpClient from '@actions/http-client'
-
-// We need this in order to extend Octokit
-Octokit.prototype = new Octokit()
+// octokit + plugins
+import { Octokit as Core } from "@octokit/core";
+import { restEndpointMethods } from "@octokit/plugin-rest-endpoint-methods"
+import { paginateRest } from "@octokit/plugin-paginate-rest"
 
 export const context = new Context.Context()
 
-export class GitHub extends Octokit {
-  graphql: GraphQL
+const Octokit = Core.plugin(restEndpointMethods, paginateRest).defaults(
+  {
+    agent: getDefaultProxyAgent()
+  })
 
+export class GitHub extends Octokit {
   /* eslint-disable no-dupe-class-members */
   // Disable no-dupe-class-members due to false positive for method overload
   // https://github.com/typescript-eslint/typescript-eslint/issues/291
@@ -34,11 +38,10 @@ export class GitHub extends Octokit {
    * @param token  Auth token
    * @param opts   Octokit options
    */
-  constructor(token: string, opts?: Omit<Octokit.Options, 'auth'>)
-  constructor(opts: Octokit.Options)
-  constructor(token: string | Octokit.Options, opts?: Octokit.Options) {
+  constructor(token: string, opts?: Omit<OctokitOptions, 'auth'>)
+  constructor(opts: OctokitOptions)
+  constructor(token: string | OctokitOptions, opts?: OctokitOptions) {
     super(GitHub.getOctokitOptions(GitHub.disambiguate(token, opts)))
-
     this.graphql = GitHub.getGraphQL(GitHub.disambiguate(token, opts))
   }
 
@@ -46,9 +49,9 @@ export class GitHub extends Octokit {
    * Disambiguates the constructor overload parameters
    */
   private static disambiguate(
-    token: string | Octokit.Options,
-    opts?: Octokit.Options
-  ): [string, Octokit.Options] {
+    token: string | OctokitOptions,
+    opts?: OctokitOptions
+  ): [string, OctokitOptions] {
     return [
       typeof token === 'string' ? token : '',
       typeof token === 'object' ? token : opts || {}
@@ -56,8 +59,8 @@ export class GitHub extends Octokit {
   }
 
   private static getOctokitOptions(
-    args: [string, Octokit.Options]
-  ): Octokit.Options {
+    args: [string, OctokitOptions]
+  ): OctokitOptions {
     const token = args[0]
     const options = {...args[1]} // Shallow clone - don't mutate the object provided by the caller
 
@@ -83,7 +86,7 @@ export class GitHub extends Octokit {
     return options
   }
 
-  private static getGraphQL(args: [string, Octokit.Options]): GraphQL {
+  private static getGraphQL(args: [string, OctokitOptions]): GraphQL {
     const defaults: GraphQLRequestParameters = {}
     defaults.baseUrl = this.getGraphQLBaseUrl()
     const token = args[0]
@@ -108,7 +111,7 @@ export class GitHub extends Octokit {
 
   private static getAuthString(
     token: string,
-    options: Octokit.Options
+    options: OctokitOptions
   ): string | undefined {
     // Validate args
     if (!token && !options.auth) {
@@ -124,9 +127,9 @@ export class GitHub extends Octokit {
 
   private static getProxyAgent(
     destinationUrl: string,
-    options: Octokit.Options
+    options: OctokitOptions
   ): http.Agent | undefined {
-    if (!options.request?.agent) {
+    if (!options.request || !options.request.agent) {
       if (httpClient.getProxyUrl(destinationUrl)) {
         const hc = new httpClient.HttpClient()
         return hc.getAgent(destinationUrl)
@@ -154,5 +157,14 @@ export class GitHub extends Octokit {
       url = url.substr(0, url.length - '/graphql'.length)
     }
     return url
+  }
+}
+
+function getDefaultProxyAgent() : http.Agent | undefined
+{
+  const serverUrl = 'https://api.github.com'
+  if (httpClient.getProxyUrl(serverUrl)) {
+    const hc = new httpClient.HttpClient()
+    return hc.getAgent(serverUrl)
   }
 }
