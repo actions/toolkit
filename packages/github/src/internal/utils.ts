@@ -30,23 +30,10 @@ export function getOctokitOptions(
   const token = args[0]
   const options = {...args[1]} // Shallow clone - don't mutate the object provided by the caller
 
-  // Base URL - GHES or Dotcom
-  options.baseUrl = options.baseUrl || getApiBaseUrl()
-
   // Auth
   const auth = getAuthString(token, options)
   if (auth) {
     options.auth = auth
-  }
-
-  // Proxy
-  const agent = getProxyAgent(options.baseUrl, options)
-  if (agent) {
-    // Shallow clone - don't mutate the object provided by the caller
-    options.request = options.request ? {...options.request} : {}
-
-    // Set the agent
-    options.request.agent = agent
   }
 
   return options
@@ -79,7 +66,6 @@ export function getAuthString(
   token: string,
   options: OctokitOptions
 ): string | undefined {
-  // Validate args
   if (!token && !options.auth) {
     throw new Error('Parameter token or opts.auth is required')
   } else if (token && options.auth) {
@@ -91,15 +77,16 @@ export function getAuthString(
 
 export function getProxyAgent(
   destinationUrl: string,
-  options: OctokitOptions
+  options?: OctokitOptions
 ): http.Agent | undefined {
-  if (!options.request || !options.request.agent) {
+  if (!options || !options.request || !options.request.agent) {
     if (httpClient.getProxyUrl(destinationUrl)) {
       const hc = new httpClient.HttpClient()
       return hc.getAgent(destinationUrl)
     }
+  } else if (options && options.request && options.request.agent) {
+    return options.request.agent
   }
-
   return undefined
 }
 
