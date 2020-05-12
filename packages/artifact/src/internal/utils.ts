@@ -131,7 +131,7 @@ export function getContentRange(
  * @param {boolean} isKeepAlive is the same connection being used to make multiple calls
  * @param {boolean} acceptGzip can we accept a gzip encoded response
  * @param {string} acceptType the type of content that we can accept
- * @returns appropriate request options to make a specific http call during artifact download
+ * @returns appropriate headers to make a specific http call during artifact download
  */
 export function getDownloadHeaders(
   contentType: string,
@@ -170,7 +170,7 @@ export function getDownloadHeaders(
  * @param {number} uncompressedLength the original size of the content if something is being uploaded that has been compressed
  * @param {number} contentLength the length of the content that is being uploaded
  * @param {string} contentRange the range of the content that is being uploaded
- * @returns appropriate request options to make a specific http call during artifact upload
+ * @returns appropriate headers to make a specific http call during artifact upload
  */
 export function getUploadHeaders(
   contentType: string,
