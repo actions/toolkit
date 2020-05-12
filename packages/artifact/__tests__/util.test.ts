@@ -120,7 +120,7 @@ describe('Utils', () => {
     const size = 24
     const uncompressedLength = 100
     const range = 'bytes 0-199/200'
-    const options = utils.getUploadRequestOptions(
+    const headers = utils.getUploadHeaders(
       contentType,
       true,
       true,
@@ -128,47 +128,47 @@ describe('Utils', () => {
       size,
       range
     )
-    expect(Object.keys(options).length).toEqual(8)
-    expect(options['Accept']).toEqual(
+    expect(Object.keys(headers).length).toEqual(8)
+    expect(headers['Accept']).toEqual(
       `application/json;api-version=${utils.getApiVersion()}`
     )
-    expect(options['Content-Type']).toEqual(contentType)
-    expect(options['Connection']).toEqual('Keep-Alive')
-    expect(options['Keep-Alive']).toEqual('10')
-    expect(options['Content-Encoding']).toEqual('gzip')
-    expect(options['x-tfs-filelength']).toEqual(uncompressedLength)
-    expect(options['Content-Length']).toEqual(size)
-    expect(options['Content-Range']).toEqual(range)
+    expect(headers['Content-Type']).toEqual(contentType)
+    expect(headers['Connection']).toEqual('Keep-Alive')
+    expect(headers['Keep-Alive']).toEqual('10')
+    expect(headers['Content-Encoding']).toEqual('gzip')
+    expect(headers['x-tfs-filelength']).toEqual(uncompressedLength)
+    expect(headers['Content-Length']).toEqual(size)
+    expect(headers['Content-Range']).toEqual(range)
   })
 
   it('Test constructing upload headers with only required parameter', () => {
-    const options = utils.getUploadRequestOptions('application/octet-stream')
-    expect(Object.keys(options).length).toEqual(2)
-    expect(options['Accept']).toEqual(
+    const headers = utils.getUploadHeaders('application/octet-stream')
+    expect(Object.keys(headers).length).toEqual(2)
+    expect(headers['Accept']).toEqual(
       `application/json;api-version=${utils.getApiVersion()}`
     )
-    expect(options['Content-Type']).toEqual('application/octet-stream')
+    expect(headers['Content-Type']).toEqual('application/octet-stream')
   })
 
   it('Test constructing download headers with all optional parameters', () => {
     const contentType = 'application/json'
-    const options = utils.getDownloadRequestOptions(contentType, true, true)
-    expect(Object.keys(options).length).toEqual(5)
-    expect(options['Content-Type']).toEqual(contentType)
-    expect(options['Connection']).toEqual('Keep-Alive')
-    expect(options['Keep-Alive']).toEqual('10')
-    expect(options['Accept-Encoding']).toEqual('gzip')
-    expect(options['Accept']).toEqual(
+    const headers = utils.getDownloadHeaders(contentType, true, true)
+    expect(Object.keys(headers).length).toEqual(5)
+    expect(headers['Content-Type']).toEqual(contentType)
+    expect(headers['Connection']).toEqual('Keep-Alive')
+    expect(headers['Keep-Alive']).toEqual('10')
+    expect(headers['Accept-Encoding']).toEqual('gzip')
+    expect(headers['Accept']).toEqual(
       `application/octet-stream;api-version=${utils.getApiVersion()}`
     )
   })
 
   it('Test constructing download headers with only required parameter', () => {
-    const options = utils.getDownloadRequestOptions('application/octet-stream')
-    expect(Object.keys(options).length).toEqual(2)
-    expect(options['Content-Type']).toEqual('application/octet-stream')
+    const headers = utils.getDownloadHeaders('application/octet-stream')
+    expect(Object.keys(headers).length).toEqual(2)
+    expect(headers['Content-Type']).toEqual('application/octet-stream')
     // check for default accept type
-    expect(options['Accept']).toEqual(
+    expect(headers['Accept']).toEqual(
       `application/json;api-version=${utils.getApiVersion()}`
     )
   })

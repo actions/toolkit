@@ -11,7 +11,7 @@ import {
 import {
   getArtifactUrl,
   getContentRange,
-  getUploadRequestOptions,
+  getUploadHeaders,
   isRetryableStatusCode,
   isSuccessStatusCode,
   isThrottledStatusCode,
@@ -63,8 +63,8 @@ export class UploadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
-    const requestOptions = getUploadRequestOptions('application/json', false)
-    const rawResponse = await client.post(artifactUrl, data, requestOptions)
+    const headers = getUploadHeaders('application/json', false)
+    const rawResponse = await client.post(artifactUrl, data, headers)
     const body: string = await rawResponse.readBody()
 
     if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
@@ -354,7 +354,7 @@ export class UploadHttpClient {
     totalFileSize: number
   ): Promise<boolean> {
     // prepare all the necessary headers before making any http call
-    const requestOptions = getUploadRequestOptions(
+    const headers = getUploadHeaders(
       'application/octet-stream',
       true,
       isGzip,
@@ -365,7 +365,7 @@ export class UploadHttpClient {
 
     const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
       const client = this.uploadHttpManager.getClient(httpClientIndex)
-      return await client.sendStream('PUT', resourceUrl, data, requestOptions)
+      return await client.sendStream('PUT', resourceUrl, data, headers)
     }
 
     let retryCount = 0
@@ -464,7 +464,7 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    const requestOptions = getUploadRequestOptions('application/json', false)
+    const headers = getUploadHeaders('application/json', false)
     const resourceUrl = new URL(getArtifactUrl())
     resourceUrl.searchParams.append('artifactName', artifactName)
 
@@ -477,7 +477,7 @@ export class UploadHttpClient {
     const response: HttpClientResponse = await client.patch(
       resourceUrl.toString(),
       data,
-      requestOptions
+      headers
     )
     const body: string = await response.readBody()
     if (isSuccessStatusCode(response.message.statusCode)) {
