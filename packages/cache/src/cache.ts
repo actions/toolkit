@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar} from './internal/tar'
+import {UploadOptions} from './options'
 
 function checkPaths(paths: string[]): void {
   if (!paths || paths.length === 0) {
@@ -102,9 +103,14 @@ export async function restoreCache(
  *
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
+ * @param options cache upload options
  * @returns number returns cacheId if the cache was saved successfully
  */
-export async function saveCache(paths: string[], key: string): Promise<number> {
+export async function saveCache(
+  paths: string[],
+  key: string,
+  options?: UploadOptions
+): Promise<number> {
   checkPaths(paths)
   checkKey(key)
 
@@ -147,7 +153,7 @@ export async function saveCache(paths: string[], key: string): Promise<number> {
   }
 
   core.debug(`Saving Cache (ID: ${cacheId})`)
-  await cacheHttpClient.saveCache(cacheId, archivePath)
+  await cacheHttpClient.saveCache(cacheId, archivePath, options)
 
   return cacheId
 }

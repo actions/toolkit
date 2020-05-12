@@ -135,7 +135,7 @@ test('save with server error should fail', async () => {
   )
 
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
-  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile)
+  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile, undefined)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
@@ -176,6 +176,6 @@ test('save with valid inputs uploads a cache', async () => {
   )
 
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
-  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile)
+  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile, undefined)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })

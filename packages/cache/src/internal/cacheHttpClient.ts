@@ -20,6 +20,7 @@ import {
   ReserveCacheRequest,
   ReserveCacheResponse
 } from './contracts'
+import {UploadOptions} from '../options'
 
 const versionSalt = '1.0'
 
@@ -28,6 +29,13 @@ function isSuccessStatusCode(statusCode?: number): boolean {
     return false
   }
   return statusCode >= 200 && statusCode < 300
+}
+
+function isServerErrorStatusCode(statusCode?: number): boolean {
+  if (!statusCode) {
+    return true
+  }
+  return statusCode >= 500
 }
 
 function isRetryableStatusCode(statusCode?: number): boolean {
@@ -100,6 +108,75 @@ export function getCacheVersion(
     .digest('hex')
 }
 
+export async function retry<T>(
+  name: string,
+  method: () => Promise<T>,
+  getStatusCode: (arg0: T) => number | undefined,
+  maxAttempts = 2
+): Promise<T> {
+  let response: T | undefined = undefined
+  let statusCode: number | undefined = undefined
+  let isRetryable = false
+  let errorMessage = ''
+  let attempt = 1
+
+  while (attempt <= maxAttempts) {
+    try {
+      response = await method()
+      statusCode = getStatusCode(response)
+
+      if (!isServerErrorStatusCode(statusCode)) {
+        return response
+      }
+
+      isRetryable = isRetryableStatusCode(statusCode)
+      errorMessage = `Cache service responded with ${statusCode}`
+    } catch (error) {
+      isRetryable = true
+      errorMessage = error.message
+    }
+
+    core.debug(
+      `${name} - Attempt ${attempt} of ${maxAttempts} failed with error: ${errorMessage}`
+    )
+
+    if (!isRetryable) {
+      core.debug(`${name} - Error is not retryable`)
+      break
+    }
+
+    attempt++
+  }
+
+  throw Error(`${name} failed: ${errorMessage}`)
+}
+
+export async function retryTypedResponse<T>(
+  name: string,
+  method: () => Promise<ITypedResponse<T>>,
+  maxAttempts = 2
+): Promise<ITypedResponse<T>> {
+  return await retry(
+    name,
+    method,
+    (response: ITypedResponse<T>) => response.statusCode,
+    maxAttempts
+  )
+}
+
+export async function retryHttpClientResponse<T>(
+  name: string,
+  method: () => Promise<IHttpClientResponse>,
+  maxAttempts = 2
+): Promise<IHttpClientResponse> {
+  return await retry(
+    name,
+    method,
+    (response: IHttpClientResponse) => response.message.statusCode,
+    maxAttempts
+  )
+}
+
 export async function getCacheEntry(
   keys: string[],
   paths: string[],
@@ -111,8 +188,8 @@ export async function getCacheEntry(
     keys.join(',')
   )}&version=${version}`
 
-  const response = await httpClient.getJson<ArtifactCacheEntry>(
-    getCacheApiUrl(resource)
+  const response = await retryTypedResponse('getCacheEntry', async () =>
+    httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
   if (response.statusCode === 204) {
     return null
@@ -145,9 +222,12 @@ export async function downloadCache(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
-  const writableStream = fs.createWriteStream(archivePath)
+  const writeStream = fs.createWriteStream(archivePath)
   const httpClient = new HttpClient('actions/cache')
-  const downloadResponse = await httpClient.get(archiveLocation)
+  const downloadResponse = await retryHttpClientResponse(
+    'downloadCache',
+    async () => httpClient.get(archiveLocation)
+  )
 
   // Abort download if no traffic received over the socket.
   downloadResponse.message.socket.setTimeout(SocketTimeout, () => {
@@ -155,7 +235,7 @@ export async function downloadCache(
     core.debug(`Aborting download, socket timed out after ${SocketTimeout} ms`)
   })
 
-  await pipeResponseToStream(downloadResponse, writableStream)
+  await pipeResponseToStream(downloadResponse, writeStream)
 
   // Validate download size.
   const contentLengthHeader = downloadResponse.message.headers['content-length']
@@ -187,9 +267,11 @@ export async function reserveCache(
     key,
     version
   }
-  const response = await httpClient.postJson<ReserveCacheResponse>(
-    getCacheApiUrl('caches'),
-    reserveCacheRequest
+  const response = await retryTypedResponse('reserveCache', async () =>
+    httpClient.postJson<ReserveCacheResponse>(
+      getCacheApiUrl('caches'),
+      reserveCacheRequest
+    )
   )
   return response?.result?.cacheId ?? -1
 }
@@ -206,7 +288,7 @@ function getContentRange(start: number, end: number): string {
 async function uploadChunk(
   httpClient: HttpClient,
   resourceUrl: string,
-  data: NodeJS.ReadableStream,
+  openStream: () => NodeJS.ReadableStream,
   start: number,
   end: number
 ): Promise<void> {
@@ -223,56 +305,31 @@ async function uploadChunk(
     'Content-Range': getContentRange(start, end)
   }
 
-  const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
-    return await httpClient.sendStream(
-      'PATCH',
-      resourceUrl,
-      data,
-      additionalHeaders
-    )
-  }
-
-  const response = await uploadChunkRequest()
-  if (isSuccessStatusCode(response.message.statusCode)) {
-    return
-  }
-
-  if (isRetryableStatusCode(response.message.statusCode)) {
-    core.debug(
-      `Received ${response.message.statusCode}, retrying chunk at offset ${start}.`
-    )
-    const retryResponse = await uploadChunkRequest()
-    if (isSuccessStatusCode(retryResponse.message.statusCode)) {
-      return
-    }
-  }
-
-  throw new Error(
-    `Cache service responded with ${response.message.statusCode} during chunk upload.`
+  await retryHttpClientResponse(
+    `uploadChunk (start: ${start}, end: ${end})`,
+    async () =>
+      httpClient.sendStream(
+        'PATCH',
+        resourceUrl,
+        openStream(),
+        additionalHeaders
+      )
   )
-}
-
-function parseEnvNumber(key: string): number | undefined {
-  const value = Number(process.env[key])
-  if (Number.isNaN(value) || value < 0) {
-    return undefined
-  }
-  return value
 }
 
 async function uploadFile(
   httpClient: HttpClient,
   cacheId: number,
-  archivePath: string
+  archivePath: string,
+  options?: UploadOptions
 ): Promise<void> {
   // Upload Chunks
   const fileSize = fs.statSync(archivePath).size
   const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`)
   const fd = fs.openSync(archivePath, 'r')
 
-  const concurrency = parseEnvNumber('CACHE_UPLOAD_CONCURRENCY') ?? 4 // # of HTTP requests in parallel
-  const MAX_CHUNK_SIZE =
-    parseEnvNumber('CACHE_UPLOAD_CHUNK_SIZE') ?? 32 * 1024 * 1024 // 32 MB Chunks
+  const concurrency = options?.uploadConcurrency ?? 4 // # of HTTP requests in parallel
+  const MAX_CHUNK_SIZE = options?.uploadChunkSize ?? 32 * 1024 * 1024 // 32 MB Chunks
   core.debug(`Concurrency: ${concurrency} and Chunk Size: ${MAX_CHUNK_SIZE}`)
 
   const parallelUploads = [...new Array(concurrency).keys()]
@@ -287,14 +344,26 @@ async function uploadFile(
           const start = offset
           const end = offset + chunkSize - 1
           offset += MAX_CHUNK_SIZE
-          const chunk = fs.createReadStream(archivePath, {
-            fd,
-            start,
-            end,
-            autoClose: false
-          })
 
-          await uploadChunk(httpClient, resourceUrl, chunk, start, end)
+          await uploadChunk(
+            httpClient,
+            resourceUrl,
+            () =>
+              fs
+                .createReadStream(archivePath, {
+                  fd,
+                  start,
+                  end,
+                  autoClose: false
+                })
+                .on('error', error => {
+                  throw new Error(
+                    `Cache upload failed because file read failed with ${error.Message}`
+                  )
+                }),
+            start,
+            end
+          )
         }
       })
     )
@@ -310,20 +379,23 @@ async function commitCache(
   filesize: number
 ): Promise<ITypedResponse<null>> {
   const commitCacheRequest: CommitCacheRequest = {size: filesize}
-  return await httpClient.postJson<null>(
-    getCacheApiUrl(`caches/${cacheId.toString()}`),
-    commitCacheRequest
+  return await retryTypedResponse('commitCache', async () =>
+    httpClient.postJson<null>(
+      getCacheApiUrl(`caches/${cacheId.toString()}`),
+      commitCacheRequest
+    )
   )
 }
 
 export async function saveCache(
   cacheId: number,
-  archivePath: string
+  archivePath: string,
+  options?: UploadOptions
 ): Promise<void> {
   const httpClient = createHttpClient()
 
   core.debug('Upload cache')
-  await uploadFile(httpClient, cacheId, archivePath)
+  await uploadFile(httpClient, cacheId, archivePath, options)
 
   // Commit Cache
   core.debug('Commiting cache')

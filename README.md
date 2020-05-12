@@ -89,7 +89,7 @@ $ npm install @actions/artifact --save
 Provides functions to cache dependencies and build outputs to improve workflow execution time. Read more [here](packages/cache)
 
 ```bash
-$ npm install @actions/cache --save
+$ npm install @actions/cache
 ```
 <br/>
 
