@@ -20,6 +20,6 @@ export interface ReserveCacheResponse {
   cacheId: number
 }
 
-export interface CacheOptions {
+export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
 }

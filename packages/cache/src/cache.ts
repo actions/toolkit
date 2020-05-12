@@ -5,9 +5,23 @@ import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar} from './internal/tar'
 import {UploadOptions} from './options'
 
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+export class ReserveCacheError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ReserveCacheError'
+  }
+}
+
 function checkPaths(paths: string[]): void {
   if (!paths || paths.length === 0) {
-    throw new Error(
+    throw new ValidationError(
       `Path Validation Error: At least one directory or file path is required`
     )
   }
@@ -15,13 +29,15 @@ function checkPaths(paths: string[]): void {
 
 function checkKey(key: string): void {
   if (key.length > 512) {
-    throw new Error(
+    throw new ValidationError(
       `Key Validation Error: ${key} cannot be larger than 512 characters.`
     )
   }
   const regex = /^[^,]*$/
   if (!regex.test(key)) {
-    throw new Error(`Key Validation Error: ${key} cannot contain commas.`)
+    throw new ValidationError(
+      `Key Validation Error: ${key} cannot contain commas.`
+    )
   }
 }
 
@@ -47,7 +63,7 @@ export async function restoreCache(
   core.debug(JSON.stringify(keys))
 
   if (keys.length > 10) {
-    throw new Error(
+    throw new ValidationError(
       `Key Validation Error: Keys are limited to a maximum of 10.`
     )
   }
@@ -121,13 +137,13 @@ export async function saveCache(
     compressionMethod
   })
   if (cacheId === -1) {
-    throw new Error(
+    throw new ReserveCacheError(
       `Unable to reserve cache with key ${key}, another job may be creating this cache.`
     )
   }
   core.debug(`Cache ID: ${cacheId}`)
-  const cachePaths = await utils.resolvePaths(paths)
 
+  const cachePaths = await utils.resolvePaths(paths)
   core.debug('Cache Paths:')
   core.debug(`${JSON.stringify(cachePaths)}`)
 

@@ -15,7 +15,7 @@ import * as utils from './cacheUtils'
 import {CompressionMethod, SocketTimeout} from './constants'
 import {
   ArtifactCacheEntry,
-  CacheOptions,
+  InternalCacheOptions,
   CommitCacheRequest,
   ReserveCacheRequest,
   ReserveCacheResponse
@@ -180,7 +180,7 @@ export async function retryHttpClientResponse<T>(
 export async function getCacheEntry(
   keys: string[],
   paths: string[],
-  options?: CacheOptions
+  options?: InternalCacheOptions
 ): Promise<ArtifactCacheEntry | null> {
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
@@ -258,7 +258,7 @@ export async function downloadCache(
 export async function reserveCache(
   key: string,
   paths: string[],
-  options?: CacheOptions
+  options?: InternalCacheOptions
 ): Promise<number> {
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
