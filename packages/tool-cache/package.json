@@ -7,7 +7,7 @@
     "actions",
     "exec"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
+  "homepage": "https://github.com/actions/toolkit/tree/master/packages/tool-cache",
   "license": "MIT",
   "main": "lib/tool-cache.js",
   "types": "lib/tool-cache.d.ts",
