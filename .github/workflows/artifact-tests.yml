@@ -1,5 +1,13 @@
 name: artifact-unit-tests
-on: push
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
 
 jobs:
   build:
@@ -7,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest, windows-latest, macOS-latest]
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}

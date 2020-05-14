@@ -208,25 +208,30 @@ export class UploadHttpClient {
     // for creating a new GZip file, an in-memory buffer is used for compression
     if (totalFileSize < 65536) {
       const buffer = await createGZipFileInBuffer(parameters.file)
-      let uploadStream: NodeJS.ReadableStream
+
+      //An open stream is needed in the event of a failure and we need to retry. If a NodeJS.ReadableStream is directly passed in,
+      // it will not properly get reset to the start of the stream if a chunk upload needs to be retried
+      let openUploadStream: () => NodeJS.ReadableStream
 
       if (totalFileSize < buffer.byteLength) {
         // compression did not help with reducing the size, use a readable stream from the original file for upload
-        uploadStream = fs.createReadStream(parameters.file)
+        openUploadStream = () => fs.createReadStream(parameters.file)
         isGzip = false
         uploadFileSize = totalFileSize
       } else {
         // create a readable stream using a PassThrough stream that is both readable and writable
-        const passThrough = new stream.PassThrough()
-        passThrough.end(buffer)
-        uploadStream = passThrough
+        openUploadStream = () => {
+          const passThrough = new stream.PassThrough()
+          passThrough.end(buffer)
+          return passThrough
+        }
         uploadFileSize = buffer.byteLength
       }
 
       const result = await this.uploadChunk(
         httpClientIndex,
         parameters.resourceUrl,
-        uploadStream,
+        openUploadStream,
         0,
         uploadFileSize - 1,
         uploadFileSize,
@@ -296,11 +301,12 @@ export class UploadHttpClient {
         const result = await this.uploadChunk(
           httpClientIndex,
           parameters.resourceUrl,
-          fs.createReadStream(uploadFilePath, {
-            start,
-            end,
-            autoClose: false
-          }),
+          () =>
+            fs.createReadStream(uploadFilePath, {
+              start,
+              end,
+              autoClose: false
+            }),
           start,
           end,
           uploadFileSize,
@@ -335,7 +341,7 @@ export class UploadHttpClient {
    * indicates a retryable status, we try to upload the chunk as well
    * @param {number} httpClientIndex The index of the httpClient being used to make all the necessary calls
    * @param {string} resourceUrl Url of the resource that the chunk will be uploaded to
-   * @param {NodeJS.ReadableStream} data Stream of the file that will be uploaded
+   * @param {NodeJS.ReadableStream} openStream Stream of the file that will be uploaded
    * @param {number} start Starting byte index of file that the chunk belongs to
    * @param {number} end Ending byte index of file that the chunk belongs to
    * @param {number} uploadFileSize Total size of the file in bytes that is being uploaded
@@ -346,7 +352,7 @@ export class UploadHttpClient {
   private async uploadChunk(
     httpClientIndex: number,
     resourceUrl: string,
-    data: NodeJS.ReadableStream,
+    openStream: () => NodeJS.ReadableStream,
     start: number,
     end: number,
     uploadFileSize: number,
@@ -365,7 +371,7 @@ export class UploadHttpClient {
 
     const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
       const client = this.uploadHttpManager.getClient(httpClientIndex)
-      return await client.sendStream('PUT', resourceUrl, data, headers)
+      return await client.sendStream('PUT', resourceUrl, openStream(), headers)
     }
 
     let retryCount = 0
