@@ -1,12 +1,13 @@
 name: artifact-unit-tests
-push:
-  branches:
-    - master
-  paths-ignore:
-    - '**.md'
-pull_request:
-  paths-ignore:
-    - '**.md'
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
 
 jobs:
   build:
