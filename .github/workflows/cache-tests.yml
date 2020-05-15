@@ -47,11 +47,11 @@ jobs:
     
     - name: Generate files in working directory
       shell: bash
-      run: scripts/create-cache-files.sh ${{ runner.os }} test-cache
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} test-cache
 
     - name: Generate files outside working directory
       shell: bash
-      run: scripts/create-cache-files.sh ${{ runner.os }} ~/test-cache
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
 
     # We're using node -e to call the functions directly available in the @actions/cache package
     - name: Save cache using saveCache()
@@ -65,5 +65,5 @@ jobs:
     - name: Verify cache 
       shell: bash
       run: |
-        scripts/verify-cache-files.sh ${{ runner.os }} test-cache
-        scripts/verify-cache-files.sh ${{ runner.os }} ~/test-cache
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache

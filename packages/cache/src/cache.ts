@@ -9,6 +9,7 @@ export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'ValidationError'
+    Object.setPrototypeOf(this, ValidationError.prototype)
   }
 }
 
@@ -16,6 +17,7 @@ export class ReserveCacheError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'ReserveCacheError'
+    Object.setPrototypeOf(this, ReserveCacheError.prototype)
   }
 }
 
@@ -47,7 +49,7 @@ function checkKey(key: string): void {
  * @param paths a list of file paths to restore from the cache
  * @param primaryKey an explicit key for restoring the cache
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
- * @returns string returns the key for the cache hit, otherwise return undefined
+ * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
   paths: string[],
@@ -78,7 +80,7 @@ export async function restoreCache(
     compressionMethod
   })
   if (!cacheEntry?.archiveLocation) {
-    core.info(`Cache not found for input keys: ${keys.join(', ')}`)
+    // Cache not found
     return undefined
   }
 
@@ -92,7 +94,7 @@ export async function restoreCache(
     // Download the cache from the cache entry
     await cacheHttpClient.downloadCache(cacheEntry.archiveLocation, archivePath)
 
-    const archiveFileSize = utils.getArchiveFileSize(archivePath)
+    const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
     core.info(
       `Cache Size: ~${Math.round(
         archiveFileSize / (1024 * 1024)
@@ -109,8 +111,6 @@ export async function restoreCache(
     }
   }
 
-  core.info(`Cache restored from key: ${cacheEntry && cacheEntry.cacheKey}`)
-
   return cacheEntry.cacheKey
 }
 
@@ -120,7 +120,7 @@ export async function restoreCache(
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
  * @param options cache upload options
- * @returns number returns cacheId if the cache was saved successfully
+ * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
  */
 export async function saveCache(
   paths: string[],
@@ -158,7 +158,7 @@ export async function saveCache(
   await createTar(archiveFolder, cachePaths, compressionMethod)
 
   const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
-  const archiveFileSize = utils.getArchiveFileSize(archivePath)
+  const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
   core.debug(`File Size: ${archiveFileSize}`)
   if (archiveFileSize > fileSizeLimit) {
     throw new Error(

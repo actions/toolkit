@@ -9,7 +9,7 @@ export interface UploadOptions {
    */
   uploadConcurrency?: number
   /**
-   * Maximum chunk size for cache upload
+   * Maximum chunk size in bytes for cache upload
    *
    * @default 32MB
    */

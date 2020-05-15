@@ -64,8 +64,8 @@ jobs:
     - name: Verify downloadArtifact()
       shell: bash
       run: |
-        scripts/test-artifact-file.sh "artifact-1-directory/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
-        scripts/test-artifact-file.sh "artifact-2-directory/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"
+        packages/artifact/__tests__/test-artifact-file.sh "artifact-1-directory/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
+        packages/artifact/__tests__/test-artifact-file.sh "artifact-2-directory/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"
 
     - name: Download artifacts using downloadAllArtifacts()
       run: |
@@ -75,5 +75,5 @@ jobs:
     - name: Verify downloadAllArtifacts()
       shell: bash
       run: |
-        scripts/test-artifact-file.sh "multi-artifact-directory/my-artifact-1/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
-        scripts/test-artifact-file.sh "multi-artifact-directory/my-artifact-2/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"
+        packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-1/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
+        packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-2/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"

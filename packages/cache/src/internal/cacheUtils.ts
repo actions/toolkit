@@ -34,7 +34,7 @@ export async function createTempDirectory(): Promise<string> {
   return dest
 }
 
-export function getArchiveFileSize(filePath: string): number {
+export function getArchiveFileSizeIsBytes(filePath: string): number {
   return fs.statSync(filePath).size
 }
 
@@ -80,6 +80,7 @@ async function getVersion(app: string): Promise<string> {
   return versionOutput
 }
 
+// Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
   const versionOutput = await getVersion('zstd')
   return versionOutput.toLowerCase().includes('zstd command line interface')

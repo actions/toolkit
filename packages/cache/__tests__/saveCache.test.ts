@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as path from 'path'
 import {saveCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
@@ -5,12 +6,17 @@ import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 
-jest.mock('@actions/core')
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+  jest.spyOn(core, 'debug').mockImplementation(() => {})
+  jest.spyOn(core, 'info').mockImplementation(() => {})
+  jest.spyOn(core, 'warning').mockImplementation(() => {})
+  jest.spyOn(core, 'error').mockImplementation(() => {})
+
   // eslint-disable-next-line @typescript-eslint/promise-function-async
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
     const actualUtils = jest.requireActual('../src/internal/cacheUtils')
@@ -42,7 +48,9 @@ test('save with large cache outputs should fail', async () => {
   const createTarMock = jest.spyOn(tar, 'createTar')
 
   const cacheSize = 6 * 1024 * 1024 * 1024 //~6GB, over the 5GB limit
-  jest.spyOn(cacheUtils, 'getArchiveFileSize').mockReturnValueOnce(cacheSize)
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeIsBytes')
+    .mockReturnValueOnce(cacheSize)
   const compression = CompressionMethod.Gzip
   const getCompressionMock = jest
     .spyOn(cacheUtils, 'getCompressionMethod')

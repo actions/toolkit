@@ -12,6 +12,12 @@ jest.mock('../src/internal/cacheUtils')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+  jest.spyOn(core, 'debug').mockImplementation(() => {})
+  jest.spyOn(core, 'info').mockImplementation(() => {})
+  jest.spyOn(core, 'warning').mockImplementation(() => {})
+  jest.spyOn(core, 'error').mockImplementation(() => {})
+
   // eslint-disable-next-line @typescript-eslint/promise-function-async
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
     const actualUtils = jest.requireActual('../src/internal/cacheUtils')
@@ -56,7 +62,6 @@ test('restore with no cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
 
-  const infoMock = jest.spyOn(core, 'info')
   jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
     return Promise.resolve(null)
   })
@@ -64,9 +69,6 @@ test('restore with no cache found', async () => {
   const cacheKey = await restoreCache(paths, key)
 
   expect(cacheKey).toBe(undefined)
-  expect(infoMock).toHaveBeenCalledWith(
-    `Cache not found for input keys: ${key}`
-  )
 })
 
 test('restore with server error should fail', async () => {
@@ -87,8 +89,6 @@ test('restore with restore keys and no cache found', async () => {
   const key = 'node-test'
   const restoreKey = 'node-'
 
-  const infoMock = jest.spyOn(core, 'info')
-
   jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
     return Promise.resolve(null)
   })
@@ -96,16 +96,11 @@ test('restore with restore keys and no cache found', async () => {
   const cacheKey = await restoreCache(paths, key, [restoreKey])
 
   expect(cacheKey).toBe(undefined)
-  expect(infoMock).toHaveBeenCalledWith(
-    `Cache not found for input keys: ${key}, ${restoreKey}`
-  )
 })
 
 test('restore with gzip compressed cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
-
-  const infoMock = jest.spyOn(core, 'info')
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: key,
@@ -128,8 +123,8 @@ test('restore with gzip compressed cache found', async () => {
   const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
 
   const fileSize = 142
-  const getArchiveFileSizeMock = jest
-    .spyOn(cacheUtils, 'getArchiveFileSize')
+  const getArchiveFileSizeIsBytesMock = jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeIsBytes')
     .mockReturnValue(fileSize)
 
   const extractTarMock = jest.spyOn(tar, 'extractTar')
@@ -151,7 +146,7 @@ test('restore with gzip compressed cache found', async () => {
     cacheEntry.archiveLocation,
     archivePath
   )
-  expect(getArchiveFileSizeMock).toHaveBeenCalledWith(archivePath)
+  expect(getArchiveFileSizeIsBytesMock).toHaveBeenCalledWith(archivePath)
 
   expect(extractTarMock).toHaveBeenCalledTimes(1)
   expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
@@ -159,11 +154,10 @@ test('restore with gzip compressed cache found', async () => {
   expect(unlinkFileMock).toHaveBeenCalledTimes(1)
   expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
 
-  expect(infoMock).toHaveBeenCalledWith(`Cache restored from key: ${key}`)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
-test('restore with a pull request event and zstd compressed cache found', async () => {
+test('restore with zstd compressed cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
 
@@ -189,8 +183,8 @@ test('restore with a pull request event and zstd compressed cache found', async 
   const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
 
   const fileSize = 62915000
-  const getArchiveFileSizeMock = jest
-    .spyOn(cacheUtils, 'getArchiveFileSize')
+  const getArchiveFileSizeIsBytesMock = jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeIsBytes')
     .mockReturnValue(fileSize)
 
   const extractTarMock = jest.spyOn(tar, 'extractTar')
@@ -210,13 +204,11 @@ test('restore with a pull request event and zstd compressed cache found', async 
     cacheEntry.archiveLocation,
     archivePath
   )
-  expect(getArchiveFileSizeMock).toHaveBeenCalledWith(archivePath)
+  expect(getArchiveFileSizeIsBytesMock).toHaveBeenCalledWith(archivePath)
   expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
 
   expect(extractTarMock).toHaveBeenCalledTimes(1)
   expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
-
-  expect(infoMock).toHaveBeenCalledWith(`Cache restored from key: ${key}`)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
@@ -247,8 +239,8 @@ test('restore with cache found for restore key', async () => {
   const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
 
   const fileSize = 142
-  const getArchiveFileSizeMock = jest
-    .spyOn(cacheUtils, 'getArchiveFileSize')
+  const getArchiveFileSizeIsBytesMock = jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeIsBytes')
     .mockReturnValue(fileSize)
 
   const extractTarMock = jest.spyOn(tar, 'extractTar')
@@ -268,14 +260,10 @@ test('restore with cache found for restore key', async () => {
     cacheEntry.archiveLocation,
     archivePath
   )
-  expect(getArchiveFileSizeMock).toHaveBeenCalledWith(archivePath)
+  expect(getArchiveFileSizeIsBytesMock).toHaveBeenCalledWith(archivePath)
   expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
 
   expect(extractTarMock).toHaveBeenCalledTimes(1)
   expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
-
-  expect(infoMock).toHaveBeenCalledWith(
-    `Cache restored from key: ${restoreKey}`
-  )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })

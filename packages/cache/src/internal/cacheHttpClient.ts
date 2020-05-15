@@ -242,7 +242,7 @@ export async function downloadCache(
 
   if (contentLengthHeader) {
     const expectedLength = parseInt(contentLengthHeader)
-    const actualLength = utils.getArchiveFileSize(archivePath)
+    const actualLength = utils.getArchiveFileSizeIsBytes(archivePath)
 
     if (actualLength !== expectedLength) {
       throw new Error(
@@ -399,7 +399,7 @@ export async function saveCache(
 
   // Commit Cache
   core.debug('Commiting cache')
-  const cacheSize = utils.getArchiveFileSize(archivePath)
+  const cacheSize = utils.getArchiveFileSizeIsBytes(archivePath)
   const commitCacheResponse = await commitCache(httpClient, cacheId, cacheSize)
   if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
     throw new Error(
