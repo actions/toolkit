@@ -23,4 +23,8 @@
 ### 0.3.1
 
 - Fix to ensure temporary gzip files get correctly deleted during artifact upload
-- Remove spaces as a forbidden character during upload 
+- Remove spaces as a forbidden character during upload
+
+### 0.3.2
+
+- Fix to ensure readstreams get correctly reset in the event of a retry
