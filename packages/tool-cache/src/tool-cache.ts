@@ -30,12 +30,13 @@ const userAgent = 'actions/tool-cache'
  *
  * @param url       url of tool to download
  * @param dest      path to download tool
+ * @param auth      authorization header
  * @returns         path to downloaded tool
  */
 export async function downloadTool(
   url: string,
   dest?: string,
-  token?: string
+  auth?: string
 ): Promise<string> {
   dest = dest || path.join(_getTempDirectory(), uuidV4())
   await io.mkdirP(path.dirname(dest))
@@ -54,7 +55,7 @@ export async function downloadTool(
   const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
   return await retryHelper.execute(
     async () => {
-      return await downloadToolAttempt(url, dest || '', token)
+      return await downloadToolAttempt(url, dest || '', auth)
     },
     (err: Error) => {
       if (err instanceof HTTPError && err.httpStatusCode) {
@@ -77,7 +78,7 @@ export async function downloadTool(
 async function downloadToolAttempt(
   url: string,
   dest: string,
-  token?: string
+  auth?: string
 ): Promise<string> {
   if (fs.existsSync(dest)) {
     throw new Error(`Destination file path ${dest} already exists`)
@@ -89,9 +90,10 @@ async function downloadToolAttempt(
   })
 
   let headers: IHeaders | undefined
-  if (token) {
+  if (auth) {
+    core.debug('set auth')
     headers = {
-      authorization: `token ${token}`
+      authorization: auth
     }
   }
 
@@ -501,15 +503,17 @@ interface GitHubTree {
 export async function getManifestFromRepo(
   owner: string,
   repo: string,
-  token: string,
+  auth?: string,
   branch = 'master'
 ): Promise<IToolRelease[]> {
   let releases: IToolRelease[] = []
   const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
 
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
-  const headers: IHeaders = {
-    authorization: `token ${token}`
+  const headers: IHeaders = {}
+  if (auth) {
+    core.debug('set auth')
+    headers.authorization = auth
   }
 
   const response = await http.getJson<GitHubTree>(treeUrl, headers)

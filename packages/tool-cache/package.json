@@ -1,6 +1,6 @@
 {
   "name": "@actions/tool-cache",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Actions tool-cache lib",
   "keywords": [
     "github",
