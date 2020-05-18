@@ -5,6 +5,7 @@ export enum CacheFilename {
 
 export enum CompressionMethod {
   Gzip = 'gzip',
+  ZstdOld = 'zstd-old',
   Zstd = 'zstd'
 }
 

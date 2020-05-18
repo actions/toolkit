@@ -4,6 +4,7 @@ import * as glob from '@actions/glob'
 import * as io from '@actions/io'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as semver from 'semver'
 import * as util from 'util'
 import {v4 as uuidV4} from 'uuid'
 import {CacheFilename, CompressionMethod} from './constants'
@@ -82,16 +83,24 @@ async function getVersion(app: string): Promise<string> {
 
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
-  const versionOutput = await getVersion('zstd')
-  return versionOutput.toLowerCase().includes('zstd command line interface')
-    ? CompressionMethod.Zstd
-    : CompressionMethod.Gzip
+  if (process.platform === 'win32') {
+    // Disable zstd on windows due to bug https://github.com/actions/cache/issues/301
+    return CompressionMethod.Gzip
+  } else {
+    const versionOutput = await getVersion('zstd')
+    const version = semver.clean(versionOutput)
+    return !versionOutput.toLowerCase().includes('zstd command line interface')
+      ? CompressionMethod.Gzip
+      : !version || semver.lt(version, 'v1.3.2')
+      ? CompressionMethod.ZstdOld
+      : CompressionMethod.Zstd
+  }
 }
 
 export function getCacheFileName(compressionMethod: CompressionMethod): string {
-  return compressionMethod === CompressionMethod.Zstd
-    ? CacheFilename.Zstd
-    : CacheFilename.Gzip
+  return compressionMethod === CompressionMethod.Gzip
+    ? CacheFilename.Gzip
+    : CacheFilename.Zstd
 }
 
 export async function useGnuTar(): Promise<boolean> {

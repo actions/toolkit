@@ -96,7 +96,9 @@ export function getCacheVersion(
   compressionMethod?: CompressionMethod
 ): string {
   const components = paths.concat(
-    compressionMethod === CompressionMethod.Zstd ? [compressionMethod] : []
+    !compressionMethod || compressionMethod === CompressionMethod.Gzip
+      ? []
+      : [compressionMethod]
   )
 
   // Add salt to cache version to support breaking changes in cache entry
