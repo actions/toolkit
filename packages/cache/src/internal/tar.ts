@@ -5,23 +5,33 @@ import * as path from 'path'
 import * as utils from './cacheUtils'
 import {CompressionMethod} from './constants'
 
-async function getTarPath(args: string[]): Promise<string> {
-  // Explicitly use BSD Tar on Windows
+async function getTarPath(
+  args: string[],
+  compressionMethod: CompressionMethod
+): Promise<string> {
   const IS_WINDOWS = process.platform === 'win32'
   if (IS_WINDOWS) {
     const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-    if (existsSync(systemTar)) {
+    if (compressionMethod !== CompressionMethod.Gzip) {
+      // We only use zstandard compression on windows when gnu tar is installed due to
+      // a bug with compressing large files with bsdtar + zstd
+      args.push('--force-local')
+    } else if (existsSync(systemTar)) {
       return systemTar
-    } else if (await utils.useGnuTar()) {
+    } else if (await utils.isGnuTarInstalled()) {
       args.push('--force-local')
     }
   }
   return await io.which('tar', true)
 }
 
-async function execTar(args: string[], cwd?: string): Promise<void> {
+async function execTar(
+  args: string[],
+  compressionMethod: CompressionMethod,
+  cwd?: string
+): Promise<void> {
   try {
-    await exec(`"${await getTarPath(args)}"`, args, {cwd})
+    await exec(`"${await getTarPath(args, compressionMethod)}"`, args, {cwd})
   } catch (error) {
     throw new Error(`Tar failed with error: ${error?.message}`)
   }
@@ -59,7 +69,7 @@ export async function extractTar(
     '-C',
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
   ]
-  await execTar(args)
+  await execTar(args, compressionMethod)
 }
 
 export async function createTar(
@@ -100,5 +110,5 @@ export async function createTar(
     '--files-from',
     manifestFilename
   ]
-  await execTar(args, archiveFolder)
+  await execTar(args, compressionMethod, archiveFolder)
 }

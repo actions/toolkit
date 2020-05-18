@@ -95,7 +95,7 @@ test('gzip extract GNU tar on windows', async () => {
     jest.spyOn(fs, 'existsSync').mockReturnValueOnce(false)
 
     const isGnuMock = jest
-      .spyOn(utils, 'useGnuTar')
+      .spyOn(utils, 'isGnuTarInstalled')
       .mockReturnValue(Promise.resolve(true))
     const execMock = jest.spyOn(exec, 'exec')
     const archivePath = `${process.env['windir']}\\fakepath\\cache.tar`

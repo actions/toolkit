@@ -83,8 +83,8 @@ async function getVersion(app: string): Promise<string> {
 
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
-  if (process.platform === 'win32') {
-    // Disable zstd on windows due to bug https://github.com/actions/cache/issues/301
+  if (process.platform === 'win32' && !isGnuTarInstalled()) {
+    // Disable zstd due to bug https://github.com/actions/cache/issues/301
     return CompressionMethod.Gzip
   } else {
     const versionOutput = await getVersion('zstd')
@@ -103,7 +103,7 @@ export function getCacheFileName(compressionMethod: CompressionMethod): string {
     : CacheFilename.Zstd
 }
 
-export async function useGnuTar(): Promise<boolean> {
+export async function isGnuTarInstalled(): Promise<boolean> {
   const versionOutput = await getVersion('tar')
   return versionOutput.toLowerCase().includes('gnu tar')
 }
