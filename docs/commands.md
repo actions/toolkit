@@ -114,11 +114,13 @@ echo "::remove-matcher owner=eslint-compact::"
 `remove-matcher` removes a Problem Matcher by owner
 ### Save State
 
-Save state to be used in the corresponding wrapper (finally) post job entry point.
+Save state to be used in the main or post action.
 
 ```bash
 echo "::save-state name=FOO::foovalue"
 ```
+
+An environmental variable named `STATE_FOO` will be available to use in the post or main action. See [Sending Values to the pre and post actions](https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#sending-values-to-the-pre-and-post-actions)
 
 ### Log Level
 
