@@ -120,7 +120,7 @@ Save state to be used in the main or post action.
 echo "::save-state name=FOO::foovalue"
 ```
 
-An environmental variable named `STATE_FOO` will be available to use in the post or main action. See [Sending Values to the pre and post actions](https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#sending-values-to-the-pre-and-post-actions)
+An environmental variable named `STATE_FOO` will be available to use in the post or main action. See [Sending Values to the pre and post actions](https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#sending-values-to-the-pre-and-post-actions) for more information.
 
 ### Log Level
 
