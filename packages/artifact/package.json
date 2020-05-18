@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "0.2.0",
+  "version": "0.3.2",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -37,9 +37,12 @@
   },
   "dependencies": {
     "@actions/core": "^1.2.1",
-    "@actions/http-client": "^1.0.6",
+    "@actions/http-client": "^1.0.7",
     "@types/tmp": "^0.1.0",
     "tmp": "^0.1.0",
     "tmp-promise": "^2.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^3.8.3"
   }
 }

@@ -1,5 +1,9 @@
 # @actions/github Releases
 
+### 2.2.0
+
+- [Support GHES: Use GITHUB_API_URL and GITHUB_GRAPHQL_URL to determine baseUrl](https://github.com/actions/toolkit/pull/449)
+
 ### 2.1.1
 
 - [Use import {Octokit}](https://github.com/actions/toolkit/pull/332)

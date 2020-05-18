@@ -17,7 +17,7 @@ export {GlobOptions}
  */
 export interface Globber {
   /**
-   * Returns the search path preceeding the first glob segment, from each pattern.
+   * Returns the search path preceding the first glob segment, from each pattern.
    * Duplicates and descendants of other paths are filtered out.
    *
    * Example 1: The patterns `/foo/*` and `/bar/*` returns `/foo` and `/bar`.

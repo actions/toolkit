@@ -122,13 +122,36 @@ echo "::save-state name=FOO::foovalue"
 
 ### Log Level
 
-Finally, there are several commands to emit different levels of log output:
+There are several commands to emit different levels of log output:
 
 | log level | example usage |
 |---|---|
 | [debug](action-debugging.md)  | `echo "::debug::My debug message"` |
 | warning | `echo "::warning::My warning message"` |
 | error | `echo "::error::My error message"` |
+
+### Command Echoing
+By default, the echoing of commands to stdout only occurs if [Step Debugging is enabled](./action-debugging.md#How-to-Access-Step-Debug-Logs)
+
+You can enable or disable this for the current step by using the `echo` command.
+
+```bash
+echo "::echo::on"
+```
+
+You can also disable echoing.
+
+```bash
+echo "::echo::off"
+```
+
+This is wrapped by the core method:
+
+```javascript
+function setCommandEcho(enabled: boolean): void {}
+```
+
+The `add-mask`, `debug`, `warning` and `error` commands do not support echoing.
 
 ### Command Prompt 
 CMD processes the `"` character differently from other shells when echoing. In CMD, the above snippets should have the `"` characters removed in order to correctly process. For example, the set output command would be:

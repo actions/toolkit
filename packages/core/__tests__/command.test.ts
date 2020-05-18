@@ -112,6 +112,21 @@ describe('@actions/core/src/command', () => {
       `::some-command prop1=value 1,prop2=value 2,prop3=value 3::${os.EOL}`
     ])
   })
+
+  it('should handle issuing commands for non-string objects', () => {
+    command.issueCommand(
+      'some-command',
+      {
+        prop1: ({test: 'object'} as unknown) as string,
+        prop2: (123 as unknown) as string,
+        prop3: (true as unknown) as string
+      },
+      ({test: 'object'} as unknown) as string
+    )
+    assertWriteCalls([
+      `::some-command prop1={"test"%3A"object"},prop2=123,prop3=true::{"test":"object"}${os.EOL}`
+    ])
+  })
 })
 
 // Assert that process.stdout.write calls called only with the given arguments.

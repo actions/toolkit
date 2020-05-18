@@ -4,7 +4,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/actions/toolkit"><img alt="GitHub Actions status" src="https://github.com/actions/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
+  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-unit-tests"><img alt="Toolkit unit tests status" src="https://github.com/actions/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
+  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-audit"><img alt="Toolkit audit status" src="https://github.com/actions/toolkit/workflows/toolkit-audit/badge.svg"></a>
 </p>
 
 
@@ -23,7 +24,7 @@ The GitHub Actions ToolKit provides a set of packages to make creating actions e
 Provides functions for inputs, outputs, results, logging, secrets and variables. Read more [here](packages/core)
 
 ```bash
-$ npm install @actions/core --save
+$ npm install @actions/core
 ```
 <br/>
 
@@ -32,7 +33,7 @@ $ npm install @actions/core --save
 Provides functions to exec cli tools and process output. Read more [here](packages/exec)
 
 ```bash
-$ npm install @actions/exec --save
+$ npm install @actions/exec
 ```
 <br/>
 
@@ -41,7 +42,7 @@ $ npm install @actions/exec --save
 Provides functions to search for files matching glob patterns. Read more [here](packages/glob)
 
 ```bash
-$ npm install @actions/glob --save
+$ npm install @actions/glob
 ```
 <br/>
 
@@ -50,7 +51,7 @@ $ npm install @actions/glob --save
 Provides disk i/o functions like cp, mv, rmRF, find etc. Read more [here](packages/io)
 
 ```bash
-$ npm install @actions/io --save
+$ npm install @actions/io
 ```
 <br/>
 
@@ -58,8 +59,10 @@ $ npm install @actions/io --save
 
 Provides functions for downloading and caching tools.  e.g. setup-* actions. Read more [here](packages/tool-cache)
 
+See @actions/cache for caching workflow dependencies. 
+
 ```bash
-$ npm install @actions/tool-cache --save
+$ npm install @actions/tool-cache
 ```
 <br/>
 
@@ -68,7 +71,7 @@ $ npm install @actions/tool-cache --save
 Provides an Octokit client hydrated with the context that the current action is being run in. Read more [here](packages/github)
 
 ```bash
-$ npm install @actions/github --save
+$ npm install @actions/github
 ```
 <br/>
 
@@ -77,7 +80,16 @@ $ npm install @actions/github --save
 Provides functions to interact with actions artifacts. Read more [here](packages/artifact)
 
 ```bash
-$ npm install @actions/artifact --save
+$ npm install @actions/artifact
+```
+<br/>
+
+:dart: [@actions/cache](packages/cache) 
+
+Provides functions to cache dependencies and build outputs to improve workflow execution time. Read more [here](packages/cache)
+
+```bash
+$ npm install @actions/cache
 ```
 <br/>
 
@@ -199,7 +211,7 @@ console.log(`We can even get context data, like the repo: ${context.repo.repo}`)
 
 ## Contributing
 
-We welcome contributions.  See [how to contribute](docs/contribute.md).
+We welcome contributions.  See [how to contribute](.github/CONTRIBUTING.md).
 
 ## Code of Conduct
 

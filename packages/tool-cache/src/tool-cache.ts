@@ -161,9 +161,10 @@ export async function extract7z(
   process.chdir(dest)
   if (_7zPath) {
     try {
+      const logLevel = core.isDebug() ? '-bb1' : '-bb0'
       const args: string[] = [
         'x', // eXtract files with full paths
-        '-bb1', // -bb[0-3] : set output log level
+        logLevel, // -bb[0-3] : set output log level
         '-bd', // disable progress indicator
         '-sccUTF-8', // set charset for for console input/output
         file
@@ -249,6 +250,10 @@ export async function extractTar(
     args = [flags]
   }
 
+  if (core.isDebug() && !flags.includes('v')) {
+    args.push('-v')
+  }
+
   let destArg = dest
   let fileArg = file
   if (IS_WINDOWS && isGnuTar) {
@@ -301,7 +306,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
   const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
 
   // run powershell
-  const powershellPath = await io.which('powershell')
+  const powershellPath = await io.which('powershell', true)
   const args = [
     '-NoLogo',
     '-Sta',
@@ -316,8 +321,12 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
 }
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
-  const unzipPath = await io.which('unzip')
-  await exec(`"${unzipPath}"`, [file], {cwd: dest})
+  const unzipPath = await io.which('unzip', true)
+  const args = [file]
+  if (!core.isDebug()) {
+    args.unshift('-q')
+  }
+  await exec(`"${unzipPath}"`, args, {cwd: dest})
 }
 
 /**

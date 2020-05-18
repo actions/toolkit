@@ -4,6 +4,7 @@ Extra information
 - [Non-Supported Characters](#Non-Supported-Characters)
 - [Permission loss](#Permission-Loss)
 - [Considerations](#Considerations)
+- [Compression](#Is-my-artifact-compressed)
 
 ## Non-Supported Characters
 
@@ -16,7 +17,6 @@ When uploading an artifact, the inputted `name` parameter along with the files s
 - |
 - \*
 - ?
-- empty space
 
 In addition to the aforementioned characters, the inputted `name` also cannot include the following
 - \

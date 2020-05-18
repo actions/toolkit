@@ -11,7 +11,7 @@ describe('@actions/github', () => {
 
   beforeAll(async () => {
     // Start proxy server
-    proxyServer = proxy() as http.Server
+    proxyServer = proxy()
     await new Promise(resolve => {
       const port = Number(proxyUrl.split(':')[2])
       proxyServer.listen(port, () => resolve())

@@ -334,7 +334,7 @@ describe('@actions/tool-cache', function() {
             .readFileSync(path.join(tempDir, 'mock7zr-args.txt'))
             .toString()
             .trim()
-        ).toBe(`x -bb1 -bd -sccUTF-8 ${_7zFile}`)
+        ).toBe(`x -bb0 -bd -sccUTF-8 ${_7zFile}`)
         expect(fs.existsSync(path.join(extPath, 'file.txt'))).toBeTruthy()
         expect(
           fs.existsSync(path.join(extPath, 'file-with-ç-character.txt'))
@@ -461,7 +461,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipPath: string = await io.which('zip')
+        const zipPath: string = await io.which('zip', true)
         await exec.exec(`"${zipPath}`, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
@@ -512,7 +512,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipPath: string = await io.which('zip')
+        const zipPath: string = await io.which('zip', true)
         await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
@@ -569,7 +569,7 @@ describe('@actions/tool-cache', function() {
         ]
         await exec.exec(`"${powershellPath}"`, args)
       } else {
-        const zipPath: string = await io.which('zip')
+        const zipPath: string = await io.which('zip', true)
         await exec.exec(zipPath, [zipFile, '-r', '.'], {cwd: stagingDir})
       }
 
