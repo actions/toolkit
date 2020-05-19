@@ -38,13 +38,11 @@ test('zstd extract tar', async () => {
     ? `${process.env['windir']}\\fakepath\\cache.tar`
     : 'cache.tar'
   const workspace = process.env['GITHUB_WORKSPACE']
+  const tarPath = 'tar'
 
   await tar.extractTar(archivePath, CompressionMethod.Zstd)
 
   expect(mkdirMock).toHaveBeenCalledWith(workspace)
-  const tarPath = IS_WINDOWS
-    ? `${process.env['windir']}\\System32\\tar.exe`
-    : 'tar'
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
@@ -56,7 +54,7 @@ test('zstd extract tar', async () => {
       '-P',
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
-    ],
+    ].concat(IS_WINDOWS ? ['--force-local'] : []),
     {cwd: undefined}
   )
 })
@@ -127,14 +125,11 @@ test('zstd create tar', async () => {
   const archiveFolder = getTempDir()
   const workspace = process.env['GITHUB_WORKSPACE']
   const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+  const tarPath = 'tar'
 
   await fs.promises.mkdir(archiveFolder, {recursive: true})
 
   await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Zstd)
-
-  const tarPath = IS_WINDOWS
-    ? `${process.env['windir']}\\System32\\tar.exe`
-    : 'tar'
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
@@ -149,7 +144,7 @@ test('zstd create tar', async () => {
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
       'manifest.txt'
-    ],
+    ].concat(IS_WINDOWS ? ['--force-local'] : []),
     {
       cwd: archiveFolder
     }
