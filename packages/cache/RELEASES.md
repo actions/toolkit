@@ -4,5 +4,5 @@
 
 - Initial release
 
-### 0.2.0
+### 0.2.1
 - Fixes issues with the zstd compression algorithm on Windows and Ubuntu 16.04 [#469](https://github.com/actions/toolkit/pull/469)
