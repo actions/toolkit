@@ -5,23 +5,33 @@ import * as path from 'path'
 import * as utils from './cacheUtils'
 import {CompressionMethod} from './constants'
 
-async function getTarPath(args: string[]): Promise<string> {
-  // Explicitly use BSD Tar on Windows
+async function getTarPath(
+  args: string[],
+  compressionMethod: CompressionMethod
+): Promise<string> {
   const IS_WINDOWS = process.platform === 'win32'
   if (IS_WINDOWS) {
     const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-    if (existsSync(systemTar)) {
+    if (compressionMethod !== CompressionMethod.Gzip) {
+      // We only use zstandard compression on windows when gnu tar is installed due to
+      // a bug with compressing large files with bsdtar + zstd
+      args.push('--force-local')
+    } else if (existsSync(systemTar)) {
       return systemTar
-    } else if (await utils.useGnuTar()) {
+    } else if (await utils.isGnuTarInstalled()) {
       args.push('--force-local')
     }
   }
   return await io.which('tar', true)
 }
 
-async function execTar(args: string[], cwd?: string): Promise<void> {
+async function execTar(
+  args: string[],
+  compressionMethod: CompressionMethod,
+  cwd?: string
+): Promise<void> {
   try {
-    await exec(`"${await getTarPath(args)}"`, args, {cwd})
+    await exec(`"${await getTarPath(args, compressionMethod)}"`, args, {cwd})
   } catch (error) {
     throw new Error(`Tar failed with error: ${error?.message}`)
   }
@@ -41,17 +51,25 @@ export async function extractTar(
   // --d: Decompress.
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
+  function getCompressionProgram(): string[] {
+    switch (compressionMethod) {
+      case CompressionMethod.Zstd:
+        return ['--use-compress-program', 'zstd -d --long=30']
+      case CompressionMethod.ZstdWithoutLong:
+        return ['--use-compress-program', 'zstd -d']
+      default:
+        return ['-z']
+    }
+  }
   const args = [
-    ...(compressionMethod === CompressionMethod.Zstd
-      ? ['--use-compress-program', 'zstd -d --long=30']
-      : ['-z']),
+    ...getCompressionProgram(),
     '-xf',
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
     '-C',
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
   ]
-  await execTar(args)
+  await execTar(args, compressionMethod)
 }
 
 export async function createTar(
@@ -66,14 +84,24 @@ export async function createTar(
     path.join(archiveFolder, manifestFilename),
     sourceDirectories.join('\n')
   )
+  const workingDirectory = getWorkingDirectory()
+
   // -T#: Compress using # working thread. If # is 0, attempt to detect and use the number of physical CPU cores.
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
-  const workingDirectory = getWorkingDirectory()
+  // Long range mode is added to zstd in v1.3.2 release, so we will not use --long in older version of zstd.
+  function getCompressionProgram(): string[] {
+    switch (compressionMethod) {
+      case CompressionMethod.Zstd:
+        return ['--use-compress-program', 'zstd -T0 --long=30']
+      case CompressionMethod.ZstdWithoutLong:
+        return ['--use-compress-program', 'zstd -T0']
+      default:
+        return ['-z']
+    }
+  }
   const args = [
-    ...(compressionMethod === CompressionMethod.Zstd
-      ? ['--use-compress-program', 'zstd -T0 --long=30']
-      : ['-z']),
+    ...getCompressionProgram(),
     '-cf',
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
@@ -82,5 +110,5 @@ export async function createTar(
     '--files-from',
     manifestFilename
   ]
-  await execTar(args, archiveFolder)
+  await execTar(args, compressionMethod, archiveFolder)
 }
