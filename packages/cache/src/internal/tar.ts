@@ -51,18 +51,18 @@ export async function extractTar(
   // --d: Decompress.
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
-  function getProg(): string[] {
+  function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
         return ['--use-compress-program', 'zstd -d --long=30']
-      case CompressionMethod.ZstdOld:
+      case CompressionMethod.ZstdWithoutLong:
         return ['--use-compress-program', 'zstd -d']
       default:
         return ['-z']
     }
   }
   const args = [
-    ...getProg(),
+    ...getCompressionProgram(),
     '-xf',
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
@@ -90,18 +90,18 @@ export async function createTar(
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   // Long range mode is added to zstd in v1.3.2 release, so we will not use --long in older version of zstd.
-  function getProg(): string[] {
+  function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
         return ['--use-compress-program', 'zstd -T0 --long=30']
-      case CompressionMethod.ZstdOld:
+      case CompressionMethod.ZstdWithoutLong:
         return ['--use-compress-program', 'zstd -T0']
       default:
         return ['-z']
     }
   }
   const args = [
-    ...getProg(),
+    ...getCompressionProgram(),
     '-cf',
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
