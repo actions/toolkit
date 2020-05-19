@@ -55,7 +55,6 @@ describe('@actions/context', () => {
   it('works with pull_request payloads', () => {
     delete process.env.GITHUB_REPOSITORY
     context.payload = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       pull_request: {number: 2},
       repository: {owner: {login: 'user'}, name: 'test'}
     }
