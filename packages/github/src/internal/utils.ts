@@ -43,19 +43,9 @@ export function getAuthString(
   return typeof options.auth === 'string' ? options.auth : `token ${token}`
 }
 
-export function getProxyAgent(
-  destinationUrl: string,
-  options?: OctokitOptions
-): http.Agent | undefined {
-  if (!options || !options.request || !options.request.agent) {
-    if (httpClient.getProxyUrl(destinationUrl)) {
-      const hc = new httpClient.HttpClient()
-      return hc.getAgent(destinationUrl)
-    }
-  } else if (options && options.request && options.request.agent) {
-    return options.request.agent
-  }
-  return undefined
+export function getProxyAgent(destinationUrl: string): http.Agent | undefined {
+  const hc = new httpClient.HttpClient()
+  return hc.getAgent(destinationUrl)
 }
 
 export function getApiBaseUrl(): string {
