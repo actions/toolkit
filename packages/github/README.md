@@ -4,7 +4,7 @@
 
 ## Usage
 
-Returns an authenticated Octokit client that follows the machine [proxy settings](https://help.github.com/en/actions/hosting-your-own-runners/using-a-proxy-server-with-self-hosted-runners). See https://octokit.github.io/rest.js for the API.
+Returns an authenticated Octokit client that follows the machine [proxy settings](https://help.github.com/en/actions/hosting-your-own-runners/using-a-proxy-server-with-self-hosted-runners) and correctly sets GHES base urls. See https://octokit.github.io/rest.js for the API.
 
 ```js
 const github = require('@actions/github');
@@ -17,8 +17,9 @@ async function run() {
     // https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token#about-the-github_token-secret
     const myToken = core.getInput('myToken');
 
-    const octokit = new github.GitHub(myToken);
-
+    const octokit = new github.GitHub(github.getOptions(myToken));
+    // or you may set the authentication on the options yourself
+    // const octokit = new github.GitHub({auth: `token ${myToken}`});
     const { data: pullRequest } = await octokit.pulls.get({
         owner: 'octokit',
         repo: 'rest.js',
@@ -34,7 +35,7 @@ async function run() {
 run();
 ```
 
-You can pass client options, as specified by [Octokit](https://octokit.github.io/rest.js/), as a second argument to the `GitHub` constructor.
+You can pass client options, as specified by [Octokit](https://github.com/octokit/core.js#options), as a second argument getOptions function.
 
 You can also make GraphQL requests. See https://github.com/octokit/graphql.js for the API.
 
