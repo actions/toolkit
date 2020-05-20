@@ -32,5 +32,13 @@ export function getOptions(
   token: string,
   options?: OctokitOptions
 ): OctokitOptions {
-  return Utils.getOctokitOptions(Utils.disambiguate(token, options))
+  const opts = Object.assign({}, options || {}) // Shallow clone - don't mutate the object provided by the caller
+
+  // Auth
+  const auth = Utils.getAuthString(token, opts)
+  if (auth) {
+    opts.auth = auth
+  }
+
+  return opts
 }
