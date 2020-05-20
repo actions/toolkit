@@ -18,8 +18,13 @@ async function run() {
     const myToken = core.getInput('myToken');
 
     const octokit = new github.GitHub(github.getOptions(myToken));
-    // or you may set the authentication on the options yourself
-    // const octokit = new github.GitHub({auth: `token ${myToken}`});
+
+    // You can set the authentication on the options yourself instead
+    // const octokit = new github.GitHub({auth: `token ${myToken}`, userAgent: "MyActionVersion1"});
+
+    // You can also pass in additional options as a second parameter to getOptions
+    // const octokit = new github.GitHub(github.getOptions(myToken), {userAgent: "MyActionVersion1"});
+
     const { data: pullRequest } = await octokit.pulls.get({
         owner: 'octokit',
         repo: 'rest.js',
@@ -34,8 +39,6 @@ async function run() {
 
 run();
 ```
-
-You can pass client options, as specified by [Octokit](https://github.com/octokit/core.js#options), as a second argument getOptions function.
 
 You can also make GraphQL requests. See https://github.com/octokit/graphql.js for the API.
 

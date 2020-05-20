@@ -15,7 +15,7 @@ export function getAuthString(
   return typeof options.auth === 'string' ? options.auth : `token ${token}`
 }
 
-export function getProxyAgent(destinationUrl: string): http.Agent | undefined {
+export function getProxyAgent(destinationUrl: string): http.Agent {
   const hc = new httpClient.HttpClient()
   return hc.getAgent(destinationUrl)
 }
