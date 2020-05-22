@@ -17,13 +17,13 @@ async function run() {
     // https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token#about-the-github_token-secret
     const myToken = core.getInput('myToken');
 
-    const octokit = new github.GitHub(github.getOptions(myToken));
+    const octokit = github.getOctokit(token)
+
+    // You can also pass in additional options as a second parameter to getOptions
+    // const octokit = github.getOctokit(myToken, {userAgent: "MyActionVersion1"});
 
     // You can set the authentication on the options yourself instead
     // const octokit = new github.GitHub({auth: `token ${myToken}`, userAgent: "MyActionVersion1"});
-
-    // You can also pass in additional options as a second parameter to getOptions
-    // const octokit = new github.GitHub(github.getOptions(myToken), {userAgent: "MyActionVersion1"});
 
     const { data: pullRequest } = await octokit.pulls.get({
         owner: 'octokit',
@@ -75,4 +75,26 @@ if (github.context.eventName === 'push') {
   const pushPayload = github.context.payload as Webhooks.WebhookPayloadPush
   core.info(`The head commit is: ${pushPayload.head}`)
 }
+```
+
+## Extending the Octokit instance
+`@octokit/core` now supports the [plugin architecture](https://github.com/octokit/core.js#plugins). You can extend the GitHub instance using plugins. 
+
+For example, using the `@octokit/plugin-enterprise-server` you can now access enterprise admin apis on GHES instances.
+
+```ts
+const { GitHub, getOptions } = require("@actions/github");
+const { enterpriseServer220Admin } = require("@octokit/plugin-enterprise-server");
+
+const octokit = GitHub.plugin(enterpriseServer220Admin).defaults({userAgent: "MyNewUserAgent"})
+// or override some of the default values as well 
+// const octokit = GitHub.plugin(enterpriseServer220Admin).defaults({userAgent: "MyNewUserAgent"})
+
+const myToken = core.getInput('myToken');
+const myOctokit = new octokit(getOptions(token))
+// Create a new user
+myOctokit.enterpriseAdmin.createUser({
+  username: "testuser",
+  email: "testuser@test.com",
+});
 ```

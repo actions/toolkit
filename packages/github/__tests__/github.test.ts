@@ -1,6 +1,6 @@
 import * as http from 'http'
 import proxy from 'proxy'
-import {GitHub, getOptions} from '../src/github'
+import {GitHub, getOctokitOptions, getOctokit} from '../src/github'
 
 describe('@actions/github', () => {
   const proxyUrl = 'http://127.0.0.1:8080'
@@ -43,7 +43,22 @@ describe('@actions/github', () => {
     if (!token) {
       return
     }
-    const octokit = new GitHub(getOptions(token))
+    const octokit = new GitHub(getOctokitOptions(token))
+    const branch = await octokit.repos.getBranch({
+      owner: 'actions',
+      repo: 'toolkit',
+      branch: 'master'
+    })
+    expect(branch.data.name).toBe('master')
+    expect(proxyConnects).toHaveLength(0)
+  })
+
+  it('basic getOctokit client', async () => {
+    const token = getToken()
+    if (!token) {
+      return
+    }
+    const octokit = getOctokit(token)
     const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
@@ -90,7 +105,7 @@ describe('@actions/github', () => {
       return
     }
 
-    const octokit = new GitHub(getOptions(token))
+    const octokit = getOctokit(token)
     const repository = await octokit.graphql(
       '{repository(owner:"actions", name:"toolkit"){name}}'
     )
@@ -105,7 +120,7 @@ describe('@actions/github', () => {
     }
 
     // Valid token
-    let octokit = new GitHub(getOptions(token))
+    let octokit = getOctokit(token)
     const repository = await octokit.graphql(
       '{repository(owner:"actions", name:"toolkit"){name}}'
     )

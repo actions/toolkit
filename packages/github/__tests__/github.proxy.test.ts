@@ -7,7 +7,7 @@ const proxyUrl = 'http://127.0.0.1:8081'
 const originalProxyUrl = process.env['https_proxy']
 process.env['https_proxy'] = proxyUrl
 // eslint-disable-next-line import/first
-import {GitHub, getOptions} from '../src/github'
+import {getOctokit} from '../src/github'
 
 describe('@actions/github', () => {
   let proxyConnects: string[]
@@ -48,7 +48,7 @@ describe('@actions/github', () => {
       return
     }
 
-    const octokit = new GitHub(getOptions(token))
+    const octokit = getOctokit(token)
     const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
@@ -64,7 +64,7 @@ describe('@actions/github', () => {
       return
     }
     process.env['https_proxy'] = proxyUrl
-    const octokit = new GitHub(getOptions(token))
+    const octokit = getOctokit(token)
 
     const repository = await octokit.graphql(
       '{repository(owner:"actions", name:"toolkit"){name}}'
@@ -80,13 +80,11 @@ describe('@actions/github', () => {
     }
 
     // Valid token
-    const octokit = new GitHub(
-      getOptions(token, {
-        request: {
-          agent: new https.Agent()
-        }
-      })
-    )
+    const octokit = getOctokit(token, {
+      request: {
+        agent: new https.Agent()
+      }
+    })
     const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',

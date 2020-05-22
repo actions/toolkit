@@ -28,7 +28,7 @@ export const GitHub = Octokit.plugin(
  * @param     token    the repo PAT or GITHUB_TOKEN
  * @param     options  other options to set
  */
-export function getOptions(
+export function getOctokitOptions(
   token: string,
   options?: OctokitOptions
 ): OctokitOptions {
@@ -41,4 +41,11 @@ export function getOptions(
   }
 
   return opts
+}
+
+export function getOctokit(
+  token: string,
+  options?: OctokitOptions
+): InstanceType<typeof GitHub> {
+  return new GitHub(getOctokitOptions(token, options))
 }
