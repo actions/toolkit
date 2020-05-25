@@ -266,20 +266,28 @@ export async function extractTar(
 export async function extractXar(
   file: string,
   dest?: string,
-  flags: string = '-x'
+  flags: string | string[] = []
 ): Promise<string> {
   ok(IS_MAC, 'extractXar() not supported on current OS')
   ok(file, 'parameter "file" is required')
 
   dest = dest || (await _createExtractFolder(dest))
-  const args = [flags, '-C', dest, '-f', file]
 
-  if (core.isDebug() && !flags.includes('v')) {
+  let args: string[]
+  if (flags instanceof Array) {
+    args = flags
+  } else {
+    args = [flags]
+  }
+
+  args.push('-x', '-C', dest, '-f', file)
+
+  if (core.isDebug()) {
     args.push('-v')
   }
 
   const xarPath: string = await io.which('xar', true)
-  await exec(`"${xarPath}"`, args)
+  await exec(`"${xarPath}"`, _unique(args))
 
   return dest
 }
@@ -596,4 +604,12 @@ function _getGlobal<T>(key: string, defaultValue: T): T {
   const value = (global as any)[key] as T | undefined
   /* eslint-enable @typescript-eslint/no-explicit-any */
   return value !== undefined ? value : defaultValue
+}
+
+/**
+ * Returns an array of unique values.
+ * @param values Values to make unique.
+ */
+function _unique<T>(values: T[]): T[] {
+  return Array.from(new Set(values))
 }
