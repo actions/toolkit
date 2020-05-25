@@ -271,7 +271,7 @@ export async function extractXar(
   ok(IS_MAC, 'extractXar() not supported on current OS')
   ok(file, 'parameter "file" is required')
 
-  dest = dest || (await _createExtractFolder(dest))
+  dest = await _createExtractFolder(dest)
 
   let args: string[]
   if (flags instanceof Array) {
