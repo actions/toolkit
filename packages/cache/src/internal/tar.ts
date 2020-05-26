@@ -101,6 +101,7 @@ export async function createTar(
     }
   }
   const args = [
+    '--posix',
     ...getCompressionProgram(),
     '-cf',
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
