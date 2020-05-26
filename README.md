@@ -19,7 +19,7 @@ The GitHub Actions ToolKit provides a set of packages to make creating actions e
 
 ## Packages
 
-:heavy_check_mark: [@actions/core](packages/core) 
+:heavy_check_mark: [@actions/core](packages/core)
 
 Provides functions for inputs, outputs, results, logging, secrets and variables. Read more [here](packages/core)
 
@@ -28,7 +28,7 @@ $ npm install @actions/core
 ```
 <br/>
 
-:runner: [@actions/exec](packages/exec) 
+:runner: [@actions/exec](packages/exec)
 
 Provides functions to exec cli tools and process output. Read more [here](packages/exec)
 
@@ -46,7 +46,7 @@ $ npm install @actions/glob
 ```
 <br/>
 
-:pencil2: [@actions/io](packages/io) 
+:pencil2: [@actions/io](packages/io)
 
 Provides disk i/o functions like cp, mv, rmRF, find etc. Read more [here](packages/io)
 
@@ -55,18 +55,18 @@ $ npm install @actions/io
 ```
 <br/>
 
-:hammer: [@actions/tool-cache](packages/tool-cache) 
+:hammer: [@actions/tool-cache](packages/tool-cache)
 
 Provides functions for downloading and caching tools.  e.g. setup-* actions. Read more [here](packages/tool-cache)
 
-See @actions/cache for caching workflow dependencies. 
+See @actions/cache for caching workflow dependencies.
 
 ```bash
 $ npm install @actions/tool-cache
 ```
 <br/>
 
-:octocat: [@actions/github](packages/github) 
+:octocat: [@actions/github](packages/github)
 
 Provides an Octokit client hydrated with the context that the current action is being run in. Read more [here](packages/github)
 
@@ -75,7 +75,7 @@ $ npm install @actions/github
 ```
 <br/>
 
-:floppy_disk: [@actions/artifact](packages/artifact) 
+:floppy_disk: [@actions/artifact](packages/artifact)
 
 Provides functions to interact with actions artifacts. Read more [here](packages/artifact)
 
@@ -84,7 +84,7 @@ $ npm install @actions/artifact
 ```
 <br/>
 
-:dart: [@actions/cache](packages/cache) 
+:dart: [@actions/cache](packages/cache)
 
 Provides functions to cache dependencies and build outputs to improve workflow execution time. Read more [here](packages/cache)
 
@@ -115,7 +115,7 @@ Problem Matchers are a way to scan the output of actions for a specified regex p
 
 :warning: [Proxy Server Support](docs/proxy-support.md)
 
-Self-hosted runners can be configured to run behind proxy servers. 
+Self-hosted runners can be configured to run behind proxy servers.
 <br/>
 <br/>
 
@@ -132,23 +132,23 @@ Illustrates how to create a simple hello world javascript action.
 <br/>
 
 <h3><a href="https://github.com/actions/javascript-action">JavaScript Action Walkthrough</a></h3>
- 
+
 Walkthrough and template for creating a JavaScript Action with tests, linting, workflow, publishing, and versioning.
 
 ```javascript
 async function run() {
-  try { 
+  try {
     const ms = core.getInput('milliseconds');
     console.log(`Waiting ${ms} milliseconds ...`)
     ...
 ```
 ```javascript
 PASS ./index.test.js
-  ✓ throws invalid number 
-  ✓ wait 500 ms 
+  ✓ throws invalid number
+  ✓ wait 500 ms
   ✓ test runs
 
-Test Suites: 1 passed, 1 total    
+Test Suites: 1 passed, 1 total
 Tests:       3 passed, 3 total
 ```
 <br/>
@@ -168,11 +168,11 @@ async function run() {
 ```
 ```javascript
 PASS ./index.test.js
-  ✓ throws invalid number 
-  ✓ wait 500 ms 
+  ✓ throws invalid number
+  ✓ wait 500 ms
   ✓ test runs
 
-Test Suites: 1 passed, 1 total    
+Test Suites: 1 passed, 1 total
 Tests:       3 passed, 3 total
 ```
 <br/>
@@ -205,7 +205,7 @@ const myInput = core.getInput('myInput');
 core.debug(`Hello ${myInput} from inside a container`);
 
 const context = github.context;
-console.log(`We can even get context data, like the repo: ${context.repo.repo}`)    
+console.log(`We can even get context data, like the repo: ${context.repo.repo}`)
 ```
 <br/>
 
