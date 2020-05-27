@@ -114,7 +114,7 @@ echo "::remove-matcher owner=eslint-compact::"
 `remove-matcher` removes a Problem Matcher by owner
 ### Save State
 
-Save state to be used in the main or post action.
+Save a state to an environmental variable that can later be used in the main or post action.
 
 ```bash
 echo "::save-state name=FOO::foovalue"
