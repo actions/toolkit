@@ -22,9 +22,6 @@ async function run() {
     // You can also pass in additional options as a second parameter to getOptions
     // const octokit = github.getOctokit(myToken, {userAgent: "MyActionVersion1"});
 
-    // You can set the authentication on the options yourself instead
-    // const octokit = new github.GitHub({auth: `token ${myToken}`, userAgent: "MyActionVersion1"});
-
     const { data: pullRequest } = await octokit.pulls.get({
         owner: 'octokit',
         repo: 'rest.js',
@@ -83,10 +80,10 @@ if (github.context.eventName === 'push') {
 For example, using the `@octokit/plugin-enterprise-server` you can now access enterprise admin apis on GHES instances.
 
 ```ts
-const { GitHub, getOptions } = require("@actions/github");
-const { enterpriseServer220Admin } = require("@octokit/plugin-enterprise-server");
+import { GitHub, getOptions } from '@actions/github/utils'
+import { enterpriseServer220Admin } from '@octokit/plugin-enterprise-server'
 
-const octokit = GitHub.plugin(enterpriseServer220Admin).defaults({userAgent: "MyNewUserAgent"})
+const octokit = GitHub.plugin(enterpriseServer220Admin)
 // or override some of the default values as well 
 // const octokit = GitHub.plugin(enterpriseServer220Admin).defaults({userAgent: "MyNewUserAgent"})
 
