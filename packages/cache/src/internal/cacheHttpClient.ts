@@ -6,9 +6,11 @@ import {
   IRequestOptions,
   ITypedResponse
 } from '@actions/http-client/interfaces'
+import {BlockBlobClient} from '@azure/storage-blob'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as stream from 'stream'
+import {URL} from 'url'
 import * as util from 'util'
 
 import * as utils from './cacheUtils'
@@ -220,7 +222,7 @@ async function pipeResponseToStream(
   await pipeline(response.message, output)
 }
 
-export async function downloadCache(
+async function downloadCacheDirect(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
@@ -253,6 +255,28 @@ export async function downloadCache(
     }
   } else {
     core.debug('Unable to validate download, no Content-Length header')
+  }
+}
+
+async function downloadCacheAzure(
+  archiveLocation: string,
+  archivePath: string
+): Promise<void> {
+  const client = new BlockBlobClient(archiveLocation);
+  await client.downloadToFile(archivePath);
+}
+
+export async function downloadCache(
+  archiveLocation: string,
+  archivePath: string
+): Promise<void> {
+  const archiveUrl = new URL(archiveLocation);
+  core.debug(`Downloading cache from ${archiveUrl.hostname}`);
+
+  if (archiveUrl.hostname.endsWith("core.blob.windows.net")) {
+    await downloadCacheAzure(archiveLocation, archivePath);
+  } else {
+    await downloadCacheDirect(archiveLocation, archivePath);
   }
 }
 
