@@ -271,7 +271,7 @@ export async function downloadCache(
   archivePath: string
 ): Promise<void> {
   const archiveUrl = new URL(archiveLocation);
-  core.debug(`Downloading cache from ${archiveUrl.hostname}`);
+  core.info(`Downloading cache from ${archiveUrl.hostname}`);
 
   if (archiveUrl.hostname.endsWith("core.blob.windows.net")) {
     await downloadCacheAzure(archiveLocation, archivePath);
