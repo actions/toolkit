@@ -384,7 +384,7 @@ async function uploadFile(
                 })
                 .on('error', error => {
                   throw new Error(
-                    `Cache upload failed because file read failed with ${error.Message}`
+                    `Cache upload failed because file read failed with ${error.message}`
                   )
                 }),
             start,
