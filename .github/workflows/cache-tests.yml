@@ -61,6 +61,13 @@ jobs:
     - name: Restore cache using restoreCache()
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+        
+    - name: Restore cache using restoreCache() with the Azure client library
+      env:
+        AZURE_CLIENT_DOWNLOAD: true
+      run: |
+        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+
 
     - name: Verify cache 
       shell: bash
