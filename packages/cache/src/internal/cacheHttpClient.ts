@@ -273,8 +273,10 @@ export async function downloadCache(
   const archiveUrl = new URL(archiveLocation)
   const azureClientDownload = process.env['AZURE_CLIENT_DOWNLOAD'] ?? ''
 
-  if (archiveUrl.hostname.endsWith('core.blob.windows.net') &&
-   azureClientDownload === 'true') {
+  if (
+    archiveUrl.hostname.endsWith('.core.blob.windows.net') &&
+    azureClientDownload === 'true'
+  ) {
     core.debug('Downloading using Azure client')
     await downloadCacheAzure(archiveLocation, archivePath)
   } else {
