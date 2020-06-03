@@ -1,5 +1,9 @@
 # @actions/github Releases
 
+### 3.0.0
+- [Swap to @octokit/core and use plugins to leverage lastest octokit apis](https://github.com/actions/toolkit/pull/453)
+- [Add comment field to payload context](https://github.com/actions/toolkit/pull/375) 
+
 ### 2.2.0
 
 - [Support GHES: Use GITHUB_API_URL and GITHUB_GRAPHQL_URL to determine baseUrl](https://github.com/actions/toolkit/pull/449)
