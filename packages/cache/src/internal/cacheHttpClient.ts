@@ -262,21 +262,23 @@ async function downloadCacheAzure(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
-  const client = new BlockBlobClient(archiveLocation);
-  await client.downloadToFile(archivePath);
+  const client = new BlockBlobClient(archiveLocation)
+  await client.downloadToFile(archivePath)
 }
 
 export async function downloadCache(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
-  const archiveUrl = new URL(archiveLocation);
-  core.info(`Downloading cache from ${archiveUrl.hostname}`);
+  const archiveUrl = new URL(archiveLocation)
+  const azureClientDownload = process.env['AZURE_CLIENT_DOWNLOAD'] ?? ''
 
-  if (archiveUrl.hostname.endsWith("core.blob.windows.net")) {
-    await downloadCacheAzure(archiveLocation, archivePath);
+  if (archiveUrl.hostname.endsWith('core.blob.windows.net') &&
+   azureClientDownload === 'true') {
+    core.debug('Downloading using Azure client')
+    await downloadCacheAzure(archiveLocation, archivePath)
   } else {
-    await downloadCacheDirect(archiveLocation, archivePath);
+    await downloadCacheDirect(archiveLocation, archivePath)
   }
 }
 
