@@ -91,7 +91,7 @@ const myToken = core.getInput('myToken');
 const myOctokit = new octokit(getOctokitOptions(token))
 // Create a new user
 myOctokit.enterpriseAdmin.createUser({
-  username: "testuser",
+  login: "testuser",
   email: "testuser@test.com",
 });
 ```
