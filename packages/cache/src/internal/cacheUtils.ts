@@ -8,6 +8,7 @@ import * as semver from 'semver'
 import * as util from 'util'
 import {v4 as uuidV4} from 'uuid'
 import {CacheFilename, CompressionMethod} from './constants'
+import {getVersion} from './execUtils'
 
 // From https://github.com/actions/toolkit/blob/master/packages/tool-cache/src/tool-cache.ts#L23
 export async function createTempDirectory(): Promise<string> {
@@ -60,27 +61,6 @@ export async function unlinkFile(filePath: fs.PathLike): Promise<void> {
   return util.promisify(fs.unlink)(filePath)
 }
 
-async function getVersion(app: string): Promise<string> {
-  core.debug(`Checking ${app} --version`)
-  let versionOutput = ''
-  try {
-    await exec.exec(`${app} --version`, [], {
-      ignoreReturnCode: true,
-      silent: true,
-      listeners: {
-        stdout: (data: Buffer): string => (versionOutput += data.toString()),
-        stderr: (data: Buffer): string => (versionOutput += data.toString())
-      }
-    })
-  } catch (err) {
-    core.debug(err.message)
-  }
-
-  versionOutput = versionOutput.trim()
-  core.debug(versionOutput)
-  return versionOutput
-}
-
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
   if (process.platform === 'win32' && !(await isGnuTarInstalled())) {
@@ -100,6 +80,33 @@ export async function getCompressionMethod(): Promise<CompressionMethod> {
     return CompressionMethod.ZstdWithoutLong
   } else {
     return CompressionMethod.Zstd
+  }
+}
+
+export async function getAzCopyCommand(): Promise<string | undefined> {
+  let versionOutput = await getVersion('azcopy')
+  core.info(`azcopy output: ${versionOutput}`)
+
+  if (versionOutput.endsWith('-netcore')) {
+    versionOutput = versionOutput.substring(0, versionOutput.length-8);
+  }
+
+  const version = semver.clean(versionOutput)
+  core.info(`version: ${version}`)
+
+  if (version) {
+    // Make sure we use the latest version on Linux. At the time of writing, azcopy
+    // refers to v7.3.0 but alias azcopy10 refers to v10.4.0.
+    if (process.platform == 'linux') {
+      const version10Output = await getVersion('azcopy10')
+      const version10 = semver.clean(version10Output)
+
+      if (version10 && semver.lt(version, version10)) {
+        return 'azcopy10'
+      }
+    }
+
+    return 'azcopy'
   }
 }
 

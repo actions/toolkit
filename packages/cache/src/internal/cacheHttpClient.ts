@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import {exec} from '@actions/exec'
 import {HttpClient, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {
@@ -261,27 +262,30 @@ async function downloadCacheDirect(
 async function downloadCacheAzure(
   archiveLocation: string,
   archivePath: string
-): Promise<void> {
-  const client = new BlockBlobClient(archiveLocation)
-  await client.downloadToFile(archivePath)
+): Promise<boolean> {
+  const archiveUrl = new URL(archiveLocation)
+  const useAzureClient = process.env['USE_AZURE_CLIENT'] ?? ''
+  const command = await utils.getAzCopyCommand();
+
+  if (
+    archiveUrl.hostname.endsWith('.blob.core.windows.net') &&
+    useAzureClient == 'true' &&
+    command
+  ) {
+    core.info(`Downloading using ${command}...`)
+    await exec(command, ['copy', archiveLocation, archivePath])
+    return true;
+  } else {
+    return false;
+  }
 }
 
 export async function downloadCache(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
-  const archiveUrl = new URL(archiveLocation)
-  const azureClientDownload = process.env['AZURE_CLIENT_DOWNLOAD'] ?? ''
-
-  if (
-    archiveUrl.hostname.endsWith('.blob.core.windows.net') &&
-    azureClientDownload === 'true'
-  ) {
-    core.info('Downloading using Azure client')
-    await downloadCacheAzure(archiveLocation, archivePath)
-  } else {
-    await downloadCacheDirect(archiveLocation, archivePath)
-  }
+  await downloadCacheAzure(archiveLocation, archivePath) ??
+    await downloadCacheDirect(archiveLocation, archivePath);
 }
 
 // Reserve Cache
