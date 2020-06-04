@@ -58,13 +58,13 @@ jobs:
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 
-    - name: Restore cache using restoreCache()
+    - name: Restore cache using restoreCache() with http-client
+      env:
+        DISABLE_AZCOPY: true
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 
-    - name: Restore cache using restoreCache() with AzCopy enabled
-      env:
-        USE_AZCOPY: true
+    - name: Restore cache using restoreCache() with AzCopy
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 

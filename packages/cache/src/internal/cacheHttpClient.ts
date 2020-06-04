@@ -263,12 +263,12 @@ export async function downloadCache(
   archivePath: string
 ): Promise<void> {
   const archiveUrl = new URL(archiveLocation)
-  const useAzCopy = process.env['USE_AZCOPY'] ?? ''
+  const disableAzCopy = process.env['DISABLE_AZCOPY'] ?? ''
 
-  // Use AzCopy to download caches hosted on Azure to improve reliability.
+  // Use AzCopy to download caches hosted on Azure to improve speed and reliability.
   if (
     archiveUrl.hostname.endsWith('.blob.core.windows.net') &&
-    useAzCopy === 'true'
+    disableAzCopy !== 'true'
   ) {
     const command = await utils.getAzCopyCommand()
 
