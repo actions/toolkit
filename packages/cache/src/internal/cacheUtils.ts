@@ -113,3 +113,14 @@ export async function isGnuTarInstalled(): Promise<boolean> {
   const versionOutput = await getVersion('tar')
   return versionOutput.toLowerCase().includes('gnu tar')
 }
+
+export async function getAzCopyCommand(): Promise<string | undefined> {
+  // On Ubuntu, azcopy points to an earlier version, so prefer the azcopy10 alias
+  if ((await getVersion('azcopy10')).toLowerCase().includes('azcopy')) {
+    return 'azcopy10'
+  } else if ((await getVersion('azcopy')).toLowerCase().includes('azcopy')) {
+    return 'azcopy'
+  } else {
+    return undefined
+  }
+}

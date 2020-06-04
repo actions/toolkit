@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import {exec} from '@actions/exec'
 import {HttpClient, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {
@@ -9,6 +10,7 @@ import {
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as stream from 'stream'
+import {URL} from 'url'
 import * as util from 'util'
 
 import * as utils from './cacheUtils'
@@ -220,7 +222,7 @@ async function pipeResponseToStream(
   await pipeline(response.message, output)
 }
 
-export async function downloadCache(
+async function downloadCacheHttpClient(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
@@ -254,6 +256,31 @@ export async function downloadCache(
   } else {
     core.debug('Unable to validate download, no Content-Length header')
   }
+}
+
+export async function downloadCache(
+  archiveLocation: string,
+  archivePath: string
+): Promise<void> {
+  const archiveUrl = new URL(archiveLocation)
+  const useAzCopy = process.env['USE_AZCOPY'] ?? ''
+
+  // Use AzCopy to download caches hosted on Azure to improve reliability.
+  if (
+    archiveUrl.hostname.endsWith('.blob.core.windows.net') &&
+    useAzCopy === 'true'
+  ) {
+    const command = await utils.getAzCopyCommand()
+
+    if (command) {
+      core.info(`Downloading cache using ${command}...`)
+      await exec(command, ['copy', archiveLocation, archivePath])
+      return
+    }
+  }
+
+  // Otherwise, download using the Actions http-client.
+  await downloadCacheHttpClient(archiveLocation, archivePath)
 }
 
 // Reserve Cache
@@ -360,7 +387,7 @@ async function uploadFile(
                 })
                 .on('error', error => {
                   throw new Error(
-                    `Cache upload failed because file read failed with ${error.Message}`
+                    `Cache upload failed because file read failed with ${error.message}`
                   )
                 }),
             start,

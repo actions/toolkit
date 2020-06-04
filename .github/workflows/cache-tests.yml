@@ -62,6 +62,12 @@ jobs:
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 
+    - name: Restore cache using restoreCache() with AzCopy enabled
+      env:
+        USE_AZCOPY: true
+      run: |
+        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+
     - name: Verify cache 
       shell: bash
       run: |
