@@ -10,6 +10,7 @@ import {BlockBlobClient} from '@azure/storage-blob'
 import * as buffer from 'buffer'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
+import * as os from 'os'
 import * as stream from 'stream'
 import {URL} from 'url'
 import * as util from 'util'
@@ -287,7 +288,7 @@ async function downloadCacheStorageSDK(
       const segmentSize = Math.min(maxSegmentSize, contentLength-offset)
       core.debug(`Downloading segment at offset ${offset} with length ${segmentSize}...`)
       
-      const buffer = await client.downloadToBuffer(offset, segmentSize, { concurrency: 8 })
+      const buffer = await client.downloadToBuffer(offset, segmentSize, { concurrency: os.cpus().length * 8 })
       fs.writeFileSync(fd, buffer)
 
       core.debug(`Finished segment at offset ${offset}`)
