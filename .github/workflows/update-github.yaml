@@ -15,7 +15,8 @@ jobs:
     - name: Update Octokit
       working-directory: packages/github 
       run: |
-        npm update
+        npx npm-check-updates -u --dep prod
+        npm install
     - name: Check Status
       id: status
       working-directory: packages/github 
