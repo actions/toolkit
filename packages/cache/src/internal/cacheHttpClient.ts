@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import {exec} from '@actions/exec'
 import {HttpClient, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {
@@ -7,6 +6,8 @@ import {
   IRequestOptions,
   ITypedResponse
 } from '@actions/http-client/interfaces'
+import {BlockBlobClient} from '@azure/storage-blob'
+import * as buffer from 'buffer'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as stream from 'stream'
@@ -258,29 +259,62 @@ async function downloadCacheHttpClient(
   }
 }
 
+async function downloadCacheStorageSDK(
+  archiveLocation: string,
+  archivePath: string
+): Promise<void> {
+  const client = new BlockBlobClient(archiveLocation)
+  const properties = await client.getProperties()
+  const contentLength = properties.contentLength ?? -1
+  
+  if (contentLength < 0) {
+    // We should never hit this condition, but just in case fall back to downloading the
+    // file as one large stream.
+    core.debug('Unable to determine content length, downloading file as stream...')
+    await client.downloadToFile(archivePath)
+  } else {
+    // Use downloadToBuffer for faster downloads, since internally it splits the
+    // file into 4 MB chunks which can then be parallelized and retried independently.
+    // Note that the max buffer length is 1 GB on 32-bit systems and 2 GBs on 64-bit
+    // systems. If the content length exceeds this limit, split the download into
+    // multiple calls.
+    const maxSegmentSize = buffer.kMaxLength
+    let offset = 0
+
+    const fd = fs.openSync(archivePath, 'w')
+
+    while (offset < contentLength) {
+      const segmentSize = Math.min(maxSegmentSize, contentLength-offset)
+      core.debug(`Downloading segment at offset ${offset} with length ${segmentSize}...`)
+      
+      const buffer = await client.downloadToBuffer(offset, segmentSize, { concurrency: 8 })
+      fs.writeFileSync(fd, buffer)
+
+      core.debug(`Finished segment at offset ${offset}`)
+      offset += segmentSize
+    }
+
+    fs.closeSync(fd)
+  }
+}
+
 export async function downloadCache(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
   const archiveUrl = new URL(archiveLocation)
-  const disableAzCopy = process.env['DISABLE_AZCOPY'] ?? ''
+  const disableAzureSdk = process.env['DISABLE_AZURE_SDK'] ?? ''
 
-  // Use AzCopy to download caches hosted on Azure to improve speed and reliability.
   if (
     archiveUrl.hostname.endsWith('.blob.core.windows.net') &&
-    disableAzCopy !== 'true'
+    disableAzureSdk !== 'true'
   ) {
-    const command = await utils.getAzCopyCommand()
-
-    if (command) {
-      core.info(`Downloading cache using ${command}...`)
-      await exec(command, ['copy', archiveLocation, archivePath])
-      return
-    }
+    // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
+    await downloadCacheStorageSDK(archiveLocation, archivePath)
+  } else {
+    // Otherwise, download using the Actions http-client.
+    await downloadCacheHttpClient(archiveLocation, archivePath)
   }
-
-  // Otherwise, download using the Actions http-client.
-  await downloadCacheHttpClient(archiveLocation, archivePath)
 }
 
 // Reserve Cache

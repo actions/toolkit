@@ -60,11 +60,11 @@ jobs:
 
     - name: Restore cache using restoreCache() with http-client
       env:
-        DISABLE_AZCOPY: true
+        DISABLE_AZURE_SDK: true
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 
-    - name: Restore cache using restoreCache() with AzCopy
+    - name: Restore cache using restoreCache() with Azure SDK
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 

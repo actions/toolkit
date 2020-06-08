@@ -113,28 +113,3 @@ export async function isGnuTarInstalled(): Promise<boolean> {
   const versionOutput = await getVersion('tar')
   return versionOutput.toLowerCase().includes('gnu tar')
 }
-
-export async function getAzCopyCommand(): Promise<string | undefined> {
-  // Always prefer the azcopy10 alias first, which is the correct version on Ubuntu.
-  let versionOutput = await getVersion('azcopy10')
-
-  if (versionOutput.toLowerCase().startsWith('azcopy version')) {
-    return 'azcopy10'
-  }
-
-  // Fall back to any azcopy that is version 10 or newer.
-  versionOutput = await getVersion('azcopy')
-
-  if (versionOutput.toLowerCase().startsWith('azcopy version')) {
-    const version = versionOutput.substring(15)
-
-    if (semver.gte(version, '10.0.0')) {
-      return 'azcopy'
-    } else {
-      core.debug(`Found azcopy but version is not supported: ${version}`)
-    }
-  }
-
-  // Otherwise, azcopy is not available.
-  return undefined
-}
