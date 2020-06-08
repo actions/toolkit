@@ -1,0 +1,15 @@
+name: "Update Actions GitHub Octokit"
+
+on:
+  push:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  Update Actions GitHub:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
