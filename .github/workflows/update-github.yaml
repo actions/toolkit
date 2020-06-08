@@ -1,7 +1,6 @@
 name: "UpdateOctokit"
 
 on:
-  push:
   schedule:
     - cron: '0 18 * * 0'
 
