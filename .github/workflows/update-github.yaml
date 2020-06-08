@@ -1,15 +1,45 @@
-name: "Update Actions GitHub Octokit"
+name: "UpdateOctokit"
 
 on:
   push:
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '0 18 * * 0'
 
 jobs:
-  Update Actions GitHub:
+  UpdateOctokit:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
+    - name: Update Octokit
+      working-directory: packages/github 
+      run: |
+        npm update
+    - name: Check Status
+      id: status
+      working-directory: packages/github 
+      run: | 
+        if [[ "$(git status --porcelain)" != "" ]]; then 
+        echo "::set-output name=createPR::true"
+        git config --global user.email "bot@github.com"
+        git config --global user.name "Dependency Update Bot"
+        git checkout -b bots/updateGitHubDependencies-${{github.run_number}}
+        git add .
+        git commit -m "Update Dependencies"
+        git push --set-upstream origin bots/updateGitHubDependencies-${{github.run_number}}; fi
+    - name: Create PR
+      if: ${{steps.status.outputs.createPR}}
+      uses: actions/github-script@v2
+      with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.pulls.create(
+            {
+              base: "master",
+              owner: "${{github.repository_owner}}",
+              repo: "toolkit",
+              title: "Update Octokit dependencies",
+              body: "Update Octokit dependencies",
+              head: "bots/updateGitHubDependencies-${{github.run_number}}"
+            })
