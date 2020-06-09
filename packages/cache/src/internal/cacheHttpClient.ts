@@ -288,8 +288,8 @@ async function downloadCacheStorageSDK(
       const segmentSize = Math.min(maxSegmentSize, contentLength-offset)
       core.debug(`Downloading segment at offset ${offset} with length ${segmentSize}...`)
       
-      const buffer = await client.downloadToBuffer(offset, segmentSize, { concurrency: os.cpus().length * 8 })
-      fs.writeFileSync(fd, buffer)
+      const result = await client.downloadToBuffer(offset, segmentSize, { concurrency: os.cpus().length * 8 })
+      fs.writeFileSync(fd, result)
 
       core.debug(`Finished segment at offset ${offset}`)
       offset += segmentSize
