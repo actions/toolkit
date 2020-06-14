@@ -15,6 +15,8 @@ export class Context {
   workflow: string
   action: string
   actor: string
+  runNumber: string
+  runId: string
 
   /**
    * Hydrate the context from the environment
@@ -37,6 +39,8 @@ export class Context {
     this.workflow = process.env.GITHUB_WORKFLOW as string
     this.action = process.env.GITHUB_ACTION as string
     this.actor = process.env.GITHUB_ACTOR as string
+    this.runNumber = process.env.GITHUB_RUN_NUMBER as string
+    this.runId = process.env.GITHUB_RUN_ID as string
   }
 
   get issue(): {owner: string; repo: string; number: number} {
