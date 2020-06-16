@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar} from './internal/tar'
-import {UploadOptions} from './options'
+import {DownloadOptions, UploadOptions} from './options'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -49,12 +49,14 @@ function checkKey(key: string): void {
  * @param paths a list of file paths to restore from the cache
  * @param primaryKey an explicit key for restoring the cache
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
+ * @param downloadOptions cache download options
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
   paths: string[],
   primaryKey: string,
-  restoreKeys?: string[]
+  restoreKeys?: string[],
+  options?: DownloadOptions
 ): Promise<string | undefined> {
   checkPaths(paths)
 
@@ -92,7 +94,7 @@ export async function restoreCache(
 
   try {
     // Download the cache from the cache entry
-    await cacheHttpClient.downloadCache(cacheEntry.archiveLocation, archivePath)
+    await cacheHttpClient.downloadCache(cacheEntry.archiveLocation, archivePath, options)
 
     const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
     core.info(
