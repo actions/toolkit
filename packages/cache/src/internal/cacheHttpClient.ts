@@ -24,7 +24,7 @@ import {
   ReserveCacheRequest,
   ReserveCacheResponse
 } from './contracts'
-import {UploadOptions} from '../options'
+import {DownloadOptions, UploadOptions} from '../options'
 
 const versionSalt = '1.0'
 
@@ -262,53 +262,66 @@ async function downloadCacheHttpClient(
 
 async function downloadCacheStorageSDK(
   archiveLocation: string,
-  archivePath: string
+  archivePath: string,
+  options?: DownloadOptions
 ): Promise<void> {
-  const client = new BlockBlobClient(archiveLocation)
+  const client = new BlockBlobClient(archiveLocation, undefined, {
+    retryOptions: {
+       // Override the timeout used when downloading each 4 MB chunk. The default
+       // is 2 min / MB, which is way too slow.
+       tryTimeoutInMs: options?.timeoutInMs ?? 30000
+    }
+  })
+
   const properties = await client.getProperties()
   const contentLength = properties.contentLength ?? -1
   
   if (contentLength < 0) {
     // We should never hit this condition, but just in case fall back to downloading the
     // file as one large stream.
-    core.debug('Unable to determine content length, downloading file as stream...')
-    await client.downloadToFile(archivePath)
+    core.debug('Unable to determine content length, downloading file with http-client...')
+    await downloadCacheHttpClient(archiveLocation, archivePath)
   } else {
     // Use downloadToBuffer for faster downloads, since internally it splits the
     // file into 4 MB chunks which can then be parallelized and retried independently.
     // Note that the max buffer length is 1 GB on 32-bit systems and 2 GBs on 64-bit
     // systems. If the content length exceeds this limit, split the download into
     // multiple calls.
-    const maxSegmentSize = buffer.kMaxLength
+    const maxSegmentSize = buffer.constants.MAX_LENGTH
     let offset = 0
 
     const fd = fs.openSync(archivePath, 'w')
 
-    while (offset < contentLength) {
-      const segmentSize = Math.min(maxSegmentSize, contentLength-offset)
-      core.debug(`Downloading segment at offset ${offset} with length ${segmentSize}...`)
-      
-      const result = await client.downloadToBuffer(offset, segmentSize, { concurrency: os.cpus().length * 8 })
-      fs.writeFileSync(fd, result)
+    try {
+      while (offset < contentLength) {
+        const segmentSize = Math.min(maxSegmentSize, contentLength-offset)
+        core.debug(`Downloading segment at offset ${offset} with length ${segmentSize}...`)
+        
+        const result = await client.downloadToBuffer(offset, segmentSize, {
+           concurrency: options?.downloadConcurrency ?? 8
+        })
 
-      core.debug(`Finished segment at offset ${offset}`)
-      offset += segmentSize
+        fs.writeFileSync(fd, result)
+
+        core.debug(`Finished segment at offset ${offset}`)
+        offset += segmentSize
+      }
+    } finally {
+      fs.closeSync(fd)
     }
-
-    fs.closeSync(fd)
   }
 }
 
 export async function downloadCache(
   archiveLocation: string,
-  archivePath: string
+  archivePath: string,
+  options?: DownloadOptions
 ): Promise<void> {
   const archiveUrl = new URL(archiveLocation)
-  const disableAzureSdk = process.env['DISABLE_AZURE_SDK'] ?? ''
 
   if (
-    archiveUrl.hostname.endsWith('.blob.core.windows.net') &&
-    disableAzureSdk !== 'true'
+    (options?.useAzureSdk ?? true) &&
+    archiveUrl.hostname.endsWith('.blob.core.windows.net')
   ) {
     // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
     await downloadCacheStorageSDK(archiveLocation, archivePath)
