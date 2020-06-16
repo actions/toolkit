@@ -21,26 +21,26 @@ export interface UploadOptions {
  */
 export interface DownloadOptions {
   /**
-   * Indicates whether to use the Azure Blob SDK to download
-   * caches that are stored on Azure Blob Storage. This option
-   * provides better reliability and performance.
+   * Indicates whether to use the Azure Blob SDK to download caches
+   * that are stored on Azure Blob Storage to improve reliability and
+   * performance
    *
    * @default true
    */
   useAzureSdk?: boolean
 
   /**
-   * Number of parallel downloads. This option only applies when
-   * using the Azure SDK.
-   * 
+   * Number of parallel downloads (this option only applies when using
+   * the Azure SDK)
+   *
    * @default 8
    */
   downloadConcurrency?: number
 
   /**
-   * Maximum time for each download request, in milliseconds. This
-   * option only applies when using the Azure SDK.
-   * 
+   * Maximum time for each download request, in milliseconds (this
+   * option only applies when using the Azure SDK)
+   *
    * @default 30000
    */
   timeoutInMs?: number

@@ -10,7 +10,6 @@ import {BlockBlobClient} from '@azure/storage-blob'
 import * as buffer from 'buffer'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
-import * as os from 'os'
 import * as stream from 'stream'
 import {URL} from 'url'
 import * as util from 'util'
@@ -267,26 +266,28 @@ async function downloadCacheStorageSDK(
 ): Promise<void> {
   const client = new BlockBlobClient(archiveLocation, undefined, {
     retryOptions: {
-       // Override the timeout used when downloading each 4 MB chunk. The default
-       // is 2 min / MB, which is way too slow.
-       tryTimeoutInMs: options?.timeoutInMs ?? 30000
+      // Override the timeout used when downloading each 4 MB chunk
+      // The default is 2 min / MB, which is way too slow
+      tryTimeoutInMs: options?.timeoutInMs ?? 30000
     }
   })
 
   const properties = await client.getProperties()
   const contentLength = properties.contentLength ?? -1
-  
+
   if (contentLength < 0) {
     // We should never hit this condition, but just in case fall back to downloading the
-    // file as one large stream.
-    core.debug('Unable to determine content length, downloading file with http-client...')
+    // file as one large stream
+    core.debug(
+      'Unable to determine content length, downloading file with http-client...'
+    )
     await downloadCacheHttpClient(archiveLocation, archivePath)
   } else {
     // Use downloadToBuffer for faster downloads, since internally it splits the
-    // file into 4 MB chunks which can then be parallelized and retried independently.
-    // Note that the max buffer length is 1 GB on 32-bit systems and 2 GBs on 64-bit
-    // systems. If the content length exceeds this limit, split the download into
-    // multiple calls.
+    // file into 4 MB chunks which can then be parallelized and retried independently
+    //
+    // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
+    // on 64-bit systems), split the download into multiple segments
     const maxSegmentSize = buffer.constants.MAX_LENGTH
     let offset = 0
 
@@ -294,11 +295,13 @@ async function downloadCacheStorageSDK(
 
     try {
       while (offset < contentLength) {
-        const segmentSize = Math.min(maxSegmentSize, contentLength-offset)
-        core.debug(`Downloading segment at offset ${offset} with length ${segmentSize}...`)
-        
+        const segmentSize = Math.min(maxSegmentSize, contentLength - offset)
+        core.debug(
+          `Downloading segment at offset ${offset} with length ${segmentSize}...`
+        )
+
         const result = await client.downloadToBuffer(offset, segmentSize, {
-           concurrency: options?.downloadConcurrency ?? 8
+          concurrency: options?.downloadConcurrency ?? 8
         })
 
         fs.writeFileSync(fd, result)
