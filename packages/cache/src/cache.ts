@@ -94,7 +94,11 @@ export async function restoreCache(
 
   try {
     // Download the cache from the cache entry
-    await cacheHttpClient.downloadCache(cacheEntry.archiveLocation, archivePath, options)
+    await cacheHttpClient.downloadCache(
+      cacheEntry.archiveLocation,
+      archivePath,
+      options
+    )
 
     const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
     core.info(
