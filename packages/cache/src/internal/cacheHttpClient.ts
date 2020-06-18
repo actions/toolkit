@@ -1,21 +1,13 @@
 import * as core from '@actions/core'
-import {HttpClient, HttpCodes} from '@actions/http-client'
+import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {
-  IHttpClientResponse,
-  IRequestOptions,
-  ITypedResponse
-} from '@actions/http-client/interfaces'
-import {BlockBlobClient} from '@azure/storage-blob'
-import * as buffer from 'buffer'
+import {IRequestOptions, ITypedResponse} from '@actions/http-client/interfaces'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
-import * as stream from 'stream'
 import {URL} from 'url'
-import * as util from 'util'
 
 import * as utils from './cacheUtils'
-import {CompressionMethod, SocketTimeout} from './constants'
+import {CompressionMethod} from './constants'
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
@@ -23,35 +15,15 @@ import {
   ReserveCacheRequest,
   ReserveCacheResponse
 } from './contracts'
+import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
 import {DownloadOptions, UploadOptions} from '../options'
+import {
+  isSuccessStatusCode,
+  retryHttpClientResponse,
+  retryTypedResponse
+} from './requestUtils'
 
 const versionSalt = '1.0'
-
-function isSuccessStatusCode(statusCode?: number): boolean {
-  if (!statusCode) {
-    return false
-  }
-  return statusCode >= 200 && statusCode < 300
-}
-
-function isServerErrorStatusCode(statusCode?: number): boolean {
-  if (!statusCode) {
-    return true
-  }
-  return statusCode >= 500
-}
-
-function isRetryableStatusCode(statusCode?: number): boolean {
-  if (!statusCode) {
-    return false
-  }
-  const retryableStatusCodes = [
-    HttpCodes.BadGateway,
-    HttpCodes.ServiceUnavailable,
-    HttpCodes.GatewayTimeout
-  ]
-  return retryableStatusCodes.includes(statusCode)
-}
 
 function getCacheApiUrl(resource: string): string {
   // Ideally we just use ACTIONS_CACHE_URL
@@ -113,75 +85,6 @@ export function getCacheVersion(
     .digest('hex')
 }
 
-export async function retry<T>(
-  name: string,
-  method: () => Promise<T>,
-  getStatusCode: (arg0: T) => number | undefined,
-  maxAttempts = 2
-): Promise<T> {
-  let response: T | undefined = undefined
-  let statusCode: number | undefined = undefined
-  let isRetryable = false
-  let errorMessage = ''
-  let attempt = 1
-
-  while (attempt <= maxAttempts) {
-    try {
-      response = await method()
-      statusCode = getStatusCode(response)
-
-      if (!isServerErrorStatusCode(statusCode)) {
-        return response
-      }
-
-      isRetryable = isRetryableStatusCode(statusCode)
-      errorMessage = `Cache service responded with ${statusCode}`
-    } catch (error) {
-      isRetryable = true
-      errorMessage = error.message
-    }
-
-    core.debug(
-      `${name} - Attempt ${attempt} of ${maxAttempts} failed with error: ${errorMessage}`
-    )
-
-    if (!isRetryable) {
-      core.debug(`${name} - Error is not retryable`)
-      break
-    }
-
-    attempt++
-  }
-
-  throw Error(`${name} failed: ${errorMessage}`)
-}
-
-export async function retryTypedResponse<T>(
-  name: string,
-  method: () => Promise<ITypedResponse<T>>,
-  maxAttempts = 2
-): Promise<ITypedResponse<T>> {
-  return await retry(
-    name,
-    method,
-    (response: ITypedResponse<T>) => response.statusCode,
-    maxAttempts
-  )
-}
-
-export async function retryHttpClientResponse<T>(
-  name: string,
-  method: () => Promise<IHttpClientResponse>,
-  maxAttempts = 2
-): Promise<IHttpClientResponse> {
-  return await retry(
-    name,
-    method,
-    (response: IHttpClientResponse) => response.message.statusCode,
-    maxAttempts
-  )
-}
-
 export async function getCacheEntry(
   keys: string[],
   paths: string[],
@@ -215,106 +118,6 @@ export async function getCacheEntry(
   return cacheResult
 }
 
-async function pipeResponseToStream(
-  response: IHttpClientResponse,
-  output: NodeJS.WritableStream
-): Promise<void> {
-  const pipeline = util.promisify(stream.pipeline)
-  await pipeline(response.message, output)
-}
-
-async function downloadCacheHttpClient(
-  archiveLocation: string,
-  archivePath: string
-): Promise<void> {
-  const writeStream = fs.createWriteStream(archivePath)
-  const httpClient = new HttpClient('actions/cache')
-  const downloadResponse = await retryHttpClientResponse(
-    'downloadCache',
-    async () => httpClient.get(archiveLocation)
-  )
-
-  // Abort download if no traffic received over the socket.
-  downloadResponse.message.socket.setTimeout(SocketTimeout, () => {
-    downloadResponse.message.destroy()
-    core.debug(`Aborting download, socket timed out after ${SocketTimeout} ms`)
-  })
-
-  await pipeResponseToStream(downloadResponse, writeStream)
-
-  // Validate download size.
-  const contentLengthHeader = downloadResponse.message.headers['content-length']
-
-  if (contentLengthHeader) {
-    const expectedLength = parseInt(contentLengthHeader)
-    const actualLength = utils.getArchiveFileSizeIsBytes(archivePath)
-
-    if (actualLength !== expectedLength) {
-      throw new Error(
-        `Incomplete download. Expected file size: ${expectedLength}, actual file size: ${actualLength}`
-      )
-    }
-  } else {
-    core.debug('Unable to validate download, no Content-Length header')
-  }
-}
-
-async function downloadCacheStorageSDK(
-  archiveLocation: string,
-  archivePath: string,
-  options?: DownloadOptions
-): Promise<void> {
-  const client = new BlockBlobClient(archiveLocation, undefined, {
-    retryOptions: {
-      // Override the timeout used when downloading each 4 MB chunk
-      // The default is 2 min / MB, which is way too slow
-      tryTimeoutInMs: options?.timeoutInMs ?? 30000
-    }
-  })
-
-  const properties = await client.getProperties()
-  const contentLength = properties.contentLength ?? -1
-
-  if (contentLength < 0) {
-    // We should never hit this condition, but just in case fall back to downloading the
-    // file as one large stream
-    core.debug(
-      'Unable to determine content length, downloading file with http-client...'
-    )
-    await downloadCacheHttpClient(archiveLocation, archivePath)
-  } else {
-    // Use downloadToBuffer for faster downloads, since internally it splits the
-    // file into 4 MB chunks which can then be parallelized and retried independently
-    //
-    // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
-    // on 64-bit systems), split the download into multiple segments
-    const maxSegmentSize = buffer.constants.MAX_LENGTH
-    let offset = 0
-
-    const fd = fs.openSync(archivePath, 'w')
-
-    try {
-      while (offset < contentLength) {
-        const segmentSize = Math.min(maxSegmentSize, contentLength - offset)
-        core.debug(
-          `Downloading segment at offset ${offset} with length ${segmentSize}...`
-        )
-
-        const result = await client.downloadToBuffer(offset, segmentSize, {
-          concurrency: options?.downloadConcurrency ?? 8
-        })
-
-        fs.writeFileSync(fd, result)
-
-        core.debug(`Finished segment at offset ${offset}`)
-        offset += segmentSize
-      }
-    } finally {
-      fs.closeSync(fd)
-    }
-  }
-}
-
 export async function downloadCache(
   archiveLocation: string,
   archivePath: string,
@@ -327,7 +130,7 @@ export async function downloadCache(
     archiveUrl.hostname.endsWith('.blob.core.windows.net')
   ) {
     // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-    await downloadCacheStorageSDK(archiveLocation, archivePath)
+    await downloadCacheStorageSDK(archiveLocation, archivePath, options)
   } else {
     // Otherwise, download using the Actions http-client.
     await downloadCacheHttpClient(archiveLocation, archivePath)
