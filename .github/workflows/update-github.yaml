@@ -2,12 +2,12 @@ name: "UpdateOctokit"
 
 on:
   schedule:
-    - cron: '0 18 * * 0'
+    - cron: '0 18 * * 0' # sunday at 18 UTC
 
 jobs:
   UpdateOctokit:
     runs-on: ubuntu-latest
-
+    if: ${{ github.repository_owner == 'actions' }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -27,7 +27,8 @@ jobs:
         git checkout -b bots/updateGitHubDependencies-${{github.run_number}}
         git add .
         git commit -m "Update Dependencies"
-        git push --set-upstream origin bots/updateGitHubDependencies-${{github.run_number}}; fi
+        git push --set-upstream origin bots/updateGitHubDependencies-${{github.run_number}}
+        fi
     - name: Create PR
       if: ${{steps.status.outputs.createPR}}
       uses: actions/github-script@v2
