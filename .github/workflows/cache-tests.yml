@@ -58,6 +58,12 @@ jobs:
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 
+    - name: Delete cache folders prior to restore
+      shell: bash
+      run: |
+        rm -rf test-cache
+        rm -rf ~/test-cache
+
     - name: Restore cache using restoreCache()
       run: |
         node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
