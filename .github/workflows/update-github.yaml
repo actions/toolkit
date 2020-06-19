@@ -1,13 +1,14 @@
 name: "UpdateOctokit"
 
 on:
+  push:
   schedule:
     - cron: '0 18 * * 0' # sunday at 18 UTC
 
 jobs:
   UpdateOctokit:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'actions' }}
+    # if: ${{ github.repository_owner == 'actions' }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
