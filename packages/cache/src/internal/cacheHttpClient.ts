@@ -16,7 +16,12 @@ import {
   ReserveCacheResponse
 } from './contracts'
 import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
-import {DownloadOptions, UploadOptions} from '../options'
+import {
+  DownloadOptions,
+  UploadOptions,
+  getDownloadOptions,
+  getUploadOptions
+} from '../options'
 import {
   isSuccessStatusCode,
   retryHttpClientResponse,
@@ -124,13 +129,14 @@ export async function downloadCache(
   options?: DownloadOptions
 ): Promise<void> {
   const archiveUrl = new URL(archiveLocation)
+  const downloadOptions = getDownloadOptions(options)
 
   if (
-    (options?.useAzureSdk ?? true) &&
+    downloadOptions.useAzureSdk &&
     archiveUrl.hostname.endsWith('.blob.core.windows.net')
   ) {
     // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-    await downloadCacheStorageSDK(archiveLocation, archivePath, options)
+    await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
   } else {
     // Otherwise, download using the Actions http-client.
     await downloadCacheHttpClient(archiveLocation, archivePath)
@@ -210,10 +216,16 @@ async function uploadFile(
   const fileSize = fs.statSync(archivePath).size
   const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`)
   const fd = fs.openSync(archivePath, 'r')
+  const uploadOptions = getUploadOptions(options)
 
-  const concurrency = options?.uploadConcurrency ?? 4 // # of HTTP requests in parallel
-  const MAX_CHUNK_SIZE = options?.uploadChunkSize ?? 32 * 1024 * 1024 // 32 MB Chunks
-  core.debug(`Concurrency: ${concurrency} and Chunk Size: ${MAX_CHUNK_SIZE}`)
+  const concurrency = utils.assertDefined(
+    'uploadConcurrency',
+    uploadOptions.uploadConcurrency
+  )
+  const maxChunkSize = utils.assertDefined(
+    'uploadChunkSize',
+    uploadOptions.uploadChunkSize
+  )
 
   const parallelUploads = [...new Array(concurrency).keys()]
   core.debug('Awaiting all uploads')
@@ -223,10 +235,10 @@ async function uploadFile(
     await Promise.all(
       parallelUploads.map(async () => {
         while (offset < fileSize) {
-          const chunkSize = Math.min(fileSize - offset, MAX_CHUNK_SIZE)
+          const chunkSize = Math.min(fileSize - offset, maxChunkSize)
           const start = offset
           const end = offset + chunkSize - 1
-          offset += MAX_CHUNK_SIZE
+          offset += maxChunkSize
 
           await uploadChunk(
             httpClient,

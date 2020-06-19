@@ -74,18 +74,18 @@ export async function downloadCacheHttpClient(
  *
  * @param archiveLocation the URL for the cache
  * @param archivePath the local path where the cache is saved
- * @param options the download options
+ * @param options the download options with the defaults set
  */
 export async function downloadCacheStorageSDK(
   archiveLocation: string,
   archivePath: string,
-  options?: DownloadOptions
+  options: DownloadOptions
 ): Promise<void> {
   const client = new BlockBlobClient(archiveLocation, undefined, {
     retryOptions: {
       // Override the timeout used when downloading each 4 MB chunk
       // The default is 2 min / MB, which is way too slow
-      tryTimeoutInMs: options?.timeoutInMs ?? 30000
+      tryTimeoutInMs: options.timeoutInMs
     }
   })
 
@@ -119,7 +119,7 @@ export async function downloadCacheStorageSDK(
         )
 
         const result = await client.downloadToBuffer(offset, segmentSize, {
-          concurrency: options?.downloadConcurrency ?? 8
+          concurrency: options.downloadConcurrency
         })
 
         fs.writeFileSync(fd, result)

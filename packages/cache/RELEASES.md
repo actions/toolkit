@@ -10,5 +10,5 @@
 ### 0.2.1
 - Fix to await async function getCompressionMethod
 
-### 0.3.0
+### 1.0.0
 - Downloads Azure-hosted caches using the Azure SDK for speed and reliability

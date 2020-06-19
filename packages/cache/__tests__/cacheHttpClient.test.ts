@@ -1,7 +1,7 @@
 import {downloadCache, getCacheVersion} from '../src/internal/cacheHttpClient'
 import {CompressionMethod} from '../src/internal/constants'
 import * as downloadUtils from '../src/internal/downloadUtils'
-import {DownloadOptions} from '../src/options'
+import {DownloadOptions, getDownloadOptions} from '../src/options'
 
 jest.mock('../src/internal/downloadUtils')
 
@@ -82,7 +82,7 @@ test('downloadCache uses storage SDK for Azure storage URLs', async () => {
   expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
     archiveLocation,
     archivePath,
-    undefined
+    getDownloadOptions()
   )
 
   expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
@@ -105,10 +105,11 @@ test('downloadCache passes options to download methods', async () => {
   await downloadCache(archiveLocation, archivePath, options)
 
   expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalled()
   expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
     archiveLocation,
     archivePath,
-    options
+    getDownloadOptions(options)
   )
 
   expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
