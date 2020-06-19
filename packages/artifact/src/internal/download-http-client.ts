@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as core from '@actions/core'
+import * as github from '@actions/github'
 import * as zlib from 'zlib'
 import {
   getArtifactUrl,
@@ -17,11 +18,19 @@ import {
 import {URL} from 'url'
 import {StatusReporter} from './status-reporter'
 import {performance} from 'perf_hooks'
-import {ListArtifactsResponse, QueryArtifactResponse} from './contracts'
+import {
+  ListArtifactsResponse,
+  QueryArtifactResponse,
+  ArtifactResponse
+} from './contracts'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
-import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
+import {
+  getDownloadFileConcurrency,
+  getRetryLimit,
+  getRuntimeToken
+} from './config-variables'
 import {IncomingHttpHeaders} from 'http'
 import {retryHttpClientRequest} from './requestUtils'
 
@@ -53,6 +62,121 @@ export class DownloadHttpClient {
     )
     const body: string = await response.readBody()
     return JSON.parse(body)
+  }
+
+  /**
+   * Gets the workflow ID matching the specified criteria.
+   *
+   * @param owner the owner of the repository that ran the workflow, defaults to owner of the repo running the current workflow
+   * @param repo the name of the repository that ran the workflow, defaults to name of the repo running the current workflow
+   * @param name the name of the workflow that ran, defaults to name of the current workflow
+   * @param branch the name of the branch that triggered the workflow, defaults to branch that triggered the current workflow
+   */
+  async listArtifactsForWorkflowRun(
+    owner: string = github.context.repo.owner,
+    repo: string = github.context.repo.repo,
+    name: string = github.context.workflow,
+    branch: string = github.context.ref
+  ): Promise<ListArtifactsResponse> {
+    const octokit = github.getOctokit(getRuntimeToken())
+
+    const workflowList = await octokit.actions.listRepoWorkflows({owner, repo})
+    if (
+      !isSuccessStatusCode(workflowList.status) ||
+      workflowList.data === undefined
+    ) {
+      throw new Error(
+        `Unable to list workflows for the repository. Resource Url ${workflowList.url}`
+      )
+    }
+
+    const workflow = workflowList.data.workflows.find(
+      element => element.name === name
+    )
+    if (!workflow) {
+      throw new Error(
+        `Unable to find workflow by name. Resource Url ${workflowList.url}`
+      )
+    }
+
+    const workflow_id = workflow.id
+    const workflowRuns = await octokit.actions.listWorkflowRuns({
+      owner,
+      repo,
+      workflow_id,
+      branch
+    })
+    if (
+      !isSuccessStatusCode(workflowRuns.status) ||
+      workflowRuns.data === undefined
+    ) {
+      throw new Error(
+        `Unable to list workflows runs. Resource Url ${workflowRuns.url}`
+      )
+    }
+
+    const workflowRun = workflowRuns.data.workflow_runs.find(
+      element =>
+        element.status === 'completed' && element.conclusion === 'success'
+    )
+    if (!workflowRun) {
+      throw new Error(
+        `Unable to find successfully completed workflow run. Resource Url ${workflowRuns.url}`
+      )
+    }
+
+    const run_id = workflowRun.id
+    const workflowRunArtifacts = await octokit.actions.listWorkflowRunArtifacts(
+      {
+        owner,
+        repo,
+        run_id
+      }
+    )
+
+    if (
+      !isSuccessStatusCode(workflowRunArtifacts.status) ||
+      workflowRunArtifacts.data === undefined
+    ) {
+      throw new Error(
+        `Unable to list workflows run artifacts. Resource Url ${workflowRuns.url}`
+      )
+    }
+
+    const returnValue: ArtifactResponse[] = await Promise.all(
+      workflowRunArtifacts.data.artifacts.map(async element => {
+        const download = await octokit.actions.downloadArtifact({
+          owner,
+          repo,
+          artifact_id: element.id,
+          archive_format: 'zip'
+        })
+
+        if (
+          !isSuccessStatusCode(download.status) ||
+          download.headers.location === undefined
+        ) {
+          throw new Error(
+            `Unable to get download URL for artifact. Resource Url ${download.url}`
+          )
+        }
+
+        return {
+          containerId: element.id.toString(),
+          fileContainerResourceUrl: '',
+          signedContent: '',
+          name: element.name,
+          size: element.size_in_bytes,
+          type: '',
+          url: download.headers.location
+        }
+      })
+    )
+
+    return {
+      count: workflowRunArtifacts.data.total_count,
+      value: returnValue
+    }
   }
 
   /**
