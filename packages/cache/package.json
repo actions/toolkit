@@ -42,6 +42,7 @@
     "@actions/glob": "^0.1.0",
     "@actions/http-client": "^1.0.8",
     "@actions/io": "^1.0.1",
+    "@azure/ms-rest-js": "^2.0.7",
     "@azure/storage-blob": "^12.1.2",
     "semver": "^6.1.0",
     "uuid": "^3.3.3"
