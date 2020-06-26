@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 4.0.0
+- [Add execution state information to context](https://github.com/actions/toolkit/pull/499)
+- [Update Octokit Dependencies with breaking changes](https://github.com/actions/toolkit/pull/375) 
+  - The full list of api changes are [here](https://github.com/octokit/plugin-rest-endpoint-methods.js/releases/tag/v4.0.0)
+
 ### 3.0.0
 - [Swap to @octokit/core and use plugins to leverage lastest octokit apis](https://github.com/actions/toolkit/pull/453)
 - [Add comment field to payload context](https://github.com/actions/toolkit/pull/375) 
