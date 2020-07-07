@@ -30,6 +30,9 @@ export interface ExecOptions {
   /** optional. How long in ms to wait for STDIO streams to close after the exit event of the process before terminating. defaults to 10000 */
   delay?: number
 
+  /** optional. input to write to the process on STDIN. */
+  input?: Buffer
+
   /** optional. Listeners for output. Callback functions that will be called on these events */
   listeners?: {
     stdout?: (data: Buffer) => void

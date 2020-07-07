@@ -21,7 +21,7 @@ export class Pattern {
 
   /**
    * The path/pattern segments. Note, only the first segment (the root directory)
-   * may contain a directory separator charactor. Use the trailingSeparator field
+   * may contain a directory separator character. Use the trailingSeparator field
    * to determine whether the pattern ended with a trailing slash.
    */
   readonly segments: string[]
@@ -130,11 +130,11 @@ export class Pattern {
       itemPath = pathHelper.normalizeSeparators(itemPath)
 
       // Append a trailing slash. Otherwise Minimatch will not match the directory immediately
-      // preceeding the globstar. For example, given the pattern `/foo/**`, Minimatch returns
+      // preceding the globstar. For example, given the pattern `/foo/**`, Minimatch returns
       // false for `/foo` but returns true for `/foo/`. Append a trailing slash to handle that quirk.
       if (!itemPath.endsWith(path.sep)) {
         // Note, this is safe because the constructor ensures the pattern has an absolute root.
-        // For example, formats like C: and C:foo on Windows are resolved to an aboslute root.
+        // For example, formats like C: and C:foo on Windows are resolved to an absolute root.
         itemPath = `${itemPath}${path.sep}`
       }
     } else {

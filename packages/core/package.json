@@ -1,6 +1,6 @@
 {
   "name": "@actions/core",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Actions core lib",
   "keywords": [
     "github",
@@ -16,7 +16,8 @@
     "test": "__tests__"
   },
   "files": [
-    "lib"
+    "lib",
+    "!.DS_Store"
   ],
   "publishConfig": {
     "access": "public"

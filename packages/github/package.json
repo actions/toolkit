@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "2.1.1",
+  "version": "4.0.0",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -15,7 +15,8 @@
     "test": "__tests__"
   },
   "files": [
-    "lib"
+    "lib",
+    "!.DS_Store"
   ],
   "publishConfig": {
     "access": "public"
@@ -37,9 +38,10 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/http-client": "^1.0.3",
-    "@octokit/graphql": "^4.3.1",
-    "@octokit/rest": "^16.43.1"
+    "@actions/http-client": "^1.0.8",
+    "@octokit/core": "^3.1.0",
+    "@octokit/plugin-paginate-rest": "^2.2.3",
+    "@octokit/plugin-rest-endpoint-methods": "^4.0.0"
   },
   "devDependencies": {
     "jest": "^25.1.0",

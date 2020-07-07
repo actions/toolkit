@@ -12,6 +12,7 @@ import {
   PatchArtifactSizeSuccessResponse
 } from '../src/internal/contracts'
 import {UploadSpecification} from '../src/internal/upload-specification'
+import {getArtifactUrl} from '../src/internal/utils'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')
@@ -36,6 +37,7 @@ describe('Upload Tests', () => {
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
+    jest.spyOn(core, 'error').mockImplementation(() => {})
 
     // setup mocking for calls that got through the HttpClient
     setupHttpClientMock()
@@ -99,7 +101,19 @@ describe('Upload Tests', () => {
       uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
       new Error(
-        'Unable to create a container for the artifact invalid-artifact-name'
+        `Unable to create a container for the artifact invalid-artifact-name at ${getArtifactUrl()}`
+      )
+    )
+  })
+
+  it('Create Artifact - Storage Quota Error', async () => {
+    const artifactName = 'storage-quota-hit'
+    const uploadHttpClient = new UploadHttpClient()
+    expect(
+      uploadHttpClient.createArtifactInFileContainer(artifactName)
+    ).rejects.toEqual(
+      new Error(
+        'Artifact storage quota has been hit. Unable to upload any new artifacts'
       )
     )
   })
@@ -365,6 +379,8 @@ describe('Upload Tests', () => {
 
         if (inputData.Name === 'invalid-artifact-name') {
           mockMessage.statusCode = 400
+        } else if (inputData.Name === 'storage-quota-hit') {
+          mockMessage.statusCode = 403
         } else {
           mockMessage.statusCode = 201
           const response: ArtifactResponse = {

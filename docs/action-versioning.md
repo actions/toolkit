@@ -34,7 +34,9 @@ Binding to the immutable full sha1 may offer more reliability.  However, note th
 
 1. **Create a GitHub release for each specific version**: Creating a release like [ v1.0.0 ](https://github.com/actions/javascript-action/releases/tag/v1.0.0) allows users to bind back to a specific version if an issue is encountered with the latest major version.  
 
-2. **Publish the specific version to the marketplace**:  When you release a specific version, choose the option to "Publish this release to the GitHub Marketplace".
+2. **Publish the specific version to the marketplace**:  When you release a specific version, choose the option to "Publish this Action to the GitHub Marketplace".
+
+<img src="https://user-images.githubusercontent.com/33549821/78670739-36f5ae00-78ac-11ea-9660-57d5687ce520.png" alt="screenshot" height="250"/>
 
 3. **Make the new release available to those binding to the major version tag**: Move the major version tag (v1, v2, etc.) to point to the ref of the current release. This will act as the stable release for that major version. You should keep this tag updated to the most recent stable minor/patch release.
 
