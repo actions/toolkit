@@ -144,7 +144,8 @@ test('restore with gzip compressed cache found', async () => {
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
     cacheEntry.archiveLocation,
-    archivePath
+    archivePath,
+    undefined
   )
   expect(getArchiveFileSizeIsBytesMock).toHaveBeenCalledWith(archivePath)
 
@@ -202,7 +203,8 @@ test('restore with zstd compressed cache found', async () => {
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
     cacheEntry.archiveLocation,
-    archivePath
+    archivePath,
+    undefined
   )
   expect(getArchiveFileSizeIsBytesMock).toHaveBeenCalledWith(archivePath)
   expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
@@ -258,7 +260,8 @@ test('restore with cache found for restore key', async () => {
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
     cacheEntry.archiveLocation,
-    archivePath
+    archivePath,
+    undefined
   )
   expect(getArchiveFileSizeIsBytesMock).toHaveBeenCalledWith(archivePath)
   expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)

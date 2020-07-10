@@ -9,3 +9,8 @@
 
 ### 0.2.1
 - Fix to await async function getCompressionMethod
+
+### 1.0.0
+- Downloads Azure-hosted caches using the Azure SDK for speed and reliability
+- Includes changes that break compatibility with earlier versions, including:
+  - `retry`, `retryTypedResponse`, and `retryHttpClientResponse` moved from `cacheHttpClient` to `requestUtils`

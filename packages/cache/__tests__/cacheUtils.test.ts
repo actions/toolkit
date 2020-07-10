@@ -24,3 +24,11 @@ test('unlinkFile unlinks file', async () => {
 
   await fs.rmdir(testDirectory)
 })
+
+test('assertDefined throws if undefined', () => {
+  expect(() => cacheUtils.assertDefined('test', undefined)).toThrowError()
+})
+
+test('assertDefined returns value', () => {
+  expect(cacheUtils.assertDefined('test', 5)).toBe(5)
+})

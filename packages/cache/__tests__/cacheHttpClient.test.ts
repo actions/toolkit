@@ -1,5 +1,9 @@
-import {getCacheVersion, retry} from '../src/internal/cacheHttpClient'
+import {downloadCache, getCacheVersion} from '../src/internal/cacheHttpClient'
 import {CompressionMethod} from '../src/internal/constants'
+import * as downloadUtils from '../src/internal/downloadUtils'
+import {DownloadOptions, getDownloadOptions} from '../src/options'
+
+jest.mock('../src/internal/downloadUtils')
 
 test('getCacheVersion with one path returns version', async () => {
   const paths = ['node_modules']
@@ -35,141 +39,103 @@ test('getCacheVersion with gzip compression does not change vesion', async () =>
   )
 })
 
-interface TestResponse {
-  statusCode: number
-  result: string | null
-}
-
-async function handleResponse(
-  response: TestResponse | undefined
-): Promise<TestResponse> {
-  if (!response) {
-    // eslint-disable-next-line no-undef
-    fail('Retry method called too many times')
-  }
-
-  if (response.statusCode === 999) {
-    throw Error('Test Error')
-  } else {
-    return Promise.resolve(response)
-  }
-}
-
-async function testRetryExpectingResult(
-  responses: TestResponse[],
-  expectedResult: string | null
-): Promise<void> {
-  responses = responses.reverse() // Reverse responses since we pop from end
-
-  const actualResult = await retry(
-    'test',
-    async () => handleResponse(responses.pop()),
-    (response: TestResponse) => response.statusCode
+test('downloadCache uses http-client for non-Azure URLs', async () => {
+  const downloadCacheHttpClientMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheHttpClient'
+  )
+  const downloadCacheStorageSDKMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheStorageSDK'
   )
 
-  expect(actualResult.result).toEqual(expectedResult)
-}
+  const archiveLocation = 'http://www.actionscache.test/download'
+  const archivePath = '/foo/bar'
 
-async function testRetryExpectingError(
-  responses: TestResponse[]
-): Promise<void> {
-  responses = responses.reverse() // Reverse responses since we pop from end
+  await downloadCache(archiveLocation, archivePath)
 
-  expect(
-    retry(
-      'test',
-      async () => handleResponse(responses.pop()),
-      (response: TestResponse) => response.statusCode
-    )
-  ).rejects.toBeInstanceOf(Error)
-}
-
-test('retry works on successful response', async () => {
-  await testRetryExpectingResult(
-    [
-      {
-        statusCode: 200,
-        result: 'Ok'
-      }
-    ],
-    'Ok'
+  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheHttpClientMock).toHaveBeenCalledWith(
+    archiveLocation,
+    archivePath
   )
+
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
 })
 
-test('retry works after retryable status code', async () => {
-  await testRetryExpectingResult(
-    [
-      {
-        statusCode: 503,
-        result: null
-      },
-      {
-        statusCode: 200,
-        result: 'Ok'
-      }
-    ],
-    'Ok'
+test('downloadCache uses storage SDK for Azure storage URLs', async () => {
+  const downloadCacheHttpClientMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheHttpClient'
   )
-})
-
-test('retry fails after exhausting retries', async () => {
-  await testRetryExpectingError([
-    {
-      statusCode: 503,
-      result: null
-    },
-    {
-      statusCode: 503,
-      result: null
-    },
-    {
-      statusCode: 200,
-      result: 'Ok'
-    }
-  ])
-})
-
-test('retry fails after non-retryable status code', async () => {
-  await testRetryExpectingError([
-    {
-      statusCode: 500,
-      result: null
-    },
-    {
-      statusCode: 200,
-      result: 'Ok'
-    }
-  ])
-})
-
-test('retry works after error', async () => {
-  await testRetryExpectingResult(
-    [
-      {
-        statusCode: 999,
-        result: null
-      },
-      {
-        statusCode: 200,
-        result: 'Ok'
-      }
-    ],
-    'Ok'
+  const downloadCacheStorageSDKMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheStorageSDK'
   )
+
+  const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
+  const archivePath = '/foo/bar'
+
+  await downloadCache(archiveLocation, archivePath)
+
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
+    archiveLocation,
+    archivePath,
+    getDownloadOptions()
+  )
+
+  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
 })
 
-test('retry returns after client error', async () => {
-  await testRetryExpectingResult(
-    [
-      {
-        statusCode: 400,
-        result: null
-      },
-      {
-        statusCode: 200,
-        result: 'Ok'
-      }
-    ],
-    null
+test('downloadCache passes options to download methods', async () => {
+  const downloadCacheHttpClientMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheHttpClient'
   )
+  const downloadCacheStorageSDKMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheStorageSDK'
+  )
+
+  const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
+  const archivePath = '/foo/bar'
+  const options: DownloadOptions = {downloadConcurrency: 4}
+
+  await downloadCache(archiveLocation, archivePath, options)
+
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalled()
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
+    archiveLocation,
+    archivePath,
+    getDownloadOptions(options)
+  )
+
+  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
+})
+
+test('downloadCache uses http-client when overridden', async () => {
+  const downloadCacheHttpClientMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheHttpClient'
+  )
+  const downloadCacheStorageSDKMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheStorageSDK'
+  )
+
+  const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
+  const archivePath = '/foo/bar'
+  const options: DownloadOptions = {useAzureSdk: false}
+
+  await downloadCache(archiveLocation, archivePath, options)
+
+  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheHttpClientMock).toHaveBeenCalledWith(
+    archiveLocation,
+    archivePath
+  )
+
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
 })

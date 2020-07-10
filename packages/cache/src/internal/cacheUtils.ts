@@ -113,3 +113,11 @@ export async function isGnuTarInstalled(): Promise<boolean> {
   const versionOutput = await getVersion('tar')
   return versionOutput.toLowerCase().includes('gnu tar')
 }
+
+export function assertDefined<T>(name: string, value?: T): T {
+  if (value === undefined) {
+    throw Error(`Expected ${name} but value was undefiend`)
+  }
+
+  return value
+}
