@@ -27,7 +27,7 @@
     "directory": "packages/io"
   },
   "scripts": {
-    "audit-moderate": "npm install && npm audit --audit-level=moderate --json > audit.json",
+    "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc"
   },

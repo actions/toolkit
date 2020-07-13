@@ -27,7 +27,7 @@
     "directory": "packages/github"
   },
   "scripts": {
-    "audit-moderate": "npm install && npm audit --audit-level=moderate --json > audit.json",
+    "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "jest",
     "build": "tsc",
     "format": "prettier --write **/*.ts",
