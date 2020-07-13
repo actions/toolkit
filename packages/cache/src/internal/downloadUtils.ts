@@ -120,12 +120,12 @@ export class DownloadProgress {
   }
 
   /**
-   * Callback used to update the progress.
-   *
-   * @param progress the progress event
+   * Returns a function used to handle TransferProgressEvents.
    */
-  onProgressCallback(progress: TransferProgressEvent): void {
-    this.setReceivedBytes(progress.loadedBytes)
+  onProgress(): (progress: TransferProgressEvent) => void {
+    return (progress: TransferProgressEvent) => {
+      this.setReceivedBytes(progress.loadedBytes)
+    }
   }
 
   /**
@@ -261,9 +261,7 @@ export async function downloadCacheStorageSDK(
           segmentSize,
           {
             concurrency: options.downloadConcurrency,
-            onProgress: downloadProgress.onProgressCallback.bind(
-              downloadProgress
-            )
+            onProgress: downloadProgress.onProgress()
           }
         )
 
