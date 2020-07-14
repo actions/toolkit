@@ -28,7 +28,7 @@
     "directory": "packages/tool-cache"
   },
   "scripts": {
-    "audit-moderate": "npm install && npm audit --audit-level=moderate",
+    "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc"
   },
