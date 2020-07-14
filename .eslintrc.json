@@ -18,7 +18,7 @@
     "@typescript-eslint/await-thenable": "error",
     "@typescript-eslint/ban-ts-ignore": "error",
     "camelcase": "off",
-    "@typescript-eslint/camelcase": "error",
+    "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/class-name-casing": "error",
     "@typescript-eslint/explicit-function-return-type": ["error", {"allowExpressions": true}],
     "@typescript-eslint/func-call-spacing": ["error", "never"],

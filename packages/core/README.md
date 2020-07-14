@@ -89,6 +89,7 @@ try {
   }
 
   // Do stuff
+  core.info('Output to the actions build log')
 }
 catch (err) {
   core.error(`Error ${err}, action may still succeed though`);

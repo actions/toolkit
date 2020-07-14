@@ -1,5 +1,19 @@
 # @actions/github Releases
 
+### 4.0.0
+- [Add execution state information to context](https://github.com/actions/toolkit/pull/499)
+- [Update Octokit Dependencies with some api breaking changes](https://github.com/actions/toolkit/pull/498) 
+  - The full list of api changes are [here](https://github.com/octokit/plugin-rest-endpoint-methods.js/releases/tag/v4.0.0)
+  - `GitHub.plugin()` no longer supports an array as first argument. Multiple args must be passed in instead.
+
+### 3.0.0
+- [Swap to @octokit/core and use plugins to leverage lastest octokit apis](https://github.com/actions/toolkit/pull/453)
+- [Add comment field to payload context](https://github.com/actions/toolkit/pull/375) 
+
+### 2.2.0
+
+- [Support GHES: Use GITHUB_API_URL and GITHUB_GRAPHQL_URL to determine baseUrl](https://github.com/actions/toolkit/pull/449)
+
 ### 2.1.1
 
 - [Use import {Octokit}](https://github.com/actions/toolkit/pull/332)

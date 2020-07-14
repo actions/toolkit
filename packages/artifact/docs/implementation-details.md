@@ -6,6 +6,10 @@ Warning: Implementation details may change at any time without notice. This is m
 
 ![image](https://user-images.githubusercontent.com/16109154/79765587-19522b00-8327-11ea-9679-410bb10e1b13.png)
 
+During artifact upload, gzip is used to compress individual files that then get uploaded. This is used to minimize the amount of data that gets uploaded which reduces the total amount of HTTP calls (upload happens in 4MB chunks). This results in considerably faster uploads with huge performance implications especially on self-hosted runners.
+
+If a file is less than 64KB in size, a passthrough stream (readable and writable) is used to convert an in-memory buffer into a readable stream without any extra streams or pipping.
+
 ## Retry Logic when downloading an individual file
 
 ![image](https://user-images.githubusercontent.com/16109154/78555461-5be71400-780d-11ea-9abd-b05b77a95a3f.png)

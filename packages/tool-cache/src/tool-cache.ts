@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as io from '@actions/io'
 import * as fs from 'fs'
+import * as mm from './manifest'
 import * as os from 'os'
 import * as path from 'path'
 import * as httpm from '@actions/http-client'
@@ -12,6 +13,7 @@ import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
 import {RetryHelper} from './retry-helper'
+import {IHeaders} from '@actions/http-client/interfaces'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -29,11 +31,13 @@ const userAgent = 'actions/tool-cache'
  *
  * @param url       url of tool to download
  * @param dest      path to download tool
+ * @param auth      authorization header
  * @returns         path to downloaded tool
  */
 export async function downloadTool(
   url: string,
-  dest?: string
+  dest?: string,
+  auth?: string
 ): Promise<string> {
   dest = dest || path.join(_getTempDirectory(), uuidV4())
   await io.mkdirP(path.dirname(dest))
@@ -52,7 +56,7 @@ export async function downloadTool(
   const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
   return await retryHelper.execute(
     async () => {
-      return await downloadToolAttempt(url, dest || '')
+      return await downloadToolAttempt(url, dest || '', auth)
     },
     (err: Error) => {
       if (err instanceof HTTPError && err.httpStatusCode) {
@@ -72,7 +76,11 @@ export async function downloadTool(
   )
 }
 
-async function downloadToolAttempt(url: string, dest: string): Promise<string> {
+async function downloadToolAttempt(
+  url: string,
+  dest: string,
+  auth?: string
+): Promise<string> {
   if (fs.existsSync(dest)) {
     throw new Error(`Destination file path ${dest} already exists`)
   }
@@ -81,7 +89,16 @@ async function downloadToolAttempt(url: string, dest: string): Promise<string> {
   const http = new httpm.HttpClient(userAgent, [], {
     allowRetries: false
   })
-  const response: httpm.HttpClientResponse = await http.get(url)
+
+  let headers: IHeaders | undefined
+  if (auth) {
+    core.debug('set auth')
+    headers = {
+      authorization: auth
+    }
+  }
+
+  const response: httpm.HttpClientResponse = await http.get(url, headers)
   if (response.message.statusCode !== 200) {
     const err = new HTTPError(response.message.statusCode)
     core.debug(
@@ -203,7 +220,7 @@ export async function extract7z(
 export async function extractTar(
   file: string,
   dest?: string,
-  flags: string = 'xz'
+  flags: string | string[] = 'xz'
 ): Promise<string> {
   if (!file) {
     throw new Error("parameter 'file' is required")
@@ -227,7 +244,12 @@ export async function extractTar(
   const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR')
 
   // Initialize args
-  const args = [flags]
+  let args: string[]
+  if (flags instanceof Array) {
+    args = flags
+  } else {
+    args = [flags]
+  }
 
   if (core.isDebug() && !flags.includes('v')) {
     args.push('-v')
@@ -499,6 +521,92 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
   }
 
   return versions
+}
+
+// versions-manifest
+//
+// typical pattern of a setup-* action that supports JIT would be:
+// 1. resolve semver against local cache
+//
+// 2. if no match, download
+//   a. query versions manifest to match
+//   b. if no match, fall back to source if exists (tool distribution)
+//   c. with download url, download, install and preprent path
+
+export type IToolRelease = mm.IToolRelease
+export type IToolReleaseFile = mm.IToolReleaseFile
+
+interface GitHubTreeItem {
+  path: string
+  size: string
+  url: string
+}
+
+interface GitHubTree {
+  tree: GitHubTreeItem[]
+  truncated: boolean
+}
+
+export async function getManifestFromRepo(
+  owner: string,
+  repo: string,
+  auth?: string,
+  branch = 'master'
+): Promise<IToolRelease[]> {
+  let releases: IToolRelease[] = []
+  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
+
+  const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
+  const headers: IHeaders = {}
+  if (auth) {
+    core.debug('set auth')
+    headers.authorization = auth
+  }
+
+  const response = await http.getJson<GitHubTree>(treeUrl, headers)
+  if (!response.result) {
+    return releases
+  }
+
+  let manifestUrl = ''
+  for (const item of response.result.tree) {
+    if (item.path === 'versions-manifest.json') {
+      manifestUrl = item.url
+      break
+    }
+  }
+
+  headers['accept'] = 'application/vnd.github.VERSION.raw'
+  let versionsRaw = await (await http.get(manifestUrl, headers)).readBody()
+
+  if (versionsRaw) {
+    // shouldn't be needed but protects against invalid json saved with BOM
+    versionsRaw = versionsRaw.replace(/^\uFEFF/, '')
+    try {
+      releases = JSON.parse(versionsRaw)
+    } catch {
+      core.debug('Invalid json')
+    }
+  }
+
+  return releases
+}
+
+export async function findFromManifest(
+  versionSpec: string,
+  stable: boolean,
+  manifest: IToolRelease[],
+  archFilter: string = os.arch()
+): Promise<IToolRelease | undefined> {
+  // wrap the internal impl
+  const match: mm.IToolRelease | undefined = await mm._findMatch(
+    versionSpec,
+    stable,
+    manifest,
+    archFilter
+  )
+
+  return match
 }
 
 async function _createExtractFolder(dest?: string): Promise<string> {
