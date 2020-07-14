@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import {HttpClient} from '@actions/http-client'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {BlockBlobClient} from '@azure/storage-blob'
+import {TransferProgressEvent} from '@azure/ms-rest-js'
 import * as buffer from 'buffer'
 import * as fs from 'fs'
 import * as stream from 'stream'
@@ -24,6 +25,139 @@ async function pipeResponseToStream(
 ): Promise<void> {
   const pipeline = util.promisify(stream.pipeline)
   await pipeline(response.message, output)
+}
+
+/**
+ * Class for tracking the download state and displaying stats.
+ */
+export class DownloadProgress {
+  contentLength: number
+  segmentIndex: number
+  segmentSize: number
+  segmentOffset: number
+  receivedBytes: number
+  startTime: number
+  displayedComplete: boolean
+  timeoutHandle?: ReturnType<typeof setTimeout>
+
+  constructor(contentLength: number) {
+    this.contentLength = contentLength
+    this.segmentIndex = 0
+    this.segmentSize = 0
+    this.segmentOffset = 0
+    this.receivedBytes = 0
+    this.displayedComplete = false
+    this.startTime = Date.now()
+  }
+
+  /**
+   * Progress to the next segment. Only call this method when the previous segment
+   * is complete.
+   *
+   * @param segmentSize the length of the next segment
+   */
+  nextSegment(segmentSize: number): void {
+    this.segmentOffset = this.segmentOffset + this.segmentSize
+    this.segmentIndex = this.segmentIndex + 1
+    this.segmentSize = segmentSize
+    this.receivedBytes = 0
+
+    core.debug(
+      `Downloading segment at offset ${this.segmentOffset} with length ${this.segmentSize}...`
+    )
+  }
+
+  /**
+   * Sets the number of bytes received for the current segment.
+   *
+   * @param receivedBytes the number of bytes received
+   */
+  setReceivedBytes(receivedBytes: number): void {
+    this.receivedBytes = receivedBytes
+  }
+
+  /**
+   * Returns the total number of bytes transferred.
+   */
+  getTransferredBytes(): number {
+    return this.segmentOffset + this.receivedBytes
+  }
+
+  /**
+   * Returns true if the download is complete.
+   */
+  isDone(): boolean {
+    return this.getTransferredBytes() === this.contentLength
+  }
+
+  /**
+   * Prints the current download stats. Once the download completes, this will print one
+   * last line and then stop.
+   */
+  display(): void {
+    if (this.displayedComplete) {
+      return
+    }
+
+    const transferredBytes = this.segmentOffset + this.receivedBytes
+    const percentage = (100 * (transferredBytes / this.contentLength)).toFixed(
+      1
+    )
+    const elapsedTime = Date.now() - this.startTime
+    const downloadSpeed = (
+      transferredBytes /
+      (1024 * 1024) /
+      (elapsedTime / 1000)
+    ).toFixed(1)
+
+    core.info(
+      `Received ${transferredBytes} of ${this.contentLength} (${percentage}%), ${downloadSpeed} MBs/sec`
+    )
+
+    if (this.isDone()) {
+      this.displayedComplete = true
+    }
+  }
+
+  /**
+   * Returns a function used to handle TransferProgressEvents.
+   */
+  onProgress(): (progress: TransferProgressEvent) => void {
+    return (progress: TransferProgressEvent) => {
+      this.setReceivedBytes(progress.loadedBytes)
+    }
+  }
+
+  /**
+   * Starts the timer that displays the stats.
+   *
+   * @param delayInMs the delay between each write
+   */
+  startDisplayTimer(delayInMs: number = 1000): void {
+    const displayCallback = (): void => {
+      this.display()
+
+      if (!this.isDone()) {
+        this.timeoutHandle = setTimeout(displayCallback, delayInMs)
+      }
+    }
+
+    this.timeoutHandle = setTimeout(displayCallback, delayInMs)
+  }
+
+  /**
+   * Stops the timer that displays the stats. As this typically indicates the download
+   * is complete, this will display one last line, unless the last line has already
+   * been written.
+   */
+  stopDisplayTimer(): void {
+    if (this.timeoutHandle) {
+      clearTimeout(this.timeoutHandle)
+      this.timeoutHandle = undefined
+    }
+
+    this.display()
+  }
 }
 
 /**
@@ -107,27 +241,34 @@ export async function downloadCacheStorageSDK(
     // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
     // on 64-bit systems), split the download into multiple segments
     const maxSegmentSize = buffer.constants.MAX_LENGTH
-    let offset = 0
+    const downloadProgress = new DownloadProgress(contentLength)
 
     const fd = fs.openSync(archivePath, 'w')
 
     try {
-      while (offset < contentLength) {
-        const segmentSize = Math.min(maxSegmentSize, contentLength - offset)
-        core.debug(
-          `Downloading segment at offset ${offset} with length ${segmentSize}...`
+      downloadProgress.startDisplayTimer()
+
+      while (!downloadProgress.isDone()) {
+        const segmentSize = Math.min(
+          maxSegmentSize,
+          contentLength - downloadProgress.segmentOffset
         )
 
-        const result = await client.downloadToBuffer(offset, segmentSize, {
-          concurrency: options.downloadConcurrency
-        })
+        downloadProgress.nextSegment(segmentSize)
+
+        const result = await client.downloadToBuffer(
+          downloadProgress.segmentOffset,
+          segmentSize,
+          {
+            concurrency: options.downloadConcurrency,
+            onProgress: downloadProgress.onProgress()
+          }
+        )
 
         fs.writeFileSync(fd, result)
-
-        core.debug(`Finished segment at offset ${offset}`)
-        offset += segmentSize
       }
     } finally {
+      downloadProgress.stopDisplayTimer()
       fs.closeSync(fd)
     }
   }
