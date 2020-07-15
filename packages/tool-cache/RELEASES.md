@@ -2,6 +2,7 @@
 
 ### 1.6.0
 - [Add extractXar function to extract XAR files](https://github.com/actions/toolkit/pull/207)
+
 ### 1.3.5
 
 - [Check if tool path exists before executing](https://github.com/actions/toolkit/pull/385)
