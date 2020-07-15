@@ -23,6 +23,7 @@ export class HTTPError extends Error {
 }
 
 const IS_WINDOWS = process.platform === 'win32'
+const IS_MAC = process.platform === 'darwin'
 const userAgent = 'actions/tool-cache'
 
 /**
@@ -272,6 +273,43 @@ export async function extractTar(
 
   args.push('-C', destArg, '-f', fileArg)
   await exec(`tar`, args)
+
+  return dest
+}
+
+/**
+ * Extract a xar compatible archive
+ *
+ * @param file     path to the archive
+ * @param dest     destination directory. Optional.
+ * @param flags    flags for the xar. Optional.
+ * @returns        path to the destination directory
+ */
+export async function extractXar(
+  file: string,
+  dest?: string,
+  flags: string | string[] = []
+): Promise<string> {
+  ok(IS_MAC, 'extractXar() not supported on current OS')
+  ok(file, 'parameter "file" is required')
+
+  dest = await _createExtractFolder(dest)
+
+  let args: string[]
+  if (flags instanceof Array) {
+    args = flags
+  } else {
+    args = [flags]
+  }
+
+  args.push('-x', '-C', dest, '-f', file)
+
+  if (core.isDebug()) {
+    args.push('-v')
+  }
+
+  const xarPath: string = await io.which('xar', true)
+  await exec(`"${xarPath}"`, _unique(args))
 
   return dest
 }
@@ -674,4 +712,12 @@ function _getGlobal<T>(key: string, defaultValue: T): T {
   const value = (global as any)[key] as T | undefined
   /* eslint-enable @typescript-eslint/no-explicit-any */
   return value !== undefined ? value : defaultValue
+}
+
+/**
+ * Returns an array of unique values.
+ * @param values Values to make unique.
+ */
+function _unique<T>(values: T[]): T[] {
+  return Array.from(new Set(values))
 }
