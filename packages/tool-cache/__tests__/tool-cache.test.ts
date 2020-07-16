@@ -553,7 +553,7 @@ describe('@actions/tool-cache', function() {
       if (IS_WINDOWS) {
         const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
         const escapedZipFile = zipFile.replace(/'/g, "''")
-        const powershellPath = await io.which('pwsh', true)
+        const powershellPath = await io.which('pwsh', false) || await io.which('powershell', true)
         const args = [
           '-NoLogo',
           '-Sta',
@@ -604,7 +604,7 @@ describe('@actions/tool-cache', function() {
       if (IS_WINDOWS) {
         const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
         const escapedZipFile = zipFile.replace(/'/g, "''")
-        const powershellPath = await io.which('pwsh', true)
+        const powershellPath = await io.which('pwsh', false) || await io.which('powershell', true)
         const args = [
           '-NoLogo',
           '-Sta',
@@ -661,7 +661,7 @@ describe('@actions/tool-cache', function() {
       if (IS_WINDOWS) {
         const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
         const escapedZipFile = zipFile.replace(/'/g, "''")
-        const powershellPath = await io.which('pwsh', true)
+        const powershellPath = await io.which('pwsh', false) || await io.which('powershell', true)
         const args = [
           '-NoLogo',
           '-Sta',
