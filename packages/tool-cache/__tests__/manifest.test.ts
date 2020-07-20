@@ -8,7 +8,7 @@ import osm = require('os')
 import cp = require('child_process')
 //import {coerce} from 'semver'
 
-// we fetch the manifest file from master of a repo
+// we fetch the manifest file from main of a repo
 const owner = 'actions'
 const repo = 'some-tool'
 const fakeToken = 'notrealtoken'

@@ -2,7 +2,7 @@ name: toolkit-audit
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       - '**.md'
   pull_request:

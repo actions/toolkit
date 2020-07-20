@@ -203,6 +203,6 @@ Check out [implementation-details](docs/implementation-details.md) for extra inf
 
 ## Contributions
 
-See [contributor guidelines](https://github.com/actions/toolkit/blob/master/.github/CONTRIBUTING.md) for general guidelines and information about toolkit contributions.
+See [contributor guidelines](https://github.com/actions/toolkit/blob/main/.github/CONTRIBUTING.md) for general guidelines and information about toolkit contributions.
 
 For contributions related to this package, see [artifact contributions](CONTRIBUTIONS.md) for more information.

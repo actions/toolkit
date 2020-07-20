@@ -1,6 +1,6 @@
 # :: Commands
 
-The [core toolkit package](https://github.com/actions/toolkit/tree/master/packages/core) offers a number of convenience functions for
+The [core toolkit package](https://github.com/actions/toolkit/tree/main/packages/core) offers a number of convenience functions for
 setting results, logging, registering secrets and exporting variables across actions. Sometimes, however, its useful to be able to do
 these things in a script or other tool.
 

@@ -1,4 +1,4 @@
-// Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/master/src/context.ts
+// Originally pulled from https://github.com/JasonEtco/actions-toolkit/blob/main/src/context.ts
 import {WebhookPayload} from './interfaces'
 import {readFileSync, existsSync} from 'fs'
 import {EOL} from 'os'

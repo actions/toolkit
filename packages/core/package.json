@@ -7,7 +7,7 @@
     "actions",
     "core"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/core",
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/core",
   "license": "MIT",
   "main": "lib/core.js",
   "types": "lib/core.d.ts",

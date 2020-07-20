@@ -6,7 +6,7 @@
     "github",
     "actions"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/github",
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/github",
   "license": "MIT",
   "main": "lib/github.js",
   "types": "lib/github.d.ts",

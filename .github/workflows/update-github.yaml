@@ -37,7 +37,7 @@ jobs:
           script: |
             github.pulls.create(
             {
-              base: "master",
+              base: "main",
               owner: "${{github.repository_owner}}",
               repo: "toolkit",
               title: "Update Octokit dependencies",
