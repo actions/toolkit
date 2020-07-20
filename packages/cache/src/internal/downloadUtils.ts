@@ -249,15 +249,18 @@ export async function downloadCacheStorageSDK(
       downloadProgress.startDisplayTimer()
 
       while (!downloadProgress.isDone()) {
+        const segmentStart =
+          downloadProgress.segmentOffset + downloadProgress.segmentSize
+
         const segmentSize = Math.min(
           maxSegmentSize,
-          contentLength - downloadProgress.segmentOffset
+          contentLength - segmentStart
         )
 
         downloadProgress.nextSegment(segmentSize)
 
         const result = await client.downloadToBuffer(
-          downloadProgress.segmentOffset,
+          segmentStart,
           segmentSize,
           {
             concurrency: options.downloadConcurrency,
