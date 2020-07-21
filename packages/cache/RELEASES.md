@@ -15,3 +15,6 @@
 - Displays download progress
 - Includes changes that break compatibility with earlier versions, including:
   - `retry`, `retryTypedResponse`, and `retryHttpClientResponse` moved from `cacheHttpClient` to `requestUtils`
+
+### 1.0.1
+- Fix bug in downloading large files (> 2 GBs) with the Azure SDK
