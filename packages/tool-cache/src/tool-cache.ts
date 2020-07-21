@@ -551,7 +551,7 @@ export async function getManifestFromRepo(
   owner: string,
   repo: string,
   auth?: string,
-  branch = 'main'
+  branch = 'master'
 ): Promise<IToolRelease[]> {
   let releases: IToolRelease[] = []
   const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
