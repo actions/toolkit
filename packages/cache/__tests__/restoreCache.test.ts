@@ -104,7 +104,7 @@ test('restore with gzip compressed cache found', async () => {
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: key,
-    scope: 'refs/heads/master',
+    scope: 'refs/heads/main',
     archiveLocation: 'www.actionscache.test/download'
   }
   const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
@@ -166,7 +166,7 @@ test('restore with zstd compressed cache found', async () => {
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: key,
-    scope: 'refs/heads/master',
+    scope: 'refs/heads/main',
     archiveLocation: 'www.actionscache.test/download'
   }
   const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
@@ -223,7 +223,7 @@ test('restore with cache found for restore key', async () => {
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: restoreKey,
-    scope: 'refs/heads/master',
+    scope: 'refs/heads/main',
     archiveLocation: 'www.actionscache.test/download'
   }
   const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')

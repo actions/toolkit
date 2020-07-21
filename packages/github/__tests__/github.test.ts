@@ -48,9 +48,9 @@ describe('@actions/github', () => {
     const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
-      branch: 'master'
+      branch: 'main'
     })
-    expect(branch.data.name).toBe('master')
+    expect(branch.data.name).toBe('main')
     expect(proxyConnects).toHaveLength(0)
   })
 
@@ -63,9 +63,9 @@ describe('@actions/github', () => {
     const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
-      branch: 'master'
+      branch: 'main'
     })
-    expect(branch.data.name).toBe('master')
+    expect(branch.data.name).toBe('main')
     expect(proxyConnects).toHaveLength(0)
   })
 
@@ -80,9 +80,9 @@ describe('@actions/github', () => {
     const branch = await octokit.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
-      branch: 'master'
+      branch: 'main'
     })
-    expect(branch.data.name).toBe('master')
+    expect(branch.data.name).toBe('main')
     expect(proxyConnects).toHaveLength(0)
 
     // Invalid token
@@ -92,7 +92,7 @@ describe('@actions/github', () => {
       await octokit.repos.getBranch({
         owner: 'actions',
         repo: 'toolkit',
-        branch: 'master'
+        branch: 'main'
       })
     } catch (err) {
       failed = true

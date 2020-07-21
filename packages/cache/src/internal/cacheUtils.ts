@@ -9,7 +9,7 @@ import * as util from 'util'
 import {v4 as uuidV4} from 'uuid'
 import {CacheFilename, CompressionMethod} from './constants'
 
-// From https://github.com/actions/toolkit/blob/master/packages/tool-cache/src/tool-cache.ts#L23
+// From https://github.com/actions/toolkit/blob/main/packages/tool-cache/src/tool-cache.ts#L23
 export async function createTempDirectory(): Promise<string> {
   const IS_WINDOWS = process.platform === 'win32'
 

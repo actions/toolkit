@@ -7,7 +7,7 @@
     "actions",
     "exec"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/exec",
   "license": "MIT",
   "main": "lib/exec.js",
   "types": "lib/exec.d.ts",

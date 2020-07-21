@@ -8,7 +8,7 @@
     "actions",
     "artifact"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/artifact",
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/artifact",
   "license": "MIT",
   "main": "lib/artifact-client.js",
   "types": "lib/artifact-client.d.ts",
