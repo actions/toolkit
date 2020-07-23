@@ -763,6 +763,61 @@ describe('@actions/tool-cache', function() {
       expect(err.toString()).toContain('404')
     }
   })
+
+  it('supports authorization headers', async function() {
+    nock('http://example.com', {
+      reqheaders: {
+        authorization: 'token abc123'
+      }
+    })
+      .get('/some-file-that-needs-authorization')
+      .reply(200, undefined)
+
+    await tc.downloadTool(
+      'http://example.com/some-file-that-needs-authorization',
+      undefined,
+      'token abc123'
+    )
+  })
+
+  it('supports custom headers', async function() {
+    nock('http://example.com', {
+      reqheaders: {
+        accept: 'application/octet-stream'
+      }
+    })
+      .get('/some-file-that-needs-headers')
+      .reply(200, undefined)
+
+    await tc.downloadTool(
+      'http://example.com/some-file-that-needs-headers',
+      undefined,
+      undefined,
+      {
+        accept: 'application/octet-stream'
+      }
+    )
+  })
+
+  it('supports authorization and custom headers', async function() {
+    nock('http://example.com', {
+      reqheaders: {
+        accept: 'application/octet-stream',
+        authorization: 'token abc123'
+      }
+    })
+      .get('/some-file-that-needs-authorization-and-headers')
+      .reply(200, undefined)
+
+    await tc.downloadTool(
+      'http://example.com/some-file-that-needs-authorization-and-headers',
+      undefined,
+      'token abc123',
+      {
+        accept: 'application/octet-stream'
+      }
+    )
+  })
 })
 
 /**
