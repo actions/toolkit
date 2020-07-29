@@ -135,6 +135,7 @@ test('zstd create tar', async () => {
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
     [
+      '--posix',
       '--use-compress-program',
       'zstd -T0 --long=30',
       '-cf',
@@ -170,6 +171,7 @@ test('gzip create tar', async () => {
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
     [
+      '--posix',
       '-z',
       '-cf',
       IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
