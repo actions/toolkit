@@ -28,3 +28,8 @@
 ### 0.3.2
 
 - Fix to ensure readstreams get correctly reset in the event of a retry
+
+### 0.3.3
+
+- Increase chunk size during upload from 4MB to 8MB
+- Improve user-agent strings during API calls to help internally diagnose issues
