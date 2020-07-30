@@ -204,8 +204,8 @@ export function getUploadHeaders(
   return requestOptions
 }
 
-export function createHttpClient(): HttpClient {
-  return new HttpClient('actions/artifact', [
+export function createHttpClient(userAgent: string): HttpClient {
+  return new HttpClient(userAgent, [
     new BearerCredentialHandler(getRuntimeToken())
   ])
 }

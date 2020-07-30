@@ -27,7 +27,10 @@ export class DownloadHttpClient {
   private statusReporter: StatusReporter
 
   constructor() {
-    this.downloadHttpManager = new HttpManager(getDownloadFileConcurrency())
+    this.downloadHttpManager = new HttpManager(
+      getDownloadFileConcurrency(),
+      'actions/download-artifact'
+    )
     // downloads are usually significantly faster than uploads so display status information every second
     this.statusReporter = new StatusReporter(1000)
   }

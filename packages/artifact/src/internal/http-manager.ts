@@ -6,12 +6,14 @@ import {createHttpClient} from './utils'
  */
 export class HttpManager {
   private clients: HttpClient[]
+  private userAgent: string
 
-  constructor(clientCount: number) {
+  constructor(clientCount: number, userAgent: string) {
     if (clientCount < 1) {
       throw new Error('There must be at least one client')
     }
-    this.clients = new Array(clientCount).fill(createHttpClient())
+    this.userAgent = userAgent
+    this.clients = new Array(clientCount).fill(createHttpClient(userAgent))
   }
 
   getClient(index: number): HttpClient {
@@ -22,7 +24,7 @@ export class HttpManager {
   // for more information see: https://github.com/actions/http-client/blob/04e5ad73cd3fd1f5610a32116b0759eddf6570d2/index.ts#L292
   disposeAndReplaceClient(index: number): void {
     this.clients[index].dispose()
-    this.clients[index] = createHttpClient()
+    this.clients[index] = createHttpClient(this.userAgent)
   }
 
   disposeAndReplaceAllClients(): void {

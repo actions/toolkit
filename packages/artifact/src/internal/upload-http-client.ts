@@ -42,7 +42,10 @@ export class UploadHttpClient {
   private statusReporter: StatusReporter
 
   constructor() {
-    this.uploadHttpManager = new HttpManager(getUploadFileConcurrency())
+    this.uploadHttpManager = new HttpManager(
+      getUploadFileConcurrency(),
+      'actions/upload-artifact'
+    )
     this.statusReporter = new StatusReporter(10000)
   }
 
