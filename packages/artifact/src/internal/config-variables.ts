@@ -6,7 +6,7 @@ export function getUploadFileConcurrency(): number {
 // When uploading large files that can't be uploaded with a single http call, this controls
 // the chunk size that is used during upload
 export function getUploadChunkSize(): number {
-  return 4 * 1024 * 1024 // 4 MB Chunks
+  return 8 * 1024 * 1024 // 8 MB Chunks
 }
 
 // The maximum number of retries that can be attempted before an upload or download fails
