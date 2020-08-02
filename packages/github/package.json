@@ -40,8 +40,8 @@
   "dependencies": {
     "@actions/http-client": "^1.0.8",
     "@octokit/core": "^3.1.1",
-    "@octokit/plugin-paginate-rest": "^2.2.3",
-    "@octokit/plugin-rest-endpoint-methods": "^4.1.0"
+    "@octokit/plugin-paginate-rest": "^2.3.0",
+    "@octokit/plugin-rest-endpoint-methods": "^4.1.2"
   },
   "devDependencies": {
     "jest": "^25.1.0",
