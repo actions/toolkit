@@ -1,5 +1,9 @@
 # @actions/github Releases
 
+### 4.1.0
+- [Added SCIM Enterprise Octokit endpoints](https://github.com/actions/toolkit/pull/536)
+- [Bumped Octokit Versions](https://github.com/actions/toolkit/pull/526)
+
 ### 4.0.0
 - [Add execution state information to context](https://github.com/actions/toolkit/pull/499)
 - [Update Octokit Dependencies with some api breaking changes](https://github.com/actions/toolkit/pull/498) 
