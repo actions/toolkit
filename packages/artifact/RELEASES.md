@@ -33,3 +33,7 @@
 
 - Increase chunk size during upload from 4MB to 8MB
 - Improve user-agent strings during API calls to help internally diagnose issues
+
+### 0.3.4
+
+- Retry in the event of a 413 response

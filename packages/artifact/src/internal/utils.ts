@@ -74,7 +74,8 @@ export function isRetryableStatusCode(statusCode?: number): boolean {
     HttpCodes.BadGateway,
     HttpCodes.ServiceUnavailable,
     HttpCodes.GatewayTimeout,
-    HttpCodes.TooManyRequests
+    HttpCodes.TooManyRequests,
+    413 // Payload Too Large
   ]
   return retryableStatusCodes.includes(statusCode)
 }
