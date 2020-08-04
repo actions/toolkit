@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
