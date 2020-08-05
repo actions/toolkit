@@ -18,3 +18,6 @@
 
 ### 1.0.1
 - Fix bug in downloading large files (> 2 GBs) with the Azure SDK
+
+### 1.0.2
+- Use posix archive format to add support for some tools
