@@ -21,3 +21,6 @@
 
 ### 1.0.2
 - Use posix archive format to add support for some tools
+
+### 1.0.3
+- Prefer use of GNU tar to avoid junction point and zstd compression issues on Windows
