@@ -360,7 +360,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
   const unzipPath = await io.which('unzip', true)
-  const args = [file, '-n']
+  const args = ['-n', file]
   if (!core.isDebug()) {
     args.unshift('-q')
   }
