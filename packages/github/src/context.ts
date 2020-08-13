@@ -18,6 +18,7 @@ export class Context {
   job: string
   runNumber: number
   runId: number
+  workspace: string
 
   /**
    * Hydrate the context from the environment
@@ -43,6 +44,7 @@ export class Context {
     this.job = process.env.GITHUB_JOB as string
     this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER as string, 10)
     this.runId = parseInt(process.env.GITHUB_RUN_ID as string, 10)
+    this.workspace = process.env.GITHUB_WORKSPACE as string
   }
 
   get issue(): {owner: string; repo: string; number: number} {
