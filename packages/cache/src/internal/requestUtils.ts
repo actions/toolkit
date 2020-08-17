@@ -35,30 +35,41 @@ export async function retry<T>(
   name: string,
   method: () => Promise<T>,
   getStatusCode: (arg0: T) => number | undefined,
-  maxAttempts = 2
+  maxAttempts = 2,
+  onError: ((arg0: Error) => T | undefined) | undefined = undefined
 ): Promise<T> {
-  let response: T | undefined = undefined
-  let statusCode: number | undefined = undefined
-  let isRetryable = false
   let errorMessage = ''
   let attempt = 1
 
   while (attempt <= maxAttempts) {
+    let response: T | undefined = undefined
+    let statusCode: number | undefined = undefined
+    let isRetryable = false
+
     try {
       response = await method()
+    } catch (error) {
+      if (onError) {
+        response = onError(error)
+      }
+
+      isRetryable = true
+      errorMessage = error.message
+    }
+
+    if (response) {
       statusCode = getStatusCode(response)
 
       if (!isServerErrorStatusCode(statusCode)) {
         return response
       }
-
-      isRetryable = isRetryableStatusCode(statusCode)
-      errorMessage = `Cache service responded with ${statusCode}`
-    } catch (error) {
-      isRetryable = true
-      errorMessage = error.message
     }
 
+    if (statusCode) {
+      isRetryable = isRetryableStatusCode(statusCode)
+      errorMessage = `Cache service responded with ${statusCode}`
+    }
+    
     core.debug(
       `${name} - Attempt ${attempt} of ${maxAttempts} failed with error: ${errorMessage}`
     )
@@ -83,7 +94,22 @@ export async function retryTypedResponse<T>(
     name,
     method,
     (response: ITypedResponse<T>) => response.statusCode,
-    maxAttempts
+    maxAttempts,
+    // If the error object contains the statusCode property, extract it and return
+    // an ITypedResponse<T> so it can be processed by the retry logic.  Explicitly
+    // casting Error object to any to workaround missing property errors.
+    (e: Error) => {
+      const error : any = e
+      if (error['statusCode']) {
+        return {
+          statusCode: error['statusCode'],
+          result: null,
+          headers: {}
+        }
+      } else {
+        return undefined
+      }
+    }
   )
 }
 
