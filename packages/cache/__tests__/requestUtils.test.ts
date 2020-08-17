@@ -20,7 +20,8 @@ async function handleResponse(
   if (response.statusCode >= 900) {
     throw Error('Test Error')
   } else if (response.statusCode >= 600) {
-    const error: any = Error('Test Error with Status Code')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const error = Error('Test Error with Status Code') as any
     error['statusCode'] = response.statusCode - 300
     throw error
   } else {
@@ -37,7 +38,9 @@ async function testRetryExpectingResult(
   const actualResult = await retry(
     'test',
     async () => handleResponse(responses.pop()),
-    (response: TestResponse) => response.statusCode
+    (response: TestResponse) => response.statusCode,
+    2, // maxAttempts
+    0 // delay
   )
 
   expect(actualResult.result).toEqual(expectedResult)
@@ -54,12 +57,14 @@ async function testRetryConvertingErrorToResult(
     'test',
     async () => handleResponse(responses.pop()),
     (response: TestResponse) => response.statusCode,
-    2,
+    2, // maxAttempts
+    0, // delay
     (e: Error) => {
-      const error: any = e
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = e as any
       return {
         statusCode: error['statusCode'],
-        result: error['result']
+        result: error['result'] ?? null
       }
     }
   )
@@ -77,7 +82,9 @@ async function testRetryExpectingError(
     retry(
       'test',
       async () => handleResponse(responses.pop()),
-      (response: TestResponse) => response.statusCode
+      (response: TestResponse) => response.statusCode,
+      2, // maxAttempts,
+      0 // delay
     )
   ).rejects.toBeInstanceOf(Error)
 }

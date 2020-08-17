@@ -4,6 +4,7 @@ import {
   IHttpClientResponse,
   ITypedResponse
 } from '@actions/http-client/interfaces'
+import {RetryDelay} from './constants'
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
@@ -31,11 +32,16 @@ export function isRetryableStatusCode(statusCode?: number): boolean {
   return retryableStatusCodes.includes(statusCode)
 }
 
+async function sleep(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
 export async function retry<T>(
   name: string,
   method: () => Promise<T>,
   getStatusCode: (arg0: T) => number | undefined,
   maxAttempts = 2,
+  delay = RetryDelay,
   onError: ((arg0: Error) => T | undefined) | undefined = undefined
 ): Promise<T> {
   let errorMessage = ''
@@ -69,7 +75,7 @@ export async function retry<T>(
       isRetryable = isRetryableStatusCode(statusCode)
       errorMessage = `Cache service responded with ${statusCode}`
     }
-    
+
     core.debug(
       `${name} - Attempt ${attempt} of ${maxAttempts} failed with error: ${errorMessage}`
     )
@@ -79,6 +85,7 @@ export async function retry<T>(
       break
     }
 
+    await sleep(delay)
     attempt++
   }
 
@@ -95,11 +102,12 @@ export async function retryTypedResponse<T>(
     method,
     (response: ITypedResponse<T>) => response.statusCode,
     maxAttempts,
+    RetryDelay,
     // If the error object contains the statusCode property, extract it and return
-    // an ITypedResponse<T> so it can be processed by the retry logic.  Explicitly
-    // casting Error object to any to workaround missing property errors.
+    // an ITypedResponse<T> so it can be processed by the retry logic.
     (e: Error) => {
-      const error : any = e
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = e as any
       if (error['statusCode']) {
         return {
           statusCode: error['statusCode'],
@@ -122,6 +130,7 @@ export async function retryHttpClientResponse<T>(
     name,
     method,
     (response: IHttpClientResponse) => response.message.statusCode,
-    maxAttempts
+    maxAttempts,
+    RetryDelay
   )
 }
