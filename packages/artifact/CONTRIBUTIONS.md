@@ -26,5 +26,5 @@ Any easy way to test changes is to fork the artifact actions and to use `npm lin
 2. Clone the forks locally
 3. With your local changes to the toolkit repo, type `npm link` after ensuring there are no errors when running `tsc`
 4. In the locally cloned fork, type `npm link @actions/artifact`
-4. Create a new release for your local fork using `tsc` and `npm run release` (this will create a new `dist/index.js` file using `@zeit/ncc`)
+4. Create a new release for your local fork using `tsc` and `npm run release` (this will create a new `dist/index.js` file using `@vercel/ncc`)
 5. Commit and push your local changes, you will then be able to test your changes with your forked action
