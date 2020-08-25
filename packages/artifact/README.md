@@ -39,6 +39,10 @@ Method Name: `uploadArtifact`
     - If set to `false`, and an error is encountered, all other uploads will stop and any files that were queued will not be attempted to be uploaded. The partial artifact available will only include files up until the failure.
     - If set to `true` and an error is encountered, the failed file will be skipped and ignored and all other queued files will be attempted to be uploaded. There will be an artifact available for download at the end with everything excluding the file that failed to upload
     - Optional, defaults to `true` if not specified
+- `retentionDays`
+    - Durantion after which artifact will expire in days
+    - Minimum value: 1
+    - Maximum value: 90 unless changed by settings
 
 #### Example using Absolute File Paths
 

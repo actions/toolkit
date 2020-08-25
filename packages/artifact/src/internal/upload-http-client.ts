@@ -55,12 +55,19 @@ export class UploadHttpClient {
    * @returns The response from the Artifact Service if the file container was successfully created
    */
   async createArtifactInFileContainer(
-    artifactName: string
+    artifactName: string,
+    options?: UploadOptions | undefined
   ): Promise<ArtifactResponse> {
     const parameters: CreateArtifactParameters = {
       Type: 'actions_storage',
       Name: artifactName
     }
+
+    // calculate retention period
+    if (options && options.retentionDays) {
+      parameters.RetentionDays = options.retentionDays
+    }
+
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 

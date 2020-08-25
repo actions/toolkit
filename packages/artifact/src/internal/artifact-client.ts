@@ -94,7 +94,8 @@ export class DefaultArtifactClient implements ArtifactClient {
     } else {
       // Create an entry for the artifact in the file container
       const response = await uploadHttpClient.createArtifactInFileContainer(
-        name
+        name,
+        options
       )
       if (!response.fileContainerResourceUrl) {
         core.debug(response.toString())
