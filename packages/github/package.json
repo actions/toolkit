@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@actions/http-client": "^1.0.8",
-    "@octokit/core": "^3.1.1",
+    "@octokit/core": "^3.1.2",
     "@octokit/plugin-paginate-rest": "^2.3.0",
     "@octokit/plugin-rest-endpoint-methods": "^4.1.2"
   },
