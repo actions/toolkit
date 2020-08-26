@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.2.5
+- [Correctly bundle License File with package](https://github.com/actions/toolkit/pull/548)
+
 ### 1.2.4
 - [Be more lenient in accepting non-string command inputs](https://github.com/actions/toolkit/pull/405)
 - [Add Echo commands](https://github.com/actions/toolkit/pull/411)
