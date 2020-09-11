@@ -1,4 +1,5 @@
 import * as os from 'os'
+import {toCommandValue} from './utils'
 
 // For internal use, subject to change.
 
@@ -74,19 +75,6 @@ class Command {
     cmdStr += `${CMD_STRING}${escapeData(this.message)}`
     return cmdStr
   }
-}
-
-/**
- * Sanitizes an input into a string so it can be passed into issueCommand safely
- * @param input input to sanitize into a string
- */
-export function toCommandValue(input: any): string {
-  if (input === null || input === undefined) {
-    return ''
-  } else if (typeof input === 'string' || input instanceof String) {
-    return input as string
-  }
-  return JSON.stringify(input)
 }
 
 function escapeData(s: any): string {

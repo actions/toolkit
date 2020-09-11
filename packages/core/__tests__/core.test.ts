@@ -1,3 +1,4 @@
+import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as core from '../src/core'
@@ -24,6 +25,13 @@ const testEnvVars = {
 }
 
 describe('@actions/core', () => {
+  beforeAll(() => {
+    const filePath = path.join(__dirname, `test`)
+    if (!fs.existsSync(filePath)) {
+      fs.mkdirSync(filePath)
+    }
+  })
+
   beforeEach(() => {
     for (const key in testEnvVars)
       process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
@@ -36,32 +44,33 @@ describe('@actions/core', () => {
   })
 
   it('exportVariable produces the correct command and sets the env', () => {
+    const command = 'ENV'
+    createFileCommandFile(command)
     core.exportVariable('my var', 'var val')
-    assertWriteCalls([`::set-env name=my var::var val${os.EOL}`])
-  })
-
-  it('exportVariable escapes variable names', () => {
-    core.exportVariable('special char var \r\n,:', 'special val')
-    expect(process.env['special char var \r\n,:']).toBe('special val')
-    assertWriteCalls([
-      `::set-env name=special char var %0D%0A%2C%3A::special val${os.EOL}`
-    ])
-  })
-
-  it('exportVariable escapes variable values', () => {
-    core.exportVariable('my var2', 'var val\r\n')
-    expect(process.env['my var2']).toBe('var val\r\n')
-    assertWriteCalls([`::set-env name=my var2::var val%0D%0A${os.EOL}`])
+    verifyFileCommand(
+      command,
+      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}var val${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+    )
   })
 
   it('exportVariable handles boolean inputs', () => {
+    const command = 'ENV'
+    createFileCommandFile(command)
     core.exportVariable('my var', true)
-    assertWriteCalls([`::set-env name=my var::true${os.EOL}`])
+    verifyFileCommand(
+      command,
+      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}true${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+    )
   })
 
   it('exportVariable handles number inputs', () => {
+    const command = 'ENV'
+    createFileCommandFile(command)
     core.exportVariable('my var', 5)
-    assertWriteCalls([`::set-env name=my var::5${os.EOL}`])
+    verifyFileCommand(
+      command,
+      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}5${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+    )
   })
 
   it('setSecret produces the correct command', () => {
@@ -70,11 +79,13 @@ describe('@actions/core', () => {
   })
 
   it('prependPath produces the correct commands and sets the env', () => {
+    const command = 'PATH'
+    createFileCommandFile(command)
     core.addPath('myPath')
     expect(process.env['PATH']).toBe(
       `myPath${path.delimiter}path1${path.delimiter}path2`
     )
-    assertWriteCalls([`::add-path::myPath${os.EOL}`])
+    verifyFileCommand(command, `myPath${os.EOL}`)
   })
 
   it('getInput gets non-required input', () => {
@@ -257,5 +268,23 @@ function assertWriteCalls(calls: string[]): void {
 
   for (let i = 0; i < calls.length; i++) {
     expect(process.stdout.write).toHaveBeenNthCalledWith(i + 1, calls[i])
+  }
+}
+
+function createFileCommandFile(command: string): void {
+  const filePath = path.join(__dirname, `test/${command}`)
+  process.env[`GITHUB_${command}`] = filePath
+  fs.appendFileSync(filePath, '', {
+    encoding: 'utf8'
+  })
+}
+
+function verifyFileCommand(command: string, expectedContents: string): void {
+  const filePath = path.join(__dirname, `test/${command}`)
+  const contents = fs.readFileSync(filePath, 'utf8')
+  try {
+    expect(contents).toEqual(expectedContents)
+  } finally {
+    fs.unlinkSync(filePath)
   }
 }
