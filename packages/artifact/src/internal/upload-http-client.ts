@@ -23,7 +23,8 @@ import {
 import {
   getUploadChunkSize,
   getUploadFileConcurrency,
-  getRetryLimit
+  getRetryLimit,
+  getRetentionDays
 } from './config-variables'
 import {promisify} from 'util'
 import {URL} from 'url'
@@ -65,7 +66,15 @@ export class UploadHttpClient {
 
     // calculate retention period
     if (options && options.retentionDays) {
-      parameters.RetentionDays = options.retentionDays
+      var retention = options.retentionDays;
+      const maxRetentionStr = getRetentionDays();
+      if (maxRetentionStr) {
+        const maxRetentions = parseInt(maxRetentionStr);
+        if (!isNaN(maxRetentions) && maxRetentions < retention) {
+          core.warning(`Retention days is greater than max value allowed by repository setting, reduce retention to ${maxRetentions} days`);
+        }
+      }
+      parameters.RetentionDays = retention;
     }
 
     const data: string = JSON.stringify(parameters, null, 2)

@@ -1,3 +1,5 @@
+import { countReset } from "console"
+
 // The number of concurrent uploads that happens at the same time
 export function getUploadFileConcurrency(): number {
   return 2
@@ -60,4 +62,8 @@ export function getWorkSpaceDirectory(): string {
     throw new Error('Unable to get GITHUB_WORKSPACE env variable')
   }
   return workspaceDirectory
+}
+
+export function getRetentionDays(): string | undefined {
+  return process.env['GITHUB_RETENTION_DAYS'] 
 }

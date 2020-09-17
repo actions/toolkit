@@ -45,3 +45,7 @@ export function getRuntimeUrl(): string {
 export function getWorkFlowRunId(): string {
   return '15'
 }
+
+export function getRetentionDays(): string | undefined {
+  return '45'
+}
