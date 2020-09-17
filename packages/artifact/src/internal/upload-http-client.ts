@@ -66,15 +66,18 @@ export class UploadHttpClient {
 
     // calculate retention period
     if (options && options.retentionDays) {
-      var retention = options.retentionDays;
-      const maxRetentionStr = getRetentionDays();
+      let retention = options.retentionDays
+      const maxRetentionStr = getRetentionDays()
       if (maxRetentionStr) {
-        const maxRetentions = parseInt(maxRetentionStr);
-        if (!isNaN(maxRetentions) && maxRetentions < retention) {
-          core.warning(`Retention days is greater than max value allowed by repository setting, reduce retention to ${maxRetentions} days`);
+        const maxRetention = parseInt(maxRetentionStr)
+        if (!isNaN(maxRetention) && maxRetention < retention) {
+          core.warning(
+            `Retention days is greater than max value allowed by repository setting, reduce retention to ${maxRetention} days`
+          )
+          retention = maxRetention
         }
       }
-      parameters.RetentionDays = retention;
+      parameters.RetentionDays = retention
     }
 
     const data: string = JSON.stringify(parameters, null, 2)
