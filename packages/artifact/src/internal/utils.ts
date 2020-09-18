@@ -316,7 +316,7 @@ export function getProperRetention(
     const maxRetention = parseInt(retentionSetting)
     if (!isNaN(maxRetention) && maxRetention < retention) {
       warning(
-        `Retention days is greater than max value allowed by the repository setting, reduce retention to ${maxRetention} days`
+        `Retention days is greater than the max value allowed by the repository setting, reduce retention to ${maxRetention} days`
       )
       retention = maxRetention
     }
