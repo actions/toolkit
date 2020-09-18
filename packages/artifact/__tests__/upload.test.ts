@@ -13,6 +13,7 @@ import {
 } from '../src/internal/contracts'
 import {UploadSpecification} from '../src/internal/upload-specification'
 import {getArtifactUrl} from '../src/internal/utils'
+import {UploadOptions} from '../src/internal/upload-options'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')
@@ -104,6 +105,17 @@ describe('Upload Tests', () => {
         `Unable to create a container for the artifact invalid-artifact-name at ${getArtifactUrl()}`
       )
     )
+  })
+
+  it('Create Artifact - Retention Less Than Min Value Error', async () => {
+    const artifactName = 'valid-artifact-name'
+    const options: UploadOptions = {
+      retentionDays: -1
+    }
+    const uploadHttpClient = new UploadHttpClient()
+    expect(
+      uploadHttpClient.createArtifactInFileContainer(artifactName, options)
+    ).rejects.toEqual(new Error('Invalid retention, minimum value is 1.'))
   })
 
   it('Create Artifact - Storage Quota Error', async () => {

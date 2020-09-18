@@ -11,6 +11,7 @@ export interface ArtifactResponse {
 export interface CreateArtifactParameters {
   Type: string
   Name: string
+  RetentionDays?: number
 }
 
 export interface PatchArtifactSize {

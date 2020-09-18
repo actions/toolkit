@@ -1,4 +1,4 @@
-import {debug, info} from '@actions/core'
+import {debug, info, warning} from '@actions/core'
 import {promises as fs} from 'fs'
 import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
@@ -301,4 +301,25 @@ export async function createEmptyFilesForArtifact(
   for (const filePath of emptyFilesToCreate) {
     await (await fs.open(filePath, 'w')).close()
   }
+}
+
+export function getProperRetention(
+  retentionInput: number,
+  retentionSetting: string | undefined
+): number {
+  if (retentionInput < 0) {
+    throw new Error('Invalid retention, minimum value is 1.')
+  }
+
+  let retention = retentionInput
+  if (retentionSetting) {
+    const maxRetention = parseInt(retentionSetting)
+    if (!isNaN(maxRetention) && maxRetention < retention) {
+      warning(
+        `Retention days is greater than the max value allowed by the repository setting, reduce retention to ${maxRetention} days`
+      )
+      retention = maxRetention
+    }
+  }
+  return retention
 }

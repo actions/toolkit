@@ -106,6 +106,20 @@ describe('Utils', () => {
     }
   })
 
+  it('Test negative artifact retention throws', () => {
+    expect(() => {
+      utils.getProperRetention(-1, undefined)
+    }).toThrow()
+  })
+
+  it('Test no setting specified takes artifact retention input', () => {
+    expect(utils.getProperRetention(180, undefined)).toEqual(180)
+  })
+
+  it('Test artifact retention must conform to max allowed', () => {
+    expect(utils.getProperRetention(180, '45')).toEqual(45)
+  })
+
   it('Test constructing artifact URL', () => {
     const runtimeUrl = getRuntimeUrl()
     const runId = getWorkFlowRunId()

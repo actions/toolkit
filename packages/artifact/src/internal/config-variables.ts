@@ -61,3 +61,7 @@ export function getWorkSpaceDirectory(): string {
   }
   return workspaceDirectory
 }
+
+export function getRetentionDays(): string | undefined {
+  return process.env['GITHUB_RETENTION_DAYS']
+}

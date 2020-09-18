@@ -18,12 +18,14 @@ import {
   isForbiddenStatusCode,
   displayHttpDiagnostics,
   getExponentialRetryTimeInMilliseconds,
-  tryGetRetryAfterValueTimeInMilliseconds
+  tryGetRetryAfterValueTimeInMilliseconds,
+  getProperRetention
 } from './utils'
 import {
   getUploadChunkSize,
   getUploadFileConcurrency,
-  getRetryLimit
+  getRetryLimit,
+  getRetentionDays
 } from './config-variables'
 import {promisify} from 'util'
 import {URL} from 'url'
@@ -55,12 +57,23 @@ export class UploadHttpClient {
    * @returns The response from the Artifact Service if the file container was successfully created
    */
   async createArtifactInFileContainer(
-    artifactName: string
+    artifactName: string,
+    options?: UploadOptions | undefined
   ): Promise<ArtifactResponse> {
     const parameters: CreateArtifactParameters = {
       Type: 'actions_storage',
       Name: artifactName
     }
+
+    // calculate retention period
+    if (options && options.retentionDays) {
+      const maxRetentionStr = getRetentionDays()
+      parameters.RetentionDays = getProperRetention(
+        options.retentionDays,
+        maxRetentionStr
+      )
+    }
+
     const data: string = JSON.stringify(parameters, null, 2)
     const artifactUrl = getArtifactUrl()
 
