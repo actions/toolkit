@@ -112,7 +112,7 @@ describe('Utils', () => {
     }).toThrow()
   })
 
-  it('Test no setting specified take artifact retention inpput', () => {
+  it('Test no setting specified takes artifact retention input', () => {
     expect(utils.getProperRetention(180, undefined)).toEqual(180)
   })
 
