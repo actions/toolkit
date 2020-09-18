@@ -17,7 +17,7 @@ export interface UploadOptions {
   continueOnError?: boolean
 
   /**
-   * Durantion after which artifact will expire in days.
+   * Duration after which artifact will expire in days.
    *
    * By default artifact expires after 90 days:
    * https://docs.github.com/en/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts#downloading-and-deleting-artifacts-after-a-workflow-run-is-complete
@@ -31,6 +31,5 @@ export interface UploadOptions {
    * will be reduced to match the max value allowed on server, and the upload process will continue. An
    * input of 0 assumes default retention setting.
    */
-
   retentionDays?: number
 }

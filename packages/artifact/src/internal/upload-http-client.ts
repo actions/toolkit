@@ -18,7 +18,8 @@ import {
   isForbiddenStatusCode,
   displayHttpDiagnostics,
   getExponentialRetryTimeInMilliseconds,
-  tryGetRetryAfterValueTimeInMilliseconds
+  tryGetRetryAfterValueTimeInMilliseconds,
+  getProperRetention
 } from './utils'
 import {
   getUploadChunkSize,
@@ -66,18 +67,11 @@ export class UploadHttpClient {
 
     // calculate retention period
     if (options && options.retentionDays) {
-      let retention = options.retentionDays
       const maxRetentionStr = getRetentionDays()
-      if (maxRetentionStr) {
-        const maxRetention = parseInt(maxRetentionStr)
-        if (!isNaN(maxRetention) && maxRetention < retention) {
-          core.warning(
-            `Retention days is greater than max value allowed by repository setting, reduce retention to ${maxRetention} days`
-          )
-          retention = maxRetention
-        }
-      }
-      parameters.RetentionDays = retention
+      parameters.RetentionDays = getProperRetention(
+        options.retentionDays,
+        maxRetentionStr
+      )
     }
 
     const data: string = JSON.stringify(parameters, null, 2)

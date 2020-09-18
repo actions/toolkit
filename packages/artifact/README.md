@@ -40,9 +40,10 @@ Method Name: `uploadArtifact`
     - If set to `true` and an error is encountered, the failed file will be skipped and ignored and all other queued files will be attempted to be uploaded. There will be an artifact available for download at the end with everything excluding the file that failed to upload
     - Optional, defaults to `true` if not specified
 - `retentionDays`
-    - Durantion after which artifact will expire in days
+    - Duration after which artifact will expire in days
     - Minimum value: 1
-    - Maximum value: 90 unless changed by settings
+    - Maximum value: 90 unless changed by repository setting
+    - If this is set to a greater value than the retention settings allowed, the retention on artifacts will be reduced to match the max value allowed on server, and the upload process will continue. An input of 0 assumes default retention value.
 
 #### Example using Absolute File Paths
 
