@@ -108,7 +108,7 @@ describe('Upload Tests', () => {
   })
 
   it('Create Artifact - Retention Less Than Min Value Error', async () => {
-    const artifactName = 'invalid-artifact-name'
+    const artifactName = 'valid-artifact-name'
     const options: UploadOptions = {
       retentionDays: -1
     }
