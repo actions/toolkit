@@ -43,7 +43,7 @@ Method Name: `uploadArtifact`
     - Duration after which artifact will expire in days
     - Minimum value: 1
     - Maximum value: 90 unless changed by repository setting
-    - If this is set to a greater value than the retention settings allowed, the retention on artifacts will be reduced to match the max value allowed on server, and the upload process will continue. An input of 0 assumes default retention value.
+    - If this is set to a greater value than the retention settings allowed, the retention on artifacts will be reduced to match the max value allowed on the server, and the upload process will continue. An input of 0 assumes default retention value.
 
 #### Example using Absolute File Paths
 
