@@ -37,3 +37,7 @@
 ### 0.3.5
 
 - Retry in the event of a 413 response
+
+### 0.4.0
+
+- Add option to specify custom retentions on artifacts
