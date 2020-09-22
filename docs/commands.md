@@ -146,7 +146,7 @@ echo "FOO=BAR" >> $GITHUB_ENV
 
 Running `$FOO` in a future step will now return `BAR`
 
-For multiline strings, you may use the [heredoc syntax](https://tldp.org/LDP/abs/html/here-docs.html) with your choice of delimeter. In the below example, we use `EOF` 
+For multiline strings, you may use the heredoc style syntax with your choice of delimeter. In the below example, we use `EOF` 
 ```
 steps:
   - name: Set the value
@@ -157,31 +157,7 @@ steps:
         echo 'EOF' >> $GITHUB_ENV
 ```
 
-This would set the value of the `JSON_RESPONSE` env variable to:
-
-```
-{
-  "slideshow": {
-    "author": "Yours Truly", 
-    "date": "date of publication", 
-    "slides": [
-      {
-        "title": "Wake up to WonderWidgets!", 
-        "type": "all"
-      }, 
-      {
-        "items": [
-          "Why <em>WonderWidgets</em> are great", 
-          "Who <em>buys</em> WonderWidgets"
-        ], 
-        "title": "Overview", 
-        "type": "all"
-      }
-    ], 
-    "title": "Sample Slide Show"
-  }
-}
-```
+This would set the value of the `JSON_RESPONSE` env variable to the value of the curl response.
 
 This is wrapped by the core `exportVariable` method which sets for future steps but also updates the variable for this step.
 
@@ -194,10 +170,10 @@ export function exportVariable(name: string, val: string): void {}
 To prepend a string to PATH write to the file located at `GITHUB_PATH` or use the equivalent `actions/core` function
 
 ```sh
-echo "foo=bar" >> $GITHUB_PATH
+echo "/Users/test/.nvm/versions/node/v12.18.3/bin" >> $GITHUB_PATH
 ```
 
-Running `$PATH` in a future step will now return `BAR:{Previous Path}`;
+Running `$PATH` in a future step will now return `/Users/test/.nvm/versions/node/v12.18.3/bin:{Previous Path}`;
 
 This is wrapped by the core addPath method:
 ```javascript

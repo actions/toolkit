@@ -12,16 +12,20 @@ const testEnvVars = {
   'my secret': '',
   'special char secret \r\n];': '',
   'my secret2': '',
-  PATH: `path1${path.delimiter}path2`,
+  'PATH': `path1${path.delimiter}path2`,
 
   // Set inputs
-  INPUT_MY_INPUT: 'val',
-  INPUT_MISSING: '',
+  'INPUT_MY_INPUT': 'val',
+  'INPUT_MISSING': '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
-  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
+  'INPUT_MULTIPLE_SPACES_VARIABLE': 'I have multiple spaces',
 
   // Save inputs
-  STATE_TEST_1: 'state_val'
+  'STATE_TEST_1': 'state_val',
+
+  // File Commands
+  'GITHUB_PATH': '',
+  'GITHUB_ENV': ''
 }
 
 describe('@actions/core', () => {
@@ -34,13 +38,39 @@ describe('@actions/core', () => {
 
   beforeEach(() => {
     for (const key in testEnvVars)
-      process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
-
+    {
+      process.env[key] = (testEnvVars as { [key: string]: any })[key] as string
+    }
     process.stdout.write = jest.fn()
   })
 
-  afterEach(() => {
-    for (const key in testEnvVars) Reflect.deleteProperty(testEnvVars, key)
+  it('legacy exportVariable produces the correct command and sets the env', () => {
+    core.exportVariable('my var', 'var val')
+    assertWriteCalls([`::set-env name=my var::var val${os.EOL}`])
+  })
+
+  it('legacy exportVariable escapes variable names', () => {
+    core.exportVariable('special char var \r\n,:', 'special val')
+    expect(process.env['special char var \r\n,:']).toBe('special val')
+    assertWriteCalls([
+      `::set-env name=special char var %0D%0A%2C%3A::special val${os.EOL}`
+    ])
+  })
+
+  it('legacy exportVariable escapes variable values', () => {
+    core.exportVariable('my var2', 'var val\r\n')
+    expect(process.env['my var2']).toBe('var val\r\n')
+    assertWriteCalls([`::set-env name=my var2::var val%0D%0A${os.EOL}`])
+  })
+
+  it('legacy exportVariable handles boolean inputs', () => {
+    core.exportVariable('my var', true)
+    assertWriteCalls([`::set-env name=my var::true${os.EOL}`])
+  })
+
+  it('legacy exportVariable handles number inputs', () => {
+    core.exportVariable('my var', 5)
+    assertWriteCalls([`::set-env name=my var::5${os.EOL}`])
   })
 
   it('exportVariable produces the correct command and sets the env', () => {
@@ -86,6 +116,14 @@ describe('@actions/core', () => {
       `myPath${path.delimiter}path1${path.delimiter}path2`
     )
     verifyFileCommand(command, `myPath${os.EOL}`)
+  })
+
+  it('legacy prependPath produces the correct commands and sets the env', () => {
+    core.addPath('myPath')
+    expect(process.env['PATH']).toBe(
+      `myPath${path.delimiter}path1${path.delimiter}path2`
+    )
+    assertWriteCalls([`::add-path::myPath${os.EOL}`])
   })
 
   it('getInput gets non-required input', () => {
