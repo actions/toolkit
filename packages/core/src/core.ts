@@ -42,7 +42,7 @@ export function exportVariable(name: string, val: any): void {
   const convertedVal = toCommandValue(val)
   process.env[name] = convertedVal
 
-  var filePath = process.env['GITHUB_ENV'] || ''
+  const filePath = process.env['GITHUB_ENV'] || ''
   if (filePath && filePath.length > 0) {
     const delimiter = '_GitHubActionsFileCommandDelimeter_'
     const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`
@@ -65,7 +65,7 @@ export function setSecret(secret: string): void {
  * @param inputPath
  */
 export function addPath(inputPath: string): void {
-  var filePath = process.env['GITHUB_PATH'] || ''
+  const filePath = process.env['GITHUB_PATH'] || ''
   if (filePath && filePath.length > 0) {
     issueFileCommand('PATH', inputPath)
   } else {

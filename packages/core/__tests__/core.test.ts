@@ -38,7 +38,7 @@ describe('@actions/core', () => {
 
   beforeEach(() => {
     for (const key in testEnvVars) {
-      process.env[key] = (testEnvVars as {[key: string]: any})[key] as string
+      process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
     }
     process.stdout.write = jest.fn()
   })
