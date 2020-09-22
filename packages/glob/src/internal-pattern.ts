@@ -43,17 +43,31 @@ export class Pattern {
    */
   private readonly rootRegExp: RegExp
 
+  readonly homedir: string
+
+  readonly workdir: string
+
   /* eslint-disable no-dupe-class-members */
   // Disable no-dupe-class-members due to false positive for method overload
   // https://github.com/typescript-eslint/typescript-eslint/issues/291
 
-  constructor(pattern: string)
-  constructor(pattern: string, segments: undefined, homedir: string)
-  constructor(negate: boolean, segments: string[])
+  constructor(
+    pattern: string,
+    segments?: string[],
+    homedir?: string,
+    workdir?: string
+  )
+  constructor(
+    negate: boolean,
+    segments: string[],
+    homedir?: string,
+    workdir?: string
+  )
   constructor(
     patternOrNegate: string | boolean,
     segments?: string[],
-    homedir?: string
+    homedir?: string,
+    workdir?: string
   ) {
     // Pattern overload
     let pattern: string
@@ -82,8 +96,26 @@ export class Pattern {
       pattern = pattern.substr(1).trim()
     }
 
+    // Canonicalize home directory.
+    homedir = homedir ?? os.homedir()
+    assert(homedir, 'Unable to determine HOME directory')
+    assert(
+      pathHelper.hasAbsoluteRoot(homedir),
+      `Expected HOME directory to be a rooted path. Actual '${homedir}'`
+    )
+    this.homedir = homedir
+
+    // Canonicalize working directory.
+    workdir = workdir ?? process.cwd()
+    assert(workdir, 'Unable to determine working directory')
+    assert(
+      pathHelper.hasAbsoluteRoot(workdir),
+      `Expected working directory to be a rooted path. Actual '${workdir}'`
+    )
+    this.workdir = workdir
+
     // Normalize slashes and ensures absolute root
-    pattern = Pattern.fixupPattern(pattern, homedir)
+    pattern = Pattern.fixupPattern(pattern, homedir, workdir)
 
     // Segments
     this.segments = new Path(pattern).segments
@@ -182,7 +214,11 @@ export class Pattern {
   /**
    * Normalizes slashes and ensures absolute root
    */
-  private static fixupPattern(pattern: string, homedir?: string): string {
+  private static fixupPattern(
+    pattern: string,
+    homedir: string,
+    workdir: string
+  ): string {
     // Empty
     assert(pattern, 'pattern cannot be empty')
 
@@ -207,16 +243,10 @@ export class Pattern {
 
     // Replace leading `.` segment
     if (pattern === '.' || pattern.startsWith(`.${path.sep}`)) {
-      pattern = Pattern.globEscape(process.cwd()) + pattern.substr(1)
+      pattern = Pattern.globEscape(workdir) + pattern.substr(1)
     }
     // Replace leading `~` segment
     else if (pattern === '~' || pattern.startsWith(`~${path.sep}`)) {
-      homedir = homedir || os.homedir()
-      assert(homedir, 'Unable to determine HOME directory')
-      assert(
-        pathHelper.hasAbsoluteRoot(homedir),
-        `Expected HOME directory to be a rooted path. Actual '${homedir}'`
-      )
       pattern = Pattern.globEscape(homedir) + pattern.substr(1)
     }
     // Replace relative drive root, e.g. pattern is C: or C:foo

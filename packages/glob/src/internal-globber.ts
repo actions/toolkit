@@ -77,7 +77,12 @@ export class DefaultGlobber implements Globber {
           pattern.segments[pattern.segments.length - 1] !== '**')
       ) {
         patterns.push(
-          new Pattern(pattern.negate, pattern.segments.concat('**'))
+          new Pattern(
+            pattern.negate,
+            pattern.segments.concat('**'),
+            pattern.homedir,
+            pattern.workdir
+          )
         )
       }
     }
@@ -158,7 +163,8 @@ export class DefaultGlobber implements Globber {
    */
   static async create(
     patterns: string,
-    options?: GlobOptions
+    options?: GlobOptions,
+    workdir?: string
   ): Promise<DefaultGlobber> {
     const result = new DefaultGlobber(options)
 
@@ -175,7 +181,7 @@ export class DefaultGlobber implements Globber {
       }
       // Pattern
       else {
-        result.patterns.push(new Pattern(line))
+        result.patterns.push(new Pattern(line, undefined, undefined, workdir))
       }
     }
 

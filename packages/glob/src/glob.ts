@@ -11,7 +11,8 @@ export {Globber, GlobOptions}
  */
 export async function create(
   patterns: string,
-  options?: GlobOptions
+  options?: GlobOptions,
+  workdir?: string
 ): Promise<Globber> {
-  return await DefaultGlobber.create(patterns, options)
+  return await DefaultGlobber.create(patterns, options, workdir)
 }
