@@ -12,20 +12,20 @@ const testEnvVars = {
   'my secret': '',
   'special char secret \r\n];': '',
   'my secret2': '',
-  'PATH': `path1${path.delimiter}path2`,
+  PATH: `path1${path.delimiter}path2`,
 
   // Set inputs
-  'INPUT_MY_INPUT': 'val',
-  'INPUT_MISSING': '',
+  INPUT_MY_INPUT: 'val',
+  INPUT_MISSING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
-  'INPUT_MULTIPLE_SPACES_VARIABLE': 'I have multiple spaces',
+  INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
 
   // Save inputs
-  'STATE_TEST_1': 'state_val',
+  STATE_TEST_1: 'state_val',
 
   // File Commands
-  'GITHUB_PATH': '',
-  'GITHUB_ENV': ''
+  GITHUB_PATH: '',
+  GITHUB_ENV: ''
 }
 
 describe('@actions/core', () => {
@@ -37,9 +37,8 @@ describe('@actions/core', () => {
   })
 
   beforeEach(() => {
-    for (const key in testEnvVars)
-    {
-      process.env[key] = (testEnvVars as { [key: string]: any })[key] as string
+    for (const key in testEnvVars) {
+      process.env[key] = (testEnvVars as {[key: string]: any})[key] as string
     }
     process.stdout.write = jest.fn()
   })
