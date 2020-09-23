@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.2.6
+- [Update `exportVariable` and `addPath` to use environment files](https://github.com/actions/toolkit/pull/571)
+
 ### 1.2.5
 - [Correctly bundle License File with package](https://github.com/actions/toolkit/pull/548)
 
