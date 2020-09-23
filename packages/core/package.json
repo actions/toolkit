@@ -1,6 +1,6 @@
 {
   "name": "@actions/core",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Actions core lib",
   "keywords": [
     "github",
