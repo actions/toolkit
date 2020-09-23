@@ -1,4 +1,6 @@
-import {issue, issueCommand, toCommandValue} from './command'
+import {issue, issueCommand} from './command'
+import {issueCommand as issueFileCommand} from './file-command'
+import {toCommandValue} from './utils'
 
 import * as os from 'os'
 import * as path from 'path'
@@ -39,7 +41,15 @@ export enum ExitCode {
 export function exportVariable(name: string, val: any): void {
   const convertedVal = toCommandValue(val)
   process.env[name] = convertedVal
-  issueCommand('set-env', {name}, convertedVal)
+
+  const filePath = process.env['GITHUB_ENV'] || ''
+  if (filePath) {
+    const delimiter = '_GitHubActionsFileCommandDelimeter_'
+    const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`
+    issueFileCommand('ENV', commandValue)
+  } else {
+    issueCommand('set-env', {name}, convertedVal)
+  }
 }
 
 /**
@@ -55,7 +65,12 @@ export function setSecret(secret: string): void {
  * @param inputPath
  */
 export function addPath(inputPath: string): void {
-  issueCommand('add-path', {}, inputPath)
+  const filePath = process.env['GITHUB_PATH'] || ''
+  if (filePath) {
+    issueFileCommand('PATH', inputPath)
+  } else {
+    issueCommand('add-path', {}, inputPath)
+  }
   process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`
 }
 

@@ -7,37 +7,6 @@ these things in a script or other tool.
 To allow this, we provide a special `::` syntax which, if logged to `stdout` on a new line, will allow the runner to perform special behavior on
 your commands. The following commands are all supported:
 
-### Set an environment variable
-
-To set an environment variable for future out of process steps, use `::set-env`:
-
-```sh
-echo "::set-env name=FOO::BAR"
-```
-
-Running `$FOO` in a future step will now return `BAR`
-
-This is wrapped by the core exportVariable method which sets for future steps but also updates the variable for this step
-
-```javascript
-export function exportVariable(name: string, val: string): void {}
-```
-
-### PATH Manipulation
-
-To prepend a string to PATH, use `::addPath`:
-
-```sh
-echo "::add-path::BAR"
-```
-
-Running `$PATH` in a future step will now return `BAR:{Previous Path}`;
-
-This is wrapped by the core addPath method:
-```javascript
-export function addPath(inputPath: string): void {}
-```
-
 ### Set outputs
 
 To set an output for the step, use `::set-output`:
@@ -155,8 +124,73 @@ function setCommandEcho(enabled: boolean): void {}
 
 The `add-mask`, `debug`, `warning` and `error` commands do not support echoing.
 
-### Command Prompt 
+### Command Prompt
+
 CMD processes the `"` character differently from other shells when echoing. In CMD, the above snippets should have the `"` characters removed in order to correctly process. For example, the set output command would be:
 ```cmd
 echo ::set-output name=FOO::BAR
+```
+
+
+# Environment files
+
+During the execution of a workflow, the runner generates temporary files that can be used to perform certain actions. The path to these files are exposed via environment variables. You will need to use the `utf-8` encoding when writing to these files to ensure proper processing of the commands. Multiple commands can be written to the same file, separated by newlines.
+
+### Set an environment variable
+
+To set an environment variable for future out of process steps, write to the file located at `GITHUB_ENV` or use the equivalent `actions/core` function
+
+```sh
+echo "FOO=BAR" >> $GITHUB_ENV
+```
+
+Running `$FOO` in a future step will now return `BAR`
+
+For multiline strings, you may use a heredoc style syntax with your choice of delimeter. In the below example, we use `EOF` 
+```
+steps:
+  - name: Set the value
+    id: step_one
+    run: |
+        echo 'JSON_RESPONSE<<EOF' >> $GITHUB_ENV
+        curl https://httpbin.org/json >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
+```
+
+This would set the value of the `JSON_RESPONSE` env variable to the value of the curl response.
+
+The expected syntax for the heredoc style is:
+```
+{VARIABLE_NAME}<<{DELIMETER}
+{VARIABLE_VALUE}
+{DELIMETER}
+```
+
+This is wrapped by the core `exportVariable` method which sets for future steps but also updates the variable for this step.
+
+```javascript
+export function exportVariable(name: string, val: string): void {}
+```
+
+### PATH Manipulation
+
+To prepend a string to PATH write to the file located at `GITHUB_PATH` or use the equivalent `actions/core` function
+
+```sh
+echo "/Users/test/.nvm/versions/node/v12.18.3/bin" >> $GITHUB_PATH
+```
+
+Running `$PATH` in a future step will now return `/Users/test/.nvm/versions/node/v12.18.3/bin:{Previous Path}`;
+
+This is wrapped by the core addPath method:
+```javascript
+export function addPath(inputPath: string): void {}
+```
+
+### Powershell
+
+Powershell does not use UTF8 by default. You will want to make sure you write in the correct encoding. For example, to set the path:
+```
+steps:
+  - run: echo "mypath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
 ```
