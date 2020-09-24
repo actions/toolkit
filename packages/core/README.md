@@ -113,6 +113,61 @@ const result = await core.group('Do something async', async () => {
 })
 ```
 
+#### Styling output
+
+Colored output is supported in the Action logs via standard [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). 3/4 bit, 8 bit and 24 bit colors are all supported.
+
+Foreground colors:
+```js
+// 3/4 bit
+core.info('\u001b[35mThis foreground will be magenta')
+
+// 8 bit
+core.info('\u001b[38;5;6mThis foreground will be cyan')
+
+// 24 bit
+core.info('\u001b[38;2;255;0;0mThis foreground will be bright red')
+```
+
+Background colors:
+```js
+// 3/4 bit
+core.info('\u001b[43mThis background will be yellow');
+
+// 8 bit
+core.info('\u001b[48;5;6mThis background will be cyan')
+
+// 24 bit
+core.info('\u001b[48;2;255;0;0mThis background will be bright red')
+```
+
+Special styles:
+
+```js
+core.info('\u001b[1mBold text')
+core.info('\u001b[3mItalic text')
+core.info('\u001b[4mUnderlined text')
+```
+
+ANSI escape codes can be combined with one another:
+
+```js
+core.info('\u001b[31;46mRed foreground with a cyan background and \u001b[1mbold text at the end');
+```
+
+> Note: Escape codes reset at the start of each line
+```js
+core.info('\u001b[35mThis foreground will be magenta')
+core.info('This foreground will reset to the default')
+```
+
+Manually typing escape codes can be a little difficult, but you can use third party modules such as [ansi-styles](https://github.com/chalk/ansi-styles).
+
+```js
+const style = require('ansi-styles');
+core.info(style.color.ansi16m.hex('#abcdef') + 'Hello world!')
+```
+
 #### Action state
 
 You can use this library to save state and get state for sharing information between a given wrapper action: 
