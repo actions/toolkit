@@ -46,9 +46,10 @@ jobs:
       working-directory: packages/artifact
     
     - name: Set artifact file contents
+      shell: bash
       run: |
-        echo "::set-env name=non-gzip-artifact-content::hello"
-        echo "::set-env name=gzip-artifact-content::Some large amount of text that has a compression ratio that is greater than 100%. If greater than 100%, gzip is used to upload the file"
+        echo "non-gzip-artifact-content=hello" >> $GITHUB_ENV
+        echo "gzip-artifact-content=Some large amount of text that has a compression ratio that is greater than 100%. If greater than 100%, gzip is used to upload the file" >> $GITHUB_ENV
 
     - name: Create files that will be uploaded
       run: |
