@@ -192,5 +192,5 @@ export function addPath(inputPath: string): void {}
 Powershell does not use UTF8 by default. You will want to make sure you write in the correct encoding. For example, to set the path:
 ```
 steps:
-  - run: echo "mypath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+  - run: echo "mypath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 ```
