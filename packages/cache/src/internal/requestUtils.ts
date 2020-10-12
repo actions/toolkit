@@ -1,10 +1,10 @@
 import * as core from '@actions/core'
-import {HttpCodes} from '@actions/http-client'
+import {HttpCodes, HttpClientError} from '@actions/http-client'
 import {
   IHttpClientResponse,
   ITypedResponse
 } from '@actions/http-client/interfaces'
-import {RetryDelay} from './constants'
+import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
@@ -40,8 +40,8 @@ export async function retry<T>(
   name: string,
   method: () => Promise<T>,
   getStatusCode: (arg0: T) => number | undefined,
-  maxAttempts = 2,
-  delay = RetryDelay,
+  maxAttempts = DefaultRetryAttempts,
+  delay = DefaultRetryDelay,
   onError: ((arg0: Error) => T | undefined) | undefined = undefined
 ): Promise<T> {
   let errorMessage = ''
@@ -95,22 +95,21 @@ export async function retry<T>(
 export async function retryTypedResponse<T>(
   name: string,
   method: () => Promise<ITypedResponse<T>>,
-  maxAttempts = 2
+  maxAttempts = DefaultRetryAttempts,
+  delay = DefaultRetryDelay
 ): Promise<ITypedResponse<T>> {
   return await retry(
     name,
     method,
     (response: ITypedResponse<T>) => response.statusCode,
     maxAttempts,
-    RetryDelay,
+    delay,
     // If the error object contains the statusCode property, extract it and return
     // an ITypedResponse<T> so it can be processed by the retry logic.
-    (e: Error) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const error = e as any
-      if (error['statusCode']) {
+    (error: Error) => {
+      if (error instanceof HttpClientError) {
         return {
-          statusCode: error['statusCode'],
+          statusCode: error.statusCode,
           result: null,
           headers: {}
         }
@@ -124,13 +123,14 @@ export async function retryTypedResponse<T>(
 export async function retryHttpClientResponse<T>(
   name: string,
   method: () => Promise<IHttpClientResponse>,
-  maxAttempts = 2
+  maxAttempts = DefaultRetryAttempts,
+  delay = DefaultRetryDelay
 ): Promise<IHttpClientResponse> {
   return await retry(
     name,
     method,
     (response: IHttpClientResponse) => response.message.statusCode,
     maxAttempts,
-    RetryDelay
+    delay
   )
 }
