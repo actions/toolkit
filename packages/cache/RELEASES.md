@@ -21,3 +21,8 @@
 
 ### 1.0.2
 - Use posix archive format to add support for some tools
+
+### 1.0.3
+- Use http-client v1.0.9
+- Fixes error handling so retries are not attempted on non-retryable errors (409 Conflict, for example)
+- Adds 5 second delay between retry attempts
