@@ -1,9 +1,10 @@
 import * as core from '@actions/core'
-import {HttpCodes} from '@actions/http-client'
+import {HttpCodes, HttpClientError} from '@actions/http-client'
 import {
   IHttpClientResponse,
   ITypedResponse
 } from '@actions/http-client/interfaces'
+import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
@@ -31,32 +32,48 @@ export function isRetryableStatusCode(statusCode?: number): boolean {
   return retryableStatusCodes.includes(statusCode)
 }
 
+async function sleep(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
 export async function retry<T>(
   name: string,
   method: () => Promise<T>,
   getStatusCode: (arg0: T) => number | undefined,
-  maxAttempts = 2
+  maxAttempts = DefaultRetryAttempts,
+  delay = DefaultRetryDelay,
+  onError: ((arg0: Error) => T | undefined) | undefined = undefined
 ): Promise<T> {
-  let response: T | undefined = undefined
-  let statusCode: number | undefined = undefined
-  let isRetryable = false
   let errorMessage = ''
   let attempt = 1
 
   while (attempt <= maxAttempts) {
+    let response: T | undefined = undefined
+    let statusCode: number | undefined = undefined
+    let isRetryable = false
+
     try {
       response = await method()
+    } catch (error) {
+      if (onError) {
+        response = onError(error)
+      }
+
+      isRetryable = true
+      errorMessage = error.message
+    }
+
+    if (response) {
       statusCode = getStatusCode(response)
 
       if (!isServerErrorStatusCode(statusCode)) {
         return response
       }
+    }
 
+    if (statusCode) {
       isRetryable = isRetryableStatusCode(statusCode)
       errorMessage = `Cache service responded with ${statusCode}`
-    } catch (error) {
-      isRetryable = true
-      errorMessage = error.message
     }
 
     core.debug(
@@ -68,6 +85,7 @@ export async function retry<T>(
       break
     }
 
+    await sleep(delay)
     attempt++
   }
 
@@ -77,25 +95,42 @@ export async function retry<T>(
 export async function retryTypedResponse<T>(
   name: string,
   method: () => Promise<ITypedResponse<T>>,
-  maxAttempts = 2
+  maxAttempts = DefaultRetryAttempts,
+  delay = DefaultRetryDelay
 ): Promise<ITypedResponse<T>> {
   return await retry(
     name,
     method,
     (response: ITypedResponse<T>) => response.statusCode,
-    maxAttempts
+    maxAttempts,
+    delay,
+    // If the error object contains the statusCode property, extract it and return
+    // an ITypedResponse<T> so it can be processed by the retry logic.
+    (error: Error) => {
+      if (error instanceof HttpClientError) {
+        return {
+          statusCode: error.statusCode,
+          result: null,
+          headers: {}
+        }
+      } else {
+        return undefined
+      }
+    }
   )
 }
 
 export async function retryHttpClientResponse<T>(
   name: string,
   method: () => Promise<IHttpClientResponse>,
-  maxAttempts = 2
+  maxAttempts = DefaultRetryAttempts,
+  delay = DefaultRetryDelay
 ): Promise<IHttpClientResponse> {
   return await retry(
     name,
     method,
     (response: IHttpClientResponse) => response.message.statusCode,
-    maxAttempts
+    maxAttempts,
+    delay
   )
 }
