@@ -152,7 +152,7 @@ steps:
   - name: Set the value
     id: step_one
     run: |
-        echo 'JSON_RESPONSE<<EOF' >> $GITHUB_ENV
+        echo 'JSON_RESPONSE=<<EOF' >> $GITHUB_ENV
         curl https://httpbin.org/json >> $GITHUB_ENV
         echo 'EOF' >> $GITHUB_ENV
 ```
