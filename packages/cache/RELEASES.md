@@ -26,3 +26,7 @@
 - Use http-client v1.0.9
 - Fixes error handling so retries are not attempted on non-retryable errors (409 Conflict, for example)
 - Adds 5 second delay between retry attempts
+
+### 1.0.4
+- Use @actions/core v1.2.6
+- Fixes uploadChunk to throw an error if any unsuccessful response code is received
