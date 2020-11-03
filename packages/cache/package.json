@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -37,7 +37,7 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.2.4",
+    "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.1",
     "@actions/glob": "^0.1.0",
     "@actions/http-client": "^1.0.9",

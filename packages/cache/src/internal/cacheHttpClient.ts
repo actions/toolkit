@@ -194,7 +194,7 @@ async function uploadChunk(
     'Content-Range': getContentRange(start, end)
   }
 
-  await retryHttpClientResponse(
+  const uploadChunkResponse = await retryHttpClientResponse(
     `uploadChunk (start: ${start}, end: ${end})`,
     async () =>
       httpClient.sendStream(
@@ -204,6 +204,12 @@ async function uploadChunk(
         additionalHeaders
       )
   )
+
+  if (!isSuccessStatusCode(uploadChunkResponse.message.statusCode)) {
+    throw new Error(
+      `Cache service responded with ${uploadChunkResponse.message.statusCode} during upload chunk.`
+    )
+  }
 }
 
 async function uploadFile(
