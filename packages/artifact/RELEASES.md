@@ -41,3 +41,8 @@
 ### 0.4.0
 
 - Add option to specify custom retentions on artifacts
+
+### 0.4.1
+
+- Update to latest @actions/core version
+

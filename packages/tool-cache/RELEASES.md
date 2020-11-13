@@ -1,5 +1,8 @@
 # @actions/tool-cache Releases
 
+### 1.6.1
+- [Update @actions/core version](https://github.com/actions/toolkit/pull/207) 
+
 ### 1.6.0
 - [Add extractXar function to extract XAR files](https://github.com/actions/toolkit/pull/207)
 

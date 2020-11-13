@@ -1,6 +1,6 @@
 {
   "name": "@actions/glob",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "preview": true,
   "description": "Actions glob lib",
   "keywords": [
