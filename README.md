@@ -48,7 +48,7 @@ $ npm install @actions/glob
 
 :pencil2: [@actions/io](packages/io)
 
-Provides disk i/o functions like cp, mv, rmRF, find etc. Read more [here](packages/io)
+Provides disk i/o functions like cp, mv, rmRF, which etc. Read more [here](packages/io)
 
 ```bash
 $ npm install @actions/io
