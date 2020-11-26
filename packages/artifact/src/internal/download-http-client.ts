@@ -263,12 +263,20 @@ export class DownloadHttpClient {
       if (isGzip) {
         const gunzip = zlib.createGunzip()
         response.message
+          .on('error', error => {
+            core.error(
+              `An error occurred while attempting to read the response stream`
+            )
+            reject(error)
+            gunzip.close()
+          })
           .pipe(gunzip)
           .on('error', error => {
             core.error(
-              `An error has been encountered while attempting to decompress a file`
+              `An error occurred while attempting to decompress the response stream`
             )
             reject(error)
+            destinationStream.close()
           })
           .pipe(destinationStream)
           .on('close', () => {
@@ -276,19 +284,26 @@ export class DownloadHttpClient {
           })
           .on('error', error => {
             core.error(
-              `An error has been encountered while decompressing and writing a downloaded file to ${destinationStream.path}`
+              `An error occurred while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
           })
       } else {
         response.message
+          .on('error', error => {
+            core.error(
+              `An error occurred while attempting to read the response stream`
+            )
+            reject(error)
+            destinationStream.close()
+          })
           .pipe(destinationStream)
           .on('close', () => {
             resolve()
           })
           .on('error', error => {
             core.error(
-              `An error has been encountered while writing a downloaded file to ${destinationStream.path}`
+              `An error occurred while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
           })
