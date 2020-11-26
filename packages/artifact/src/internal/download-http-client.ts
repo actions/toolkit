@@ -264,6 +264,12 @@ export class DownloadHttpClient {
         const gunzip = zlib.createGunzip()
         response.message
           .pipe(gunzip)
+          .on('error', error => {
+            core.error(
+              `An error has been encountered while attempting to decompress a file`
+            )
+            reject(error)
+          })
           .pipe(destinationStream)
           .on('close', () => {
             resolve()
