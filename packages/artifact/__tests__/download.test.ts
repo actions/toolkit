@@ -17,6 +17,7 @@ import {gzip} from 'zlib'
 import {promisify} from 'util'
 
 const root = path.join(__dirname, '_temp', 'artifact-download-tests')
+const defaultEncoding = 'utf8'
 
 jest.mock('../src/internal/config-variables')
 jest.mock('@actions/http-client')
@@ -117,10 +118,13 @@ describe('Download Tests', () => {
   })
 
   it('Test downloading an individual artifact with gzip', async () => {
-    const response = 'gzip worked on the first try\n'
+    const fileContents = Buffer.from(
+      'gzip worked on the first try\n',
+      defaultEncoding
+    )
     const targetPath = path.join(root, 'FileA.txt')
 
-    setupDownloadItemResponse(true, 200, response)
+    setupDownloadItemResponse(true, 200, fileContents)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -133,15 +137,17 @@ describe('Download Tests', () => {
       downloadHttpClient.downloadSingleArtifact(items)
     ).resolves.not.toThrow()
 
-    const size = (await fs.stat(targetPath)).size
-    expect(size).toEqual(response.length)
+    await checkDestinationFile(targetPath, fileContents)
   })
 
   it('Test downloading an individual artifact without gzip', async () => {
-    const response = 'plaintext worked on the first try\n'
+    const fileContents = Buffer.from(
+      'plaintext worked on the first try\n',
+      defaultEncoding
+    )
     const targetPath = path.join(root, 'FileB.txt')
 
-    setupDownloadItemResponse(false, 200, response)
+    setupDownloadItemResponse(false, 200, fileContents)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -154,8 +160,7 @@ describe('Download Tests', () => {
       downloadHttpClient.downloadSingleArtifact(items)
     ).resolves.not.toThrow()
 
-    const size = (await fs.stat(targetPath)).size
-    expect(size).toEqual(response.length)
+    await checkDestinationFile(targetPath, fileContents)
   })
 
   it('Test retryable status codes during artifact download', async () => {
@@ -163,10 +168,10 @@ describe('Download Tests', () => {
     // the download should successfully finish
     const retryableStatusCodes = [429, 502, 503, 504]
     for (const statusCode of retryableStatusCodes) {
-      const response = 'try, try again\n'
+      const fileContents = Buffer.from('try, try again\n', defaultEncoding)
       const targetPath = path.join(root, `FileC-${statusCode}.txt`)
 
-      setupDownloadItemResponse(false, statusCode, response)
+      setupDownloadItemResponse(false, statusCode, fileContents)
       const downloadHttpClient = new DownloadHttpClient()
 
       const items: DownloadItem[] = []
@@ -179,8 +184,7 @@ describe('Download Tests', () => {
         downloadHttpClient.downloadSingleArtifact(items)
       ).resolves.not.toThrow()
 
-      const size = (await fs.stat(targetPath)).size
-      expect(size).toEqual(response.length)
+      await checkDestinationFile(targetPath, fileContents)
     }
   })
 
@@ -249,7 +253,7 @@ describe('Download Tests', () => {
   function setupDownloadItemResponse(
     isGzip: boolean,
     firstHttpResponseCode: number,
-    response: string | Buffer
+    fileContents: Buffer
   ): void {
     const spyInstance = jest
       .spyOn(HttpClient.prototype, 'get')
@@ -259,7 +263,7 @@ describe('Download Tests', () => {
             message: getDownloadResponseMessage(
               firstHttpResponseCode,
               isGzip,
-              await constructResponse(isGzip, response)
+              await constructResponse(isGzip, fileContents)
             ),
             readBody: emptyMockReadBody
           }
@@ -283,7 +287,7 @@ describe('Download Tests', () => {
           message: getDownloadResponseMessage(
             200,
             isGzip,
-            await constructResponse(isGzip, response)
+            await constructResponse(isGzip, fileContents)
           ),
           readBody: emptyMockReadBody
         }
@@ -293,12 +297,12 @@ describe('Download Tests', () => {
 
   async function constructResponse(
     isGzip: boolean,
-    plaintext: string | Buffer
+    plaintext: Buffer | string
   ): Promise<Buffer> {
     if (isGzip) {
       return <Buffer>await promisify(gzip)(plaintext)
     } else if (typeof plaintext === 'string') {
-      return Buffer.from(plaintext)
+      return Buffer.from(plaintext, defaultEncoding)
     } else {
       return plaintext
     }
@@ -412,5 +416,15 @@ describe('Download Tests', () => {
         })
       })
     })
+  }
+
+  async function checkDestinationFile(
+    targetPath: string,
+    expectedContents: Buffer
+  ): Promise<void> {
+    const fileContents = await fs.readFile(targetPath)
+
+    expect(fileContents.byteLength).toEqual(expectedContents.byteLength)
+    expect(fileContents.equals(expectedContents)).toBeTruthy()
   }
 })
