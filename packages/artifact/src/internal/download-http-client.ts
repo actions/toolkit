@@ -223,6 +223,7 @@ export class DownloadHttpClient {
     const resetDestinationStream = async (
       fileDownloadPath: string
     ): Promise<void> => {
+      destinationStream.close()
       await rmFile(fileDownloadPath)
       destinationStream = fs.createWriteStream(fileDownloadPath)
     }
