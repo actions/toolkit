@@ -213,6 +213,11 @@ export class DownloadHttpClient {
         !received ||
         process.env['ACTIONS_ARTIFACT_SKIP_DOWNLOAD_VALIDATION']
       ) {
+        if (process.env['ACTIONS_ARTIFACT_SKIP_DOWNLOAD_VALIDATION']) {
+          core.info(
+            'Skipping download validation since environment variable is set'
+          )
+        }
         return true
       }
 
@@ -231,6 +236,9 @@ export class DownloadHttpClient {
       let response: IHttpClientResponse
       try {
         response = await makeDownloadRequest()
+        if (core.isDebug()) {
+          displayHttpDiagnostics(response)
+        }
       } catch (error) {
         // if an error is caught, it is usually indicative of a timeout so retry the download
         core.info('An error occurred while attempting to download a file')

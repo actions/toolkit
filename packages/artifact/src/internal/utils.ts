@@ -305,6 +305,9 @@ export async function createEmptyFilesForArtifact(
 
 export async function getFileSize(filePath: string): Promise<number> {
   const stats = await fs.stat(filePath)
+  debug(
+    `${filePath} size:(${stats.size}) blksize:(${stats.blksize}) blocks:(${stats.blocks})`
+  )
   return stats.size
 }
 
