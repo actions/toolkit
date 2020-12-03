@@ -219,7 +219,9 @@ export class DownloadHttpClient {
       return parseInt(expected) === received
     }
 
-    const resetDestinationStream = async (downloadPath: string) => {
+    const resetDestinationStream = async (
+      downloadPath: string
+    ): Promise<void> => {
       await rmFile(downloadPath)
       destinationStream = fs.createWriteStream(downloadPath)
     }

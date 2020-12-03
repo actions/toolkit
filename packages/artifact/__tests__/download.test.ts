@@ -293,10 +293,10 @@ describe('Download Tests', () => {
   }
 
   function setupThrowWhenReadingStream(): void {
-    const spyInstance = jest
+    jest
       .spyOn(DownloadHttpClient.prototype, 'pipeResponseToFile')
       .mockImplementationOnce(async () => {
-        return new Promise<void>(resolve => {
+        return new Promise<void>(() => {
           throw new Error(
             'simulate GZip reading truncated buffer and throw Z_BUF_ERROR'
           )
