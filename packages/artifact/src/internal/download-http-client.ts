@@ -220,10 +220,10 @@ export class DownloadHttpClient {
     }
 
     const resetDestinationStream = async (
-      downloadPath: string
+      fileDownloadPath: string
     ): Promise<void> => {
-      await rmFile(downloadPath)
-      destinationStream = fs.createWriteStream(downloadPath)
+      await rmFile(fileDownloadPath)
+      destinationStream = fs.createWriteStream(fileDownloadPath)
     }
 
     // keep trying to download a file until a retry limit has been reached
