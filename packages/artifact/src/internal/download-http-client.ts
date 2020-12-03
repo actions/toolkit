@@ -213,11 +213,7 @@ export class DownloadHttpClient {
         !received ||
         process.env['ACTIONS_ARTIFACT_SKIP_DOWNLOAD_VALIDATION']
       ) {
-        if (process.env['ACTIONS_ARTIFACT_SKIP_DOWNLOAD_VALIDATION']) {
-          core.info(
-            'Skipping download validation since environment variable is set'
-          )
-        }
+        core.info('Skipping download validation.')
         return true
       }
 
