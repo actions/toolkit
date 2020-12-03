@@ -124,7 +124,7 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileA.txt')
 
-    setupDownloadItemResponse(true, 200, false, fileContents)
+    setupDownloadItemResponse(true, 200, false, fileContents, false)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -147,7 +147,7 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileB.txt')
 
-    setupDownloadItemResponse(false, 200, false, fileContents)
+    setupDownloadItemResponse(false, 200, false, fileContents, false)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -171,7 +171,7 @@ describe('Download Tests', () => {
       const fileContents = Buffer.from('try, try again\n', defaultEncoding)
       const targetPath = path.join(root, `FileC-${statusCode}.txt`)
 
-      setupDownloadItemResponse(false, statusCode, false, fileContents)
+      setupDownloadItemResponse(false, statusCode, false, fileContents, true)
       const downloadHttpClient = new DownloadHttpClient()
 
       const items: DownloadItem[] = []
@@ -195,7 +195,8 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileD.txt')
 
-    setupDownloadItemResponse(true, 200, true, fileContents)
+    setupDownloadItemResponse(true, 200, true, fileContents, true)
+    setupThrowWhenReadingStream()
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -218,7 +219,7 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileE.txt')
 
-    setupDownloadItemResponse(false, 200, true, fileContents)
+    setupDownloadItemResponse(false, 200, true, fileContents, true)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -291,6 +292,18 @@ describe('Download Tests', () => {
     })
   }
 
+  function setupThrowWhenReadingStream(): void {
+    const spyInstance = jest
+      .spyOn(DownloadHttpClient.prototype, 'pipeResponseToFile')
+      .mockImplementationOnce(async () => {
+        return new Promise<void>(resolve => {
+          throw new Error(
+            'simulate GZip reading truncated buffer and throw Z_BUF_ERROR'
+          )
+        })
+      })
+  }
+
   /**
    * Setups up HTTP GET response for downloading items
    * @param isGzip is the downloaded item gzip encoded
@@ -300,7 +313,8 @@ describe('Download Tests', () => {
     isGzip: boolean,
     firstHttpResponseCode: number,
     truncateFirstResponse: boolean,
-    fileContents: Buffer
+    fileContents: Buffer,
+    retryExpected: boolean
   ): void {
     const spyInstance = jest
       .spyOn(HttpClient.prototype, 'get')
@@ -334,7 +348,7 @@ describe('Download Tests', () => {
       })
 
     // set up a second mock only if we expect a retry. Otherwise this mock will affect other tests.
-    if (firstHttpResponseCode !== 200) {
+    if (retryExpected) {
       spyInstance.mockImplementationOnce(async () => {
         // chained response, if the HTTP GET function gets called again, return a successful response
         const fullResponse = await constructResponse(isGzip, fileContents)

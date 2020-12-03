@@ -303,6 +303,15 @@ export async function createEmptyFilesForArtifact(
   }
 }
 
+export async function getFileSize(filePath: string): Promise<number> {
+  const stats = await fs.stat(filePath)
+  return stats.size
+}
+
+export async function rmFile(filePath: string): Promise<void> {
+  await fs.unlink(filePath)
+}
+
 export function getProperRetention(
   retentionInput: number,
   retentionSetting: string | undefined
