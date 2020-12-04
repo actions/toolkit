@@ -315,16 +315,17 @@ export class DownloadHttpClient {
             core.error(
               `An error occurred while attempting to read the response stream`
             )
-            reject(error)
             gunzip.close()
+            destinationStream.close()
+            reject(error)
           })
           .pipe(gunzip)
           .on('error', error => {
             core.error(
               `An error occurred while attempting to decompress the response stream`
             )
-            reject(error)
             destinationStream.close()
+            reject(error)
           })
           .pipe(destinationStream)
           .on('close', () => {
@@ -342,8 +343,8 @@ export class DownloadHttpClient {
             core.error(
               `An error occurred while attempting to read the response stream`
             )
-            reject(error)
             destinationStream.close()
+            reject(error)
           })
           .pipe(destinationStream)
           .on('close', () => {
