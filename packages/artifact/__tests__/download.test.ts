@@ -196,7 +196,6 @@ describe('Download Tests', () => {
     const targetPath = path.join(root, 'FileD.txt')
 
     setupDownloadItemResponse(true, 200, true, fileContents, true)
-    setupThrowWhenReadingStream()
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -290,18 +289,6 @@ describe('Download Tests', () => {
         })
       })
     })
-  }
-
-  function setupThrowWhenReadingStream(): void {
-    jest
-      .spyOn(DownloadHttpClient.prototype, 'pipeResponseToFile')
-      .mockImplementationOnce(async () => {
-        return new Promise<void>(() => {
-          throw new Error(
-            'simulate GZip reading truncated buffer and throw Z_BUF_ERROR'
-          )
-        })
-      })
   }
 
   /**
