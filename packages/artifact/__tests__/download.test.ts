@@ -124,7 +124,7 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileA.txt')
 
-    setupDownloadItemResponse(true, 200, false, fileContents, false)
+    setupDownloadItemResponse(fileContents, true, 200, false, false)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -147,7 +147,7 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileB.txt')
 
-    setupDownloadItemResponse(false, 200, false, fileContents, false)
+    setupDownloadItemResponse(fileContents, false, 200, false, false)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -171,7 +171,7 @@ describe('Download Tests', () => {
       const fileContents = Buffer.from('try, try again\n', defaultEncoding)
       const targetPath = path.join(root, `FileC-${statusCode}.txt`)
 
-      setupDownloadItemResponse(false, statusCode, false, fileContents, true)
+      setupDownloadItemResponse(fileContents, false, statusCode, false, true)
       const downloadHttpClient = new DownloadHttpClient()
 
       const items: DownloadItem[] = []
@@ -195,7 +195,7 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileD.txt')
 
-    setupDownloadItemResponse(true, 200, true, fileContents, true)
+    setupDownloadItemResponse(fileContents, true, 200, true, true)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -218,7 +218,7 @@ describe('Download Tests', () => {
     )
     const targetPath = path.join(root, 'FileE.txt')
 
-    setupDownloadItemResponse(false, 200, true, fileContents, true)
+    setupDownloadItemResponse(fileContents, false, 200, true, true)
     const downloadHttpClient = new DownloadHttpClient()
 
     const items: DownloadItem[] = []
@@ -297,10 +297,10 @@ describe('Download Tests', () => {
    * @param firstHttpResponseCode the http response code that should be returned
    */
   function setupDownloadItemResponse(
+    fileContents: Buffer,
     isGzip: boolean,
     firstHttpResponseCode: number,
     truncateFirstResponse: boolean,
-    fileContents: Buffer,
     retryExpected: boolean
   ): void {
     const spyInstance = jest
