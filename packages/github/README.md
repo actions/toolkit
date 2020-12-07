@@ -70,7 +70,7 @@ import * as github from '@actions/github'
 import * as Webhooks from '@octokit/webhooks'
 if (github.context.eventName === 'push') {
   const pushPayload = github.context.payload as Webhooks.EventPayloads.WebhookPayloadPush
-  core.info(`The head commit is: ${pushPayload.head}`)
+  core.info(`The head commit is: ${pushPayload.after}`)
 }
 ```
 
