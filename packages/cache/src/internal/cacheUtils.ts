@@ -47,7 +47,9 @@ export async function resolvePaths(patterns: string[]): Promise<string[]> {
   })
 
   for await (const file of globber.globGenerator()) {
-    const relativeFile = path.relative(workspace, file)
+    const relativeFile = path
+      .relative(workspace, file)
+      .replace(new RegExp(`\\${path.sep}`, 'g'), '/')
     core.debug(`Matched: ${relativeFile}`)
     // Paths are made relative so the tar entries are all relative to the root of the workspace.
     paths.push(`${relativeFile}`)
