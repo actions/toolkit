@@ -30,3 +30,6 @@
 ### 1.0.4
 - Use @actions/core v1.2.6
 - Fixes uploadChunk to throw an error if any unsuccessful response code is received
+
+### 1.0.5
+- Fix to ensure Windows cache paths get resolved correctly
