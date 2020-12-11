@@ -46,3 +46,7 @@
 
 - Update to latest @actions/core version
 
+### 0.4.2
+
+- Improved retry-ability when a partial artifact download is encountered
+
