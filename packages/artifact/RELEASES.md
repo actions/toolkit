@@ -31,12 +31,12 @@
 
 ### 0.3.3
 
-- Increase chunk size during upload from 4MB to 8MB
+- Increase chunk size during upload from 4MB to 8MBs
 - Improve user-agent strings during API calls to help internally diagnose issues
 
 ### 0.3.5
 
-- Retry in the event of a 413 response
+- Retry in the event of a 413 responses
 
 ### 0.4.0
 
@@ -45,4 +45,8 @@
 ### 0.4.1
 
 - Update to latest @actions/core version
+
+### 0.4.2
+
+- Improved retry-ability when a partial artifact download is encountered
 
