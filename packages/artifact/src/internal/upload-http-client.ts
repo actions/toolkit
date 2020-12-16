@@ -516,6 +516,9 @@ export class UploadHttpClient {
       async () => client.patch(resourceUrl.toString(), data, headers),
       errorMessages
     )
+    core.debug(
+      `Artifact ${artifactName} has been successfully uploaded, total size in bytes: ${size}`
+    )
   }
 }
 
