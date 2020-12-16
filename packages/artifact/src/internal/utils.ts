@@ -65,7 +65,9 @@ export function isForbiddenStatusCode(statusCode?: number): boolean {
   return statusCode === HttpCodes.Forbidden
 }
 
-export function isRetryableStatusCode(statusCode?: number): boolean {
+export function isRetryableStatusCode(
+  statusCode?: number | undefined
+): boolean {
   if (!statusCode) {
     return false
   }
@@ -334,4 +336,8 @@ export function getProperRetention(
     }
   }
   return retention
+}
+
+export async function sleep(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
