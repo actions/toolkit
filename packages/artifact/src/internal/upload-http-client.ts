@@ -37,7 +37,7 @@ import {HttpManager} from './http-manager'
 import {UploadSpecification} from './upload-specification'
 import {UploadOptions} from './upload-options'
 import {createGZipFileOnDisk, createGZipFileInBuffer} from './upload-gzip'
-import {retryHttpClientResponse} from './requestUtils'
+import {retryHttpClientRequest} from './requestUtils'
 const stat = promisify(fs.stat)
 
 export class UploadHttpClient {
@@ -96,7 +96,7 @@ export class UploadHttpClient {
       ]
     ])
 
-    const response = await retryHttpClientResponse(
+    const response = await retryHttpClientRequest(
       'Create Artifact Container',
       async () => client.post(artifactUrl, data, headers),
       errorMessages
@@ -511,8 +511,8 @@ export class UploadHttpClient {
       ]
     ])
 
-    const response = await retryHttpClientResponse(
-      'Patch Artifact Size',
+    const response = await retryHttpClientRequest(
+      'Finalize Artifact Upload',
       async () => client.patch(resourceUrl.toString(), data, headers),
       errorMessages
     )

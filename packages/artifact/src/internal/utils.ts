@@ -65,9 +65,7 @@ export function isForbiddenStatusCode(statusCode?: number): boolean {
   return statusCode === HttpCodes.Forbidden
 }
 
-export function isRetryableStatusCode(
-  statusCode?: number | undefined
-): boolean {
+export function isRetryableStatusCode(statusCode: number | undefined): boolean {
   if (!statusCode) {
     return false
   }

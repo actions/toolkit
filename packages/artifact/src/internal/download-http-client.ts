@@ -23,7 +23,7 @@ import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
 import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
 import {IncomingHttpHeaders} from 'http'
-import {retryHttpClientResponse} from './requestUtils'
+import {retryHttpClientRequest} from './requestUtils'
 
 export class DownloadHttpClient {
   // http manager is used for concurrent connections when downloading multiple files at once
@@ -48,7 +48,7 @@ export class DownloadHttpClient {
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
     const headers = getDownloadHeaders('application/json')
-    const response = await retryHttpClientResponse('List Artifacts', async () =>
+    const response = await retryHttpClientRequest('List Artifacts', async () =>
       client.get(artifactUrl, headers)
     )
     const body: string = await response.readBody()
@@ -71,7 +71,7 @@ export class DownloadHttpClient {
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
     const headers = getDownloadHeaders('application/json')
-    const response = await retryHttpClientResponse(
+    const response = await retryHttpClientRequest(
       'Get Container Items',
       async () => client.get(resourceUrl.toString(), headers)
     )

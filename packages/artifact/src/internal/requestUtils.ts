@@ -4,11 +4,11 @@ import * as core from '@actions/core'
 
 export async function retry<T>(
   name: string,
-  method: () => Promise<T>,
+  operation: () => Promise<T>,
   getStatusCode: (response: T) => number | undefined,
   errorMessages: Map<number, string>,
   maxAttempts: number,
-  delay: number
+  delayMilliseconds: number
 ): Promise<T> {
   let response: T | undefined = undefined
   let statusCode: number | undefined = undefined
@@ -19,7 +19,7 @@ export async function retry<T>(
 
   while (attempt <= maxAttempts) {
     try {
-      response = await method()
+      response = await operation()
       statusCode = getStatusCode(response)
 
       if (isSuccessStatusCode(statusCode)) {
@@ -47,7 +47,7 @@ export async function retry<T>(
       `${name} - Attempt ${attempt} of ${maxAttempts} failed with error: ${errorMessage}`
     )
 
-    await sleep(delay)
+    await sleep(delayMilliseconds)
     attempt++
   }
 
@@ -57,7 +57,7 @@ export async function retry<T>(
   throw Error(`${name} failed: ${errorMessage}`)
 }
 
-export async function retryHttpClientResponse<T>(
+export async function retryHttpClientRequest<T>(
   name: string,
   method: () => Promise<IHttpClientResponse>,
   errorMessages: Map<number, string> = new Map(),
