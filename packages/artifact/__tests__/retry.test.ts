@@ -1,6 +1,8 @@
 import {retry} from '../src/internal/requestUtils'
 import * as core from '@actions/core'
 
+jest.mock('../src/internal/config-variables')
+
 interface ITestResponse {
   statusCode: number
   result: string | null
@@ -52,8 +54,7 @@ async function testRetryExpectingResult(
     async () => handleResponse(responses.pop()),
     (response: ITestResponse) => response.statusCode,
     new Map(), // extra error message for any particular http codes
-    2, // maxAttempts
-    0 // delay
+    2 // maxAttempts
   )
 
   expect(actualResult.result).toEqual(expectedResult)
@@ -70,8 +71,7 @@ async function testRetryExpectingError(
       async () => handleResponse(responses.pop()),
       (response: ITestResponse) => response.statusCode,
       new Map(), // extra error message for any particular http codes
-      2, // maxAttempts,
-      0 // delay
+      2 // maxAttempts,
     )
   ).rejects.toBeInstanceOf(Error)
 }

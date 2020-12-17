@@ -1,14 +1,19 @@
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
-import {isRetryableStatusCode, isSuccessStatusCode, sleep} from './utils'
+import {
+  isRetryableStatusCode,
+  isSuccessStatusCode,
+  sleep,
+  getExponentialRetryTimeInMilliseconds
+} from './utils'
 import * as core from '@actions/core'
+import {getRetryLimit} from './config-variables'
 
 export async function retry<T>(
   name: string,
   operation: () => Promise<T>,
   getStatusCode: (response: T) => number | undefined,
   errorMessages: Map<number, string>,
-  maxAttempts: number,
-  delayMilliseconds: number
+  maxAttempts: number
 ): Promise<T> {
   let response: T | undefined = undefined
   let statusCode: number | undefined = undefined
@@ -47,7 +52,7 @@ export async function retry<T>(
       `${name} - Attempt ${attempt} of ${maxAttempts} failed with error: ${errorMessage}`
     )
 
-    await sleep(delayMilliseconds)
+    await sleep(getExponentialRetryTimeInMilliseconds(attempt))
     attempt++
   }
 
@@ -61,14 +66,13 @@ export async function retryHttpClientRequest<T>(
   name: string,
   method: () => Promise<IHttpClientResponse>,
   errorMessages: Map<number, string> = new Map(),
-  maxAttempts = 3
+  maxAttempts = getRetryLimit()
 ): Promise<IHttpClientResponse> {
   return await retry(
     name,
     method,
     (response: IHttpClientResponse) => response.message.statusCode,
     errorMessages,
-    maxAttempts,
-    5000
+    maxAttempts
   )
 }
