@@ -511,11 +511,12 @@ export class UploadHttpClient {
       ]
     ])
 
-    await retryHttpClientResponse(
+    const response = await retryHttpClientResponse(
       'Patch Artifact Size',
       async () => client.patch(resourceUrl.toString(), data, headers),
       errorMessages
     )
+    await response.readBody()
     core.debug(
       `Artifact ${artifactName} has been successfully uploaded, total size in bytes: ${size}`
     )
