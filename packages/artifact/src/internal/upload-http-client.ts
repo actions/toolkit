@@ -511,10 +511,12 @@ export class UploadHttpClient {
       ]
     ])
 
+    // TODO retry for all possible response codes, the artifact upload is pretty much complete so it at all costs we should try to finish this
     const response = await retryHttpClientRequest(
-      'Finalize Artifact Upload',
+      'Finalize artifact upload',
       async () => client.patch(resourceUrl.toString(), data, headers),
-      errorMessages
+      errorMessages,
+      5
     )
     await response.readBody()
     core.debug(

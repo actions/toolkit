@@ -363,7 +363,7 @@ describe('Upload Tests', () => {
     expect(
       uploadHttpClient.patchArtifactSize(-2, 'my-artifact')
     ).rejects.toThrow(
-      'Patch Artifact Size failed: Artifact service responded with 400'
+      'Finalize artifact upload failed: Artifact service responded with 400'
     )
   })
 
