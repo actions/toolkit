@@ -45,6 +45,9 @@ export async function retry(
 
     if (!isRetryable) {
       core.info(`${name} - Error is not retryable`)
+      if (response) {
+        displayHttpDiagnostics(response)
+      }
       break
     }
 
