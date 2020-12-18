@@ -44,7 +44,7 @@ async function handleResponse(
   testResponseCode: number | undefined
 ): Promise<IHttpClientResponse> {
   if (!testResponseCode) {
-    fail(
+    throw new Error(
       'Test incorrectly set up. reverse.pop() was called too many times so not enough test response codes were supplied'
     )
   }
