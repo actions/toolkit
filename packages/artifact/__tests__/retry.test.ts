@@ -1,79 +1,55 @@
-import {retry} from '../src/internal/requestUtils'
+import * as http from 'http'
+import * as net from 'net'
 import * as core from '@actions/core'
+import * as configVariables from '../src/internal/config-variables'
+import {retry} from '../src/internal/requestUtils'
+import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpClientResponse} from '@actions/http-client'
 
 jest.mock('../src/internal/config-variables')
 
-interface ITestResponse {
-  statusCode: number
-  result: string | null
-  error: Error | null
+interface ITestResult {
+  responseCode: number
+  errorMessage: string | null
 }
 
-function TestResponse(
-  action: number | Error,
-  result: string | null = null
-): ITestResponse {
-  if (action instanceof Error) {
-    return {
-      statusCode: -1,
-      result,
-      error: action
-    }
+async function testRetry(
+  responseCodes: number[],
+  expectedResult: ITestResult
+): Promise<void> {
+  const reverse = responseCodes.reverse() // Reverse responses since we pop from end
+  if (expectedResult.errorMessage) {
+    // we expect some exception to be thrown
+    expect(
+      retry(
+        'test',
+        async () => handleResponse(reverse.pop()),
+        new Map(), // extra error message for any particular http codes
+        configVariables.getRetryLimit()
+      )
+    ).rejects.toThrow(expectedResult.errorMessage)
   } else {
-    return {
-      statusCode: action,
-      result,
-      error: null
-    }
+    // we expect a correct status code to be returned
+    const actualResult = await retry(
+      'test',
+      async () => handleResponse(reverse.pop()),
+      new Map(), // extra error message for any particular http codes
+      configVariables.getRetryLimit()
+    )
+    expect(actualResult.message.statusCode).toEqual(expectedResult.responseCode)
   }
 }
 
 async function handleResponse(
-  response: ITestResponse | undefined
-): Promise<ITestResponse> {
-  if (!response) {
-    // eslint-disable-next-line no-undef
-    fail('Retry method called too many times')
-  }
-
-  if (response.error) {
-    throw response.error
-  } else {
-    return Promise.resolve(response)
-  }
-}
-
-async function testRetryExpectingResult(
-  responses: ITestResponse[],
-  expectedResult: string | null
-): Promise<void> {
-  responses = responses.reverse() // Reverse responses since we pop from end
-
-  const actualResult = await retry(
-    'test',
-    async () => handleResponse(responses.pop()),
-    (response: ITestResponse) => response.statusCode,
-    new Map(), // extra error message for any particular http codes
-    2 // maxAttempts
-  )
-
-  expect(actualResult.result).toEqual(expectedResult)
-}
-
-async function testRetryExpectingError(
-  responses: ITestResponse[]
-): Promise<void> {
-  responses = responses.reverse() // Reverse responses since we pop from end
-
-  expect(
-    retry(
-      'test',
-      async () => handleResponse(responses.pop()),
-      (response: ITestResponse) => response.statusCode,
-      new Map(), // extra error message for any particular http codes
-      2 // maxAttempts,
+  testResponseCode: number | undefined
+): Promise<IHttpClientResponse> {
+  if (!testResponseCode) {
+    fail(
+      'Test incorrectly set up. reverse.pop() was called too many times so not enough test response codes were supplied'
     )
-  ).rejects.toBeInstanceOf(Error)
+  }
+
+  return setupSingleMockResponse(testResponseCode)
 }
 
 beforeAll(async () => {
@@ -85,32 +61,54 @@ beforeAll(async () => {
   jest.spyOn(core, 'error').mockImplementation(() => {})
 })
 
+/**
+ * Helpers used to setup mocking for the HttpClient
+ */
+async function emptyMockReadBody(): Promise<string> {
+  return new Promise(resolve => {
+    resolve()
+  })
+}
+
+function setupSingleMockResponse(
+  statusCode: number
+): Promise<IHttpClientResponse> {
+  const mockMessage = new http.IncomingMessage(new net.Socket())
+  const mockReadBody = emptyMockReadBody
+  mockMessage.statusCode = statusCode
+  return new Promise<HttpClientResponse>(resolve => {
+    resolve({
+      message: mockMessage,
+      readBody: mockReadBody
+    })
+  })
+}
+
 test('retry works on successful response', async () => {
-  await testRetryExpectingResult([TestResponse(200, 'Ok')], 'Ok')
+  await testRetry([200], {
+    responseCode: 200,
+    errorMessage: null
+  })
 })
 
 test('retry works after retryable status code', async () => {
-  await testRetryExpectingResult(
-    [TestResponse(503), TestResponse(200, 'Ok')],
-    'Ok'
-  )
+  await testRetry([503, 200], {
+    responseCode: 200,
+    errorMessage: null
+  })
 })
 
 test('retry fails after exhausting retries', async () => {
-  await testRetryExpectingError([
-    TestResponse(503),
-    TestResponse(503),
-    TestResponse(200, 'Ok')
-  ])
+  // __mocks__/config-variables caps the max retry count in tests to 2
+  await testRetry([503, 503, 200], {
+    responseCode: 200,
+    errorMessage: 'test failed: Artifact service responded with 503'
+  })
 })
 
 test('retry fails after non-retryable status code', async () => {
-  await testRetryExpectingError([TestResponse(500), TestResponse(200, 'Ok')])
-})
-
-test('retry works after error', async () => {
-  await testRetryExpectingResult(
-    [TestResponse(new Error('Test error')), TestResponse(200, 'Ok')],
-    'Ok'
-  )
+  await testRetry([500, 200], {
+    responseCode: 500,
+    errorMessage: 'test failed: Artifact service responded with 500'
+  })
 })

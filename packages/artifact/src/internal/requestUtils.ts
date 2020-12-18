@@ -3,19 +3,19 @@ import {
   isRetryableStatusCode,
   isSuccessStatusCode,
   sleep,
-  getExponentialRetryTimeInMilliseconds
+  getExponentialRetryTimeInMilliseconds,
+  displayHttpDiagnostics
 } from './utils'
 import * as core from '@actions/core'
 import {getRetryLimit} from './config-variables'
 
-export async function retry<T>(
+export async function retry(
   name: string,
-  operation: () => Promise<T>,
-  getStatusCode: (response: T) => number | undefined,
+  operation: () => Promise<IHttpClientResponse>,
   errorMessages: Map<number, string>,
   maxAttempts: number
-): Promise<T> {
-  let response: T | undefined = undefined
+): Promise<IHttpClientResponse> {
+  let response: IHttpClientResponse | undefined = undefined
   let statusCode: number | undefined = undefined
   let isRetryable = false
   let errorMessage = ''
@@ -25,7 +25,7 @@ export async function retry<T>(
   while (attempt <= maxAttempts) {
     try {
       response = await operation()
-      statusCode = getStatusCode(response)
+      statusCode = response.message.statusCode
 
       if (isSuccessStatusCode(statusCode)) {
         return response
@@ -56,6 +56,10 @@ export async function retry<T>(
     attempt++
   }
 
+  if (response) {
+    displayHttpDiagnostics(response)
+  }
+
   if (extraErrorInformation) {
     throw Error(`${name} failed: ${errorMessage} : ${extraErrorInformation}`)
   }
@@ -68,11 +72,5 @@ export async function retryHttpClientRequest<T>(
   errorMessages: Map<number, string> = new Map(),
   maxAttempts = getRetryLimit()
 ): Promise<IHttpClientResponse> {
-  return await retry(
-    name,
-    method,
-    (response: IHttpClientResponse) => response.message.statusCode,
-    errorMessages,
-    maxAttempts
-  )
+  return await retry(name, method, errorMessages, maxAttempts)
 }
