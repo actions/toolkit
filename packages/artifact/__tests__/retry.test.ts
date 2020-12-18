@@ -70,7 +70,7 @@ async function emptyMockReadBody(): Promise<string> {
   })
 }
 
-function setupSingleMockResponse(
+async function setupSingleMockResponse(
   statusCode: number
 ): Promise<IHttpClientResponse> {
   const mockMessage = new http.IncomingMessage(new net.Socket())
