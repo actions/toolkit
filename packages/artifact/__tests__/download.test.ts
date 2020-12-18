@@ -71,7 +71,7 @@ describe('Download Tests', () => {
     setupFailedResponse()
     const downloadHttpClient = new DownloadHttpClient()
     expect(downloadHttpClient.listArtifacts()).rejects.toThrow(
-      'Unable to list artifacts for the run'
+      'List Artifacts failed: Artifact service responded with 500'
     )
   })
 
@@ -113,7 +113,7 @@ describe('Download Tests', () => {
         configVariables.getRuntimeUrl()
       )
     ).rejects.toThrow(
-      `Unable to get ContainersItems from ${configVariables.getRuntimeUrl()}`
+      `Get Container Items failed: Artifact service responded with 500`
     )
   })
 

@@ -11,7 +11,8 @@ import {
   tryGetRetryAfterValueTimeInMilliseconds,
   displayHttpDiagnostics,
   getFileSize,
-  rmFile
+  rmFile,
+  sleep
 } from './utils'
 import {URL} from 'url'
 import {StatusReporter} from './status-reporter'
@@ -22,6 +23,7 @@ import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
 import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
 import {IncomingHttpHeaders} from 'http'
+import {retryHttpClientRequest} from './requestUtils'
 
 export class DownloadHttpClient {
   // http manager is used for concurrent connections when downloading multiple files at once
@@ -46,16 +48,11 @@ export class DownloadHttpClient {
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
     const headers = getDownloadHeaders('application/json')
-    const response = await client.get(artifactUrl, headers)
-    const body: string = await response.readBody()
-
-    if (isSuccessStatusCode(response.message.statusCode) && body) {
-      return JSON.parse(body)
-    }
-    displayHttpDiagnostics(response)
-    throw new Error(
-      `Unable to list artifacts for the run. Resource Url ${artifactUrl}`
+    const response = await retryHttpClientRequest('List Artifacts', async () =>
+      client.get(artifactUrl, headers)
     )
+    const body: string = await response.readBody()
+    return JSON.parse(body)
   }
 
   /**
@@ -74,14 +71,12 @@ export class DownloadHttpClient {
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.downloadHttpManager.getClient(0)
     const headers = getDownloadHeaders('application/json')
-    const response = await client.get(resourceUrl.toString(), headers)
+    const response = await retryHttpClientRequest(
+      'Get Container Items',
+      async () => client.get(resourceUrl.toString(), headers)
+    )
     const body: string = await response.readBody()
-
-    if (isSuccessStatusCode(response.message.statusCode) && body) {
-      return JSON.parse(body)
-    }
-    displayHttpDiagnostics(response)
-    throw new Error(`Unable to get ContainersItems from ${resourceUrl}`)
+    return JSON.parse(body)
   }
 
   /**
@@ -188,14 +183,14 @@ export class DownloadHttpClient {
           core.info(
             `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the download`
           )
-          await new Promise(resolve => setTimeout(resolve, retryAfterValue))
+          await sleep(retryAfterValue)
         } else {
           // Back off using an exponential value that depends on the retry count
           const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
           core.info(
             `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the download`
           )
-          await new Promise(resolve => setTimeout(resolve, backoffTime))
+          await sleep(backoffTime)
         }
         core.info(
           `Finished backoff for retry #${retryCount}, continuing with download`

@@ -15,11 +15,11 @@ import {
   isRetryableStatusCode,
   isSuccessStatusCode,
   isThrottledStatusCode,
-  isForbiddenStatusCode,
   displayHttpDiagnostics,
   getExponentialRetryTimeInMilliseconds,
   tryGetRetryAfterValueTimeInMilliseconds,
-  getProperRetention
+  getProperRetention,
+  sleep
 } from './utils'
 import {
   getUploadChunkSize,
@@ -31,12 +31,13 @@ import {promisify} from 'util'
 import {URL} from 'url'
 import {performance} from 'perf_hooks'
 import {StatusReporter} from './status-reporter'
-import {HttpClientResponse} from '@actions/http-client/index'
+import {HttpCodes} from '@actions/http-client'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpManager} from './http-manager'
 import {UploadSpecification} from './upload-specification'
 import {UploadOptions} from './upload-options'
 import {createGZipFileOnDisk, createGZipFileInBuffer} from './upload-gzip'
+import {retryHttpClientRequest} from './requestUtils'
 const stat = promisify(fs.stat)
 
 export class UploadHttpClient {
@@ -80,23 +81,28 @@ export class UploadHttpClient {
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
     const headers = getUploadHeaders('application/json', false)
-    const rawResponse = await client.post(artifactUrl, data, headers)
-    const body: string = await rawResponse.readBody()
 
-    if (isSuccessStatusCode(rawResponse.message.statusCode) && body) {
-      return JSON.parse(body)
-    } else if (isForbiddenStatusCode(rawResponse.message.statusCode)) {
-      // if a 403 is returned when trying to create a file container, the customer has exceeded
-      // their storage quota so no new artifact containers can be created
-      throw new Error(
-        `Artifact storage quota has been hit. Unable to upload any new artifacts`
-      )
-    } else {
-      displayHttpDiagnostics(rawResponse)
-      throw new Error(
-        `Unable to create a container for the artifact ${artifactName} at ${artifactUrl}`
-      )
-    }
+    // Extra information to display when a particular HTTP code is returned
+    // If a 403 is returned when trying to create a file container, the customer has exceeded
+    // their storage quota so no new artifact containers can be created
+    const customErrorMessages: Map<number, string> = new Map([
+      [
+        HttpCodes.Forbidden,
+        'Artifact storage quota has been hit. Unable to upload any new artifacts'
+      ],
+      [
+        HttpCodes.BadRequest,
+        `The artifact name ${artifactName} is not valid. Request URL ${artifactUrl}`
+      ]
+    ])
+
+    const response = await retryHttpClientRequest(
+      'Create Artifact Container',
+      async () => client.post(artifactUrl, data, headers),
+      customErrorMessages
+    )
+    const body: string = await response.readBody()
+    return JSON.parse(body)
   }
 
   /**
@@ -417,13 +423,13 @@ export class UploadHttpClient {
         core.info(
           `Backoff due to too many requests, retry #${retryCount}. Waiting for ${retryAfterValue} milliseconds before continuing the upload`
         )
-        await new Promise(resolve => setTimeout(resolve, retryAfterValue))
+        await sleep(retryAfterValue)
       } else {
         const backoffTime = getExponentialRetryTimeInMilliseconds(retryCount)
         core.info(
           `Exponential backoff for retry #${retryCount}. Waiting for ${backoffTime} milliseconds before continuing the upload at offset ${start}`
         )
-        await new Promise(resolve => setTimeout(resolve, backoffTime))
+        await sleep(backoffTime)
       }
       core.info(
         `Finished backoff for retry #${retryCount}, continuing with upload`
@@ -486,7 +492,6 @@ export class UploadHttpClient {
    * Updating the size indicates that we are done uploading all the contents of the artifact
    */
   async patchArtifactSize(size: number, artifactName: string): Promise<void> {
-    const headers = getUploadHeaders('application/json', false)
     const resourceUrl = new URL(getArtifactUrl())
     resourceUrl.searchParams.append('artifactName', artifactName)
 
@@ -496,25 +501,26 @@ export class UploadHttpClient {
 
     // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
     const client = this.uploadHttpManager.getClient(0)
-    const response: HttpClientResponse = await client.patch(
-      resourceUrl.toString(),
-      data,
-      headers
+    const headers = getUploadHeaders('application/json', false)
+
+    // Extra information to display when a particular HTTP code is returned
+    const customErrorMessages: Map<number, string> = new Map([
+      [
+        HttpCodes.NotFound,
+        `An Artifact with the name ${artifactName} was not found`
+      ]
+    ])
+
+    // TODO retry for all possible response codes, the artifact upload is pretty much complete so it at all costs we should try to finish this
+    const response = await retryHttpClientRequest(
+      'Finalize artifact upload',
+      async () => client.patch(resourceUrl.toString(), data, headers),
+      customErrorMessages
     )
-    const body: string = await response.readBody()
-    if (isSuccessStatusCode(response.message.statusCode)) {
-      core.debug(
-        `Artifact ${artifactName} has been successfully uploaded, total size in bytes: ${size}`
-      )
-    } else if (response.message.statusCode === 404) {
-      throw new Error(`An Artifact with the name ${artifactName} was not found`)
-    } else {
-      displayHttpDiagnostics(response)
-      core.info(body)
-      throw new Error(
-        `Unable to finish uploading artifact ${artifactName} to ${resourceUrl}`
-      )
-    }
+    await response.readBody()
+    core.debug(
+      `Artifact ${artifactName} has been successfully uploaded, total size in bytes: ${size}`
+    )
   }
 }
 
