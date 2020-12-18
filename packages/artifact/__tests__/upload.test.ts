@@ -102,7 +102,7 @@ describe('Upload Tests', () => {
       uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
       new Error(
-        `Create Artifact Container failed: Artifact service responded with 400 : The artifact name invalid-artifact-name is not valid. Request URL ${getArtifactUrl()}`
+        `Create Artifact Container failed: The artifact name invalid-artifact-name is not valid. Request URL ${getArtifactUrl()}`
       )
     )
   })
@@ -125,7 +125,7 @@ describe('Upload Tests', () => {
       uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
       new Error(
-        'Create Artifact Container failed: Artifact service responded with 403 : Artifact storage quota has been hit. Unable to upload any new artifacts'
+        'Create Artifact Container failed: Artifact storage quota has been hit. Unable to upload any new artifacts'
       )
     )
   })

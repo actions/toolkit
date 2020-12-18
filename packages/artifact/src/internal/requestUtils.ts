@@ -12,14 +12,14 @@ import {getRetryLimit} from './config-variables'
 export async function retry(
   name: string,
   operation: () => Promise<IHttpClientResponse>,
-  errorMessages: Map<number, string>,
+  customErrorMessages: Map<number, string>,
   maxAttempts: number
 ): Promise<IHttpClientResponse> {
   let response: IHttpClientResponse | undefined = undefined
   let statusCode: number | undefined = undefined
   let isRetryable = false
   let errorMessage = ''
-  let extraErrorInformation: string | undefined = undefined
+  let customErrorInformation: string | undefined = undefined
   let attempt = 1
 
   while (attempt <= maxAttempts) {
@@ -33,7 +33,7 @@ export async function retry(
 
       // Extra error information that we want to display if a particular response code is hit
       if (statusCode) {
-        extraErrorInformation = errorMessages.get(statusCode)
+        customErrorInformation = customErrorMessages.get(statusCode)
       }
 
       isRetryable = isRetryableStatusCode(statusCode)
@@ -60,8 +60,8 @@ export async function retry(
     displayHttpDiagnostics(response)
   }
 
-  if (extraErrorInformation) {
-    throw Error(`${name} failed: ${errorMessage} : ${extraErrorInformation}`)
+  if (customErrorInformation) {
+    throw Error(`${name} failed: ${customErrorInformation}`)
   }
   throw Error(`${name} failed: ${errorMessage}`)
 }
@@ -69,8 +69,8 @@ export async function retry(
 export async function retryHttpClientRequest<T>(
   name: string,
   method: () => Promise<IHttpClientResponse>,
-  errorMessages: Map<number, string> = new Map(),
+  customErrorMessages: Map<number, string> = new Map(),
   maxAttempts = getRetryLimit()
 ): Promise<IHttpClientResponse> {
-  return await retry(name, method, errorMessages, maxAttempts)
+  return await retry(name, method, customErrorMessages, maxAttempts)
 }

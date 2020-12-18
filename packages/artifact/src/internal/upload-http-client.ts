@@ -85,7 +85,7 @@ export class UploadHttpClient {
     // Extra information to display when a particular HTTP code is returned
     // If a 403 is returned when trying to create a file container, the customer has exceeded
     // their storage quota so no new artifact containers can be created
-    const errorMessages: Map<number, string> = new Map([
+    const customErrorMessages: Map<number, string> = new Map([
       [
         HttpCodes.Forbidden,
         'Artifact storage quota has been hit. Unable to upload any new artifacts'
@@ -99,7 +99,7 @@ export class UploadHttpClient {
     const response = await retryHttpClientRequest(
       'Create Artifact Container',
       async () => client.post(artifactUrl, data, headers),
-      errorMessages
+      customErrorMessages
     )
     const body: string = await response.readBody()
     return JSON.parse(body)
@@ -504,7 +504,7 @@ export class UploadHttpClient {
     const headers = getUploadHeaders('application/json', false)
 
     // Extra information to display when a particular HTTP code is returned
-    const errorMessages: Map<number, string> = new Map([
+    const customErrorMessages: Map<number, string> = new Map([
       [
         HttpCodes.NotFound,
         `An Artifact with the name ${artifactName} was not found`
@@ -515,8 +515,7 @@ export class UploadHttpClient {
     const response = await retryHttpClientRequest(
       'Finalize artifact upload',
       async () => client.patch(resourceUrl.toString(), data, headers),
-      errorMessages,
-      5
+      customErrorMessages
     )
     await response.readBody()
     core.debug(
