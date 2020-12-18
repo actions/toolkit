@@ -50,3 +50,7 @@
 
 - Improved retry-ability when a partial artifact download is encountered
 
+### 0.5.0
+
+- Improved retry-ability for all http calls during artifact upload and download if an error is encountered
+
