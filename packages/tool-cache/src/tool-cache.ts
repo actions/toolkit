@@ -94,7 +94,7 @@ async function downloadToolAttempt(
   if (auth) {
     core.debug('set auth')
     headers = {
-      authorization: auth
+      Authorization: auth
     }
   }
 
