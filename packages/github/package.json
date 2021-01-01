@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@octokit/graphql": "^2.0.1",
-    "@octokit/rest": "^16.15.0"
+    "@octokit/rest": "^16.43.2"
   },
   "devDependencies": {
     "jest": "^24.7.1"
