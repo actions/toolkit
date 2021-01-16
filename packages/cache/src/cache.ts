@@ -2,6 +2,8 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
+import {CompressionMethod} from './internal/constants'
+import {ArtifactCacheEntry} from './internal/contracts'
 import {createTar, extractTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
 
@@ -44,20 +46,20 @@ function checkKey(key: string): void {
 }
 
 /**
- * Restores cache from keys
+ * Get the cache entry from keys
  *
  * @param paths a list of file paths to restore from the cache
  * @param primaryKey an explicit key for restoring the cache
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
- * @param downloadOptions cache download options
- * @returns string returns the key for the cache hit, otherwise returns undefined
+ * @param compressionMethod cache compression method
+ * @returns string returns the cache entry for the cache hit, otherwise returns null
  */
-export async function restoreCache(
+export async function getCacheEntry(
   paths: string[],
   primaryKey: string,
   restoreKeys?: string[],
-  options?: DownloadOptions
-): Promise<string | undefined> {
+  compressionMethod?: CompressionMethod
+): Promise<ArtifactCacheEntry | null> {
   checkPaths(paths)
 
   restoreKeys = restoreKeys || []
@@ -75,12 +77,36 @@ export async function restoreCache(
     checkKey(key)
   }
 
+  // path are needed to compute version
+  return await cacheHttpClient.getCacheEntry(keys, paths, {
+    compressionMethod: compressionMethod ?? (await utils.getCompressionMethod())
+  })
+}
+
+/**
+ * Restores cache from keys
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
+ * @param downloadOptions cache download options
+ * @returns string returns the key for the cache hit, otherwise returns undefined
+ */
+export async function restoreCache(
+  paths: string[],
+  primaryKey: string,
+  restoreKeys?: string[],
+  options?: DownloadOptions
+): Promise<string | undefined> {
   const compressionMethod = await utils.getCompressionMethod()
 
-  // path are needed to compute version
-  const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+  const cacheEntry = await getCacheEntry(
+    paths,
+    primaryKey,
+    restoreKeys,
     compressionMethod
-  })
+  )
+
   if (!cacheEntry?.archiveLocation) {
     // Cache not found
     return undefined
