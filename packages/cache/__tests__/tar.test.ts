@@ -186,3 +186,75 @@ test('gzip create tar', async () => {
     }
   )
 })
+
+test('zstd list tar', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  const archivePath = IS_WINDOWS
+    ? `${process.env['windir']}\\fakepath\\cache.tar`
+    : 'cache.tar'
+  const tarPath = 'tar'
+
+  await tar.listTar(archivePath, CompressionMethod.Zstd)
+
+  expect(execMock).toHaveBeenCalledTimes(1)
+  expect(execMock).toHaveBeenCalledWith(
+    `"${tarPath}"`,
+    [
+      '--use-compress-program',
+      'zstd -d --long=30',
+      '-tf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P'
+    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    {cwd: undefined}
+  )
+})
+
+test('zstdWithoutLong list tar', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  const archivePath = IS_WINDOWS
+    ? `${process.env['windir']}\\fakepath\\cache.tar`
+    : 'cache.tar'
+  const tarPath = 'tar'
+
+  await tar.listTar(archivePath, CompressionMethod.ZstdWithoutLong)
+
+  expect(execMock).toHaveBeenCalledTimes(1)
+  expect(execMock).toHaveBeenCalledWith(
+    `"${tarPath}"`,
+    [
+      '--use-compress-program',
+      'zstd -d',
+      '-tf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P'
+    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    {cwd: undefined}
+  )
+})
+
+test('gzip list tar', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+  const archivePath = IS_WINDOWS
+    ? `${process.env['windir']}\\fakepath\\cache.tar`
+    : 'cache.tar'
+
+  await tar.listTar(archivePath, CompressionMethod.Gzip)
+
+  const tarPath = IS_WINDOWS
+    ? `${process.env['windir']}\\System32\\tar.exe`
+    : 'tar'
+  expect(execMock).toHaveBeenCalledTimes(1)
+  expect(execMock).toHaveBeenCalledWith(
+    `"${tarPath}"`,
+    [
+      '-z',
+      '-tf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P'
+    ],
+    {cwd: undefined}
+  )
+})

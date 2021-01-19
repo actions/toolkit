@@ -301,6 +301,10 @@ export async function saveCache(
   // Commit Cache
   core.debug('Commiting cache')
   const cacheSize = utils.getArchiveFileSizeIsBytes(archivePath)
+  core.info(
+    `Cache Size: ~${Math.round(cacheSize / (1024 * 1024))} MB (${cacheSize} B)`
+  )
+
   const commitCacheResponse = await commitCache(httpClient, cacheId, cacheSize)
   if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
     throw new Error(

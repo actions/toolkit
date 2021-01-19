@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
-import {createTar, extractTar} from './internal/tar'
+import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
 
 export class ValidationError extends Error {
@@ -100,6 +100,10 @@ export async function restoreCache(
       options
     )
 
+    if (core.isDebug()) {
+      await listTar(archivePath, compressionMethod)
+    }
+
     const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
     core.info(
       `Cache Size: ~${Math.round(
@@ -108,6 +112,7 @@ export async function restoreCache(
     )
 
     await extractTar(archivePath, compressionMethod)
+    core.info('Cache restored successfully')
   } finally {
     // Try to delete the archive to save space
     try {
@@ -162,6 +167,9 @@ export async function saveCache(
   core.debug(`Archive Path: ${archivePath}`)
 
   await createTar(archiveFolder, cachePaths, compressionMethod)
+  if (core.isDebug()) {
+    await listTar(archivePath, compressionMethod)
+  }
 
   const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
   const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
