@@ -38,10 +38,10 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/http-client": "^1.0.8",
-    "@octokit/core": "^3.1.2",
-    "@octokit/plugin-paginate-rest": "^2.3.0",
-    "@octokit/plugin-rest-endpoint-methods": "^4.1.2"
+    "@actions/http-client": "^1.0.9",
+    "@octokit/core": "^3.2.4",
+    "@octokit/plugin-paginate-rest": "^2.8.0",
+    "@octokit/plugin-rest-endpoint-methods": "^4.8.0"
   },
   "devDependencies": {
     "jest": "^25.1.0",
