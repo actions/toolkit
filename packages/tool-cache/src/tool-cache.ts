@@ -381,7 +381,7 @@ export async function cacheDir(
   version: string,
   arch?: string
 ): Promise<string> {
-  version = semver.clean(version) || version
+  version = semver.clean(version, {loose: true}) || version
   arch = arch || os.arch()
   core.debug(`Caching tool ${tool} ${version} ${arch}`)
 
@@ -422,7 +422,7 @@ export async function cacheFile(
   version: string,
   arch?: string
 ): Promise<string> {
-  version = semver.clean(version) || version
+  version = semver.clean(version, {loose: true}) || version
   arch = arch || os.arch()
   core.debug(`Caching tool ${tool} ${version} ${arch}`)
 
@@ -478,7 +478,7 @@ export function find(
   // check for the explicit version in the cache
   let toolPath = ''
   if (versionSpec) {
-    versionSpec = semver.clean(versionSpec) || ''
+    versionSpec = semver.clean(versionSpec, {loose: true}) || ''
     const cachePath = path.join(
       _getCacheDirectory(),
       toolName,
@@ -626,7 +626,7 @@ async function _createToolPath(
   const folderPath = path.join(
     _getCacheDirectory(),
     tool,
-    semver.clean(version) || version,
+    semver.clean(version, {loose: true}) || version,
     arch || ''
   )
   core.debug(`destination ${folderPath}`)
@@ -641,7 +641,7 @@ function _completeToolPath(tool: string, version: string, arch?: string): void {
   const folderPath = path.join(
     _getCacheDirectory(),
     tool,
-    semver.clean(version) || version,
+    semver.clean(version, {loose: true}) || version,
     arch || ''
   )
   const markerPath = `${folderPath}.complete`
@@ -650,7 +650,7 @@ function _completeToolPath(tool: string, version: string, arch?: string): void {
 }
 
 function _isExplicitVersion(versionSpec: string): boolean {
-  const c = semver.clean(versionSpec) || ''
+  const c = semver.clean(versionSpec, {loose: true}) || ''
   core.debug(`isExplicit: ${c}`)
 
   const valid = semver.valid(c) != null
