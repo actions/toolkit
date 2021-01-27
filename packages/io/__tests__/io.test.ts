@@ -6,6 +6,10 @@ import * as io from '../src/io'
 import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('copies file with no flags', async () => {
     const root = path.join(getTestTemp(), 'cp_with_no_flags')
     const sourceFile = path.join(root, 'cp_source')
@@ -166,6 +170,10 @@ describe('cp', () => {
 })
 
 describe('mv', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('moves file with no flags', async () => {
     const root = path.join(getTestTemp(), ' mv_with_no_flags')
     const sourceFile = path.join(root, ' mv_source')
@@ -264,6 +272,10 @@ describe('mv', () => {
 })
 
 describe('rmRF', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('removes single folder with rmRF', async () => {
     const testPath = path.join(getTestTemp(), 'testFolder')
 
@@ -841,6 +853,10 @@ describe('mkdirP', () => {
 })
 
 describe('which', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('which() finds file name', async () => {
     // create a executable file
     const testPath = path.join(getTestTemp(), 'which-finds-file-name')
@@ -1371,6 +1387,53 @@ describe('which', () => {
       }
     })
   }
+})
+
+describe('findInPath', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
+  it('findInPath() not found', async () => {
+    expect(await io.findInPath('findInPath-test-no-such-file')).toEqual([])
+  })
+
+  it('findInPath() finds file names', async () => {
+    // create executable files
+    let fileName = 'FindInPath-Test-File'
+    if (process.platform === 'win32') {
+      fileName += '.exe'
+    }
+
+    const testPaths = ['1', '2', '3'].map(count =>
+      path.join(getTestTemp(), `findInPath-finds-file-names-${count}`)
+    )
+    for (const testPath of testPaths) {
+      await io.mkdirP(testPath)
+    }
+
+    const filePaths = testPaths.map(testPath => path.join(testPath, fileName))
+    for (const filePath of filePaths) {
+      await fs.writeFile(filePath, '')
+      if (process.platform !== 'win32') {
+        chmod(filePath, '+x')
+      }
+    }
+
+    const originalPath = process.env['PATH']
+    try {
+      // update the PATH
+      for (const testPath of testPaths) {
+        process.env[
+          'PATH'
+        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+      }
+      // exact file names
+      expect(await io.findInPath(fileName)).toEqual(filePaths)
+    } finally {
+      process.env['PATH'] = originalPath
+    }
+  })
 })
 
 async function findsExecutableWithScopedPermissions(

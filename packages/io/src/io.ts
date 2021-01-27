@@ -192,69 +192,85 @@ export async function which(tool: string, check?: boolean): Promise<string> {
         )
       }
     }
+
+    return result
   }
 
-  try {
-    // build the list of extensions to try
-    const extensions: string[] = []
-    if (ioUtil.IS_WINDOWS && process.env.PATHEXT) {
-      for (const extension of process.env.PATHEXT.split(path.delimiter)) {
-        if (extension) {
-          extensions.push(extension)
-        }
-      }
-    }
+  const matches: string[] = await findInPath(tool)
 
-    // if it's rooted, return it if exists. otherwise return empty.
-    if (ioUtil.isRooted(tool)) {
-      const filePath: string = await ioUtil.tryGetExecutablePath(
-        tool,
-        extensions
-      )
-
-      if (filePath) {
-        return filePath
-      }
-
-      return ''
-    }
-
-    // if any path separators, return empty
-    if (tool.includes('/') || (ioUtil.IS_WINDOWS && tool.includes('\\'))) {
-      return ''
-    }
-
-    // build the list of directories
-    //
-    // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
-    // it feels like we should not do this. Checking the current directory seems like more of a use
-    // case of a shell, and the which() function exposed by the toolkit should strive for consistency
-    // across platforms.
-    const directories: string[] = []
-
-    if (process.env.PATH) {
-      for (const p of process.env.PATH.split(path.delimiter)) {
-        if (p) {
-          directories.push(p)
-        }
-      }
-    }
-
-    // return the first match
-    for (const directory of directories) {
-      const filePath = await ioUtil.tryGetExecutablePath(
-        directory + path.sep + tool,
-        extensions
-      )
-      if (filePath) {
-        return filePath
-      }
-    }
-
-    return ''
-  } catch (err) {
-    throw new Error(`which failed with message ${err.message}`)
+  if (matches && matches.length > 0) {
+    return matches[0]
   }
+
+  return ''
+}
+
+/**
+ * Returns a list of all occurrences of the given tool on the system path.
+ *
+ * @returns   Promise<string[]>  the paths of the tool
+ */
+export async function findInPath(tool: string): Promise<string[]> {
+  if (!tool) {
+    throw new Error("parameter 'tool' is required")
+  }
+
+  // build the list of extensions to try
+  const extensions: string[] = []
+  if (ioUtil.IS_WINDOWS && process.env['PATHEXT']) {
+    for (const extension of process.env['PATHEXT'].split(path.delimiter)) {
+      if (extension) {
+        extensions.push(extension)
+      }
+    }
+  }
+
+  // if it's rooted, return it if exists. otherwise return empty.
+  if (ioUtil.isRooted(tool)) {
+    const filePath: string = await ioUtil.tryGetExecutablePath(tool, extensions)
+
+    if (filePath) {
+      return [filePath]
+    }
+
+    return []
+  }
+
+  // if any path separators, return empty
+  if (tool.includes(path.sep)) {
+    return []
+  }
+
+  // build the list of directories
+  //
+  // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
+  // it feels like we should not do this. Checking the current directory seems like more of a use
+  // case of a shell, and the which() function exposed by the toolkit should strive for consistency
+  // across platforms.
+  const directories: string[] = []
+
+  if (process.env.PATH) {
+    for (const p of process.env.PATH.split(path.delimiter)) {
+      if (p) {
+        directories.push(p)
+      }
+    }
+  }
+
+  // find all matches
+  const matches: string[] = []
+
+  for (const directory of directories) {
+    const filePath = await ioUtil.tryGetExecutablePath(
+      path.join(directory, tool),
+      extensions
+    )
+    if (filePath) {
+      matches.push(filePath)
+    }
+  }
+
+  return matches
 }
 
 function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
