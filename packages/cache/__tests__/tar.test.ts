@@ -73,7 +73,7 @@ test('gzip extract tar', async () => {
   expect(mkdirMock).toHaveBeenCalledWith(workspace)
   const tarPath = IS_WINDOWS
     ? `${process.env['windir']}\\System32\\tar.exe`
-    : defaultTarPath'
+    : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
