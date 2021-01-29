@@ -133,7 +133,7 @@ test('zstd create tar', async () => {
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${tarPath}"`,
+    `"${defaultTarPath}"`,
     [
       '--posix',
       '--use-compress-program',
