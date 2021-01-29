@@ -11,6 +11,7 @@ jest.mock('@actions/exec')
 jest.mock('@actions/io')
 
 const IS_WINDOWS = process.platform === 'win32'
+const IS_MACOS = process.platform === 'darwin'
 
 function getTempDir(): string {
   return path.join(__dirname, '_temp', 'tar')
@@ -38,7 +39,7 @@ test('zstd extract tar', async () => {
     ? `${process.env['windir']}\\fakepath\\cache.tar`
     : 'cache.tar'
   const workspace = process.env['GITHUB_WORKSPACE']
-  const tarPath = 'tar'
+  const tarPath = IS_MACOS ? 'gtar' : 'tar'
 
   await tar.extractTar(archivePath, CompressionMethod.Zstd)
 
