@@ -30,7 +30,8 @@ async function getTarPath(
       }
       break
     }
-    default: break
+    default:
+      break
   }
   return await io.which('tar', true)
 }
