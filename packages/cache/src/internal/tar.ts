@@ -10,17 +10,28 @@ async function getTarPath(
   compressionMethod: CompressionMethod
 ): Promise<string> {
   const IS_WINDOWS = process.platform === 'win32'
-  if (IS_WINDOWS) {
-    const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-    if (compressionMethod !== CompressionMethod.Gzip) {
-      // We only use zstandard compression on windows when gnu tar is installed due to
-      // a bug with compressing large files with bsdtar + zstd
-      args.push('--force-local')
-    } else if (existsSync(systemTar)) {
-      return systemTar
-    } else if (await utils.isGnuTarInstalled()) {
-      args.push('--force-local')
+  switch (process.platform) {
+    case 'win32': {
+      const systemTar = `${process.env['windir']}\\System32\\tar.exe`
+      if (compressionMethod !== CompressionMethod.Gzip) {
+        // We only use zstandard compression on windows when gnu tar is installed due to
+        // a bug with compressing large files with bsdtar + zstd
+        args.push('--force-local')
+      } else if (existsSync(systemTar)) {
+        return systemTar
+      } else if (await utils.isGnuTarInstalled()) {
+        args.push('--force-local')
+      }
+      break
     }
+    case 'darwin': {
+      const gnuTar = await io.which('gtar', false)
+      if (gnuTar) {
+        return gnuTar
+      }
+      break
+    }
+    default: break
   }
   return await io.which('tar', true)
 }
