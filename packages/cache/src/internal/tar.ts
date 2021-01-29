@@ -9,7 +9,6 @@ async function getTarPath(
   args: string[],
   compressionMethod: CompressionMethod
 ): Promise<string> {
-  const IS_WINDOWS = process.platform === 'win32'
   switch (process.platform) {
     case 'win32': {
       const systemTar = `${process.env['windir']}\\System32\\tar.exe`
