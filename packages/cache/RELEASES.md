@@ -33,3 +33,7 @@
 
 ### 1.0.5
 - Fix to ensure Windows cache paths get resolved correctly
+
+### 1.0.6
+- Make caching more verbose [#650](https://github.com/actions/toolkit/pull/650)
+- Use GNU tar on macOS if available [#701](https://github.com/actions/toolkit/pull/701)
