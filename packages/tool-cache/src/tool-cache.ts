@@ -269,6 +269,9 @@ export async function extractTar(
   if (isGnuTar) {
     // Suppress warnings when using GNU tar to extract archives created by BSD tar
     args.push('--warning=no-unknown-keyword')
+
+    // Make sure any existing files are overwritten
+    args.push('--overwrite')
   }
 
   args.push('-C', destArg, '-f', fileArg)
