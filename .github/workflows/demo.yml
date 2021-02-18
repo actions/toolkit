@@ -15,7 +15,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Setup repo
+      - name: setup repo
         uses: actions/checkout@v2
 
       - name: npm install
@@ -27,9 +27,19 @@ jobs:
       - name: build
         run: npm run build
         
-      - name: Run tests
+      - name: test
         run: npm run test
         
+      - name: pack
+        run: npm pack
+        working-directory: packages/${{ github.event.inputs.package }}
+        
+      - name: upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.inputs.package }}
+          path: packages/${{ github.event.inputs.package }}/*.tgz
+
       - name: echo inputs
         run: echo ${{ github.event.inputs.package }} ${{ github.event.inputs.version }}
         
@@ -40,4 +50,12 @@ jobs:
     steps:
       - name: Testing
         run: echo 'this is where we publish'
+        
+      - name: download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ github.event.inputs.package }}
+          
+      - run: |
+          find .
         
