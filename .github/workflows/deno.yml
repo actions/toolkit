@@ -1,0 +1,35 @@
+name: Publish NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        required: true
+        description: 'core, artifact, cache, exec, github, glob, io, tool-cache'
+      version:
+        required: true
+        description: 'the version of the package to publish'
+ 
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+
+      - name: npm install
+        run: npm install
+        
+      - name: bootstrap
+        run: npm run bootstrap
+        
+      - name: build
+        run: npm run build
+        
+      - name: Run tests
+        run: npm run test
+        
+      - name: echo inputs
+        run: echo ${{ github.event.inputs.package }} ${{ github.event.inputs.version }}
+        
