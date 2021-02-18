@@ -6,9 +6,6 @@ on:
       package:
         required: true
         description: 'core, artifact, cache, exec, github, glob, io, tool-cache'
-      version:
-        required: true
-        description: 'the version of the package to publish'
  
 jobs:
   test:
@@ -18,6 +15,9 @@ jobs:
       - name: setup repo
         uses: actions/checkout@v2
 
+      - name: verify package exists
+        run: ls packages/${{ github.event.inputs.package }}
+        
       - name: npm install
         run: npm install
         
@@ -29,7 +29,7 @@ jobs:
         
       - name: test
         run: npm run test
-        
+
       - name: pack
         run: npm pack
         working-directory: packages/${{ github.event.inputs.package }}
@@ -39,23 +39,34 @@ jobs:
         with:
           name: ${{ github.event.inputs.package }}
           path: packages/${{ github.event.inputs.package }}/*.tgz
-
-      - name: echo inputs
-        run: echo ${{ github.event.inputs.package }} ${{ github.event.inputs.version }}
         
   publish:
     runs-on: macos-latest
     needs: test
     environment: npm-publish
     steps:
-      - name: Testing
-        run: echo 'this is where we publish'
         
       - name: download artifact
         uses: actions/download-artifact@v2
         with:
           name: ${{ github.event.inputs.package }}
-          
-      - run: |
-          find .
+      
+      - name: publish
+        run: npm publish ${{ github.event.inputs.package }} --dry-run
+        env: 
+          NPM_TOKEN: ${{ secrets.TOKEN }}
+      
+      - name: notify slack on failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
+        env: 
+          SLACK_WEBHOOK: ${{ secrets.SLACK }}
+        
+      - name: notify slack on success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
+        env: 
+          SLACK_WEBHOOK: ${{ secrets.SLACK }}
         
