@@ -33,3 +33,11 @@ jobs:
       - name: echo inputs
         run: echo ${{ github.event.inputs.package }} ${{ github.event.inputs.version }}
         
+  publish:
+    runs-on: macos-latest
+    needs: test
+    environment: npm-publish
+    steps:
+      - name: Testing
+        run: echo 'this is where we publish'
+        
