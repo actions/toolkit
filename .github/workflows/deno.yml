@@ -52,7 +52,7 @@ jobs:
           name: ${{ github.event.inputs.package }}
       
       - name: publish
-        run: npm publish ${{ github.event.inputs.package }} --dry-run
+        run: npm publish *.tgz --dry-run
         env: 
           NPM_TOKEN: ${{ secrets.TOKEN }}
       
