@@ -17,13 +17,13 @@ Binding to a major version is the latest of that major version ( e.g. `v1` == "1
 
 Major versions should guarantee compatibility.  A major version can add net new capabilities but should not break existing input compatibility or break existing workflows. 
 
-Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `master` branch has the latest code and is unstable to bind to since changes get committed to master and released to the market place by creating a tag.  In addition, a new major version carrying breaking changes will get implemented in master after branching off the previous major version.
+Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `main` branch has the latest code and is unstable to bind to since changes get committed to `main` and released to the market place by creating a tag.  In addition, a new major version carrying breaking changes will get implemented in `main` after branching off the previous major version.
 
-> Warning: do not reference `master` since that is the latest code and can be carrying breaking changes of the next major version.
+> Warning: do not reference `main` since that is the latest code and can be carrying breaking changes of the next major version.
 
 ```yaml
 steps:
-    - uses: actions/javascript-action@master  # do not do this
+    - uses: actions/javascript-action@main  # do not do this
 ```
 
 Binding to the immutable full sha1 may offer more reliability.  However, note that the hosted images toolsets (e.g. ubuntu-latest) move forward and if there is a tool breaking issue, actions may react with a patch to a major version to compensate so binding to a specific SHA may prevent you from getting fixes.
