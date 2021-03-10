@@ -255,16 +255,8 @@ export async function extractTar(
     args.push('-v')
   }
 
-  let destArg = dest
-  let fileArg = file
-  if (IS_WINDOWS && isGnuTar) {
-    args.push('--force-local')
-    destArg = dest.replace(/\\/g, '/')
-
-    // Technically only the dest needs to have `/` but for aesthetic consistency
-    // convert slashes in the file arg too.
-    fileArg = file.replace(/\\/g, '/')
-  }
+  const destArg = path.normalize(dest)
+  const fileArg = path.normalize(file)
 
   if (isGnuTar) {
     // Suppress warnings when using GNU tar to extract archives created by BSD tar

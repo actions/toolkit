@@ -41,18 +41,16 @@ export function getArchiveFileSizeIsBytes(filePath: string): number {
 
 export async function resolvePaths(patterns: string[]): Promise<string[]> {
   const paths: string[] = []
-  const workspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
   const globber = await glob.create(patterns.join('\n'), {
     implicitDescendants: false
   })
 
   for await (const file of globber.globGenerator()) {
-    const relativeFile = path
-      .relative(workspace, file)
-      .replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+    const cwd = process.cwd()
+    const relativeFile = path.normalize(path.relative(cwd, file))
     core.debug(`Matched: ${relativeFile}`)
     // Paths are made relative so the tar entries are all relative to the root of the workspace.
-    paths.push(`${relativeFile}`)
+    paths.push(relativeFile)
   }
 
   return paths
