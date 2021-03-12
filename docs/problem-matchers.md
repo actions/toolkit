@@ -2,6 +2,16 @@
 
 Problem Matchers are a way to scan the output of actions for a specified regex pattern and surface that information prominently in the UI. Both [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created when a match is detected.
 
+## Limitations
+
+Currently, GitHub Actions limit the annotation count in a workflow run.
+
+- 10 warning annotations and 10 error annotations per step
+- 50 annotations per job (sum of annotations from all the steps)
+- 50 annotations per run (separate from the job annotations, these annotations aren’t created by users
+
+If your workflow may exceed these annotation counts, consider filtering of the log messages which the Problem Matcher is exposed to (e.g. by PR touched files, lines, or other).
+
 ## Single Line Matchers
 
 Let's consider the ESLint compact output:
