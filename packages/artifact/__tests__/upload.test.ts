@@ -2,6 +2,10 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
+import {mocked} from 'ts-jest/utils'
+import {exec, execSync} from 'child_process'
+import {gunzipSync} from 'zlib'
+import {promisify} from 'util'
 import {UploadHttpClient} from '../src/internal/upload-http-client'
 import * as core from '@actions/core'
 import {promises as fs} from 'fs'
@@ -173,6 +177,52 @@ describe('Upload Tests', () => {
     expect(uploadResult.failedItems.length).toEqual(0)
     expect(uploadResult.uploadSize).toEqual(expectedTotalSize)
   })
+
+  function hasMkfifo(): boolean {
+    try {
+      // make sure we drain the stdout
+      return execSync('which mkfifo').toString().length > 0
+    } catch (e) {
+      return false
+    }
+  }
+  const withMkfifoIt = hasMkfifo() ? it : it.skip
+  withMkfifoIt(
+    'Upload Artifact with content from named pipe - Success',
+    async () => {
+      // create a named pipe 'pipe' with content 'hello pipe'
+      const content = Buffer.from('hello pipe')
+      const pipeFilePath = path.join(root, 'pipe')
+      await promisify(exec)('mkfifo pipe', {cwd: root})
+      // don't want to await here as that would block until read
+      fs.writeFile(pipeFilePath, content)
+
+      const artifactName = 'successful-artifact'
+      const uploadSpecification: UploadSpecification[] = [
+        {
+          absoluteFilePath: pipeFilePath,
+          uploadFilePath: `${artifactName}/pipe`
+        }
+      ]
+
+      const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+      const uploadHttpClient = new UploadHttpClient()
+      const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
+        uploadUrl,
+        uploadSpecification
+      )
+
+      // accesses the ReadableStream that was passed into sendStream
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const stream = mocked(HttpClient.prototype.sendStream).mock.calls[0][2]
+      expect(stream).not.toBeNull()
+      // decompresses the passed stream
+      const uploaded = gunzipSync(stream.read())
+
+      expect(uploadResult.failedItems.length).toEqual(0)
+      expect(uploaded).toEqual(content)
+    }
+  )
 
   it('Upload Artifact - Failed Single File Upload', async () => {
     const uploadSpecification: UploadSpecification[] = [

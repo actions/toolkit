@@ -219,16 +219,19 @@ export class UploadHttpClient {
     httpClientIndex: number,
     parameters: UploadFileParameters
   ): Promise<UploadFileResult> {
-    const totalFileSize: number = (await stat(parameters.file)).size
+    const fileStat: fs.Stats = await stat(parameters.file)
+    const totalFileSize = fileStat.size
+    const isFIFO = fileStat.isFIFO()
     let offset = 0
     let isUploadSuccessful = true
     let failedChunkSizes = 0
     let uploadFileSize = 0
     let isGzip = true
 
-    // the file that is being uploaded is less than 64k in size, to increase throughput and to minimize disk I/O
+    // the file that is being uploaded is less than 64k in size to increase throughput and to minimize disk I/O
     // for creating a new GZip file, an in-memory buffer is used for compression
-    if (totalFileSize < 65536) {
+    // with named pipes the file size is reported as zero in that case don't read the file in memory
+    if (!isFIFO && totalFileSize < 65536) {
       const buffer = await createGZipFileInBuffer(parameters.file)
 
       //An open stream is needed in the event of a failure and we need to retry. If a NodeJS.ReadableStream is directly passed in,
@@ -287,7 +290,8 @@ export class UploadHttpClient {
       let uploadFilePath = tempFile.path
 
       // compression did not help with size reduction, use the original file for upload and delete the temp GZip file
-      if (totalFileSize < uploadFileSize) {
+      // for named pipes totalFileSize is zero, this assumes compression did help
+      if (!isFIFO && totalFileSize < uploadFileSize) {
         uploadFileSize = totalFileSize
         uploadFilePath = parameters.file
         isGzip = false
