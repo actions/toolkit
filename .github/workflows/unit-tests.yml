@@ -39,6 +39,9 @@ jobs:
     - name: Compile
       run: npm run build
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
     - name: npm test
       run: npm test
       env:
