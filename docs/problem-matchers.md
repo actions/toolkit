@@ -8,7 +8,7 @@ Currently, GitHub Actions limit the annotation count in a workflow run.
 
 - 10 warning annotations and 10 error annotations per step
 - 50 annotations per job (sum of annotations from all the steps)
-- 50 annotations per run (separate from the job annotations, these annotations aren’t created by users
+- 50 annotations per run (separate from the job annotations, these annotations aren’t created by users)
 
 If your workflow may exceed these annotation counts, consider filtering of the log messages which the Problem Matcher is exposed to (e.g. by PR touched files, lines, or other).
 
