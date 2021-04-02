@@ -12,8 +12,6 @@ jest.mock('@actions/io')
 
 const IS_WINDOWS = process.platform === 'win32'
 
-const defaultTarPath = process.platform === 'darwin' ? 'gtar' : 'tar'
-
 function getTempDir(): string {
   return path.join(__dirname, '_temp', 'tar')
 }
@@ -46,7 +44,7 @@ test('zstd extract tar', async () => {
   expect(mkdirMock).toHaveBeenCalledWith(workspace)
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${defaultTarPath}"`,
+    'tar',
     [
       '--use-compress-program',
       'zstd -d --long=30',
@@ -55,7 +53,7 @@ test('zstd extract tar', async () => {
       '-P',
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ],
     {cwd: undefined}
   )
 })
@@ -73,10 +71,10 @@ test('gzip extract tar', async () => {
   expect(mkdirMock).toHaveBeenCalledWith(workspace)
   const tarPath = IS_WINDOWS
     ? `${process.env['windir']}\\System32\\tar.exe`
-    : defaultTarPath
+    : 'tar'
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${tarPath}"`,
+    tarPath,
     [
       '-z',
       '-xf',
@@ -133,7 +131,7 @@ test('zstd create tar', async () => {
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${defaultTarPath}"`,
+    'tar',
     [
       '--posix',
       '--use-compress-program',
@@ -145,7 +143,7 @@ test('zstd create tar', async () => {
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
       'manifest.txt'
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ],
     {
       cwd: archiveFolder
     }
@@ -165,11 +163,11 @@ test('gzip create tar', async () => {
 
   const tarPath = IS_WINDOWS
     ? `${process.env['windir']}\\System32\\tar.exe`
-    : defaultTarPath
+    : 'tar'
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${tarPath}"`,
+    tarPath,
     [
       '--posix',
       '-z',
@@ -198,14 +196,14 @@ test('zstd list tar', async () => {
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${defaultTarPath}"`,
+    'tar',
     [
       '--use-compress-program',
       'zstd -d --long=30',
       '-tf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P'
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ],
     {cwd: undefined}
   )
 })
@@ -221,14 +219,14 @@ test('zstdWithoutLong list tar', async () => {
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${defaultTarPath}"`,
+    'tar',
     [
       '--use-compress-program',
       'zstd -d',
       '-tf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P'
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ],
     {cwd: undefined}
   )
 })
@@ -243,10 +241,10 @@ test('gzip list tar', async () => {
 
   const tarPath = IS_WINDOWS
     ? `${process.env['windir']}\\System32\\tar.exe`
-    : defaultTarPath
+    : 'tar'
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${tarPath}"`,
+    tarPath,
     [
       '-z',
       '-tf',

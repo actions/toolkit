@@ -66,7 +66,7 @@ async function getVersion(app: string): Promise<string> {
   core.debug(`Checking ${app} --version`)
   let versionOutput = ''
   try {
-    await exec.exec(`${app} --version`, [], {
+    await exec.exec(app, ['--version'], {
       ignoreReturnCode: true,
       silent: true,
       listeners: {
@@ -111,9 +111,26 @@ export function getCacheFileName(compressionMethod: CompressionMethod): string {
     : CacheFilename.Zstd
 }
 
+export async function findGnuTar(): Promise<string> {
+  const tarPaths: string[] = await io.findInPath('tar')
+
+  if (tarPaths) {
+    for (const tarPath of tarPaths) {
+      const versionOutput = await getVersion(tarPath)
+
+      if (versionOutput.toLowerCase().includes('gnu tar')) {
+        core.debug(`Found GNU tar at ${tarPath}`)
+        return tarPath
+      }
+    }
+  }
+
+  return ''
+}
+
 export async function isGnuTarInstalled(): Promise<boolean> {
-  const versionOutput = await getVersion('tar')
-  return versionOutput.toLowerCase().includes('gnu tar')
+  const tarPath = await findGnuTar()
+  return tarPath !== null && tarPath !== ''
 }
 
 export function assertDefined<T>(name: string, value?: T): T {
