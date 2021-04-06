@@ -50,12 +50,15 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ github.event.inputs.package }}
-      
-      - name: publish
-        run: npm publish *.tgz
+
+      - name: setup authentication
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
         env: 
           NPM_TOKEN: ${{ secrets.TOKEN }}
-      
+
+      - name: publish
+        run: npm publish *.tgz
+
       - name: notify slack on failure
         if: failure()
         run: |
