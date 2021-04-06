@@ -6,6 +6,7 @@ import * as stream from 'stream'
 import * as im from './interfaces'
 import * as io from '@actions/io'
 import * as ioUtil from '@actions/io/lib/io-util'
+import {setTimeout} from 'timers'
 
 /* eslint-disable @typescript-eslint/unbound-method */
 

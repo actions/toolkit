@@ -5,8 +5,7 @@
     "strict": true,
     "declaration": true,
     "target": "es6",
-    "sourceMap": true,
-    "lib": ["es6","dom"]
+    "sourceMap": true
   },
   "exclude": [
     "node_modules",
