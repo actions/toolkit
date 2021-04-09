@@ -37,3 +37,6 @@
 ### 1.0.6
 - Make caching more verbose [#650](https://github.com/actions/toolkit/pull/650)
 - Use GNU tar on macOS if available [#701](https://github.com/actions/toolkit/pull/701)
+
+### 1.0.7
+- Fixes permissions issue extracting archives with GNU tar on macOS ([issue](https://github.com/actions/cache/issues/527))

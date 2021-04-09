@@ -11,6 +11,7 @@ jest.mock('@actions/exec')
 jest.mock('@actions/io')
 
 const IS_WINDOWS = process.platform === 'win32'
+const IS_MAC = process.platform === 'darwin'
 
 const defaultTarPath = process.platform === 'darwin' ? 'gtar' : 'tar'
 
@@ -55,7 +56,9 @@ test('zstd extract tar', async () => {
       '-P',
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
     {cwd: undefined}
   )
 })
@@ -84,7 +87,7 @@ test('gzip extract tar', async () => {
       '-P',
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
-    ],
+    ].concat(IS_MAC ? ['--delay-directory-restore'] : []),
     {cwd: undefined}
   )
 })
@@ -145,7 +148,9 @@ test('zstd create tar', async () => {
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
       'manifest.txt'
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
     {
       cwd: archiveFolder
     }
@@ -180,7 +185,7 @@ test('gzip create tar', async () => {
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
       'manifest.txt'
-    ],
+    ].concat(IS_MAC ? ['--delay-directory-restore'] : []),
     {
       cwd: archiveFolder
     }
@@ -205,7 +210,9 @@ test('zstd list tar', async () => {
       '-tf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P'
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
     {cwd: undefined}
   )
 })
@@ -228,7 +235,9 @@ test('zstdWithoutLong list tar', async () => {
       '-tf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P'
-    ].concat(IS_WINDOWS ? ['--force-local'] : []),
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
     {cwd: undefined}
   )
 })
@@ -252,7 +261,7 @@ test('gzip list tar', async () => {
       '-tf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P'
-    ],
+    ].concat(IS_MAC ? ['--delay-directory-restore'] : []),
     {cwd: undefined}
   )
 })
