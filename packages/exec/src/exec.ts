@@ -28,3 +28,36 @@ export async function exec(
   const runner: tr.ToolRunner = new tr.ToolRunner(toolPath, args, options)
   return runner.exec()
 }
+
+/**
+ * Get command output
+ * Returns promise with stdout
+ *
+ * @param     commandLine        command to execute (can include additional args). Must be correctly escaped.
+ * @param     args               optional arguments for tool. Escaping is handled by the lib.
+ * @param     options            optional exec options.  See ExecOptions
+ * @returns   Promise<string>    exit code
+ */
+export async function getCommandOutput(
+  commandLine: string,
+  args?: [],
+  options: Omit<ExecOptions, 'listeners'> = {}
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let out = ''
+    let err = ''
+
+    const opts = {
+      ...options,
+      listeners: {
+        stdout: (data: Buffer) => (out += data.toString()),
+        stderr: (data: Buffer) => (err += data.toString())
+      }
+    }
+
+    exec(commandLine, args, opts).then(() => {
+      if (err) return reject(err)
+      resolve(out)
+    })
+  })
+}
