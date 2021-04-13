@@ -159,17 +159,20 @@ describe('@actions/core', () => {
 
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
-    assertWriteCalls([`::set-output name=some output::some value${os.EOL}`])
+    assertWriteCalls([
+      os.EOL,
+      `::set-output name=some output::some value${os.EOL}`
+    ])
   })
 
   it('setOutput handles bools', () => {
     core.setOutput('some output', false)
-    assertWriteCalls([`::set-output name=some output::false${os.EOL}`])
+    assertWriteCalls([os.EOL, `::set-output name=some output::false${os.EOL}`])
   })
 
   it('setOutput handles numbers', () => {
     core.setOutput('some output', 1.01)
-    assertWriteCalls([`::set-output name=some output::1.01${os.EOL}`])
+    assertWriteCalls([os.EOL, `::set-output name=some output::1.01${os.EOL}`])
   })
 
   it('setFailed sets the correct exit code and failure message', () => {

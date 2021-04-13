@@ -99,6 +99,7 @@ export function getInput(name: string, options?: InputOptions): string {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function setOutput(name: string, value: any): void {
+  process.stdout.write(os.EOL)
   issueCommand('set-output', {name}, value)
 }
 
