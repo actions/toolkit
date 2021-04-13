@@ -42,7 +42,7 @@ Binding to the immutable full sha1 may offer more reliability.  However, note th
 
 ```
 git tag -fa v1 -m "Update v1 tag"
-git push origin v1 --force
+git push origin v1 --tags --force
 ```
 # Major Versions
 
