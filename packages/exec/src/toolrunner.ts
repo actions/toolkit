@@ -453,11 +453,15 @@ export class ToolRunner extends events.EventEmitter {
             optionsNonNull.outStream.write(data)
           }
 
-          stdbuffer = this._processLineBuffer(data, stdbuffer, (line: string) => {
-            if (this.options.listeners && this.options.listeners.stdline) {
-              this.options.listeners.stdline(line)
+          stdbuffer = this._processLineBuffer(
+            data,
+            stdbuffer,
+            (line: string) => {
+              if (this.options.listeners && this.options.listeners.stdline) {
+                this.options.listeners.stdline(line)
+              }
             }
-          })
+          )
         })
       }
 
@@ -480,11 +484,15 @@ export class ToolRunner extends events.EventEmitter {
             s.write(data)
           }
 
-          errbuffer = this._processLineBuffer(data, errbuffer, (line: string) => {
-            if (this.options.listeners && this.options.listeners.errline) {
-              this.options.listeners.errline(line)
+          errbuffer = this._processLineBuffer(
+            data,
+            errbuffer,
+            (line: string) => {
+              if (this.options.listeners && this.options.listeners.errline) {
+                this.options.listeners.errline(line)
+              }
             }
-          })
+          )
         })
       }
 
