@@ -18,20 +18,20 @@ e.g. To use https://github.com/actions/setup-node, users will author:
 
 ```yaml
 steps:
-    using: actions/setup-node@v1
+  using: actions/setup-node@v1
 ```
 
 # Define Metadata
 
-Your action has a name and a description.  Update the author.
+Your action has a name and a description. Update the author.
 
-Create inputs that your unit of work will need.  These will be what workflow authors set with the `with:` keyword.
+Create inputs that your unit of work will need. These will be what workflow authors set with the `with:` keyword.
 
 ```yaml
 name: 'My Container Action'
 description: 'Get started with Container actions'
 author: 'GitHub'
-inputs: 
+inputs:
   myInput:
     description: 'Input to use'
     default: 'world'
@@ -54,7 +54,7 @@ The entry point is in entrypoint.sh
 echo "hello $1"
 ```
 
-# Publish 
+# Publish
 
 Simply push your action to publish.
 
@@ -64,8 +64,4 @@ $ git push
 
 The runner will download the action and build the docker container on the fly at runtime.
 
-> Consider versioning your actions with tags.  See [versioning](/docs/action-versioning.md)
-
-
-
-
+> Consider versioning your actions with tags. See [versioning](/docs/action-versioning.md)

@@ -22,7 +22,7 @@ Copy or move files or folders. Follows rules specified in [man cp](https://linux
 const io = require('@actions/io');
 
 // Recursive must be true for directories
-const options = { recursive: true, force: false }
+const options = {recursive: true, force: false};
 
 await io.cp('path/to/directory', 'path/to/dest', options);
 await io.mv('path/to/file', 'path/to/dest');
@@ -47,7 +47,7 @@ Get the path to a tool and resolves via paths. Follows the rules specified in [m
 const exec = require('@actions/exec');
 const io = require('@actions/io');
 
-const pythonPath: string = await io.which('python', true)
+const pythonPath: string = await io.which('python', true);
 
 await exec.exec(`"${pythonPath}"`, ['main.py']);
 ```

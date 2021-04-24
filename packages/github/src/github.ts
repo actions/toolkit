@@ -1,10 +1,10 @@
-import * as Context from './context'
-import {GitHub, getOctokitOptions} from './utils'
+import * as Context from './context';
+import {GitHub, getOctokitOptions} from './utils';
 
 // octokit + plugins
-import {OctokitOptions} from '@octokit/core/dist-types/types'
+import {OctokitOptions} from '@octokit/core/dist-types/types';
 
-export const context = new Context.Context()
+export const context = new Context.Context();
 
 /**
  * Returns a hydrated octokit ready to use for GitHub Actions
@@ -16,5 +16,5 @@ export function getOctokit(
   token: string,
   options?: OctokitOptions
 ): InstanceType<typeof GitHub> {
-  return new GitHub(getOctokitOptions(token, options))
+  return new GitHub(getOctokitOptions(token, options));
 }

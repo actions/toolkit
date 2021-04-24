@@ -7,9 +7,9 @@
  */
 export function toCommandValue(input: any): string {
   if (input === null || input === undefined) {
-    return ''
+    return '';
   } else if (typeof input === 'string' || input instanceof String) {
-    return input as string
+    return input as string;
   }
-  return JSON.stringify(input)
+  return JSON.stringify(input);
 }

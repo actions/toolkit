@@ -50,7 +50,7 @@ function setSecret(secret: string): void {}
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
 
-**WARNING** The add-mask and setSecret  commands only support single line secrets. To register a multiline secrets you must register each line individually otherwise it will not be masked.
+**WARNING** The add-mask and setSecret commands only support single line secrets. To register a multiline secrets you must register each line individually otherwise it will not be masked.
 
 **WARNING** Do **not** mask short values if you can avoid it, it could render your output unreadable (and future steps' output as well).
 For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` will now print `He*********o FOO BAR Wor****d`
@@ -60,7 +60,7 @@ For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` wi
 Emitting a group with a title will instruct the logs to create a collapsable region up to the next ungroup command.
 
 ```bash
-echo "::group::my title"   
+echo "::group::my title"
 echo "::endgroup::"
 ```
 
@@ -72,15 +72,17 @@ function endGroup(): void {}
 ```
 
 ### Problem Matchers
+
 Problems matchers can be used to scan a build's output to automatically surface lines to the user that matches the provided pattern. A file path to a .json Problem Matcher must be provided. See [Problem Matchers](problem-matchers.md) for more information on how to define a Problem Matcher.
 
 ```bash
-echo "::add-matcher::eslint-compact-problem-matcher.json"   
+echo "::add-matcher::eslint-compact-problem-matcher.json"
 echo "::remove-matcher owner=eslint-compact::"
 ```
 
 `add-matcher` takes a path to a Problem Matcher file
 `remove-matcher` removes a Problem Matcher by owner
+
 ### Save State
 
 Save a state to an environmental variable that can later be used in the main or post action.
@@ -95,13 +97,14 @@ Because `save-state` prepends the string `STATE_` to the name, the environment v
 
 There are several commands to emit different levels of log output:
 
-| log level | example usage |
-|---|---|
-| [debug](action-debugging.md)  | `echo "::debug::My debug message"` |
-| warning | `echo "::warning::My warning message"` |
-| error | `echo "::error::My error message"` |
+| log level                    | example usage                          |
+| ---------------------------- | -------------------------------------- |
+| [debug](action-debugging.md) | `echo "::debug::My debug message"`     |
+| warning                      | `echo "::warning::My warning message"` |
+| error                        | `echo "::error::My error message"`     |
 
 ### Command Echoing
+
 By default, the echoing of commands to stdout only occurs if [Step Debugging is enabled](./action-debugging.md#How-to-Access-Step-Debug-Logs)
 
 You can enable or disable this for the current step by using the `echo` command.
@@ -127,10 +130,10 @@ The `add-mask`, `debug`, `warning` and `error` commands do not support echoing.
 ### Command Prompt
 
 CMD processes the `"` character differently from other shells when echoing. In CMD, the above snippets should have the `"` characters removed in order to correctly process. For example, the set output command would be:
+
 ```cmd
 echo ::set-output name=FOO::BAR
 ```
-
 
 # Environment files
 
@@ -146,7 +149,8 @@ echo "FOO=BAR" >> $GITHUB_ENV
 
 Running `$FOO` in a future step will now return `BAR`
 
-For multiline strings, you may use a heredoc style syntax with your choice of delimeter. In the below example, we use `EOF` 
+For multiline strings, you may use a heredoc style syntax with your choice of delimeter. In the below example, we use `EOF`
+
 ```
 steps:
   - name: Set the value
@@ -160,6 +164,7 @@ steps:
 This would set the value of the `JSON_RESPONSE` env variable to the value of the curl response.
 
 The expected syntax for the heredoc style is:
+
 ```
 {VARIABLE_NAME}<<{DELIMETER}
 {VARIABLE_VALUE}
@@ -183,6 +188,7 @@ echo "/Users/test/.nvm/versions/node/v12.18.3/bin" >> $GITHUB_PATH
 Running `$PATH` in a future step will now return `/Users/test/.nvm/versions/node/v12.18.3/bin:{Previous Path}`;
 
 This is wrapped by the core addPath method:
+
 ```javascript
 export function addPath(inputPath: string): void {}
 ```
@@ -190,6 +196,7 @@ export function addPath(inputPath: string): void {}
 ### Powershell
 
 Powershell does not use UTF8 by default. You will want to make sure you write in the correct encoding. For example, to set the path:
+
 ```
 steps:
   - run: echo "mypath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append

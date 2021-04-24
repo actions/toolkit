@@ -1,6 +1,7 @@
 # Additional Information
 
-Extra information 
+Extra information
+
 - [Non-Supported Characters](#Non-Supported-Characters)
 - [Permission loss](#Permission-Loss)
 - [Considerations](#Considerations)
@@ -19,9 +20,9 @@ When uploading an artifact, the inputted `name` parameter along with the files s
 - ?
 
 In addition to the aforementioned characters, the inputted `name` also cannot include the following
+
 - \
 - /
-
 
 ## Permission Loss
 
@@ -29,13 +30,15 @@ File permissions are not maintained between uploaded and downloaded artifacts. I
 
 ```js
 const artifact = require('@actions/artifact');
-const artifactClient = artifact.create()
+const artifactClient = artifact.create();
 const artifactName = 'my-artifact';
-const files = [
-    '/home/user/files/plz-upload/my-archive.tgz',
-]
-const rootDirectory = '/home/user/files/plz-upload'
-const uploadResult = await artifactClient.uploadArtifact(artifactName, files, rootDirectory)
+const files = ['/home/user/files/plz-upload/my-archive.tgz'];
+const rootDirectory = '/home/user/files/plz-upload';
+const uploadResult = await artifactClient.uploadArtifact(
+  artifactName,
+  files,
+  rootDirectory
+);
 ```
 
 ## Considerations
@@ -48,6 +51,6 @@ Uploading will be generally be faster if there are fewer files that are larger i
 
 GZip is used internally to compress individual files before starting an upload. Compression helps reduce the total amount of data that must be uploaded and stored while helping to speed up uploads (this performance benefit is significant especially on self hosted runners). If GZip does not reduce the size of the file that is being uploaded, the original file is uploaded as-is.
 
-Compression using GZip also helps speed up artifact download as part of a workflow. Header information is used to determine if an individual file was uploaded using GZip and if necessary, decompression is used. 
+Compression using GZip also helps speed up artifact download as part of a workflow. Header information is used to determine if an individual file was uploaded using GZip and if necessary, decompression is used.
 
 When downloading an artifact from the GitHub UI (this differs from downloading an artifact during a workflow), a single Zip file is dynamically created that contains all of the files uploaded as part of an artifact. Any files that were uploaded using GZip will be decompressed on the server before being added to the Zip file with the remaining files.

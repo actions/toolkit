@@ -1,7 +1,7 @@
-import * as fs from 'fs'
-import * as zlib from 'zlib'
-import {promisify} from 'util'
-const stat = promisify(fs.stat)
+import * as fs from 'fs';
+import * as zlib from 'zlib';
+import {promisify} from 'util';
+const stat = promisify(fs.stat);
 
 /**
  * Creates a Gzip compressed file of an original file at the provided temporary filepath location
@@ -14,21 +14,21 @@ export async function createGZipFileOnDisk(
   tempFilePath: string
 ): Promise<number> {
   return new Promise((resolve, reject) => {
-    const inputStream = fs.createReadStream(originalFilePath)
-    const gzip = zlib.createGzip()
-    const outputStream = fs.createWriteStream(tempFilePath)
-    inputStream.pipe(gzip).pipe(outputStream)
+    const inputStream = fs.createReadStream(originalFilePath);
+    const gzip = zlib.createGzip();
+    const outputStream = fs.createWriteStream(tempFilePath);
+    inputStream.pipe(gzip).pipe(outputStream);
     outputStream.on('finish', async () => {
       // wait for stream to finish before calculating the size which is needed as part of the Content-Length header when starting an upload
-      const size = (await stat(tempFilePath)).size
-      resolve(size)
-    })
+      const size = (await stat(tempFilePath)).size;
+      resolve(size);
+    });
     outputStream.on('error', error => {
       // eslint-disable-next-line no-console
-      console.log(error)
-      reject
-    })
-  })
+      console.log(error);
+      reject;
+    });
+  });
 }
 
 /**
@@ -40,14 +40,14 @@ export async function createGZipFileInBuffer(
   originalFilePath: string
 ): Promise<Buffer> {
   return new Promise(async resolve => {
-    const inputStream = fs.createReadStream(originalFilePath)
-    const gzip = zlib.createGzip()
-    inputStream.pipe(gzip)
+    const inputStream = fs.createReadStream(originalFilePath);
+    const gzip = zlib.createGzip();
+    inputStream.pipe(gzip);
     // read stream into buffer, using experimental async iterators see https://github.com/nodejs/readable-stream/issues/403#issuecomment-479069043
-    const chunks = []
+    const chunks = [];
     for await (const chunk of gzip) {
-      chunks.push(chunk)
+      chunks.push(chunk);
     }
-    resolve(Buffer.concat(chunks))
-  })
+    resolve(Buffer.concat(chunks));
+  });
 }

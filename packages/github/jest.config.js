@@ -8,4 +8,4 @@ module.exports = {
     '^.+\\.ts$': 'ts-jest'
   },
   verbose: true
-}
+};

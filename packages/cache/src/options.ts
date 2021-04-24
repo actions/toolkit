@@ -1,4 +1,4 @@
-import * as core from '@actions/core'
+import * as core from '@actions/core';
 
 /**
  * Options to control cache upload
@@ -9,13 +9,13 @@ export interface UploadOptions {
    *
    * @default 4
    */
-  uploadConcurrency?: number
+  uploadConcurrency?: number;
   /**
    * Maximum chunk size in bytes for cache upload
    *
    * @default 32MB
    */
-  uploadChunkSize?: number
+  uploadChunkSize?: number;
 }
 
 /**
@@ -29,7 +29,7 @@ export interface DownloadOptions {
    *
    * @default true
    */
-  useAzureSdk?: boolean
+  useAzureSdk?: boolean;
 
   /**
    * Number of parallel downloads (this option only applies when using
@@ -37,7 +37,7 @@ export interface DownloadOptions {
    *
    * @default 8
    */
-  downloadConcurrency?: number
+  downloadConcurrency?: number;
 
   /**
    * Maximum time for each download request, in milliseconds (this
@@ -45,7 +45,7 @@ export interface DownloadOptions {
    *
    * @default 30000
    */
-  timeoutInMs?: number
+  timeoutInMs?: number;
 }
 
 /**
@@ -57,22 +57,22 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
   const result: UploadOptions = {
     uploadConcurrency: 4,
     uploadChunkSize: 32 * 1024 * 1024
-  }
+  };
 
   if (copy) {
     if (typeof copy.uploadConcurrency === 'number') {
-      result.uploadConcurrency = copy.uploadConcurrency
+      result.uploadConcurrency = copy.uploadConcurrency;
     }
 
     if (typeof copy.uploadChunkSize === 'number') {
-      result.uploadChunkSize = copy.uploadChunkSize
+      result.uploadChunkSize = copy.uploadChunkSize;
     }
   }
 
-  core.debug(`Upload concurrency: ${result.uploadConcurrency}`)
-  core.debug(`Upload chunk size: ${result.uploadChunkSize}`)
+  core.debug(`Upload concurrency: ${result.uploadConcurrency}`);
+  core.debug(`Upload chunk size: ${result.uploadChunkSize}`);
 
-  return result
+  return result;
 }
 
 /**
@@ -85,25 +85,25 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     useAzureSdk: true,
     downloadConcurrency: 8,
     timeoutInMs: 30000
-  }
+  };
 
   if (copy) {
     if (typeof copy.useAzureSdk === 'boolean') {
-      result.useAzureSdk = copy.useAzureSdk
+      result.useAzureSdk = copy.useAzureSdk;
     }
 
     if (typeof copy.downloadConcurrency === 'number') {
-      result.downloadConcurrency = copy.downloadConcurrency
+      result.downloadConcurrency = copy.downloadConcurrency;
     }
 
     if (typeof copy.timeoutInMs === 'number') {
-      result.timeoutInMs = copy.timeoutInMs
+      result.timeoutInMs = copy.timeoutInMs;
     }
   }
 
-  core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
-  core.debug(`Download concurrency: ${result.downloadConcurrency}`)
-  core.debug(`Request timeout (ms): ${result.timeoutInMs}`)
+  core.debug(`Use Azure SDK: ${result.useAzureSdk}`);
+  core.debug(`Download concurrency: ${result.downloadConcurrency}`);
+  core.debug(`Request timeout (ms): ${result.timeoutInMs}`);
 
-  return result
+  return result;
 }

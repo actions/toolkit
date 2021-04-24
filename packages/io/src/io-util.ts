@@ -1,6 +1,6 @@
-import {ok} from 'assert'
-import * as fs from 'fs'
-import * as path from 'path'
+import {ok} from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export const {
   chmod,
@@ -14,30 +14,30 @@ export const {
   stat,
   symlink,
   unlink
-} = fs.promises
+} = fs.promises;
 
-export const IS_WINDOWS = process.platform === 'win32'
+export const IS_WINDOWS = process.platform === 'win32';
 
 export async function exists(fsPath: string): Promise<boolean> {
   try {
-    await stat(fsPath)
+    await stat(fsPath);
   } catch (err) {
     if (err.code === 'ENOENT') {
-      return false
+      return false;
     }
 
-    throw err
+    throw err;
   }
 
-  return true
+  return true;
 }
 
 export async function isDirectory(
   fsPath: string,
   useStat: boolean = false
 ): Promise<boolean> {
-  const stats = useStat ? await stat(fsPath) : await lstat(fsPath)
-  return stats.isDirectory()
+  const stats = useStat ? await stat(fsPath) : await lstat(fsPath);
+  return stats.isDirectory();
 }
 
 /**
@@ -45,18 +45,18 @@ export async function isDirectory(
  * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
  */
 export function isRooted(p: string): boolean {
-  p = normalizeSeparators(p)
+  p = normalizeSeparators(p);
   if (!p) {
-    throw new Error('isRooted() parameter "p" cannot be empty')
+    throw new Error('isRooted() parameter "p" cannot be empty');
   }
 
   if (IS_WINDOWS) {
     return (
       p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
-    ) // e.g. C: or C:\hello
+    ); // e.g. C: or C:\hello
   }
 
-  return p.startsWith('/')
+  return p.startsWith('/');
 }
 
 /**
@@ -74,32 +74,32 @@ export async function mkdirP(
   maxDepth: number = 1000,
   depth: number = 1
 ): Promise<void> {
-  ok(fsPath, 'a path argument must be provided')
+  ok(fsPath, 'a path argument must be provided');
 
-  fsPath = path.resolve(fsPath)
+  fsPath = path.resolve(fsPath);
 
-  if (depth >= maxDepth) return mkdir(fsPath)
+  if (depth >= maxDepth) return mkdir(fsPath);
 
   try {
-    await mkdir(fsPath)
-    return
+    await mkdir(fsPath);
+    return;
   } catch (err) {
     switch (err.code) {
       case 'ENOENT': {
-        await mkdirP(path.dirname(fsPath), maxDepth, depth + 1)
-        await mkdir(fsPath)
-        return
+        await mkdirP(path.dirname(fsPath), maxDepth, depth + 1);
+        await mkdir(fsPath);
+        return;
       }
       default: {
-        let stats: fs.Stats
+        let stats: fs.Stats;
 
         try {
-          stats = await stat(fsPath)
+          stats = await stat(fsPath);
         } catch (err2) {
-          throw err
+          throw err;
         }
 
-        if (!stats.isDirectory()) throw err
+        if (!stats.isDirectory()) throw err;
       }
     }
   }
@@ -115,46 +115,46 @@ export async function tryGetExecutablePath(
   filePath: string,
   extensions: string[]
 ): Promise<string> {
-  let stats: fs.Stats | undefined = undefined
+  let stats: fs.Stats | undefined = undefined;
   try {
     // test file exists
-    stats = await stat(filePath)
+    stats = await stat(filePath);
   } catch (err) {
     if (err.code !== 'ENOENT') {
       // eslint-disable-next-line no-console
       console.log(
         `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
-      )
+      );
     }
   }
   if (stats && stats.isFile()) {
     if (IS_WINDOWS) {
       // on Windows, test for valid extension
-      const upperExt = path.extname(filePath).toUpperCase()
+      const upperExt = path.extname(filePath).toUpperCase();
       if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
-        return filePath
+        return filePath;
       }
     } else {
       if (isUnixExecutable(stats)) {
-        return filePath
+        return filePath;
       }
     }
   }
 
   // try each extension
-  const originalFilePath = filePath
+  const originalFilePath = filePath;
   for (const extension of extensions) {
-    filePath = originalFilePath + extension
+    filePath = originalFilePath + extension;
 
-    stats = undefined
+    stats = undefined;
     try {
-      stats = await stat(filePath)
+      stats = await stat(filePath);
     } catch (err) {
       if (err.code !== 'ENOENT') {
         // eslint-disable-next-line no-console
         console.log(
           `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
-        )
+        );
       }
     }
 
@@ -162,45 +162,45 @@ export async function tryGetExecutablePath(
       if (IS_WINDOWS) {
         // preserve the case of the actual file (since an extension was appended)
         try {
-          const directory = path.dirname(filePath)
-          const upperName = path.basename(filePath).toUpperCase()
+          const directory = path.dirname(filePath);
+          const upperName = path.basename(filePath).toUpperCase();
           for (const actualName of await readdir(directory)) {
             if (upperName === actualName.toUpperCase()) {
-              filePath = path.join(directory, actualName)
-              break
+              filePath = path.join(directory, actualName);
+              break;
             }
           }
         } catch (err) {
           // eslint-disable-next-line no-console
           console.log(
             `Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`
-          )
+          );
         }
 
-        return filePath
+        return filePath;
       } else {
         if (isUnixExecutable(stats)) {
-          return filePath
+          return filePath;
         }
       }
     }
   }
 
-  return ''
+  return '';
 }
 
 function normalizeSeparators(p: string): string {
-  p = p || ''
+  p = p || '';
   if (IS_WINDOWS) {
     // convert slashes on Windows
-    p = p.replace(/\//g, '\\')
+    p = p.replace(/\//g, '\\');
 
     // remove redundant slashes
-    return p.replace(/\\\\+/g, '\\')
+    return p.replace(/\\\\+/g, '\\');
   }
 
   // remove redundant slashes
-  return p.replace(/\/\/+/g, '/')
+  return p.replace(/\/\/+/g, '/');
 }
 
 // on Mac/Linux, test the execute bit
@@ -211,5 +211,5 @@ function isUnixExecutable(stats: fs.Stats): boolean {
     (stats.mode & 1) > 0 ||
     ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
     ((stats.mode & 64) > 0 && stats.uid === process.getuid())
-  )
+  );
 }

@@ -1,7 +1,7 @@
-import {Globber, DefaultGlobber} from './internal-globber'
-import {GlobOptions} from './internal-glob-options'
+import {Globber, DefaultGlobber} from './internal-globber';
+import {GlobOptions} from './internal-glob-options';
 
-export {Globber, GlobOptions}
+export {Globber, GlobOptions};
 
 /**
  * Constructs a globber
@@ -13,5 +13,5 @@ export async function create(
   patterns: string,
   options?: GlobOptions
 ): Promise<Globber> {
-  return await DefaultGlobber.create(patterns, options)
+  return await DefaultGlobber.create(patterns, options);
 }

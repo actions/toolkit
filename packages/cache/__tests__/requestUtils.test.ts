@@ -1,10 +1,10 @@
-import {retry} from '../src/internal/requestUtils'
-import {HttpClientError} from '@actions/http-client'
+import {retry} from '../src/internal/requestUtils';
+import {HttpClientError} from '@actions/http-client';
 
 interface ITestResponse {
-  statusCode: number
-  result: string | null
-  error: Error | null
+  statusCode: number;
+  result: string | null;
+  error: Error | null;
 }
 
 function TestResponse(
@@ -16,13 +16,13 @@ function TestResponse(
       statusCode: -1,
       result,
       error: action
-    }
+    };
   } else {
     return {
       statusCode: action,
       result,
       error: null
-    }
+    };
   }
 }
 
@@ -31,13 +31,13 @@ async function handleResponse(
 ): Promise<ITestResponse> {
   if (!response) {
     // eslint-disable-next-line no-undef
-    fail('Retry method called too many times')
+    fail('Retry method called too many times');
   }
 
   if (response.error) {
-    throw response.error
+    throw response.error;
   } else {
-    return Promise.resolve(response)
+    return Promise.resolve(response);
   }
 }
 
@@ -45,7 +45,7 @@ async function testRetryExpectingResult(
   responses: ITestResponse[],
   expectedResult: string | null
 ): Promise<void> {
-  responses = responses.reverse() // Reverse responses since we pop from end
+  responses = responses.reverse(); // Reverse responses since we pop from end
 
   const actualResult = await retry(
     'test',
@@ -53,9 +53,9 @@ async function testRetryExpectingResult(
     (response: ITestResponse) => response.statusCode,
     2, // maxAttempts
     0 // delay
-  )
+  );
 
-  expect(actualResult.result).toEqual(expectedResult)
+  expect(actualResult.result).toEqual(expectedResult);
 }
 
 async function testRetryConvertingErrorToResult(
@@ -63,7 +63,7 @@ async function testRetryConvertingErrorToResult(
   expectedStatus: number,
   expectedResult: string | null
 ): Promise<void> {
-  responses = responses.reverse() // Reverse responses since we pop from end
+  responses = responses.reverse(); // Reverse responses since we pop from end
 
   const actualResult = await retry(
     'test',
@@ -77,19 +77,19 @@ async function testRetryConvertingErrorToResult(
           statusCode: e.statusCode,
           result: null,
           error: null
-        }
+        };
       }
     }
-  )
+  );
 
-  expect(actualResult.statusCode).toEqual(expectedStatus)
-  expect(actualResult.result).toEqual(expectedResult)
+  expect(actualResult.statusCode).toEqual(expectedStatus);
+  expect(actualResult.result).toEqual(expectedResult);
 }
 
 async function testRetryExpectingError(
   responses: ITestResponse[]
 ): Promise<void> {
-  responses = responses.reverse() // Reverse responses since we pop from end
+  responses = responses.reverse(); // Reverse responses since we pop from end
 
   expect(
     retry(
@@ -99,50 +99,50 @@ async function testRetryExpectingError(
       2, // maxAttempts,
       0 // delay
     )
-  ).rejects.toBeInstanceOf(Error)
+  ).rejects.toBeInstanceOf(Error);
 }
 
 test('retry works on successful response', async () => {
-  await testRetryExpectingResult([TestResponse(200, 'Ok')], 'Ok')
-})
+  await testRetryExpectingResult([TestResponse(200, 'Ok')], 'Ok');
+});
 
 test('retry works after retryable status code', async () => {
   await testRetryExpectingResult(
     [TestResponse(503), TestResponse(200, 'Ok')],
     'Ok'
-  )
-})
+  );
+});
 
 test('retry fails after exhausting retries', async () => {
   await testRetryExpectingError([
     TestResponse(503),
     TestResponse(503),
     TestResponse(200, 'Ok')
-  ])
-})
+  ]);
+});
 
 test('retry fails after non-retryable status code', async () => {
-  await testRetryExpectingError([TestResponse(500), TestResponse(200, 'Ok')])
-})
+  await testRetryExpectingError([TestResponse(500), TestResponse(200, 'Ok')]);
+});
 
 test('retry works after error', async () => {
   await testRetryExpectingResult(
     [TestResponse(new Error('Test error')), TestResponse(200, 'Ok')],
     'Ok'
-  )
-})
+  );
+});
 
 test('retry returns after client error', async () => {
   await testRetryExpectingResult(
     [TestResponse(400), TestResponse(200, 'Ok')],
     null
-  )
-})
+  );
+});
 
 test('retry converts errors to response object', async () => {
   await testRetryConvertingErrorToResult(
     [TestResponse(new HttpClientError('Test error', 409))],
     409,
     null
-  )
-})
+  );
+});

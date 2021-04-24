@@ -11,27 +11,27 @@ const github = require('@actions/github');
 const core = require('@actions/core');
 
 async function run() {
-    // This should be a token with access to your repository scoped in as a secret.
-    // The YML workflow will need to set myToken with the GitHub Secret Token
-    // myToken: ${{ secrets.GITHUB_TOKEN }}
-    // https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token#about-the-github_token-secret
-    const myToken = core.getInput('myToken');
+  // This should be a token with access to your repository scoped in as a secret.
+  // The YML workflow will need to set myToken with the GitHub Secret Token
+  // myToken: ${{ secrets.GITHUB_TOKEN }}
+  // https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token#about-the-github_token-secret
+  const myToken = core.getInput('myToken');
 
-    const octokit = github.getOctokit(myToken)
+  const octokit = github.getOctokit(myToken);
 
-    // You can also pass in additional options as a second parameter to getOctokit
-    // const octokit = github.getOctokit(myToken, {userAgent: "MyActionVersion1"});
+  // You can also pass in additional options as a second parameter to getOctokit
+  // const octokit = github.getOctokit(myToken, {userAgent: "MyActionVersion1"});
 
-    const { data: pullRequest } = await octokit.pulls.get({
-        owner: 'octokit',
-        repo: 'rest.js',
-        pull_number: 123,
-        mediaType: {
-          format: 'diff'
-        }
-    });
+  const {data: pullRequest} = await octokit.pulls.get({
+    owner: 'octokit',
+    repo: 'rest.js',
+    pull_number: 123,
+    mediaType: {
+      format: 'diff'
+    }
+  });
 
-    console.log(pullRequest);
+  console.log(pullRequest);
 }
 
 run();
@@ -64,34 +64,36 @@ The npm module `@octokit/webhooks` provides type definitions for the response pa
 First, install the npm module `npm install @octokit/webhooks`
 
 Then, assert the type based on the eventName
+
 ```ts
-import * as core from '@actions/core'
-import * as github from '@actions/github'
-import * as Webhooks from '@octokit/webhooks'
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import * as Webhooks from '@octokit/webhooks';
 if (github.context.eventName === 'push') {
-  const pushPayload = github.context.payload as Webhooks.WebhookPayloadPush
-  core.info(`The head commit is: ${pushPayload.head}`)
+  const pushPayload = github.context.payload as Webhooks.WebhookPayloadPush;
+  core.info(`The head commit is: ${pushPayload.head}`);
 }
 ```
 
 ## Extending the Octokit instance
-`@octokit/core` now supports the [plugin architecture](https://github.com/octokit/core.js#plugins). You can extend the GitHub instance using plugins. 
+
+`@octokit/core` now supports the [plugin architecture](https://github.com/octokit/core.js#plugins). You can extend the GitHub instance using plugins.
 
 For example, using the `@octokit/plugin-enterprise-server` you can now access enterprise admin apis on GHES instances.
 
 ```ts
-import { GitHub, getOctokitOptions } from '@actions/github/lib/utils'
-import { enterpriseServer220Admin } from '@octokit/plugin-enterprise-server'
+import {GitHub, getOctokitOptions} from '@actions/github/lib/utils';
+import {enterpriseServer220Admin} from '@octokit/plugin-enterprise-server';
 
-const octokit = GitHub.plugin(enterpriseServer220Admin)
-// or override some of the default values as well 
+const octokit = GitHub.plugin(enterpriseServer220Admin);
+// or override some of the default values as well
 // const octokit = GitHub.plugin(enterpriseServer220Admin).defaults({userAgent: "MyNewUserAgent"})
 
 const myToken = core.getInput('myToken');
-const myOctokit = new octokit(getOctokitOptions(token))
+const myOctokit = new octokit(getOctokitOptions(token));
 // Create a new user
 myOctokit.enterpriseAdmin.createUser({
-  login: "testuser",
-  email: "testuser@test.com",
+  login: 'testuser',
+  email: 'testuser@test.com'
 });
 ```

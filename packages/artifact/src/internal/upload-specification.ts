@@ -1,11 +1,11 @@
-import * as fs from 'fs'
-import {debug} from '@actions/core'
-import {join, normalize, resolve} from 'path'
-import {checkArtifactName, checkArtifactFilePath} from './utils'
+import * as fs from 'fs';
+import {debug} from '@actions/core';
+import {join, normalize, resolve} from 'path';
+import {checkArtifactName, checkArtifactFilePath} from './utils';
 
 export interface UploadSpecification {
-  absoluteFilePath: string
-  uploadFilePath: string
+  absoluteFilePath: string;
+  uploadFilePath: string;
 }
 
 /**
@@ -19,21 +19,21 @@ export function getUploadSpecification(
   rootDirectory: string,
   artifactFiles: string[]
 ): UploadSpecification[] {
-  checkArtifactName(artifactName)
+  checkArtifactName(artifactName);
 
-  const specifications: UploadSpecification[] = []
+  const specifications: UploadSpecification[] = [];
 
   if (!fs.existsSync(rootDirectory)) {
-    throw new Error(`Provided rootDirectory ${rootDirectory} does not exist`)
+    throw new Error(`Provided rootDirectory ${rootDirectory} does not exist`);
   }
   if (!fs.lstatSync(rootDirectory).isDirectory()) {
     throw new Error(
       `Provided rootDirectory ${rootDirectory} is not a valid directory`
-    )
+    );
   }
   // Normalize and resolve, this allows for either absolute or relative paths to be used
-  rootDirectory = normalize(rootDirectory)
-  rootDirectory = resolve(rootDirectory)
+  rootDirectory = normalize(rootDirectory);
+  rootDirectory = resolve(rootDirectory);
 
   /*
      Example to demonstrate behavior
@@ -56,21 +56,21 @@ export function getUploadSpecification(
   */
   for (let file of artifactFiles) {
     if (!fs.existsSync(file)) {
-      throw new Error(`File ${file} does not exist`)
+      throw new Error(`File ${file} does not exist`);
     }
     if (!fs.lstatSync(file).isDirectory()) {
       // Normalize and resolve, this allows for either absolute or relative paths to be used
-      file = normalize(file)
-      file = resolve(file)
+      file = normalize(file);
+      file = resolve(file);
       if (!file.startsWith(rootDirectory)) {
         throw new Error(
           `The rootDirectory: ${rootDirectory} is not a parent directory of the file: ${file}`
-        )
+        );
       }
 
       // Check for forbidden characters in file paths that will be rejected during upload
-      const uploadPath = file.replace(rootDirectory, '')
-      checkArtifactFilePath(uploadPath)
+      const uploadPath = file.replace(rootDirectory, '');
+      checkArtifactFilePath(uploadPath);
 
       /*
         uploadFilePath denotes where the file will be uploaded in the file container on the server. During a run, if multiple artifacts are uploaded, they will all
@@ -85,11 +85,11 @@ export function getUploadSpecification(
       specifications.push({
         absoluteFilePath: file,
         uploadFilePath: join(artifactName, uploadPath)
-      })
+      });
     } else {
       // Directories are rejected by the server during upload
-      debug(`Removing ${file} from rawSearchResults because it is a directory`)
+      debug(`Removing ${file} from rawSearchResults because it is a directory`);
     }
   }
-  return specifications
+  return specifications;
 }

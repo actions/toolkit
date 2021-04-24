@@ -1,6 +1,6 @@
 # Contributions
 
-This package is used internally by the v2+ versions of [upload-artifact](https://github.com/actions/upload-artifact) and [download-artifact](https://github.com/actions/download-artifact). This package can also be used by other actions to interact with artifacts. Any changes or updates to this package will propagate updates to these actions so it is important that major changes or updates get properly tested. 
+This package is used internally by the v2+ versions of [upload-artifact](https://github.com/actions/upload-artifact) and [download-artifact](https://github.com/actions/download-artifact). This package can also be used by other actions to interact with artifacts. Any changes or updates to this package will propagate updates to these actions so it is important that major changes or updates get properly tested.
 
 Any issues or feature requests that are related to the artifact actions should be filled in the appropriate repo.
 
@@ -26,5 +26,5 @@ Any easy way to test changes is to fork the artifact actions and to use `npm lin
 2. Clone the forks locally
 3. With your local changes to the toolkit repo, type `npm link` after ensuring there are no errors when running `tsc`
 4. In the locally cloned fork, type `npm link @actions/artifact`
-4. Create a new release for your local fork using `tsc` and `npm run release` (this will create a new `dist/index.js` file using `@vercel/ncc`)
-5. Commit and push your local changes, you will then be able to test your changes with your forked action
+5. Create a new release for your local fork using `tsc` and `npm run release` (this will create a new `dist/index.js` file using `@vercel/ncc`)
+6. Commit and push your local changes, you will then be able to test your changes with your forked action

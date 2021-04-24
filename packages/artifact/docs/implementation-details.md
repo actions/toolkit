@@ -30,11 +30,10 @@ TCP connections are sometimes not immediately closed by the node client (Windows
 
 VMs hosted by GitHub Actions have 1024 available ports so uploading 1000+ files very quickly can cause port exhaustion if connections get closed immediately. This can start to cause strange undefined behavior and timeouts.
 
-In order for connections to not close immediately, the `keep-alive` header is used to indicate to the server that the connection should stay open. If a `keep-alive` header is used, the connection needs to be disposed of by calling `dispose()` in the `HttpClient`. 
+In order for connections to not close immediately, the `keep-alive` header is used to indicate to the server that the connection should stay open. If a `keep-alive` header is used, the connection needs to be disposed of by calling `dispose()` in the `HttpClient`.
 
 [`keep-alive` header information](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Keep-Alive)
 [@actions/http-client client disposal](https://github.com/actions/http-client/blob/04e5ad73cd3fd1f5610a32116b0759eddf6570d2/index.ts#L292)
-
 
 ### Multiple HTTP clients
 
@@ -45,6 +44,7 @@ Any other concurrent uploads or downloads should be left untouched. Because of t
 ### Potential resource leaks
 
 When an HTTP response is received, it consists of two parts
+
 - `message`
 - `body`
 

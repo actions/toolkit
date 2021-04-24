@@ -1,34 +1,37 @@
-import * as core from '@actions/core'
-import {HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IRequestOptions, ITypedResponse} from '@actions/http-client/interfaces'
-import * as crypto from 'crypto'
-import * as fs from 'fs'
-import {URL} from 'url'
+import * as core from '@actions/core';
+import {HttpClient} from '@actions/http-client';
+import {BearerCredentialHandler} from '@actions/http-client/auth';
+import {IRequestOptions, ITypedResponse} from '@actions/http-client/interfaces';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import {URL} from 'url';
 
-import * as utils from './cacheUtils'
-import {CompressionMethod} from './constants'
+import * as utils from './cacheUtils';
+import {CompressionMethod} from './constants';
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
   CommitCacheRequest,
   ReserveCacheRequest,
   ReserveCacheResponse
-} from './contracts'
-import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
+} from './contracts';
+import {
+  downloadCacheHttpClient,
+  downloadCacheStorageSDK
+} from './downloadUtils';
 import {
   DownloadOptions,
   UploadOptions,
   getDownloadOptions,
   getUploadOptions
-} from '../options'
+} from '../options';
 import {
   isSuccessStatusCode,
   retryHttpClientResponse,
   retryTypedResponse
-} from './requestUtils'
+} from './requestUtils';
 
-const versionSalt = '1.0'
+const versionSalt = '1.0';
 
 function getCacheApiUrl(resource: string): string {
   // Ideally we just use ACTIONS_CACHE_URL
@@ -36,18 +39,18 @@ function getCacheApiUrl(resource: string): string {
     process.env['ACTIONS_CACHE_URL'] ||
     process.env['ACTIONS_RUNTIME_URL'] ||
     ''
-  ).replace('pipelines', 'artifactcache')
+  ).replace('pipelines', 'artifactcache');
   if (!baseUrl) {
-    throw new Error('Cache Service Url not found, unable to restore cache.')
+    throw new Error('Cache Service Url not found, unable to restore cache.');
   }
 
-  const url = `${baseUrl}_apis/artifactcache/${resource}`
-  core.debug(`Resource Url: ${url}`)
-  return url
+  const url = `${baseUrl}_apis/artifactcache/${resource}`;
+  core.debug(`Resource Url: ${url}`);
+  return url;
 }
 
 function createAcceptHeader(type: string, apiVersion: string): string {
-  return `${type};api-version=${apiVersion}`
+  return `${type};api-version=${apiVersion}`;
 }
 
 function getRequestOptions(): IRequestOptions {
@@ -55,20 +58,20 @@ function getRequestOptions(): IRequestOptions {
     headers: {
       Accept: createAcceptHeader('application/json', '6.0-preview.1')
     }
-  }
+  };
 
-  return requestOptions
+  return requestOptions;
 }
 
 function createHttpClient(): HttpClient {
-  const token = process.env['ACTIONS_RUNTIME_TOKEN'] || ''
-  const bearerCredentialHandler = new BearerCredentialHandler(token)
+  const token = process.env['ACTIONS_RUNTIME_TOKEN'] || '';
+  const bearerCredentialHandler = new BearerCredentialHandler(token);
 
   return new HttpClient(
     'actions/cache',
     [bearerCredentialHandler],
     getRequestOptions()
-  )
+  );
 }
 
 export function getCacheVersion(
@@ -79,15 +82,12 @@ export function getCacheVersion(
     !compressionMethod || compressionMethod === CompressionMethod.Gzip
       ? []
       : [compressionMethod]
-  )
+  );
 
   // Add salt to cache version to support breaking changes in cache entry
-  components.push(versionSalt)
+  components.push(versionSalt);
 
-  return crypto
-    .createHash('sha256')
-    .update(components.join('|'))
-    .digest('hex')
+  return crypto.createHash('sha256').update(components.join('|')).digest('hex');
 }
 
 export async function getCacheEntry(
@@ -95,32 +95,32 @@ export async function getCacheEntry(
   paths: string[],
   options?: InternalCacheOptions
 ): Promise<ArtifactCacheEntry | null> {
-  const httpClient = createHttpClient()
-  const version = getCacheVersion(paths, options?.compressionMethod)
+  const httpClient = createHttpClient();
+  const version = getCacheVersion(paths, options?.compressionMethod);
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
-  )}&version=${version}`
+  )}&version=${version}`;
 
   const response = await retryTypedResponse('getCacheEntry', async () =>
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
-  )
+  );
   if (response.statusCode === 204) {
-    return null
+    return null;
   }
   if (!isSuccessStatusCode(response.statusCode)) {
-    throw new Error(`Cache service responded with ${response.statusCode}`)
+    throw new Error(`Cache service responded with ${response.statusCode}`);
   }
 
-  const cacheResult = response.result
-  const cacheDownloadUrl = cacheResult?.archiveLocation
+  const cacheResult = response.result;
+  const cacheDownloadUrl = cacheResult?.archiveLocation;
   if (!cacheDownloadUrl) {
-    throw new Error('Cache not found.')
+    throw new Error('Cache not found.');
   }
-  core.setSecret(cacheDownloadUrl)
-  core.debug(`Cache Result:`)
-  core.debug(JSON.stringify(cacheResult))
+  core.setSecret(cacheDownloadUrl);
+  core.debug(`Cache Result:`);
+  core.debug(JSON.stringify(cacheResult));
 
-  return cacheResult
+  return cacheResult;
 }
 
 export async function downloadCache(
@@ -128,18 +128,22 @@ export async function downloadCache(
   archivePath: string,
   options?: DownloadOptions
 ): Promise<void> {
-  const archiveUrl = new URL(archiveLocation)
-  const downloadOptions = getDownloadOptions(options)
+  const archiveUrl = new URL(archiveLocation);
+  const downloadOptions = getDownloadOptions(options);
 
   if (
     downloadOptions.useAzureSdk &&
     archiveUrl.hostname.endsWith('.blob.core.windows.net')
   ) {
     // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-    await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
+    await downloadCacheStorageSDK(
+      archiveLocation,
+      archivePath,
+      downloadOptions
+    );
   } else {
     // Otherwise, download using the Actions http-client.
-    await downloadCacheHttpClient(archiveLocation, archivePath)
+    await downloadCacheHttpClient(archiveLocation, archivePath);
   }
 }
 
@@ -149,20 +153,20 @@ export async function reserveCache(
   paths: string[],
   options?: InternalCacheOptions
 ): Promise<number> {
-  const httpClient = createHttpClient()
-  const version = getCacheVersion(paths, options?.compressionMethod)
+  const httpClient = createHttpClient();
+  const version = getCacheVersion(paths, options?.compressionMethod);
 
   const reserveCacheRequest: ReserveCacheRequest = {
     key,
     version
-  }
+  };
   const response = await retryTypedResponse('reserveCache', async () =>
     httpClient.postJson<ReserveCacheResponse>(
       getCacheApiUrl('caches'),
       reserveCacheRequest
     )
-  )
-  return response?.result?.cacheId ?? -1
+  );
+  return response?.result?.cacheId ?? -1;
 }
 
 function getContentRange(start: number, end: number): string {
@@ -171,7 +175,7 @@ function getContentRange(start: number, end: number): string {
   // filesize can be *
   // For a 200 byte chunk starting at byte 0:
   // Content-Range: bytes 0-199/*
-  return `bytes ${start}-${end}/*`
+  return `bytes ${start}-${end}/*`;
 }
 
 async function uploadChunk(
@@ -182,17 +186,17 @@ async function uploadChunk(
   end: number
 ): Promise<void> {
   core.debug(
-    `Uploading chunk of size ${end -
-      start +
-      1} bytes at offset ${start} with content range: ${getContentRange(
+    `Uploading chunk of size ${
+      end - start + 1
+    } bytes at offset ${start} with content range: ${getContentRange(
       start,
       end
     )}`
-  )
+  );
   const additionalHeaders = {
     'Content-Type': 'application/octet-stream',
     'Content-Range': getContentRange(start, end)
-  }
+  };
 
   const uploadChunkResponse = await retryHttpClientResponse(
     `uploadChunk (start: ${start}, end: ${end})`,
@@ -203,12 +207,12 @@ async function uploadChunk(
         openStream(),
         additionalHeaders
       )
-  )
+  );
 
   if (!isSuccessStatusCode(uploadChunkResponse.message.statusCode)) {
     throw new Error(
       `Cache service responded with ${uploadChunkResponse.message.statusCode} during upload chunk.`
-    )
+    );
   }
 }
 
@@ -219,32 +223,32 @@ async function uploadFile(
   options?: UploadOptions
 ): Promise<void> {
   // Upload Chunks
-  const fileSize = fs.statSync(archivePath).size
-  const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`)
-  const fd = fs.openSync(archivePath, 'r')
-  const uploadOptions = getUploadOptions(options)
+  const fileSize = fs.statSync(archivePath).size;
+  const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`);
+  const fd = fs.openSync(archivePath, 'r');
+  const uploadOptions = getUploadOptions(options);
 
   const concurrency = utils.assertDefined(
     'uploadConcurrency',
     uploadOptions.uploadConcurrency
-  )
+  );
   const maxChunkSize = utils.assertDefined(
     'uploadChunkSize',
     uploadOptions.uploadChunkSize
-  )
+  );
 
-  const parallelUploads = [...new Array(concurrency).keys()]
-  core.debug('Awaiting all uploads')
-  let offset = 0
+  const parallelUploads = [...new Array(concurrency).keys()];
+  core.debug('Awaiting all uploads');
+  let offset = 0;
 
   try {
     await Promise.all(
       parallelUploads.map(async () => {
         while (offset < fileSize) {
-          const chunkSize = Math.min(fileSize - offset, maxChunkSize)
-          const start = offset
-          const end = offset + chunkSize - 1
-          offset += maxChunkSize
+          const chunkSize = Math.min(fileSize - offset, maxChunkSize);
+          const start = offset;
+          const end = offset + chunkSize - 1;
+          offset += maxChunkSize;
 
           await uploadChunk(
             httpClient,
@@ -260,18 +264,18 @@ async function uploadFile(
                 .on('error', error => {
                   throw new Error(
                     `Cache upload failed because file read failed with ${error.message}`
-                  )
+                  );
                 }),
             start,
             end
-          )
+          );
         }
       })
-    )
+    );
   } finally {
-    fs.closeSync(fd)
+    fs.closeSync(fd);
   }
-  return
+  return;
 }
 
 async function commitCache(
@@ -279,13 +283,13 @@ async function commitCache(
   cacheId: number,
   filesize: number
 ): Promise<ITypedResponse<null>> {
-  const commitCacheRequest: CommitCacheRequest = {size: filesize}
+  const commitCacheRequest: CommitCacheRequest = {size: filesize};
   return await retryTypedResponse('commitCache', async () =>
     httpClient.postJson<null>(
       getCacheApiUrl(`caches/${cacheId.toString()}`),
       commitCacheRequest
     )
-  )
+  );
 }
 
 export async function saveCache(
@@ -293,24 +297,24 @@ export async function saveCache(
   archivePath: string,
   options?: UploadOptions
 ): Promise<void> {
-  const httpClient = createHttpClient()
+  const httpClient = createHttpClient();
 
-  core.debug('Upload cache')
-  await uploadFile(httpClient, cacheId, archivePath, options)
+  core.debug('Upload cache');
+  await uploadFile(httpClient, cacheId, archivePath, options);
 
   // Commit Cache
-  core.debug('Commiting cache')
-  const cacheSize = utils.getArchiveFileSizeIsBytes(archivePath)
+  core.debug('Commiting cache');
+  const cacheSize = utils.getArchiveFileSizeIsBytes(archivePath);
   core.info(
     `Cache Size: ~${Math.round(cacheSize / (1024 * 1024))} MB (${cacheSize} B)`
-  )
+  );
 
-  const commitCacheResponse = await commitCache(httpClient, cacheId, cacheSize)
+  const commitCacheResponse = await commitCache(httpClient, cacheId, cacheSize);
   if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
     throw new Error(
       `Cache service responded with ${commitCacheResponse.statusCode} during commit cache.`
-    )
+    );
   }
 
-  core.info('Cache saved successfully')
+  core.info('Cache saved successfully');
 }

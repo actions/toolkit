@@ -1,26 +1,26 @@
-import * as Context from './context'
-import * as Utils from './internal/utils'
+import * as Context from './context';
+import * as Utils from './internal/utils';
 
 // octokit + plugins
-import {Octokit} from '@octokit/core'
-import {OctokitOptions} from '@octokit/core/dist-types/types'
-import {restEndpointMethods} from '@octokit/plugin-rest-endpoint-methods'
-import {paginateRest} from '@octokit/plugin-paginate-rest'
+import {Octokit} from '@octokit/core';
+import {OctokitOptions} from '@octokit/core/dist-types/types';
+import {restEndpointMethods} from '@octokit/plugin-rest-endpoint-methods';
+import {paginateRest} from '@octokit/plugin-paginate-rest';
 
-export const context = new Context.Context()
+export const context = new Context.Context();
 
-const baseUrl = Utils.getApiBaseUrl()
+const baseUrl = Utils.getApiBaseUrl();
 const defaults = {
   baseUrl,
   request: {
     agent: Utils.getProxyAgent(baseUrl)
   }
-}
+};
 
 export const GitHub = Octokit.plugin(
   restEndpointMethods,
   paginateRest
-).defaults(defaults)
+).defaults(defaults);
 
 /**
  * Convience function to correctly format Octokit Options to pass into the constructor.
@@ -32,13 +32,13 @@ export function getOctokitOptions(
   token: string,
   options?: OctokitOptions
 ): OctokitOptions {
-  const opts = Object.assign({}, options || {}) // Shallow clone - don't mutate the object provided by the caller
+  const opts = Object.assign({}, options || {}); // Shallow clone - don't mutate the object provided by the caller
 
   // Auth
-  const auth = Utils.getAuthString(token, opts)
+  const auth = Utils.getAuthString(token, opts);
   if (auth) {
-    opts.auth = auth
+    opts.auth = auth;
   }
 
-  return opts
+  return opts;
 }

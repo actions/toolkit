@@ -6,7 +6,5 @@
     "rootDir": "./src",
     "lib": ["es6", "dom"]
   },
-  "include": [
-    "./src"
-  ]
+  "include": ["./src"]
 }
