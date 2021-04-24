@@ -24,10 +24,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Set Node.js 12.x
+    - name: Set Node.js 16.x
       uses: actions/setup-node@v1
       with:
-        node-version: 12.x
+        node-version: 16.x
 
     # In order to upload & download artifacts from a shell script, certain env variables need to be set that are only available in the
     # node context. This runs a local action that gets and sets the necessary env variables that are needed
@@ -44,7 +44,7 @@ jobs:
         npm ci
         npm run tsc
       working-directory: packages/artifact
-    
+
     - name: Set artifact file contents
       shell: bash
       run: |
@@ -53,7 +53,7 @@ jobs:
 
     - name: Create files that will be uploaded
       run: |
-        mkdir artifact-path 
+        mkdir artifact-path
         echo ${{ env.non-gzip-artifact-content }} > artifact-path/world.txt
         echo ${{ env.gzip-artifact-content }} > artifact-path/gzip.txt
 
@@ -69,7 +69,7 @@ jobs:
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-1','artifact-1-directory'))"
         mkdir artifact-2-directory
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-2','artifact-2-directory'))"
-    
+
     - name: Verify downloadArtifact()
       shell: bash
       run: |

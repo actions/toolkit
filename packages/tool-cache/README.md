@@ -72,7 +72,7 @@ Finally, you can find directories and files you've previously cached:
 const tc = require('@actions/tool-cache');
 const core = require('@actions/core');
 
-const nodeDirectory = tc.find('node', '12.x', 'x64');
+const nodeDirectory = tc.find('node', '16.x', 'x64');
 core.addPath(nodeDirectory);
 ```
 
