@@ -35,6 +35,12 @@ jobs:
       - name: Bootstrap
         run: npm run bootstrap
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Format
+        run: npm run format-check
+
       - name: Compile
         run: npm run build
 
@@ -42,9 +48,3 @@ jobs:
         run: npm test
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Format
-        run: npm run format-check
