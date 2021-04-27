@@ -135,7 +135,7 @@ CMD processes the `"` character differently from other shells when echoing. In C
 echo ::set-output name=FOO::BAR
 ```
 
-# Environment files
+## Environment files
 
 During the execution of a workflow, the runner generates temporary files that can be used to perform certain actions. The path to these files are exposed via environment variables. You will need to use the `utf-8` encoding when writing to these files to ensure proper processing of the commands. Multiple commands can be written to the same file, separated by newlines.
 
