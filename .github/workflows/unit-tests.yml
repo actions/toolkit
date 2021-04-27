@@ -10,7 +10,6 @@ on:
       - '**.md'
 
 jobs:
-
   build:
     name: Build
 
@@ -22,30 +21,30 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Set Node.js 12.x
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12.x
+      - name: Set Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
 
-    - name: npm install
-      run: npm install
+      - name: npm install
+        run: npm install
 
-    - name: Bootstrap
-      run: npm run bootstrap
+      - name: Bootstrap
+        run: npm run bootstrap
 
-    - name: Compile
-      run: npm run build
+      - name: Lint
+        run: npm run lint
 
-    - name: npm test
-      run: npm test
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+      - name: Format
+        run: npm run format-check
 
-    - name: Lint
-      run: npm run lint
+      - name: Compile
+        run: npm run build
 
-    - name: Format
-      run: npm run format-check
+      - name: npm test
+        run: npm test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

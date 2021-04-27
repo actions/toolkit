@@ -14,7 +14,7 @@ export interface UploadOptions {
    * files with the exception of the problematic files(s)/chunks(s) that failed to upload
    *
    */
-  continueOnError?: boolean
+  continueOnError?: boolean;
 
   /**
    * Duration after which artifact will expire in days.
@@ -31,5 +31,5 @@ export interface UploadOptions {
    * will be reduced to match the max value allowed on server, and the upload process will continue. An
    * input of 0 assumes default retention setting.
    */
-  retentionDays?: number
+  retentionDays?: number;
 }

@@ -1,16 +1,16 @@
-import {debug, info, warning} from '@actions/core'
-import {promises as fs} from 'fs'
-import {HttpCodes, HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces'
-import {IncomingHttpHeaders} from 'http'
+import {debug, info, warning} from '@actions/core';
+import {promises as fs} from 'fs';
+import {HttpCodes, HttpClient} from '@actions/http-client';
+import {BearerCredentialHandler} from '@actions/http-client/auth';
+import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces';
+import {IncomingHttpHeaders} from 'http';
 import {
   getRuntimeToken,
   getRuntimeUrl,
   getWorkFlowRunId,
   getRetryMultiplier,
   getInitialRetryIntervalInMilliseconds
-} from './config-variables'
+} from './config-variables';
 
 /**
  * Returns a retry time in milliseconds that exponentially gets larger
@@ -20,54 +20,54 @@ export function getExponentialRetryTimeInMilliseconds(
   retryCount: number
 ): number {
   if (retryCount < 0) {
-    throw new Error('RetryCount should not be negative')
+    throw new Error('RetryCount should not be negative');
   } else if (retryCount === 0) {
-    return getInitialRetryIntervalInMilliseconds()
+    return getInitialRetryIntervalInMilliseconds();
   }
 
   const minTime =
-    getInitialRetryIntervalInMilliseconds() * getRetryMultiplier() * retryCount
-  const maxTime = minTime * getRetryMultiplier()
+    getInitialRetryIntervalInMilliseconds() * getRetryMultiplier() * retryCount;
+  const maxTime = minTime * getRetryMultiplier();
 
   // returns a random number between the minTime (inclusive) and the maxTime (exclusive)
-  return Math.random() * (maxTime - minTime) + minTime
+  return Math.random() * (maxTime - minTime) + minTime;
 }
 
 /**
  * Parses a env variable that is a number
  */
 export function parseEnvNumber(key: string): number | undefined {
-  const value = Number(process.env[key])
+  const value = Number(process.env[key]);
   if (Number.isNaN(value) || value < 0) {
-    return undefined
+    return undefined;
   }
-  return value
+  return value;
 }
 
 /**
  * Various utility functions to help with the necessary API calls
  */
 export function getApiVersion(): string {
-  return '6.0-preview'
+  return '6.0-preview';
 }
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
-    return false
+    return false;
   }
-  return statusCode >= 200 && statusCode < 300
+  return statusCode >= 200 && statusCode < 300;
 }
 
 export function isForbiddenStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
-    return false
+    return false;
   }
-  return statusCode === HttpCodes.Forbidden
+  return statusCode === HttpCodes.Forbidden;
 }
 
 export function isRetryableStatusCode(statusCode: number | undefined): boolean {
   if (!statusCode) {
-    return false
+    return false;
   }
 
   const retryableStatusCodes = [
@@ -76,15 +76,15 @@ export function isRetryableStatusCode(statusCode: number | undefined): boolean {
     HttpCodes.GatewayTimeout,
     HttpCodes.TooManyRequests,
     413 // Payload Too Large
-  ]
-  return retryableStatusCodes.includes(statusCode)
+  ];
+  return retryableStatusCodes.includes(statusCode);
 }
 
 export function isThrottledStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
-    return false
+    return false;
   }
-  return statusCode === HttpCodes.TooManyRequests
+  return statusCode === HttpCodes.TooManyRequests;
 }
 
 /**
@@ -96,22 +96,22 @@ export function tryGetRetryAfterValueTimeInMilliseconds(
   headers: IncomingHttpHeaders
 ): number | undefined {
   if (headers['retry-after']) {
-    const retryTime = Number(headers['retry-after'])
+    const retryTime = Number(headers['retry-after']);
     if (!isNaN(retryTime)) {
-      info(`Retry-After header is present with a value of ${retryTime}`)
-      return retryTime * 1000
+      info(`Retry-After header is present with a value of ${retryTime}`);
+      return retryTime * 1000;
     }
     info(
       `Returned retry-after header value: ${retryTime} is non-numeric and cannot be used`
-    )
-    return undefined
+    );
+    return undefined;
   }
   info(
     `No retry-after header was found. Dumping all headers for diagnostic purposes`
-  )
+  );
   // eslint-disable-next-line no-console
-  console.log(headers)
-  return undefined
+  console.log(headers);
+  return undefined;
 }
 
 export function getContentRange(
@@ -123,7 +123,7 @@ export function getContentRange(
   // start and end are inclusive
   // For a 200 byte chunk starting at byte 0:
   // Content-Range: bytes 0-199/200
-  return `bytes ${start}-${end}/${total}`
+  return `bytes ${start}-${end}/${total}`;
 }
 
 /**
@@ -139,28 +139,30 @@ export function getDownloadHeaders(
   isKeepAlive?: boolean,
   acceptGzip?: boolean
 ): IHeaders {
-  const requestOptions: IHeaders = {}
+  const requestOptions: IHeaders = {};
 
   if (contentType) {
-    requestOptions['Content-Type'] = contentType
+    requestOptions['Content-Type'] = contentType;
   }
   if (isKeepAlive) {
-    requestOptions['Connection'] = 'Keep-Alive'
+    requestOptions['Connection'] = 'Keep-Alive';
     // keep alive for at least 10 seconds before closing the connection
-    requestOptions['Keep-Alive'] = '10'
+    requestOptions['Keep-Alive'] = '10';
   }
   if (acceptGzip) {
     // if we are expecting a response with gzip encoding, it should be using an octet-stream in the accept header
-    requestOptions['Accept-Encoding'] = 'gzip'
+    requestOptions['Accept-Encoding'] = 'gzip';
     requestOptions[
       'Accept'
-    ] = `application/octet-stream;api-version=${getApiVersion()}`
+    ] = `application/octet-stream;api-version=${getApiVersion()}`;
   } else {
     // default to application/json if we are not working with gzip content
-    requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
+    requestOptions[
+      'Accept'
+    ] = `application/json;api-version=${getApiVersion()}`;
   }
 
-  return requestOptions
+  return requestOptions;
 }
 
 /**
@@ -181,40 +183,40 @@ export function getUploadHeaders(
   contentLength?: number,
   contentRange?: string
 ): IHeaders {
-  const requestOptions: IHeaders = {}
-  requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
+  const requestOptions: IHeaders = {};
+  requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`;
   if (contentType) {
-    requestOptions['Content-Type'] = contentType
+    requestOptions['Content-Type'] = contentType;
   }
   if (isKeepAlive) {
-    requestOptions['Connection'] = 'Keep-Alive'
+    requestOptions['Connection'] = 'Keep-Alive';
     // keep alive for at least 10 seconds before closing the connection
-    requestOptions['Keep-Alive'] = '10'
+    requestOptions['Keep-Alive'] = '10';
   }
   if (isGzip) {
-    requestOptions['Content-Encoding'] = 'gzip'
-    requestOptions['x-tfs-filelength'] = uncompressedLength
+    requestOptions['Content-Encoding'] = 'gzip';
+    requestOptions['x-tfs-filelength'] = uncompressedLength;
   }
   if (contentLength) {
-    requestOptions['Content-Length'] = contentLength
+    requestOptions['Content-Length'] = contentLength;
   }
   if (contentRange) {
-    requestOptions['Content-Range'] = contentRange
+    requestOptions['Content-Range'] = contentRange;
   }
 
-  return requestOptions
+  return requestOptions;
 }
 
 export function createHttpClient(userAgent: string): HttpClient {
   return new HttpClient(userAgent, [
     new BearerCredentialHandler(getRuntimeToken())
-  ])
+  ]);
 }
 
 export function getArtifactUrl(): string {
-  const artifactUrl = `${getRuntimeUrl()}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${getApiVersion()}`
-  debug(`Artifact Url: ${artifactUrl}`)
-  return artifactUrl
+  const artifactUrl = `${getRuntimeUrl()}_apis/pipelines/workflows/${getWorkFlowRunId()}/artifacts?api-version=${getApiVersion()}`;
+  debug(`Artifact Url: ${artifactUrl}`);
+  return artifactUrl;
 }
 
 /**
@@ -233,7 +235,7 @@ Status Code: ${response.message.statusCode}
 Status Message: ${response.message.statusMessage}
 Header Information: ${JSON.stringify(response.message.headers, undefined, 2)}
 ###### End Diagnostic HTTP information ######`
-  )
+  );
 }
 
 /**
@@ -244,26 +246,26 @@ Header Information: ${JSON.stringify(response.message.headers, undefined, 2)}
  *
  * FilePaths can include characters such as \ and / which are not permitted in the artifact name alone
  */
-const invalidArtifactFilePathCharacters = ['"', ':', '<', '>', '|', '*', '?']
+const invalidArtifactFilePathCharacters = ['"', ':', '<', '>', '|', '*', '?'];
 const invalidArtifactNameCharacters = [
   ...invalidArtifactFilePathCharacters,
   '\\',
   '/'
-]
+];
 
 /**
  * Scans the name of the artifact to make sure there are no illegal characters
  */
 export function checkArtifactName(name: string): void {
   if (!name) {
-    throw new Error(`Artifact name: ${name}, is incorrectly provided`)
+    throw new Error(`Artifact name: ${name}, is incorrectly provided`);
   }
 
   for (const invalidChar of invalidArtifactNameCharacters) {
     if (name.includes(invalidChar)) {
       throw new Error(
         `Artifact name is not valid: ${name}. Contains character: "${invalidChar}". Invalid artifact name characters include: ${invalidArtifactNameCharacters.toString()}.`
-      )
+      );
     }
   }
 }
@@ -273,14 +275,14 @@ export function checkArtifactName(name: string): void {
  */
 export function checkArtifactFilePath(path: string): void {
   if (!path) {
-    throw new Error(`Artifact path: ${path}, is incorrectly provided`)
+    throw new Error(`Artifact path: ${path}, is incorrectly provided`);
   }
 
   for (const invalidChar of invalidArtifactFilePathCharacters) {
     if (path.includes(invalidChar)) {
       throw new Error(
         `Artifact path is not valid: ${path}. Contains character: "${invalidChar}". Invalid characters include: ${invalidArtifactFilePathCharacters.toString()}.`
-      )
+      );
     }
   }
 }
@@ -291,7 +293,7 @@ export async function createDirectoriesForArtifact(
   for (const directory of directories) {
     await fs.mkdir(directory, {
       recursive: true
-    })
+    });
   }
 }
 
@@ -299,20 +301,20 @@ export async function createEmptyFilesForArtifact(
   emptyFilesToCreate: string[]
 ): Promise<void> {
   for (const filePath of emptyFilesToCreate) {
-    await (await fs.open(filePath, 'w')).close()
+    await (await fs.open(filePath, 'w')).close();
   }
 }
 
 export async function getFileSize(filePath: string): Promise<number> {
-  const stats = await fs.stat(filePath)
+  const stats = await fs.stat(filePath);
   debug(
     `${filePath} size:(${stats.size}) blksize:(${stats.blksize}) blocks:(${stats.blocks})`
-  )
-  return stats.size
+  );
+  return stats.size;
 }
 
 export async function rmFile(filePath: string): Promise<void> {
-  await fs.unlink(filePath)
+  await fs.unlink(filePath);
 }
 
 export function getProperRetention(
@@ -320,22 +322,22 @@ export function getProperRetention(
   retentionSetting: string | undefined
 ): number {
   if (retentionInput < 0) {
-    throw new Error('Invalid retention, minimum value is 1.')
+    throw new Error('Invalid retention, minimum value is 1.');
   }
 
-  let retention = retentionInput
+  let retention = retentionInput;
   if (retentionSetting) {
-    const maxRetention = parseInt(retentionSetting)
+    const maxRetention = parseInt(retentionSetting);
     if (!isNaN(maxRetention) && maxRetention < retention) {
       warning(
         `Retention days is greater than the max value allowed by the repository setting, reduce retention to ${maxRetention} days`
-      )
-      retention = maxRetention
+      );
+      retention = maxRetention;
     }
   }
-  return retention
+  return retention;
 }
 
 export async function sleep(milliseconds: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
 }

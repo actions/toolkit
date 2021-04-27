@@ -1,30 +1,30 @@
-import * as core from '@actions/core'
-import * as io from '@actions/io'
-import * as fs from 'fs'
-import * as mm from './manifest'
-import * as os from 'os'
-import * as path from 'path'
-import * as httpm from '@actions/http-client'
-import * as semver from 'semver'
-import * as stream from 'stream'
-import * as util from 'util'
-import uuidV4 from 'uuid/v4'
-import {exec} from '@actions/exec/lib/exec'
-import {ExecOptions} from '@actions/exec/lib/interfaces'
-import {ok} from 'assert'
-import {RetryHelper} from './retry-helper'
-import {IHeaders} from '@actions/http-client/interfaces'
+import * as core from '@actions/core';
+import * as io from '@actions/io';
+import * as fs from 'fs';
+import * as mm from './manifest';
+import * as os from 'os';
+import * as path from 'path';
+import * as httpm from '@actions/http-client';
+import * as semver from 'semver';
+import * as stream from 'stream';
+import * as util from 'util';
+import uuidV4 from 'uuid/v4';
+import {exec} from '@actions/exec/lib/exec';
+import {ExecOptions} from '@actions/exec/lib/interfaces';
+import {ok} from 'assert';
+import {RetryHelper} from './retry-helper';
+import {IHeaders} from '@actions/http-client/interfaces';
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
-    super(`Unexpected HTTP response: ${httpStatusCode}`)
-    Object.setPrototypeOf(this, new.target.prototype)
+    super(`Unexpected HTTP response: ${httpStatusCode}`);
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
-const IS_WINDOWS = process.platform === 'win32'
-const IS_MAC = process.platform === 'darwin'
-const userAgent = 'actions/tool-cache'
+const IS_WINDOWS = process.platform === 'win32';
+const IS_MAC = process.platform === 'darwin';
+const userAgent = 'actions/tool-cache';
 
 /**
  * Download a tool from an url and stream it into a file
@@ -39,24 +39,24 @@ export async function downloadTool(
   dest?: string,
   auth?: string
 ): Promise<string> {
-  dest = dest || path.join(_getTempDirectory(), uuidV4())
-  await io.mkdirP(path.dirname(dest))
-  core.debug(`Downloading ${url}`)
-  core.debug(`Destination ${dest}`)
+  dest = dest || path.join(_getTempDirectory(), uuidV4());
+  await io.mkdirP(path.dirname(dest));
+  core.debug(`Downloading ${url}`);
+  core.debug(`Destination ${dest}`);
 
-  const maxAttempts = 3
+  const maxAttempts = 3;
   const minSeconds = _getGlobal<number>(
     'TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS',
     10
-  )
+  );
   const maxSeconds = _getGlobal<number>(
     'TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS',
     20
-  )
-  const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
+  );
+  const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds);
   return await retryHelper.execute(
     async () => {
-      return await downloadToolAttempt(url, dest || '', auth)
+      return await downloadToolAttempt(url, dest || '', auth);
     },
     (err: Error) => {
       if (err instanceof HTTPError && err.httpStatusCode) {
@@ -66,14 +66,14 @@ export async function downloadTool(
           err.httpStatusCode !== 408 &&
           err.httpStatusCode !== 429
         ) {
-          return false
+          return false;
         }
       }
 
       // Otherwise retry
-      return true
+      return true;
     }
-  )
+  );
 }
 
 async function downloadToolAttempt(
@@ -82,52 +82,52 @@ async function downloadToolAttempt(
   auth?: string
 ): Promise<string> {
   if (fs.existsSync(dest)) {
-    throw new Error(`Destination file path ${dest} already exists`)
+    throw new Error(`Destination file path ${dest} already exists`);
   }
 
   // Get the response headers
   const http = new httpm.HttpClient(userAgent, [], {
     allowRetries: false
-  })
+  });
 
-  let headers: IHeaders | undefined
+  let headers: IHeaders | undefined;
   if (auth) {
-    core.debug('set auth')
+    core.debug('set auth');
     headers = {
       authorization: auth
-    }
+    };
   }
 
-  const response: httpm.HttpClientResponse = await http.get(url, headers)
+  const response: httpm.HttpClientResponse = await http.get(url, headers);
   if (response.message.statusCode !== 200) {
-    const err = new HTTPError(response.message.statusCode)
+    const err = new HTTPError(response.message.statusCode);
     core.debug(
       `Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`
-    )
-    throw err
+    );
+    throw err;
   }
 
   // Download the response body
-  const pipeline = util.promisify(stream.pipeline)
+  const pipeline = util.promisify(stream.pipeline);
   const responseMessageFactory = _getGlobal<() => stream.Readable>(
     'TEST_DOWNLOAD_TOOL_RESPONSE_MESSAGE_FACTORY',
     () => response.message
-  )
-  const readStream = responseMessageFactory()
-  let succeeded = false
+  );
+  const readStream = responseMessageFactory();
+  let succeeded = false;
   try {
-    await pipeline(readStream, fs.createWriteStream(dest))
-    core.debug('download complete')
-    succeeded = true
-    return dest
+    await pipeline(readStream, fs.createWriteStream(dest));
+    core.debug('download complete');
+    succeeded = true;
+    return dest;
   } finally {
     // Error, delete dest before retry
     if (!succeeded) {
-      core.debug('download failed')
+      core.debug('download failed');
       try {
-        await io.rmRF(dest)
+        await io.rmRF(dest);
       } catch (err) {
-        core.debug(`Failed to delete '${dest}'. ${err.message}`)
+        core.debug(`Failed to delete '${dest}'. ${err.message}`);
       }
     }
   }
@@ -153,38 +153,38 @@ export async function extract7z(
   dest?: string,
   _7zPath?: string
 ): Promise<string> {
-  ok(IS_WINDOWS, 'extract7z() not supported on current OS')
-  ok(file, 'parameter "file" is required')
+  ok(IS_WINDOWS, 'extract7z() not supported on current OS');
+  ok(file, 'parameter "file" is required');
 
-  dest = await _createExtractFolder(dest)
+  dest = await _createExtractFolder(dest);
 
-  const originalCwd = process.cwd()
-  process.chdir(dest)
+  const originalCwd = process.cwd();
+  process.chdir(dest);
   if (_7zPath) {
     try {
-      const logLevel = core.isDebug() ? '-bb1' : '-bb0'
+      const logLevel = core.isDebug() ? '-bb1' : '-bb0';
       const args: string[] = [
         'x', // eXtract files with full paths
         logLevel, // -bb[0-3] : set output log level
         '-bd', // disable progress indicator
         '-sccUTF-8', // set charset for for console input/output
         file
-      ]
+      ];
       const options: ExecOptions = {
         silent: true
-      }
-      await exec(`"${_7zPath}"`, args, options)
+      };
+      await exec(`"${_7zPath}"`, args, options);
     } finally {
-      process.chdir(originalCwd)
+      process.chdir(originalCwd);
     }
   } else {
     const escapedScript = path
       .join(__dirname, '..', 'scripts', 'Invoke-7zdec.ps1')
       .replace(/'/g, "''")
-      .replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
-    const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-    const escapedTarget = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-    const command = `& '${escapedScript}' -Source '${escapedFile}' -Target '${escapedTarget}'`
+      .replace(/"|\n|\r/g, ''); // double-up single quotes, remove double quotes and newlines
+    const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '');
+    const escapedTarget = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '');
+    const command = `& '${escapedScript}' -Source '${escapedFile}' -Target '${escapedTarget}'`;
     const args: string[] = [
       '-NoLogo',
       '-Sta',
@@ -194,19 +194,19 @@ export async function extract7z(
       'Unrestricted',
       '-Command',
       command
-    ]
+    ];
     const options: ExecOptions = {
       silent: true
-    }
+    };
     try {
-      const powershellPath: string = await io.which('powershell', true)
-      await exec(`"${powershellPath}"`, args, options)
+      const powershellPath: string = await io.which('powershell', true);
+      await exec(`"${powershellPath}"`, args, options);
     } finally {
-      process.chdir(originalCwd)
+      process.chdir(originalCwd);
     }
   }
 
-  return dest
+  return dest;
 }
 
 /**
@@ -223,15 +223,15 @@ export async function extractTar(
   flags: string | string[] = 'xz'
 ): Promise<string> {
   if (!file) {
-    throw new Error("parameter 'file' is required")
+    throw new Error("parameter 'file' is required");
   }
 
   // Create dest
-  dest = await _createExtractFolder(dest)
+  dest = await _createExtractFolder(dest);
 
   // Determine whether GNU tar
-  core.debug('Checking tar --version')
-  let versionOutput = ''
+  core.debug('Checking tar --version');
+  let versionOutput = '';
   await exec('tar --version', [], {
     ignoreReturnCode: true,
     silent: true,
@@ -239,42 +239,42 @@ export async function extractTar(
       stdout: (data: Buffer) => (versionOutput += data.toString()),
       stderr: (data: Buffer) => (versionOutput += data.toString())
     }
-  })
-  core.debug(versionOutput.trim())
-  const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR')
+  });
+  core.debug(versionOutput.trim());
+  const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR');
 
   // Initialize args
-  let args: string[]
+  let args: string[];
   if (flags instanceof Array) {
-    args = flags
+    args = flags;
   } else {
-    args = [flags]
+    args = [flags];
   }
 
   if (core.isDebug() && !flags.includes('v')) {
-    args.push('-v')
+    args.push('-v');
   }
 
-  let destArg = dest
-  let fileArg = file
+  let destArg = dest;
+  let fileArg = file;
   if (IS_WINDOWS && isGnuTar) {
-    args.push('--force-local')
-    destArg = dest.replace(/\\/g, '/')
+    args.push('--force-local');
+    destArg = dest.replace(/\\/g, '/');
 
     // Technically only the dest needs to have `/` but for aesthetic consistency
     // convert slashes in the file arg too.
-    fileArg = file.replace(/\\/g, '/')
+    fileArg = file.replace(/\\/g, '/');
   }
 
   if (isGnuTar) {
     // Suppress warnings when using GNU tar to extract archives created by BSD tar
-    args.push('--warning=no-unknown-keyword')
+    args.push('--warning=no-unknown-keyword');
   }
 
-  args.push('-C', destArg, '-f', fileArg)
-  await exec(`tar`, args)
+  args.push('-C', destArg, '-f', fileArg);
+  await exec(`tar`, args);
 
-  return dest
+  return dest;
 }
 
 /**
@@ -290,28 +290,28 @@ export async function extractXar(
   dest?: string,
   flags: string | string[] = []
 ): Promise<string> {
-  ok(IS_MAC, 'extractXar() not supported on current OS')
-  ok(file, 'parameter "file" is required')
+  ok(IS_MAC, 'extractXar() not supported on current OS');
+  ok(file, 'parameter "file" is required');
 
-  dest = await _createExtractFolder(dest)
+  dest = await _createExtractFolder(dest);
 
-  let args: string[]
+  let args: string[];
   if (flags instanceof Array) {
-    args = flags
+    args = flags;
   } else {
-    args = [flags]
+    args = [flags];
   }
 
-  args.push('-x', '-C', dest, '-f', file)
+  args.push('-x', '-C', dest, '-f', file);
 
   if (core.isDebug()) {
-    args.push('-v')
+    args.push('-v');
   }
 
-  const xarPath: string = await io.which('xar', true)
-  await exec(`"${xarPath}"`, _unique(args))
+  const xarPath: string = await io.which('xar', true);
+  await exec(`"${xarPath}"`, _unique(args));
 
-  return dest
+  return dest;
 }
 
 /**
@@ -323,28 +323,28 @@ export async function extractXar(
  */
 export async function extractZip(file: string, dest?: string): Promise<string> {
   if (!file) {
-    throw new Error("parameter 'file' is required")
+    throw new Error("parameter 'file' is required");
   }
 
-  dest = await _createExtractFolder(dest)
+  dest = await _createExtractFolder(dest);
 
   if (IS_WINDOWS) {
-    await extractZipWin(file, dest)
+    await extractZipWin(file, dest);
   } else {
-    await extractZipNix(file, dest)
+    await extractZipNix(file, dest);
   }
 
-  return dest
+  return dest;
 }
 
 async function extractZipWin(file: string, dest: string): Promise<void> {
   // build the powershell command
-  const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
-  const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-  const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
+  const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, ''); // double-up single quotes, remove double quotes and newlines
+  const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '');
+  const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`;
 
   // run powershell
-  const powershellPath = await io.which('powershell', true)
+  const powershellPath = await io.which('powershell', true);
   const args = [
     '-NoLogo',
     '-Sta',
@@ -354,17 +354,17 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
     'Unrestricted',
     '-Command',
     command
-  ]
-  await exec(`"${powershellPath}"`, args)
+  ];
+  await exec(`"${powershellPath}"`, args);
 }
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
-  const unzipPath = await io.which('unzip', true)
-  const args = [file]
+  const unzipPath = await io.which('unzip', true);
+  const args = [file];
   if (!core.isDebug()) {
-    args.unshift('-q')
+    args.unshift('-q');
   }
-  await exec(`"${unzipPath}"`, args, {cwd: dest})
+  await exec(`"${unzipPath}"`, args, {cwd: dest});
 }
 
 /**
@@ -381,28 +381,28 @@ export async function cacheDir(
   version: string,
   arch?: string
 ): Promise<string> {
-  version = semver.clean(version) || version
-  arch = arch || os.arch()
-  core.debug(`Caching tool ${tool} ${version} ${arch}`)
+  version = semver.clean(version) || version;
+  arch = arch || os.arch();
+  core.debug(`Caching tool ${tool} ${version} ${arch}`);
 
-  core.debug(`source dir: ${sourceDir}`)
+  core.debug(`source dir: ${sourceDir}`);
   if (!fs.statSync(sourceDir).isDirectory()) {
-    throw new Error('sourceDir is not a directory')
+    throw new Error('sourceDir is not a directory');
   }
 
   // Create the tool dir
-  const destPath: string = await _createToolPath(tool, version, arch)
+  const destPath: string = await _createToolPath(tool, version, arch);
   // copy each child item. do not move. move can fail on Windows
   // due to anti-virus software having an open handle on a file.
   for (const itemName of fs.readdirSync(sourceDir)) {
-    const s = path.join(sourceDir, itemName)
-    await io.cp(s, destPath, {recursive: true})
+    const s = path.join(sourceDir, itemName);
+    await io.cp(s, destPath, {recursive: true});
   }
 
   // write .complete
-  _completeToolPath(tool, version, arch)
+  _completeToolPath(tool, version, arch);
 
-  return destPath
+  return destPath;
 }
 
 /**
@@ -422,28 +422,28 @@ export async function cacheFile(
   version: string,
   arch?: string
 ): Promise<string> {
-  version = semver.clean(version) || version
-  arch = arch || os.arch()
-  core.debug(`Caching tool ${tool} ${version} ${arch}`)
+  version = semver.clean(version) || version;
+  arch = arch || os.arch();
+  core.debug(`Caching tool ${tool} ${version} ${arch}`);
 
-  core.debug(`source file: ${sourceFile}`)
+  core.debug(`source file: ${sourceFile}`);
   if (!fs.statSync(sourceFile).isFile()) {
-    throw new Error('sourceFile is not a file')
+    throw new Error('sourceFile is not a file');
   }
 
   // create the tool dir
-  const destFolder: string = await _createToolPath(tool, version, arch)
+  const destFolder: string = await _createToolPath(tool, version, arch);
 
   // copy instead of move. move can fail on Windows due to
   // anti-virus software having an open handle on a file.
-  const destPath: string = path.join(destFolder, targetFile)
-  core.debug(`destination file ${destPath}`)
-  await io.cp(sourceFile, destPath)
+  const destPath: string = path.join(destFolder, targetFile);
+  core.debug(`destination file ${destPath}`);
+  await io.cp(sourceFile, destPath);
 
   // write .complete
-  _completeToolPath(tool, version, arch)
+  _completeToolPath(tool, version, arch);
 
-  return destFolder
+  return destFolder;
 }
 
 /**
@@ -459,41 +459,41 @@ export function find(
   arch?: string
 ): string {
   if (!toolName) {
-    throw new Error('toolName parameter is required')
+    throw new Error('toolName parameter is required');
   }
 
   if (!versionSpec) {
-    throw new Error('versionSpec parameter is required')
+    throw new Error('versionSpec parameter is required');
   }
 
-  arch = arch || os.arch()
+  arch = arch || os.arch();
 
   // attempt to resolve an explicit version
   if (!_isExplicitVersion(versionSpec)) {
-    const localVersions: string[] = findAllVersions(toolName, arch)
-    const match = _evaluateVersions(localVersions, versionSpec)
-    versionSpec = match
+    const localVersions: string[] = findAllVersions(toolName, arch);
+    const match = _evaluateVersions(localVersions, versionSpec);
+    versionSpec = match;
   }
 
   // check for the explicit version in the cache
-  let toolPath = ''
+  let toolPath = '';
   if (versionSpec) {
-    versionSpec = semver.clean(versionSpec) || ''
+    versionSpec = semver.clean(versionSpec) || '';
     const cachePath = path.join(
       _getCacheDirectory(),
       toolName,
       versionSpec,
       arch
-    )
-    core.debug(`checking cache: ${cachePath}`)
+    );
+    core.debug(`checking cache: ${cachePath}`);
     if (fs.existsSync(cachePath) && fs.existsSync(`${cachePath}.complete`)) {
-      core.debug(`Found tool in cache ${toolName} ${versionSpec} ${arch}`)
-      toolPath = cachePath
+      core.debug(`Found tool in cache ${toolName} ${versionSpec} ${arch}`);
+      toolPath = cachePath;
     } else {
-      core.debug('not found')
+      core.debug('not found');
     }
   }
-  return toolPath
+  return toolPath;
 }
 
 /**
@@ -503,24 +503,24 @@ export function find(
  * @param arch      optional arch.  defaults to arch of computer
  */
 export function findAllVersions(toolName: string, arch?: string): string[] {
-  const versions: string[] = []
+  const versions: string[] = [];
 
-  arch = arch || os.arch()
-  const toolPath = path.join(_getCacheDirectory(), toolName)
+  arch = arch || os.arch();
+  const toolPath = path.join(_getCacheDirectory(), toolName);
 
   if (fs.existsSync(toolPath)) {
-    const children: string[] = fs.readdirSync(toolPath)
+    const children: string[] = fs.readdirSync(toolPath);
     for (const child of children) {
       if (_isExplicitVersion(child)) {
-        const fullPath = path.join(toolPath, child, arch || '')
+        const fullPath = path.join(toolPath, child, arch || '');
         if (fs.existsSync(fullPath) && fs.existsSync(`${fullPath}.complete`)) {
-          versions.push(child)
+          versions.push(child);
         }
       }
     }
   }
 
-  return versions
+  return versions;
 }
 
 // versions-manifest
@@ -533,18 +533,18 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
 //   b. if no match, fall back to source if exists (tool distribution)
 //   c. with download url, download, install and preprent path
 
-export type IToolRelease = mm.IToolRelease
-export type IToolReleaseFile = mm.IToolReleaseFile
+export type IToolRelease = mm.IToolRelease;
+export type IToolReleaseFile = mm.IToolReleaseFile;
 
 interface GitHubTreeItem {
-  path: string
-  size: string
-  url: string
+  path: string;
+  size: string;
+  url: string;
 }
 
 interface GitHubTree {
-  tree: GitHubTreeItem[]
-  truncated: boolean
+  tree: GitHubTreeItem[];
+  truncated: boolean;
 }
 
 export async function getManifestFromRepo(
@@ -553,43 +553,43 @@ export async function getManifestFromRepo(
   auth?: string,
   branch = 'master'
 ): Promise<IToolRelease[]> {
-  let releases: IToolRelease[] = []
-  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
+  let releases: IToolRelease[] = [];
+  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`;
 
-  const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
-  const headers: IHeaders = {}
+  const http: httpm.HttpClient = new httpm.HttpClient('tool-cache');
+  const headers: IHeaders = {};
   if (auth) {
-    core.debug('set auth')
-    headers.authorization = auth
+    core.debug('set auth');
+    headers.authorization = auth;
   }
 
-  const response = await http.getJson<GitHubTree>(treeUrl, headers)
+  const response = await http.getJson<GitHubTree>(treeUrl, headers);
   if (!response.result) {
-    return releases
+    return releases;
   }
 
-  let manifestUrl = ''
+  let manifestUrl = '';
   for (const item of response.result.tree) {
     if (item.path === 'versions-manifest.json') {
-      manifestUrl = item.url
-      break
+      manifestUrl = item.url;
+      break;
     }
   }
 
-  headers['accept'] = 'application/vnd.github.VERSION.raw'
-  let versionsRaw = await (await http.get(manifestUrl, headers)).readBody()
+  headers['accept'] = 'application/vnd.github.VERSION.raw';
+  let versionsRaw = await (await http.get(manifestUrl, headers)).readBody();
 
   if (versionsRaw) {
     // shouldn't be needed but protects against invalid json saved with BOM
-    versionsRaw = versionsRaw.replace(/^\uFEFF/, '')
+    versionsRaw = versionsRaw.replace(/^\uFEFF/, '');
     try {
-      releases = JSON.parse(versionsRaw)
+      releases = JSON.parse(versionsRaw);
     } catch {
-      core.debug('Invalid json')
+      core.debug('Invalid json');
     }
   }
 
-  return releases
+  return releases;
 }
 
 export async function findFromManifest(
@@ -604,18 +604,18 @@ export async function findFromManifest(
     stable,
     manifest,
     archFilter
-  )
+  );
 
-  return match
+  return match;
 }
 
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(_getTempDirectory(), uuidV4())
+    dest = path.join(_getTempDirectory(), uuidV4());
   }
-  await io.mkdirP(dest)
-  return dest
+  await io.mkdirP(dest);
+  return dest;
 }
 
 async function _createToolPath(
@@ -628,13 +628,13 @@ async function _createToolPath(
     tool,
     semver.clean(version) || version,
     arch || ''
-  )
-  core.debug(`destination ${folderPath}`)
-  const markerPath = `${folderPath}.complete`
-  await io.rmRF(folderPath)
-  await io.rmRF(markerPath)
-  await io.mkdirP(folderPath)
-  return folderPath
+  );
+  core.debug(`destination ${folderPath}`);
+  const markerPath = `${folderPath}.complete`;
+  await io.rmRF(folderPath);
+  await io.rmRF(markerPath);
+  await io.mkdirP(folderPath);
+  return folderPath;
 }
 
 function _completeToolPath(tool: string, version: string, arch?: string): void {
@@ -643,65 +643,65 @@ function _completeToolPath(tool: string, version: string, arch?: string): void {
     tool,
     semver.clean(version) || version,
     arch || ''
-  )
-  const markerPath = `${folderPath}.complete`
-  fs.writeFileSync(markerPath, '')
-  core.debug('finished caching tool')
+  );
+  const markerPath = `${folderPath}.complete`;
+  fs.writeFileSync(markerPath, '');
+  core.debug('finished caching tool');
 }
 
 function _isExplicitVersion(versionSpec: string): boolean {
-  const c = semver.clean(versionSpec) || ''
-  core.debug(`isExplicit: ${c}`)
+  const c = semver.clean(versionSpec) || '';
+  core.debug(`isExplicit: ${c}`);
 
-  const valid = semver.valid(c) != null
-  core.debug(`explicit? ${valid}`)
+  const valid = semver.valid(c) != null;
+  core.debug(`explicit? ${valid}`);
 
-  return valid
+  return valid;
 }
 
 function _evaluateVersions(versions: string[], versionSpec: string): string {
-  let version = ''
-  core.debug(`evaluating ${versions.length} versions`)
+  let version = '';
+  core.debug(`evaluating ${versions.length} versions`);
   versions = versions.sort((a, b) => {
     if (semver.gt(a, b)) {
-      return 1
+      return 1;
     }
-    return -1
-  })
+    return -1;
+  });
   for (let i = versions.length - 1; i >= 0; i--) {
-    const potential: string = versions[i]
-    const satisfied: boolean = semver.satisfies(potential, versionSpec)
+    const potential: string = versions[i];
+    const satisfied: boolean = semver.satisfies(potential, versionSpec);
     if (satisfied) {
-      version = potential
-      break
+      version = potential;
+      break;
     }
   }
 
   if (version) {
-    core.debug(`matched: ${version}`)
+    core.debug(`matched: ${version}`);
   } else {
-    core.debug('match not found')
+    core.debug('match not found');
   }
 
-  return version
+  return version;
 }
 
 /**
  * Gets RUNNER_TOOL_CACHE
  */
 function _getCacheDirectory(): string {
-  const cacheDirectory = process.env['RUNNER_TOOL_CACHE'] || ''
-  ok(cacheDirectory, 'Expected RUNNER_TOOL_CACHE to be defined')
-  return cacheDirectory
+  const cacheDirectory = process.env['RUNNER_TOOL_CACHE'] || '';
+  ok(cacheDirectory, 'Expected RUNNER_TOOL_CACHE to be defined');
+  return cacheDirectory;
 }
 
 /**
  * Gets RUNNER_TEMP
  */
 function _getTempDirectory(): string {
-  const tempDirectory = process.env['RUNNER_TEMP'] || ''
-  ok(tempDirectory, 'Expected RUNNER_TEMP to be defined')
-  return tempDirectory
+  const tempDirectory = process.env['RUNNER_TEMP'] || '';
+  ok(tempDirectory, 'Expected RUNNER_TEMP to be defined');
+  return tempDirectory;
 }
 
 /**
@@ -709,9 +709,9 @@ function _getTempDirectory(): string {
  */
 function _getGlobal<T>(key: string, defaultValue: T): T {
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const value = (global as any)[key] as T | undefined
+  const value = (global as any)[key] as T | undefined;
   /* eslint-enable @typescript-eslint/no-explicit-any */
-  return value !== undefined ? value : defaultValue
+  return value !== undefined ? value : defaultValue;
 }
 
 /**
@@ -719,5 +719,5 @@ function _getGlobal<T>(key: string, defaultValue: T): T {
  * @param values Values to make unique.
  */
 function _unique<T>(values: T[]): T[] {
-  return Array.from(new Set(values))
+  return Array.from(new Set(values));
 }

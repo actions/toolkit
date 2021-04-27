@@ -11,7 +11,9 @@ You can use this to download tools (or other files) from a download URL:
 ```js
 const tc = require('@actions/tool-cache');
 
-const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz');
+const node12Path = await tc.downloadTool(
+  'https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz'
+);
 ```
 
 #### Extract
@@ -22,20 +24,38 @@ These can then be extracted in platform specific ways:
 const tc = require('@actions/tool-cache');
 
 if (process.platform === 'win32') {
-  const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip');
-  const node12ExtractedFolder = await tc.extractZip(node12Path, 'path/to/extract/to');
+  const node12Path = await tc.downloadTool(
+    'https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip'
+  );
+  const node12ExtractedFolder = await tc.extractZip(
+    node12Path,
+    'path/to/extract/to'
+  );
 
   // Or alternately
-  const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.7z');
-  const node12ExtractedFolder = await tc.extract7z(node12Path, 'path/to/extract/to');
-}
-else if (process.platform === 'darwin') {
-  const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0.pkg');
-  const node12ExtractedFolder = await tc.extractXar(node12Path, 'path/to/extract/to');
-}
-else {
-  const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz');
-  const node12ExtractedFolder = await tc.extractTar(node12Path, 'path/to/extract/to');
+  const node12Path = await tc.downloadTool(
+    'https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.7z'
+  );
+  const node12ExtractedFolder = await tc.extract7z(
+    node12Path,
+    'path/to/extract/to'
+  );
+} else if (process.platform === 'darwin') {
+  const node12Path = await tc.downloadTool(
+    'https://nodejs.org/dist/v12.7.0/node-v12.7.0.pkg'
+  );
+  const node12ExtractedFolder = await tc.extractXar(
+    node12Path,
+    'path/to/extract/to'
+  );
+} else {
+  const node12Path = await tc.downloadTool(
+    'https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz'
+  );
+  const node12ExtractedFolder = await tc.extractTar(
+    node12Path,
+    'path/to/extract/to'
+  );
 }
 ```
 
@@ -49,8 +69,13 @@ You'll often want to add it to the path as part of this step:
 const tc = require('@actions/tool-cache');
 const core = require('@actions/core');
 
-const node12Path = await tc.downloadTool('https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz');
-const node12ExtractedFolder = await tc.extractTar(node12Path, 'path/to/extract/to');
+const node12Path = await tc.downloadTool(
+  'https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz'
+);
+const node12ExtractedFolder = await tc.extractTar(
+  node12Path,
+  'path/to/extract/to'
+);
 
 const cachedPath = await tc.cacheDir(node12ExtractedFolder, 'node', '12.7.0');
 core.addPath(cachedPath);
@@ -61,7 +86,12 @@ You can also cache files for reuse.
 ```js
 const tc = require('@actions/tool-cache');
 
-const cachedPath = await tc.cacheFile('path/to/exe', 'destFileName.exe', 'myExeName', '1.1.0');
+const cachedPath = await tc.cacheFile(
+  'path/to/exe',
+  'destFileName.exe',
+  'myExeName',
+  '1.1.0'
+);
 ```
 
 #### Find

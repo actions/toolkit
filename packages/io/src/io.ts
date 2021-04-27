@@ -1,18 +1,18 @@
-import * as childProcess from 'child_process'
-import * as path from 'path'
-import {promisify} from 'util'
-import * as ioUtil from './io-util'
+import * as childProcess from 'child_process';
+import * as path from 'path';
+import {promisify} from 'util';
+import * as ioUtil from './io-util';
 
-const exec = promisify(childProcess.exec)
+const exec = promisify(childProcess.exec);
 
 /**
  * Interface for cp/mv options
  */
 export interface CopyOptions {
   /** Optional. Whether to recursively copy all subdirectories. Defaults to false */
-  recursive?: boolean
+  recursive?: boolean;
   /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
-  force?: boolean
+  force?: boolean;
 }
 
 /**
@@ -20,7 +20,7 @@ export interface CopyOptions {
  */
 export interface MoveOptions {
   /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
-  force?: boolean
+  force?: boolean;
 }
 
 /**
@@ -36,40 +36,40 @@ export async function cp(
   dest: string,
   options: CopyOptions = {}
 ): Promise<void> {
-  const {force, recursive} = readCopyOptions(options)
+  const {force, recursive} = readCopyOptions(options);
 
-  const destStat = (await ioUtil.exists(dest)) ? await ioUtil.stat(dest) : null
+  const destStat = (await ioUtil.exists(dest)) ? await ioUtil.stat(dest) : null;
   // Dest is an existing file, but not forcing
   if (destStat && destStat.isFile() && !force) {
-    return
+    return;
   }
 
   // If dest is an existing directory, should copy inside.
   const newDest: string =
     destStat && destStat.isDirectory()
       ? path.join(dest, path.basename(source))
-      : dest
+      : dest;
 
   if (!(await ioUtil.exists(source))) {
-    throw new Error(`no such file or directory: ${source}`)
+    throw new Error(`no such file or directory: ${source}`);
   }
-  const sourceStat = await ioUtil.stat(source)
+  const sourceStat = await ioUtil.stat(source);
 
   if (sourceStat.isDirectory()) {
     if (!recursive) {
       throw new Error(
         `Failed to copy. ${source} is a directory, but tried to copy without recursive flag.`
-      )
+      );
     } else {
-      await cpDirRecursive(source, newDest, 0, force)
+      await cpDirRecursive(source, newDest, 0, force);
     }
   } else {
     if (path.relative(source, newDest) === '') {
       // a file cannot be copied to itself
-      throw new Error(`'${newDest}' and '${source}' are the same file`)
+      throw new Error(`'${newDest}' and '${source}' are the same file`);
     }
 
-    await copyFile(source, newDest, force)
+    await copyFile(source, newDest, force);
   }
 }
 
@@ -86,23 +86,23 @@ export async function mv(
   options: MoveOptions = {}
 ): Promise<void> {
   if (await ioUtil.exists(dest)) {
-    let destExists = true
+    let destExists = true;
     if (await ioUtil.isDirectory(dest)) {
       // If dest is directory copy src into dest
-      dest = path.join(dest, path.basename(source))
-      destExists = await ioUtil.exists(dest)
+      dest = path.join(dest, path.basename(source));
+      destExists = await ioUtil.exists(dest);
     }
 
     if (destExists) {
       if (options.force == null || options.force) {
-        await rmRF(dest)
+        await rmRF(dest);
       } else {
-        throw new Error('Destination already exists')
+        throw new Error('Destination already exists');
       }
     }
   }
-  await mkdirP(path.dirname(dest))
-  await ioUtil.rename(source, dest)
+  await mkdirP(path.dirname(dest));
+  await ioUtil.rename(source, dest);
 }
 
 /**
@@ -116,39 +116,39 @@ export async function rmRF(inputPath: string): Promise<void> {
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
     try {
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await exec(`rd /s /q "${inputPath}"`)
+        await exec(`rd /s /q "${inputPath}"`);
       } else {
-        await exec(`del /f /a "${inputPath}"`)
+        await exec(`del /f /a "${inputPath}"`);
       }
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
-      if (err.code !== 'ENOENT') throw err
+      if (err.code !== 'ENOENT') throw err;
     }
 
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
-      await ioUtil.unlink(inputPath)
+      await ioUtil.unlink(inputPath);
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
-      if (err.code !== 'ENOENT') throw err
+      if (err.code !== 'ENOENT') throw err;
     }
   } else {
-    let isDir = false
+    let isDir = false;
     try {
-      isDir = await ioUtil.isDirectory(inputPath)
+      isDir = await ioUtil.isDirectory(inputPath);
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
-      if (err.code !== 'ENOENT') throw err
-      return
+      if (err.code !== 'ENOENT') throw err;
+      return;
     }
 
     if (isDir) {
-      await exec(`rm -rf "${inputPath}"`)
+      await exec(`rm -rf "${inputPath}"`);
     } else {
-      await ioUtil.unlink(inputPath)
+      await ioUtil.unlink(inputPath);
     }
   }
 }
@@ -161,7 +161,7 @@ export async function rmRF(inputPath: string): Promise<void> {
  * @returns Promise<void>
  */
 export async function mkdirP(fsPath: string): Promise<void> {
-  await ioUtil.mkdirP(fsPath)
+  await ioUtil.mkdirP(fsPath);
 }
 
 /**
@@ -174,35 +174,35 @@ export async function mkdirP(fsPath: string): Promise<void> {
  */
 export async function which(tool: string, check?: boolean): Promise<string> {
   if (!tool) {
-    throw new Error("parameter 'tool' is required")
+    throw new Error("parameter 'tool' is required");
   }
 
   // recursive when check=true
   if (check) {
-    const result: string = await which(tool, false)
+    const result: string = await which(tool, false);
 
     if (!result) {
       if (ioUtil.IS_WINDOWS) {
         throw new Error(
           `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`
-        )
+        );
       } else {
         throw new Error(
           `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`
-        )
+        );
       }
     }
 
-    return result
+    return result;
   }
 
-  const matches: string[] = await findInPath(tool)
+  const matches: string[] = await findInPath(tool);
 
   if (matches && matches.length > 0) {
-    return matches[0]
+    return matches[0];
   }
 
-  return ''
+  return '';
 }
 
 /**
@@ -212,33 +212,36 @@ export async function which(tool: string, check?: boolean): Promise<string> {
  */
 export async function findInPath(tool: string): Promise<string[]> {
   if (!tool) {
-    throw new Error("parameter 'tool' is required")
+    throw new Error("parameter 'tool' is required");
   }
 
   // build the list of extensions to try
-  const extensions: string[] = []
+  const extensions: string[] = [];
   if (ioUtil.IS_WINDOWS && process.env['PATHEXT']) {
     for (const extension of process.env['PATHEXT'].split(path.delimiter)) {
       if (extension) {
-        extensions.push(extension)
+        extensions.push(extension);
       }
     }
   }
 
   // if it's rooted, return it if exists. otherwise return empty.
   if (ioUtil.isRooted(tool)) {
-    const filePath: string = await ioUtil.tryGetExecutablePath(tool, extensions)
+    const filePath: string = await ioUtil.tryGetExecutablePath(
+      tool,
+      extensions
+    );
 
     if (filePath) {
-      return [filePath]
+      return [filePath];
     }
 
-    return []
+    return [];
   }
 
   // if any path separators, return empty
   if (tool.includes(path.sep)) {
-    return []
+    return [];
   }
 
   // build the list of directories
@@ -247,36 +250,36 @@ export async function findInPath(tool: string): Promise<string[]> {
   // it feels like we should not do this. Checking the current directory seems like more of a use
   // case of a shell, and the which() function exposed by the toolkit should strive for consistency
   // across platforms.
-  const directories: string[] = []
+  const directories: string[] = [];
 
   if (process.env.PATH) {
     for (const p of process.env.PATH.split(path.delimiter)) {
       if (p) {
-        directories.push(p)
+        directories.push(p);
       }
     }
   }
 
   // find all matches
-  const matches: string[] = []
+  const matches: string[] = [];
 
   for (const directory of directories) {
     const filePath = await ioUtil.tryGetExecutablePath(
       path.join(directory, tool),
       extensions
-    )
+    );
     if (filePath) {
-      matches.push(filePath)
+      matches.push(filePath);
     }
   }
 
-  return matches
+  return matches;
 }
 
 function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
-  const force = options.force == null ? true : options.force
-  const recursive = Boolean(options.recursive)
-  return {force, recursive}
+  const force = options.force == null ? true : options.force;
+  const recursive = Boolean(options.recursive);
+  return {force, recursive};
 }
 
 async function cpDirRecursive(
@@ -286,28 +289,28 @@ async function cpDirRecursive(
   force: boolean
 ): Promise<void> {
   // Ensure there is not a run away recursive copy
-  if (currentDepth >= 255) return
-  currentDepth++
+  if (currentDepth >= 255) return;
+  currentDepth++;
 
-  await mkdirP(destDir)
+  await mkdirP(destDir);
 
-  const files: string[] = await ioUtil.readdir(sourceDir)
+  const files: string[] = await ioUtil.readdir(sourceDir);
 
   for (const fileName of files) {
-    const srcFile = `${sourceDir}/${fileName}`
-    const destFile = `${destDir}/${fileName}`
-    const srcFileStat = await ioUtil.lstat(srcFile)
+    const srcFile = `${sourceDir}/${fileName}`;
+    const destFile = `${destDir}/${fileName}`;
+    const srcFileStat = await ioUtil.lstat(srcFile);
 
     if (srcFileStat.isDirectory()) {
       // Recurse
-      await cpDirRecursive(srcFile, destFile, currentDepth, force)
+      await cpDirRecursive(srcFile, destFile, currentDepth, force);
     } else {
-      await copyFile(srcFile, destFile, force)
+      await copyFile(srcFile, destFile, force);
     }
   }
 
   // Change the mode for the newly created directory
-  await ioUtil.chmod(destDir, (await ioUtil.stat(sourceDir)).mode)
+  await ioUtil.chmod(destDir, (await ioUtil.stat(sourceDir)).mode);
 }
 
 // Buffered file copy
@@ -319,25 +322,25 @@ async function copyFile(
   if ((await ioUtil.lstat(srcFile)).isSymbolicLink()) {
     // unlink/re-link it
     try {
-      await ioUtil.lstat(destFile)
-      await ioUtil.unlink(destFile)
+      await ioUtil.lstat(destFile);
+      await ioUtil.unlink(destFile);
     } catch (e) {
       // Try to override file permission
       if (e.code === 'EPERM') {
-        await ioUtil.chmod(destFile, '0666')
-        await ioUtil.unlink(destFile)
+        await ioUtil.chmod(destFile, '0666');
+        await ioUtil.unlink(destFile);
       }
       // other errors = it doesn't exist, no work to do
     }
 
     // Copy over symlink
-    const symlinkFull: string = await ioUtil.readlink(srcFile)
+    const symlinkFull: string = await ioUtil.readlink(srcFile);
     await ioUtil.symlink(
       symlinkFull,
       destFile,
       ioUtil.IS_WINDOWS ? 'junction' : null
-    )
+    );
   } else if (!(await ioUtil.exists(destFile)) || force) {
-    await ioUtil.copyFile(srcFile, destFile)
+    await ioUtil.copyFile(srcFile, destFile);
   }
 }

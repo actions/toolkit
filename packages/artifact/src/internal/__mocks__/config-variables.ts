@@ -2,31 +2,31 @@
  *  Mocks default limits for easier testing
  */
 export function getUploadFileConcurrency(): number {
-  return 1
+  return 1;
 }
 
 export function getUploadChunkConcurrency(): number {
-  return 1
+  return 1;
 }
 
 export function getUploadChunkSize(): number {
-  return 4 * 1024 * 1024 // 4 MB Chunks
+  return 4 * 1024 * 1024; // 4 MB Chunks
 }
 
 export function getRetryLimit(): number {
-  return 2
+  return 2;
 }
 
 export function getRetryMultiplier(): number {
-  return 1.5
+  return 1.5;
 }
 
 export function getInitialRetryIntervalInMilliseconds(): number {
-  return 10
+  return 10;
 }
 
 export function getDownloadFileConcurrency(): number {
-  return 1
+  return 1;
 }
 
 /**
@@ -35,17 +35,17 @@ export function getDownloadFileConcurrency(): number {
  * locally without the env variables actually being set
  */
 export function getRuntimeToken(): string {
-  return 'totally-valid-token'
+  return 'totally-valid-token';
 }
 
 export function getRuntimeUrl(): string {
-  return 'https://www.example.com/'
+  return 'https://www.example.com/';
 }
 
 export function getWorkFlowRunId(): string {
-  return '15'
+  return '15';
 }
 
 export function getRetentionDays(): string | undefined {
-  return '45'
+  return '45';
 }

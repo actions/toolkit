@@ -1,34 +1,34 @@
-import {promises as fs} from 'fs'
-import * as path from 'path'
-import * as cacheUtils from '../src/internal/cacheUtils'
+import {promises as fs} from 'fs';
+import * as path from 'path';
+import * as cacheUtils from '../src/internal/cacheUtils';
 
 test('getArchiveFileSizeIsBytes returns file size', () => {
-  const filePath = path.join(__dirname, '__fixtures__', 'helloWorld.txt')
+  const filePath = path.join(__dirname, '__fixtures__', 'helloWorld.txt');
 
-  const size = cacheUtils.getArchiveFileSizeIsBytes(filePath)
+  const size = cacheUtils.getArchiveFileSizeIsBytes(filePath);
 
-  expect(size).toBe(11)
-})
+  expect(size).toBe(11);
+});
 
 test('unlinkFile unlinks file', async () => {
-  const testDirectory = await fs.mkdtemp('unlinkFileTest')
-  const testFile = path.join(testDirectory, 'test.txt')
-  await fs.writeFile(testFile, 'hello world')
+  const testDirectory = await fs.mkdtemp('unlinkFileTest');
+  const testFile = path.join(testDirectory, 'test.txt');
+  await fs.writeFile(testFile, 'hello world');
 
-  await expect(fs.stat(testFile)).resolves.not.toThrow()
+  await expect(fs.stat(testFile)).resolves.not.toThrow();
 
-  await cacheUtils.unlinkFile(testFile)
+  await cacheUtils.unlinkFile(testFile);
 
   // This should throw as testFile should not exist
-  await expect(fs.stat(testFile)).rejects.toThrow()
+  await expect(fs.stat(testFile)).rejects.toThrow();
 
-  await fs.rmdir(testDirectory)
-})
+  await fs.rmdir(testDirectory);
+});
 
 test('assertDefined throws if undefined', () => {
-  expect(() => cacheUtils.assertDefined('test', undefined)).toThrowError()
-})
+  expect(() => cacheUtils.assertDefined('test', undefined)).toThrowError();
+});
 
 test('assertDefined returns value', () => {
-  expect(cacheUtils.assertDefined('test', 5)).toBe(5)
-})
+  expect(cacheUtils.assertDefined('test', 5)).toBe(5);
+});

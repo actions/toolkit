@@ -21,19 +21,19 @@ All of the dependencies we need should come packaged for us in this library's co
 Next, we will need a welcome message and a repo token as an input. Recall that inputs are defined in the `action.yml` metadata file - update your `action.yml` file to define `welcome-message` and `repo-token` as inputs.
 
 ```yaml
-name: "Welcome"
-description: "A basic welcome action"
-author: "GitHub"
+name: 'Welcome'
+description: 'A basic welcome action'
+author: 'GitHub'
 inputs:
   welcome-message:
-    description: "Message to display when a user opens an issue or PR"
+    description: 'Message to display when a user opens an issue or PR'
     default: "Thanks for opening an issue! Make sure you've followed CONTRIBUTING.md"
   repo-token:
-    description: "Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}"
+    description: 'Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
     required: true
 runs:
-  using: "node12"
-  main: "lib/main.js"
+  using: 'node12'
+  main: 'lib/main.js'
 ```
 
 ## Action logic
@@ -45,16 +45,15 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 
 export async function run() {
-    try {
+  try {
     const welcomeMessage: string = core.getInput('welcome-message');
     // TODO - Get context data
 
-    // TODO - make request to the GitHub API to comment on the issue 
-    }
-    catch (error) {
-      core.setFailed(error.message);
-      throw error;
-    }
+    // TODO - make request to the GitHub API to comment on the issue
+  } catch (error) {
+    core.setFailed(error.message);
+    throw error;
+  }
 }
 
 run();
@@ -88,22 +87,24 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 
 export async function run() {
-    try {
-    const welcomeMessage: string = core.getInput('welcome-message', {required: true});
+  try {
+    const welcomeMessage: string = core.getInput('welcome-message', {
+      required: true
+    });
     const repoToken: string = core.getInput('repo-token', {required: true});
-    const issue: {owner: string; repo: string; number: number} = github.context.issue;
+    const issue: {owner: string; repo: string; number: number} =
+      github.context.issue;
 
     if (github.context.payload.action !== 'opened') {
       console.log('No issue or pull request was opened, skipping');
       return;
     }
 
-    // TODO - make request to the GitHub API to comment on the issue 
-    }
-    catch (error) {
-      core.setFailed(error.message);
-      throw error;
-    }
+    // TODO - make request to the GitHub API to comment on the issue
+  } catch (error) {
+    core.setFailed(error.message);
+    throw error;
+  }
 }
 
 run();
@@ -130,10 +131,13 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 
 export async function run() {
-    try {
-    const welcomeMessage: string = core.getInput('welcome-message', {required: true});
+  try {
+    const welcomeMessage: string = core.getInput('welcome-message', {
+      required: true
+    });
     const repoToken: string = core.getInput('repo-token', {required: true});
-    const issue: {owner: string; repo: string; number: number} = github.context.issue;
+    const issue: {owner: string; repo: string; number: number} =
+      github.context.issue;
 
     if (github.context.payload.action !== 'opened') {
       console.log('No issue or pull request was opened, skipping');
@@ -147,11 +151,10 @@ export async function run() {
       issue_number: issue.number,
       body: welcomeMessage
     });
-    }
-    catch (error) {
-      core.setFailed(error.message);
-      throw error;
-    }
+  } catch (error) {
+    core.setFailed(error.message);
+    throw error;
+  }
 }
 
 run();
@@ -176,7 +179,7 @@ For the purposes of this walkthrough, we'll focus on populating this test and le
 
 ### Mocking inputs
 
-First, we want to make sure that we can mock our inputs (welcome-message, and repo-token). Actions handles inputs by populating process.env.INPUT_${input name in all caps}, so we can mock that simply by setting those environment variables:
+First, we want to make sure that we can mock our inputs (welcome-message, and repo-token). Actions handles inputs by populating process.env.INPUT\_${input name in all caps}, so we can mock that simply by setting those environment variables:
 
 ```ts
 const nock = require('nock');
@@ -221,10 +224,10 @@ Note that the payload is loaded from GITHUB_EVENT_PATH. Since we set that to `pa
 
 ```json
 {
-    "issue": {
-        "number": 10
-    },
-    "action": "opened"
+  "issue": {
+    "number": 10
+  },
+  "action": "opened"
 }
 ```
 
@@ -267,9 +270,9 @@ describe('action test suite', () => {
 
     nock('https://api.github.com')
       .persist()
-      .post('/repos/foo/bar/issues/10/comments', '{\"body\":\"hello\"}')
+      .post('/repos/foo/bar/issues/10/comments', '{"body":"hello"}')
       .reply(200);
-      
+
     const main = require('../src/main');
 
     await main.run();

@@ -1,5 +1,5 @@
-import * as os from 'os'
-import {toCommandValue} from './utils'
+import * as os from 'os';
+import {toCommandValue} from './utils';
 
 // For internal use, subject to change.
 
@@ -7,7 +7,7 @@ import {toCommandValue} from './utils'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface CommandProperties {
-  [key: string]: any
+  [key: string]: any;
 }
 
 /**
@@ -25,55 +25,55 @@ export function issueCommand(
   properties: CommandProperties,
   message: any
 ): void {
-  const cmd = new Command(command, properties, message)
-  process.stdout.write(cmd.toString() + os.EOL)
+  const cmd = new Command(command, properties, message);
+  process.stdout.write(cmd.toString() + os.EOL);
 }
 
 export function issue(name: string, message: string = ''): void {
-  issueCommand(name, {}, message)
+  issueCommand(name, {}, message);
 }
 
-const CMD_STRING = '::'
+const CMD_STRING = '::';
 
 class Command {
-  private readonly command: string
-  private readonly message: string
-  private readonly properties: CommandProperties
+  private readonly command: string;
+  private readonly message: string;
+  private readonly properties: CommandProperties;
 
   constructor(command: string, properties: CommandProperties, message: string) {
     if (!command) {
-      command = 'missing.command'
+      command = 'missing.command';
     }
 
-    this.command = command
-    this.properties = properties
-    this.message = message
+    this.command = command;
+    this.properties = properties;
+    this.message = message;
   }
 
   toString(): string {
-    let cmdStr = CMD_STRING + this.command
+    let cmdStr = CMD_STRING + this.command;
 
     if (this.properties && Object.keys(this.properties).length > 0) {
-      cmdStr += ' '
-      let first = true
+      cmdStr += ' ';
+      let first = true;
       for (const key in this.properties) {
         if (this.properties.hasOwnProperty(key)) {
-          const val = this.properties[key]
+          const val = this.properties[key];
           if (val) {
             if (first) {
-              first = false
+              first = false;
             } else {
-              cmdStr += ','
+              cmdStr += ',';
             }
 
-            cmdStr += `${key}=${escapeProperty(val)}`
+            cmdStr += `${key}=${escapeProperty(val)}`;
           }
         }
       }
     }
 
-    cmdStr += `${CMD_STRING}${escapeData(this.message)}`
-    return cmdStr
+    cmdStr += `${CMD_STRING}${escapeData(this.message)}`;
+    return cmdStr;
   }
 }
 
@@ -81,7 +81,7 @@ function escapeData(s: any): string {
   return toCommandValue(s)
     .replace(/%/g, '%25')
     .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A')
+    .replace(/\n/g, '%0A');
 }
 
 function escapeProperty(s: any): string {
@@ -90,5 +90,5 @@ function escapeProperty(s: any): string {
     .replace(/\r/g, '%0D')
     .replace(/\n/g, '%0A')
     .replace(/:/g, '%3A')
-    .replace(/,/g, '%2C')
+    .replace(/,/g, '%2C');
 }

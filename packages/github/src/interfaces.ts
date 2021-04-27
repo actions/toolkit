@@ -1,43 +1,43 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface PayloadRepository {
-  [key: string]: any
-  full_name?: string
-  name: string
+  [key: string]: any;
+  full_name?: string;
+  name: string;
   owner: {
-    [key: string]: any
-    login: string
-    name?: string
-  }
-  html_url?: string
+    [key: string]: any;
+    login: string;
+    name?: string;
+  };
+  html_url?: string;
 }
 
 export interface WebhookPayload {
-  [key: string]: any
-  repository?: PayloadRepository
+  [key: string]: any;
+  repository?: PayloadRepository;
   issue?: {
-    [key: string]: any
-    number: number
-    html_url?: string
-    body?: string
-  }
+    [key: string]: any;
+    number: number;
+    html_url?: string;
+    body?: string;
+  };
   pull_request?: {
-    [key: string]: any
-    number: number
-    html_url?: string
-    body?: string
-  }
+    [key: string]: any;
+    number: number;
+    html_url?: string;
+    body?: string;
+  };
   sender?: {
-    [key: string]: any
-    type: string
-  }
-  action?: string
+    [key: string]: any;
+    type: string;
+  };
+  action?: string;
   installation?: {
-    id: number
-    [key: string]: any
-  }
+    id: number;
+    [key: string]: any;
+  };
   comment?: {
-    id: number
-    [key: string]: any
-  }
+    id: number;
+    [key: string]: any;
+  };
 }

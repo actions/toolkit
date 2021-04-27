@@ -1,17 +1,17 @@
-import * as core from '@actions/core'
-import {HttpClient} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
-import {BlockBlobClient} from '@azure/storage-blob'
-import {TransferProgressEvent} from '@azure/ms-rest-js'
-import * as buffer from 'buffer'
-import * as fs from 'fs'
-import * as stream from 'stream'
-import * as util from 'util'
+import * as core from '@actions/core';
+import {HttpClient} from '@actions/http-client';
+import {IHttpClientResponse} from '@actions/http-client/interfaces';
+import {BlockBlobClient} from '@azure/storage-blob';
+import {TransferProgressEvent} from '@azure/ms-rest-js';
+import * as buffer from 'buffer';
+import * as fs from 'fs';
+import * as stream from 'stream';
+import * as util from 'util';
 
-import * as utils from './cacheUtils'
-import {SocketTimeout} from './constants'
-import {DownloadOptions} from '../options'
-import {retryHttpClientResponse} from './requestUtils'
+import * as utils from './cacheUtils';
+import {SocketTimeout} from './constants';
+import {DownloadOptions} from '../options';
+import {retryHttpClientResponse} from './requestUtils';
 
 /**
  * Pipes the body of a HTTP response to a stream
@@ -23,31 +23,31 @@ async function pipeResponseToStream(
   response: IHttpClientResponse,
   output: NodeJS.WritableStream
 ): Promise<void> {
-  const pipeline = util.promisify(stream.pipeline)
-  await pipeline(response.message, output)
+  const pipeline = util.promisify(stream.pipeline);
+  await pipeline(response.message, output);
 }
 
 /**
  * Class for tracking the download state and displaying stats.
  */
 export class DownloadProgress {
-  contentLength: number
-  segmentIndex: number
-  segmentSize: number
-  segmentOffset: number
-  receivedBytes: number
-  startTime: number
-  displayedComplete: boolean
-  timeoutHandle?: ReturnType<typeof setTimeout>
+  contentLength: number;
+  segmentIndex: number;
+  segmentSize: number;
+  segmentOffset: number;
+  receivedBytes: number;
+  startTime: number;
+  displayedComplete: boolean;
+  timeoutHandle?: ReturnType<typeof setTimeout>;
 
   constructor(contentLength: number) {
-    this.contentLength = contentLength
-    this.segmentIndex = 0
-    this.segmentSize = 0
-    this.segmentOffset = 0
-    this.receivedBytes = 0
-    this.displayedComplete = false
-    this.startTime = Date.now()
+    this.contentLength = contentLength;
+    this.segmentIndex = 0;
+    this.segmentSize = 0;
+    this.segmentOffset = 0;
+    this.receivedBytes = 0;
+    this.displayedComplete = false;
+    this.startTime = Date.now();
   }
 
   /**
@@ -57,14 +57,14 @@ export class DownloadProgress {
    * @param segmentSize the length of the next segment
    */
   nextSegment(segmentSize: number): void {
-    this.segmentOffset = this.segmentOffset + this.segmentSize
-    this.segmentIndex = this.segmentIndex + 1
-    this.segmentSize = segmentSize
-    this.receivedBytes = 0
+    this.segmentOffset = this.segmentOffset + this.segmentSize;
+    this.segmentIndex = this.segmentIndex + 1;
+    this.segmentSize = segmentSize;
+    this.receivedBytes = 0;
 
     core.debug(
       `Downloading segment at offset ${this.segmentOffset} with length ${this.segmentSize}...`
-    )
+    );
   }
 
   /**
@@ -73,21 +73,21 @@ export class DownloadProgress {
    * @param receivedBytes the number of bytes received
    */
   setReceivedBytes(receivedBytes: number): void {
-    this.receivedBytes = receivedBytes
+    this.receivedBytes = receivedBytes;
   }
 
   /**
    * Returns the total number of bytes transferred.
    */
   getTransferredBytes(): number {
-    return this.segmentOffset + this.receivedBytes
+    return this.segmentOffset + this.receivedBytes;
   }
 
   /**
    * Returns true if the download is complete.
    */
   isDone(): boolean {
-    return this.getTransferredBytes() === this.contentLength
+    return this.getTransferredBytes() === this.contentLength;
   }
 
   /**
@@ -96,26 +96,26 @@ export class DownloadProgress {
    */
   display(): void {
     if (this.displayedComplete) {
-      return
+      return;
     }
 
-    const transferredBytes = this.segmentOffset + this.receivedBytes
+    const transferredBytes = this.segmentOffset + this.receivedBytes;
     const percentage = (100 * (transferredBytes / this.contentLength)).toFixed(
       1
-    )
-    const elapsedTime = Date.now() - this.startTime
+    );
+    const elapsedTime = Date.now() - this.startTime;
     const downloadSpeed = (
       transferredBytes /
       (1024 * 1024) /
       (elapsedTime / 1000)
-    ).toFixed(1)
+    ).toFixed(1);
 
     core.info(
       `Received ${transferredBytes} of ${this.contentLength} (${percentage}%), ${downloadSpeed} MBs/sec`
-    )
+    );
 
     if (this.isDone()) {
-      this.displayedComplete = true
+      this.displayedComplete = true;
     }
   }
 
@@ -124,8 +124,8 @@ export class DownloadProgress {
    */
   onProgress(): (progress: TransferProgressEvent) => void {
     return (progress: TransferProgressEvent) => {
-      this.setReceivedBytes(progress.loadedBytes)
-    }
+      this.setReceivedBytes(progress.loadedBytes);
+    };
   }
 
   /**
@@ -135,14 +135,14 @@ export class DownloadProgress {
    */
   startDisplayTimer(delayInMs: number = 1000): void {
     const displayCallback = (): void => {
-      this.display()
+      this.display();
 
       if (!this.isDone()) {
-        this.timeoutHandle = setTimeout(displayCallback, delayInMs)
+        this.timeoutHandle = setTimeout(displayCallback, delayInMs);
       }
-    }
+    };
 
-    this.timeoutHandle = setTimeout(displayCallback, delayInMs)
+    this.timeoutHandle = setTimeout(displayCallback, delayInMs);
   }
 
   /**
@@ -152,11 +152,11 @@ export class DownloadProgress {
    */
   stopDisplayTimer(): void {
     if (this.timeoutHandle) {
-      clearTimeout(this.timeoutHandle)
-      this.timeoutHandle = undefined
+      clearTimeout(this.timeoutHandle);
+      this.timeoutHandle = undefined;
     }
 
-    this.display()
+    this.display();
   }
 }
 
@@ -170,35 +170,36 @@ export async function downloadCacheHttpClient(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
-  const writeStream = fs.createWriteStream(archivePath)
-  const httpClient = new HttpClient('actions/cache')
+  const writeStream = fs.createWriteStream(archivePath);
+  const httpClient = new HttpClient('actions/cache');
   const downloadResponse = await retryHttpClientResponse(
     'downloadCache',
     async () => httpClient.get(archiveLocation)
-  )
+  );
 
   // Abort download if no traffic received over the socket.
   downloadResponse.message.socket.setTimeout(SocketTimeout, () => {
-    downloadResponse.message.destroy()
-    core.debug(`Aborting download, socket timed out after ${SocketTimeout} ms`)
-  })
+    downloadResponse.message.destroy();
+    core.debug(`Aborting download, socket timed out after ${SocketTimeout} ms`);
+  });
 
-  await pipeResponseToStream(downloadResponse, writeStream)
+  await pipeResponseToStream(downloadResponse, writeStream);
 
   // Validate download size.
-  const contentLengthHeader = downloadResponse.message.headers['content-length']
+  const contentLengthHeader =
+    downloadResponse.message.headers['content-length'];
 
   if (contentLengthHeader) {
-    const expectedLength = parseInt(contentLengthHeader)
-    const actualLength = utils.getArchiveFileSizeIsBytes(archivePath)
+    const expectedLength = parseInt(contentLengthHeader);
+    const actualLength = utils.getArchiveFileSizeIsBytes(archivePath);
 
     if (actualLength !== expectedLength) {
       throw new Error(
         `Incomplete download. Expected file size: ${expectedLength}, actual file size: ${actualLength}`
-      )
+      );
     }
   } else {
-    core.debug('Unable to validate download, no Content-Length header')
+    core.debug('Unable to validate download, no Content-Length header');
   }
 }
 
@@ -221,43 +222,43 @@ export async function downloadCacheStorageSDK(
       // The default is 2 min / MB, which is way too slow
       tryTimeoutInMs: options.timeoutInMs
     }
-  })
+  });
 
-  const properties = await client.getProperties()
-  const contentLength = properties.contentLength ?? -1
+  const properties = await client.getProperties();
+  const contentLength = properties.contentLength ?? -1;
 
   if (contentLength < 0) {
     // We should never hit this condition, but just in case fall back to downloading the
     // file as one large stream
     core.debug(
       'Unable to determine content length, downloading file with http-client...'
-    )
+    );
 
-    await downloadCacheHttpClient(archiveLocation, archivePath)
+    await downloadCacheHttpClient(archiveLocation, archivePath);
   } else {
     // Use downloadToBuffer for faster downloads, since internally it splits the
     // file into 4 MB chunks which can then be parallelized and retried independently
     //
     // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
     // on 64-bit systems), split the download into multiple segments
-    const maxSegmentSize = buffer.constants.MAX_LENGTH
-    const downloadProgress = new DownloadProgress(contentLength)
+    const maxSegmentSize = buffer.constants.MAX_LENGTH;
+    const downloadProgress = new DownloadProgress(contentLength);
 
-    const fd = fs.openSync(archivePath, 'w')
+    const fd = fs.openSync(archivePath, 'w');
 
     try {
-      downloadProgress.startDisplayTimer()
+      downloadProgress.startDisplayTimer();
 
       while (!downloadProgress.isDone()) {
         const segmentStart =
-          downloadProgress.segmentOffset + downloadProgress.segmentSize
+          downloadProgress.segmentOffset + downloadProgress.segmentSize;
 
         const segmentSize = Math.min(
           maxSegmentSize,
           contentLength - segmentStart
-        )
+        );
 
-        downloadProgress.nextSegment(segmentSize)
+        downloadProgress.nextSegment(segmentSize);
 
         const result = await client.downloadToBuffer(
           segmentStart,
@@ -266,13 +267,13 @@ export async function downloadCacheStorageSDK(
             concurrency: options.downloadConcurrency,
             onProgress: downloadProgress.onProgress()
           }
-        )
+        );
 
-        fs.writeFileSync(fd, result)
+        fs.writeFileSync(fd, result);
       }
     } finally {
-      downloadProgress.stopDisplayTimer()
-      fs.closeSync(fd)
+      downloadProgress.stopDisplayTimer();
+      fs.closeSync(fd);
     }
   }
 }

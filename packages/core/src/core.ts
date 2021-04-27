@@ -1,16 +1,16 @@
-import {issue, issueCommand} from './command'
-import {issueCommand as issueFileCommand} from './file-command'
-import {toCommandValue} from './utils'
+import {issue, issueCommand} from './command';
+import {issueCommand as issueFileCommand} from './file-command';
+import {toCommandValue} from './utils';
 
-import * as os from 'os'
-import * as path from 'path'
+import * as os from 'os';
+import * as path from 'path';
 
 /**
  * Interface for getInput options
  */
 export interface InputOptions {
   /** Optional. Whether the input is required. If required and not present, will throw. Defaults to false */
-  required?: boolean
+  required?: boolean;
 }
 
 /**
@@ -39,16 +39,16 @@ export enum ExitCode {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function exportVariable(name: string, val: any): void {
-  const convertedVal = toCommandValue(val)
-  process.env[name] = convertedVal
+  const convertedVal = toCommandValue(val);
+  process.env[name] = convertedVal;
 
-  const filePath = process.env['GITHUB_ENV'] || ''
+  const filePath = process.env['GITHUB_ENV'] || '';
   if (filePath) {
-    const delimiter = '_GitHubActionsFileCommandDelimeter_'
-    const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`
-    issueFileCommand('ENV', commandValue)
+    const delimiter = '_GitHubActionsFileCommandDelimeter_';
+    const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
+    issueFileCommand('ENV', commandValue);
   } else {
-    issueCommand('set-env', {name}, convertedVal)
+    issueCommand('set-env', {name}, convertedVal);
   }
 }
 
@@ -57,7 +57,7 @@ export function exportVariable(name: string, val: any): void {
  * @param secret value of the secret
  */
 export function setSecret(secret: string): void {
-  issueCommand('add-mask', {}, secret)
+  issueCommand('add-mask', {}, secret);
 }
 
 /**
@@ -65,13 +65,13 @@ export function setSecret(secret: string): void {
  * @param inputPath
  */
 export function addPath(inputPath: string): void {
-  const filePath = process.env['GITHUB_PATH'] || ''
+  const filePath = process.env['GITHUB_PATH'] || '';
   if (filePath) {
-    issueFileCommand('PATH', inputPath)
+    issueFileCommand('PATH', inputPath);
   } else {
-    issueCommand('add-path', {}, inputPath)
+    issueCommand('add-path', {}, inputPath);
   }
-  process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`
+  process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
 }
 
 /**
@@ -83,12 +83,12 @@ export function addPath(inputPath: string): void {
  */
 export function getInput(name: string, options?: InputOptions): string {
   const val: string =
-    process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
+    process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || '';
   if (options && options.required && !val) {
-    throw new Error(`Input required and not supplied: ${name}`)
+    throw new Error(`Input required and not supplied: ${name}`);
   }
 
-  return val.trim()
+  return val.trim();
 }
 
 /**
@@ -99,8 +99,8 @@ export function getInput(name: string, options?: InputOptions): string {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function setOutput(name: string, value: any): void {
-  process.stdout.write(os.EOL)
-  issueCommand('set-output', {name}, value)
+  process.stdout.write(os.EOL);
+  issueCommand('set-output', {name}, value);
 }
 
 /**
@@ -109,7 +109,7 @@ export function setOutput(name: string, value: any): void {
  *
  */
 export function setCommandEcho(enabled: boolean): void {
-  issue('echo', enabled ? 'on' : 'off')
+  issue('echo', enabled ? 'on' : 'off');
 }
 
 //-----------------------------------------------------------------------
@@ -122,9 +122,9 @@ export function setCommandEcho(enabled: boolean): void {
  * @param message add error issue message
  */
 export function setFailed(message: string | Error): void {
-  process.exitCode = ExitCode.Failure
+  process.exitCode = ExitCode.Failure;
 
-  error(message)
+  error(message);
 }
 
 //-----------------------------------------------------------------------
@@ -135,7 +135,7 @@ export function setFailed(message: string | Error): void {
  * Gets whether Actions Step Debug is on or not
  */
 export function isDebug(): boolean {
-  return process.env['RUNNER_DEBUG'] === '1'
+  return process.env['RUNNER_DEBUG'] === '1';
 }
 
 /**
@@ -143,7 +143,7 @@ export function isDebug(): boolean {
  * @param message debug message
  */
 export function debug(message: string): void {
-  issueCommand('debug', {}, message)
+  issueCommand('debug', {}, message);
 }
 
 /**
@@ -151,7 +151,7 @@ export function debug(message: string): void {
  * @param message error issue message. Errors will be converted to string via toString()
  */
 export function error(message: string | Error): void {
-  issue('error', message instanceof Error ? message.toString() : message)
+  issue('error', message instanceof Error ? message.toString() : message);
 }
 
 /**
@@ -159,7 +159,7 @@ export function error(message: string | Error): void {
  * @param message warning issue message. Errors will be converted to string via toString()
  */
 export function warning(message: string | Error): void {
-  issue('warning', message instanceof Error ? message.toString() : message)
+  issue('warning', message instanceof Error ? message.toString() : message);
 }
 
 /**
@@ -167,7 +167,7 @@ export function warning(message: string | Error): void {
  * @param message info message
  */
 export function info(message: string): void {
-  process.stdout.write(message + os.EOL)
+  process.stdout.write(message + os.EOL);
 }
 
 /**
@@ -178,14 +178,14 @@ export function info(message: string): void {
  * @param name The name of the output group
  */
 export function startGroup(name: string): void {
-  issue('group', name)
+  issue('group', name);
 }
 
 /**
  * End an output group.
  */
 export function endGroup(): void {
-  issue('endgroup')
+  issue('endgroup');
 }
 
 /**
@@ -197,17 +197,17 @@ export function endGroup(): void {
  * @param fn The function to wrap in the group
  */
 export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
-  startGroup(name)
+  startGroup(name);
 
-  let result: T
+  let result: T;
 
   try {
-    result = await fn()
+    result = await fn();
   } finally {
-    endGroup()
+    endGroup();
   }
 
-  return result
+  return result;
 }
 
 //-----------------------------------------------------------------------
@@ -222,7 +222,7 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function saveState(name: string, value: any): void {
-  issueCommand('save-state', {name}, value)
+  issueCommand('save-state', {name}, value);
 }
 
 /**
@@ -232,5 +232,5 @@ export function saveState(name: string, value: any): void {
  * @returns   string
  */
 export function getState(name: string): string {
-  return process.env[`STATE_${name}`] || ''
+  return process.env[`STATE_${name}`] || '';
 }

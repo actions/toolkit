@@ -8,7 +8,7 @@ export interface GlobOptions {
    *
    * @default true
    */
-  followSymbolicLinks?: boolean
+  followSymbolicLinks?: boolean;
 
   /**
    * Indicates whether directories that match a glob pattern, should implicitly
@@ -19,7 +19,7 @@ export interface GlobOptions {
    *
    * @default true
    */
-  implicitDescendants?: boolean
+  implicitDescendants?: boolean;
 
   /**
    * Indicates whether broken symbolic should be ignored and omitted from the
@@ -27,5 +27,5 @@ export interface GlobOptions {
    *
    * @default true
    */
-  omitBrokenSymbolicLinks?: boolean
+  omitBrokenSymbolicLinks?: boolean;
 }

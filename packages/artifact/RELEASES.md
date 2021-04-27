@@ -57,4 +57,3 @@
 ### 0.5.1
 
 - Bump @actions/http-client to version 1.0.11 to fix proxy related issues during artifact upload and download
-

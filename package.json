@@ -6,8 +6,8 @@
     "bootstrap": "lerna bootstrap",
     "build": "lerna run tsc",
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
-    "format": "prettier --write packages/**/*.ts",
-    "format-check": "prettier --check packages/**/*.ts",
+    "format": "prettier --write .",
+    "format-check": "prettier --check .",
     "lint": "eslint packages/**/*.ts",
     "new-package": "scripts/create-package",
     "test": "jest --testTimeout 10000"
@@ -25,7 +25,7 @@
     "jest": "^25.1.0",
     "jest-circus": "^24.7.1",
     "lerna": "^3.18.4",
-    "prettier": "^1.19.1",
+    "prettier": "^2.2.1",
     "ts-jest": "^25.4.0",
     "typescript": "^3.7.4"
   }

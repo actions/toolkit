@@ -1,7 +1,7 @@
-import {ExecOptions} from './interfaces'
-import * as tr from './toolrunner'
+import {ExecOptions} from './interfaces';
+import * as tr from './toolrunner';
 
-export {ExecOptions}
+export {ExecOptions};
 
 /**
  * Exec a command.
@@ -18,13 +18,13 @@ export async function exec(
   args?: string[],
   options?: ExecOptions
 ): Promise<number> {
-  const commandArgs = tr.argStringToArray(commandLine)
+  const commandArgs = tr.argStringToArray(commandLine);
   if (commandArgs.length === 0) {
-    throw new Error(`Parameter 'commandLine' cannot be null or empty.`)
+    throw new Error(`Parameter 'commandLine' cannot be null or empty.`);
   }
   // Path to tool to execute should be first arg
-  const toolPath = commandArgs[0]
-  args = commandArgs.slice(1).concat(args || [])
-  const runner: tr.ToolRunner = new tr.ToolRunner(toolPath, args, options)
-  return runner.exec()
+  const toolPath = commandArgs[0];
+  args = commandArgs.slice(1).concat(args || []);
+  const runner: tr.ToolRunner = new tr.ToolRunner(toolPath, args, options);
+  return runner.exec();
 }

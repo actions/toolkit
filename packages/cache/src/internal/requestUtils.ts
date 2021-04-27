@@ -1,39 +1,39 @@
-import * as core from '@actions/core'
-import {HttpCodes, HttpClientError} from '@actions/http-client'
+import * as core from '@actions/core';
+import {HttpCodes, HttpClientError} from '@actions/http-client';
 import {
   IHttpClientResponse,
   ITypedResponse
-} from '@actions/http-client/interfaces'
-import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
+} from '@actions/http-client/interfaces';
+import {DefaultRetryDelay, DefaultRetryAttempts} from './constants';
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
-    return false
+    return false;
   }
-  return statusCode >= 200 && statusCode < 300
+  return statusCode >= 200 && statusCode < 300;
 }
 
 export function isServerErrorStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
-    return true
+    return true;
   }
-  return statusCode >= 500
+  return statusCode >= 500;
 }
 
 export function isRetryableStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
-    return false
+    return false;
   }
   const retryableStatusCodes = [
     HttpCodes.BadGateway,
     HttpCodes.ServiceUnavailable,
     HttpCodes.GatewayTimeout
-  ]
-  return retryableStatusCodes.includes(statusCode)
+  ];
+  return retryableStatusCodes.includes(statusCode);
 }
 
 async function sleep(milliseconds: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
 export async function retry<T>(
@@ -44,52 +44,52 @@ export async function retry<T>(
   delay = DefaultRetryDelay,
   onError: ((arg0: Error) => T | undefined) | undefined = undefined
 ): Promise<T> {
-  let errorMessage = ''
-  let attempt = 1
+  let errorMessage = '';
+  let attempt = 1;
 
   while (attempt <= maxAttempts) {
-    let response: T | undefined = undefined
-    let statusCode: number | undefined = undefined
-    let isRetryable = false
+    let response: T | undefined = undefined;
+    let statusCode: number | undefined = undefined;
+    let isRetryable = false;
 
     try {
-      response = await method()
+      response = await method();
     } catch (error) {
       if (onError) {
-        response = onError(error)
+        response = onError(error);
       }
 
-      isRetryable = true
-      errorMessage = error.message
+      isRetryable = true;
+      errorMessage = error.message;
     }
 
     if (response) {
-      statusCode = getStatusCode(response)
+      statusCode = getStatusCode(response);
 
       if (!isServerErrorStatusCode(statusCode)) {
-        return response
+        return response;
       }
     }
 
     if (statusCode) {
-      isRetryable = isRetryableStatusCode(statusCode)
-      errorMessage = `Cache service responded with ${statusCode}`
+      isRetryable = isRetryableStatusCode(statusCode);
+      errorMessage = `Cache service responded with ${statusCode}`;
     }
 
     core.debug(
       `${name} - Attempt ${attempt} of ${maxAttempts} failed with error: ${errorMessage}`
-    )
+    );
 
     if (!isRetryable) {
-      core.debug(`${name} - Error is not retryable`)
-      break
+      core.debug(`${name} - Error is not retryable`);
+      break;
     }
 
-    await sleep(delay)
-    attempt++
+    await sleep(delay);
+    attempt++;
   }
 
-  throw Error(`${name} failed: ${errorMessage}`)
+  throw Error(`${name} failed: ${errorMessage}`);
 }
 
 export async function retryTypedResponse<T>(
@@ -112,12 +112,12 @@ export async function retryTypedResponse<T>(
           statusCode: error.statusCode,
           result: null,
           headers: {}
-        }
+        };
       } else {
-        return undefined
+        return undefined;
       }
     }
-  )
+  );
 }
 
 export async function retryHttpClientResponse<T>(
@@ -132,5 +132,5 @@ export async function retryHttpClientResponse<T>(
     (response: IHttpClientResponse) => response.message.statusCode,
     maxAttempts,
     delay
-  )
+  );
 }

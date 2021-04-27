@@ -24,22 +24,22 @@ We can define a problem matcher in json that detects input in that format:
 
 ```json
 {
-    "problemMatcher": [
+  "problemMatcher": [
+    {
+      "owner": "eslint-compact",
+      "pattern": [
         {
-            "owner": "eslint-compact",
-            "pattern": [
-                {
-                    "regexp": "^(.+):\\sline\\s(\\d+),\\scol\\s(\\d+),\\s(Error|Warning|Info)\\s-\\s(.+)\\s\\((.+)\\)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5,
-                    "code": 6
-                }
-            ]
+          "regexp": "^(.+):\\sline\\s(\\d+),\\scol\\s(\\d+),\\s(Error|Warning|Info)\\s-\\s(.+)\\s\\((.+)\\)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5,
+          "code": 6
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
@@ -66,6 +66,7 @@ The following fields are available for problem matchers:
 ```
 
 ## Multiline Matching
+
 Consider the following output:
 
 ```
@@ -75,7 +76,7 @@ test.js
 ✖ 2 problems (2 errors, 0 warnings)
 ```
 
-The file name is printed once, yet multiple error lines are printed. The `loop` keyword provides a way to discover multiple errors in outputs. 
+The file name is printed once, yet multiple error lines are printed. The `loop` keyword provides a way to discover multiple errors in outputs.
 
 The eslint-stylish problem matcher defined below catches that output, and creates two annotations from it.
 
@@ -121,6 +122,7 @@ Registering two problem-matchers with the same owner will result in only the pro
 ## Examples
 
 Some of the starter actions are already using problem matchers, for example:
+
 - [setup-node](https://github.com/actions/setup-node/tree/main/.github)
 - [setup-python](https://github.com/actions/setup-python/tree/main/.github)
 - [setup-go](https://github.com/actions/setup-go/tree/main/.github)

@@ -1,25 +1,25 @@
-import {CompressionMethod} from './constants'
+import {CompressionMethod} from './constants';
 
 export interface ArtifactCacheEntry {
-  cacheKey?: string
-  scope?: string
-  creationTime?: string
-  archiveLocation?: string
+  cacheKey?: string;
+  scope?: string;
+  creationTime?: string;
+  archiveLocation?: string;
 }
 
 export interface CommitCacheRequest {
-  size: number
+  size: number;
 }
 
 export interface ReserveCacheRequest {
-  key: string
-  version?: string
+  key: string;
+  version?: string;
 }
 
 export interface ReserveCacheResponse {
-  cacheId: number
+  cacheId: number;
 }
 
 export interface InternalCacheOptions {
-  compressionMethod?: CompressionMethod
+  compressionMethod?: CompressionMethod;
 }
