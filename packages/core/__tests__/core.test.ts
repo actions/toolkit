@@ -19,6 +19,14 @@ const testEnvVars = {
   INPUT_MISSING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
   INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
+  INPUT_BOOLEAN_INPUT: 'true',
+  INPUT_BOOLEAN_INPUT_TRUE1: 'true',
+  INPUT_BOOLEAN_INPUT_TRUE2: 'True',
+  INPUT_BOOLEAN_INPUT_TRUE3: 'TRUE',
+  INPUT_BOOLEAN_INPUT_FALSE1: 'false',
+  INPUT_BOOLEAN_INPUT_FALSE2: 'False',
+  INPUT_BOOLEAN_INPUT_FALSE3: 'FALSE',
+  INPUT_WRONG_BOOLEAN_INPUT: 'wrong',
 
   // Save inputs
   STATE_TEST_1: 'state_val',
@@ -154,6 +162,30 @@ describe('@actions/core', () => {
   it('getInput handles multiple spaces', () => {
     expect(core.getInput('multiple spaces variable')).toBe(
       'I have multiple spaces'
+    )
+  })
+
+  it('getInput gets non-required boolean input', () => {
+    expect(core.getBooleanInput('boolean input')).toBe(true)
+  })
+
+  it('getInput gets required input', () => {
+    expect(core.getBooleanInput('boolean input', {required: true})).toBe(true)
+  })
+
+  it('getBooleanInput handles boolean input', () => {
+    expect(core.getBooleanInput('boolean input true1')).toBe(true)
+    expect(core.getBooleanInput('boolean input true2')).toBe(true)
+    expect(core.getBooleanInput('boolean input true3')).toBe(true)
+    expect(core.getBooleanInput('boolean input false1')).toBe(false)
+    expect(core.getBooleanInput('boolean input false2')).toBe(false)
+    expect(core.getBooleanInput('boolean input false3')).toBe(false)
+  })
+
+  it('getBooleanInput handles wrong boolean input', () => {
+    expect(() => core.getBooleanInput('wrong boolean input')).toThrow(
+      'Input does not meet YAML 1.2 "Core Schema" specification: wrong boolean input\n' +
+        `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``
     )
   })
 
