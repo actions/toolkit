@@ -32,12 +32,14 @@ const userAgent = 'actions/tool-cache'
  * @param url       url of tool to download
  * @param dest      path to download tool
  * @param auth      authorization header
+ * @param headers   other headers
  * @returns         path to downloaded tool
  */
 export async function downloadTool(
   url: string,
   dest?: string,
-  auth?: string
+  auth?: string,
+  headers?: IHeaders
 ): Promise<string> {
   dest = dest || path.join(_getTempDirectory(), uuidV4())
   await io.mkdirP(path.dirname(dest))
@@ -56,7 +58,7 @@ export async function downloadTool(
   const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
   return await retryHelper.execute(
     async () => {
-      return await downloadToolAttempt(url, dest || '', auth)
+      return await downloadToolAttempt(url, dest || '', auth, headers)
     },
     (err: Error) => {
       if (err instanceof HTTPError && err.httpStatusCode) {
@@ -79,7 +81,8 @@ export async function downloadTool(
 async function downloadToolAttempt(
   url: string,
   dest: string,
-  auth?: string
+  auth?: string,
+  headers?: IHeaders
 ): Promise<string> {
   if (fs.existsSync(dest)) {
     throw new Error(`Destination file path ${dest} already exists`)
@@ -90,12 +93,12 @@ async function downloadToolAttempt(
     allowRetries: false
   })
 
-  let headers: IHeaders | undefined
   if (auth) {
     core.debug('set auth')
-    headers = {
-      authorization: auth
+    if (headers === undefined) {
+      headers = {}
     }
+    headers.authorization = auth
   }
 
   const response: httpm.HttpClientResponse = await http.get(url, headers)
