@@ -3,7 +3,6 @@ import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
-import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
   beforeAll(async () => {
@@ -824,31 +823,6 @@ describe('mkdirP', () => {
     expect(
       (await fs.lstat(path.join(realDirPath, 'sub_dir'))).isDirectory()
     ).toBe(true)
-  })
-
-  it('breaks if mkdirP loop out of control', async () => {
-    const testPath = path.join(
-      getTestTemp(),
-      'mkdirP_failsafe',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10'
-    )
-
-    expect.assertions(1)
-
-    try {
-      await ioUtil.mkdirP(testPath, 10)
-    } catch (err) {
-      expect(err.code).toBe('ENOENT')
-    }
   })
 })
 
