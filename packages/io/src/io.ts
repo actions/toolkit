@@ -1,3 +1,4 @@
+import {ok} from 'assert'
 import * as childProcess from 'child_process'
 import * as path from 'path'
 import {promisify} from 'util'
@@ -161,7 +162,8 @@ export async function rmRF(inputPath: string): Promise<void> {
  * @returns Promise<void>
  */
 export async function mkdirP(fsPath: string): Promise<void> {
-  await ioUtil.mkdirP(fsPath)
+  ok(fsPath, 'a path argument must be provided')
+  await ioUtil.mkdir(fsPath, {recursive: true})
 }
 
 /**
