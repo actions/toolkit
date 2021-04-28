@@ -16,11 +16,13 @@ import * as core from '@actions/core';
 
 #### Inputs/Outputs
 
-Action inputs can be read with `getInput`.  Outputs can be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
+Action inputs can be read with `getInput` which returns a `string` or `getBooleanInput` which parses a boolean based on the [yaml 1.2 specification](https://yaml.org/spec/1.2/spec.html#id2804923). If `required` set to be false, the input should have a default value in `action.yml`.
+
+Outputs can be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
 
 ```js
 const myInput = core.getInput('inputName', { required: true });
-
+const myBooleanInput = core.getBooleanInput('booleanInputName', { required: true });
 core.setOutput('outputKey', 'outputVal');
 ```
 
@@ -65,7 +67,6 @@ catch (err) {
 ```
 
 Note that `setNeutral` is not yet implemented in actions V2 but equivalent functionality is being planned.
-
 
 #### Logging
 
@@ -118,6 +119,7 @@ const result = await core.group('Do something async', async () => {
 Colored output is supported in the Action logs via standard [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). 3/4 bit, 8 bit and 24 bit colors are all supported.
 
 Foreground colors:
+
 ```js
 // 3/4 bit
 core.info('\u001b[35mThis foreground will be magenta')
@@ -130,6 +132,7 @@ core.info('\u001b[38;2;255;0;0mThis foreground will be bright red')
 ```
 
 Background colors:
+
 ```js
 // 3/4 bit
 core.info('\u001b[43mThis background will be yellow');
@@ -156,6 +159,7 @@ core.info('\u001b[31;46mRed foreground with a cyan background and \u001b[1mbold 
 ```
 
 > Note: Escape codes reset at the start of each line
+
 ```js
 core.info('\u001b[35mThis foreground will be magenta')
 core.info('This foreground will reset to the default')
@@ -170,9 +174,10 @@ core.info(style.color.ansi16m.hex('#abcdef') + 'Hello world!')
 
 #### Action state
 
-You can use this library to save state and get state for sharing information between a given wrapper action: 
+You can use this library to save state and get state for sharing information between a given wrapper action:
 
-**action.yml**
+**action.yml**:
+
 ```yaml
 name: 'Wrapper action sample'
 inputs:
@@ -193,6 +198,7 @@ core.saveState("pidToKill", 12345);
 ```
 
 In action's `cleanup.js`:
+
 ```js
 const core = require('@actions/core');
 
