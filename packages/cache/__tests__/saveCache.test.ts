@@ -49,7 +49,7 @@ test('save with large cache outputs should fail', async () => {
 
   const cacheSize = 6 * 1024 * 1024 * 1024 //~6GB, over the 5GB limit
   jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeIsBytes')
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
     .mockReturnValueOnce(cacheSize)
   const compression = CompressionMethod.Gzip
   const getCompressionMock = jest
