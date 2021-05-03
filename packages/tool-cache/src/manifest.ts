@@ -32,7 +32,7 @@ NOTE: versions must be sorted descending by version in the manifest
   ...
 ]
 */
-
+ z
 export interface IToolReleaseFile {
   filename: string
   // 'aix', 'darwin', 'freebsd', 'linux', 'openbsd',
