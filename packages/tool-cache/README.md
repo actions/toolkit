@@ -84,3 +84,4 @@ const tc = require('@actions/tool-cache');
 const allNodeVersions = tc.findAllVersions('node');
 console.log(`Versions of node available: ${allNodeVersions}`);
 ```
+3
