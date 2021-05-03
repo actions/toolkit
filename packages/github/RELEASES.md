@@ -1,7 +1,7 @@
 # @actions/github Releases
 
 ### 5.0.0
-- [Update @actions/github to include latest octokit definitions]()
+- [Update @actions/github to include latest octokit definitions](https://github.com/actions/toolkit/pull/783)
 
 ### 4.0.0
 - [Add execution state information to context](https://github.com/actions/toolkit/pull/499)
