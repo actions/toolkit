@@ -22,7 +22,7 @@ async function run() {
     // You can also pass in additional options as a second parameter to getOctokit
     // const octokit = github.getOctokit(myToken, {userAgent: "MyActionVersion1"});
 
-    const { data: pullRequest } = await octokit.pulls.get({
+    const { data: pullRequest } = await octokit.rest.pulls.get({
         owner: 'octokit',
         repo: 'rest.js',
         pull_number: 123,
@@ -50,7 +50,7 @@ const github = require('@actions/github');
 
 const context = github.context;
 
-const newIssue = await octokit.issues.create({
+const newIssue = await octokit.rest.issues.create({
   ...context.repo,
   title: 'New issue!',
   body: 'Hello Universe!'
@@ -90,7 +90,7 @@ const octokit = GitHub.plugin(enterpriseServer220Admin)
 const myToken = core.getInput('myToken');
 const myOctokit = new octokit(getOctokitOptions(token))
 // Create a new user
-myOctokit.enterpriseAdmin.createUser({
+myOctokit.rest.enterpriseAdmin.createUser({
   login: "testuser",
   email: "testuser@test.com",
 });
