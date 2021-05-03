@@ -2,10 +2,10 @@ import {promises as fs} from 'fs'
 import * as path from 'path'
 import * as cacheUtils from '../src/internal/cacheUtils'
 
-test('getArchiveFileSizeIsBytes returns file size', () => {
+test('getArchiveFileSizeInBytes returns file size', () => {
   const filePath = path.join(__dirname, '__fixtures__', 'helloWorld.txt')
 
-  const size = cacheUtils.getArchiveFileSizeIsBytes(filePath)
+  const size = cacheUtils.getArchiveFileSizeInBytes(filePath)
 
   expect(size).toBe(11)
 })

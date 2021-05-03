@@ -190,7 +190,7 @@ export async function downloadCacheHttpClient(
 
   if (contentLengthHeader) {
     const expectedLength = parseInt(contentLengthHeader)
-    const actualLength = utils.getArchiveFileSizeIsBytes(archivePath)
+    const actualLength = utils.getArchiveFileSizeInBytes(archivePath)
 
     if (actualLength !== expectedLength) {
       throw new Error(
