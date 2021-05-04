@@ -281,7 +281,7 @@ function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
   const force = options.force == null ? true : options.force
   const recursive = Boolean(options.recursive)
   const copySourceDirectory =
-    options.copySourceDirectory === undefined
+    options.copySourceDirectory == null
       ? true
       : Boolean(options.copySourceDirectory)
   return {force, recursive, copySourceDirectory}
