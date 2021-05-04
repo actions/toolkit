@@ -2,4 +2,3 @@
 
 /packages/artifact/   @actions/actions-service
 /packages/cache/      @actions/actions-service
-/packages/tool-cache/ @actions/spark
