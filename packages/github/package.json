@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -38,10 +38,10 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/http-client": "^1.0.8",
-    "@octokit/core": "^3.1.2",
-    "@octokit/plugin-paginate-rest": "^2.3.0",
-    "@octokit/plugin-rest-endpoint-methods": "^4.1.2"
+    "@actions/http-client": "^1.0.11",
+    "@octokit/core": "^3.4.0",
+    "@octokit/plugin-paginate-rest": "^2.13.3",
+    "@octokit/plugin-rest-endpoint-methods": "^5.1.1"
   },
   "devDependencies": {
     "jest": "^25.1.0",
