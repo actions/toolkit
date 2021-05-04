@@ -14,7 +14,7 @@ export interface CopyOptions {
   recursive?: boolean
   /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
   force?: boolean
-  /** Optional. Whether to copy the source directory along with all the files when recursive. Default is true*/
+  /** Optional. Whether to copy the source directory along with all the files. Only takes effect when recursive=true and copying a directory. Default is true*/
   copySourceDirectory?: boolean
 }
 
@@ -280,7 +280,10 @@ export async function findInPath(tool: string): Promise<string[]> {
 function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
   const force = options.force == null ? true : options.force
   const recursive = Boolean(options.recursive)
-  const copySourceDirectory = options.copySourceDirectory === undefined ? true : Boolean(options.copySourceDirectory)
+  const copySourceDirectory =
+    options.copySourceDirectory === undefined
+      ? true
+      : Boolean(options.copySourceDirectory)
   return {force, recursive, copySourceDirectory}
 }
 

@@ -91,19 +91,22 @@ describe('cp', () => {
   })
 
   it('copies directory into existing destination with -r without copying source directory', async () => {
-    const root: string = path.join(getTestTemp(), 'cp_with_-r_existing_dest_no_source_dir')
+    const root: string = path.join(
+      getTestTemp(),
+      'cp_with_-r_existing_dest_no_source_dir'
+    )
     const sourceFolder: string = path.join(root, 'cp_source')
     const sourceFile: string = path.join(sourceFolder, 'cp_source_file')
 
     const targetFolder: string = path.join(root, 'cp_target')
-    const targetFile: string = path.join(
-      targetFolder,
-      'cp_source_file'
-    )
+    const targetFile: string = path.join(targetFolder, 'cp_source_file')
     await io.mkdirP(sourceFolder)
     await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.mkdirP(targetFolder)
-    await io.cp(sourceFolder, targetFolder, {recursive: true, copySourceDirectory: false})
+    await io.cp(sourceFolder, targetFolder, {
+      recursive: true,
+      copySourceDirectory: false
+    })
 
     expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
