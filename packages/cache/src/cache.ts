@@ -166,24 +166,33 @@ export async function saveCache(
 
   core.debug(`Archive Path: ${archivePath}`)
 
-  await createTar(archiveFolder, cachePaths, compressionMethod)
-  if (core.isDebug()) {
-    await listTar(archivePath, compressionMethod)
-  }
+  try {
+    await createTar(archiveFolder, cachePaths, compressionMethod)
+    if (core.isDebug()) {
+      await listTar(archivePath, compressionMethod)
+    }
 
-  const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
-  const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
-  core.debug(`File Size: ${archiveFileSize}`)
-  if (archiveFileSize > fileSizeLimit) {
-    throw new Error(
-      `Cache size of ~${Math.round(
-        archiveFileSize / (1024 * 1024)
-      )} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`
-    )
-  }
+    const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
+    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+    core.debug(`File Size: ${archiveFileSize}`)
+    if (archiveFileSize > fileSizeLimit) {
+      throw new Error(
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`
+      )
+    }
 
-  core.debug(`Saving Cache (ID: ${cacheId})`)
-  await cacheHttpClient.saveCache(cacheId, archivePath, options)
+    core.debug(`Saving Cache (ID: ${cacheId})`)
+    await cacheHttpClient.saveCache(cacheId, archivePath, options)
+  } finally {
+    // Try to delete the archive to save space
+    try {
+      await utils.unlinkFile(archivePath)
+    } catch (error) {
+      core.debug(`Failed to delete archive: ${error}`)
+    }
+  }
 
   return cacheId
 }
