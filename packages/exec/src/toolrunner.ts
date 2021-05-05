@@ -377,7 +377,7 @@ export class ToolRunner extends events.EventEmitter {
     options = options || <im.ExecOptions>{}
     const result = <child.SpawnOptions>{}
     result.cwd = options.cwd
-    result.env = options.env
+    result.env = options.env || stripInputEnvironmentVariables(process.env)
     result['windowsVerbatimArguments'] =
       options.windowsVerbatimArguments || this._isCmdFile()
     if (options.windowsVerbatimArguments) {
@@ -598,6 +598,16 @@ export function argStringToArray(argString: string): string[] {
   }
 
   return args
+}
+
+// Strips INPUT_ environment variables to prevent them leaking to child processes
+export function stripInputEnvironmentVariables(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  return Object.entries(env).filter(([key, value]) => {
+    return !key.startsWith('INPUT_')
+  }).reduce((obj: NodeJS.ProcessEnv, [key, value]) => {
+    obj[key] = value
+    return obj
+  }, {})
 }
 
 class ExecState extends events.EventEmitter {

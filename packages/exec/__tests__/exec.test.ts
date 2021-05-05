@@ -1,4 +1,5 @@
 import * as exec from '../src/exec'
+import * as tr from '../src/toolrunner'
 import * as im from '../src/interfaces'
 
 import * as childProcess from 'child_process'
@@ -618,6 +619,14 @@ describe('@actions/exec', () => {
       )
     }
     expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
+  })
+
+  it('tool runner strips INPUT_ params from environment for child process', () => {
+    const env = {INPUT_TEST: 'input value', SOME_OTHER_ENV: 'some other value'}
+    const sanitizedEnv = tr.stripInputEnvironmentVariables(env)
+
+    expect(sanitizedEnv).not.toHaveProperty('INPUT_TEST')
+    expect(sanitizedEnv).toHaveProperty('SOME_OTHER_ENV')
   })
 
   if (IS_WINDOWS) {

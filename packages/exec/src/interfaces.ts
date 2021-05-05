@@ -6,7 +6,7 @@ export interface ExecOptions {
   /** optional working directory.  defaults to current */
   cwd?: string
 
-  /** optional envvar dictionary.  defaults to current process's env */
+  /** optional envvar dictionary.  defaults to current process's env with `INPUT_*` variables removed */
   env?: {[key: string]: string}
 
   /** optional.  defaults to false */
