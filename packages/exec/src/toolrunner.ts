@@ -601,13 +601,17 @@ export function argStringToArray(argString: string): string[] {
 }
 
 // Strips INPUT_ environment variables to prevent them leaking to child processes
-export function stripInputEnvironmentVariables(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  return Object.entries(env).filter(([key, value]) => {
-    return !key.startsWith('INPUT_')
-  }).reduce((obj: NodeJS.ProcessEnv, [key, value]) => {
-    obj[key] = value
-    return obj
-  }, {})
+export function stripInputEnvironmentVariables(
+  env: NodeJS.ProcessEnv
+): NodeJS.ProcessEnv {
+  return Object.entries(env)
+    .filter(([key]) => {
+      return !key.startsWith('INPUT_')
+    })
+    .reduce((obj: NodeJS.ProcessEnv, [key, value]) => {
+      obj[key] = value
+      return obj
+    }, {})
 }
 
 class ExecState extends events.EventEmitter {
