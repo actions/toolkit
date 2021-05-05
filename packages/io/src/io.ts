@@ -14,6 +14,8 @@ export interface CopyOptions {
   recursive?: boolean
   /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
   force?: boolean
+  /** Optional. Whether to copy the source directory along with all the files. Only takes effect when recursive=true and copying a directory. Default is true*/
+  copySourceDirectory?: boolean
 }
 
 /**
@@ -37,7 +39,7 @@ export async function cp(
   dest: string,
   options: CopyOptions = {}
 ): Promise<void> {
-  const {force, recursive} = readCopyOptions(options)
+  const {force, recursive, copySourceDirectory} = readCopyOptions(options)
 
   const destStat = (await ioUtil.exists(dest)) ? await ioUtil.stat(dest) : null
   // Dest is an existing file, but not forcing
@@ -47,7 +49,7 @@ export async function cp(
 
   // If dest is an existing directory, should copy inside.
   const newDest: string =
-    destStat && destStat.isDirectory()
+    destStat && destStat.isDirectory() && copySourceDirectory
       ? path.join(dest, path.basename(source))
       : dest
 
@@ -278,7 +280,11 @@ export async function findInPath(tool: string): Promise<string[]> {
 function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
   const force = options.force == null ? true : options.force
   const recursive = Boolean(options.recursive)
-  return {force, recursive}
+  const copySourceDirectory =
+    options.copySourceDirectory == null
+      ? true
+      : Boolean(options.copySourceDirectory)
+  return {force, recursive, copySourceDirectory}
 }
 
 async function cpDirRecursive(
