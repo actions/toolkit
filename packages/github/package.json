@@ -45,6 +45,6 @@
   },
   "devDependencies": {
     "jest": "^25.1.0",
-    "proxy": "^1.0.1"
+    "proxy": "^1.0.2"
   }
 }
