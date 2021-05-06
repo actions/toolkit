@@ -472,9 +472,9 @@ export function find(
   arch = arch || os.arch()
 
   // attempt to resolve an explicit version
-  if (!_isExplicitVersion(versionSpec)) {
+  if (!isExplicitVersion(versionSpec)) {
     const localVersions: string[] = findAllVersions(toolName, arch)
-    const match = _evaluateVersions(localVersions, versionSpec)
+    const match = evaluateVersions(localVersions, versionSpec)
     versionSpec = match
   }
 
@@ -514,7 +514,7 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
   if (fs.existsSync(toolPath)) {
     const children: string[] = fs.readdirSync(toolPath)
     for (const child of children) {
-      if (_isExplicitVersion(child)) {
+      if (isExplicitVersion(child)) {
         const fullPath = path.join(toolPath, child, arch || '')
         if (fs.existsSync(fullPath) && fs.existsSync(`${fullPath}.complete`)) {
           versions.push(child)
@@ -652,7 +652,7 @@ function _completeToolPath(tool: string, version: string, arch?: string): void {
   core.debug('finished caching tool')
 }
 
-function _isExplicitVersion(versionSpec: string): boolean {
+export function isExplicitVersion(versionSpec: string): boolean {
   const c = semver.clean(versionSpec) || ''
   core.debug(`isExplicit: ${c}`)
 
@@ -662,7 +662,7 @@ function _isExplicitVersion(versionSpec: string): boolean {
   return valid
 }
 
-function _evaluateVersions(versions: string[], versionSpec: string): string {
+export function evaluateVersions(versions: string[], versionSpec: string): string {
   let version = ''
   core.debug(`evaluating ${versions.length} versions`)
   versions = versions.sort((a, b) => {
