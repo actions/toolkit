@@ -538,6 +538,22 @@ describe('@actions/exec', () => {
     expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
   })
 
+  it('Exec roots throws friendly error when bad cwd is specified', async () => {
+    const execOptions = getExecOptions()
+    execOptions.cwd = 'nonexistent/path'
+
+    await expect(exec.exec('ls', ['-all'], execOptions)).rejects.toThrowError(
+      `The cwd: ${execOptions.cwd} does not exist!`
+    )
+  })
+
+  it('Exec roots does not throw when valid cwd is provided', async () => {
+    const execOptions = getExecOptions()
+    execOptions.cwd = './'
+
+    await expect(exec.exec('ls', ['-all'], execOptions)).resolves.toBe(0)
+  })
+
   it('Exec roots relative tool path using rooted options.cwd', async () => {
     let command: string
     if (IS_WINDOWS) {
