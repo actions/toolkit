@@ -662,7 +662,10 @@ export function isExplicitVersion(versionSpec: string): boolean {
   return valid
 }
 
-export function evaluateVersions(versions: string[], versionSpec: string): string {
+export function evaluateVersions(
+  versions: string[],
+  versionSpec: string
+): string {
   let version = ''
   core.debug(`evaluating ${versions.length} versions`)
   versions = versions.sort((a, b) => {
