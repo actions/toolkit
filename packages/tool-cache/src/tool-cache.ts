@@ -652,6 +652,11 @@ function _completeToolPath(tool: string, version: string, arch?: string): void {
   core.debug('finished caching tool')
 }
 
+/**
+ * Check if version string is explicit
+ *
+ * @param versionSpec      version string to check
+ */
 export function isExplicitVersion(versionSpec: string): boolean {
   const c = semver.clean(versionSpec) || ''
   core.debug(`isExplicit: ${c}`)
@@ -661,6 +666,13 @@ export function isExplicitVersion(versionSpec: string): boolean {
 
   return valid
 }
+
+/**
+ * Get the highest satisfiying semantic version in `versions` which satisfies `versionSpec`
+ *
+ * @param versions        array of versions to evaluate
+ * @param versionSpec     semantic version spec to satisfy
+ */
 
 export function evaluateVersions(
   versions: string[],
