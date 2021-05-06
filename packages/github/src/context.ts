@@ -46,9 +46,10 @@ export class Context {
     this.job = process.env.GITHUB_JOB as string
     this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER as string, 10)
     this.runId = parseInt(process.env.GITHUB_RUN_ID as string, 10)
-    this.apiUrl = process.env.GITHUB_API_URL ?? "https://api.github.com" as string
-    this.serverUrl = process.env.GITHUB_SERVER_URL ?? "https://github.com" as string
-    this.graphqlUrl = process.env.GITHUB_GRAPHQL_URL	 ?? "https://api.github.com/graphql" as string
+    this.apiUrl = process.env.GITHUB_API_URL ?? `https://api.github.com`
+    this.serverUrl = process.env.GITHUB_SERVER_URL ?? `https://github.com`
+    this.graphqlUrl =
+      process.env.GITHUB_GRAPHQL_URL ?? `https://api.github.com/graphql`
   }
 
   get issue(): {owner: string; repo: string; number: number} {
