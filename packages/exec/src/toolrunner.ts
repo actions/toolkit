@@ -421,10 +421,6 @@ export class ToolRunner extends events.EventEmitter {
         this._debug(`   ${arg}`)
       }
 
-      this.on('error', (error: Error) => {
-        reject(error)
-      })
-
       const optionsNonNull = this._cloneExecOptions(this.options)
       if (!optionsNonNull.silent && optionsNonNull.outStream) {
         optionsNonNull.outStream.write(
@@ -438,11 +434,7 @@ export class ToolRunner extends events.EventEmitter {
       })
 
       if (this.options.cwd && !(await ioUtil.exists(this.options.cwd))) {
-        this.emit(
-          'error',
-          new Error(`The cwd: ${this.options.cwd} does not exist!`)
-        )
-        return
+        return reject(new Error(`The cwd: ${this.options.cwd} does not exist!`))
       }
 
       const fileName = this._getSpawnFileName()
