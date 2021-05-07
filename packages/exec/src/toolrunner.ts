@@ -414,7 +414,7 @@ export class ToolRunner extends events.EventEmitter {
     // otherwise verify it exists (add extension on Windows if necessary)
     this.toolPath = await io.which(this.toolPath, true)
 
-    return new Promise<number>((resolve, reject) => {
+    return new Promise<number>(async (resolve, reject) => {
       this._debug(`exec tool: ${this.toolPath}`)
       this._debug('arguments:')
       for (const arg of this.args) {
@@ -432,6 +432,10 @@ export class ToolRunner extends events.EventEmitter {
       state.on('debug', (message: string) => {
         this._debug(message)
       })
+
+      if (this.options.cwd && !(await ioUtil.exists(this.options.cwd))) {
+        return reject(new Error(`The cwd: ${this.options.cwd} does not exist!`))
+      }
 
       const fileName = this._getSpawnFileName()
       const cp = child.spawn(
