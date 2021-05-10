@@ -166,17 +166,17 @@ describe('@actions/core', () => {
     )
   })
 
-  it('getInput gets trims whitespace by default', () => {
+  it('getInput trims whitespace by default', () => {
     expect(core.getInput('with trailing whitespace')).toBe('some val')
   })
 
-  it('getInput gets trims whitespace when option is explicitly true', () => {
+  it('getInput trims whitespace when option is explicitly true', () => {
     expect(
       core.getInput('with trailing whitespace', {trimWhiteSpace: true})
     ).toBe('some val')
   })
 
-  it('getInput gets does not trim whitespace when option is false', () => {
+  it('getInput does not trim whitespace when option is false', () => {
     expect(
       core.getInput('with trailing whitespace', {trimWhiteSpace: false})
     ).toBe('  some val  ')
