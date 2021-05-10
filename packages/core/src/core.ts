@@ -11,6 +11,9 @@ import * as path from 'path'
 export interface InputOptions {
   /** Optional. Whether the input is required. If required and not present, will throw. Defaults to false */
   required?: boolean
+
+  /** Optional. Whether whitespace will be trimmed for the input. Defaults to true */
+  trimWhiteSpace?: boolean
 }
 
 /**
@@ -86,6 +89,10 @@ export function getInput(name: string, options?: InputOptions): string {
     process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
   if (options && options.required && !val) {
     throw new Error(`Input required and not supplied: ${name}`)
+  }
+
+  if (options && options.trimWhiteSpace === false) {
+    return val
   }
 
   return val.trim()

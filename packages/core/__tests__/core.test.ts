@@ -27,6 +27,7 @@ const testEnvVars = {
   INPUT_BOOLEAN_INPUT_FALSE2: 'False',
   INPUT_BOOLEAN_INPUT_FALSE3: 'FALSE',
   INPUT_WRONG_BOOLEAN_INPUT: 'wrong',
+  INPUT_WITH_TRAILING_WHITESPACE: '  some val  ',
 
   // Save inputs
   STATE_TEST_1: 'state_val',
@@ -163,6 +164,22 @@ describe('@actions/core', () => {
     expect(core.getInput('multiple spaces variable')).toBe(
       'I have multiple spaces'
     )
+  })
+
+  it('getInput gets trims whitespace by default', () => {
+    expect(core.getInput('with trailing whitespace')).toBe('some val')
+  })
+
+  it('getInput gets trims whitespace when option is explicitly true', () => {
+    expect(
+      core.getInput('with trailing whitespace', {trimWhiteSpace: true})
+    ).toBe('some val')
+  })
+
+  it('getInput gets does not trim whitespace when option is false', () => {
+    expect(
+      core.getInput('with trailing whitespace', {trimWhiteSpace: false})
+    ).toBe('  some val  ')
   })
 
   it('getInput gets non-required boolean input', () => {
