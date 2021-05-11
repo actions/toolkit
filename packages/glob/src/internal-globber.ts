@@ -66,31 +66,23 @@ export class DefaultGlobber implements Globber {
   async *globGenerator(): AsyncGenerator<string, void> {
     // Fill in defaults options
     const options = globOptionsHelper.getOptions(this.options)
-    // this.patterns.map((p) => p.segments.join('/')).forEach((p) => {
-    //   console.log(`this.Pattern: ${p}`)
-    // })
     // Implicit descendants?
     const patterns: Pattern[] = []
     for (const pattern of this.patterns) {
-      // core.debug(`=== Pattern search path: ${pattern.searchPath}`)
-      // core.debug(`=== Pattern.trailingSeparator: ${pattern.trailingSeparator}`)
       patterns.push(pattern)
       if (
         options.implicitDescendants &&
         (pattern.trailingSeparator ||
           pattern.segments[pattern.segments.length - 1] !== '**')
       ) {
-        // core.debug(`=== Pushing negate pattern`)
         patterns.push(
-          new Pattern(pattern.negate, pattern.segments.concat('**'), undefined, pattern.trailingSeparator)
+          new Pattern(pattern.negate, true, pattern.segments.concat('**'))
         )
       }
     }
 
-    // core.debug(`=== Patterns: ${JSON.stringify(patterns)}`)
     // Push the search paths
 
-    // console.log(`=== patternHelper.getsearchpath: ${JSON.stringify(patternHelper.getSearchPaths(patterns))}`)
     const stack: SearchState[] = []
     for (const searchPath of patternHelper.getSearchPaths(patterns)) {
       core.debug(`Search path '${searchPath}'`)
@@ -110,8 +102,6 @@ export class DefaultGlobber implements Globber {
       stack.unshift(new SearchState(searchPath, 1))
     }
 
-
-
     // Search
     const traversalChain: string[] = [] // used to detect cycles
     while (stack.length) {
@@ -120,7 +110,6 @@ export class DefaultGlobber implements Globber {
 
       // Match?
       const match = patternHelper.match(patterns, item.path)
-      core.debug(`=== Match: ${match}, patterns: ${JSON.stringify(patterns)} `)
       const partialMatch =
         !!match || patternHelper.partialMatch(patterns, item.path)
       if (!match && !partialMatch) {
@@ -192,7 +181,6 @@ export class DefaultGlobber implements Globber {
 
     result.searchPaths.push(...patternHelper.getSearchPaths(result.patterns))
 
-    console.log(`result.patterns[0]: ${JSON.stringify(result.patterns[0])}`)
     return result
   }
 

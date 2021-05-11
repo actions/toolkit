@@ -107,14 +107,11 @@ describe('globber', () => {
     )
 
     const filePath = path.join(root, 'file')
-    
+
     await fs.mkdir(root, {recursive: true})
     await fs.writeFile(filePath, 'test file content')
 
-    const pattern = `${filePath}/`
-    console.log(`=== pattern: ${pattern}`)
-    
-    const itemPaths = await glob(pattern, {})
+    const itemPaths = await glob(`${filePath}/`, {})
     expect(itemPaths).toEqual([])
   })
 
