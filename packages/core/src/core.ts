@@ -13,7 +13,7 @@ export interface InputOptions {
   required?: boolean
 
   /** Optional. Whether leading/trailing whitespace will be trimmed for the input. Defaults to true */
-  trimWhiteSpace?: boolean
+  trimWhitespace?: boolean
 }
 
 /**
@@ -91,7 +91,7 @@ export function getInput(name: string, options?: InputOptions): string {
     throw new Error(`Input required and not supplied: ${name}`)
   }
 
-  if (options && options.trimWhiteSpace === false) {
+  if (options && options.trimWhitespace === false) {
     return val
   }
 
