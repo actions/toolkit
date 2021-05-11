@@ -47,13 +47,16 @@ export class Pattern {
   // Disable no-dupe-class-members due to false positive for method overload
   // https://github.com/typescript-eslint/typescript-eslint/issues/291
 
+  private readonly implicitTrailing: boolean
+
   constructor(pattern: string)
   constructor(pattern: string, segments: undefined, homedir: string)
-  constructor(negate: boolean, segments: string[])
+  constructor(negate: boolean, segments: string[], homedir?: string, implicitTrailing?: boolean)
   constructor(
     patternOrNegate: string | boolean,
     segments?: string[],
-    homedir?: string
+    homedir?: string,
+    implicitTrailing?: boolean
   ) {
     // Pattern overload
     let pattern: string
@@ -107,6 +110,8 @@ export class Pattern {
       IS_WINDOWS ? 'i' : ''
     )
 
+    this.implicitTrailing = implicitTrailing || false
+
     // Create minimatch
     const minimatchOptions: IMinimatchOptions = {
       dot: true,
@@ -114,7 +119,7 @@ export class Pattern {
       nocase: IS_WINDOWS,
       nocomment: true,
       noext: true,
-      nonegate: true
+      nonegate: true,
     }
     pattern = IS_WINDOWS ? pattern.replace(/\\/g, '/') : pattern
     this.minimatch = new Minimatch(pattern, minimatchOptions)
@@ -132,7 +137,7 @@ export class Pattern {
       // Append a trailing slash. Otherwise Minimatch will not match the directory immediately
       // preceding the globstar. For example, given the pattern `/foo/**`, Minimatch returns
       // false for `/foo` but returns true for `/foo/`. Append a trailing slash to handle that quirk.
-      if (!itemPath.endsWith(path.sep)) {
+      if (!itemPath.endsWith(path.sep) && !this.implicitTrailing) {
         // Note, this is safe because the constructor ensures the pattern has an absolute root.
         // For example, formats like C: and C:foo on Windows are resolved to an absolute root.
         itemPath = `${itemPath}${path.sep}`
@@ -144,7 +149,10 @@ export class Pattern {
 
     // Match
     if (this.minimatch.match(itemPath)) {
-      return this.trailingSeparator ? MatchKind.Directory : MatchKind.All
+      const matchValue =  this.trailingSeparator ? MatchKind.Directory : MatchKind.All
+      // console.log(`=== this.minimatch.pattern ${this.minimatch.pattern}`)
+      // console.log(`=== Match value: ${matchValue}, trailingSeparator: ${this.trailingSeparator}, itemPath: ${itemPath}`)
+      return matchValue
     }
 
     return MatchKind.None
