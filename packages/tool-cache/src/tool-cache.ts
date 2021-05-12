@@ -344,7 +344,27 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
   // build the powershell command
   const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
   const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-  const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
+  const pwshPath = await io.which('pwsh', false)
+
+  let command = ''
+  if (pwshPath) {
+    //overwrite=true
+    command = [
+      `$ErrorActionPreference = 'Stop' ;`,
+      `try { Add-Type -AssemblyName System.IO.Compression.ZipFile } catch { } ;`,
+      `try { [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}', $true) }`,
+      `catch { if ($_.Exception.GetType().FullName -eq 'System.Management.Automation.MethodException'){ Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest} -Force } } ;`
+    ].join(' ')
+  } else {
+    command = [
+      `$ErrorActionPreference = 'Stop' ;`,
+      `try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ;`,
+      `[System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
+    ].join(' ')
+  }
+
+  //TODO: remove this
+  command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
 
   // run powershell
   const powershellPath = await io.which('powershell', true)
