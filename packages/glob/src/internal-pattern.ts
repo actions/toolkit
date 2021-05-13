@@ -162,10 +162,7 @@ export class Pattern {
 
     // Match
     if (this.minimatch.match(itemPath)) {
-      const matchValue = this.trailingSeparator
-        ? MatchKind.Directory
-        : MatchKind.All
-      return matchValue
+      return this.trailingSeparator ? MatchKind.Directory : MatchKind.All
     }
 
     return MatchKind.None
