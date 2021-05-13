@@ -347,6 +347,22 @@ describe('@actions/tool-cache', function() {
         await io.rmRF(tempDir)
       }
     })
+    it.each(['pwsh', 'powershell'])(
+      'unzip properly fails with bad path (%s)',
+      async powershellTool => {
+        const originalPath = process.env['PATH']
+        try {
+          if (powershellTool === 'powershell' && IS_WINDOWS) {
+            //remove pwsh from PATH temporarily to test fallback case
+            process.env['PATH'] = removePWSHFromPath(process.env['PATH'])
+          }
+
+          await expect(tc.extractZip('badPath')).rejects.toThrow()
+        } finally {
+          process.env['PATH'] = originalPath
+        }
+      }
+    )
   } else if (IS_MAC) {
     it('extract .xar', async () => {
       const tempDir = path.join(tempPath, 'test-install.xar')
@@ -579,13 +595,7 @@ describe('@actions/tool-cache', function() {
 
         if (powershellTool === 'powershell' && IS_WINDOWS) {
           //remove pwsh from PATH temporarily to test fallback case
-          const newPath = originalPath
-            ?.split(';')
-            .filter(segment => {
-              return !segment.startsWith(`C:\\Program Files\\PowerShell`)
-            })
-            .join(';')
-          process.env['PATH'] = newPath
+          process.env['PATH'] = removePWSHFromPath(process.env['PATH'])
         }
 
         const extPath: string = await tc.extractZip(zipFile)
@@ -864,4 +874,13 @@ function setGlobal<T>(key: string, value: T | undefined): void {
   } else {
     g[key] = value
   }
+}
+
+function removePWSHFromPath(path: string | undefined): string {
+  return (path || '')
+    .split(';')
+    .filter(segment => {
+      return !segment.startsWith(`C:\\Program Files\\PowerShell`)
+    })
+    .join(';')
 }
