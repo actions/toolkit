@@ -43,15 +43,31 @@ export class Pattern {
    */
   private readonly rootRegExp: RegExp
 
+  /**
+   * Indicates that the pattern is implicitly added as opposed to user specified.
+   */
+  private readonly isImplicitPattern: boolean
+
   /* eslint-disable no-dupe-class-members */
   // Disable no-dupe-class-members due to false positive for method overload
   // https://github.com/typescript-eslint/typescript-eslint/issues/291
 
   constructor(pattern: string)
-  constructor(pattern: string, segments: undefined, homedir: string)
-  constructor(negate: boolean, segments: string[])
+  constructor(
+    pattern: string,
+    isImplicitPattern: boolean,
+    segments: undefined,
+    homedir: string
+  )
+  constructor(
+    negate: boolean,
+    isImplicitPattern: boolean,
+    segments: string[],
+    homedir?: string
+  )
   constructor(
     patternOrNegate: string | boolean,
+    isImplicitPattern: boolean = false,
     segments?: string[],
     homedir?: string
   ) {
@@ -107,6 +123,8 @@ export class Pattern {
       IS_WINDOWS ? 'i' : ''
     )
 
+    this.isImplicitPattern = isImplicitPattern
+
     // Create minimatch
     const minimatchOptions: IMinimatchOptions = {
       dot: true,
@@ -132,7 +150,7 @@ export class Pattern {
       // Append a trailing slash. Otherwise Minimatch will not match the directory immediately
       // preceding the globstar. For example, given the pattern `/foo/**`, Minimatch returns
       // false for `/foo` but returns true for `/foo/`. Append a trailing slash to handle that quirk.
-      if (!itemPath.endsWith(path.sep)) {
+      if (!itemPath.endsWith(path.sep) && this.isImplicitPattern === false) {
         // Note, this is safe because the constructor ensures the pattern has an absolute root.
         // For example, formats like C: and C:foo on Windows are resolved to an absolute root.
         itemPath = `${itemPath}${path.sep}`

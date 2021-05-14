@@ -66,7 +66,6 @@ export class DefaultGlobber implements Globber {
   async *globGenerator(): AsyncGenerator<string, void> {
     // Fill in defaults options
     const options = globOptionsHelper.getOptions(this.options)
-
     // Implicit descendants?
     const patterns: Pattern[] = []
     for (const pattern of this.patterns) {
@@ -77,12 +76,13 @@ export class DefaultGlobber implements Globber {
           pattern.segments[pattern.segments.length - 1] !== '**')
       ) {
         patterns.push(
-          new Pattern(pattern.negate, pattern.segments.concat('**'))
+          new Pattern(pattern.negate, true, pattern.segments.concat('**'))
         )
       }
     }
 
     // Push the search paths
+
     const stack: SearchState[] = []
     for (const searchPath of patternHelper.getSearchPaths(patterns)) {
       core.debug(`Search path '${searchPath}'`)
@@ -180,6 +180,7 @@ export class DefaultGlobber implements Globber {
     }
 
     result.searchPaths.push(...patternHelper.getSearchPaths(result.patterns))
+
     return result
   }
 
