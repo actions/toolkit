@@ -354,7 +354,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
       `$ErrorActionPreference = 'Stop' ;`,
       `try { Add-Type -AssemblyName System.IO.Compression.ZipFile } catch { } ;`,
       `try { [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}', $true) }`,
-      `catch { if ($_.Exception.GetType().FullName -eq 'System.Management.Automation.MethodException'){ Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest}' -Force } else { $_ } } ;`
+      `catch { if ($_.Exception.GetType().FullName -eq 'System.Management.Automation.MethodException'){ Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest}' -Force } else { throw $_ } } ;`
     ].join(' ')
 
     const args = [

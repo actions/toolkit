@@ -243,6 +243,10 @@ describe('@actions/tool-cache', function() {
         const _7zFile: string = path.join(tempDir, 'test.7z')
         await io.cp(path.join(__dirname, 'data', 'test.7z'), _7zFile)
 
+        const destDir = path.join(tempDir, 'destination')
+        await io.mkdirP(destDir)
+        fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
         // extract/cache
         const extPath: string = await tc.extract7z(_7zFile)
         await tc.cacheDir(extPath, 'my-7z-contents', '1.1.0')
@@ -251,6 +255,9 @@ describe('@actions/tool-cache', function() {
         expect(fs.existsSync(toolPath)).toBeTruthy()
         expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
         expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+          'file.txt contents'
+        )
         expect(
           fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
         ).toBeTruthy()
@@ -376,14 +383,21 @@ describe('@actions/tool-cache', function() {
         cwd: sourcePath
       })
 
+      const destDir = path.join(tempDir, 'destination')
+      await io.mkdirP(destDir)
+      fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
       // extract/cache
-      const extPath: string = await tc.extractXar(targetPath, undefined, '-x')
+      const extPath: string = await tc.extractXar(targetPath, destDir, ['-x'])
       await tc.cacheDir(extPath, 'my-xar-contents', '1.1.0')
       const toolPath: string = tc.find('my-xar-contents', '1.1.0')
 
       expect(fs.existsSync(toolPath)).toBeTruthy()
       expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
       expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+      expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+        'file.txt contents'
+      )
       expect(
         fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
       ).toBeTruthy()
@@ -876,8 +890,8 @@ function setGlobal<T>(key: string, value: T | undefined): void {
   }
 }
 
-function removePWSHFromPath(path: string | undefined): string {
-  return (path || '')
+function removePWSHFromPath(pathEnv: string | undefined): string {
+  return (pathEnv || '')
     .split(';')
     .filter(segment => {
       return !segment.startsWith(`C:\\Program Files\\PowerShell`)
