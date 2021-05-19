@@ -492,12 +492,19 @@ describe('@actions/tool-cache', function() {
     const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
     await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
 
+
+    //Create file to overwrite
+    const destDir = path.join(__dirname, 'extract-dest')
+    await io.rmRF(destDir)
+    await io.mkdirP(destDir)
+    fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
+
     // extract/cache
-    const extPath: string = await tc.extractTar(_tgzFile)
+    const extPath: string = await tc.extractTar(_tgzFile, destDir)
     await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
     const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
 
-    fs.writeFileSync(path.join(tempDir, 'file.txt'), 'overwriteMe')
 
     expect(fs.existsSync(toolPath)).toBeTruthy()
     expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
@@ -525,7 +532,7 @@ describe('@actions/tool-cache', function() {
     // copy the .tar.gz file to the test dir
     const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
     await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
-    fs.writeFileSync(path.join(tempDir, 'file.txt'), 'overwriteMe')
+    fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
 
     // extract/cache
     const extPath: string = await tc.extractTar(_tgzFile, destDir)
@@ -559,8 +566,14 @@ describe('@actions/tool-cache', function() {
     const _txzFile: string = path.join(tempDir, 'test.tar.xz')
     await io.cp(path.join(__dirname, 'data', 'test.tar.xz'), _txzFile)
 
+    //Create file to overwrite
+    const destDir = path.join(__dirname, 'extract-dest')
+    await io.rmRF(destDir)
+    await io.mkdirP(destDir)
+    fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
     // extract/cache
-    const extPath: string = await tc.extractTar(_txzFile, undefined, 'x')
+    const extPath: string = await tc.extractTar(_txzFile, destDir, 'x')
     await tc.cacheDir(extPath, 'my-txz-contents', '1.1.0')
     const toolPath: string = tc.find('my-txz-contents', '1.1.0')
 
