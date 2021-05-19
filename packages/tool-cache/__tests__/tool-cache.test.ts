@@ -497,9 +497,14 @@ describe('@actions/tool-cache', function() {
     await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
     const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
 
+    fs.writeFileSync(path.join(tempDir, 'file.txt'), 'overwriteMe')
+
     expect(fs.existsSync(toolPath)).toBeTruthy()
     expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
     expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+    expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+      'file.txt contents'
+    )
     expect(
       fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
     ).toBeTruthy()
@@ -520,6 +525,8 @@ describe('@actions/tool-cache', function() {
     // copy the .tar.gz file to the test dir
     const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
     await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
+    fs.writeFileSync(path.join(tempDir, 'file.txt'), 'overwriteMe')
+
 
     // extract/cache
     const extPath: string = await tc.extractTar(_tgzFile, destDir)
@@ -530,6 +537,9 @@ describe('@actions/tool-cache', function() {
     expect(fs.existsSync(toolPath)).toBeTruthy()
     expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
     expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+    expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+      'file.txt contents'
+    )
     expect(
       fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
     ).toBeTruthy()
