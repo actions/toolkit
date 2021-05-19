@@ -532,7 +532,6 @@ describe('@actions/tool-cache', function() {
     // copy the .tar.gz file to the test dir
     const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
     await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
-    fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
 
     // extract/cache
     const extPath: string = await tc.extractTar(_tgzFile, destDir)
