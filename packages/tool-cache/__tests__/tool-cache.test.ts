@@ -493,7 +493,7 @@ describe('@actions/tool-cache', function() {
     await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
 
     //Create file to overwrite
-    const destDir = path.join(__dirname, 'extract-dest')
+    const destDir = path.join(tempDir, 'extract-dest')
     await io.rmRF(destDir)
     await io.mkdirP(destDir)
     fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
@@ -563,7 +563,7 @@ describe('@actions/tool-cache', function() {
     await io.cp(path.join(__dirname, 'data', 'test.tar.xz'), _txzFile)
 
     //Create file to overwrite
-    const destDir = path.join(__dirname, 'extract-dest')
+    const destDir = path.join(tempDir, 'extract-dest')
     await io.rmRF(destDir)
     await io.mkdirP(destDir)
     fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
