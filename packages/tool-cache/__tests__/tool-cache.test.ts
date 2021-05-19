@@ -527,7 +527,6 @@ describe('@actions/tool-cache', function() {
     await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
     fs.writeFileSync(path.join(tempDir, 'file.txt'), 'overwriteMe')
 
-
     // extract/cache
     const extPath: string = await tc.extractTar(_tgzFile, destDir)
     await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
