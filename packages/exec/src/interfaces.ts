@@ -34,15 +34,23 @@ export interface ExecOptions {
   input?: Buffer
 
   /** optional. Listeners for output. Callback functions that will be called on these events */
-  listeners?: {
-    stdout?: (data: Buffer) => void
+  listeners?: ExecListeners
+}
 
-    stderr?: (data: Buffer) => void
+export interface ExecOutput {
+  exitCode: number
+  stdout?: string
+  stderr?: string
+}
 
-    stdline?: (data: string) => void
+export interface ExecListeners {
+  stdout?: (data: Buffer) => void
 
-    errline?: (data: string) => void
+  stderr?: (data: Buffer) => void
 
-    debug?: (data: string) => void
-  }
+  stdline?: (data: string) => void
+
+  errline?: (data: string) => void
+
+  debug?: (data: string) => void
 }

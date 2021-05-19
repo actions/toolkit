@@ -1,7 +1,7 @@
-import {ExecOptions} from './interfaces'
+import {ExecOptions, ExecOutput, ExecListeners} from './interfaces'
 import * as tr from './toolrunner'
 
-export {ExecOptions}
+export {ExecOptions, ExecOutput, ExecListeners}
 
 /**
  * Exec a command.
@@ -27,4 +27,42 @@ export async function exec(
   args = commandArgs.slice(1).concat(args || [])
   const runner: tr.ToolRunner = new tr.ToolRunner(toolPath, args, options)
   return runner.exec()
+}
+
+export async function getExecOutput(commandLine: string, args?: string[], options?: ExecOptions): Promise<ExecOutput> {
+  type BufferListener = (data: Buffer) => void
+  let stdout = ''
+  let stderr = ''
+  
+  const originalStdoutListener = options?.listeners?.stdout
+  const originalStdErrListener = options?.listeners?.stderr
+  
+  const stdErrListener = (data: Buffer) => {
+    stderr += data.toString()
+    if (originalStdErrListener) {
+      originalStdErrListener(data)
+    }
+  }
+
+  const stdOutListener = (data: Buffer) => {
+    stdout += data.toString()
+    if (originalStdoutListener) {
+      originalStdoutListener(data)
+    }
+  }
+  
+  const listeners: ExecListeners = { 
+    ...options?.listeners,
+    stdout: stdOutListener,
+    stderr: stdErrListener
+  }
+
+  const exitCode = await exec(commandLine, args, {...options, listeners} )
+
+  //return undefined for stdout/stderr if they are empty
+  return {
+    exitCode, 
+    stdout: stdout || undefined, 
+    stderr: stderr || undefined 
+  }
 }

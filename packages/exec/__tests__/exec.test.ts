@@ -952,6 +952,46 @@ describe('@actions/exec', () => {
           'args[22]: "<quote>hello:<quote><quote>world again<quote><quote><quote>"\r\n' +
           'args[23]: "<quote>hello world\\\\<quote>"'
       )
+
+      it('Handles output callbacks', async () => {
+        const stdErrPath: string = path.join(
+          __dirname,
+          'scripts',
+          'stderroutput.js'
+        )
+        const stdOutPath: string = path.join(
+          __dirname,
+          'scripts',
+          'stdoutoutput.js'
+        )
+        const nodePath: string = await io.which('node', true)
+        let stdoutCalled = false
+        let stderrCalled = false
+    
+        const _testExecOptions = getExecOptions()
+        _testExecOptions.listeners = {
+          stdout: (data: Buffer) => {
+            expect(data).toEqual(Buffer.from('this is output to stdout'))
+            stdoutCalled = true
+          },
+          stderr: (data: Buffer) => {
+            expect(data).toEqual(Buffer.from('this is output to stderr'))
+            stderrCalled = true
+          }
+        }
+    
+        let exitCode = await exec.exec(
+          `"${nodePath}"`,
+          [stdOutPath],
+          _testExecOptions
+        )
+        expect(exitCode).toBe(0)
+        exitCode = await exec.exec(`"${nodePath}"`, [stdErrPath], _testExecOptions)
+        expect(exitCode).toBe(0)
+    
+        expect(stdoutCalled).toBeTruthy()
+        expect(stderrCalled).toBeTruthy()
+      })
     })
   }
 })
