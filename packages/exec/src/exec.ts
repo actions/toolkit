@@ -50,8 +50,8 @@ export async function getExecOutput(
   let stderr = ''
 
   //Using string decoder covers the case where a mult-byte character is split
-  let stdoutDecoder = new StringDecoder('utf8')
-  let stderrDecoder = new StringDecoder('utf8')
+  const stdoutDecoder = new StringDecoder('utf8')
+  const stderrDecoder = new StringDecoder('utf8')
 
   const originalStdoutListener = options?.listeners?.stdout
   const originalStdErrListener = options?.listeners?.stderr

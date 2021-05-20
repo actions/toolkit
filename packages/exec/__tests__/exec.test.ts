@@ -775,7 +775,6 @@ describe('@actions/exec', () => {
     )
 
     const nodePath: string = await io.which('node', true)
-    let listenerOut = ''
     let numStdOutBufferCalls = 0
     const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
       `"${nodePath}"`,
@@ -783,7 +782,7 @@ describe('@actions/exec', () => {
       {
         ...getExecOptions(),
         listeners: {
-          stdout: _ => {
+          stdout: () => {
             numStdOutBufferCalls += 1
           }
         }
