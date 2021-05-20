@@ -29,40 +29,43 @@ export async function exec(
   return runner.exec()
 }
 
-export async function getExecOutput(commandLine: string, args?: string[], options?: ExecOptions): Promise<ExecOutput> {
-  type BufferListener = (data: Buffer) => void
+export async function getExecOutput(
+  commandLine: string,
+  args?: string[],
+  options?: ExecOptions
+): Promise<ExecOutput> {
   let stdout = ''
   let stderr = ''
-  
+
   const originalStdoutListener = options?.listeners?.stdout
   const originalStdErrListener = options?.listeners?.stderr
-  
-  const stdErrListener = (data: Buffer) => {
+
+  const stdErrListener = (data: Buffer): void => {
     stderr += data.toString()
     if (originalStdErrListener) {
       originalStdErrListener(data)
     }
   }
 
-  const stdOutListener = (data: Buffer) => {
+  const stdOutListener = (data: Buffer): void => {
     stdout += data.toString()
     if (originalStdoutListener) {
       originalStdoutListener(data)
     }
   }
-  
-  const listeners: ExecListeners = { 
+
+  const listeners: ExecListeners = {
     ...options?.listeners,
     stdout: stdOutListener,
     stderr: stdErrListener
   }
 
-  const exitCode = await exec(commandLine, args, {...options, listeners} )
+  const exitCode = await exec(commandLine, args, {...options, listeners})
 
   //return undefined for stdout/stderr if they are empty
   return {
-    exitCode, 
-    stdout: stdout || undefined, 
-    stderr: stderr || undefined 
+    exitCode,
+    stdout: stdout || undefined,
+    stderr: stderr || undefined
   }
 }

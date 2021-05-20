@@ -636,6 +636,143 @@ describe('@actions/exec', () => {
     expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
   })
 
+  it('correctly outputs for getExecOutput', async () => {
+    const stdErrPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stderroutput.js'
+    )
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutoutput.js'
+    )
+    const nodePath: string = await io.which('node', true)
+
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      getExecOptions()
+    )
+
+    expect(exitCodeOut).toBe(0)
+    expect(stdout).toBe('this is output to stdout')
+
+    const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdErrPath],
+      getExecOptions()
+    )
+    expect(exitCodeErr).toBe(0)
+    expect(stderr).toBe('this is output to stderr')
+  })
+
+  it('correctly outputs for getExecOutput with additional listeners', async () => {
+    const stdErrPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stderroutput.js'
+    )
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutoutput.js'
+    )
+
+    let numberOfBuffers = 0
+    const nodePath: string = await io.which('node', true)
+    let listenerOut = ''
+
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stdout: data => {
+            listenerOut = data.toString()
+            numberOfBuffers += 1
+          }
+        }
+      }
+    )
+
+    expect(exitCodeOut).toBe(0)
+    expect(stdout).toBe('this is output to stdout')
+    expect(listenerOut).toBe('this is output to stdout')
+    expect(numberOfBuffers).toBe(1)
+
+    let listenerErr = ''
+    const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdErrPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stderr: data => {
+            listenerErr = data.toString()
+          }
+        }
+      }
+    )
+    expect(exitCodeErr).toBe(0)
+    expect(stderr).toBe('this is output to stderr')
+    expect(listenerErr).toBe('this is output to stderr')
+  })
+
+  it('correctly outputs for getExecOutput when total size exceeds buffer size', async () => {
+    const stdErrPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stderroutput.js'
+    )
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutoutputlarge.js'
+    )
+
+    let numFullBuffers = 0
+    const nodePath: string = await io.which('node', true)
+    let listenerOut = ''
+
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stdout: data => {
+            numFullBuffers += 1
+            listenerOut += data.toString()
+          }
+        }
+      }
+    )
+
+    expect(exitCodeOut).toBe(0)
+    expect(Buffer.byteLength(stdout || '', 'utf8')).toBe(2 ** 32)
+    expect(Buffer.byteLength(listenerOut, 'utf8')).toBe(2 ** 32)
+    expect(numFullBuffers).toBeGreaterThan(1)
+
+    let listenerErr = ''
+    const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdErrPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stderr: data => {
+            listenerErr = data.toString()
+          }
+        }
+      }
+    )
+    expect(exitCodeErr).toBe(0)
+    expect(stderr).toBe('this is output to stderr')
+    expect(listenerErr).toBe('this is output to stderr')
+  })
+
   if (IS_WINDOWS) {
     it('Exec roots relative tool path using process.cwd (Windows path separator)', async () => {
       let exitCode: number
@@ -952,46 +1089,6 @@ describe('@actions/exec', () => {
           'args[22]: "<quote>hello:<quote><quote>world again<quote><quote><quote>"\r\n' +
           'args[23]: "<quote>hello world\\\\<quote>"'
       )
-
-      it('Handles output callbacks', async () => {
-        const stdErrPath: string = path.join(
-          __dirname,
-          'scripts',
-          'stderroutput.js'
-        )
-        const stdOutPath: string = path.join(
-          __dirname,
-          'scripts',
-          'stdoutoutput.js'
-        )
-        const nodePath: string = await io.which('node', true)
-        let stdoutCalled = false
-        let stderrCalled = false
-    
-        const _testExecOptions = getExecOptions()
-        _testExecOptions.listeners = {
-          stdout: (data: Buffer) => {
-            expect(data).toEqual(Buffer.from('this is output to stdout'))
-            stdoutCalled = true
-          },
-          stderr: (data: Buffer) => {
-            expect(data).toEqual(Buffer.from('this is output to stderr'))
-            stderrCalled = true
-          }
-        }
-    
-        let exitCode = await exec.exec(
-          `"${nodePath}"`,
-          [stdOutPath],
-          _testExecOptions
-        )
-        expect(exitCode).toBe(0)
-        exitCode = await exec.exec(`"${nodePath}"`, [stdErrPath], _testExecOptions)
-        expect(exitCode).toBe(0)
-    
-        expect(stdoutCalled).toBeTruthy()
-        expect(stderrCalled).toBeTruthy()
-      })
     })
   }
 })
