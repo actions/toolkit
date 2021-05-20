@@ -679,7 +679,6 @@ describe('@actions/exec', () => {
       'stdoutoutput.js'
     )
 
-    let numberOfBuffers = 0
     const nodePath: string = await io.which('node', true)
     let listenerOut = ''
 
@@ -691,7 +690,6 @@ describe('@actions/exec', () => {
         listeners: {
           stdout: data => {
             listenerOut = data.toString()
-            numberOfBuffers += 1
           }
         }
       }
@@ -700,7 +698,6 @@ describe('@actions/exec', () => {
     expect(exitCodeOut).toBe(0)
     expect(stdout).toBe('this is output to stdout')
     expect(listenerOut).toBe('this is output to stdout')
-    expect(numberOfBuffers).toBe(1)
 
     let listenerErr = ''
     const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
@@ -732,7 +729,6 @@ describe('@actions/exec', () => {
       'stdoutoutputlarge.js'
     )
 
-    let numFullBuffers = 0
     const nodePath: string = await io.which('node', true)
     let listenerOut = ''
 
@@ -743,7 +739,6 @@ describe('@actions/exec', () => {
         ...getExecOptions(),
         listeners: {
           stdout: data => {
-            numFullBuffers += 1
             listenerOut += data.toString()
           }
         }
@@ -751,9 +746,8 @@ describe('@actions/exec', () => {
     )
 
     expect(exitCodeOut).toBe(0)
-    expect(Buffer.byteLength(stdout || '', 'utf8')).toBe(2 ** 32)
-    expect(Buffer.byteLength(listenerOut, 'utf8')).toBe(2 ** 32)
-    expect(numFullBuffers).toBeGreaterThan(1)
+    expect(Buffer.byteLength(stdout || '', 'utf8')).toBe(2 ** 24)
+    expect(Buffer.byteLength(listenerOut, 'utf8')).toBe(2 ** 24)
 
     let listenerErr = ''
     const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
