@@ -18,7 +18,6 @@ beforeAll(() => {
   jest.spyOn(core, 'warning').mockImplementation(() => {})
   jest.spyOn(core, 'error').mockImplementation(() => {})
 
-  // eslint-disable-next-line @typescript-eslint/promise-function-async
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
     const actualUtils = jest.requireActual('../src/internal/cacheUtils')
     return actualUtils.getCacheFileName(cm)

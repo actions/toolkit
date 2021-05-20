@@ -30,7 +30,6 @@ async function handleResponse(
   response: ITestResponse | undefined
 ): Promise<ITestResponse> {
   if (!response) {
-    // eslint-disable-next-line no-undef
     fail('Retry method called too many times')
   }
 
