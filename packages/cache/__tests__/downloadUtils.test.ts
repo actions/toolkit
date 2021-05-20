@@ -112,7 +112,7 @@ test('display timer works correctly', () => {
     progress.stopDisplayTimer()
     progress.setReceivedBytes(1000)
 
-    setTimeout(() => test2(), 100)
+    setTimeout(() => test2(), 500)
   }
 
   // Start the timer, update the received bytes, and call test1.
@@ -122,7 +122,7 @@ test('display timer works correctly', () => {
 
     progress.setReceivedBytes(500)
 
-    setTimeout(() => test1(), 100)
+    setTimeout(() => test1(), 500)
   }
 
   start()
