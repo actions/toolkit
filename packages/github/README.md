@@ -59,18 +59,19 @@ const newIssue = await octokit.rest.issues.create({
 
 ## Webhook payload typescript definitions
 
-The npm module `@octokit/webhooks` provides type definitions for the response payloads. You can cast the payload to these types for better type information.
+The npm module `@octokit/webhooks-definitions` provides type definitions for the response payloads. You can cast the payload to these types for better type information.
 
-First, install the npm module `npm install @octokit/webhooks`
+First, install the npm module `npm install @octokit/webhooks-definitions`
 
 Then, assert the type based on the eventName
 ```ts
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import * as Webhooks from '@octokit/webhooks'
+import {PushEvent} from '@octokit/webhooks-definitions/schema'
+
 if (github.context.eventName === 'push') {
-  const pushPayload = github.context.payload as Webhooks.WebhookPayloadPush
-  core.info(`The head commit is: ${pushPayload.head}`)
+  const pushPayload = github.context.payload as PushEvent
+  core.info(`The head commit is: ${pushPayload.head_commit}`)
 }
 ```
 
