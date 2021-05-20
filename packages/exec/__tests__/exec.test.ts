@@ -746,8 +746,8 @@ describe('@actions/exec', () => {
     )
 
     expect(exitCodeOut).toBe(0)
-    expect(Buffer.byteLength(stdout || '', 'utf8')).toBe(2 ** 24)
-    expect(Buffer.byteLength(listenerOut, 'utf8')).toBe(2 ** 24)
+    expect(Buffer.byteLength(stdout || '', 'utf8')).toBe(2 ** 25)
+    expect(Buffer.byteLength(listenerOut, 'utf8')).toBe(2 ** 25)
 
     let listenerErr = ''
     const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
