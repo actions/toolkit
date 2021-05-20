@@ -87,7 +87,7 @@ test('download progress tracked correctly', () => {
   expect(progress.isDone()).toBe(true)
 })
 
-test('display timer works correctly', (done) => {
+test('display timer works correctly', done => {
   const progress = new DownloadProgress(1000)
 
   const infoMock = jest.spyOn(core, 'info')
