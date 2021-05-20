@@ -1,3 +1,4 @@
+import {StringDecoder} from 'string_decoder'
 import {ExecOptions, ExecOutput, ExecListeners} from './interfaces'
 import * as tr from './toolrunner'
 
@@ -29,6 +30,17 @@ export async function exec(
   return runner.exec()
 }
 
+/**
+ * Exec a command and get the output.
+ * Output will be streamed to the live console.
+ * Returns promise with the exit code and collected stdout and stderr
+ *
+ * @param     commandLine           command to execute (can include additional args). Must be correctly escaped.
+ * @param     args                  optional arguments for tool. Escaping is handled by the lib.
+ * @param     options               optional exec options.  See ExecOptions
+ * @returns   Promise<ExecOutput>   exit code, stdout, and stderr
+ */
+
 export async function getExecOutput(
   commandLine: string,
   args?: string[],
@@ -37,18 +49,22 @@ export async function getExecOutput(
   let stdout = ''
   let stderr = ''
 
+  //Using string decoder covers the case where a mult-byte character is split
+  let stdoutDecoder = new StringDecoder('utf8')
+  let stderrDecoder = new StringDecoder('utf8')
+
   const originalStdoutListener = options?.listeners?.stdout
   const originalStdErrListener = options?.listeners?.stderr
 
   const stdErrListener = (data: Buffer): void => {
-    stderr += data.toString()
+    stderr += stderrDecoder.write(data)
     if (originalStdErrListener) {
       originalStdErrListener(data)
     }
   }
 
   const stdOutListener = (data: Buffer): void => {
-    stdout += data.toString()
+    stdout += stdoutDecoder.write(data)
     if (originalStdoutListener) {
       originalStdoutListener(data)
     }
@@ -62,10 +78,14 @@ export async function getExecOutput(
 
   const exitCode = await exec(commandLine, args, {...options, listeners})
 
+  //flush any remaining characters
+  stdout += stdoutDecoder.end()
+  stderr += stderrDecoder.end()
+
   //return undefined for stdout/stderr if they are empty
   return {
     exitCode,
-    stdout: stdout || undefined,
-    stderr: stderr || undefined
+    stdout,
+    stderr
   }
 }

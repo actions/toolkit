@@ -17,7 +17,6 @@ export interface CopyOptions {
   /** Optional. Whether to copy the source directory along with all the files. Only takes effect when recursive=true and copying a directory. Default is true*/
   copySourceDirectory?: boolean
 }
-
 /**
  * Interface for cp/mv options
  */

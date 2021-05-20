@@ -767,6 +767,35 @@ describe('@actions/exec', () => {
     expect(listenerErr).toBe('this is output to stderr')
   })
 
+  it('correctly outputs for getExecOutput with multi-byte characters', async () => {
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutputspecial.js'
+    )
+
+    const nodePath: string = await io.which('node', true)
+    let listenerOut = ''
+    let numStdOutBufferCalls = 0
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stdout: _ => {
+            numStdOutBufferCalls += 1
+          }
+        }
+      }
+    )
+
+    expect(exitCodeOut).toBe(0)
+    //one call for each half of the © character, ensuring it was actually split and not sent together
+    expect(numStdOutBufferCalls).toBe(2)
+    expect(stdout).toBe('©')
+  })
+
   if (IS_WINDOWS) {
     it('Exec roots relative tool path using process.cwd (Windows path separator)', async () => {
       let exitCode: number
