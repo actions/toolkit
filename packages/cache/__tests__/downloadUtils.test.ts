@@ -87,7 +87,7 @@ test('download progress tracked correctly', () => {
   expect(progress.isDone()).toBe(true)
 })
 
-test('display timer works correctly', () => {
+test('display timer works correctly', (done) => {
   const progress = new DownloadProgress(1000)
 
   const infoMock = jest.spyOn(core, 'info')
@@ -103,6 +103,7 @@ test('display timer works correctly', () => {
   const test2 = (): void => {
     check()
     expect(progress.timeoutHandle).toBeUndefined()
+    done()
   }
 
   // Validate the progress is displayed, stop the timer, and call test2.
