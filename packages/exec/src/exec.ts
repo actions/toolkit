@@ -82,7 +82,6 @@ export async function getExecOutput(
   stdout += stdoutDecoder.end()
   stderr += stderrDecoder.end()
 
-  //return undefined for stdout/stderr if they are empty
   return {
     exitCode,
     stdout,
