@@ -272,6 +272,7 @@ export async function extractTar(
   if (isGnuTar) {
     // Suppress warnings when using GNU tar to extract archives created by BSD tar
     args.push('--warning=no-unknown-keyword')
+    args.push('--overwrite')
   }
 
   args.push('-C', destArg, '-f', fileArg)
@@ -354,7 +355,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
       `$ErrorActionPreference = 'Stop' ;`,
       `try { Add-Type -AssemblyName System.IO.Compression.ZipFile } catch { } ;`,
       `try { [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}', $true) }`,
-      `catch { if ($_.Exception.GetType().FullName -eq 'System.Management.Automation.MethodException'){ Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest}' -Force } else { throw $_ } } ;`
+      `catch { if (($_.Exception.GetType().FullName -eq 'System.Management.Automation.MethodException') -or ($_.Exception.GetType().FullName -eq 'System.Management.Automation.RuntimeException') ){ Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest}' -Force } else { throw $_ } } ;`
     ].join(' ')
 
     const args = [
@@ -374,7 +375,7 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
       `$ErrorActionPreference = 'Stop' ;`,
       `try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ;`,
       `if ((Get-Command -Name Expand-Archive -Module Microsoft.PowerShell.Archive -ErrorAction Ignore)) { Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest}' -Force }`,
-      `else { try { Add-Type -AssemblyName System.IO.Compression.ZipFile } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}', $true) }`
+      `else {[System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}', $true) }`
     ].join(' ')
 
     const args = [
