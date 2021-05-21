@@ -33,7 +33,7 @@ export async function exists(fsPath: string): Promise<boolean> {
 
 export async function isDirectory(
   fsPath: string,
-  useStat: boolean = false
+  useStat = false
 ): Promise<boolean> {
   const stats = useStat ? await stat(fsPath) : await lstat(fsPath)
   return stats.isDirectory()

@@ -69,7 +69,7 @@ export async function retry(
   throw Error(`${name} failed: ${errorMessage}`)
 }
 
-export async function retryHttpClientRequest<T>(
+export async function retryHttpClientRequest(
   name: string,
   method: () => Promise<IHttpClientResponse>,
   customErrorMessages: Map<number, string> = new Map(),

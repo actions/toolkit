@@ -133,7 +133,7 @@ export class DownloadProgress {
    *
    * @param delayInMs the delay between each write
    */
-  startDisplayTimer(delayInMs: number = 1000): void {
+  startDisplayTimer(delayInMs = 1000): void {
     const displayCallback = (): void => {
       this.display()
 

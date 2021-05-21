@@ -122,11 +122,9 @@ describe('@actions/tool-cache', function() {
 
     setResponseMessageFactory(() => {
       const readStream = new stream.Readable()
-      /* eslint-disable @typescript-eslint/unbound-method */
       readStream._read = () => {
         readStream.destroy(new Error('uh oh'))
       }
-      /* eslint-enable @typescript-eslint/unbound-method */
       return readStream
     })
 
@@ -149,7 +147,6 @@ describe('@actions/tool-cache', function() {
       .get('/retries-error-from-response-message-stream')
       .reply(200, {})
 
-    /* eslint-disable @typescript-eslint/unbound-method */
     let attempt = 1
     setResponseMessageFactory(() => {
       const readStream = new stream.Readable()
@@ -170,7 +167,6 @@ describe('@actions/tool-cache', function() {
 
       return readStream
     })
-    /* eslint-enable @typescript-eslint/unbound-method */
 
     const downPath = await tc.downloadTool(
       'http://example.com/retries-error-from-response-message-stream'

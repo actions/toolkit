@@ -619,13 +619,13 @@ class ExecState extends events.EventEmitter {
     }
   }
 
-  processClosed: boolean = false // tracks whether the process has exited and stdio is closed
-  processError: string = ''
-  processExitCode: number = 0
-  processExited: boolean = false // tracks whether the process has exited
-  processStderr: boolean = false // tracks whether stderr was written to
+  processClosed = false // tracks whether the process has exited and stdio is closed
+  processError = ''
+  processExitCode = 0
+  processExited = false // tracks whether the process has exited
+  processStderr = false // tracks whether stderr was written to
   private delay = 10000 // 10 seconds
-  private done: boolean = false
+  private done = false
   private options: im.ExecOptions
   private timeout: NodeJS.Timer | null = null
   private toolPath: string

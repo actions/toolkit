@@ -48,10 +48,6 @@ export class Pattern {
    */
   private readonly isImplicitPattern: boolean
 
-  /* eslint-disable no-dupe-class-members */
-  // Disable no-dupe-class-members due to false positive for method overload
-  // https://github.com/typescript-eslint/typescript-eslint/issues/291
-
   constructor(pattern: string)
   constructor(
     pattern: string,
@@ -67,7 +63,7 @@ export class Pattern {
   )
   constructor(
     patternOrNegate: string | boolean,
-    isImplicitPattern: boolean = false,
+    isImplicitPattern = false,
     segments?: string[],
     homedir?: string
   ) {
