@@ -272,6 +272,7 @@ export async function extractTar(
   if (isGnuTar) {
     // Suppress warnings when using GNU tar to extract archives created by BSD tar
     args.push('--warning=no-unknown-keyword')
+    args.push('--overwrite')
   }
 
   args.push('-C', destArg, '-f', fileArg)
@@ -344,21 +345,55 @@ async function extractZipWin(file: string, dest: string): Promise<void> {
   // build the powershell command
   const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, '') // double-up single quotes, remove double quotes and newlines
   const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '')
-  const command = `$ErrorActionPreference = 'Stop' ; try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}')`
+  const pwshPath = await io.which('pwsh', false)
 
-  // run powershell
-  const powershellPath = await io.which('powershell', true)
-  const args = [
-    '-NoLogo',
-    '-Sta',
-    '-NoProfile',
-    '-NonInteractive',
-    '-ExecutionPolicy',
-    'Unrestricted',
-    '-Command',
-    command
-  ]
-  await exec(`"${powershellPath}"`, args)
+  //To match the file overwrite behavior on nix systems, we use the overwrite = true flag for ExtractToDirectory
+  //and the -Force flag for Expand-Archive as a fallback
+  if (pwshPath) {
+    //attempt to use pwsh with ExtractToDirectory, if this fails attempt Expand-Archive
+    const pwshCommand = [
+      `$ErrorActionPreference = 'Stop' ;`,
+      `try { Add-Type -AssemblyName System.IO.Compression.ZipFile } catch { } ;`,
+      `try { [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}', $true) }`,
+      `catch { if (($_.Exception.GetType().FullName -eq 'System.Management.Automation.MethodException') -or ($_.Exception.GetType().FullName -eq 'System.Management.Automation.RuntimeException') ){ Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest}' -Force } else { throw $_ } } ;`
+    ].join(' ')
+
+    const args = [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Unrestricted',
+      '-Command',
+      pwshCommand
+    ]
+
+    core.debug(`Using pwsh at path: ${pwshPath}`)
+    await exec(`"${pwshPath}"`, args)
+  } else {
+    const powershellCommand = [
+      `$ErrorActionPreference = 'Stop' ;`,
+      `try { Add-Type -AssemblyName System.IO.Compression.FileSystem } catch { } ;`,
+      `if ((Get-Command -Name Expand-Archive -Module Microsoft.PowerShell.Archive -ErrorAction Ignore)) { Expand-Archive -LiteralPath '${escapedFile}' -DestinationPath '${escapedDest}' -Force }`,
+      `else {[System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedFile}', '${escapedDest}', $true) }`
+    ].join(' ')
+
+    const args = [
+      '-NoLogo',
+      '-Sta',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Unrestricted',
+      '-Command',
+      powershellCommand
+    ]
+
+    const powershellPath = await io.which('powershell', true)
+    core.debug(`Using powershell at path: ${powershellPath}`)
+
+    await exec(`"${powershellPath}"`, args)
+  }
 }
 
 async function extractZipNix(file: string, dest: string): Promise<void> {
@@ -367,6 +402,7 @@ async function extractZipNix(file: string, dest: string): Promise<void> {
   if (!core.isDebug()) {
     args.unshift('-q')
   }
+  args.unshift('-o') //overwrite with -o, otherwise a prompt is shown which freezes the run
   await exec(`"${unzipPath}"`, args, {cwd: dest})
 }
 
