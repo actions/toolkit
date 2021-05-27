@@ -1,7 +1,7 @@
 # @actions/tool-cache Releases
 
 ### 1.7.0
-- [Allow arbirtary headers when downloads tools to the tc](https://github.com/actions/toolkit/pull/530)
+- [Allow arbirtary headers when downloading tools to the tc](https://github.com/actions/toolkit/pull/530)
 - [Export `isExplicitVersion` and `evaluateVersions` functions](https://github.com/actions/toolkit/pull/796) 
 - [Force overwrite on default when extracted compressed files](https://github.com/actions/toolkit/pull/807)
 
