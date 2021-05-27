@@ -38,12 +38,28 @@ Binding to the immutable full sha1 may offer more reliability.  However, note th
 
 <img src="https://user-images.githubusercontent.com/33549821/78670739-36f5ae00-78ac-11ea-9660-57d5687ce520.png" alt="screenshot" height="250"/>
 
-3. **Make the new release available to those binding to the major version tag**: Move the major version tag (v1, v2, etc.) to point to the ref of the current release. This will act as the stable release for that major version. You should keep this tag updated to the most recent stable minor/patch release.
+3. **Make the new release available to those binding to the major version branch**: Move the major version branch (v1, v2, etc.) to point to the tag of the current release. This will act as the stable release for that major version. You should keep this branch updated to the most recent stable minor/patch release.
 
 ```
-git tag -fa v1 -m "Update v1 tag"
-git push origin v1 --force
+git push origin v1.2.3:v1
 ```
+
+You can easily automate this with a workflow:
+```yml
+name: Update the v1 branch when a release is published
+on:
+  release:
+    types: [published]
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - run: git push origin HEAD:v1
+```
+
 # Major Versions
 
 All releases for a major version should hold compat including input compatibility and behavior compatibility.
@@ -52,7 +68,7 @@ Introduce a major version for compatibility breaks and major rewrites of the act
 
 Ideally, a major version would carry other benefits to the user to entice them to upgrade their workflows.  Since updating their workflows will need to be done with an understanding of the changes and what compatibility was broken, introducing a new major version shouldn't be taken lightly. 
 
-To get feedback and to set expectations, the new major version can be initially released with `v2-beta` tag to indicate you can try it out but it's still going under some churn.  Upon release the `-beta` can be dropped and there's an expectation of compatibility from that point forward.
+To get feedback and to set expectations, the new major version can be initially released with `v2-beta` branch to indicate you can try it out but it's still going under some churn.  Upon release the `-beta` can be dropped and there's an expectation of compatibility from that point forward.
 
 [An example of v2-beta with checkout](https://github.com/actions/checkout/tree/c170eefc2657d93cc91397be50a299bff978a052#checkout-v2-beta)
 
