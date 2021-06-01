@@ -19,6 +19,15 @@ const testEnvVars = {
   INPUT_MISSING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
   INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
+  INPUT_BOOLEAN_INPUT: 'true',
+  INPUT_BOOLEAN_INPUT_TRUE1: 'true',
+  INPUT_BOOLEAN_INPUT_TRUE2: 'True',
+  INPUT_BOOLEAN_INPUT_TRUE3: 'TRUE',
+  INPUT_BOOLEAN_INPUT_FALSE1: 'false',
+  INPUT_BOOLEAN_INPUT_FALSE2: 'False',
+  INPUT_BOOLEAN_INPUT_FALSE3: 'FALSE',
+  INPUT_WRONG_BOOLEAN_INPUT: 'wrong',
+  INPUT_WITH_TRAILING_WHITESPACE: '  some val  ',
 
   // Save inputs
   STATE_TEST_1: 'state_val',
@@ -157,19 +166,62 @@ describe('@actions/core', () => {
     )
   })
 
+  it('getInput trims whitespace by default', () => {
+    expect(core.getInput('with trailing whitespace')).toBe('some val')
+  })
+
+  it('getInput trims whitespace when option is explicitly true', () => {
+    expect(
+      core.getInput('with trailing whitespace', {trimWhitespace: true})
+    ).toBe('some val')
+  })
+
+  it('getInput does not trim whitespace when option is false', () => {
+    expect(
+      core.getInput('with trailing whitespace', {trimWhitespace: false})
+    ).toBe('  some val  ')
+  })
+
+  it('getInput gets non-required boolean input', () => {
+    expect(core.getBooleanInput('boolean input')).toBe(true)
+  })
+
+  it('getInput gets required input', () => {
+    expect(core.getBooleanInput('boolean input', {required: true})).toBe(true)
+  })
+
+  it('getBooleanInput handles boolean input', () => {
+    expect(core.getBooleanInput('boolean input true1')).toBe(true)
+    expect(core.getBooleanInput('boolean input true2')).toBe(true)
+    expect(core.getBooleanInput('boolean input true3')).toBe(true)
+    expect(core.getBooleanInput('boolean input false1')).toBe(false)
+    expect(core.getBooleanInput('boolean input false2')).toBe(false)
+    expect(core.getBooleanInput('boolean input false3')).toBe(false)
+  })
+
+  it('getBooleanInput handles wrong boolean input', () => {
+    expect(() => core.getBooleanInput('wrong boolean input')).toThrow(
+      'Input does not meet YAML 1.2 "Core Schema" specification: wrong boolean input\n' +
+        `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``
+    )
+  })
+
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
-    assertWriteCalls([`::set-output name=some output::some value${os.EOL}`])
+    assertWriteCalls([
+      os.EOL,
+      `::set-output name=some output::some value${os.EOL}`
+    ])
   })
 
   it('setOutput handles bools', () => {
     core.setOutput('some output', false)
-    assertWriteCalls([`::set-output name=some output::false${os.EOL}`])
+    assertWriteCalls([os.EOL, `::set-output name=some output::false${os.EOL}`])
   })
 
   it('setOutput handles numbers', () => {
     core.setOutput('some output', 1.01)
-    assertWriteCalls([`::set-output name=some output::1.01${os.EOL}`])
+    assertWriteCalls([os.EOL, `::set-output name=some output::1.01${os.EOL}`])
   })
 
   it('setFailed sets the correct exit code and failure message', () => {

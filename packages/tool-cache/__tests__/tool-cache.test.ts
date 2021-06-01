@@ -122,11 +122,9 @@ describe('@actions/tool-cache', function() {
 
     setResponseMessageFactory(() => {
       const readStream = new stream.Readable()
-      /* eslint-disable @typescript-eslint/unbound-method */
       readStream._read = () => {
         readStream.destroy(new Error('uh oh'))
       }
-      /* eslint-enable @typescript-eslint/unbound-method */
       return readStream
     })
 
@@ -149,7 +147,6 @@ describe('@actions/tool-cache', function() {
       .get('/retries-error-from-response-message-stream')
       .reply(200, {})
 
-    /* eslint-disable @typescript-eslint/unbound-method */
     let attempt = 1
     setResponseMessageFactory(() => {
       const readStream = new stream.Readable()
@@ -170,7 +167,6 @@ describe('@actions/tool-cache', function() {
 
       return readStream
     })
-    /* eslint-enable @typescript-eslint/unbound-method */
 
     const downPath = await tc.downloadTool(
       'http://example.com/retries-error-from-response-message-stream'
@@ -243,6 +239,10 @@ describe('@actions/tool-cache', function() {
         const _7zFile: string = path.join(tempDir, 'test.7z')
         await io.cp(path.join(__dirname, 'data', 'test.7z'), _7zFile)
 
+        const destDir = path.join(tempDir, 'destination')
+        await io.mkdirP(destDir)
+        fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
         // extract/cache
         const extPath: string = await tc.extract7z(_7zFile)
         await tc.cacheDir(extPath, 'my-7z-contents', '1.1.0')
@@ -251,6 +251,9 @@ describe('@actions/tool-cache', function() {
         expect(fs.existsSync(toolPath)).toBeTruthy()
         expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
         expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+          'file.txt contents'
+        )
         expect(
           fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
         ).toBeTruthy()
@@ -347,6 +350,22 @@ describe('@actions/tool-cache', function() {
         await io.rmRF(tempDir)
       }
     })
+    it.each(['pwsh', 'powershell'])(
+      'unzip properly fails with bad path (%s)',
+      async powershellTool => {
+        const originalPath = process.env['PATH']
+        try {
+          if (powershellTool === 'powershell' && IS_WINDOWS) {
+            //remove pwsh from PATH temporarily to test fallback case
+            process.env['PATH'] = removePWSHFromPath(process.env['PATH'])
+          }
+
+          await expect(tc.extractZip('badPath')).rejects.toThrow()
+        } finally {
+          process.env['PATH'] = originalPath
+        }
+      }
+    )
   } else if (IS_MAC) {
     it('extract .xar', async () => {
       const tempDir = path.join(tempPath, 'test-install.xar')
@@ -360,14 +379,21 @@ describe('@actions/tool-cache', function() {
         cwd: sourcePath
       })
 
+      const destDir = path.join(tempDir, 'destination')
+      await io.mkdirP(destDir)
+      fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
       // extract/cache
-      const extPath: string = await tc.extractXar(targetPath, undefined, '-x')
+      const extPath: string = await tc.extractXar(targetPath, destDir, ['-x'])
       await tc.cacheDir(extPath, 'my-xar-contents', '1.1.0')
       const toolPath: string = tc.find('my-xar-contents', '1.1.0')
 
       expect(fs.existsSync(toolPath)).toBeTruthy()
       expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
       expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+      expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+        'file.txt contents'
+      )
       expect(
         fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
       ).toBeTruthy()
@@ -462,14 +488,23 @@ describe('@actions/tool-cache', function() {
     const _tgzFile: string = path.join(tempDir, 'test.tar.gz')
     await io.cp(path.join(__dirname, 'data', 'test.tar.gz'), _tgzFile)
 
+    //Create file to overwrite
+    const destDir = path.join(tempDir, 'extract-dest')
+    await io.rmRF(destDir)
+    await io.mkdirP(destDir)
+    fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
     // extract/cache
-    const extPath: string = await tc.extractTar(_tgzFile)
+    const extPath: string = await tc.extractTar(_tgzFile, destDir)
     await tc.cacheDir(extPath, 'my-tgz-contents', '1.1.0')
     const toolPath: string = tc.find('my-tgz-contents', '1.1.0')
 
     expect(fs.existsSync(toolPath)).toBeTruthy()
     expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
     expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+    expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+      'file.txt contents'
+    )
     expect(
       fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
     ).toBeTruthy()
@@ -500,6 +535,9 @@ describe('@actions/tool-cache', function() {
     expect(fs.existsSync(toolPath)).toBeTruthy()
     expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
     expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+    expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+      'file.txt contents'
+    )
     expect(
       fs.existsSync(path.join(toolPath, 'file-with-ç-character.txt'))
     ).toBeTruthy()
@@ -520,8 +558,14 @@ describe('@actions/tool-cache', function() {
     const _txzFile: string = path.join(tempDir, 'test.tar.xz')
     await io.cp(path.join(__dirname, 'data', 'test.tar.xz'), _txzFile)
 
+    //Create file to overwrite
+    const destDir = path.join(tempDir, 'extract-dest')
+    await io.rmRF(destDir)
+    await io.mkdirP(destDir)
+    fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
+
     // extract/cache
-    const extPath: string = await tc.extractTar(_txzFile, undefined, 'x')
+    const extPath: string = await tc.extractTar(_txzFile, destDir, 'x')
     await tc.cacheDir(extPath, 'my-txz-contents', '1.1.0')
     const toolPath: string = tc.find('my-txz-contents', '1.1.0')
 
@@ -534,58 +578,70 @@ describe('@actions/tool-cache', function() {
     ).toBe('foo/hello: world')
   })
 
-  it('installs a zip and finds it', async () => {
-    const tempDir = path.join(__dirname, 'test-install-zip')
-    try {
-      await io.mkdirP(tempDir)
+  it.each(['pwsh', 'powershell'])(
+    'installs a zip and finds it (%s)',
+    async powershellTool => {
+      const tempDir = path.join(__dirname, 'test-install-zip')
+      const originalPath = process.env['PATH']
+      try {
+        await io.mkdirP(tempDir)
 
-      // stage the layout for a zip file:
-      //   file.txt
-      //   folder/nested-file.txt
-      const stagingDir = path.join(tempDir, 'zip-staging')
-      await io.mkdirP(path.join(stagingDir, 'folder'))
-      fs.writeFileSync(path.join(stagingDir, 'file.txt'), '')
-      fs.writeFileSync(path.join(stagingDir, 'folder', 'nested-file.txt'), '')
+        // stage the layout for a zip file:
+        //   file.txt
+        //   folder/nested-file.txt
+        const stagingDir = path.join(tempDir, 'zip-staging')
+        await io.mkdirP(path.join(stagingDir, 'folder'))
+        fs.writeFileSync(path.join(stagingDir, 'file.txt'), '')
+        fs.writeFileSync(path.join(stagingDir, 'folder', 'nested-file.txt'), '')
 
-      // create the zip
-      const zipFile = path.join(tempDir, 'test.zip')
-      await io.rmRF(zipFile)
-      if (IS_WINDOWS) {
-        const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
-        const escapedZipFile = zipFile.replace(/'/g, "''")
-        const powershellPath =
-          (await io.which('pwsh', false)) ||
-          (await io.which('powershell', true))
-        const args = [
-          '-NoLogo',
-          '-Sta',
-          '-NoProfile',
-          '-NonInteractive',
-          '-ExecutionPolicy',
-          'Unrestricted',
-          '-Command',
-          `$ErrorActionPreference = 'Stop' ; Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::CreateFromDirectory('${escapedStagingPath}', '${escapedZipFile}')`
-        ]
-        await exec.exec(`"${powershellPath}"`, args)
-      } else {
-        const zipPath: string = await io.which('zip', true)
-        await exec.exec(`"${zipPath}`, [zipFile, '-r', '.'], {cwd: stagingDir})
+        // create the zip
+        const zipFile = path.join(tempDir, 'test.zip')
+        await io.rmRF(zipFile)
+        if (IS_WINDOWS) {
+          const escapedStagingPath = stagingDir.replace(/'/g, "''") // double-up single quotes
+          const escapedZipFile = zipFile.replace(/'/g, "''")
+          const powershellPath =
+            (await io.which('pwsh', false)) ||
+            (await io.which('powershell', true))
+          const args = [
+            '-NoLogo',
+            '-Sta',
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy',
+            'Unrestricted',
+            '-Command',
+            `$ErrorActionPreference = 'Stop' ; Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::CreateFromDirectory('${escapedStagingPath}', '${escapedZipFile}')`
+          ]
+          await exec.exec(`"${powershellPath}"`, args)
+        } else {
+          const zipPath: string = await io.which('zip', true)
+          await exec.exec(`"${zipPath}`, [zipFile, '-r', '.'], {
+            cwd: stagingDir
+          })
+        }
+
+        if (powershellTool === 'powershell' && IS_WINDOWS) {
+          //remove pwsh from PATH temporarily to test fallback case
+          process.env['PATH'] = removePWSHFromPath(process.env['PATH'])
+        }
+
+        const extPath: string = await tc.extractZip(zipFile)
+        await tc.cacheDir(extPath, 'foo', '1.1.0')
+        const toolPath: string = tc.find('foo', '1.1.0')
+
+        expect(fs.existsSync(toolPath)).toBeTruthy()
+        expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
+        expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(
+          fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
+        ).toBeTruthy()
+      } finally {
+        await io.rmRF(tempDir)
+        process.env['PATH'] = originalPath
       }
-
-      const extPath: string = await tc.extractZip(zipFile)
-      await tc.cacheDir(extPath, 'foo', '1.1.0')
-      const toolPath: string = tc.find('foo', '1.1.0')
-
-      expect(fs.existsSync(toolPath)).toBeTruthy()
-      expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
-      expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
-      expect(
-        fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
-      ).toBeTruthy()
-    } finally {
-      await io.rmRF(tempDir)
     }
-  })
+  )
 
   it('installs a zip and extracts it to specified directory', async function() {
     const tempDir = path.join(__dirname, 'test-install-zip')
@@ -597,7 +653,7 @@ describe('@actions/tool-cache', function() {
       //   folder/nested-file.txt
       const stagingDir = path.join(tempDir, 'zip-staging')
       await io.mkdirP(path.join(stagingDir, 'folder'))
-      fs.writeFileSync(path.join(stagingDir, 'file.txt'), '')
+      fs.writeFileSync(path.join(stagingDir, 'file.txt'), 'originalText')
       fs.writeFileSync(path.join(stagingDir, 'folder', 'nested-file.txt'), '')
 
       // create the zip
@@ -629,12 +685,16 @@ describe('@actions/tool-cache', function() {
       await io.rmRF(destDir)
       await io.mkdirP(destDir)
       try {
+        fs.writeFileSync(path.join(destDir, 'file.txt'), 'overwriteMe')
         const extPath: string = await tc.extractZip(zipFile, destDir)
         await tc.cacheDir(extPath, 'foo', '1.1.0')
         const toolPath: string = tc.find('foo', '1.1.0')
         expect(fs.existsSync(toolPath)).toBeTruthy()
         expect(fs.existsSync(`${toolPath}.complete`)).toBeTruthy()
         expect(fs.existsSync(path.join(toolPath, 'file.txt'))).toBeTruthy()
+        expect(fs.readFileSync(path.join(toolPath, 'file.txt'), 'utf8')).toBe(
+          'originalText'
+        )
         expect(
           fs.existsSync(path.join(toolPath, 'folder', 'nested-file.txt'))
         ).toBeTruthy()
@@ -763,6 +823,61 @@ describe('@actions/tool-cache', function() {
       expect(err.toString()).toContain('404')
     }
   })
+
+  it('supports authorization headers', async function() {
+    nock('http://example.com', {
+      reqheaders: {
+        authorization: 'token abc123'
+      }
+    })
+      .get('/some-file-that-needs-authorization')
+      .reply(200, undefined)
+
+    await tc.downloadTool(
+      'http://example.com/some-file-that-needs-authorization',
+      undefined,
+      'token abc123'
+    )
+  })
+
+  it('supports custom headers', async function() {
+    nock('http://example.com', {
+      reqheaders: {
+        accept: 'application/octet-stream'
+      }
+    })
+      .get('/some-file-that-needs-headers')
+      .reply(200, undefined)
+
+    await tc.downloadTool(
+      'http://example.com/some-file-that-needs-headers',
+      undefined,
+      undefined,
+      {
+        accept: 'application/octet-stream'
+      }
+    )
+  })
+
+  it('supports authorization and custom headers', async function() {
+    nock('http://example.com', {
+      reqheaders: {
+        accept: 'application/octet-stream',
+        authorization: 'token abc123'
+      }
+    })
+      .get('/some-file-that-needs-authorization-and-headers')
+      .reply(200, undefined)
+
+    await tc.downloadTool(
+      'http://example.com/some-file-that-needs-authorization-and-headers',
+      undefined,
+      'token abc123',
+      {
+        accept: 'application/octet-stream'
+      }
+    )
+  })
 })
 
 /**
@@ -787,4 +902,13 @@ function setGlobal<T>(key: string, value: T | undefined): void {
   } else {
     g[key] = value
   }
+}
+
+function removePWSHFromPath(pathEnv: string | undefined): string {
+  return (pathEnv || '')
+    .split(';')
+    .filter(segment => {
+      return !segment.startsWith(`C:\\Program Files\\PowerShell`)
+    })
+    .join(';')
 }

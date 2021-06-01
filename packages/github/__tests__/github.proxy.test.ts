@@ -49,7 +49,7 @@ describe('@actions/github', () => {
     }
 
     const octokit = getOctokit(token)
-    const branch = await octokit.repos.getBranch({
+    const branch = await octokit.rest.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'main'
@@ -85,7 +85,7 @@ describe('@actions/github', () => {
         agent: new https.Agent()
       }
     })
-    const branch = await octokit.repos.getBranch({
+    const branch = await octokit.rest.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'main'

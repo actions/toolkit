@@ -17,7 +17,6 @@ beforeAll(() => {
   jest.spyOn(core, 'warning').mockImplementation(() => {})
   jest.spyOn(core, 'error').mockImplementation(() => {})
 
-  // eslint-disable-next-line @typescript-eslint/promise-function-async
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
     const actualUtils = jest.requireActual('../src/internal/cacheUtils')
     return actualUtils.getCacheFileName(cm)
@@ -49,7 +48,7 @@ test('save with large cache outputs should fail', async () => {
 
   const cacheSize = 6 * 1024 * 1024 * 1024 //~6GB, over the 5GB limit
   jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeIsBytes')
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
     .mockReturnValueOnce(cacheSize)
   const compression = CompressionMethod.Gzip
   const getCompressionMock = jest

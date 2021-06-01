@@ -357,7 +357,7 @@ describe('Download Tests', () => {
     plaintext: Buffer | string
   ): Promise<Buffer> {
     if (isGzip) {
-      return <Buffer>await promisify(gzip)(plaintext)
+      return await promisify(gzip)(plaintext)
     } else if (typeof plaintext === 'string') {
       return Buffer.from(plaintext, defaultEncoding)
     } else {

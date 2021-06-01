@@ -1,3 +1,4 @@
+import {ok} from 'assert'
 import * as childProcess from 'child_process'
 import * as path from 'path'
 import {promisify} from 'util'
@@ -13,6 +14,8 @@ export interface CopyOptions {
   recursive?: boolean
   /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
   force?: boolean
+  /** Optional. Whether to copy the source directory along with all the files. Only takes effect when recursive=true and copying a directory. Default is true*/
+  copySourceDirectory?: boolean
 }
 
 /**
@@ -36,7 +39,7 @@ export async function cp(
   dest: string,
   options: CopyOptions = {}
 ): Promise<void> {
-  const {force, recursive} = readCopyOptions(options)
+  const {force, recursive, copySourceDirectory} = readCopyOptions(options)
 
   const destStat = (await ioUtil.exists(dest)) ? await ioUtil.stat(dest) : null
   // Dest is an existing file, but not forcing
@@ -46,7 +49,7 @@ export async function cp(
 
   // If dest is an existing directory, should copy inside.
   const newDest: string =
-    destStat && destStat.isDirectory()
+    destStat && destStat.isDirectory() && copySourceDirectory
       ? path.join(dest, path.basename(source))
       : dest
 
@@ -161,7 +164,8 @@ export async function rmRF(inputPath: string): Promise<void> {
  * @returns Promise<void>
  */
 export async function mkdirP(fsPath: string): Promise<void> {
-  await ioUtil.mkdirP(fsPath)
+  ok(fsPath, 'a path argument must be provided')
+  await ioUtil.mkdir(fsPath, {recursive: true})
 }
 
 /**
@@ -192,75 +196,95 @@ export async function which(tool: string, check?: boolean): Promise<string> {
         )
       }
     }
+
+    return result
   }
 
-  try {
-    // build the list of extensions to try
-    const extensions: string[] = []
-    if (ioUtil.IS_WINDOWS && process.env.PATHEXT) {
-      for (const extension of process.env.PATHEXT.split(path.delimiter)) {
-        if (extension) {
-          extensions.push(extension)
-        }
-      }
-    }
+  const matches: string[] = await findInPath(tool)
 
-    // if it's rooted, return it if exists. otherwise return empty.
-    if (ioUtil.isRooted(tool)) {
-      const filePath: string = await ioUtil.tryGetExecutablePath(
-        tool,
-        extensions
-      )
-
-      if (filePath) {
-        return filePath
-      }
-
-      return ''
-    }
-
-    // if any path separators, return empty
-    if (tool.includes('/') || (ioUtil.IS_WINDOWS && tool.includes('\\'))) {
-      return ''
-    }
-
-    // build the list of directories
-    //
-    // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
-    // it feels like we should not do this. Checking the current directory seems like more of a use
-    // case of a shell, and the which() function exposed by the toolkit should strive for consistency
-    // across platforms.
-    const directories: string[] = []
-
-    if (process.env.PATH) {
-      for (const p of process.env.PATH.split(path.delimiter)) {
-        if (p) {
-          directories.push(p)
-        }
-      }
-    }
-
-    // return the first match
-    for (const directory of directories) {
-      const filePath = await ioUtil.tryGetExecutablePath(
-        directory + path.sep + tool,
-        extensions
-      )
-      if (filePath) {
-        return filePath
-      }
-    }
-
-    return ''
-  } catch (err) {
-    throw new Error(`which failed with message ${err.message}`)
+  if (matches && matches.length > 0) {
+    return matches[0]
   }
+
+  return ''
+}
+
+/**
+ * Returns a list of all occurrences of the given tool on the system path.
+ *
+ * @returns   Promise<string[]>  the paths of the tool
+ */
+export async function findInPath(tool: string): Promise<string[]> {
+  if (!tool) {
+    throw new Error("parameter 'tool' is required")
+  }
+
+  // build the list of extensions to try
+  const extensions: string[] = []
+  if (ioUtil.IS_WINDOWS && process.env['PATHEXT']) {
+    for (const extension of process.env['PATHEXT'].split(path.delimiter)) {
+      if (extension) {
+        extensions.push(extension)
+      }
+    }
+  }
+
+  // if it's rooted, return it if exists. otherwise return empty.
+  if (ioUtil.isRooted(tool)) {
+    const filePath: string = await ioUtil.tryGetExecutablePath(tool, extensions)
+
+    if (filePath) {
+      return [filePath]
+    }
+
+    return []
+  }
+
+  // if any path separators, return empty
+  if (tool.includes(path.sep)) {
+    return []
+  }
+
+  // build the list of directories
+  //
+  // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
+  // it feels like we should not do this. Checking the current directory seems like more of a use
+  // case of a shell, and the which() function exposed by the toolkit should strive for consistency
+  // across platforms.
+  const directories: string[] = []
+
+  if (process.env.PATH) {
+    for (const p of process.env.PATH.split(path.delimiter)) {
+      if (p) {
+        directories.push(p)
+      }
+    }
+  }
+
+  // find all matches
+  const matches: string[] = []
+
+  for (const directory of directories) {
+    const filePath = await ioUtil.tryGetExecutablePath(
+      path.join(directory, tool),
+      extensions
+    )
+    if (filePath) {
+      matches.push(filePath)
+    }
+  }
+
+  return matches
 }
 
 function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
   const force = options.force == null ? true : options.force
   const recursive = Boolean(options.recursive)
-  return {force, recursive}
+  const copySourceDirectory =
+    options.copySourceDirectory == null
+      ? true
+      : Boolean(options.copySourceDirectory)
+  return {force, recursive, copySourceDirectory}
 }
 
 async function cpDirRecursive(

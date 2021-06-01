@@ -54,3 +54,7 @@
 
 - Improved retry-ability for all http calls during artifact upload and download if an error is encountered
 
+### 0.5.1
+
+- Bump @actions/http-client to version 1.0.11 to fix proxy related issues during artifact upload and download
+

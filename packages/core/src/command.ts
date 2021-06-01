@@ -29,7 +29,7 @@ export function issueCommand(
   process.stdout.write(cmd.toString() + os.EOL)
 }
 
-export function issue(name: string, message: string = ''): void {
+export function issue(name: string, message = ''): void {
   issueCommand(name, {}, message)
 }
 

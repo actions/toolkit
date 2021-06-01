@@ -15,7 +15,7 @@ describe('@actions/github', () => {
     proxyServer = proxy()
     await new Promise(resolve => {
       const port = Number(proxyUrl.split(':')[2])
-      proxyServer.listen(port, () => resolve())
+      proxyServer.listen(port, () => resolve(null))
     })
     proxyServer.on('connect', req => {
       proxyConnects.push(req.url)
@@ -30,7 +30,7 @@ describe('@actions/github', () => {
   afterAll(async () => {
     // Stop proxy server
     await new Promise(resolve => {
-      proxyServer.once('close', () => resolve())
+      proxyServer.once('close', () => resolve(null))
       proxyServer.close()
     })
 
@@ -45,7 +45,7 @@ describe('@actions/github', () => {
       return
     }
     const octokit = new GitHub(getOctokitOptions(token))
-    const branch = await octokit.repos.getBranch({
+    const branch = await octokit.rest.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'main'
@@ -60,7 +60,7 @@ describe('@actions/github', () => {
       return
     }
     const octokit = getOctokit(token)
-    const branch = await octokit.repos.getBranch({
+    const branch = await octokit.rest.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'main'
@@ -77,7 +77,7 @@ describe('@actions/github', () => {
 
     // Valid token
     let octokit = new GitHub({auth: `token ${token}`})
-    const branch = await octokit.repos.getBranch({
+    const branch = await octokit.rest.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
       branch: 'main'
@@ -89,7 +89,7 @@ describe('@actions/github', () => {
     octokit = new GitHub({auth: `token asdf`})
     let failed = false
     try {
-      await octokit.repos.getBranch({
+      await octokit.rest.repos.getBranch({
         owner: 'actions',
         repo: 'toolkit',
         branch: 'main'

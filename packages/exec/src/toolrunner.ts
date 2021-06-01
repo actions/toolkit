@@ -6,6 +6,7 @@ import * as stream from 'stream'
 import * as im from './interfaces'
 import * as io from '@actions/io'
 import * as ioUtil from '@actions/io/lib/io-util'
+import {setTimeout} from 'timers'
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -413,7 +414,7 @@ export class ToolRunner extends events.EventEmitter {
     // otherwise verify it exists (add extension on Windows if necessary)
     this.toolPath = await io.which(this.toolPath, true)
 
-    return new Promise<number>((resolve, reject) => {
+    return new Promise<number>(async (resolve, reject) => {
       this._debug(`exec tool: ${this.toolPath}`)
       this._debug('arguments:')
       for (const arg of this.args) {
@@ -431,6 +432,10 @@ export class ToolRunner extends events.EventEmitter {
       state.on('debug', (message: string) => {
         this._debug(message)
       })
+
+      if (this.options.cwd && !(await ioUtil.exists(this.options.cwd))) {
+        return reject(new Error(`The cwd: ${this.options.cwd} does not exist!`))
+      }
 
       const fileName = this._getSpawnFileName()
       const cp = child.spawn(
@@ -614,13 +619,13 @@ class ExecState extends events.EventEmitter {
     }
   }
 
-  processClosed: boolean = false // tracks whether the process has exited and stdio is closed
-  processError: string = ''
-  processExitCode: number = 0
-  processExited: boolean = false // tracks whether the process has exited
-  processStderr: boolean = false // tracks whether stderr was written to
+  processClosed = false // tracks whether the process has exited and stdio is closed
+  processError = ''
+  processExitCode = 0
+  processExited = false // tracks whether the process has exited
+  processStderr = false // tracks whether stderr was written to
   private delay = 10000 // 10 seconds
-  private done: boolean = false
+  private done = false
   private options: im.ExecOptions
   private timeout: NodeJS.Timer | null = null
   private toolPath: string

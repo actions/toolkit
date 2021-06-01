@@ -114,6 +114,24 @@ describe('globber', () => {
     ])
   })
 
+  it('does not match file with trailing slash when implicitDescendants=true', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/file
+    const root = path.join(
+      getTestTemp(),
+      'defaults-to-implicit-descendants-true'
+    )
+
+    const filePath = path.join(root, 'file')
+
+    await fs.mkdir(root, {recursive: true})
+    await fs.writeFile(filePath, 'test file content')
+
+    const itemPaths = await glob(`${filePath}/`, {})
+    expect(itemPaths).toEqual([])
+  })
+
   it('defaults to omitBrokenSymbolicLinks=true', async () => {
     // Create the following layout:
     //   <root>

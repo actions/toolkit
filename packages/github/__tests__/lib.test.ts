@@ -2,6 +2,7 @@ import * as path from 'path'
 import {Context} from '../src/context'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 describe('@actions/context', () => {
   let context: Context

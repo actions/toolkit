@@ -26,6 +26,8 @@ async function getTarPath(
     case 'darwin': {
       const gnuTar = await io.which('gtar', false)
       if (gnuTar) {
+        // fix permission denied errors when extracting BSD tar archive with GNU tar - https://github.com/actions/cache/issues/527
+        args.push('--delay-directory-restore')
         return gnuTar
       }
       break

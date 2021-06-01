@@ -135,8 +135,15 @@ export function _getOsVersion(): string {
       const lines = lsbContents.split('\n')
       for (const line of lines) {
         const parts = line.split('=')
-        if (parts.length === 2 && parts[0].trim() === 'DISTRIB_RELEASE') {
-          version = parts[1].trim()
+        if (
+          parts.length === 2 &&
+          (parts[0].trim() === 'VERSION_ID' ||
+            parts[0].trim() === 'DISTRIB_RELEASE')
+        ) {
+          version = parts[1]
+            .trim()
+            .replace(/^"/, '')
+            .replace(/"$/, '')
           break
         }
       }
@@ -147,11 +154,14 @@ export function _getOsVersion(): string {
 }
 
 export function _readLinuxVersionFile(): string {
-  const lsbFile = '/etc/lsb-release'
+  const lsbReleaseFile = '/etc/lsb-release'
+  const osReleaseFile = '/etc/os-release'
   let contents = ''
 
-  if (fs.existsSync(lsbFile)) {
-    contents = fs.readFileSync(lsbFile).toString()
+  if (fs.existsSync(lsbReleaseFile)) {
+    contents = fs.readFileSync(lsbReleaseFile).toString()
+  } else if (fs.existsSync(osReleaseFile)) {
+    contents = fs.readFileSync(osReleaseFile).toString()
   }
 
   return contents

@@ -35,7 +35,7 @@ export async function createTempDirectory(): Promise<string> {
   return dest
 }
 
-export function getArchiveFileSizeIsBytes(filePath: string): number {
+export function getArchiveFileSizeInBytes(filePath: string): number {
   return fs.statSync(filePath).size
 }
 

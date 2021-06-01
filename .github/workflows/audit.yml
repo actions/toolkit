@@ -31,8 +31,8 @@ jobs:
     - name: Bootstrap
       run: npm run bootstrap
 
-   # - name: audit tools #disabled while we wait for https://github.com/actions/toolkit/issues/539
-   #   run: npm audit --audit-level=moderate
+    - name: audit tools #disabled while we wait for https://github.com/actions/toolkit/issues/539
+      run: npm audit --audit-level=moderate
 
     - name: audit packages
       run: npm run audit-all
