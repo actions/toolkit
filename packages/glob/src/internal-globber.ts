@@ -131,7 +131,7 @@ export class DefaultGlobber implements Globber {
       // Directory
       if (stats.isDirectory()) {
         // Matched
-        if (match & MatchKind.Directory) {
+        if (match & MatchKind.Directory && options.matchDirectories) {
           yield item.path
         }
         // Descend?

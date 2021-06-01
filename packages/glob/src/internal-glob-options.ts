@@ -22,6 +22,14 @@ export interface GlobOptions {
   implicitDescendants?: boolean
 
   /**
+   * Indicates whether matching directories should be included in the
+   * result set.
+   *
+   * @default true
+   */
+  matchDirectories?: boolean
+
+  /**
    * Indicates whether broken symbolic should be ignored and omitted from the
    * result set. Otherwise an error will be thrown.
    *
