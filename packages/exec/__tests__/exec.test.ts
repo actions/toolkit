@@ -287,7 +287,6 @@ describe('@actions/exec', () => {
   })
 
   it('Handles large stdline', async () => {
-    
     const stdlinePath: string = path.join(
       __dirname,
       'scripts',
@@ -300,18 +299,16 @@ describe('@actions/exec', () => {
     _testExecOptions.listeners = {
       stdline: (line: string) => {
         largeLine = line
-        
       }
     }
 
-    let exitCode = await exec.exec(
+    const exitCode = await exec.exec(
       `"${nodePath}"`,
       [stdlinePath],
       _testExecOptions
     )
     expect(exitCode).toBe(0)
-    expect(Buffer.byteLength(largeLine)).toEqual(2**16 + 1)
-
+    expect(Buffer.byteLength(largeLine)).toEqual(2 ** 16 + 1)
   })
 
   it('Handles stdin shell', async () => {
