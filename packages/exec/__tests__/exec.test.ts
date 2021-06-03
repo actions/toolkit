@@ -286,6 +286,31 @@ describe('@actions/exec', () => {
     expect(stderrCalled).toBeTruthy()
   })
 
+  it('Handles large stdline', async () => {
+    const stdlinePath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdlineoutput.js'
+    )
+    const nodePath: string = await io.which('node', true)
+
+    const _testExecOptions = getExecOptions()
+    let largeLine = ''
+    _testExecOptions.listeners = {
+      stdline: (line: string) => {
+        largeLine = line
+      }
+    }
+
+    const exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [stdlinePath],
+      _testExecOptions
+    )
+    expect(exitCode).toBe(0)
+    expect(Buffer.byteLength(largeLine)).toEqual(2 ** 16 + 1)
+  })
+
   it('Handles stdin shell', async () => {
     let command: string
     if (IS_WINDOWS) {
