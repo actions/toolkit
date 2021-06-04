@@ -557,6 +557,65 @@ describe('rmRF', () => {
       await assertNotExists(outerDirectory)
     })
   }
+  else {
+    it('correctly escapes % on windows', async () => {
+      // create the following layout:
+      //   real_file
+      //   symlink_file -> real_file
+      const root: string = path.join(getTestTemp(), 'rmRF_escape_test_win')
+      const realDirectory: string = path.join(root, '%test%')
+      await io.mkdirP(root)
+      await io.mkdirP(realDirectory)
+      process.env['%test%'] = 'thisshouldnotresolve'
+
+      await io.rmRF(realDirectory)
+      await assertNotExists(realDirectory)
+    })
+
+    it('Should throw for invalid characters', async () => {
+      // create the following layout:
+      //   real_file
+      //   symlink_file -> real_file
+      const root: string = path.join(getTestTemp(), 'rmRF_invalidChar_Windows')
+      var errorString = 'Input string must not contain `/`, `\\`, `:`, `*`, `"`, `?`, `<`, `>` or `|` on Windows'
+      await expect(io.rmRF(path.join(root, '"'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '<'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '>'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '|'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '?'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '*'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '\\'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '/'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, ':'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+    })
+  }
 
   it('removes symlink folder with missing source using rmRF', async () => {
     // create the following layout:

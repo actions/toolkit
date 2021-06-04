@@ -118,13 +118,22 @@ export async function rmRF(inputPath: string): Promise<void> {
   if (ioUtil.IS_WINDOWS) {
     // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
+    if (/^[/\\:*"?<>|]+/.test(inputPath)) {
+      throw "Input string must not contain `/`, `\\`, `:`, `*`, `\"`, `?`, `<`, `>` or `|` on Windows"
+    }
     try {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {env: {inputPath: "inputPath"}})
-        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {env: {inputPath: "inputPath"}})
+        exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+          env: {inputPath: 'inputPath'}
+        })
+        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+          env: {inputPath: 'inputPath'}
+        })
       } else {
-        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {env: {inputPath: inputPath}})
+        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+          env: {inputPath: inputPath}
+        })
       }
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
@@ -152,7 +161,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
 
     if (isDir) {
-      await execFile(`rm`, [`-rf`, `"${inputPath}"`])
+      await execFile(`rm`, [`-rf`, `${inputPath}`])
     } else {
       await ioUtil.unlink(inputPath)
     }
