@@ -558,9 +558,6 @@ describe('rmRF', () => {
     })
   } else {
     it('correctly escapes % on windows', async () => {
-      // create the following layout:
-      //   real_file
-      //   symlink_file -> real_file
       const root: string = path.join(getTestTemp(), 'rmRF_escape_test_win')
       const realDirectory: string = path.join(root, '%test%')
       await io.mkdirP(root)
@@ -572,9 +569,6 @@ describe('rmRF', () => {
     })
 
     it('Should throw for invalid characters', async () => {
-      // create the following layout:
-      //   real_file
-      //   symlink_file -> real_file
       const root: string = path.join(getTestTemp(), 'rmRF_invalidChar_Windows')
       const errorString =
         'Input string must not contain `/`, `\\`, `:`, `*`, `"`, `?`, `<`, `>` or `|` on Windows'
