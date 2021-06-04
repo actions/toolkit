@@ -59,10 +59,7 @@ describe('globber', () => {
     //   <root>/folder-a
     //   <root>/folder-a/file
     //   <root>/symDir -> <root>/folder-a
-    const root = path.join(
-      getTestTemp(),
-      'set-to-true'
-    )
+    const root = path.join(getTestTemp(), 'set-to-true')
     await fs.mkdir(path.join(root, 'realdir'), {recursive: true})
     await fs.writeFile(path.join(root, 'realdir', 'file'), 'test file content')
     await createSymlinkDir(
@@ -82,10 +79,7 @@ describe('globber', () => {
     //   <root>/folder-a
     //   <root>/folder-a/file
     //   <root>/symDir -> <root>/folder-a
-    const root = path.join(
-      getTestTemp(),
-      'set-to-false'
-    )
+    const root = path.join(getTestTemp(), 'set-to-false')
     await fs.mkdir(path.join(root, 'realdir'), {recursive: true})
     await fs.writeFile(path.join(root, 'realdir', 'file'), 'test file content')
     await createSymlinkDir(
@@ -94,9 +88,7 @@ describe('globber', () => {
     )
     const testPath = path.join(root, 'symdir', '*')
     const hash = await hashFiles(testPath, {followSymbolicLinks: false})
-    expect(hash).toEqual(
-      ''
-    )
+    expect(hash).toEqual('')
   })
 })
 
