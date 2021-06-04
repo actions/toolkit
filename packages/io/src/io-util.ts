@@ -166,3 +166,9 @@ function isUnixExecutable(stats: fs.Stats): boolean {
     ((stats.mode & 64) > 0 && stats.uid === process.getuid())
   )
 }
+
+// Get the path of cmd.exe in windows
+export function getCmdPath(): string
+{
+  return process.env['COMSPEC'] ?? `C:\\WINDOWS\\system32\\cmd.exe`
+}

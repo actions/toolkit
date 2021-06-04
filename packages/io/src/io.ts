@@ -5,6 +5,7 @@ import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
 const exec = promisify(childProcess.exec)
+const execFile = promisify(childProcess.execFile)
 
 /**
  * Interface for cp/mv options
@@ -118,10 +119,12 @@ export async function rmRF(inputPath: string): Promise<void> {
     // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
     try {
+      const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await exec(`rd /s /q "${inputPath}"`)
+        exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {env: {inputPath: "inputPath"}})
+        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {env: {inputPath: "inputPath"}})
       } else {
-        await exec(`del /f /a "${inputPath}"`)
+        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {env: {inputPath: inputPath}})
       }
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
@@ -149,7 +152,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
 
     if (isDir) {
-      await exec(`rm -rf "${inputPath}"`)
+      await execFile(`rm`, [`-rf`, `"${inputPath}"`])
     } else {
       await ioUtil.unlink(inputPath)
     }
