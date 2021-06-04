@@ -41,11 +41,11 @@ describe('globber', () => {
       'defaults-to-follow-symbolic-links-true'
     )
     await fs.mkdir(path.join(root, 'realdir'), {recursive: true})
+    await fs.writeFile(path.join(root, 'realdir', 'file'), 'test file content')
     await createSymlinkDir(
       path.join(root, 'realdir'),
       path.join(root, 'symDir')
     )
-    await fs.writeFile(path.join(root, 'realdir', 'file'), 'test file content')
     const testPath = path.join(root, 'symdir', '*')
     const hashNoOptions = await hashFiles(testPath)
     const hashSymbolicFalse = await hashFiles(testPath, {
