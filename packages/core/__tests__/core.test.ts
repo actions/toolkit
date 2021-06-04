@@ -29,6 +29,8 @@ const testEnvVars = {
   INPUT_WRONG_BOOLEAN_INPUT: 'wrong',
   INPUT_WITH_TRAILING_WHITESPACE: '  some val  ',
 
+  INPUT_MY_INPUT_LIST: 'val1\nval2\nval3',
+
   // Save inputs
   STATE_TEST_1: 'state_val',
 
@@ -164,6 +166,14 @@ describe('@actions/core', () => {
     expect(core.getInput('multiple spaces variable')).toBe(
       'I have multiple spaces'
     )
+  })
+
+  it('getMultilineInput works', () => {
+    expect(core.getMultilineInput('my input list')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
   })
 
   it('getInput trims whitespace by default', () => {

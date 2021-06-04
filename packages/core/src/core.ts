@@ -101,6 +101,25 @@ export function getInput(name: string, options?: InputOptions): string {
 }
 
 /**
+ * Gets the values of an multiline input.  Each value is also trimmed.
+ *
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string[]
+ *
+ */
+export function getMultilineInput(
+  name: string,
+  options?: InputOptions
+): string[] {
+  const inputs: string[] = getInput(name, options)
+    .split('\n')
+    .filter(x => x !== '')
+
+  return inputs
+}
+
+/**
  * Gets the input value of the boolean type in the YAML 1.2 "core schema" specification.
  * Support boolean input list: `true | True | TRUE | false | False | FALSE` .
  * The return value is also in boolean type.
