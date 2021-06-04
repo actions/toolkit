@@ -46,7 +46,7 @@ describe('globber', () => {
       path.join(root, 'realdir'),
       path.join(root, 'symDir')
     )
-    const testPath = path.join(root, 'symdir', '*')
+    const testPath = path.join(root, 'symdir')
     const hash = await hashFiles(testPath)
     expect(hash).toEqual(
       'd8a411e8f8643821bed189e627ff57151918aa554c00c10b31c693ab2dded273'
@@ -66,7 +66,7 @@ describe('globber', () => {
       path.join(root, 'realdir'),
       path.join(root, 'symDir')
     )
-    const testPath = path.join(root, 'symdir', '*')
+    const testPath = path.join(root, 'symdir')
     const hash = await hashFiles(testPath, {followSymbolicLinks: true})
     expect(hash).toEqual(
       'd8a411e8f8643821bed189e627ff57151918aa554c00c10b31c693ab2dded273'
@@ -86,7 +86,7 @@ describe('globber', () => {
       path.join(root, 'realdir'),
       path.join(root, 'symDir')
     )
-    const testPath = path.join(root, 'symdir', '*')
+    const testPath = path.join(root, 'symdir')
     const hash = await hashFiles(testPath, {followSymbolicLinks: false})
     expect(hash).toEqual('')
   })
