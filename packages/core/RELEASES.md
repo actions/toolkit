@@ -1,5 +1,26 @@
 # @actions/core Releases
 
+### 1.3.0
+- [Added the trimWhitespace option to getInput](https://github.com/actions/toolkit/pull/802)
+- [Added the getBooleanInput function](https://github.com/actions/toolkit/pull/725)
+
+### 1.2.7
+- [Prepend newline for set-output](https://github.com/actions/toolkit/pull/772)
+
+### 1.2.6
+- [Update `exportVariable` and `addPath` to use environment files](https://github.com/actions/toolkit/pull/571)
+
+### 1.2.5
+- [Correctly bundle License File with package](https://github.com/actions/toolkit/pull/548)
+
+### 1.2.4
+- [Be more lenient in accepting non-string command inputs](https://github.com/actions/toolkit/pull/405)
+- [Add Echo commands](https://github.com/actions/toolkit/pull/411)
+
+### 1.2.3
+
+- [IsDebug logging](README.md#logging)
+
 ### 1.2.2
 
 - [Fix escaping for runner commands](https://github.com/actions/toolkit/pull/302)

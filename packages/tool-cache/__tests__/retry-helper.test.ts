@@ -1,0 +1,125 @@
+import * as core from '@actions/core'
+import {RetryHelper} from '../src/retry-helper'
+
+let info: string[]
+let retryHelper: RetryHelper
+
+describe('retry-helper tests', () => {
+  beforeAll(() => {
+    // Mock @actions/core info()
+    jest.spyOn(core, 'info').mockImplementation((message: string) => {
+      info.push(message)
+    })
+
+    retryHelper = new RetryHelper(3, 0, 0)
+  })
+
+  beforeEach(() => {
+    // Reset info
+    info = []
+  })
+
+  afterAll(() => {
+    // Restore
+    jest.restoreAllMocks()
+  })
+
+  it('first attempt succeeds', async () => {
+    const actual = await retryHelper.execute(async () => {
+      return 'some result'
+    })
+    expect(actual).toBe('some result')
+    expect(info).toHaveLength(0)
+  })
+
+  it('second attempt succeeds', async () => {
+    let attempts = 0
+    const actual = await retryHelper.execute(async () => {
+      if (++attempts === 1) {
+        throw new Error('some error')
+      }
+
+      return Promise.resolve('some result')
+    })
+    expect(attempts).toBe(2)
+    expect(actual).toBe('some result')
+    expect(info).toHaveLength(2)
+    expect(info[0]).toBe('some error')
+    expect(info[1]).toMatch(/Waiting .+ seconds before trying again/)
+  })
+
+  it('third attempt succeeds', async () => {
+    let attempts = 0
+    const actual = await retryHelper.execute(async () => {
+      if (++attempts < 3) {
+        throw new Error(`some error ${attempts}`)
+      }
+
+      return Promise.resolve('some result')
+    })
+    expect(attempts).toBe(3)
+    expect(actual).toBe('some result')
+    expect(info).toHaveLength(4)
+    expect(info[0]).toBe('some error 1')
+    expect(info[1]).toMatch(/Waiting .+ seconds before trying again/)
+    expect(info[2]).toBe('some error 2')
+    expect(info[3]).toMatch(/Waiting .+ seconds before trying again/)
+  })
+
+  it('all attempts fail', async () => {
+    let attempts = 0
+    let error: Error = (null as unknown) as Error
+    try {
+      await retryHelper.execute(() => {
+        throw new Error(`some error ${++attempts}`)
+      })
+    } catch (err) {
+      error = err
+    }
+    expect(error.message).toBe('some error 3')
+    expect(attempts).toBe(3)
+    expect(info).toHaveLength(4)
+    expect(info[0]).toBe('some error 1')
+    expect(info[1]).toMatch(/Waiting .+ seconds before trying again/)
+    expect(info[2]).toBe('some error 2')
+    expect(info[3]).toMatch(/Waiting .+ seconds before trying again/)
+  })
+
+  it('checks retryable after first attempt', async () => {
+    let attempts = 0
+    let error: Error = (null as unknown) as Error
+    try {
+      await retryHelper.execute(
+        async () => {
+          throw new Error(`some error ${++attempts}`)
+        },
+        () => false
+      )
+    } catch (err) {
+      error = err
+    }
+    expect(error.message).toBe('some error 1')
+    expect(attempts).toBe(1)
+    expect(info).toHaveLength(0)
+  })
+
+  it('checks retryable after second attempt', async () => {
+    let attempts = 0
+    let error: Error = (null as unknown) as Error
+    try {
+      await retryHelper.execute(
+        async () => {
+          throw new Error(`some error ${++attempts}`)
+        },
+        (e: Error) => e.message === 'some error 1'
+      )
+    } catch (err) {
+      error = err
+    }
+    expect(error.message).toBe('some error 2')
+    expect(attempts).toBe(2)
+    expect(info).toHaveLength(2)
+    expect(info[0]).toBe('some error 1')
+    expect(info[1]).toMatch(/Waiting .+ seconds before trying again/)
+  })
+})

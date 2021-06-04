@@ -1,0 +1,49 @@
+{
+  "name": "@actions/artifact",
+  "version": "0.5.1",
+  "preview": true,
+  "description": "Actions artifact lib",
+  "keywords": [
+    "github",
+    "actions",
+    "artifact"
+  ],
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/artifact",
+  "license": "MIT",
+  "main": "lib/artifact-client.js",
+  "types": "lib/artifact-client.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib",
+    "!.DS_Store"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/toolkit.git",
+    "directory": "packages/artifact"
+  },
+  "scripts": {
+    "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/actions/toolkit/issues"
+  },
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/http-client": "^1.0.11",
+    "@types/tmp": "^0.1.0",
+    "tmp": "^0.1.0",
+    "tmp-promise": "^2.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^3.8.3"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "@actions/cache",
+  "version": "1.0.7",
+  "preview": true,
+  "description": "Actions cache lib",
+  "keywords": [
+    "github",
+    "actions",
+    "cache"
+  ],
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/cache",
+  "license": "MIT",
+  "main": "lib/cache.js",
+  "types": "lib/cache.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib",
+    "!.DS_Store"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/toolkit.git",
+    "directory": "packages/cache"
+  },
+  "scripts": {
+    "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/actions/toolkit/issues"
+  },
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/exec": "^1.0.1",
+    "@actions/glob": "^0.1.0",
+    "@actions/http-client": "^1.0.9",
+    "@actions/io": "^1.0.1",
+    "@azure/ms-rest-js": "^2.0.7",
+    "@azure/storage-blob": "^12.1.2",
+    "semver": "^6.1.0",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "typescript": "^3.8.3",
+    "@types/semver": "^6.0.0",
+    "@types/uuid": "^3.4.5"
+  }
+}

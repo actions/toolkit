@@ -1,0 +1,91 @@
+name: cache-unit-tests
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    name: Build
+
+    strategy:
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macOS-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    # In order to save & restore cache from a shell script, certain env variables need to be set that are only available in the
+    # node context. This runs a local action that gets and sets the necessary env variables that are needed
+    - name: Set env variables
+      uses: ./packages/cache/__tests__/__fixtures__/
+
+    # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
+    # without these to just compile the cache package
+    - name: Install root npm packages
+      run: npm ci
+
+    - name: Compile cache package
+      run: |
+        npm ci
+        npm run tsc
+      working-directory: packages/cache
+    
+    - name: Generate files in working directory
+      shell: bash
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} test-cache
+
+    - name: Generate files outside working directory
+      shell: bash
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
+
+    # We're using node -e to call the functions directly available in the @actions/cache package
+    - name: Save cache using saveCache()
+      run: |
+        node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+
+    - name: Delete cache folders before restoring
+      shell: bash
+      run: |
+        rm -rf test-cache
+        rm -rf ~/test-cache
+
+    - name: Restore cache using restoreCache() with http-client
+      run: |
+        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}))"
+
+    - name: Verify cache restored with http-client
+      shell: bash
+      run: |
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache
+
+    - name: Delete cache folders before restoring
+      shell: bash
+      run: |
+        rm -rf test-cache
+        rm -rf ~/test-cache
+
+    - name: Restore cache using restoreCache() with Azure SDK
+      run: |
+        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+
+    - name: Verify cache restored with Azure SDK
+      shell: bash
+      run: |
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache

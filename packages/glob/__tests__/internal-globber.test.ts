@@ -97,6 +97,41 @@ describe('globber', () => {
     ])
   })
 
+  it('defaults to matchDirectories=true', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/folder-a
+    //   <root>/folder-a/file
+    const root = path.join(getTestTemp(), 'defaults-to-match-directories-true')
+    await fs.mkdir(path.join(root, 'folder-a'), {recursive: true})
+    await fs.writeFile(path.join(root, 'folder-a', 'file'), 'test file content')
+
+    const itemPaths = await glob(root, {})
+    expect(itemPaths).toEqual([
+      root,
+      path.join(root, 'folder-a'),
+      path.join(root, 'folder-a', 'file')
+    ])
+  })
+
+  it('does not match file with trailing slash when implicitDescendants=true', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/file
+    const root = path.join(
+      getTestTemp(),
+      'defaults-to-implicit-descendants-true'
+    )
+
+    const filePath = path.join(root, 'file')
+
+    await fs.mkdir(root, {recursive: true})
+    await fs.writeFile(filePath, 'test file content')
+
+    const itemPaths = await glob(`${filePath}/`, {})
+    expect(itemPaths).toEqual([])
+  })
+
   it('defaults to omitBrokenSymbolicLinks=true', async () => {
     // Create the following layout:
     //   <root>
@@ -341,6 +376,34 @@ describe('globber', () => {
 
     const itemPaths = await glob(brokenSymPath, {followSymbolicLinks: true})
     expect(itemPaths).toEqual([])
+  })
+
+  it('does not return directories when match directories false', async () => {
+    // Create the following layout:
+    //   <root>/file-1
+    //   <root>/dir-1
+    //   <root>/dir-1/file-2
+    //   <root>/dir-1/dir-2
+    //   <root>/dir-1/dir-2/file-3
+    const root = path.join(
+      getTestTemp(),
+      'does-not-return-directories-when-match-directories-false'
+    )
+    await fs.mkdir(path.join(root, 'dir-1', 'dir-2'), {recursive: true})
+    await fs.writeFile(path.join(root, 'file-1'), '')
+    await fs.writeFile(path.join(root, 'dir-1', 'file-2'), '')
+    await fs.writeFile(path.join(root, 'dir-1', 'dir-2', 'file-3'), '')
+
+    const pattern = `${root}${path.sep}**`
+    expect(
+      await glob(pattern, {
+        matchDirectories: false
+      })
+    ).toEqual([
+      path.join(root, 'dir-1', 'dir-2', 'file-3'),
+      path.join(root, 'dir-1', 'file-2'),
+      path.join(root, 'file-1')
+    ])
   })
 
   it('does not search paths that are not partial matches', async () => {

@@ -1,13 +1,13 @@
 {
   "name": "@actions/tool-cache",
-  "version": "1.3.1",
+  "version": "1.7.0",
   "description": "Actions tool-cache lib",
   "keywords": [
     "github",
     "actions",
     "exec"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/exec",
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/tool-cache",
   "license": "MIT",
   "main": "lib/tool-cache.js",
   "types": "lib/tool-cache.d.ts",
@@ -28,7 +28,7 @@
     "directory": "packages/tool-cache"
   },
   "scripts": {
-    "audit-moderate": "npm install && npm audit --audit-level=moderate",
+    "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc"
   },
@@ -36,9 +36,9 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.2.0",
+    "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.0",
-    "@actions/http-client": "^1.0.3",
+    "@actions/http-client": "^1.0.8",
     "@actions/io": "^1.0.1",
     "semver": "^6.1.0",
     "uuid": "^3.3.2"

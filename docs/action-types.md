@@ -32,14 +32,14 @@ jobs:
         os: [ubuntu-16.04, windows-2019]
     runs-on: ${{matrix.os}}
     actions:
-    - uses: actions/setup-node@master
+    - uses: actions/setup-node@v1
       with:
         version: ${{matrix.node}}
     - run: | 
         npm install
     - run: |
         npm test
-    - uses: actions/custom-action@master
+    - uses: actions/custom-action@v1
 ```
 
 JavaScript actions work on any environment that host action runtime is supported on which is currently node 12.  However, a host action that runs a toolset expects the environment that it's running on to have that toolset in its PATH or using a setup-* action to acquire it on demand.

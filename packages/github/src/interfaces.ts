@@ -36,4 +36,8 @@ export interface WebhookPayload {
     id: number
     [key: string]: any
   }
+  comment?: {
+    id: number
+    [key: string]: any
+  }
 }

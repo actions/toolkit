@@ -2,7 +2,7 @@ name: toolkit-unit-tests
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       - '**.md'
   pull_request:
@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest, macOS-latest, windows-latest]
+        runs-on: [ubuntu-latest, macos-latest, windows-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}
@@ -49,11 +49,3 @@ jobs:
 
     - name: Format
       run: npm run format-check
-
-    - name: audit tools
-      run: npm audit --audit-level=moderate
-      if: matrix.runs-on == 'ubuntu-latest'
-
-    - name: audit packages
-      run: npm run audit-all
-      if: matrix.runs-on == 'ubuntu-latest'
