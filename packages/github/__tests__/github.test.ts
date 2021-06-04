@@ -4,7 +4,7 @@ import {getOctokit} from '../src/github'
 import {GitHub, getOctokitOptions} from '../src/utils'
 
 describe('@actions/github', () => {
-  const proxyUrl = 'http://127.0.0.1:8080'
+  const proxyUrl = 'http://127.0.0.1:8089'
   const originalProxyUrl = process.env['https_proxy']
   let proxyConnects: string[]
   let proxyServer: http.Server

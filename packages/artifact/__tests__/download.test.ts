@@ -71,7 +71,7 @@ describe('Download Tests', () => {
     setupFailedResponse()
     const downloadHttpClient = new DownloadHttpClient()
     expect(downloadHttpClient.listArtifacts()).rejects.toThrow(
-      'List Artifacts failed: Artifact service responded with 500'
+      'List Artifacts failed: Artifact service responded with 400'
     )
   })
 
@@ -113,7 +113,7 @@ describe('Download Tests', () => {
         configVariables.getRuntimeUrl()
       )
     ).rejects.toThrow(
-      `Get Container Items failed: Artifact service responded with 500`
+      `Get Container Items failed: Artifact service responded with 400`
     )
   })
 
@@ -166,7 +166,7 @@ describe('Download Tests', () => {
   it('Test retryable status codes during artifact download', async () => {
     // The first http response should return a retryable status call while the subsequent call should return a 200 so
     // the download should successfully finish
-    const retryableStatusCodes = [429, 502, 503, 504]
+    const retryableStatusCodes = [429, 500, 502, 503, 504]
     for (const statusCode of retryableStatusCodes) {
       const fileContents = Buffer.from('try, try again\n', defaultEncoding)
       const targetPath = path.join(root, `FileC-${statusCode}.txt`)
@@ -468,7 +468,7 @@ describe('Download Tests', () => {
   function setupFailedResponse(): void {
     jest.spyOn(HttpClient.prototype, 'get').mockImplementationOnce(async () => {
       const mockMessage = new http.IncomingMessage(new net.Socket())
-      mockMessage.statusCode = 500
+      mockMessage.statusCode = 400
       return new Promise<HttpClientResponse>(resolve => {
         resolve({
           message: mockMessage,
