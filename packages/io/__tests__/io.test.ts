@@ -588,23 +588,7 @@ describe('rmRF', () => {
         'message',
         errorString
       )
-      await expect(io.rmRF(path.join(root, '?'))).rejects.toHaveProperty(
-        'message',
-        errorString
-      )
       await expect(io.rmRF(path.join(root, '*'))).rejects.toHaveProperty(
-        'message',
-        errorString
-      )
-      await expect(io.rmRF(path.join(root, '\\'))).rejects.toHaveProperty(
-        'message',
-        errorString
-      )
-      await expect(io.rmRF(path.join(root, '/'))).rejects.toHaveProperty(
-        'message',
-        errorString
-      )
-      await expect(io.rmRF(path.join(root, ':'))).rejects.toHaveProperty(
         'message',
         errorString
       )
