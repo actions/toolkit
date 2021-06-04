@@ -107,8 +107,8 @@ test('retry fails after exhausting retries', async () => {
 })
 
 test('retry fails after non-retryable status code', async () => {
-  await testRetry([500, 200], {
-    responseCode: 500,
-    errorMessage: 'test failed: Artifact service responded with 500'
+  await testRetry([400, 200], {
+    responseCode: 400,
+    errorMessage: 'test failed: Artifact service responded with 400'
   })
 })
