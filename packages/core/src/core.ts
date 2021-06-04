@@ -108,7 +108,10 @@ export function getInput(name: string, options?: InputOptions): string {
  * @returns   string[]
  *
  */
-export function getMultilineInput(name: string, options?: InputOptions): string[] {
+export function getMultilineInput(
+  name: string,
+  options?: InputOptions
+): string[] {
   const inputs: string[] = getInput(name, options)
     .split('\n')
     .filter(x => x !== '')

@@ -174,9 +174,13 @@ describe('@actions/core', () => {
   })
 
   it('getMultilineInput works', () => {
-    expect(core.getMultilineInput('my input list')).toEqual(['val1', 'val2', 'val3'])
+    expect(core.getMultilineInput('my input list')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
   })
-  
+
   it('getInput trims whitespace by default', () => {
     expect(core.getInput('with trailing whitespace')).toBe('some val')
   })
