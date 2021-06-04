@@ -556,8 +556,7 @@ describe('rmRF', () => {
       await assertNotExists(symlinkFile)
       await assertNotExists(outerDirectory)
     })
-  }
-  else {
+  } else {
     it('correctly escapes % on windows', async () => {
       // create the following layout:
       //   real_file
@@ -577,7 +576,8 @@ describe('rmRF', () => {
       //   real_file
       //   symlink_file -> real_file
       const root: string = path.join(getTestTemp(), 'rmRF_invalidChar_Windows')
-      var errorString = 'Input string must not contain `/`, `\\`, `:`, `*`, `"`, `?`, `<`, `>` or `|` on Windows'
+      const errorString =
+        'Input string must not contain `/`, `\\`, `:`, `*`, `"`, `?`, `<`, `>` or `|` on Windows'
       await expect(io.rmRF(path.join(root, '"'))).rejects.toHaveProperty(
         'message',
         errorString

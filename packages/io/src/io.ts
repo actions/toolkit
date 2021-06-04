@@ -119,7 +119,9 @@ export async function rmRF(inputPath: string): Promise<void> {
     // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
     if (/^[/\\:*"?<>|]+/.test(inputPath)) {
-      throw "Input string must not contain `/`, `\\`, `:`, `*`, `\"`, `?`, `<`, `>` or `|` on Windows"
+      throw new Error(
+        'Input string must not contain `/`, `\\`, `:`, `*`, `"`, `?`, `<`, `>` or `|` on Windows'
+      )
     }
     try {
       const cmdPath = ioUtil.getCmdPath()
@@ -132,7 +134,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         })
       } else {
         await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
-          env: {inputPath: inputPath}
+          env: {inputPath}
         })
       }
     } catch (err) {
