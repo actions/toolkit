@@ -571,7 +571,7 @@ describe('rmRF', () => {
     it('Should throw for invalid characters', async () => {
       const root: string = path.join(getTestTemp(), 'rmRF_invalidChar_Windows')
       const errorString =
-        'Input string must not contain `*`, `"`, `<`, `>` or `|` on Windows'
+        'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
       await expect(io.rmRF(path.join(root, '"'))).rejects.toHaveProperty(
         'message',
         errorString

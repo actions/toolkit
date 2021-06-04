@@ -123,7 +123,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
     if (/[*"<>|]+/.test(inputPath)) {
       throw new Error(
-        'Input string must not contain `*`, `"`, `<`, `>` or `|` on Windows'
+        'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
       )
     }
     try {
