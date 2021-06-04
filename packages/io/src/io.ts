@@ -120,7 +120,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
     if (/[*"<>|]+/.test(inputPath)) {
       throw new Error(
-        'Input string must not contain `/`, `\\`, `:`, `*`, `"`, `?`, `<`, `>` or `|` on Windows'
+        'Input string must not contain `*`, `"`, `<`, `>` or `|` on Windows'
       )
     }
     try {
