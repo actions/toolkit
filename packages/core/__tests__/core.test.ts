@@ -29,11 +29,6 @@ const testEnvVars = {
   INPUT_WRONG_BOOLEAN_INPUT: 'wrong',
   INPUT_WITH_TRAILING_WHITESPACE: '  some val  ',
 
-  // Set input lists
-  /**
-   * why `'\n'` instead of an `[]`: https://github.com/actions/cache/issues/44#issuecomment-549399196
-   * the FR for this feature + tracking of the previous one: https://github.com/actions/toolkit/issues/184
-   */
   INPUT_MY_INPUT_LIST: 'val1\nval2\nval3',
 
   // Save inputs

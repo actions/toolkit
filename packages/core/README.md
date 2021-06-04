@@ -23,6 +23,7 @@ Outputs can be set with `setOutput` which makes them available to be mapped into
 ```js
 const myInput = core.getInput('inputName', { required: true });
 const myBooleanInput = core.getBooleanInput('booleanInputName', { required: true });
+const myMultilineInput = core.getMultiline('multilineInputName', { required: true });
 core.setOutput('outputKey', 'outputVal');
 ```
 
