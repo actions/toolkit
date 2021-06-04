@@ -72,8 +72,9 @@ export function isRetryableStatusCode(statusCode: number | undefined): boolean {
 
   const retryableStatusCodes = [
     HttpCodes.BadGateway,
-    HttpCodes.ServiceUnavailable,
     HttpCodes.GatewayTimeout,
+    HttpCodes.InternalServerError,
+    HttpCodes.ServiceUnavailable,
     HttpCodes.TooManyRequests,
     413 // Payload Too Large
   ]
