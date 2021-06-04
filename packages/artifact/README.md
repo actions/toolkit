@@ -172,7 +172,7 @@ const downloadResponse = await artifactClient.downloadAllArtifacts();
 // output result
 for (response in downloadResponse) {
     console.log(response.artifactName);
-    console.log(response.downloadPath);
+    console.log(response.downloadPath);  // the *directory* downloadAllArtifacts() created for this artifact
 }
 ```
 
@@ -193,7 +193,28 @@ Each artifact will have the same `DownloadResponse` as if it was individually do
   - `artifactName`
     - The name of the artifact that was downloaded
   - `downloadPath`
-    - The full Path to where the artifact was downloaded
+    - The full Path to the directory the artifact was downloaded *into*
+
+Thus if you uploaded the following artifacts:
+
+```
+/GITHUB_WORKSPACE
+    /my-artifact-directory
+        /my-file-1.txt  # artifact name: my-file-1, artifact root-directory: my-artifact-directory
+        /my-file-2.txt  # artifact name: my-file-2, artifact root-directory: my-artifact-directory
+```
+
+You will get:
+
+```
+/GITHUB_WORKSPACE
+    /my-file-1
+        /my-artifact-directory
+            /my-file-1.txt
+    /my-file-2
+        /my-artifact-directory
+            /my-file-2.txt
+```
 
 ## Additional Documentation
 
