@@ -31,22 +31,17 @@ describe('globber', () => {
   })
 
   it('followSymbolicLinks defaults to true', async () => {
-    // Create the following layout:
-    //   <root>
-    //   <root>/folder-a
-    //   <root>/folder-a/file
-    //   <root>/symDir -> <root>/folder-a
     const root = path.join(
       getTestTemp(),
       'defaults-to-follow-symbolic-links-true'
     )
     await fs.mkdir(path.join(root, 'realdir'), {recursive: true})
-    await fs.writeFile(path.join(root, 'realdir', 'file'), 'test file content')
+    await fs.writeFile(path.join(root, 'realdir', 'file.txt'), 'test file content')
     await createSymlinkDir(
       path.join(root, 'realdir'),
       path.join(root, 'symDir')
     )
-    const testPath = path.join(root, 'symdir')
+    const testPath = path.join(root, `symDir`)
     const hash = await hashFiles(testPath)
     expect(hash).toEqual(
       'd8a411e8f8643821bed189e627ff57151918aa554c00c10b31c693ab2dded273'
@@ -54,11 +49,6 @@ describe('globber', () => {
   })
 
   it('followSymbolicLinks set to true', async () => {
-    // Create the following layout:
-    //   <root>
-    //   <root>/folder-a
-    //   <root>/folder-a/file
-    //   <root>/symDir -> <root>/folder-a
     const root = path.join(getTestTemp(), 'set-to-true')
     await fs.mkdir(path.join(root, 'realdir'), {recursive: true})
     await fs.writeFile(path.join(root, 'realdir', 'file'), 'test file content')
@@ -66,7 +56,7 @@ describe('globber', () => {
       path.join(root, 'realdir'),
       path.join(root, 'symDir')
     )
-    const testPath = path.join(root, 'symdir')
+    const testPath = path.join(root, `symDir`)
     const hash = await hashFiles(testPath, {followSymbolicLinks: true})
     expect(hash).toEqual(
       'd8a411e8f8643821bed189e627ff57151918aa554c00c10b31c693ab2dded273'
