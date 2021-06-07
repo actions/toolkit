@@ -36,7 +36,10 @@ describe('globber', () => {
       'defaults-to-follow-symbolic-links-true'
     )
     await fs.mkdir(path.join(root, 'realdir'), {recursive: true})
-    await fs.writeFile(path.join(root, 'realdir', 'file.txt'), 'test file content')
+    await fs.writeFile(
+      path.join(root, 'realdir', 'file.txt'),
+      'test file content'
+    )
     await createSymlinkDir(
       path.join(root, 'realdir'),
       path.join(root, 'symDir')
