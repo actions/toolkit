@@ -562,7 +562,7 @@ describe('rmRF', () => {
       const directory: string = path.join(root, '%test%')
       await io.mkdirP(root)
       await io.mkdirP(directory)
-      var oldEnv = process.env['test']
+      const oldEnv = process.env['test']
       process.env['test'] = 'thisshouldnotresolve'
 
       await io.rmRF(directory)
