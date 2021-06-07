@@ -559,13 +559,13 @@ describe('rmRF', () => {
   } else {
     it('correctly escapes % on windows', async () => {
       const root: string = path.join(getTestTemp(), 'rmRF_escape_test_win')
-      const realDirectory: string = path.join(root, '%test%')
+      const directory: string = path.join(root, '%test%')
       await io.mkdirP(root)
-      await io.mkdirP(realDirectory)
-      process.env['%test%'] = 'thisshouldnotresolve'
+      await io.mkdirP(directory)
+      process.env['test'] = 'thisshouldnotresolve'
 
-      await io.rmRF(realDirectory)
-      await assertNotExists(realDirectory)
+      await io.rmRF(directory)
+      await assertNotExists(directory)
     })
 
     it('Should throw for invalid characters', async () => {
