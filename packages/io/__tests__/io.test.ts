@@ -556,6 +556,45 @@ describe('rmRF', () => {
       await assertNotExists(symlinkFile)
       await assertNotExists(outerDirectory)
     })
+  } else {
+    it('correctly escapes % on windows', async () => {
+      const root: string = path.join(getTestTemp(), 'rmRF_escape_test_win')
+      const directory: string = path.join(root, '%test%')
+      await io.mkdirP(root)
+      await io.mkdirP(directory)
+      const oldEnv = process.env['test']
+      process.env['test'] = 'thisshouldnotresolve'
+
+      await io.rmRF(directory)
+      await assertNotExists(directory)
+      process.env['test'] = oldEnv
+    })
+
+    it('Should throw for invalid characters', async () => {
+      const root: string = path.join(getTestTemp(), 'rmRF_invalidChar_Windows')
+      const errorString =
+        'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
+      await expect(io.rmRF(path.join(root, '"'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '<'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '>'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '|'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '*'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+    })
   }
 
   it('removes symlink folder with missing source using rmRF', async () => {

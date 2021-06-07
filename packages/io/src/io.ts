@@ -5,6 +5,7 @@ import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
 const exec = promisify(childProcess.exec)
+const execFile = promisify(childProcess.execFile)
 
 /**
  * Interface for cp/mv options
@@ -117,11 +118,24 @@ export async function rmRF(inputPath: string): Promise<void> {
   if (ioUtil.IS_WINDOWS) {
     // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
     // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
+
+    // Check for invalid characters
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    if (/[*"<>|]/.test(inputPath)) {
+      throw new Error(
+        'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
+      )
+    }
     try {
+      const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await exec(`rd /s /q "${inputPath}"`)
+        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+          env: {inputPath}
+        })
       } else {
-        await exec(`del /f /a "${inputPath}"`)
+        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+          env: {inputPath}
+        })
       }
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
@@ -149,7 +163,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
 
     if (isDir) {
-      await exec(`rm -rf "${inputPath}"`)
+      await execFile(`rm`, [`-rf`, `${inputPath}`])
     } else {
       await ioUtil.unlink(inputPath)
     }
