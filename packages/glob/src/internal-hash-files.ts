@@ -36,7 +36,7 @@ export async function hashFiles(globber: Globber): Promise<string> {
     core.debug(`Found ${count} files to hash.`)
     return result.digest('hex')
   } else {
-    core.error(`No matches found for glob`)
+    core.warning(`No matches found for glob`)
     return ''
   }
 }
