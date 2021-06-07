@@ -562,10 +562,12 @@ describe('rmRF', () => {
       const directory: string = path.join(root, '%test%')
       await io.mkdirP(root)
       await io.mkdirP(directory)
+      var oldEnv = process.env['test']
       process.env['test'] = 'thisshouldnotresolve'
 
       await io.rmRF(directory)
       await assertNotExists(directory)
+      process.env['test'] = oldEnv
     })
 
     it('Should throw for invalid characters', async () => {
