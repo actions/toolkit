@@ -83,6 +83,30 @@ describe('globber', () => {
     const hash = await hashFiles(testPath, {followSymbolicLinks: false})
     expect(hash).toEqual('')
   })
+
+  it('multipath test basic', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/folder-a
+    //   <root>/folder-a/file
+    //   <root>/symDir -> <root>/folder-a
+    const root = path.join(getTestTemp(), 'set-to-false')
+    await fs.mkdir(path.join(root, 'dir1'), {recursive: true})
+    await fs.mkdir(path.join(root, 'dir2'), {recursive: true})
+    await fs.writeFile(
+      path.join(root, 'dir1', 'testfile1.txt'),
+      'test file content'
+    )
+    await fs.writeFile(
+      path.join(root, 'dir2', 'testfile2.txt'),
+      'test file content'
+    )
+    const testPath = `${path.join(root, 'dir1')}\n${path.join(root, 'dir2')}`
+    const hash = await hashFiles(testPath)
+    expect(hash).toEqual(
+      '4e911ea5824830b6a3ec096c7833d5af8381c189ffaa825c3503a5333a73eadc'
+    )
+  })
 })
 
 function getTestTemp(): string {
