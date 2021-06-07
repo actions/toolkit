@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.4.0
+- [Added the `getMultilineInput` function](https://github.com/actions/toolkit/pull/829)
+
 ### 1.3.0
 - [Added the trimWhitespace option to getInput](https://github.com/actions/toolkit/pull/802)
 - [Added the getBooleanInput function](https://github.com/actions/toolkit/pull/725)
