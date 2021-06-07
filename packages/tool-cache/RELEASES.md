@@ -1,5 +1,9 @@
 # @actions/tool-cache Releases
 
+### 1.7.1
+- [Fallback to os-releases file to get linux version](https://github.com/actions/toolkit/pull/594)
+- [Update to latest @actions/io verison](https://github.com/actions/toolkit/pull/838)
+
 ### 1.7.0
 - [Allow arbirtary headers when downloading tools to the tc](https://github.com/actions/toolkit/pull/530)
 - [Export `isExplicitVersion` and `evaluateVersions` functions](https://github.com/actions/toolkit/pull/796) 
