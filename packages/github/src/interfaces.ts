@@ -40,4 +40,7 @@ export interface WebhookPayload {
     id: number
     [key: string]: any
   }
+  inputs?: {
+    [key: string]: string | null | undefined
+  }
 }
