@@ -32,7 +32,7 @@ jobs:
       run: npm run bootstrap
 
     - name: audit tools #disabled while we wait for https://github.com/actions/toolkit/issues/539
-      run: npm audit --audit-level=moderate
+      run: npm audit --audit-level=moderate --json | scripts/audit-allow-list
 
     - name: audit packages
       run: npm run audit-all

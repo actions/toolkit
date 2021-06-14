@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+/*
+This script takes the output of npm audit --json from stdin
+and writes a filtered version to stdout.
+The filtered version will have the entries listed in `AUDIT_ALLOW_LIST` removed.
+Specifically, each property of `vulnerabilities` in the input is matched by name in the allow list.
+
+Sample output of `npm audit --json`:
+{
+  // Other properties ...
+  "vulnerabilities": {
+    "meow": {
+      // Other properties ...
+    },
+    "trim-newlines": {
+      // Other properties ...
+    }
+  }
+}
+*/
+
+'use strict'
+const fs = require('fs');
+
+const USAGE = "Usage: npm audit --json | scripts/audit-allow-list"
+
+const AUDIT_ALLOW_LIST = [
+  {
+    name: "meow",
+    advisory: "https://www.npmjs.com/advisories/1753",
+    justification: "dependency of lerna (dev only)"
+  },
+  {
+    name: "trim-newlines",
+    advisory: "https://www.npmjs.com/advisories/1753",
+    justification: "dependency of lerna (dev only)"
+  }
+]
+
+/**
+ * @param audits - JavaScript object matching the schema of `npm audit --json`
+ * @param allowedAudits - List of package names to exclude from the audit
+*/
+function filterAudits(audits, allowedAudits) {
+  for (const vuln in audits.vulnerabilities) {
+    if (allowedAudits.includes(vuln)) {
+      // Skip error handling; we shouldn't have any non-configurable properties here.
+      delete audits.vulnerabilities[vuln]
+    }
+  }
+  return audits
+}
+
+const input = fs.readFileSync("/dev/stdin", "utf-8")
+if (input === "") {
+  console.error(USAGE)
+  process.exit(1)
+}
+
+// This function assumes `audits` has the right structure.
+// Just let the error terminate the process if the input doesn't match the schema.
+const filteredAudits = filterAudits(JSON.parse(input), AUDIT_ALLOW_LIST.map(x => x.name))
+
+// This is to mimic the behavior of `npm audit`:
+const numVulnerabilities = Object.keys(filteredAudits.vulnerabilities).length
+if (numVulnerabilities > 0) {
+  console.log(filteredAudits)
+  console.log("There are some unrecognized vulnerabilities from `npm audit`.")
+  console.log("Run `npm audit` to get pretty-printed output.")
+  process.exit(1)
+}
