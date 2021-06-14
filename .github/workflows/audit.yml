@@ -31,6 +31,12 @@ jobs:
     - name: Bootstrap
       run: npm run bootstrap
 
+    # DEBUG
+    - run: which -a node
+    - run: /usr/bin/env node --version
+    - run: |
+        node -e "console.log(Object.keys({a: 1, b: 2}))"
+
     - name: audit tools #disabled while we wait for https://github.com/actions/toolkit/issues/539
       run: npm audit --audit-level=moderate --json | scripts/audit-allow-list
 
