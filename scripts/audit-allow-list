@@ -60,7 +60,11 @@ if (input === "") {
 
 // This function assumes `audits` has the right structure.
 // Just let the error terminate the process if the input doesn't match the schema.
-const filteredAudits = filterAudits(JSON.parse(input), AUDIT_ALLOW_LIST.map(x => x.name))
+const audits = JSON.parse(input)
+console.log(audits)
+const filteredAudits = filterAudits(audits, AUDIT_ALLOW_LIST.map(x => x.name))
+
+console.log(filteredAudits)
 
 // This is to mimic the behavior of `npm audit`:
 const numVulnerabilities = Object.keys(filteredAudits.vulnerabilities).length
