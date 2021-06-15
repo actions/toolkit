@@ -6,18 +6,33 @@ and writes a filtered version to stdout.
 The filtered version will have the entries listed in `AUDIT_ALLOW_LIST` removed.
 Specifically, each property of `vulnerabilities` in the input is matched by name in the allow list.
 
-Sample output of `npm audit --json`:
+Sample output of `npm audit --json` (NPM v6):
+
 {
-  // Other properties ...
-  "vulnerabilities": {
-    "meow": {
-      // Other properties ...
-    },
-    "trim-newlines": {
-      // Other properties ...
+  "actions": [
+    {
+      "action": "review",
+      "module": "trim-newlines",
+      "resolves": [
+        {
+          "id": 1753,
+          "path": "lerna>@lerna/publish>@lerna/version>@lerna/conventional-commits>conventional-changelog-core>get-pkg-repo>meow>trim-newlines",
+          "dev": true,
+          "optional": false,
+          "bundled": false
+        }
+      ]
     }
-  }
+  ],
+  // Other properties ...
 }
+
+
+The reason we have this script is that there may be low-severity or unexploitable vulnerabilities
+that have not yet been fixed in newer versions of the package.
+
+Note: if we update to NPM v7, we will have to change this script because the `npm audit` output will be different.
+See commit 935647112d96fa5cf82e61314f7135376d24f291 in https://github.com/actions/toolkit/pull/846.
 */
 
 'use strict'
@@ -25,31 +40,30 @@ const fs = require('fs');
 
 const USAGE = "Usage: npm audit --json | scripts/audit-allow-list"
 
+// To add entires to the allow list:
+//   - Run `npm audit --json`
+//   - Copy `path` from each `actions[k].resolves` you want to allow
+//   - Fill in the `advisoryUrl` and `justification` (these are just for documentation)
 const AUDIT_ALLOW_LIST = [
   {
-    name: "meow",
-    advisory: "https://www.npmjs.com/advisories/1753",
-    justification: "dependency of lerna (dev only)"
+    path: "lerna>@lerna/publish>@lerna/version>@lerna/conventional-commits>conventional-changelog-core>get-pkg-repo>meow>trim-newlines",
+    advisoryUrl: "https://www.npmjs.com/advisories/1753",
+    justification: "dependency of lerna (dev only); low severity"
   },
   {
-    name: "trim-newlines",
-    advisory: "https://www.npmjs.com/advisories/1753",
-    justification: "dependency of lerna (dev only)"
+    path: "lerna>@lerna/version>@lerna/conventional-commits>conventional-changelog-core>get-pkg-repo>meow>trim-newlines",
+    advisoryUrl: "https://www.npmjs.com/advisories/1753",
+    justification: "dependency of lerna (dev only); low severity"
   }
 ]
 
 /**
  * @param audits - JavaScript object matching the schema of `npm audit --json`
- * @param allowedAudits - List of package names to exclude from the audit
+ * @param allowedPaths - List of dependency paths to exclude from the audit
 */
-function filterAudits(audits, allowedAudits) {
-  for (const vuln in audits.vulnerabilities) {
-    if (allowedAudits.includes(vuln)) {
-      // Skip error handling; we shouldn't have any non-configurable properties here.
-      delete audits.vulnerabilities[vuln]
-    }
-  }
-  return audits
+function filterVulnerabilities(audits, allowedPaths) {
+  const vulnerabilities = audits.actions.flatMap(x => x.resolves)
+  return vulnerabilities.filter(x => !allowedPaths.includes(x.path))
 }
 
 const input = fs.readFileSync("/dev/stdin", "utf-8")
@@ -58,15 +72,16 @@ if (input === "") {
   process.exit(1)
 }
 
+const audits = JSON.parse(input)
+const allowedPaths = AUDIT_ALLOW_LIST.map(x => x.path)
 // This function assumes `audits` has the right structure.
 // Just let the error terminate the process if the input doesn't match the schema.
-const filteredAudits = filterAudits(JSON.parse(input), AUDIT_ALLOW_LIST.map(x => x.name))
+const remainingVulnerabilities = filterVulnerabilities(audits, allowedPaths)
 
-// This is to mimic the behavior of `npm audit`:
-const numVulnerabilities = Object.keys(filteredAudits.vulnerabilities).length
-if (numVulnerabilities > 0) {
-  console.log(filteredAudits)
-  console.log("There are some unrecognized vulnerabilities from `npm audit`.")
-  console.log("Run `npm audit` to get pretty-printed output.")
+// `npm audit` will return exit code 1 if it finds vulnerabilities.
+// This script should do the same.
+if (remainingVulnerabilities.length > 0) {
+  console.log("There are some unrecognized vulnerabilities from `npm audit`:")
+  console.log(JSON.stringify(remainingVulnerabilities, null, 2))
   process.exit(1)
 }
