@@ -36,7 +36,7 @@ See commit 935647112d96fa5cf82e61314f7135376d24f291 in https://github.com/action
 */
 
 'use strict'
-const fs = require('fs');
+const fs = require('fs')
 
 const USAGE = "Usage: npm audit --json | scripts/audit-allow-list"
 
@@ -80,8 +80,10 @@ const remainingVulnerabilities = filterVulnerabilities(audits, allowedPaths)
 
 // `npm audit` will return exit code 1 if it finds vulnerabilities.
 // This script should do the same.
-if (remainingVulnerabilities.length > 0) {
-  console.log("There are some unrecognized vulnerabilities from `npm audit`:")
+const numVulnerabilities = remainingVulnerabilities.length
+if (numVulnerabilities > 0) {
+  const pluralized = numVulnerabilities === 1 ? "y" : "ies"
+  console.log(`Found ${numVulnerabilities} unrecognized vulnerabilit${pluralized} from \`npm audit\`:`)
   console.log(JSON.stringify(remainingVulnerabilities, null, 2))
   process.exit(1)
 }
