@@ -1,0 +1,89 @@
+#!/usr/bin/env node
+
+/*
+This script takes the output of npm audit --json from stdin
+and writes a filtered version to stdout.
+The filtered version will have the entries listed in `AUDIT_ALLOW_LIST` removed.
+Specifically, each property of `vulnerabilities` in the input is matched by name in the allow list.
+
+Sample output of `npm audit --json` (NPM v6):
+
+{
+  "actions": [
+    {
+      "action": "review",
+      "module": "trim-newlines",
+      "resolves": [
+        {
+          "id": 1753,
+          "path": "lerna>@lerna/publish>@lerna/version>@lerna/conventional-commits>conventional-changelog-core>get-pkg-repo>meow>trim-newlines",
+          "dev": true,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    }
+  ],
+  // Other properties ...
+}
+
+
+The reason we have this script is that there may be low-severity or unexploitable vulnerabilities
+that have not yet been fixed in newer versions of the package.
+
+Note: if we update to NPM v7, we will have to change this script because the `npm audit` output will be different.
+See commit 935647112d96fa5cf82e61314f7135376d24f291 in https://github.com/actions/toolkit/pull/846.
+*/
+
+'use strict'
+const fs = require('fs')
+
+const USAGE = "Usage: npm audit --json | scripts/audit-allow-list"
+
+// To add entires to the allow list:
+//   - Run `npm audit --json`
+//   - Copy `path` from each `actions[k].resolves` you want to allow
+//   - Fill in the `advisoryUrl` and `justification` (these are just for documentation)
+const AUDIT_ALLOW_LIST = [
+  {
+    path: "lerna>@lerna/publish>@lerna/version>@lerna/conventional-commits>conventional-changelog-core>get-pkg-repo>meow>trim-newlines",
+    advisoryUrl: "https://www.npmjs.com/advisories/1753",
+    justification: "dependency of lerna (dev only); low severity"
+  },
+  {
+    path: "lerna>@lerna/version>@lerna/conventional-commits>conventional-changelog-core>get-pkg-repo>meow>trim-newlines",
+    advisoryUrl: "https://www.npmjs.com/advisories/1753",
+    justification: "dependency of lerna (dev only); low severity"
+  }
+]
+
+/**
+ * @param audits - JavaScript object matching the schema of `npm audit --json`
+ * @param allowedPaths - List of dependency paths to exclude from the audit
+*/
+function filterVulnerabilities(audits, allowedPaths) {
+  const vulnerabilities = audits.actions.flatMap(x => x.resolves)
+  return vulnerabilities.filter(x => !allowedPaths.includes(x.path))
+}
+
+const input = fs.readFileSync("/dev/stdin", "utf-8")
+if (input === "") {
+  console.error(USAGE)
+  process.exit(1)
+}
+
+const audits = JSON.parse(input)
+const allowedPaths = AUDIT_ALLOW_LIST.map(x => x.path)
+// This function assumes `audits` has the right structure.
+// Just let the error terminate the process if the input doesn't match the schema.
+const remainingVulnerabilities = filterVulnerabilities(audits, allowedPaths)
+
+// `npm audit` will return exit code 1 if it finds vulnerabilities.
+// This script should do the same.
+const numVulnerabilities = remainingVulnerabilities.length
+if (numVulnerabilities > 0) {
+  const pluralized = numVulnerabilities === 1 ? "y" : "ies"
+  console.log(`Found ${numVulnerabilities} unrecognized vulnerabilit${pluralized} from \`npm audit\`:`)
+  console.log(JSON.stringify(remainingVulnerabilities, null, 2))
+  process.exit(1)
+}
