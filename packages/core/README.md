@@ -29,9 +29,13 @@ core.setOutput('outputKey', 'outputVal');
 
 ##### `hasInput`
 
-The `getInput` method will always return a string, even in cases where a value 
-has not been provided in the Workflow. To deterine if a value has been provided
-the `hasInput` method should be used.
+`getInput` will always return a string, even in cases where a value has not been 
+provided. An action can use `hasInput` instead to accurately determine if a 
+value has been provided, even if that value is falsy (such as an empty string).
+
+```js
+const myInput = core.hasInput('inputName') ? core.getInput('inputName') : null;
+```
 
 #### Exporting variables
 
