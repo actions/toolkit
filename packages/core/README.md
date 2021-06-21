@@ -27,6 +27,12 @@ const myMultilineInput = core.getMultilineInput('multilineInputName', { required
 core.setOutput('outputKey', 'outputVal');
 ```
 
+##### `hasInput`
+
+The `getInput` method will always return a string, even in cases where a value 
+has not been provided in the Workflow. To deterine if a value has been provided
+the `hasInput` method should be used.
+
 #### Exporting variables
 
 Since each step runs in a separate process, you can use `exportVariable` to add it to this step and future steps environment blocks.
