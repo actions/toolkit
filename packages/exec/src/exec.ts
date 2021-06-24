@@ -5,9 +5,13 @@ import * as tr from './toolrunner'
 export {ExecOptions, ExecOutput, ExecListeners}
 
 /**
- * Exec a command.
+ * Execute a command.
  * Output will be streamed to the live console.
- * Returns promise with return code
+ *
+ * This functions returns a promise with the exit code.
+ * Unless `ignoreReturnCode` is passed via `options`, this function is going to return a rejected promise if the process exists with a non-zero code.
+ *
+ * If you want an easy way to capture the output of the command, use the function `getExecOutput`.
  *
  * @param     commandLine        command to execute (can include additional args). Must be correctly escaped.
  * @param     args               optional arguments for tool. Escaping is handled by the lib.
