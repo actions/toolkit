@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as core from '../src/core'
+import { toCommandProperties } from '../src/utils'
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -141,17 +142,17 @@ describe('@actions/core', () => {
   })
 
   it('getInput gets required input', () => {
-    expect(core.getInput('my input', {required: true})).toBe('val')
+    expect(core.getInput('my input', { required: true })).toBe('val')
   })
 
   it('getInput throws on missing required input', () => {
-    expect(() => core.getInput('missing', {required: true})).toThrow(
+    expect(() => core.getInput('missing', { required: true })).toThrow(
       'Input required and not supplied: missing'
     )
   })
 
   it('getInput does not throw on missing non-required input', () => {
-    expect(core.getInput('missing', {required: false})).toBe('')
+    expect(core.getInput('missing', { required: false })).toBe('')
   })
 
   it('getInput is case insensitive', () => {
@@ -182,13 +183,13 @@ describe('@actions/core', () => {
 
   it('getInput trims whitespace when option is explicitly true', () => {
     expect(
-      core.getInput('with trailing whitespace', {trimWhitespace: true})
+      core.getInput('with trailing whitespace', { trimWhitespace: true })
     ).toBe('some val')
   })
 
   it('getInput does not trim whitespace when option is false', () => {
     expect(
-      core.getInput('with trailing whitespace', {trimWhitespace: false})
+      core.getInput('with trailing whitespace', { trimWhitespace: false })
     ).toBe('  some val  ')
   })
 
@@ -197,7 +198,7 @@ describe('@actions/core', () => {
   })
 
   it('getInput gets required input', () => {
-    expect(core.getBooleanInput('boolean input', {required: true})).toBe(true)
+    expect(core.getBooleanInput('boolean input', { required: true })).toBe(true)
   })
 
   it('getBooleanInput handles boolean input', () => {
@@ -212,7 +213,7 @@ describe('@actions/core', () => {
   it('getBooleanInput handles wrong boolean input', () => {
     expect(() => core.getBooleanInput('wrong boolean input')).toThrow(
       'Input does not meet YAML 1.2 "Core Schema" specification: wrong boolean input\n' +
-        `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``
+      `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``
     )
   })
 
@@ -269,6 +270,12 @@ describe('@actions/core', () => {
     assertWriteCalls([`::error::Error: ${message}${os.EOL}`])
   })
 
+  it('error handles parameters correctly', () => {
+    const message = 'this is my error message'
+    core.error(new Error(message), { title: 'A title', startColumn: 1, endColumn: 2, startLine: 5, endLine: 5 })
+    assertWriteCalls([`::error title=A title,line=5,end_line=5,col=1,end_column=2::Error: ${message}${os.EOL}`])
+  })
+
   it('warning sets the correct message', () => {
     core.warning('Warning')
     assertWriteCalls([`::warning::Warning${os.EOL}`])
@@ -283,6 +290,26 @@ describe('@actions/core', () => {
     const message = 'this is my error message'
     core.warning(new Error(message))
     assertWriteCalls([`::warning::Error: ${message}${os.EOL}`])
+  })
+
+  it('warning handles parameters correctly', () => {
+    const message = 'this is my error message'
+    core.warning(new Error(message), { title: 'A title', startColumn: 1, endColumn: 2, startLine: 5, endLine: 5 })
+    assertWriteCalls([`::warning title=A title,line=5,end_line=5,col=1,end_column=2::Error: ${message}${os.EOL}`])
+  })
+
+  it('annotations map field names correctly', () => {
+    const commandProperties = toCommandProperties({ title: 'A title', startColumn: 1, endColumn: 2, startLine: 5, endLine: 5 })
+    expect(commandProperties.title).toBe('A title')
+    expect(commandProperties.col).toBe(1)
+    expect(commandProperties.end_column).toBe(2)
+    expect(commandProperties.line).toBe(5)
+    expect(commandProperties.end_line).toBe(5)
+
+    expect(commandProperties.startColumn).toBeUndefined()
+    expect(commandProperties.endColumn).toBeUndefined()
+    expect(commandProperties.startLine).toBeUndefined()
+    expect(commandProperties.endLine).toBeUndefined()
   })
 
   it('startGroup starts a new group', () => {

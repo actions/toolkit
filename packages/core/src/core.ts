@@ -44,23 +44,23 @@ export interface AnnotationProperties {
   /**
    * The start line for the annotation.
    */
-  startLine?: string
+  startLine?: number
 
   /**
    * The end line for the annotation. Defaults to `startLine` when `startLine` is provided.
    */
-  endLine?: string
+  endLine?: number
 
   /**
    * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
    */
-  startColumn?: string
+  startColumn?: number
 
   /**
    * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
    * Defaults to `startColumn` when `startColumn` is provided.
    */
-  endColumn?: string
+  endColumn?: number
 }
 
 //-----------------------------------------------------------------------
