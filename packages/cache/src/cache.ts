@@ -44,6 +44,33 @@ function checkKey(key: string): void {
 }
 
 /**
+ * Check if cache contains key
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache
+ * @returns boolean if the key and paths combo exists in the cache
+ */
+export async function containsKey(
+    paths: string[],
+    primaryKey: string,
+): Promise<boolean> {
+  checkPaths(paths)
+  checkKey(primaryKey)
+  const compressionMethod = await utils.getCompressionMethod()
+
+  // path are needed to compute version
+  const cacheEntry = await cacheHttpClient.getCacheEntry([primaryKey], paths, {
+    compressionMethod
+  })
+
+  if (!cacheEntry?.archiveLocation) {
+    return false
+  }
+
+  return true
+}
+
+/**
  * Restores cache from keys
  *
  * @param paths a list of file paths to restore from the cache
