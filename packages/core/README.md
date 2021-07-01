@@ -203,7 +203,7 @@ In action's `cleanup.js`:
 ```js
 const core = require('@actions/core');
 
-var pid = core.getState("pidToKill");
+const pid = core.getState("pidToKill");
 
 process.kill(pid);
 ```
