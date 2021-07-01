@@ -27,6 +27,16 @@ const myMultilineInput = core.getMultilineInput('multilineInputName', { required
 core.setOutput('outputKey', 'outputVal');
 ```
 
+##### `hasInput`
+
+`getInput` will always return a string, even in cases where a value has not been 
+provided. An action can use `hasInput` instead to accurately determine if a 
+value has been provided, even if that value is falsy (such as an empty string).
+
+```js
+const myInput = core.hasInput('inputName') ? core.getInput('inputName') : null;
+```
+
 #### Exporting variables
 
 Since each step runs in a separate process, you can use `exportVariable` to add it to this step and future steps environment blocks.
