@@ -153,6 +153,23 @@ describe('@actions/exec', () => {
     expect(output.trim()).toBe(`hello`)
   })
 
+  it('Runs exec successfully with shell wildcard substitution', async () => {
+    let tool: string
+    let args: string[]
+    let opts: im.ExecOptions
+    if (IS_WINDOWS) {
+      tool = 'cmd'
+      args = ['/c', 'echo', 'hello']
+      opts = {shell: process.env.ComSpec}
+    } else {
+      tool = 'ls'
+      args = ['-l', '*.md']
+      opts = {shell: '/bin/sh'}
+    }
+    const exitCode = await exec.exec(tool, args, opts)
+    expect(exitCode).toBe(0)
+  })
+
   it('Exec fails with error on bad call', async () => {
     const _testExecOptions = getExecOptions()
 
