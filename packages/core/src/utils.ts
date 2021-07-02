@@ -20,7 +20,7 @@ export function toCommandValue(input: any): string {
 /**
  *
  * @param annotationProperties
- * @returns The command properties to send with the actual annotaiton command
+ * @returns The command properties to send with the actual annotation command
  * See: https://github.com/actions/runner/blob/ee34f4842e747b452e13235836c92b2bb1606816/src/Runner.Worker/ActionCommandManager.cs#L566
  */
 export function toCommandProperties(
@@ -33,8 +33,8 @@ export function toCommandProperties(
   return {
     title: annotationProperties.title,
     line: annotationProperties.startLine,
-    end_line: annotationProperties.endLine,
+    endLine: annotationProperties.endLine,
     col: annotationProperties.startColumn,
-    end_column: annotationProperties.endColumn
+    endColumn: annotationProperties.endColumn
   }
 }

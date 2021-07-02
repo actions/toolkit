@@ -280,7 +280,7 @@ describe('@actions/core', () => {
       endLine: 5
     })
     assertWriteCalls([
-      `::error title=A title,line=5,end_line=5,col=1,end_column=2::Error: ${message}${os.EOL}`
+      `::error title=A title,line=5,endLine=5,col=1,endColumn=2::Error: ${message}${os.EOL}`
     ])
   })
 
@@ -310,7 +310,7 @@ describe('@actions/core', () => {
       endLine: 5
     })
     assertWriteCalls([
-      `::warning title=A title,line=5,end_line=5,col=1,end_column=2::Error: ${message}${os.EOL}`
+      `::warning title=A title,line=5,endLine=5,col=1,endColumn=2::Error: ${message}${os.EOL}`
     ])
   })
 
@@ -324,14 +324,12 @@ describe('@actions/core', () => {
     })
     expect(commandProperties.title).toBe('A title')
     expect(commandProperties.col).toBe(1)
-    expect(commandProperties.end_column).toBe(2)
+    expect(commandProperties.endColumn).toBe(2)
     expect(commandProperties.line).toBe(5)
-    expect(commandProperties.end_line).toBe(5)
+    expect(commandProperties.endLine).toBe(5)
 
     expect(commandProperties.startColumn).toBeUndefined()
-    expect(commandProperties.endColumn).toBeUndefined()
     expect(commandProperties.startLine).toBeUndefined()
-    expect(commandProperties.endLine).toBeUndefined()
   })
 
   it('startGroup starts a new group', () => {
