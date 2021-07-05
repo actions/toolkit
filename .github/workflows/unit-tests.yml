@@ -7,7 +7,7 @@ on:
       - '**.md'
   pull_request:
     paths-ignore:
-      - "**.md"
+      - '**.md'
 
 jobs:
   build:
