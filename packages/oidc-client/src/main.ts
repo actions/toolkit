@@ -41,8 +41,11 @@ export async function getIDToken(audience: string): Promise<string> {
     }
     core.debug(`Httpclient created ${httpclient} `) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
 
+    var additionalHeaders = {[httpclient.Headers.ContentType]: httpclient.MediaTypes.ApplicationJson}
 
-    const response = await httpclient.post(id_tokne_url, audience)
+    var data : String = new String('id_token_aud:')
+    data = data.concat(audience)
+    const response = await httpclient.post(id_tokne_url, data, additionalHeaders)
 
     
     if (!isSuccessStatusCode(response.message.statusCode)){
@@ -53,7 +56,7 @@ export async function getIDToken(audience: string): Promise<string> {
 
     const body: string = await response.readBody()
     const val = JSON.parse(body)
-    id_token = val['id_token']
+    id_token = val['value']
 
     if (id_token == undefined) {
       throw new Error(`Not able to fetch the ID token`)
@@ -63,7 +66,7 @@ export async function getIDToken(audience: string): Promise<string> {
     core.exportVariable('OIDC_TOKEN_ID', id_token)
 
     return id_token
-    
+
   } catch (error) {
     core.setFailed(error.message)
     return error.message

@@ -14,18 +14,8 @@ export function getIDTokenUrl(): string {
   return runtimeUrl
 }
 
-export function getWorkFlowRunId(): string {
-  const workFlowRunId = process.env['GITHUB_RUN_ID']
-  if (!workFlowRunId) {
-    throw new Error('Unable to get GITHUB_RUN_ID env variable')
-  }
-  return workFlowRunId
-}
-
 export function getIDTokenFromEnv(): string {
   const tokenId = process.env['OIDC_TOKEN_ID']   //Need to check the exact env var name
-  if(!tokenId) {
-    throw new Error('Unable to get OIDC_TOKEN_ID env variable')
-  }
+  
   return tokenId
 }
