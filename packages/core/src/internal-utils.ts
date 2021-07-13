@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {AnnotationProperties} from './core'
-import {CommandProperties} from './command'
+import {CommandProperties} from './internal-command'
 
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
@@ -21,7 +21,7 @@ export function toCommandValue(input: any): string {
  *
  * @param annotationProperties
  * @returns The command properties to send with the actual annotation command
- * See IssueCommandProperties: https://github.com/actions/runner/blob/fff31e11c5208854164adb5e2532b822fbca7574/src/Runner.Worker/ActionCommandManager.cs#L646
+ * See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
  */
 export function toCommandProperties(
   annotationProperties: AnnotationProperties

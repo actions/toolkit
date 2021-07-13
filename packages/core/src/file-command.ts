@@ -5,7 +5,7 @@
 
 import * as fs from 'fs'
 import * as os from 'os'
-import {toCommandValue} from './utils'
+import {toCommandValue} from './internal-utils'
 
 export function issueCommand(command: string, message: any): void {
   const filePath = process.env[`GITHUB_${command}`]

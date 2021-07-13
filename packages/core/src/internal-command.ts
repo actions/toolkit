@@ -1,5 +1,5 @@
 import * as os from 'os'
-import {toCommandValue} from './utils'
+import {toCommandValue} from './internal-utils'
 
 // For internal use, subject to change.
 
