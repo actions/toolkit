@@ -118,6 +118,7 @@ const result = await core.group('Do something async', async () => {
 ```
 
 #### Annotations
+
 This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run). 
 ```js
 core.error('This is a bad error. This will also fail the build.')
