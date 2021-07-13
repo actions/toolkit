@@ -21,7 +21,7 @@ export function toCommandValue(input: any): string {
  *
  * @param annotationProperties
  * @returns The command properties to send with the actual annotation command
- * See: https://github.com/actions/runner/blob/ee34f4842e747b452e13235836c92b2bb1606816/src/Runner.Worker/ActionCommandManager.cs#L566
+ * See IssueCommandProperties: https://github.com/actions/runner/blob/fff31e11c5208854164adb5e2532b822fbca7574/src/Runner.Worker/ActionCommandManager.cs#L646
  */
 export function toCommandProperties(
   annotationProperties: AnnotationProperties
