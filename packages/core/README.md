@@ -92,6 +92,8 @@ try {
 
   // Do stuff
   core.info('Output to the actions build log')
+
+  core.notice('This is a message that will also emit an annotation')
 }
 catch (err) {
   core.error(`Error ${err}, action may still succeed though`);
@@ -113,6 +115,54 @@ const result = await core.group('Do something async', async () => {
   const response = await doSomeHTTPRequest()
   return response
 })
+```
+
+#### Annotations
+
+This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run). 
+```js
+core.error('This is a bad error. This will also fail the build.')
+
+core.warning('Something went wrong, but it\'s not bad enough to fail the build.')
+
+core.notice('Something happened that you might want to know about.')
+```
+
+These will surface to the UI in the Actions page and on Pull Requests. They look something like this:
+
+![Annotations Image](../../docs/assets/annotations.png)
+
+These annotations can also be attached to particular lines and columns of your source files to show exactly where a problem is occuring. 
+
+These options are: 
+```typescript
+export interface AnnotationProperties {
+  /**
+   * A title for the annotation.
+   */
+  title?: string
+
+  /**
+   * The start line for the annotation.
+   */
+  startLine?: number
+
+  /**
+   * The end line for the annotation. Defaults to `startLine` when `startLine` is provided.
+   */
+  endLine?: number
+
+  /**
+   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   */
+  startColumn?: number
+
+  /**
+   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   * Defaults to `startColumn` when `startColumn` is provided.
+   */
+  endColumn?: number
+}
 ```
 
 #### Styling output

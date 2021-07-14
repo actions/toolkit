@@ -6,7 +6,7 @@ Problem Matchers are a way to scan the output of actions for a specified regex p
 
 Currently, GitHub Actions limit the annotation count in a workflow run.
 
-- 10 warning annotations and 10 error annotations per step
+- 10 warning annotations, 10 error annotations, and 10 notice annotations per step
 - 50 annotations per job (sum of annotations from all the steps)
 - 50 annotations per run (separate from the job annotations, these annotations aren’t created by users)
 
