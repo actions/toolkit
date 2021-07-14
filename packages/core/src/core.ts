@@ -1,6 +1,6 @@
-import {issue, issueCommand} from './internal-command'
+import {issue, issueCommand} from './command'
 import {issueCommand as issueFileCommand} from './file-command'
-import {toCommandProperties, toCommandValue} from './internal-utils'
+import {toCommandProperties, toCommandValue} from './utils'
 
 import * as os from 'os'
 import * as path from 'path'
