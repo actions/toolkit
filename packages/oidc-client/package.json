@@ -1,5 +1,5 @@
 {
-  "name": "@souravchanduka/oidc-client",
+  "name": "@sourav_chanduka/oidc-client",
   "version": "1.0.9",
   "description": "To get id token from oidc provider",
   "main": "lib/main.js",
