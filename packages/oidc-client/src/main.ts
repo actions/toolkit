@@ -5,7 +5,7 @@ import {
   isSuccessStatusCode,
   getApiVersion
 } from './internal/utils'
-
+import jwt_decode from 'jwt-decode'
 import {getIDTokenFromEnv, getIDTokenUrl} from './internal/config-variables'
 
 export async function getIDToken(audience: string): Promise<string> {
@@ -15,10 +15,16 @@ export async function getIDToken(audience: string): Promise<string> {
     let id_token: string = getIDTokenFromEnv()
     if (id_token !== undefined) {
       const secondsSinceEpoch = Math.round(Date.now() / 1000)
-      const id_token_json = JSON.parse(id_token)
-      if (parseInt(id_token_json['exp']) - secondsSinceEpoch > 120)
-        // Expiry time is more than 2 mins
-        return id_token
+      const id_token_json: any = jwt_decode(id_token)
+      if('exp' in id_token_json) {
+        if (id_token_json['exp'] - secondsSinceEpoch > 300) {
+          // Expiry time is more than 5 mins
+          return id_token
+        }
+      }
+      else {
+        throw new Error('Expiry time not defined in ID Token')
+      }
     }
 
     // New ID Token is requested from action service
@@ -75,4 +81,4 @@ export async function getIDToken(audience: string): Promise<string> {
 
 //module.exports.getIDToken = getIDToken
 
-getIDToken('helloworld')
+//getIDToken('ghactions')
