@@ -1,6 +1,6 @@
 {
   "name": "@sourav_chanduka/oidc-client",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "To get id token from oidc provider",
   "main": "lib/main.js",
   "types": "lib/main.d.ts",
