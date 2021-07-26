@@ -16,13 +16,12 @@ export async function getIDToken(audience: string): Promise<string> {
     if (id_token !== undefined) {
       const secondsSinceEpoch = Math.round(Date.now() / 1000)
       const id_token_json: any = jwt_decode(id_token)
-      if('exp' in id_token_json) {
+      if ('exp' in id_token_json) {
         if (id_token_json['exp'] - secondsSinceEpoch > 300) {
           // Expiry time is more than 5 mins
           return id_token
         }
-      }
-      else {
+      } else {
         throw new Error('Expiry time not defined in ID Token')
       }
     }
