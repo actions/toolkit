@@ -1,4 +1,4 @@
-<h2>@actions/oidc-client</h2>
+<h2>@sourav_chanduka/oidc-client</h2>
 
 <h3>Usage</h3>
 
@@ -10,15 +10,7 @@ Method Name: getIDToken
 
 <h3>Inputs</h3>
 
-Client id
-The client id registered with oidc provider
-Required
-Client secret
-The client secret
-Required
-
-These inputs are temporary. They will be modified once the complete package is available.
-
+audience : optional
 
 <h3>Example:</h3>
 
