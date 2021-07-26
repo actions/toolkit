@@ -1,6 +1,6 @@
 {
   "name": "@sourav_chanduka/oidc-client",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "To get id token from oidc provider",
   "main": "lib/main.js",
   "types": "lib/main.d.ts",
@@ -11,11 +11,11 @@
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
     "all": "npm run build && npm run format && npm run package && npm test",
-    "tsc":"tsc"
+    "tsc": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/souravchanduka/toolkit.git",
+    "url": "git+https://github.com/souravchanduka/toolkit.git",
     "directory": "packages/oidc-client"
   },
   "keywords": [
@@ -24,8 +24,7 @@
     "setup"
   ],
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+    "lib": "lib"
   },
   "author": "Sourav Chanduka",
   "license": "MIT",
@@ -33,7 +32,7 @@
     "@actions/core": "^1.2.6",
     "@actions/http-client": "^1.0.11",
     "@octokit/core": "^3.4.0",
-    "jwt-decode":"3.1.2"
+    "jwt-decode": "3.1.2"
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",
