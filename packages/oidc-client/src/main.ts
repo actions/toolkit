@@ -13,7 +13,7 @@ export async function getIDToken(audience: string): Promise<string> {
     //Check if id token is stored in environment variable
 
     let id_token: string = getIDTokenFromEnv()
-    if (id_token !== undefined) {
+    if (id_token !== undefined && id_token !== '') {
       const secondsSinceEpoch = Math.round(Date.now() / 1000)
       const id_token_json: any = jwt_decode(id_token)
       if ('exp' in id_token_json) {
@@ -80,4 +80,4 @@ export async function getIDToken(audience: string): Promise<string> {
 
 //module.exports.getIDToken = getIDToken
 
-//getIDToken('ghactions')
+getIDToken('ghactions')

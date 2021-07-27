@@ -116,7 +116,7 @@ function getIDToken(audience) {
         try {
             //Check if id token is stored in environment variable
             let id_token = config_variables_1.getIDTokenFromEnv();
-            if (id_token !== undefined) {
+            if (id_token !== undefined && id_token !== '') {
                 const secondsSinceEpoch = Math.round(Date.now() / 1000);
                 const id_token_json = jwt_decode_1.default(id_token);
                 if ('exp' in id_token_json) {
@@ -167,7 +167,7 @@ function getIDToken(audience) {
 }
 exports.getIDToken = getIDToken;
 //module.exports.getIDToken = getIDToken
-//getIDToken('ghactions')
+getIDToken('ghactions');
 //# sourceMappingURL=main.js.map
 
 /***/ }),
