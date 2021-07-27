@@ -1,4 +1,4 @@
-<h2>@sourav_chanduka/oidc-client</h2>
+<h2>@actions/oidc-client</h2>
 
 <h3>Usage</h3>
 
