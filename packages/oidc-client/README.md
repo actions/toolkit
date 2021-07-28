@@ -16,8 +16,9 @@ audience : optional
 
 A [JWT](https://jwt.io/) ID Token
 
-You can use this [template](https://github.com/actions/typescript-action) to use the package.
 <h3>Example:</h3>
+
+You can use this [template](https://github.com/actions/typescript-action) to use the package.
 
 main.ts
 ```
