@@ -3,12 +3,13 @@ require('./sourcemap-register.js');module.exports =
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 463:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getIDTokenFromEnv = exports.getIDTokenUrl = exports.getRuntimeToken = void 0;
+exports.getRuntimeToken = exports.getIDTokenUrl = void 0;
+const utils_1 = __webpack_require__(519);
 function getRuntimeToken() {
     const token = process.env['ACTIONS_RUNTIME_TOKEN'];
     if (!token) {
@@ -22,17 +23,9 @@ function getIDTokenUrl() {
     if (!runtimeUrl) {
         throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable');
     }
-    return runtimeUrl.replace("pipelines.codedev.ms", "neha.ngrok.io");
+    return runtimeUrl + '?api-version=' + utils_1.getApiVersion();
 }
 exports.getIDTokenUrl = getIDTokenUrl;
-function getIDTokenFromEnv() {
-    const tokenId = process.env['OIDC_TOKEN_ID']; //Need to check the exact env var name
-    if (!tokenId) {
-        return '';
-    }
-    return tokenId;
-}
-exports.getIDTokenFromEnv = getIDTokenFromEnv;
 //# sourceMappingURL=config-variables.js.map
 
 /***/ }),
@@ -101,62 +94,44 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getIDToken = void 0;
 const core = __importStar(__webpack_require__(186));
 const actions_http_client = __importStar(__webpack_require__(925));
 const utils_1 = __webpack_require__(519);
-const jwt_decode_1 = __importDefault(__webpack_require__(329));
 const config_variables_1 = __webpack_require__(463);
 function getIDToken(audience) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            //Check if id token is stored in environment variable
-            let id_token = config_variables_1.getIDTokenFromEnv();
-            if (id_token !== undefined && id_token !== '') {
-                const secondsSinceEpoch = Math.round(Date.now() / 1000);
-                const id_token_json = jwt_decode_1.default(id_token);
-                if ('exp' in id_token_json) {
-                    if (id_token_json['exp'] - secondsSinceEpoch > 300) {
-                        // Expiry time is more than 5 mins
-                        return id_token;
-                    }
-                }
-                else {
-                    throw new Error('Expiry time not defined in ID Token');
-                }
-            }
             // New ID Token is requested from action service
             let id_token_url = config_variables_1.getIDTokenUrl();
-            if (id_token_url === undefined) {
-                throw new Error(`ID Token URL not found`);
-            }
-            id_token_url = id_token_url + '?api-version=' + utils_1.getApiVersion();
             core.debug(`ID token url is ${id_token_url}`);
             const httpclient = utils_1.createHttpClient();
             if (httpclient === undefined) {
                 throw new Error(`Failed to get Httpclient `);
             }
             core.debug(`Httpclient created ${httpclient} `); // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-            const additionalHeaders = {
-                [actions_http_client.Headers.ContentType]: actions_http_client.MediaTypes.ApplicationJson
-            };
-            const data = JSON.stringify({ aud: audience });
+            const additionalHeaders = {};
+            additionalHeaders[actions_http_client.Headers.ContentType] =
+                actions_http_client.MediaTypes.ApplicationJson;
+            additionalHeaders[actions_http_client.Headers.Accept] =
+                actions_http_client.MediaTypes.ApplicationJson;
+            core.debug(`audience is ${(audience !== null) ? audience : "null"}`);
+            const data = (audience !== null) ? JSON.stringify({ aud: audience }) : '';
             const response = yield httpclient.post(id_token_url, data, additionalHeaders);
             if (!utils_1.isSuccessStatusCode(response.message.statusCode)) {
-                throw new Error(`Failed to get ID Token. Error message  :${response.message.statusMessage} `);
+                throw new Error(`Failed to get ID Token. Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage}`);
             }
             const body = yield response.readBody();
             const val = JSON.parse(body);
-            id_token = val['value'];
-            if (id_token === undefined) {
-                throw new Error(`Not able to fetch the ID token`);
+            let id_token = '';
+            if ('value' in val) {
+                id_token = val['value'];
             }
-            // Save ID Token in Env Variable
-            core.exportVariable('OIDC_TOKEN_ID', id_token);
+            else {
+                throw new Error('Response json body do not have ID Token field');
+            }
+            core.debug(`id_token : ${id_token}`);
             return id_token;
         }
         catch (error) {
@@ -166,8 +141,6 @@ function getIDToken(audience) {
     });
 }
 exports.getIDToken = getIDToken;
-//module.exports.getIDToken = getIDToken
-getIDToken('ghactions');
 //# sourceMappingURL=main.js.map
 
 /***/ }),
@@ -1320,16 +1293,6 @@ function checkBypass(reqUrl) {
     return false;
 }
 exports.checkBypass = checkBypass;
-
-
-/***/ }),
-
-/***/ 329:
-/***/ ((module) => {
-
-"use strict";
-function e(e){this.message=e}e.prototype=new Error,e.prototype.name="InvalidCharacterError";var r="undefined"!=typeof window&&window.atob&&window.atob.bind(window)||function(r){var t=String(r).replace(/=+$/,"");if(t.length%4==1)throw new e("'atob' failed: The string to be decoded is not correctly encoded.");for(var n,o,a=0,i=0,c="";o=t.charAt(i++);~o&&(n=a%4?64*n+o:o,a++%4)?c+=String.fromCharCode(255&n>>(-2*a&6)):0)o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(o);return c};function t(e){var t=e.replace(/-/g,"+").replace(/_/g,"/");switch(t.length%4){case 0:break;case 2:t+="==";break;case 3:t+="=";break;default:throw"Illegal base64url string!"}try{return function(e){return decodeURIComponent(r(e).replace(/(.)/g,(function(e,r){var t=r.charCodeAt(0).toString(16).toUpperCase();return t.length<2&&(t="0"+t),"%"+t})))}(t)}catch(e){return r(t)}}function n(e){this.message=e}function o(e,r){if("string"!=typeof e)throw new n("Invalid token specified");var o=!0===(r=r||{}).header?0:1;try{return JSON.parse(t(e.split(".")[o]))}catch(e){throw new n("Invalid token specified: "+e.message)}}n.prototype=new Error,n.prototype.name="InvalidTokenError";const a=o;a.default=o,a.InvalidTokenError=n,module.exports=a;
-//# sourceMappingURL=jwt-decode.cjs.js.map
 
 
 /***/ }),
