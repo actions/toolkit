@@ -6,7 +6,7 @@ import {toCommandValue} from './utils'
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-interface CommandProperties {
+export interface CommandProperties {
   [key: string]: any
 }
 
