@@ -2,7 +2,7 @@
 
 <h3>Usage</h3>
 
-You can use this package to interact with the github oidc provider.
+You can use this package to interact with the GitHub OIDC provider and get a JWT ID token which would help to get access token from third party cloud providers.
 
 <h3>Get the ID token</h3>
 
@@ -11,6 +11,10 @@ Method Name: getIDToken
 <h3>Inputs</h3>
 
 audience : optional
+
+<h3>Outputs</h3>
+
+A [JWT](https://jwt.io/) ID Token
 
 You can use this [template](https://github.com/actions/typescript-action) to use the package.
 <h3>Example:</h3>
@@ -21,7 +25,7 @@ const core = require('@actions/core');
 const id = require('@actions/oidc-client')
 
 
-async function getID(): Promise<void> {
+async function getIDTokenAction(): Promise<void> {
    
    let aud = ''
    const audience = core.getInput('audience', {required: false})
@@ -33,7 +37,7 @@ async function getID(): Promise<void> {
       
 }
 
-getID()
+getIDTokenAction()
 ```
 
 actions.yml
