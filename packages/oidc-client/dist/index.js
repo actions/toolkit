@@ -8,7 +8,7 @@ require('./sourcemap-register.js');module.exports =
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getRuntimeToken = exports.getIDTokenUrl = void 0;
+exports.getIDTokenUrl = exports.getRuntimeToken = void 0;
 const utils_1 = __webpack_require__(519);
 function getRuntimeToken() {
     const token = process.env['ACTIONS_RUNTIME_TOKEN'];
@@ -100,38 +100,48 @@ const core = __importStar(__webpack_require__(186));
 const actions_http_client = __importStar(__webpack_require__(925));
 const utils_1 = __webpack_require__(519);
 const config_variables_1 = __webpack_require__(463);
+function postCall(id_token_url, audience) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const httpclient = utils_1.createHttpClient();
+        if (httpclient === undefined) {
+            throw new Error(`Failed to get Httpclient `);
+        }
+        core.debug(`Httpclient created ${httpclient} `); // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+        const additionalHeaders = {};
+        additionalHeaders[actions_http_client.Headers.ContentType] =
+            actions_http_client.MediaTypes.ApplicationJson;
+        additionalHeaders[actions_http_client.Headers.Accept] =
+            actions_http_client.MediaTypes.ApplicationJson;
+        core.debug(`audience is ${audience !== null ? audience : 'null'}`);
+        const data = audience !== null ? JSON.stringify({ aud: audience }) : '';
+        const response = yield httpclient.post(id_token_url, data, additionalHeaders);
+        if (!utils_1.isSuccessStatusCode(response.message.statusCode)) {
+            throw new Error(`Failed to get ID Token. Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage}`);
+        }
+        let body = yield response.readBody();
+        return body;
+    });
+}
+function parseJson(body) {
+    const val = JSON.parse(body);
+    let id_token = '';
+    if ('value' in val) {
+        id_token = val['value'];
+    }
+    else {
+        throw new Error('Response json body do not have ID Token field');
+    }
+    core.debug(`id_token : ${id_token}`);
+    return id_token;
+}
 function getIDToken(audience) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // New ID Token is requested from action service
             let id_token_url = config_variables_1.getIDTokenUrl();
             core.debug(`ID token url is ${id_token_url}`);
-            const httpclient = utils_1.createHttpClient();
-            if (httpclient === undefined) {
-                throw new Error(`Failed to get Httpclient `);
-            }
-            core.debug(`Httpclient created ${httpclient} `); // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-            const additionalHeaders = {};
-            additionalHeaders[actions_http_client.Headers.ContentType] =
-                actions_http_client.MediaTypes.ApplicationJson;
-            additionalHeaders[actions_http_client.Headers.Accept] =
-                actions_http_client.MediaTypes.ApplicationJson;
-            core.debug(`audience is ${(audience !== null) ? audience : "null"}`);
-            const data = (audience !== null) ? JSON.stringify({ aud: audience }) : '';
-            const response = yield httpclient.post(id_token_url, data, additionalHeaders);
-            if (!utils_1.isSuccessStatusCode(response.message.statusCode)) {
-                throw new Error(`Failed to get ID Token. Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage}`);
-            }
-            const body = yield response.readBody();
-            const val = JSON.parse(body);
-            let id_token = '';
-            if ('value' in val) {
-                id_token = val['value'];
-            }
-            else {
-                throw new Error('Response json body do not have ID Token field');
-            }
-            core.debug(`id_token : ${id_token}`);
+            let body = yield postCall(id_token_url, audience);
+            let id_token = parseJson(body);
             return id_token;
         }
         catch (error) {

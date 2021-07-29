@@ -1,6 +1,6 @@
 import {getApiVersion} from './utils'
 
-function getRuntimeToken(): string {
+export function getRuntimeToken(){
   const token = process.env['ACTIONS_RUNTIME_TOKEN']
   if (!token) {
     throw new Error('Unable to get ACTIONS_RUNTIME_TOKEN env variable')
@@ -8,13 +8,10 @@ function getRuntimeToken(): string {
   return token
 }
 
-function getIDTokenUrl(): string {
+export function getIDTokenUrl(){
   const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL']
   if (!runtimeUrl) {
     throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable')
   }
   return runtimeUrl + '?api-version=' + getApiVersion()
 }
-
-
-export {getIDTokenUrl, getRuntimeToken}
