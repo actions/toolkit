@@ -4,10 +4,8 @@ import {IHeaders} from '@actions/http-client/interfaces'
 import {createHttpClient, isSuccessStatusCode} from './internal/utils'
 import {getIDTokenUrl} from './internal/config-variables'
 
-async function postCall(
-  id_token_url: string,
-  audience: string
-): Promise<string> {
+async function postCall(id_token_url: string, audience: string): Promise<string> {
+  
   const httpclient = createHttpClient()
   if (httpclient === undefined) {
     throw new Error(`Failed to get Httpclient `)
@@ -16,10 +14,8 @@ async function postCall(
   core.debug(`Httpclient created ${httpclient} `) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
 
   const additionalHeaders: IHeaders = {}
-  additionalHeaders[actions_http_client.Headers.ContentType] =
-    actions_http_client.MediaTypes.ApplicationJson
-  additionalHeaders[actions_http_client.Headers.Accept] =
-    actions_http_client.MediaTypes.ApplicationJson
+  additionalHeaders[actions_http_client.Headers.ContentType] = actions_http_client.MediaTypes.ApplicationJson
+  additionalHeaders[actions_http_client.Headers.Accept] = actions_http_client.MediaTypes.ApplicationJson
 
   core.debug(`audience is ${audience !== null ? audience : 'null'}`)
 
@@ -56,10 +52,9 @@ export async function getIDToken(audience: string): Promise<string> {
     core.debug(`ID token url is ${id_token_url}`)
 
     let body: string = await postCall(id_token_url, audience)
-
     let id_token = parseJson(body)
-
     return id_token
+
   } catch (error) {
     core.setFailed(error.message)
     return error.message
