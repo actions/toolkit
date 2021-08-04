@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as core from '../src/core'
+var httpclient = require('@actions/http-client')
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -387,3 +388,20 @@ function verifyFileCommand(command: string, expectedContents: string): void {
     fs.unlinkSync(filePath)
   }
 }
+
+function getTokenEndPoint() {
+  return 'https://vstoken.actions.githubusercontent.com/.well-known/openid-configuration'
+}
+
+describe('oidc-client-tests', () => {
+  it('Get Http Client', async () => {
+    const http = new httpclient.HttpClient('actions/oidc-client')
+    expect(http).toBeDefined()
+  })
+
+  it('HTTP get request to get token endpoint', async () => {
+    const http = new httpclient.HttpClient('actions/oidc-client')
+    const res = await http.get(getTokenEndPoint())
+    expect(res.message.statusCode).toBe(200)
+  })
+})
