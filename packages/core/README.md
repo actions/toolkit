@@ -207,3 +207,51 @@ var pid = core.getState("pidToKill");
 
 process.kill(pid);
 ```
+
+#### OIDC Token
+
+You can use this library to interact with the GitHub OIDC provider and get a JWT ID token which would help to get access token from third party cloud providers.
+
+**Method Name**: getIDToken()
+
+**Inputs**
+
+audience : optional
+
+**Outputs**
+
+A [JWT](https://jwt.io/) ID Token
+
+In action's `main.ts`:
+```js
+const core = require('@actions/core');
+async function getIDTokenAction(): Promise<void> {
+  
+   let aud = ''
+   const audience = core.getInput('audience', {required: false})
+   if (audience !== undefined) 
+      aud = `${audience}`
+   const id_token = await core.getIDToken(aud)
+   const val = `ID token is ${id_token}`
+   core.setOutput('id_token', id_token);
+      
+}
+getIDTokenAction()
+```
+
+In action's `actions.yml`:
+
+```yaml
+name: 'GetIDToken'
+description: 'Get ID token from Github OIDC provider'
+inputs:
+  audience:  
+    description: 'Audience for which the ID token is intended for'
+    required: false
+outputs:
+  id_token: 
+    description: 'ID token obtained from OIDC provider'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+```
