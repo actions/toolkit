@@ -1,7 +1,16 @@
 # @actions/tool-cache Releases
 
+### 1.7.1
+- [Fallback to os-releases file to get linux version](https://github.com/actions/toolkit/pull/594)
+- [Update to latest @actions/io verison](https://github.com/actions/toolkit/pull/838)
+
+### 1.7.0
+- [Allow arbirtary headers when downloading tools to the tc](https://github.com/actions/toolkit/pull/530)
+- [Export `isExplicitVersion` and `evaluateVersions` functions](https://github.com/actions/toolkit/pull/796) 
+- [Force overwrite on default when extracted compressed files](https://github.com/actions/toolkit/pull/807)
+
 ### 1.6.1
-- [Update @actions/core version](https://github.com/actions/toolkit/pull/636) 
+- [Update @actions/core version](https://github.com/actions/toolkit/pull/636)
 
 ### 1.6.0
 - [Add extractXar function to extract XAR files](https://github.com/actions/toolkit/pull/207)

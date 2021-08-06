@@ -9,18 +9,31 @@ async function getTarPath(
   args: string[],
   compressionMethod: CompressionMethod
 ): Promise<string> {
-  const IS_WINDOWS = process.platform === 'win32'
-  if (IS_WINDOWS) {
-    const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-    if (compressionMethod !== CompressionMethod.Gzip) {
-      // We only use zstandard compression on windows when gnu tar is installed due to
-      // a bug with compressing large files with bsdtar + zstd
-      args.push('--force-local')
-    } else if (existsSync(systemTar)) {
-      return systemTar
-    } else if (await utils.isGnuTarInstalled()) {
-      args.push('--force-local')
+  switch (process.platform) {
+    case 'win32': {
+      const systemTar = `${process.env['windir']}\\System32\\tar.exe`
+      if (compressionMethod !== CompressionMethod.Gzip) {
+        // We only use zstandard compression on windows when gnu tar is installed due to
+        // a bug with compressing large files with bsdtar + zstd
+        args.push('--force-local')
+      } else if (existsSync(systemTar)) {
+        return systemTar
+      } else if (await utils.isGnuTarInstalled()) {
+        args.push('--force-local')
+      }
+      break
     }
+    case 'darwin': {
+      const gnuTar = await io.which('gtar', false)
+      if (gnuTar) {
+        // fix permission denied errors when extracting BSD tar archive with GNU tar - https://github.com/actions/cache/issues/527
+        args.push('--delay-directory-restore')
+        return gnuTar
+      }
+      break
+    }
+    default:
+      break
   }
   return await io.which('tar', true)
 }
@@ -112,4 +125,31 @@ export async function createTar(
     manifestFilename
   ]
   await execTar(args, compressionMethod, archiveFolder)
+}
+
+export async function listTar(
+  archivePath: string,
+  compressionMethod: CompressionMethod
+): Promise<void> {
+  // --d: Decompress.
+  // --long=#: Enables long distance matching with # bits.
+  // Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
+  // Using 30 here because we also support 32-bit self-hosted runners.
+  function getCompressionProgram(): string[] {
+    switch (compressionMethod) {
+      case CompressionMethod.Zstd:
+        return ['--use-compress-program', 'zstd -d --long=30']
+      case CompressionMethod.ZstdWithoutLong:
+        return ['--use-compress-program', 'zstd -d']
+      default:
+        return ['-z']
+    }
+  }
+  const args = [
+    ...getCompressionProgram(),
+    '-tf',
+    archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+    '-P'
+  ]
+  await execTar(args, compressionMethod)
 }

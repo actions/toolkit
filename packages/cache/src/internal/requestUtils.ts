@@ -120,7 +120,7 @@ export async function retryTypedResponse<T>(
   )
 }
 
-export async function retryHttpClientResponse<T>(
+export async function retryHttpClientResponse(
   name: string,
   method: () => Promise<IHttpClientResponse>,
   maxAttempts = DefaultRetryAttempts,

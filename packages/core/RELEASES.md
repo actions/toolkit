@@ -1,5 +1,15 @@
 # @actions/core Releases
 
+### 1.4.0
+- [Added the `getMultilineInput` function](https://github.com/actions/toolkit/pull/829)
+
+### 1.3.0
+- [Added the trimWhitespace option to getInput](https://github.com/actions/toolkit/pull/802)
+- [Added the getBooleanInput function](https://github.com/actions/toolkit/pull/725)
+
+### 1.2.7
+- [Prepend newline for set-output](https://github.com/actions/toolkit/pull/772)
+
 ### 1.2.6
 - [Update `exportVariable` and `addPath` to use environment files](https://github.com/actions/toolkit/pull/571)
 

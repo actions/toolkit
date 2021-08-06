@@ -1,8 +1,7 @@
 name: "UpdateOctokit"
 
 on:
-  schedule:
-    - cron: '0 18 * * 0' # sunday at 18 UTC
+  workflow_dispatch:
 
 jobs:
   UpdateOctokit:

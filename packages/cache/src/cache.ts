@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
-import {createTar, extractTar} from './internal/tar'
+import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
 
 export class ValidationError extends Error {
@@ -100,7 +100,11 @@ export async function restoreCache(
       options
     )
 
-    const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
+    if (core.isDebug()) {
+      await listTar(archivePath, compressionMethod)
+    }
+
+    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.info(
       `Cache Size: ~${Math.round(
         archiveFileSize / (1024 * 1024)
@@ -108,6 +112,7 @@ export async function restoreCache(
     )
 
     await extractTar(archivePath, compressionMethod)
+    core.info('Cache restored successfully')
   } finally {
     // Try to delete the archive to save space
     try {
@@ -161,21 +166,33 @@ export async function saveCache(
 
   core.debug(`Archive Path: ${archivePath}`)
 
-  await createTar(archiveFolder, cachePaths, compressionMethod)
+  try {
+    await createTar(archiveFolder, cachePaths, compressionMethod)
+    if (core.isDebug()) {
+      await listTar(archivePath, compressionMethod)
+    }
 
-  const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
-  const archiveFileSize = utils.getArchiveFileSizeIsBytes(archivePath)
-  core.debug(`File Size: ${archiveFileSize}`)
-  if (archiveFileSize > fileSizeLimit) {
-    throw new Error(
-      `Cache size of ~${Math.round(
-        archiveFileSize / (1024 * 1024)
-      )} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`
-    )
+    const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
+    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+    core.debug(`File Size: ${archiveFileSize}`)
+    if (archiveFileSize > fileSizeLimit) {
+      throw new Error(
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`
+      )
+    }
+
+    core.debug(`Saving Cache (ID: ${cacheId})`)
+    await cacheHttpClient.saveCache(cacheId, archivePath, options)
+  } finally {
+    // Try to delete the archive to save space
+    try {
+      await utils.unlinkFile(archivePath)
+    } catch (error) {
+      core.debug(`Failed to delete archive: ${error}`)
+    }
   }
-
-  core.debug(`Saving Cache (ID: ${cacheId})`)
-  await cacheHttpClient.saveCache(cacheId, archivePath, options)
 
   return cacheId
 }

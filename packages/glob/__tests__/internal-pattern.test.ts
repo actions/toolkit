@@ -26,7 +26,7 @@ describe('pattern', () => {
   it('escapes homedir', async () => {
     const home = path.join(getTestTemp(), 'home-with-[and]')
     await fs.mkdir(home, {recursive: true})
-    const pattern = new Pattern('~/m*', undefined, home)
+    const pattern = new Pattern('~/m*', false, undefined, home)
 
     expect(pattern.searchPath).toBe(home)
     expect(pattern.match(path.join(home, 'match'))).toBeTruthy()

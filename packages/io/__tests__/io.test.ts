@@ -3,9 +3,12 @@ import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
-import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('copies file with no flags', async () => {
     const root = path.join(getTestTemp(), 'cp_with_no_flags')
     const sourceFile = path.join(root, 'cp_source')
@@ -81,6 +84,29 @@ describe('cp', () => {
     await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
     await io.mkdirP(targetFolder)
     await io.cp(sourceFolder, targetFolder, {recursive: true})
+
+    expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
+      'test file content'
+    )
+  })
+
+  it('copies directory into existing destination with -r without copying source directory', async () => {
+    const root: string = path.join(
+      getTestTemp(),
+      'cp_with_-r_existing_dest_no_source_dir'
+    )
+    const sourceFolder: string = path.join(root, 'cp_source')
+    const sourceFile: string = path.join(sourceFolder, 'cp_source_file')
+
+    const targetFolder: string = path.join(root, 'cp_target')
+    const targetFile: string = path.join(targetFolder, 'cp_source_file')
+    await io.mkdirP(sourceFolder)
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
+    await io.mkdirP(targetFolder)
+    await io.cp(sourceFolder, targetFolder, {
+      recursive: true,
+      copySourceDirectory: false
+    })
 
     expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
@@ -166,6 +192,10 @@ describe('cp', () => {
 })
 
 describe('mv', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('moves file with no flags', async () => {
     const root = path.join(getTestTemp(), ' mv_with_no_flags')
     const sourceFile = path.join(root, ' mv_source')
@@ -264,6 +294,10 @@ describe('mv', () => {
 })
 
 describe('rmRF', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('removes single folder with rmRF', async () => {
     const testPath = path.join(getTestTemp(), 'testFolder')
 
@@ -521,6 +555,45 @@ describe('rmRF', () => {
       await assertExists(realFile)
       await assertNotExists(symlinkFile)
       await assertNotExists(outerDirectory)
+    })
+  } else {
+    it('correctly escapes % on windows', async () => {
+      const root: string = path.join(getTestTemp(), 'rmRF_escape_test_win')
+      const directory: string = path.join(root, '%test%')
+      await io.mkdirP(root)
+      await io.mkdirP(directory)
+      const oldEnv = process.env['test']
+      process.env['test'] = 'thisshouldnotresolve'
+
+      await io.rmRF(directory)
+      await assertNotExists(directory)
+      process.env['test'] = oldEnv
+    })
+
+    it('Should throw for invalid characters', async () => {
+      const root: string = path.join(getTestTemp(), 'rmRF_invalidChar_Windows')
+      const errorString =
+        'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
+      await expect(io.rmRF(path.join(root, '"'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '<'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '>'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '|'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
+      await expect(io.rmRF(path.join(root, '*'))).rejects.toHaveProperty(
+        'message',
+        errorString
+      )
     })
   }
 
@@ -813,34 +886,13 @@ describe('mkdirP', () => {
       (await fs.lstat(path.join(realDirPath, 'sub_dir'))).isDirectory()
     ).toBe(true)
   })
-
-  it('breaks if mkdirP loop out of control', async () => {
-    const testPath = path.join(
-      getTestTemp(),
-      'mkdirP_failsafe',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10'
-    )
-
-    expect.assertions(1)
-
-    try {
-      await ioUtil.mkdirP(testPath, 10)
-    } catch (err) {
-      expect(err.code).toBe('ENOENT')
-    }
-  })
 })
 
 describe('which', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
   it('which() finds file name', async () => {
     // create a executable file
     const testPath = path.join(getTestTemp(), 'which-finds-file-name')
@@ -1371,6 +1423,53 @@ describe('which', () => {
       }
     })
   }
+})
+
+describe('findInPath', () => {
+  beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+  })
+
+  it('findInPath() not found', async () => {
+    expect(await io.findInPath('findInPath-test-no-such-file')).toEqual([])
+  })
+
+  it('findInPath() finds file names', async () => {
+    // create executable files
+    let fileName = 'FindInPath-Test-File'
+    if (process.platform === 'win32') {
+      fileName += '.exe'
+    }
+
+    const testPaths = ['1', '2', '3'].map(count =>
+      path.join(getTestTemp(), `findInPath-finds-file-names-${count}`)
+    )
+    for (const testPath of testPaths) {
+      await io.mkdirP(testPath)
+    }
+
+    const filePaths = testPaths.map(testPath => path.join(testPath, fileName))
+    for (const filePath of filePaths) {
+      await fs.writeFile(filePath, '')
+      if (process.platform !== 'win32') {
+        chmod(filePath, '+x')
+      }
+    }
+
+    const originalPath = process.env['PATH']
+    try {
+      // update the PATH
+      for (const testPath of testPaths) {
+        process.env[
+          'PATH'
+        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+      }
+      // exact file names
+      expect(await io.findInPath(fileName)).toEqual(filePaths)
+    } finally {
+      process.env['PATH'] = originalPath
+    }
+  })
 })
 
 async function findsExecutableWithScopedPermissions(

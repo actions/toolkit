@@ -286,6 +286,31 @@ describe('@actions/exec', () => {
     expect(stderrCalled).toBeTruthy()
   })
 
+  it('Handles large stdline', async () => {
+    const stdlinePath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdlineoutput.js'
+    )
+    const nodePath: string = await io.which('node', true)
+
+    const _testExecOptions = getExecOptions()
+    let largeLine = ''
+    _testExecOptions.listeners = {
+      stdline: (line: string) => {
+        largeLine = line
+      }
+    }
+
+    const exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [stdlinePath],
+      _testExecOptions
+    )
+    expect(exitCode).toBe(0)
+    expect(Buffer.byteLength(largeLine)).toEqual(2 ** 16 + 1)
+  })
+
   it('Handles stdin shell', async () => {
     let command: string
     if (IS_WINDOWS) {
@@ -538,6 +563,22 @@ describe('@actions/exec', () => {
     expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
   })
 
+  it('Exec roots throws friendly error when bad cwd is specified', async () => {
+    const execOptions = getExecOptions()
+    execOptions.cwd = 'nonexistent/path'
+
+    await expect(exec.exec('ls', ['-all'], execOptions)).rejects.toThrowError(
+      `The cwd: ${execOptions.cwd} does not exist!`
+    )
+  })
+
+  it('Exec roots does not throw when valid cwd is provided', async () => {
+    const execOptions = getExecOptions()
+    execOptions.cwd = './'
+
+    await expect(exec.exec('ls', ['-all'], execOptions)).resolves.toBe(0)
+  })
+
   it('Exec roots relative tool path using rooted options.cwd', async () => {
     let command: string
     if (IS_WINDOWS) {
@@ -618,6 +659,165 @@ describe('@actions/exec', () => {
       )
     }
     expect(output.trim()).toBe(`args[0]: "hello"${os.EOL}args[1]: "world"`)
+  })
+
+  it('correctly outputs for getExecOutput', async () => {
+    const stdErrPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stderroutput.js'
+    )
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutoutput.js'
+    )
+    const nodePath: string = await io.which('node', true)
+
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      getExecOptions()
+    )
+
+    expect(exitCodeOut).toBe(0)
+    expect(stdout).toBe('this is output to stdout')
+
+    const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdErrPath],
+      getExecOptions()
+    )
+    expect(exitCodeErr).toBe(0)
+    expect(stderr).toBe('this is output to stderr')
+  })
+
+  it('correctly outputs for getExecOutput with additional listeners', async () => {
+    const stdErrPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stderroutput.js'
+    )
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutoutput.js'
+    )
+
+    const nodePath: string = await io.which('node', true)
+    let listenerOut = ''
+
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stdout: data => {
+            listenerOut = data.toString()
+          }
+        }
+      }
+    )
+
+    expect(exitCodeOut).toBe(0)
+    expect(stdout).toBe('this is output to stdout')
+    expect(listenerOut).toBe('this is output to stdout')
+
+    let listenerErr = ''
+    const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdErrPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stderr: data => {
+            listenerErr = data.toString()
+          }
+        }
+      }
+    )
+    expect(exitCodeErr).toBe(0)
+    expect(stderr).toBe('this is output to stderr')
+    expect(listenerErr).toBe('this is output to stderr')
+  })
+
+  it('correctly outputs for getExecOutput when total size exceeds buffer size', async () => {
+    const stdErrPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stderroutput.js'
+    )
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutoutputlarge.js'
+    )
+
+    const nodePath: string = await io.which('node', true)
+    let listenerOut = ''
+
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stdout: data => {
+            listenerOut += data.toString()
+          }
+        }
+      }
+    )
+
+    expect(exitCodeOut).toBe(0)
+    expect(Buffer.byteLength(stdout || '', 'utf8')).toBe(2 ** 25)
+    expect(Buffer.byteLength(listenerOut, 'utf8')).toBe(2 ** 25)
+
+    let listenerErr = ''
+    const {exitCode: exitCodeErr, stderr} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdErrPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stderr: data => {
+            listenerErr = data.toString()
+          }
+        }
+      }
+    )
+    expect(exitCodeErr).toBe(0)
+    expect(stderr).toBe('this is output to stderr')
+    expect(listenerErr).toBe('this is output to stderr')
+  })
+
+  it('correctly outputs for getExecOutput with multi-byte characters', async () => {
+    const stdOutPath: string = path.join(
+      __dirname,
+      'scripts',
+      'stdoutputspecial.js'
+    )
+
+    const nodePath: string = await io.which('node', true)
+    let numStdOutBufferCalls = 0
+    const {exitCode: exitCodeOut, stdout} = await exec.getExecOutput(
+      `"${nodePath}"`,
+      [stdOutPath],
+      {
+        ...getExecOptions(),
+        listeners: {
+          stdout: () => {
+            numStdOutBufferCalls += 1
+          }
+        }
+      }
+    )
+
+    expect(exitCodeOut).toBe(0)
+    //one call for each half of the © character, ensuring it was actually split and not sent together
+    expect(numStdOutBufferCalls).toBe(2)
+    expect(stdout).toBe('©')
   })
 
   if (IS_WINDOWS) {

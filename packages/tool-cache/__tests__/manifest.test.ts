@@ -116,7 +116,7 @@ describe('@actions/tool-cache-manifest', () => {
     expect(file?.filename).toBe('sometool-1.2.3-linux-x64.tar.gz')
   })
 
-  it('can match with linux platform version spec', async () => {
+  it('can match with linux platform version spec from lsb-release', async () => {
     os.platform = 'linux'
     os.arch = 'x64'
 
@@ -125,6 +125,48 @@ describe('@actions/tool-cache-manifest', () => {
         DISTRIB_RELEASE=18.04
         DISTRIB_CODENAME=bionic
         DISTRIB_DESCRIPTION=Ubuntu 18.04.4 LTS`
+    })
+
+    const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
+      owner,
+      repo,
+      fakeToken
+    )
+    const release: tc.IToolRelease | undefined = await tc.findFromManifest(
+      '1.2.4',
+      true,
+      manifest
+    )
+    expect(release).toBeDefined()
+    expect(release?.version).toBe('1.2.4')
+    expect(release?.files.length).toBe(1)
+    const file = release?.files[0]
+    expect(file).toBeDefined()
+    expect(file?.arch).toBe('x64')
+    expect(file?.platform).toBe('linux')
+    expect(file?.download_url).toBe(
+      'https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-ubuntu1804-x64.tar.gz'
+    )
+    expect(file?.filename).toBe('sometool-1.2.4-ubuntu1804-x64.tar.gz')
+  })
+
+  it('can match with linux platform version spec from os-release', async () => {
+    os.platform = 'linux'
+    os.arch = 'x64'
+
+    readLsbSpy.mockImplementation(() => {
+      return `NAME="Ubuntu"
+        VERSION="18.04.5 LTS (Bionic Beaver)"
+        ID=ubuntu
+        ID_LIKE=debian
+        PRETTY_NAME="Ubuntu 18.04.5 LTS"
+        VERSION_ID="18.04"
+        HOME_URL="https://www.ubuntu.com/"
+        SUPPORT_URL="https://help.ubuntu.com/"
+        BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+        PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+        VERSION_CODENAME=bionic
+        UBUNTU_CODENAME=bionic`
     })
 
     const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
