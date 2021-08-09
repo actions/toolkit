@@ -233,7 +233,8 @@ async function getIDTokenAction(): Promise<void> {
       aud = `${audience}`
    const id_token = await core.getIDToken(aud)
    const val = `ID token is ${id_token}`
-   core.setOutput('id_token', id_token);
+   core.setSecret(id_token)
+   core.setOutput('id_token', id_token)
       
 }
 getIDTokenAction()

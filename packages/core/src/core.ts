@@ -5,7 +5,7 @@ import {toCommandValue} from './utils'
 import * as os from 'os'
 import * as path from 'path'
 
-import {getIDTokenUrl, parseJson, postCall} from './oidc-utils'
+import {OidcClient} from './oidc-utils'
 
 /**
  * Interface for getInput options
@@ -287,19 +287,7 @@ export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
 }
 
-export async function getIDToken(audience: string): Promise<string> {
-  try {
-    // New ID Token is requested from action service
-    let id_token_url: string = getIDTokenUrl()
-
-    debug(`ID token url is ${id_token_url}`)
-
-    let body: string = await postCall(id_token_url, audience)
-    let id_token = parseJson(body)
-    return id_token
-
-  } catch (error) {
-    setFailed(error.message)
-    return error.message
-  }
+export function getIDToken(aud: string): Promise<string> {
+  let oidcClient = new OidcClient()
+  return oidcClient.getIDToken(aud)
 }
