@@ -287,7 +287,7 @@ export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
 }
 
-export function getIDToken(aud: string): Promise<string> {
+export async function getIDToken(aud: string): Promise<string> {
   let oidcClient = new OidcClient()
-  return oidcClient.getIDToken(aud)
+  return await oidcClient.getIDToken(aud)
 }
