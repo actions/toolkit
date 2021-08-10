@@ -232,7 +232,6 @@ async function getIDTokenAction(): Promise<void> {
    if (audience !== undefined) 
       aud = `${audience}`
    const id_token = await core.getIDToken(aud)
-   core.setSecret(id_token)
    core.setOutput('id_token', id_token)
       
 }

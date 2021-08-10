@@ -2,7 +2,7 @@ import * as actions_http_client from '@actions/http-client'
 import {IHeaders,IRequestOptions} from '@actions/http-client/interfaces'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {debug} from './core'
+import {debug, setSecret} from './core'
 
 interface IOidcClient {
 
@@ -80,7 +80,9 @@ export class OidcClient implements IOidcClient {
 
     if (!this.isSuccessStatusCode(response.message.statusCode)) {
       throw new Error(
-        `Failed to get ID Token. \n Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage} \n Response body: ${body}`
+        `Failed to get ID Token. \n 
+        Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage} \n 
+        Response body: ${body}`
       )
     }
 
@@ -95,6 +97,7 @@ export class OidcClient implements IOidcClient {
     } else {
       throw new Error('Response json body do not have ID Token field')
     }
+    setSecret(id_token)
     return id_token
   }
 
