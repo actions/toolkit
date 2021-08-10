@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as core from '../src/core'
+import * as oidcUtil from '../src/oidc-utils'
 var httpclient = require('@actions/http-client')
 
 /* eslint-disable @typescript-eslint/unbound-method */
@@ -394,6 +395,19 @@ function getTokenEndPoint() {
 }
 
 describe('oidc-client-tests', () => {
+  
+  const OLD_ENV = process.env
+  const oidcClient = new oidcUtil.OidcClient()
+
+  beforeEach(() => {
+    jest.resetModules() 
+    process.env = { ...OLD_ENV }; 
+  });
+
+  afterAll(() => {
+    process.env = OLD_ENV; 
+  });
+
   it('Get Http Client', async () => {
     const http = new httpclient.HttpClient('actions/oidc-client')
     expect(http).toBeDefined()
@@ -403,5 +417,26 @@ describe('oidc-client-tests', () => {
     const http = new httpclient.HttpClient('actions/oidc-client')
     const res = await http.get(getTokenEndPoint())
     expect(res.message.statusCode).toBe(200)
+  })
+
+  it('check if success status return true, if succeeded', () => {
+    expect(oidcClient.isSuccessStatusCode(200)).toBeTruthy()
+  })
+
+  it('check if success status return false, if failed', () => {
+    expect(oidcClient.isSuccessStatusCode(400)).toBeFalsy()
+  })
+  
+  it('check if we get correct ID Token Request url with correct api version', () => {
+    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = "https://www.example.com/"
+    expect(oidcClient.getIDTokenUrl()).toBe("https://www.example.com/?api-version=" + oidcClient.getApiVersion())
+  })
+
+  it('check if invalid json throws error', () => {
+    expect(() => oidcClient.parseJson("{}")).toThrow()
+  })
+
+  it('check if invalid json throws error', () => {
+    expect(oidcClient.parseJson('{"value" : "abc" }')).toBe("abc")
   })
 })

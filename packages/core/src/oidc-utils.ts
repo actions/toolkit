@@ -68,8 +68,6 @@ export class OidcClient implements IOidcClient {
       throw new Error(`Failed to get Httpclient `)
     }
 
-    debug(`Httpclient created ${httpclient} `) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-
     let additionalHeaders: IHeaders = {}
     additionalHeaders[actions_http_client.Headers.ContentType] = actions_http_client.MediaTypes.ApplicationJson
     additionalHeaders[actions_http_client.Headers.Accept] = actions_http_client.MediaTypes.ApplicationJson
@@ -78,13 +76,13 @@ export class OidcClient implements IOidcClient {
 
     const data: string = audience !== null ? JSON.stringify({aud: audience}) : ''
     const response = await httpclient.post(id_token_url, data, additionalHeaders)
+    const body: string = await response.readBody()
 
     if (!this.isSuccessStatusCode(response.message.statusCode)) {
       throw new Error(
-        `Failed to get ID Token. Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage}`
+        `Failed to get ID Token. \n Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage} \n Response body: ${body}`
       )
     }
-    let body: string = await response.readBody()
 
     return body
   }
