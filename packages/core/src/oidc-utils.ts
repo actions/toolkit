@@ -1,5 +1,5 @@
 import * as actions_http_client from '@actions/http-client'
-import {IHeaders,IRequestOptions} from '@actions/http-client/interfaces'
+import {IRequestOptions} from '@actions/http-client/interfaces'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {debug, setSecret} from './core'
@@ -59,7 +59,7 @@ export class OidcClient implements IOidcClient {
       throw new Error(
         `Failed to get ID Token. \n 
         Error Code : ${error.statusCode}\n 
-        Response body: ${error.result.message}`
+        Error Message: ${error.result.message}`
       )
     })
 
