@@ -419,24 +419,9 @@ describe('oidc-client-tests', () => {
     expect(res.message.statusCode).toBe(200)
   })
 
-  it('check if success status return true, if succeeded', () => {
-    expect(oidcClient.isSuccessStatusCode(200)).toBeTruthy()
-  })
-
-  it('check if success status return false, if failed', () => {
-    expect(oidcClient.isSuccessStatusCode(400)).toBeFalsy()
-  })
-  
   it('check if we get correct ID Token Request url with right api version', () => {
     process.env.ACTIONS_ID_TOKEN_REQUEST_URL = "https://www.example.com/"
     expect(oidcClient.getIDTokenUrl()).toBe("https://www.example.com/?api-version=" + oidcClient.getApiVersion())
   })
 
-  it('check if invalid json throws error', () => {
-    expect(() => oidcClient.parseJson("{}")).toThrow()
-  })
-
-  it('check if valid json returns parsed id token', () => {
-    expect(oidcClient.parseJson('{"value" : "abc" }')).toBe("abc")
-  })
 })

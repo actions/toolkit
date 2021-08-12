@@ -14,11 +14,7 @@ interface IOidcClient {
 
   getIDTokenUrl(): string
 
-  isSuccessStatusCode(statusCode?: number): boolean
-
-  postCall(id_token_url: string, audience: string): Promise<string>
-
-  parseJson(body: string): string
+  postCall(httpclient: actions_http_client.HttpClient, id_token_url: string, audience: string): Promise<string>
 
   getIDToken(audience: string): Promise<string>
 }
@@ -54,67 +50,45 @@ export class OidcClient implements IOidcClient {
     return runtimeUrl + '?api-version=' + this.getApiVersion()
   }
 
-  isSuccessStatusCode(statusCode?: number): boolean {
-    if (!statusCode) {
-      return false
-    }
-    return statusCode >= 200 && statusCode < 300
-  }
-
-  async postCall(id_token_url: string, audience: string): Promise<string> {
-
-    const httpclient = this.createHttpClient()
-    if (httpclient === undefined) {
-      throw new Error(`Failed to get Httpclient `)
-    }
-
-    let additionalHeaders: IHeaders = {}
-    additionalHeaders[actions_http_client.Headers.ContentType] = actions_http_client.MediaTypes.ApplicationJson
-    additionalHeaders[actions_http_client.Headers.Accept] = actions_http_client.MediaTypes.ApplicationJson
+  async postCall(httpclient: actions_http_client.HttpClient, id_token_url: string, audience: string): Promise<string> {
+    const data = audience !== null ? {aud: audience} : ''
 
     debug(`audience is ${audience !== null ? audience : 'null'}`)
 
-    const data: string = audience !== null ? JSON.stringify({aud: audience}) : ''
-    const response = await httpclient.post(id_token_url, data, additionalHeaders)
-    const body: string = await response.readBody()
-
-    if (!this.isSuccessStatusCode(response.message.statusCode)) {
+    const res = await httpclient.postJson(id_token_url,data).catch((error) => {
       throw new Error(
         `Failed to get ID Token. \n 
-        Error Code : ${response.message.statusCode}  Error message : ${response.message.statusMessage} \n 
-        Response body: ${body}`
+        Error Code : ${error.statusCode}\n 
+        Response body: ${error.result}`
       )
-    }
+    })
 
-    return body
-  }
-
-  parseJson(body: string): string {
-    const val = JSON.parse(body)
-    let id_token = ''
-    if ('value' in val) {
-      id_token = val['value']
-    } else {
+    let val :any = res.result
+    let id_token = val['value']
+    if (id_token === undefined) {
       throw new Error('Response json body do not have ID Token field')
     }
-    setSecret(id_token)
     return id_token
+
   }
 
   async getIDToken(audience: string): Promise<string> {
     try {
+      const httpclient = this.createHttpClient()
+      if (httpclient === undefined) {
+        throw new Error(`Failed to get Httpclient `)
+      }
+
       // New ID Token is requested from action service
       let id_token_url: string = this.getIDTokenUrl()
 
       debug(`ID token url is ${id_token_url}`)
 
-      let body: string = await this.postCall(id_token_url, audience)
-      let id_token = this.parseJson(body)
+      let id_token = await this.postCall(httpclient ,id_token_url, audience)
+      setSecret(id_token)
       return id_token
-
     } catch (error) {
       throw new Error(`Error message: ${error.message}`)
     }
   }
-
 }

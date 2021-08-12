@@ -210,7 +210,7 @@ process.kill(pid);
 
 #### OIDC Token
 
-You can use this library to interact with the GitHub OIDC provider and get a JWT ID token which would help to get access token from third party cloud providers.
+You can use these methods to interact with the GitHub OIDC provider and get a JWT ID token which would help to get access token from third party cloud providers.
 
 **Method Name**: getIDToken()
 
