@@ -1,5 +1,5 @@
 # Debugging
-If the job logs do not provide enough detail on why a job may be failing, some other options exist to assist with troubleshooting.
+If the job logs do not provide enough detail on why a job may be failing, some other options exist to assist with troubleshooting. 
 
 ## Step Debug Logs
 This is the primary way for customers to debug job failures caused by failed steps.
@@ -13,7 +13,7 @@ This flag can be enabled by [setting the secret](https://help.github.com/en/acti
 
 All actions ran while this secret is enabled will show debug events in the [Downloaded Logs](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/managing-a-workflow-run#downloading-logs) and [Web Logs](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/managing-a-workflow-run#viewing-logs-to-diagnose-failures).
 
-## Runner Diagnostic Logs
+## Runner Diagnostic Logs 
 Runner Diagnostic Logs provide additional log files detailing how the Runner is executing an action.
 
 You need the runner diagnostic logs only if you think there is an infrastructure problem with GitHub Actions and you want the product team to check the logs.
