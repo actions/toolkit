@@ -288,6 +288,5 @@ export function getState(name: string): string {
 }
 
 export async function getIDToken(aud: string): Promise<string> {
-  let oidcClient = new OidcClient()
-  return await oidcClient.getIDToken(aud)
+  return await OidcClient.getIDToken(aud)
 }
