@@ -44,12 +44,12 @@ export class OidcClient {
   }
 
   private static async postCall(httpclient: actions_http_client.HttpClient, id_token_url: string, audience: string): Promise<string> {
-    
-    const data : TokenRequest = { aud : !!audience ? '{aud: audience}' : undefined }
 
-    debug(`audience is ${audience !== null ? audience : 'null'}`)
+    const data :TokenRequest = { aud: !!audience ? audience : ''}
 
-    const res = await httpclient.postJson<TokenResponse>(id_token_url,data.aud).catch((error) => {
+    debug(`audience is ${!!audience ? audience : 'not defined'}`)
+
+    const res = await httpclient.postJson<TokenResponse>(id_token_url,data).catch((error) => {
       throw new Error(
         `Failed to get ID Token. \n 
         Error Code : ${error.statusCode}\n 
