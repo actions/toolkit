@@ -227,11 +227,8 @@ In action's `main.ts`:
 const core = require('@actions/core');
 async function getIDTokenAction(): Promise<void> {
   
-   let aud = ''
    const audience = core.getInput('audience', {required: false})
-   if (audience !== undefined) 
-      aud = `${audience}`
-   const id_token = await core.getIDToken(aud)
+   const id_token = await core.getIDToken(audience)
    core.setOutput('id_token', id_token)
       
 }

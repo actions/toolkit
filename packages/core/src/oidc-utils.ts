@@ -15,9 +15,11 @@ interface TokenResponse {
 export class OidcClient {
 
   private static createHttpClient(allowRetry = true, maxRetry = 10) {
-    let requestOptions : IRequestOptions = {}
-    requestOptions.allowRetries = allowRetry
-    requestOptions.maxRetries = maxRetry
+    let requestOptions : IRequestOptions = {
+      allowRetries: allowRetry,
+      maxRetries: maxRetry
+    }
+    
     return new HttpClient('actions/oidc-client', [
       new BearerCredentialHandler(OidcClient.getRuntimeToken())],
       requestOptions)
@@ -45,7 +47,7 @@ export class OidcClient {
 
   private static async postCall(httpclient: actions_http_client.HttpClient, id_token_url: string, audience: string): Promise<string> {
 
-    const data :TokenRequest = { aud: !!audience ? audience : ''}
+    const data: TokenRequest = { aud: audience }
 
     debug(`audience is ${!!audience ? audience : 'not defined'}`)
 
