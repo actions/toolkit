@@ -279,7 +279,9 @@ async function getIDTokenAction(): Promise<void> {
   
    const audience = core.getInput('audience', {required: false})
    const id_token = await core.getIDToken(audience)
-   core.setOutput('id_token', id_token)
+   
+   // this id_token can be used to get access token from third party cloud providers
+   
       
 }
 getIDTokenAction()
