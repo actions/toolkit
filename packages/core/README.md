@@ -278,7 +278,9 @@ const core = require('@actions/core');
 async function getIDTokenAction(): Promise<void> {
   
    const audience = core.getInput('audience', {required: false})
-   const id_token = await core.getIDToken(audience)
+   
+   const id_token1 = await core.getIDToken()            // ID Token with default audience
+   const id_token2 = await core.getIDToken(audience)    // ID token with custom audience
    
    // this id_token can be used to get access token from third party cloud providers
 }
@@ -295,7 +297,9 @@ inputs:
     description: 'Audience for which the ID token is intended for'
     required: false
 outputs:
-  id_token: 
+  id_token1: 
+    description: 'ID token obtained from OIDC provider'
+  id_token2: 
     description: 'ID token obtained from OIDC provider'
 runs:
   using: 'node12'
