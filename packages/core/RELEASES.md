@@ -1,6 +1,8 @@
 # @actions/core Releases
+
 ### 1.5.0
 - [Added support for notice annotations and more annotation fields](https://github.com/actions/toolkit/pull/855)
+
 ### 1.4.0
 - [Added the `getMultilineInput` function](https://github.com/actions/toolkit/pull/829)
 
