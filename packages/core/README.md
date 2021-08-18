@@ -281,8 +281,6 @@ async function getIDTokenAction(): Promise<void> {
    const id_token = await core.getIDToken(audience)
    
    // this id_token can be used to get access token from third party cloud providers
-   
-      
 }
 getIDTokenAction()
 ```
