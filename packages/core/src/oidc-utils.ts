@@ -15,7 +15,7 @@ interface TokenResponse {
 export class OidcClient {
 
   private static createHttpClient(allowRetry = true, maxRetry = 10) {
-    let requestOptions : IRequestOptions = {
+    let requestOptions: IRequestOptions = {
       allowRetries: allowRetry,
       maxRetries: maxRetry
     }

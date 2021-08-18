@@ -2,8 +2,8 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as core from '../src/core'
-import * as oidcUtil from '../src/oidc-utils'
-var httpclient = require('@actions/http-client')
+import { HttpClient } from '@actions/http-client'
+
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -396,32 +396,15 @@ function getTokenEndPoint() {
 
 describe('oidc-client-tests', () => {
   
-  const OLD_ENV = process.env
-  const oidcClient = new oidcUtil.OidcClient()
-
-  beforeEach(() => {
-    jest.resetModules() 
-    process.env = { ...OLD_ENV }; 
-  });
-
-  afterAll(() => {
-    process.env = OLD_ENV; 
-  });
-
   it('Get Http Client', async () => {
-    const http = new httpclient.HttpClient('actions/oidc-client')
+    const http = new HttpClient('actions/oidc-client')
     expect(http).toBeDefined()
   })
 
   it('HTTP get request to get token endpoint', async () => {
-    const http = new httpclient.HttpClient('actions/oidc-client')
+    const http = new HttpClient('actions/oidc-client')
     const res = await http.get(getTokenEndPoint())
     expect(res.message.statusCode).toBe(200)
-  })
-
-  it('check if we get correct ID Token Request url with right api version', () => {
-    process.env.ACTIONS_ID_TOKEN_REQUEST_URL = "https://www.example.com/"
-    expect(oidcClient.getIDTokenUrl()).toBe("https://www.example.com/?api-version=" + oidcClient.getApiVersion())
   })
 
 })
