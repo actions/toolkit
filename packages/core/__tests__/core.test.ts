@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as core from '../src/core'
-import { HttpClient } from '@actions/http-client'
+import {HttpClient} from '@actions/http-client'
 import {toCommandProperties} from '../src/utils'
 
 
