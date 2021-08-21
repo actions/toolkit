@@ -37,13 +37,13 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.2.6",
+    "@actions/core": "^1.5.0",
     "@actions/http-client": "^1.0.11",
-    "@types/tmp": "^0.1.0",
-    "tmp": "^0.1.0",
-    "tmp-promise": "^2.0.2"
+    "@types/tmp": "^0.2.1",
+    "tmp": "^0.2.1",
+    "tmp-promise": "^3.0.2"
   },
   "devDependencies": {
-    "typescript": "^3.8.3"
+    "typescript": "^4.3.5"
   }
 }

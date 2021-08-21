@@ -371,8 +371,8 @@ describe('Upload Tests', () => {
    * Helpers used to setup mocking for the HttpClient
    */
   async function emptyMockReadBody(): Promise<string> {
-    return new Promise(resolve => {
-      resolve()
+    return new Promise<string>(resolve => {
+      resolve('')
     })
   }
 
@@ -385,7 +385,7 @@ describe('Upload Tests', () => {
      */
     jest
       .spyOn(HttpClient.prototype, 'post')
-      .mockImplementation(async (requestdata, data) => {
+      .mockImplementation(async (requestUrl, data) => {
         // parse the input data and use the provided artifact name as part of the response
         const inputData = JSON.parse(data)
         const mockMessage = new http.IncomingMessage(new net.Socket())
@@ -454,12 +454,12 @@ describe('Upload Tests', () => {
      */
     jest
       .spyOn(HttpClient.prototype, 'patch')
-      .mockImplementation(async (requestdata, data) => {
+      .mockImplementation(async (requestUrl, data) => {
         const inputData = JSON.parse(data)
         const mockMessage = new http.IncomingMessage(new net.Socket())
 
         // Get the name from the end of requestdata. Will be something like https://www.example.com/_apis/pipelines/workflows/15/artifacts?api-version=6.0-preview&artifactName=my-artifact
-        const artifactName = requestdata.split('=')[2]
+        const artifactName = requestUrl.split('=')[2]
         let mockReadBody = emptyMockReadBody
         if (inputData.Size < 1) {
           mockMessage.statusCode = 400

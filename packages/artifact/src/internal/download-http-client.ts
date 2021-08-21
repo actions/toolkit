@@ -302,7 +302,7 @@ export class DownloadHttpClient {
     destinationStream: fs.WriteStream,
     isGzip: boolean
   ): Promise<void> {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       if (isGzip) {
         const gunzip = zlib.createGunzip()
         response.message

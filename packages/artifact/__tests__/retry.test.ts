@@ -65,8 +65,8 @@ beforeAll(async () => {
  * Helpers used to setup mocking for the HttpClient
  */
 async function emptyMockReadBody(): Promise<string> {
-  return new Promise(resolve => {
-    resolve()
+  return new Promise<string>(resolve => {
+    resolve('')
   })
 }
 

@@ -37,19 +37,19 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/exec": "^1.0.1",
-    "@actions/glob": "^0.1.0",
-    "@actions/http-client": "^1.0.9",
-    "@actions/io": "^1.0.1",
+    "@actions/core": "^1.5.0",
+    "@actions/exec": "^1.1.0",
+    "@actions/glob": "^0.2.0",
+    "@actions/http-client": "^1.0.11",
+    "@actions/io": "^1.1.1",
     "@azure/ms-rest-js": "^2.0.7",
     "@azure/storage-blob": "^12.1.2",
-    "semver": "^6.1.0",
-    "uuid": "^3.3.3"
+    "semver": "^7.3.5",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "typescript": "^3.8.3",
-    "@types/semver": "^6.0.0",
-    "@types/uuid": "^3.4.5"
+    "@types/semver": "^7.3.8",
+    "@types/uuid": "^8.3.1",
+    "typescript": "^4.3.5"
   }
 }
