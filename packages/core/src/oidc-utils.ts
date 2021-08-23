@@ -5,11 +5,11 @@ import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {debug, setSecret} from './core'
 
 interface TokenRequest {
-  aud: string | undefined
+  aud?: string
 }
 
 interface TokenResponse {
-  value: string | undefined
+  value?: string
 }
 
 export class OidcClient {
@@ -45,7 +45,9 @@ export class OidcClient {
     return runtimeUrl + '?api-version=' + OidcClient.getApiVersion()
   }
 
-  private static async postCall(httpclient: actions_http_client.HttpClient, id_token_url: string, data: TokenRequest): Promise<string> {
+  private static async postCall(id_token_url: string, data: TokenRequest): Promise<string> {
+    const httpclient = OidcClient.createHttpClient()
+
     const res = await httpclient.postJson<TokenResponse>(id_token_url,data).catch((error) => {
       throw new Error(
         `Failed to get ID Token. \n 
@@ -55,7 +57,7 @@ export class OidcClient {
     })
 
     const id_token = res.result?.value
-    if (id_token === undefined) {
+    if (!id_token) {
       throw new Error('Response json body do not have ID Token field')
     }
     return id_token
@@ -64,8 +66,6 @@ export class OidcClient {
 
   static async getIDToken(audience: string | undefined): Promise<string> {
     try {
-      const httpclient = OidcClient.createHttpClient()
-
       // New ID Token is requested from action service
       const id_token_url: string = OidcClient.getIDTokenUrl()
 
@@ -75,7 +75,7 @@ export class OidcClient {
 
       debug(`audience is ${!!audience ? audience : 'not defined'}`)
 
-      const id_token = await OidcClient.postCall(httpclient ,id_token_url, data)
+      const id_token = await OidcClient.postCall(id_token_url, data)
       setSecret(id_token)
       return id_token
     } catch (error) {

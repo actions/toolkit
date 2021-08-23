@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.6.0
+- [Added OIDC Client function `getIDToken`](https://github.com/actions/toolkit/pull/887)
+
 ### 1.4.0
 - [Added the `getMultilineInput` function](https://github.com/actions/toolkit/pull/829)
 
