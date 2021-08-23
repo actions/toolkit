@@ -5,7 +5,6 @@ import * as core from '../src/core'
 import {HttpClient} from '@actions/http-client'
 import {toCommandProperties} from '../src/utils'
 
-
 /* eslint-disable @typescript-eslint/unbound-method */
 
 const testEnvVars = {
@@ -437,12 +436,11 @@ function verifyFileCommand(command: string, expectedContents: string): void {
   }
 }
 
-function getTokenEndPoint() {
+function getTokenEndPoint(): string {
   return 'https://vstoken.actions.githubusercontent.com/.well-known/openid-configuration'
 }
 
 describe('oidc-client-tests', () => {
-  
   it('Get Http Client', async () => {
     const http = new HttpClient('actions/oidc-client')
     expect(http).toBeDefined()
@@ -453,5 +451,4 @@ describe('oidc-client-tests', () => {
     const res = await http.get(getTokenEndPoint())
     expect(res.message.statusCode).toBe(200)
   })
-
 })
