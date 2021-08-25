@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 import * as actions_http_client from '@actions/http-client'
-import { IRequestOptions } from '@actions/http-client/interfaces'
-import { HttpClient } from '@actions/http-client'
-import { BearerCredentialHandler } from '@actions/http-client/auth'
-import { debug, setSecret } from './core'
-
+import {IRequestOptions} from '@actions/http-client/interfaces'
+import {HttpClient} from '@actions/http-client'
+import {BearerCredentialHandler} from '@actions/http-client/auth'
+import {debug, setSecret} from './core'
 interface TokenResponse {
   value?: string
 }
@@ -42,9 +41,7 @@ export class OidcClient {
     return runtimeUrl
   }
 
-  private static async getCall(
-    id_token_url: string
-  ): Promise<string> {
+  private static async getCall(id_token_url: string): Promise<string> {
     const httpclient = OidcClient.createHttpClient()
 
     const res = await httpclient
