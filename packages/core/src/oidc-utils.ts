@@ -68,7 +68,7 @@ export class OidcClient {
       // New ID Token is requested from action service
       let id_token_url: string = OidcClient.getIDTokenUrl()
       if (audience) {
-        id_token_url = `${id_token_url}&audience=${audience}`
+        id_token_url = `${id_token_url}&audience=${encodeURIComponent(audience)}`
       }
 
       debug(`ID token url is ${id_token_url}`)
