@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 import * as actions_http_client from '@actions/http-client'
-import {IRequestOptions} from '@actions/http-client/interfaces'
-import {HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {debug, setSecret} from './core'
-
-interface TokenRequest {
-  aud?: string
-}
+import { IRequestOptions } from '@actions/http-client/interfaces'
+import { HttpClient } from '@actions/http-client'
+import { BearerCredentialHandler } from '@actions/http-client/auth'
+import { debug, setSecret } from './core'
 
 interface TokenResponse {
   value?: string
@@ -25,19 +21,15 @@ export class OidcClient {
 
     return new HttpClient(
       'actions/oidc-client',
-      [new BearerCredentialHandler(OidcClient.getRuntimeToken())],
+      [new BearerCredentialHandler(OidcClient.getRequestToken())],
       requestOptions
     )
   }
 
-  private static getApiVersion(): string {
-    return '2.0'
-  }
-
-  private static getRuntimeToken(): string {
-    const token = process.env['ACTIONS_RUNTIME_TOKEN']
+  private static getRequestToken(): string {
+    const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN']
     if (!token) {
-      throw new Error('Unable to get ACTIONS_RUNTIME_TOKEN env variable')
+      throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable')
     }
     return token
   }
@@ -47,17 +39,16 @@ export class OidcClient {
     if (!runtimeUrl) {
       throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable')
     }
-    return `${runtimeUrl}?api-version=${OidcClient.getApiVersion()}`
+    return runtimeUrl
   }
 
-  private static async postCall(
-    id_token_url: string,
-    data: TokenRequest
+  private static async getCall(
+    id_token_url: string
   ): Promise<string> {
     const httpclient = OidcClient.createHttpClient()
 
     const res = await httpclient
-      .postJson<TokenResponse>(id_token_url, data)
+      .getJson<TokenResponse>(id_token_url)
       .catch(error => {
         throw new Error(
           `Failed to get ID Token. \n 
@@ -76,15 +67,14 @@ export class OidcClient {
   static async getIDToken(audience?: string): Promise<string> {
     try {
       // New ID Token is requested from action service
-      const id_token_url: string = OidcClient.getIDTokenUrl()
+      let id_token_url: string = OidcClient.getIDTokenUrl()
+      if (audience) {
+        id_token_url = `${id_token_url}&audience=${audience}`
+      }
 
       debug(`ID token url is ${id_token_url}`)
 
-      const data: TokenRequest = {aud: audience}
-
-      debug(`audience is ${audience ? audience : 'not defined'}`)
-
-      const id_token = await OidcClient.postCall(id_token_url, data)
+      const id_token = await OidcClient.getCall(id_token_url)
       setSecret(id_token)
       return id_token
     } catch (error) {
