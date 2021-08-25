@@ -5,6 +5,8 @@ import {toCommandProperties, toCommandValue} from './utils'
 import * as os from 'os'
 import * as path from 'path'
 
+import {OidcClient} from './oidc-utils'
+
 /**
  * Interface for getInput options
  */
@@ -347,4 +349,8 @@ export function saveState(name: string, value: any): void {
  */
 export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
+}
+
+export async function getIDToken(aud?: string): Promise<string> {
+  return await OidcClient.getIDToken(aud)
 }
