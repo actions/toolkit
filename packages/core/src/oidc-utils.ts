@@ -28,7 +28,9 @@ export class OidcClient {
   private static getRequestToken(): string {
     const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN']
     if (!token) {
-      throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable')
+      throw new Error(
+        'Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable'
+      )
     }
     return token
   }
