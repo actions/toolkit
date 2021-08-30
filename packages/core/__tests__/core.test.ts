@@ -274,13 +274,14 @@ describe('@actions/core', () => {
     const message = 'this is my error message'
     core.error(new Error(message), {
       title: 'A title',
+      file: 'root/test.txt',
       startColumn: 1,
       endColumn: 2,
       startLine: 5,
       endLine: 5
     })
     assertWriteCalls([
-      `::error title=A title,line=5,endLine=5,col=1,endColumn=2::Error: ${message}${os.EOL}`
+      `::error title=A title,file=root/test.txt,line=5,endLine=5,col=1,endColumn=2::Error: ${message}${os.EOL}`
     ])
   })
 
@@ -304,25 +305,59 @@ describe('@actions/core', () => {
     const message = 'this is my error message'
     core.warning(new Error(message), {
       title: 'A title',
+      file: 'root/test.txt',
       startColumn: 1,
       endColumn: 2,
       startLine: 5,
       endLine: 5
     })
     assertWriteCalls([
-      `::warning title=A title,line=5,endLine=5,col=1,endColumn=2::Error: ${message}${os.EOL}`
+      `::warning title=A title,file=root/test.txt,line=5,endLine=5,col=1,endColumn=2::Error: ${message}${os.EOL}`
+    ])
+  })
+
+  it('notice sets the correct message', () => {
+    core.notice('Notice')
+    assertWriteCalls([`::notice::Notice${os.EOL}`])
+  })
+
+  it('notice escapes the message', () => {
+    core.notice('\r\nnotice\n')
+    assertWriteCalls([`::notice::%0D%0Anotice%0A${os.EOL}`])
+  })
+
+  it('notice handles an error object', () => {
+    const message = 'this is my error message'
+    core.notice(new Error(message))
+    assertWriteCalls([`::notice::Error: ${message}${os.EOL}`])
+  })
+
+  it('notice handles parameters correctly', () => {
+    const message = 'this is my error message'
+    core.notice(new Error(message), {
+      title: 'A title',
+      file: 'root/test.txt',
+      startColumn: 1,
+      endColumn: 2,
+      startLine: 5,
+      endLine: 5
+    })
+    assertWriteCalls([
+      `::notice title=A title,file=root/test.txt,line=5,endLine=5,col=1,endColumn=2::Error: ${message}${os.EOL}`
     ])
   })
 
   it('annotations map field names correctly', () => {
     const commandProperties = toCommandProperties({
       title: 'A title',
+      file: 'root/test.txt',
       startColumn: 1,
       endColumn: 2,
       startLine: 5,
       endLine: 5
     })
     expect(commandProperties.title).toBe('A title')
+    expect(commandProperties.file).toBe('root/test.txt')
     expect(commandProperties.col).toBe(1)
     expect(commandProperties.endColumn).toBe(2)
     expect(commandProperties.line).toBe(5)
