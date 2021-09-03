@@ -1,9 +1,13 @@
 import * as os from 'os'
+import {toCommandValue} from './utils'
 
 // For internal use, subject to change.
 
-interface CommandProperties {
-  [key: string]: string
+// We use any as a valid input type
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export interface CommandProperties {
+  [key: string]: any
 }
 
 /**
@@ -19,13 +23,13 @@ interface CommandProperties {
 export function issueCommand(
   command: string,
   properties: CommandProperties,
-  message: string
+  message: any
 ): void {
   const cmd = new Command(command, properties, message)
   process.stdout.write(cmd.toString() + os.EOL)
 }
 
-export function issue(name: string, message: string = ''): void {
+export function issue(name: string, message = ''): void {
   issueCommand(name, {}, message)
 }
 
@@ -73,15 +77,15 @@ class Command {
   }
 }
 
-function escapeData(s: string): string {
-  return (s || '')
+function escapeData(s: any): string {
+  return toCommandValue(s)
     .replace(/%/g, '%25')
     .replace(/\r/g, '%0D')
     .replace(/\n/g, '%0A')
 }
 
-function escapeProperty(s: string): string {
-  return (s || '')
+function escapeProperty(s: any): string {
+  return toCommandValue(s)
     .replace(/%/g, '%25')
     .replace(/\r/g, '%0D')
     .replace(/\n/g, '%0A')

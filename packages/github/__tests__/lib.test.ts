@@ -2,6 +2,7 @@ import * as path from 'path'
 import {Context} from '../src/context'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 describe('@actions/context', () => {
   let context: Context
@@ -55,7 +56,6 @@ describe('@actions/context', () => {
   it('works with pull_request payloads', () => {
     delete process.env.GITHUB_REPOSITORY
     context.payload = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       pull_request: {number: 2},
       repository: {owner: {login: 'user'}, name: 'test'}
     }

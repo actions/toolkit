@@ -1,13 +1,13 @@
 {
   "name": "@actions/io",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "description": "Actions io lib",
   "keywords": [
     "github",
     "actions",
     "io"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/master/packages/io",
+  "homepage": "https://github.com/actions/toolkit/tree/main/packages/io",
   "license": "MIT",
   "main": "lib/io.js",
   "types": "lib/io.d.ts",
@@ -27,7 +27,7 @@
     "directory": "packages/io"
   },
   "scripts": {
-    "audit-moderate": "npm install && npm audit --audit-level=moderate",
+    "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc"
   },

@@ -2,16 +2,18 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import * as uploadHttpClient from '../src/internal-upload-http-client'
+import {UploadHttpClient} from '../src/internal/upload-http-client'
 import * as core from '@actions/core'
 import {promises as fs} from 'fs'
-import {getRuntimeUrl} from '../src/internal-config-variables'
+import {getRuntimeUrl} from '../src/internal/config-variables'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {
   ArtifactResponse,
   PatchArtifactSizeSuccessResponse
-} from '../src/internal-contracts'
-import {UploadSpecification} from '../src/internal-upload-specification'
+} from '../src/internal/contracts'
+import {UploadSpecification} from '../src/internal/upload-specification'
+import {getArtifactUrl} from '../src/internal/utils'
+import {UploadOptions} from '../src/internal/upload-options'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')
@@ -26,7 +28,7 @@ let file3Size = 0
 let file4Size = 0
 let file5Size = 0
 
-jest.mock('../src/internal-config-variables')
+jest.mock('../src/internal/config-variables')
 jest.mock('@actions/http-client')
 
 describe('Upload Tests', () => {
@@ -36,6 +38,7 @@ describe('Upload Tests', () => {
     jest.spyOn(core, 'debug').mockImplementation(() => {})
     jest.spyOn(core, 'info').mockImplementation(() => {})
     jest.spyOn(core, 'warning').mockImplementation(() => {})
+    jest.spyOn(core, 'error').mockImplementation(() => {})
 
     // setup mocking for calls that got through the HttpClient
     setupHttpClientMock()
@@ -75,6 +78,7 @@ describe('Upload Tests', () => {
    */
   it('Create Artifact - Success', async () => {
     const artifactName = 'valid-artifact-name'
+    const uploadHttpClient = new UploadHttpClient()
     const response = await uploadHttpClient.createArtifactInFileContainer(
       artifactName
     )
@@ -93,11 +97,35 @@ describe('Upload Tests', () => {
 
   it('Create Artifact - Failure', async () => {
     const artifactName = 'invalid-artifact-name'
+    const uploadHttpClient = new UploadHttpClient()
     expect(
       uploadHttpClient.createArtifactInFileContainer(artifactName)
     ).rejects.toEqual(
       new Error(
-        'Unable to create a container for the artifact invalid-artifact-name'
+        `Create Artifact Container failed: The artifact name invalid-artifact-name is not valid. Request URL ${getArtifactUrl()}`
+      )
+    )
+  })
+
+  it('Create Artifact - Retention Less Than Min Value Error', async () => {
+    const artifactName = 'valid-artifact-name'
+    const options: UploadOptions = {
+      retentionDays: -1
+    }
+    const uploadHttpClient = new UploadHttpClient()
+    expect(
+      uploadHttpClient.createArtifactInFileContainer(artifactName, options)
+    ).rejects.toEqual(new Error('Invalid retention, minimum value is 1.'))
+  })
+
+  it('Create Artifact - Storage Quota Error', async () => {
+    const artifactName = 'storage-quota-hit'
+    const uploadHttpClient = new UploadHttpClient()
+    expect(
+      uploadHttpClient.createArtifactInFileContainer(artifactName)
+    ).rejects.toEqual(
+      new Error(
+        'Create Artifact Container failed: Artifact storage quota has been hit. Unable to upload any new artifacts'
       )
     )
   })
@@ -137,12 +165,13 @@ describe('Upload Tests', () => {
     const expectedTotalSize =
       file1Size + file2Size + file3Size + file4Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(0)
-    expect(uploadResult.size).toEqual(expectedTotalSize)
+    expect(uploadResult.uploadSize).toEqual(expectedTotalSize)
   })
 
   it('Upload Artifact - Failed Single File Upload', async () => {
@@ -154,12 +183,13 @@ describe('Upload Tests', () => {
     ]
 
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(0)
+    expect(uploadResult.uploadSize).toEqual(0)
   })
 
   it('Upload Artifact - Partial Upload Continue On Error', async () => {
@@ -189,13 +219,14 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file4Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
       {continueOnError: true}
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   it('Upload Artifact - Partial Upload Fail Fast', async () => {
@@ -225,13 +256,14 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file3Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
       {continueOnError: false}
     )
     expect(uploadResult.failedItems.length).toEqual(2)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   it('Upload Artifact - Failed upload with no options', async () => {
@@ -261,12 +293,13 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file3Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   it('Upload Artifact - Failed upload with empty options', async () => {
@@ -296,25 +329,28 @@ describe('Upload Tests', () => {
 
     const expectedPartialSize = file1Size + file2Size + file3Size + file5Size
     const uploadUrl = `${getRuntimeUrl()}_apis/resources/Containers/13`
+    const uploadHttpClient = new UploadHttpClient()
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
       {}
     )
     expect(uploadResult.failedItems.length).toEqual(1)
-    expect(uploadResult.size).toEqual(expectedPartialSize)
+    expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
   })
 
   /**
    * Artifact Association Tests
    */
   it('Associate Artifact - Success', async () => {
+    const uploadHttpClient = new UploadHttpClient()
     expect(async () => {
       uploadHttpClient.patchArtifactSize(130, 'my-artifact')
     }).not.toThrow()
   })
 
   it('Associate Artifact - Not Found', async () => {
+    const uploadHttpClient = new UploadHttpClient()
     expect(
       uploadHttpClient.patchArtifactSize(100, 'non-existent-artifact')
     ).rejects.toThrow(
@@ -323,9 +359,12 @@ describe('Upload Tests', () => {
   })
 
   it('Associate Artifact - Error', async () => {
+    const uploadHttpClient = new UploadHttpClient()
     expect(
       uploadHttpClient.patchArtifactSize(-2, 'my-artifact')
-    ).rejects.toThrow('Unable to finish uploading artifact my-artifact')
+    ).rejects.toThrow(
+      'Finalize artifact upload failed: Artifact service responded with 400'
+    )
   })
 
   /**
@@ -354,6 +393,8 @@ describe('Upload Tests', () => {
 
         if (inputData.Name === 'invalid-artifact-name') {
           mockMessage.statusCode = 400
+        } else if (inputData.Name === 'storage-quota-hit') {
+          mockMessage.statusCode = 403
         } else {
           mockMessage.statusCode = 201
           const response: ArtifactResponse = {

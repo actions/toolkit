@@ -21,7 +21,7 @@ export class Pattern {
 
   /**
    * The path/pattern segments. Note, only the first segment (the root directory)
-   * may contain a directory separator charactor. Use the trailingSeparator field
+   * may contain a directory separator character. Use the trailingSeparator field
    * to determine whether the pattern ended with a trailing slash.
    */
   readonly segments: string[]
@@ -43,15 +43,27 @@ export class Pattern {
    */
   private readonly rootRegExp: RegExp
 
-  /* eslint-disable no-dupe-class-members */
-  // Disable no-dupe-class-members due to false positive for method overload
-  // https://github.com/typescript-eslint/typescript-eslint/issues/291
+  /**
+   * Indicates that the pattern is implicitly added as opposed to user specified.
+   */
+  private readonly isImplicitPattern: boolean
 
   constructor(pattern: string)
-  constructor(pattern: string, segments: undefined, homedir: string)
-  constructor(negate: boolean, segments: string[])
+  constructor(
+    pattern: string,
+    isImplicitPattern: boolean,
+    segments: undefined,
+    homedir: string
+  )
+  constructor(
+    negate: boolean,
+    isImplicitPattern: boolean,
+    segments: string[],
+    homedir?: string
+  )
   constructor(
     patternOrNegate: string | boolean,
+    isImplicitPattern = false,
     segments?: string[],
     homedir?: string
   ) {
@@ -107,6 +119,8 @@ export class Pattern {
       IS_WINDOWS ? 'i' : ''
     )
 
+    this.isImplicitPattern = isImplicitPattern
+
     // Create minimatch
     const minimatchOptions: IMinimatchOptions = {
       dot: true,
@@ -130,11 +144,11 @@ export class Pattern {
       itemPath = pathHelper.normalizeSeparators(itemPath)
 
       // Append a trailing slash. Otherwise Minimatch will not match the directory immediately
-      // preceeding the globstar. For example, given the pattern `/foo/**`, Minimatch returns
+      // preceding the globstar. For example, given the pattern `/foo/**`, Minimatch returns
       // false for `/foo` but returns true for `/foo/`. Append a trailing slash to handle that quirk.
-      if (!itemPath.endsWith(path.sep)) {
+      if (!itemPath.endsWith(path.sep) && this.isImplicitPattern === false) {
         // Note, this is safe because the constructor ensures the pattern has an absolute root.
-        // For example, formats like C: and C:foo on Windows are resolved to an aboslute root.
+        // For example, formats like C: and C:foo on Windows are resolved to an absolute root.
         itemPath = `${itemPath}${path.sep}`
       }
     } else {

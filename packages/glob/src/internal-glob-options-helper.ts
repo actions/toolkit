@@ -8,6 +8,7 @@ export function getOptions(copy?: GlobOptions): GlobOptions {
   const result: GlobOptions = {
     followSymbolicLinks: true,
     implicitDescendants: true,
+    matchDirectories: true,
     omitBrokenSymbolicLinks: true
   }
 
@@ -20,6 +21,11 @@ export function getOptions(copy?: GlobOptions): GlobOptions {
     if (typeof copy.implicitDescendants === 'boolean') {
       result.implicitDescendants = copy.implicitDescendants
       core.debug(`implicitDescendants '${result.implicitDescendants}'`)
+    }
+
+    if (typeof copy.matchDirectories === 'boolean') {
+      result.matchDirectories = copy.matchDirectories
+      core.debug(`matchDirectories '${result.matchDirectories}'`)
     }
 
     if (typeof copy.omitBrokenSymbolicLinks === 'boolean') {

@@ -2,7 +2,7 @@ import * as io from '../../io/src/io'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
-import {getUploadSpecification} from '../src/internal-upload-specification'
+import {getUploadSpecification} from '../src/internal/upload-specification'
 
 const artifactName = 'my-artifact'
 const root = path.join(__dirname, '_temp', 'upload-specification')

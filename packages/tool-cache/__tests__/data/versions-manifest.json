@@ -1,0 +1,86 @@
+[
+  {
+    "version": "3.0.1",
+    "stable": false,
+    "release_url": "https://github.com/actions/sometool/releases/tag/3.0.1-20200402.6",
+    "files": [
+      {
+        "filename": "sometool-3.0.1-linux-x64.tar.gz",
+        "arch": "x64",
+        "platform": "linux",
+        "download_url": "https://github.com/actions/sometool/releases/tag/3.0.1-20200402.6/sometool-1.2.3-linux-x64.tar.gz"
+      }      
+    ]
+  },
+  {
+    "version": "2.0.2",
+    "stable": true,
+    "release_url": "https://github.com/actions/sometool/releases/tag/2.0.2-20200402.6",
+    "files": [
+      {
+        "filename": "sometool-2.0.2-linux-x64.tar.gz",
+        "arch": "x64",
+        "platform": "linux",
+        "download_url": "https://github.com/actions/sometool/releases/tag/2.0.2-20200402.6/sometool-2.0.2-linux-x64.tar.gz"
+      },
+      {
+        "filename": "sometool-2.0.2-linux-x32.tar.gz",
+        "arch": "x32",
+        "platform": "linux",
+        "download_url": "https://github.com/actions/sometool/releases/tag/2.0.2-20200402.6/sometool-2.0.2-linux-x32.tar.gz"
+      },
+      {
+        "filename": "sometool-2.0.2-linux-x32.tar.gz",
+        "arch": "x64",
+        "platform": "windows",
+        "download_url": "https://github.com/actions/sometool/releases/tag/2.0.2-20200402.6/sometool-2.0.2-linux-x32.tar.gz"
+      }      
+    ]
+  },  
+  {
+    "version": "1.2.4",
+    "stable": true,
+    "release_url": "https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6",
+    "files": [
+      {
+        "filename": "sometool-1.2.4-ubuntu1804-x64.tar.gz",
+        "arch": "x64",
+        "platform": "linux",
+        "platform_version": "18.04",
+        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-ubuntu1804-x64.tar.gz"
+      },
+      {
+        "filename": "sometool-1.2.4-darwin1015-x64.tar.gz",
+        "arch": "x64",
+        "platform": "darwin",
+        "platform_version": "10.15",
+        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.4-20200402.6/sometool-1.2.4-darwin1015-x64.tar.gz"
+      }            
+    ]
+  },      
+  {
+    "version": "1.2.3",
+    "stable": true,
+    "release_url": "https://github.com/actions/sometool/releases/tag/1.2.3-20200402.6",
+    "files": [
+      {
+        "filename": "sometool-1.2.3-linux-x64.tar.gz",
+        "arch": "x64",
+        "platform": "linux",
+        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.3-20200402.6/sometool-1.2.3-linux-x64.tar.gz"
+      },
+      {
+        "filename": "sometool-1.2.3-linux-x32.tar.gz",
+        "arch": "x32",
+        "platform": "linux",
+        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.3-20200402.6/sometool-1.2.3-linux-x32.tar.gz"
+      },
+      {
+        "filename": "sometool-1.2.3-linux-x32.zip",
+        "arch": "x64",
+        "platform": "windows",
+        "download_url": "https://github.com/actions/sometool/releases/tag/1.2.3-20200402.6/sometool-1.2.3-linux-x32.zip"
+      }      
+    ]
+  }
+]

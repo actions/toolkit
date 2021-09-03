@@ -7,6 +7,7 @@ You can use this package to interact with the actions artifacts.
 - [Download a Single Artifact](#Download-a-Single-Artifact)
 - [Download All Artifacts](#Download-all-Artifacts)
 - [Additional Documentation](#Additional-Documentation)
+- [Contributions](#Contributions)
 
 Relative paths and absolute paths are both allowed. Relative paths are rooted against the current working directory.
 
@@ -38,6 +39,11 @@ Method Name: `uploadArtifact`
     - If set to `false`, and an error is encountered, all other uploads will stop and any files that were queued will not be attempted to be uploaded. The partial artifact available will only include files up until the failure.
     - If set to `true` and an error is encountered, the failed file will be skipped and ignored and all other queued files will be attempted to be uploaded. There will be an artifact available for download at the end with everything excluding the file that failed to upload
     - Optional, defaults to `true` if not specified
+- `retentionDays`
+    - Duration after which artifact will expire in days
+    - Minimum value: 1
+    - Maximum value: 90 unless changed by repository setting
+    - If this is set to a greater value than the retention settings allowed, the retention on artifacts will be reduced to match the max value allowed on the server, and the upload process will continue. An input of 0 assumes default retention value.
 
 #### Example using Absolute File Paths
 
@@ -196,4 +202,12 @@ Each artifact will have the same `DownloadResponse` as if it was individually do
 
 ## Additional Documentation
 
-Check out [additional-information](additional-information.md) for extra documentation.
+Check out [additional-information](docs/additional-information.md) for extra documentation around usage, restrictions and behavior.
+
+Check out [implementation-details](docs/implementation-details.md) for extra information about the implementation of this package.
+
+## Contributions
+
+See [contributor guidelines](https://github.com/actions/toolkit/blob/main/.github/CONTRIBUTING.md) for general guidelines and information about toolkit contributions.
+
+For contributions related to this package, see [artifact contributions](CONTRIBUTIONS.md) for more information.
