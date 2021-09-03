@@ -1,5 +1,7 @@
 # @actions/core Releases
 
+core-1.2.3
+
 ### 1.5.0
 - [Added support for notice annotations and more annotation fields](https://github.com/actions/toolkit/pull/855)
 
@@ -23,6 +25,7 @@
 - [Be more lenient in accepting non-string command inputs](https://github.com/actions/toolkit/pull/405)
 - [Add Echo commands](https://github.com/actions/toolkit/pull/411)
 
+main
 ### 1.2.3
 
 - [IsDebug logging](README.md#logging)
