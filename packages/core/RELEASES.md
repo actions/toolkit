@@ -1,7 +1,7 @@
 # @actions/core Releases
 
 ### 1.6.0
-- [Added OIDC Client function `getIDToken`](https://github.com/actions/toolkit/pull/887)
+- [Added OIDC Client function `getIDToken`](https://github.com/actions/toolkit/pull/919)
 
 ### 1.5.0
 - [Added support for notice annotations and more annotation fields](https://github.com/actions/toolkit/pull/855)
