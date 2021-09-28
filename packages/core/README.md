@@ -143,6 +143,11 @@ export interface AnnotationProperties {
   title?: string
 
   /**
+   * The name of the file for which the annotation should be created.
+   */
+  file?: string
+
+  /**
    * The start line for the annotation.
    */
   startLine?: number
