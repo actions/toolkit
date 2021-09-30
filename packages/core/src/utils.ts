@@ -32,6 +32,7 @@ export function toCommandProperties(
 
   return {
     title: annotationProperties.title,
+    file: annotationProperties.file,
     line: annotationProperties.startLine,
     endLine: annotationProperties.endLine,
     col: annotationProperties.startColumn,
