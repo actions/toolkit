@@ -172,7 +172,7 @@ export async function saveCache(
       await listTar(archivePath, compressionMethod)
     }
 
-    const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
+    const fileSizeLimit = 10 * 1024 * 1024 * 1024 // 5GB per repo limit
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
     if (archiveFileSize > fileSizeLimit) {
