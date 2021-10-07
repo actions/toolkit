@@ -179,7 +179,7 @@ export async function saveCache(
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`
+        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
       )
     }
 

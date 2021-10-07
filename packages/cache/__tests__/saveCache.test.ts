@@ -46,7 +46,7 @@ test('save with large cache outputs should fail', async () => {
 
   const createTarMock = jest.spyOn(tar, 'createTar')
 
-  const cacheSize = 6 * 1024 * 1024 * 1024 //~6GB, over the 5GB limit
+  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
   jest
     .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
     .mockReturnValueOnce(cacheSize)
@@ -56,7 +56,7 @@ test('save with large cache outputs should fail', async () => {
     .mockReturnValueOnce(Promise.resolve(compression))
 
   await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
-    'Cache size of ~6144 MB (6442450944 B) is over the 5GB limit, not saving cache.'
+    'Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
   )
 
   const archiveFolder = '/foo/bar'
