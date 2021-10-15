@@ -143,6 +143,11 @@ export interface AnnotationProperties {
   title?: string
 
   /**
+   * The name of the file for which the annotation should be created.
+   */
+  file?: string
+
+  /**
    * The start line for the annotation.
    */
   startLine?: number
@@ -256,4 +261,52 @@ const core = require('@actions/core');
 var pid = core.getState("pidToKill");
 
 process.kill(pid);
+```
+
+#### OIDC Token
+
+You can use these methods to interact with the GitHub OIDC provider and get a JWT ID token which would help to get access token from third party cloud providers.
+
+**Method Name**: getIDToken()
+
+**Inputs**
+
+audience : optional
+
+**Outputs**
+
+A [JWT](https://jwt.io/) ID Token
+
+In action's `main.ts`:
+```js
+const core = require('@actions/core');
+async function getIDTokenAction(): Promise<void> {
+  
+   const audience = core.getInput('audience', {required: false})
+   
+   const id_token1 = await core.getIDToken()            // ID Token with default audience
+   const id_token2 = await core.getIDToken(audience)    // ID token with custom audience
+   
+   // this id_token can be used to get access token from third party cloud providers
+}
+getIDTokenAction()
+```
+
+In action's `actions.yml`:
+
+```yaml
+name: 'GetIDToken'
+description: 'Get ID token from Github OIDC provider'
+inputs:
+  audience:  
+    description: 'Audience for which the ID token is intended for'
+    required: false
+outputs:
+  id_token1: 
+    description: 'ID token obtained from OIDC provider'
+  id_token2: 
+    description: 'ID token obtained from OIDC provider'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
 ```
