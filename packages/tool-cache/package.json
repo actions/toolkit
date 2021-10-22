@@ -41,12 +41,12 @@
     "@actions/http-client": "^1.0.8",
     "@actions/io": "^1.1.1",
     "semver": "^6.1.0",
-    "uuid": "^3.3.2"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/nock": "^10.0.3",
     "@types/semver": "^6.0.0",
-    "@types/uuid": "^3.4.4",
+    "@types/uuid": "^8.3.1",
     "nock": "^10.0.6"
   }
 }
