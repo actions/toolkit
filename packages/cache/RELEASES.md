@@ -40,3 +40,6 @@
 
 ### 1.0.7
 - Fixes permissions issue extracting archives with GNU tar on macOS ([issue](https://github.com/actions/cache/issues/527))
+
+### 1.0.8
+- Increase the allowed artifact cache size from 5GB to 10GB ([issue](https://github.com/github/c2c-actions/issues/3270))
