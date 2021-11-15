@@ -18,7 +18,7 @@ describe('@actions/github', () => {
       proxyServer.listen(port, () => resolve(null))
     })
     proxyServer.on('connect', req => {
-      proxyConnects.push(req.url ?? 'default url')
+      proxyConnects.push(req.url)
     })
   })
 
