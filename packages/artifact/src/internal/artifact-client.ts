@@ -74,8 +74,7 @@ export class DefaultArtifactClient implements ArtifactClient {
   ): Promise<UploadResponse> {
     core.info(
       `Starting artifact upload
- 
-      For more detailed logs during the artifact upload process, enable step-debugging: https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging`
+For more detailed logs during the artifact upload process, enable step-debugging: https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging`
     )
     checkArtifactName(name)
 
@@ -110,7 +109,9 @@ export class DefaultArtifactClient implements ArtifactClient {
       }
 
       core.debug(`Upload Resource URL: ${response.fileContainerResourceUrl}`)
-      core.info(`Container for artifact: ${name} successfully created. Starting upload of file(s)`)
+      core.info(
+        `Container for artifact "${name}" successfully created. Starting upload of file(s)`
+      )
 
       // Upload each of the files that were found concurrently
       const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
@@ -121,22 +122,25 @@ export class DefaultArtifactClient implements ArtifactClient {
 
       // Update the size of the artifact to indicate we are done uploading
       // The uncompressed size is used for display when downloading a zip of the artifact from the UI
-      core.info(`File upload process has finished. Finalizing the artifact upload`)
+      core.info(
+        `File upload process has finished. Finalizing the artifact upload`
+      )
       await uploadHttpClient.patchArtifactSize(uploadResult.totalSize, name)
 
-      if(uploadResult.failedItems.length > 0){
-        core.info(`Upload finished. There were ${uploadResult.failedItems.length} items that failed to upload`)
+      if (uploadResult.failedItems.length > 0) {
+        core.info(
+          `Upload finished. There were ${uploadResult.failedItems.length} items that failed to upload`
+        )
       } else {
-        core.info(`All files have been successfully uploaded!`)
+        core.info(`Artifact has been finalized. All files have been successfully uploaded!`)
       }
 
       core.info(
-        `Finished artifact upload. 
-        
-        The raw size of all the files that were specified for upload is ${uploadResult.totalSize}
-        The size of all the files that were uploaded (this takes into account any gzip compression used to reduce the upload size and storage of individual files) is ${uploadResult.uploadSize}
-        
-        \u001b[1mNote, files are uploaded individually however a zip file is dynamically created for each artifact when a download is started from the GitHub UI or API (to aggregate uploads that have more than one uploaded file). The size of the dynamically created zip file can differ significantly from the reported size.`
+        `
+The raw size of all the files that were specified for upload is ${uploadResult.totalSize} bytes
+The size of all the files that were uploaded is ${uploadResult.uploadSize} bytes. This takes into account any gzip compression used to reduce the upload size, time and storage
+
+Note: The size of downloaded zips can differ significantly from the reported size. For more information see: https://github.com/actions/upload-artifact#zipped-artifact-downloads \r\n`
       )
 
       uploadResponse.artifactItems = uploadSpecification.map(

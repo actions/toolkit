@@ -265,9 +265,9 @@ export function checkArtifactName(name: string): void {
       throw new Error(
         `Artifact name is not valid: ${name}. Contains the following character: "${invalidChar}".
         
-        Invalid characters include: ${invalidArtifactNameCharacters.toString()}.
+Invalid characters include: ${invalidArtifactNameCharacters.toString()}.
         
-        These characters are not allowed in the artifact name due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.`
+These characters are not allowed in the artifact name due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.`
       )
     }
   }

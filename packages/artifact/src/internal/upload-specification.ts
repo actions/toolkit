@@ -19,8 +19,7 @@ export function getUploadSpecification(
   rootDirectory: string,
   artifactFiles: string[]
 ): UploadSpecification[] {
-  checkArtifactName(artifactName)
-
+  // artifact name was checked earlier on
   const specifications: UploadSpecification[] = []
 
   if (!fs.existsSync(rootDirectory)) {
