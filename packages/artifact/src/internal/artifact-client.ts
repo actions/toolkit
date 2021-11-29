@@ -131,7 +131,12 @@ export class DefaultArtifactClient implements ArtifactClient {
       }
 
       core.info(
-        `Finished artifact upload. The raw size of all files (pre-compression) that were uploaded is ${uploadResult.uploadSize} bytes.`
+        `Finished artifact upload. 
+        
+        The raw size of all the files that were specified for upload is ${uploadResult.totalSize}
+        The size of all the files that were uploaded (this takes into account any gzip compression used to reduce the upload size and storage of individual files) is ${uploadResult.uploadSize}
+        
+        \u001b[1mNote, files are uploaded individually however a zip file is dynamically created for each artifact when a download is started from the GitHub UI or API (to aggregate uploads that have more than one uploaded file). The size of the dynamically created zip file can differ significantly from the reported size.`
       )
 
       uploadResponse.artifactItems = uploadSpecification.map(

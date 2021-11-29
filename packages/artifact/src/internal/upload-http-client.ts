@@ -229,6 +229,7 @@ export class UploadHttpClient {
     // the file that is being uploaded is less than 64k in size, to increase throughput and to minimize disk I/O
     // for creating a new GZip file, an in-memory buffer is used for compression
     if (totalFileSize < 65536) {
+      core.debug(`${parameters.file} is greater than 64k in size. Creating gzip file to potentially reduce the upload size`)
       const buffer = await createGZipFileInBuffer(parameters.file)
 
       // An open stream is needed in the event of a failure and we need to retry. If a NodeJS.ReadableStream is directly passed in,
@@ -237,11 +238,13 @@ export class UploadHttpClient {
 
       if (totalFileSize < buffer.byteLength) {
         // compression did not help with reducing the size, use a readable stream from the original file for upload
+        core.debug(`The gzip file created for ${parameters.file} did not help with reducing the size of the file. The original file will be uploaded as-is`)
         openUploadStream = () => fs.createReadStream(parameters.file)
         isGzip = false
         uploadFileSize = totalFileSize
       } else {
         // create a readable stream using a PassThrough stream that is both readable and writable
+        core.debug(`A gzip file created for ${parameters.file} helped with reducing the file size. The file will be uploaded using gzip.`)
         openUploadStream = () => {
           const passThrough = new stream.PassThrough()
           passThrough.end(buffer)
