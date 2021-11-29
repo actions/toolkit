@@ -132,7 +132,9 @@ For more detailed logs during the artifact upload process, enable step-debugging
           `Upload finished. There were ${uploadResult.failedItems.length} items that failed to upload`
         )
       } else {
-        core.info(`Artifact has been finalized. All files have been successfully uploaded!`)
+        core.info(
+          `Artifact has been finalized. All files have been successfully uploaded!`
+        )
       }
 
       core.info(
