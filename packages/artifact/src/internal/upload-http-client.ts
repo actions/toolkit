@@ -231,7 +231,7 @@ export class UploadHttpClient {
     if (totalFileSize < 65536) {
       const buffer = await createGZipFileInBuffer(parameters.file)
 
-      //An open stream is needed in the event of a failure and we need to retry. If a NodeJS.ReadableStream is directly passed in,
+      // An open stream is needed in the event of a failure and we need to retry. If a NodeJS.ReadableStream is directly passed in,
       // it will not properly get reset to the start of the stream if a chunk upload needs to be retried
       let openUploadStream: () => NodeJS.ReadableStream
 

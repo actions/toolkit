@@ -72,6 +72,11 @@ export class DefaultArtifactClient implements ArtifactClient {
     rootDirectory: string,
     options?: UploadOptions | undefined
   ): Promise<UploadResponse> {
+    core.info(
+      `Starting artifact upload
+ 
+      For more detailed logs during the artifact upload process, enable step-debugging: https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging`
+    )
     checkArtifactName(name)
 
     // Get specification for the files being uploaded
@@ -103,7 +108,9 @@ export class DefaultArtifactClient implements ArtifactClient {
           'No URL provided by the Artifact Service to upload an artifact to'
         )
       }
+
       core.debug(`Upload Resource URL: ${response.fileContainerResourceUrl}`)
+      core.info(`Container for artifact: ${name} successfully created. Starting upload of file(s)`)
 
       // Upload each of the files that were found concurrently
       const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
@@ -114,10 +121,17 @@ export class DefaultArtifactClient implements ArtifactClient {
 
       // Update the size of the artifact to indicate we are done uploading
       // The uncompressed size is used for display when downloading a zip of the artifact from the UI
+      core.info(`File upload process has finished. Finalizing the artifact upload`)
       await uploadHttpClient.patchArtifactSize(uploadResult.totalSize, name)
 
+      if(uploadResult.failedItems.length > 0){
+        core.info(`Upload finished. There were ${uploadResult.failedItems.length} items that failed to upload`)
+      } else {
+        core.info(`All files have been successfully uploaded!`)
+      }
+
       core.info(
-        `Finished uploading artifact ${name}. Reported size is ${uploadResult.uploadSize} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
+        `Finished artifact upload. The raw size of all files (pre-compression) that were uploaded is ${uploadResult.uploadSize} bytes.`
       )
 
       uploadResponse.artifactItems = uploadSpecification.map(
