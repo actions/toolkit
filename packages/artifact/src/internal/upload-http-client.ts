@@ -219,16 +219,22 @@ export class UploadHttpClient {
     httpClientIndex: number,
     parameters: UploadFileParameters
   ): Promise<UploadFileResult> {
-    const totalFileSize: number = (await stat(parameters.file)).size
+    const fileStat: fs.Stats = await stat(parameters.file)
+    const totalFileSize = fileStat.size
+    // on Windows with mkfifo from MSYS2 stats.isFIFO returns false, so we check if running on Windows node and
+    // if the file has size of 0 to compensate
+    const isFIFO =
+      fileStat.isFIFO() || (process.platform === 'win32' && totalFileSize === 0)
     let offset = 0
     let isUploadSuccessful = true
     let failedChunkSizes = 0
     let uploadFileSize = 0
     let isGzip = true
 
-    // the file that is being uploaded is less than 64k in size, to increase throughput and to minimize disk I/O
+    // the file that is being uploaded is less than 64k in size to increase throughput and to minimize disk I/O
     // for creating a new GZip file, an in-memory buffer is used for compression
-    if (totalFileSize < 65536) {
+    // with named pipes the file size is reported as zero in that case don't read the file in memory
+    if (!isFIFO && totalFileSize < 65536) {
       core.debug(
         `${parameters.file} is less than 64k in size. Creating a gzip file in-memory to potentially reduce the upload size`
       )
@@ -299,7 +305,8 @@ export class UploadHttpClient {
       let uploadFilePath = tempFile.path
 
       // compression did not help with size reduction, use the original file for upload and delete the temp GZip file
-      if (totalFileSize < uploadFileSize) {
+      // for named pipes totalFileSize is zero, this assumes compression did help
+      if (!isFIFO && totalFileSize < uploadFileSize) {
         core.debug(
           `The gzip file created for ${parameters.file} did not help with reducing the size of the file. The original file will be uploaded as-is`
         )
