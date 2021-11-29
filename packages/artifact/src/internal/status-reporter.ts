@@ -24,6 +24,7 @@ export class StatusReporter {
 
   setTotalNumberOfFilesToProcess(fileTotal: number): void {
     this.totalNumberOfFilesToProcess = fileTotal
+    this.processedCount = 0
   }
 
   start(): void {
