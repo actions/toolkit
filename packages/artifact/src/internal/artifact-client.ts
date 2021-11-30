@@ -74,7 +74,7 @@ export class DefaultArtifactClient implements ArtifactClient {
   ): Promise<UploadResponse> {
     core.info(
       `Starting artifact upload
-For more detailed logs during the artifact upload process, enable step-debugging: https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging`
+For more detailed logs during the artifact upload process, enable step-debugging: https://docs.github.com/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging`
     )
     checkArtifactName(name)
 
