@@ -30,7 +30,7 @@ export function getExponentialRetryTimeInMilliseconds(
   const maxTime = minTime * getRetryMultiplier()
 
   // returns a random number between the minTime (inclusive) and the maxTime (exclusive)
-  return Math.random() * (maxTime - minTime) + minTime
+  return Math.trunc(Math.random() * (maxTime - minTime) + minTime)
 }
 
 /**
@@ -263,10 +263,16 @@ export function checkArtifactName(name: string): void {
   for (const invalidChar of invalidArtifactNameCharacters) {
     if (name.includes(invalidChar)) {
       throw new Error(
-        `Artifact name is not valid: ${name}. Contains character: "${invalidChar}". Invalid artifact name characters include: ${invalidArtifactNameCharacters.toString()}.`
+        `Artifact name is not valid: ${name}. Contains the following character: "${invalidChar}".
+        
+Invalid characters include: ${invalidArtifactNameCharacters.toString()}.
+        
+These characters are not allowed in the artifact name due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.`
       )
     }
   }
+
+  info(`Artifact name is valid!`)
 }
 
 /**
@@ -280,7 +286,10 @@ export function checkArtifactFilePath(path: string): void {
   for (const invalidChar of invalidArtifactFilePathCharacters) {
     if (path.includes(invalidChar)) {
       throw new Error(
-        `Artifact path is not valid: ${path}. Contains character: "${invalidChar}". Invalid characters include: ${invalidArtifactFilePathCharacters.toString()}.`
+        `Artifact path is not valid: ${path}. Contains the following character: "${invalidChar}". Invalid characters include: ${invalidArtifactFilePathCharacters.toString()}.
+        
+        The following characters are not allowed in files that are uploaded due to limitations with certain file systems such as NTFS. To maintain file system agnostic behavior, these characters are intentionally not allowed to prevent potential problems with downloads on different file systems.
+        `
       )
     }
   }
