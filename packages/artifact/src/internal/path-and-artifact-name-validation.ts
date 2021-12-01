@@ -55,8 +55,7 @@ These characters are not allowed in the artifact name due to limitations with ce
 }
 
 /**
- * Scans the name of the filePath used to make sure there are no illegal characters. If a file with an illegal character
- * is attempted to be uploaded an error will be returned from the server fail so this must be checked on the client-side first
+ * Scans the name of the filePath used to make sure there are no illegal characters
  */
 export function checkArtifactFilePath(path: string): void {
   if (!path) {
