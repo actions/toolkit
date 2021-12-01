@@ -46,66 +46,6 @@ describe('Utils', () => {
     }
   })
 
-  it('Check Artifact Name for any invalid characters', () => {
-    const invalidNames = [
-      'my\\artifact',
-      'my/artifact',
-      'my"artifact',
-      'my:artifact',
-      'my<artifact',
-      'my>artifact',
-      'my|artifact',
-      'my*artifact',
-      'my?artifact',
-      ''
-    ]
-    for (const invalidName of invalidNames) {
-      expect(() => {
-        utils.checkArtifactName(invalidName)
-      }).toThrow()
-    }
-
-    const validNames = [
-      'my-normal-artifact',
-      'myNormalArtifact',
-      'm¥ñðrmålÄr†ï£å¢†'
-    ]
-    for (const validName of validNames) {
-      expect(() => {
-        utils.checkArtifactName(validName)
-      }).not.toThrow()
-    }
-  })
-
-  it('Check Artifact File Path for any invalid characters', () => {
-    const invalidNames = [
-      'some/invalid"artifact/path',
-      'some/invalid:artifact/path',
-      'some/invalid<artifact/path',
-      'some/invalid>artifact/path',
-      'some/invalid|artifact/path',
-      'some/invalid*artifact/path',
-      'some/invalid?artifact/path',
-      ''
-    ]
-    for (const invalidName of invalidNames) {
-      expect(() => {
-        utils.checkArtifactFilePath(invalidName)
-      }).toThrow()
-    }
-
-    const validNames = [
-      'my/perfectly-normal/artifact-path',
-      'my/perfectly\\Normal/Artifact-path',
-      'm¥/ñðrmål/Är†ï£å¢†'
-    ]
-    for (const validName of validNames) {
-      expect(() => {
-        utils.checkArtifactFilePath(validName)
-      }).not.toThrow()
-    }
-  })
-
   it('Test negative artifact retention throws', () => {
     expect(() => {
       utils.getProperRetention(-1, undefined)
