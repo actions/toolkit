@@ -20,7 +20,7 @@ const invalidArtifactFilePathCharacters = new Map<string, string>([
   ['\n', ' Line feed \\n']
 ])
 
-let invalidArtifactNameCharacters = new Map<string, string>([
+const invalidArtifactNameCharacters = new Map<string, string>([
   ...invalidArtifactFilePathCharacters,
   ['\\', ' Backslash \\'],
   ['/', ' Forward slash /']
