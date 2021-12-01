@@ -9,7 +9,7 @@ import {info} from '@actions/core'
  * FilePaths can include characters such as \ and / which are not permitted in the artifact name alone
  */
 const invalidArtifactFilePathCharacters = new Map<string, string>([
-  ['"', 'Double quote "'],
+  ['"', 'Double quote "'], // no spacing at the start of "Double" so that text in errors annotations lines up nicely
   [':', ' Colon :'],
   ['<', ' Less than <'],
   ['>', ' Greater than >'],
