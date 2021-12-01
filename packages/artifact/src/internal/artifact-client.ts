@@ -9,10 +9,10 @@ import {UploadOptions} from './upload-options'
 import {DownloadOptions} from './download-options'
 import {DownloadResponse} from './download-response'
 import {
-  checkArtifactName,
   createDirectoriesForArtifact,
   createEmptyFilesForArtifact
 } from './utils'
+import {checkArtifactName} from './path-and-artifact-name-validation'
 import {DownloadHttpClient} from './download-http-client'
 import {getDownloadSpecification} from './download-specification'
 import {getWorkSpaceDirectory} from './config-variables'
