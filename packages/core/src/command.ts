@@ -36,18 +36,14 @@ export function issue(name: string, message = ''): void {
 const CMD_STRING = '::'
 
 class Command {
-  private readonly command: string
-  private readonly message: string
-  private readonly properties: CommandProperties
-
-  constructor(command: string, properties: CommandProperties, message: string) {
+  constructor(
+    private readonly command: string,
+    private readonly properties: CommandProperties,
+    private readonly message: string
+  ) {
     if (!command) {
-      command = 'missing.command'
+      this.command = 'missing.command'
     }
-
-    this.command = command
-    this.properties = properties
-    this.message = message
   }
 
   toString(): string {
