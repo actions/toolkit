@@ -53,10 +53,12 @@ export class StatusReporter {
   ): void {
     // display 1 decimal place without any rounding
     const percentage = this.formatPercentage(chunkEndIndex, totalUploadFileSize)
-    info(`Uploaded ${fileName} (${percentage.slice(
-      0,
-      percentage.indexOf('.') + 2
-    )}%) chunks ${chunkStartIndex}:${chunkEndIndex}`)
+    info(
+      `Uploaded ${fileName} (${percentage.slice(
+        0,
+        percentage.indexOf('.') + 2
+      )}%) chunks ${chunkStartIndex}:${chunkEndIndex}`
+    )
   }
 
   stop(): void {
