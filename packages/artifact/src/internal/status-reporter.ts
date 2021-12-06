@@ -14,11 +14,9 @@ export class StatusReporter {
   private displayFrequencyInMilliseconds: number
   private largeFiles = new Map<string, string>()
   private totalFileStatus: NodeJS.Timeout | undefined
-  private largeFileStatus: NodeJS.Timeout | undefined
 
   constructor(displayFrequencyInMilliseconds: number) {
     this.totalFileStatus = undefined
-    this.largeFileStatus = undefined
     this.displayFrequencyInMilliseconds = displayFrequencyInMilliseconds
   }
 
@@ -44,41 +42,28 @@ export class StatusReporter {
         )}%)`
       )
     }, this.displayFrequencyInMilliseconds)
-
-    // displays extra information about any large files that take a significant amount of time to upload or download every 1 second
-    this.largeFileStatus = setInterval(() => {
-      for (const value of Array.from(this.largeFiles.values())) {
-        info(value)
-      }
-      // delete all entries in the map after displaying the information so it will not be displayed again unless explicitly added
-      this.largeFiles.clear()
-    }, 1000)
   }
 
   // if there is a large file that is being uploaded in chunks, this is used to display extra information about the status of the upload
   updateLargeFileStatus(
     fileName: string,
-    numerator: number,
-    denominator: number
+    chunkStartIndex: number,
+    chunkEndIndex: number,
+    totalUploadFileSize: number
   ): void {
     // display 1 decimal place without any rounding
-    const percentage = this.formatPercentage(numerator, denominator)
-    const displayInformation = `Uploading ${fileName} (${percentage.slice(
-      0,
-      percentage.indexOf('.') + 2
-    )}%)`
-
-    // any previously added display information should be overwritten for the specific large file because a map is being used
-    this.largeFiles.set(fileName, displayInformation)
+    const percentage = this.formatPercentage(chunkEndIndex, totalUploadFileSize)
+    info(
+      `Uploaded ${fileName} (${percentage.slice(
+        0,
+        percentage.indexOf('.') + 2
+      )}%) chunks ${chunkStartIndex}:${chunkEndIndex}`
+    )
   }
 
   stop(): void {
     if (this.totalFileStatus) {
       clearInterval(this.totalFileStatus)
-    }
-
-    if (this.largeFileStatus) {
-      clearInterval(this.largeFileStatus)
     }
   }
 

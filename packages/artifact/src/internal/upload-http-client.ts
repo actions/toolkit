@@ -327,17 +327,8 @@ export class UploadHttpClient {
           parameters.maxChunkSize
         )
 
-        // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
-        if (uploadFileSize > 104857600) {
-          this.statusReporter.updateLargeFileStatus(
-            parameters.file,
-            offset,
-            uploadFileSize
-          )
-        }
-
-        const start = offset
-        const end = offset + chunkSize - 1
+        const startChunkIndex = offset
+        const endChunkIndex = offset + chunkSize - 1
         offset += parameters.maxChunkSize
 
         if (abortFileUpload) {
@@ -351,12 +342,12 @@ export class UploadHttpClient {
           parameters.resourceUrl,
           () =>
             fs.createReadStream(uploadFilePath, {
-              start,
-              end,
+              start: startChunkIndex,
+              end: endChunkIndex,
               autoClose: false
             }),
-          start,
-          end,
+          startChunkIndex,
+          endChunkIndex,
           uploadFileSize,
           isGzip,
           totalFileSize
@@ -369,6 +360,16 @@ export class UploadHttpClient {
           failedChunkSizes += chunkSize
           core.warning(`Aborting upload for ${parameters.file} due to failure`)
           abortFileUpload = true
+        } else {
+          // if an individual file is greater than 8MB (1024*1024*8) in size, display extra information about the upload status
+          if (uploadFileSize > 8388608) {
+            this.statusReporter.updateLargeFileStatus(
+              parameters.file,
+              startChunkIndex,
+              endChunkIndex,
+              uploadFileSize
+            )
+          }
         }
       }
 
