@@ -57,7 +57,7 @@ export class StatusReporter {
       `Uploaded ${fileName} (${percentage.slice(
         0,
         percentage.indexOf('.') + 2
-      )}%) chunks ${chunkStartIndex}:${chunkEndIndex}`
+      )}%) bytes ${chunkStartIndex}:${chunkEndIndex}`
     )
   }
 

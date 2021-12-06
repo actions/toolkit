@@ -61,3 +61,12 @@
 ### 0.5.2
 
 - Add HTTP 500 as a retryable status code for artifact upload and download.
+
+### 0.6.0
+
+- Support upload from named pipes [#748](https://github.com/actions/toolkit/pull/748)
+- Fixes to percentage values being greater than 100% when downloading all artifacts [#889](https://github.com/actions/toolkit/pull/889)
+- Improved logging and output during artifact upload [#949](https://github.com/actions/toolkit/pull/949)
+- Improvements to client-side validation for certain invalid characters not allowed during upload: [#951](https://github.com/actions/toolkit/pull/951)
+- Faster upload speeds for certain types of large files by exempting gzip compression [#956](https://github.com/actions/toolkit/pull/956)
+- More detailed logging when dealing with chunked uploads [#957](https://github.com/actions/toolkit/pull/957)
