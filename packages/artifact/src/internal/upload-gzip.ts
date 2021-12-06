@@ -4,6 +4,20 @@ import {promisify} from 'util'
 const stat = promisify(fs.stat)
 
 /**
+ * GZipping certain files that are already compressed will likely not yield further size reductions. Creating large temporary gzip
+ * files then will just waste a lot of time before ultimately being discarded (especially for very large files).
+ * If any of these types of files are encountered then on-disk gzip creation will be skipped and the original file will be uploaded as-is
+ */
+const gzipExemptFileExtensions = [
+  '.gzip',
+  '.zip',
+  '.tar.lz',
+  '.tar.gz',
+  '.tar.bz2',
+  '.7z'
+]
+
+/**
  * Creates a Gzip compressed file of an original file at the provided temporary filepath location
  * @param {string} originalFilePath filepath of whatever will be compressed. The original file will be unmodified
  * @param {string} tempFilePath the location of where the Gzip file will be created
@@ -13,6 +27,13 @@ export async function createGZipFileOnDisk(
   originalFilePath: string,
   tempFilePath: string
 ): Promise<number> {
+  for (var i = 0; i < gzipExemptFileExtensions.length; i++) {
+    if (originalFilePath.endsWith(gzipExemptFileExtensions[i])) {
+      // return a really large number so that the original file gets uploaded
+      return Number.MAX_SAFE_INTEGER
+    }
+  }
+
   return new Promise((resolve, reject) => {
     const inputStream = fs.createReadStream(originalFilePath)
     const gzip = zlib.createGzip()
