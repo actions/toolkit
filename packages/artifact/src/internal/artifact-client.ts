@@ -240,7 +240,9 @@ Note: The size of downloaded zips can differ significantly from the reported siz
     while (downloadedArtifacts < artifacts.count) {
       const currentArtifactToDownload = artifacts.value[downloadedArtifacts]
       downloadedArtifacts += 1
-      core.info(`starting download of artifact ${currentArtifactToDownload.name} : ${downloadedArtifacts}/${artifacts.count}`)
+      core.info(
+        `starting download of artifact ${currentArtifactToDownload.name} : ${downloadedArtifacts}/${artifacts.count}`
+      )
 
       // Get container entries for the specific artifact
       const items = await downloadHttpClient.getContainerItems(
