@@ -228,9 +228,6 @@ export class DownloadHttpClient {
       let response: IHttpClientResponse
       try {
         response = await makeDownloadRequest()
-        if (core.isDebug()) {
-          displayHttpDiagnostics(response)
-        }
       } catch (error) {
         // if an error is caught, it is usually indicative of a timeout so retry the download
         core.info('An error occurred while attempting to download a file')
