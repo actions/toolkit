@@ -27,8 +27,8 @@ export async function createGZipFileOnDisk(
   originalFilePath: string,
   tempFilePath: string
 ): Promise<number> {
-  for (var i = 0; i < gzipExemptFileExtensions.length; i++) {
-    if (originalFilePath.endsWith(gzipExemptFileExtensions[i])) {
+  for (const gzipExemptExtension of gzipExemptFileExtensions) {
+    if (originalFilePath.endsWith(gzipExemptExtension)) {
       // return a really large number so that the original file gets uploaded
       return Number.MAX_SAFE_INTEGER
     }
