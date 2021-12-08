@@ -50,8 +50,8 @@ export class OidcClient {
       .getJson<TokenResponse>(id_token_url)
       .catch(error => {
         throw new Error(
-          `Failed to get ID Token. \n 
-        Error Code : ${error.statusCode}\n 
+          `Failed to get ID Token. \n
+        Error Code : ${error.statusCode}\n
         Error Message: ${error.result.message}`
         )
       })
