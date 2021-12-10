@@ -181,7 +181,10 @@ describe('Upload Tests', () => {
   function hasMkfifo(): boolean {
     try {
       // make sure we drain the stdout
-      return execSync('which mkfifo').toString().length > 0
+      return (
+        process.platform !== 'win32' &&
+        execSync('which mkfifo').toString().length > 0
+      )
     } catch (e) {
       return false
     }
