@@ -70,3 +70,7 @@
 - Improvements to client-side validation for certain invalid characters not allowed during upload: [#951](https://github.com/actions/toolkit/pull/951)
 - Faster upload speeds for certain types of large files by exempting gzip compression [#956](https://github.com/actions/toolkit/pull/956)
 - More detailed logging when dealing with chunked uploads [#957](https://github.com/actions/toolkit/pull/957)
+
+### 0.6.1
+
+- Fix for failing 0 byte file uploads on Windows [#962](https://github.com/actions/toolkit/pull/962)
