@@ -18,8 +18,10 @@ if [ ! -f "$path" ]; then
     exit 1
 fi
 
-actualContent=$(cat $path)
-if [ "$actualContent" != "$expectedContent" ];then
+actualContent=$(cat "$path")
+if [ "$expectedContent" == "_EMPTY_" ] && [ ! -s "$path" ]; then
+    exit 0
+elif  [ "$actualContent" != "$expectedContent" ]; then
     echo "File contents are not correct, expected $expectedContent, received $actualContent"
     exit 1
 fi
