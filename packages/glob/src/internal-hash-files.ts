@@ -11,7 +11,7 @@ export async function hashFiles(globber: Globber): Promise<string> {
   const githubWorkspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
   const result = crypto.createHash('sha256')
   let count = 0
-  for await (const file of globber.globGenerator()) {
+  for await (const file of await sortedFiles(globber)) {
     core.debug(file)
     if (!file.startsWith(`${githubWorkspace}${path.sep}`)) {
       core.debug(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`)
@@ -39,4 +39,13 @@ export async function hashFiles(globber: Globber): Promise<string> {
     core.debug(`No matches found for glob`)
     return ''
   }
+}
+
+async function sortedFiles(globber: Globber): Promise<string[]> {
+  const result: string[] = []
+  for await (const file of globber.globGenerator()) {
+    result.push(file)
+  }
+  result.sort()
+  return result
 }

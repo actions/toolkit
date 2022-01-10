@@ -1,6 +1,8 @@
 import * as io from '../../io/src/io'
 import * as path from 'path'
 import {hashFiles} from '../src/glob'
+import {hashFiles as _hashFiles} from '../src/internal-hash-files'
+import {Globber, DefaultGlobber} from '../src/internal-globber'
 import {promises as fs} from 'fs'
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -21,6 +23,23 @@ describe('globber', () => {
     const hash = await hashFiles(`${root}/*`)
     expect(hash).toEqual(
       'd8a411e8f8643821bed189e627ff57151918aa554c00c10b31c693ab2dded273'
+    )
+  })
+
+  it('multiple hashfiles test', async () => {
+    const root = path.join(getTestTemp(), 'basic-hashfiles')
+    await fs.mkdir(path.join(root), {recursive: true})
+    const filePathWithContents: [string, string][] = [...Array(10).keys()].map(
+      index => [path.join(root, `test${ index }.txt`), `test file content ${ index }`]
+    )
+    for (const filePathWithContent of filePathWithContents) {
+      await fs.writeFile(filePathWithContent[0], filePathWithContent[1])
+    }
+    const globber = await DefaultGlobber.create("")
+    jest.spyOn(globber, 'globGenerator').mockImplementation(() => globGeneratorRandomOrder(filePathWithContents))
+    const hash = await _hashFiles(globber)
+    expect(hash).toEqual(
+      '1fa85a53160a160ba2219f6ecb3941a2c68a77577f173c95758aa068ebcbce3b'
     )
   })
 
@@ -113,6 +132,13 @@ function getTestTemp(): string {
   return path.join(__dirname, '_temp', 'hash_files')
 }
 
+function shuffle(array: any[]) {
+  for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
 /**
  * Creates a symlink directory on OSX/Linux, and a junction point directory on Windows.
  * A symlink directory is not created on Windows since it requires an elevated context.
@@ -122,5 +148,12 @@ async function createSymlinkDir(real: string, link: string): Promise<void> {
     await fs.symlink(real, link, 'junction')
   } else {
     await fs.symlink(real, link)
+  }
+}
+
+async function *globGeneratorRandomOrder(filePathWithContents: [string, string][]): AsyncGenerator<string, void> {
+  shuffle(filePathWithContents)
+  for (const filePathWithContent of filePathWithContents) {
+    yield filePathWithContent[0]
   }
 }
