@@ -6,6 +6,8 @@ import {OctokitOptions} from '@octokit/core/dist-types/types'
 
 export const context = new Context.Context()
 
+export {Context} from './context'
+
 /**
  * Returns a hydrated octokit ready to use for GitHub Actions
  *
