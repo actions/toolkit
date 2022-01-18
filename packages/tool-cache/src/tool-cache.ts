@@ -593,7 +593,8 @@ export async function getManifestFromRepo(
   branch = 'master'
 ): Promise<IToolRelease[]> {
   let releases: IToolRelease[] = []
-  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
+  const base = process.env['GITHUB_API_URL'] || 'https://api.github.com'
+  const treeUrl = `${base}/repos/${owner}/${repo}/git/trees/${branch}`
 
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
   const headers: IHeaders = {}
