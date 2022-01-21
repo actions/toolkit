@@ -1,6 +1,6 @@
 import {issue, issueCommand} from './command'
 import {issueCommand as issueFileCommand} from './file-command'
-import {toCommandProperties, toCommandValue} from './utils'
+import {toCommandProperties, toCommandValue, AnnotationProperties} from './utils'
 
 import * as os from 'os'
 import * as path from 'path'
@@ -33,43 +33,6 @@ export enum ExitCode {
   Failure = 1
 }
 
-/**
- * Optional properties that can be sent with annotatation commands (notice, error, and warning)
- * See: https://docs.github.com/en/rest/reference/checks#create-a-check-run for more information about annotations.
- */
-export interface AnnotationProperties {
-  /**
-   * A title for the annotation.
-   */
-  title?: string
-
-  /**
-   * The path of the file for which the annotation should be created.
-   */
-  file?: string
-
-  /**
-   * The start line for the annotation.
-   */
-  startLine?: number
-
-  /**
-   * The end line for the annotation. Defaults to `startLine` when `startLine` is provided.
-   */
-  endLine?: number
-
-  /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
-   */
-  startColumn?: number
-
-  /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
-   * Defaults to `startColumn` when `startColumn` is provided.
-   */
-  endColumn?: number
-}
-
 //-----------------------------------------------------------------------
 // Variables
 //-----------------------------------------------------------------------
@@ -92,14 +55,6 @@ export function exportVariable(name: string, val: any): void {
   } else {
     issueCommand('set-env', {name}, convertedVal)
   }
-}
-
-/**
- * Registers a secret which will get masked from logs
- * @param secret value of the secret
- */
-export function setSecret(secret: string): void {
-  issueCommand('add-mask', {}, secret)
 }
 
 /**
@@ -225,14 +180,6 @@ export function setFailed(message: string | Error): void {
  */
 export function isDebug(): boolean {
   return process.env['RUNNER_DEBUG'] === '1'
-}
-
-/**
- * Writes debug message to user log
- * @param message debug message
- */
-export function debug(message: string): void {
-  issueCommand('debug', {}, message)
 }
 
 /**

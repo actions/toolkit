@@ -3,7 +3,7 @@ import * as actions_http_client from '@actions/http-client'
 import {IRequestOptions} from '@actions/http-client/interfaces'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {debug, setSecret} from './core'
+import {debug, setSecret} from './utils'
 interface TokenResponse {
   value?: string
 }
