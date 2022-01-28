@@ -67,9 +67,9 @@ export async function extractTar(
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        return ['--use-compress-program', 'zstd -d --long=30']
+        return ['--use-compress-program', 'zstd -d --fast=1 --long=30']
       case CompressionMethod.ZstdWithoutLong:
-        return ['--use-compress-program', 'zstd -d']
+        return ['--use-compress-program', 'zstd -d --fast=1']
       default:
         return ['-z']
     }
