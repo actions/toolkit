@@ -43,3 +43,7 @@
 
 ### 1.0.8
 - Increase the allowed artifact cache size from 5GB to 10GB ([issue](https://github.com/actions/cache/discussions/497))
+
+### 1.0.9
+  - Use @azure/ms-rest-js v2.6.0
+  - Use @azure/storage-blob v12.8.0
