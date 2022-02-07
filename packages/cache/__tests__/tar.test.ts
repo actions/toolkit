@@ -50,7 +50,7 @@ test('zstd extract tar', async () => {
     `"${defaultTarPath}"`,
     [
       '--use-compress-program',
-      'zstd -d --long=30',
+      'zstd -d --fast=1 --long=30',
       '-xf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P',
