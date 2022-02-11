@@ -111,7 +111,9 @@ echo "::remove-matcher owner=eslint-compact::"
 ```
 
 `add-matcher` takes a path to a Problem Matcher file
+
 `remove-matcher` removes a Problem Matcher by owner
+
 ### Save State
 
 Save a state to an environmental variable that can later be used in the main or post action.
