@@ -4,13 +4,7 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
-import {
-  ListObjectsV2Command,
-  ListObjectsV2CommandInput,
-  S3Client,
-  S3ClientConfig,
-  _Object
-} from '@aws-sdk/client-s3'
+import {S3ClientConfig} from '@aws-sdk/client-s3'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -56,7 +50,9 @@ function checkKey(key: string): void {
  * @param paths a list of file paths to restore from the cache
  * @param primaryKey an explicit key for restoring the cache
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
- * @param downloadOptions cache download options
+ * @param options cache download options
+ * @param s3Options upload options for AWS S3
+ * @param s3BucketName a name of AWS S3 bucket
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
@@ -142,6 +138,8 @@ export async function restoreCache(
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
  * @param options cache upload options
+ * @param s3Options upload options for AWS S3
+ * @param s3BucketName a name of AWS S3 bucket
  * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
  */
 export async function saveCache(
