@@ -42,14 +42,18 @@
     "@actions/glob": "^0.1.0",
     "@actions/http-client": "^1.0.9",
     "@actions/io": "^1.0.1",
+    "@aws-sdk/client-s3": "^3.50.0",
+    "@aws-sdk/lib-storage": "^3.50.0",
+    "@aws-sdk/types": "^3.50.0",
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.8.0",
     "semver": "^6.1.0",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "typescript": "^3.8.3",
+    "@types/node": "^17.0.17",
     "@types/semver": "^6.0.0",
-    "@types/uuid": "^3.4.5"
+    "@types/uuid": "^3.4.5",
+    "typescript": "^3.8.3"
   }
 }

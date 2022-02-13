@@ -4,6 +4,13 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
+import {
+  ListObjectsV2Command,
+  ListObjectsV2CommandInput,
+  S3Client,
+  S3ClientConfig,
+  _Object
+} from '@aws-sdk/client-s3'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -56,7 +63,9 @@ export async function restoreCache(
   paths: string[],
   primaryKey: string,
   restoreKeys?: string[],
-  options?: DownloadOptions
+  options?: DownloadOptions,
+  s3Options?: S3ClientConfig,
+  s3BucketName?: string
 ): Promise<string | undefined> {
   checkPaths(paths)
 
@@ -80,8 +89,8 @@ export async function restoreCache(
   // path are needed to compute version
   const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
     compressionMethod
-  })
-  if (!cacheEntry?.archiveLocation) {
+  }, s3Options, s3BucketName)
+  if (!cacheEntry?.archiveLocation || !cacheEntry?.cacheKey) {
     // Cache not found
     return undefined
   }
@@ -95,9 +104,11 @@ export async function restoreCache(
   try {
     // Download the cache from the cache entry
     await cacheHttpClient.downloadCache(
-      cacheEntry.archiveLocation,
+      cacheEntry,
       archivePath,
-      options
+      options,
+      s3Options,
+      s3BucketName,
     )
 
     if (core.isDebug()) {
@@ -136,7 +147,9 @@ export async function restoreCache(
 export async function saveCache(
   paths: string[],
   key: string,
-  options?: UploadOptions
+  options?: UploadOptions,
+  s3Options?: S3ClientConfig,
+  s3BucketName?: string
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
@@ -146,7 +159,7 @@ export async function saveCache(
   core.debug('Reserving Cache')
   const cacheId = await cacheHttpClient.reserveCache(key, paths, {
     compressionMethod
-  })
+  }, s3Options, s3BucketName)
   if (cacheId === -1) {
     throw new ReserveCacheError(
       `Unable to reserve cache with key ${key}, another job may be creating this cache.`
@@ -184,7 +197,7 @@ export async function saveCache(
     }
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
-    await cacheHttpClient.saveCache(cacheId, archivePath, options)
+    await cacheHttpClient.saveCache(cacheId, archivePath, key, options, s3Options, s3BucketName)
   } finally {
     // Try to delete the archive to save space
     try {

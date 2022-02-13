@@ -3,6 +3,7 @@ import {HttpClient} from '@actions/http-client'
 import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {BlockBlobClient} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/ms-rest-js'
+import {GetObjectCommand, S3Client, S3ClientConfig} from '@aws-sdk/client-s3'
 import * as buffer from 'buffer'
 import * as fs from 'fs'
 import * as stream from 'stream'
@@ -275,4 +276,30 @@ export async function downloadCacheStorageSDK(
       fs.closeSync(fd)
     }
   }
+}
+
+/**
+ * Download the cache using the AWS S3.  Only call this method if the use S3.
+ *
+ * @param key the key for the cache in S3
+ * @param archivePath the local path where the cache is saved
+ * @param s3Options: the option for AWS S3 client
+ * @param s3BucketName: the name of bucket in AWS S3
+ */
+export async function downloadCacheStorageS3(
+ key: string,
+ archivePath: string,
+ s3Options: S3ClientConfig,
+ s3BucketName: string
+): Promise<void> {
+  const s3client = new S3Client(s3Options)
+  const param = {
+    Bucket: s3BucketName,
+    Key: key,
+  }
+
+  const fileStream = fs.createWriteStream(archivePath);
+  const response = await s3client.send(new GetObjectCommand(param))
+  fileStream.write(response.Body)
+  return
 }
