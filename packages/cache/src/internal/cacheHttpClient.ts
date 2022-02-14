@@ -205,7 +205,7 @@ export async function downloadCache(
   s3Options?: S3ClientConfig,
   s3BucketName?: string
 ): Promise<void> {
-  const archiveLocation = cacheEntry.archiveLocation ?? "a"
+  const archiveLocation = cacheEntry.archiveLocation ?? "https://example.com" // for dummy
   const archiveUrl = new URL(archiveLocation)
   const downloadOptions = getDownloadOptions(options)
 
@@ -311,9 +311,11 @@ async function uploadFileS3(
   concurrency: number,
   maxChunkSize: number,
 ): Promise<void> {
-  const fileStream = fs.createReadStream(archivePath);
+  core.debug(`Start upload to S3 (bucket: ${s3BucketName})`)
 
-  (async () => {
+  const fileStream = fs.createReadStream(archivePath)
+
+  try {
     const parallelUpload = new Upload({
       client: new S3Client(s3options),
       queueSize: concurrency,
@@ -327,11 +329,15 @@ async function uploadFileS3(
     })
   
     parallelUpload.on("httpUploadProgress", (progress: Progress) => {
-      core.debug(`Uploading chunk progress: ${progress}`)
+      core.debug(`Uploading chunk progress: ${JSON.stringify(progress)}`)
     })
   
-    await parallelUpload.done()    
-  })
+    await parallelUpload.done()
+  } catch (error) {
+    throw new Error(
+      `Cache upload failed because ${error}`
+    )
+  }
 
   return
 }

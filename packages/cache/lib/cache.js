@@ -80,7 +80,7 @@ function restoreCache(paths, primaryKey, restoreKeys, options, s3Options, s3Buck
         const cacheEntry = yield cacheHttpClient.getCacheEntry(keys, paths, {
             compressionMethod
         }, s3Options, s3BucketName);
-        if (!(cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.archiveLocation) || !(cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.cacheKey)) {
+        if (!(cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.archiveLocation) && !(cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.cacheKey)) {
             // Cache not found
             return undefined;
         }

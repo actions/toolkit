@@ -86,7 +86,7 @@ export async function restoreCache(
   const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
     compressionMethod
   }, s3Options, s3BucketName)
-  if (!cacheEntry?.archiveLocation || !cacheEntry?.cacheKey) {
+  if (!cacheEntry?.archiveLocation && !cacheEntry?.cacheKey) {
     // Cache not found
     return undefined
   }

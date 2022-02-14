@@ -298,8 +298,17 @@ export async function downloadCacheStorageS3(
     Key: key,
   }
 
-  const fileStream = fs.createWriteStream(archivePath);
   const response = await s3client.send(new GetObjectCommand(param))
-  fileStream.write(response.Body)
+  if (!response.Body) {
+    throw new Error(
+      `Incomplete download. response.Body is undefined from S3.`
+    )
+  }
+
+  const fileStream = fs.createWriteStream(archivePath)
+
+  const pipeline = util.promisify(stream.pipeline)
+  await pipeline(response.Body as stream.Readable, fileStream)
+
   return
 }

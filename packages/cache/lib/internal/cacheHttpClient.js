@@ -143,7 +143,7 @@ exports.getCacheEntry = getCacheEntry;
 function downloadCache(cacheEntry, archivePath, options, s3Options, s3BucketName) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const archiveLocation = (_a = cacheEntry.archiveLocation) !== null && _a !== void 0 ? _a : "a";
+        const archiveLocation = (_a = cacheEntry.archiveLocation) !== null && _a !== void 0 ? _a : "https://example.com"; // for dummy
         const archiveUrl = new url_1.URL(archiveLocation);
         const downloadOptions = options_1.getDownloadOptions(options);
         if (downloadOptions.useAzureSdk &&
@@ -208,8 +208,9 @@ function uploadChunk(httpClient, resourceUrl, openStream, start, end) {
 }
 function uploadFileS3(s3options, s3BucketName, archivePath, key, concurrency, maxChunkSize) {
     return __awaiter(this, void 0, void 0, function* () {
+        core.debug(`Start upload to S3 (bucket: ${s3BucketName})`);
         const fileStream = fs.createReadStream(archivePath);
-        (() => __awaiter(this, void 0, void 0, function* () {
+        try {
             const parallelUpload = new lib_storage_1.Upload({
                 client: new client_s3_1.S3Client(s3options),
                 queueSize: concurrency,
@@ -221,10 +222,13 @@ function uploadFileS3(s3options, s3BucketName, archivePath, key, concurrency, ma
                 }
             });
             parallelUpload.on("httpUploadProgress", (progress) => {
-                core.debug(`Uploading chunk progress: ${progress}`);
+                core.debug(`Uploading chunk progress: ${JSON.stringify(progress)}`);
             });
             yield parallelUpload.done();
-        }));
+        }
+        catch (error) {
+            throw new Error(`Cache upload failed because ${error}`);
+        }
         return;
     });
 }

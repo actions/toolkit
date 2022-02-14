@@ -243,9 +243,13 @@ function downloadCacheStorageS3(key, archivePath, s3Options, s3BucketName) {
             Bucket: s3BucketName,
             Key: key,
         };
-        const fileStream = fs.createWriteStream(archivePath);
         const response = yield s3client.send(new client_s3_1.GetObjectCommand(param));
-        fileStream.write(response.Body);
+        if (!response.Body) {
+            throw new Error(`Incomplete download. response.Body is undefined from S3.`);
+        }
+        const fileStream = fs.createWriteStream(archivePath);
+        const pipeline = util.promisify(stream.pipeline);
+        yield pipeline(response.Body, fileStream);
         return;
     });
 }
