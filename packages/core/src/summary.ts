@@ -67,10 +67,10 @@ export class MarkdownSummary {
   /**
    * Adds text to the summary
    * @param {string} text content to add
-   * @param {boolean} [newline=false] whether or not to add a newline
+   * @param {boolean} [newline=true] whether or not to add a newline
    * @returns {MarkdownSummary} markdown summary instance
    */
-  addText(text: string, newline = false): MarkdownSummary {
+  add(text: string, newline = true): MarkdownSummary {
     this.buffer += text
     return newline ? this.addNewline() : this
   }
