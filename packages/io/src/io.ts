@@ -163,7 +163,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
 
     if (isDir) {
-      await execFile(`rm`, [`-rf`, `${inputPath}`])
+      await execFile(`rm`, [`-rf`, `--`, `${inputPath}`])
     } else {
       await ioUtil.unlink(inputPath)
     }
