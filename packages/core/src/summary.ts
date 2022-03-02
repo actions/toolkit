@@ -1,8 +1,27 @@
-import * as fs from 'fs'
-import {promisify} from 'util'
+import {constants, promises} from 'fs'
+const {access, appendFile, writeFile} = promises
 
-const exists = promisify(fs.exists)
-const appendFile = promisify(fs.appendFile)
+export interface TableCell {
+  /**
+   * Cell content
+   */
+  data: string
+  /**
+   * Render cell as header
+   * (optional) default: false
+   */
+  header?: boolean
+  /**
+   * Number of columns the cell extends
+   * (optional) default: '1'
+   */
+  colspan?: string
+  /**
+   * Number of rows the cell extends
+   * (optional) default: '1'
+   */
+  rowspan?: string
+}
 
 export class MarkdownSummary {
   static ENV_VAR = 'GITHUB_STEP_SUMMARY'
@@ -24,24 +43,56 @@ export class MarkdownSummary {
         `Unable to find environment variable for ${MarkdownSummary.ENV_VAR}`
       )
     }
-    if (!(await exists(filePath))) {
-      throw new Error(`Missing summary file at path: ${filePath}`)
+
+    try {
+      await access(filePath, constants.R_OK | constants.W_OK)
+    } catch {
+      throw new Error(`Unable to access summary file: ${filePath}`)
     }
 
     return filePath
   }
 
   /**
-   * Writes any text in the buffer to the summary file
+   * Wraps content in an html tag, adding any HTML attributes
+   *
+   * @param tag HTML tag to wrap
+   * @param content content within the tag
+   * @param attrs key value list of html attributes to add
+   */
+  private wrap(
+    tag: string,
+    content: string,
+    attrs: {[key: string]: string} = {}
+  ): string {
+    const htmlAttrs = Object.entries(attrs)
+      .map(([key, value]) => `${key}="${value}"`)
+      .join(' ')
+
+    return `<${tag}${htmlAttrs && htmlAttrs.padStart(1)}>${content}</${tag}>`
+  }
+
+  /**
+   * Writes text in the buffer to the summary buffer file, will append by default
+   *
+   * @param {boolean} [overwrite=false] (optional) replace existing content in summary file with buffer contents, default: false
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  async write(): Promise<MarkdownSummary> {
+  async write(overwrite = false): Promise<MarkdownSummary> {
     const filePath = await this.filePath()
-    await appendFile(filePath, this.buffer, {encoding: 'utf8'})
-    this.clear()
+    const writeFunc = overwrite ? writeFile : appendFile
+    await writeFunc(filePath, this.buffer, {encoding: 'utf8'})
+    return this.clearBuffer()
+  }
 
-    return this
+  /**
+   * If the summary buffer is empty
+   *
+   * @returns {boolen} true if the buffer is empty
+   */
+  isEmptyBuffer(): boolean {
+    return this.buffer.length === 0
   }
 
   /**
@@ -49,13 +100,13 @@ export class MarkdownSummary {
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  clear(): MarkdownSummary {
+  clearBuffer(): MarkdownSummary {
     this.buffer = ''
     return this
   }
 
   /**
-   * Adds a newline to the summary
+   * Adds a newline to the summary buffer
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
@@ -65,31 +116,35 @@ export class MarkdownSummary {
   }
 
   /**
-   * Adds text to the summary
+   * Adds raw text to the summary buffer
+   *
    * @param {string} text content to add
-   * @param {boolean} [newline=true] whether or not to add a newline
+   *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  add(text: string, newline = true): MarkdownSummary {
+  add(text: string): MarkdownSummary {
     this.buffer += text
-    return newline ? this.addNewline() : this
-  }
-
-  /**
-   * Adds a markdown codeblock to the summary
-   *
-   * @param {string} code content to render within fenced code block
-   * @param {string} [language=''] optional language to syntax highlight code
-   *
-   * @returns {MarkdownSummary} markdown summary instance
-   */
-  addCodeBlock(code: string, language = ''): MarkdownSummary {
-    this.buffer += `\`\`\`${language}\n${code}\n\`\`\`\n`
     return this
   }
 
   /**
-   * Adds an HTML list to the summary
+   * Adds an HTML codeblock to the summary buffer
+   *
+   * @param {string} code content to render within fenced code block
+   * @param {string} lang (optional) language to syntax highlight code
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addCodeBlock(code: string, lang?: string): MarkdownSummary {
+    const attrs = {
+      ...(lang && {lang})
+    }
+    const element = this.wrap('pre', this.wrap('code', code), attrs)
+    return this.add(element).addNewline()
+  }
+
+  /**
+   * Adds an HTML list to the summary buffer
    *
    * @param {string[]} items list of items to render
    * @param {boolean} [ordered=false] if the rendered list should be ordered or not (default: false)
@@ -97,35 +152,44 @@ export class MarkdownSummary {
    * @returns {MarkdownSummary} markdown summary instance
    */
   addList(items: string[], ordered = false): MarkdownSummary {
-    const listType = `${ordered ? 'o' : 'u'}l`
-    const listElems = items.map(e => `<li>${e}</li>\n`).join()
-    this.buffer += `<${listType}>\n${listElems}</${listType}>\n`
-    return this
+    const tag = ordered ? 'ol' : 'ul'
+    const listItems = items.map(item => this.wrap('li', item)).join('')
+    const element = this.wrap(tag, listItems)
+    return this.add(element).addNewline()
   }
 
   /**
-   * Adds an HTML list to the summary
+   * Adds an HTML table to the summary buffer
    *
-   * @param {{[key: string]: any}[]} rows list of data rows
-   * @param {string[]} headers list of keys to use as headers
+   * @param {TableCell[]} rows table rows
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  addTable(rows: {[key: string]: any}[], headers: string[]): MarkdownSummary {
-    const headerElems = headers.map(h => `<th>${h}</th>\n`).join()
-    const rowElems = rows
+  addTable(rows: TableCell[][]): MarkdownSummary {
+    const tableBody = rows
       .map(row => {
-        const data = headers.map(h => `<td>${row[h]}</td>\n`).join()
-        return `<tr>${data}</tr>\n`
+        const cells = row
+          .map(({header, data, colspan, rowspan}) => {
+            const tag = header ? 'th' : 'td'
+            const attrs = {
+              ...(colspan && {colspan}),
+              ...(rowspan && {rowspan})
+            }
+
+            return this.wrap(tag, data, attrs)
+          })
+          .join('')
+
+        return this.wrap('tr', cells)
       })
-      .join()
-    this.buffer += `<table>\n<tr>${headerElems}</tr>\n${rowElems}</table>\n`
-    return this
+      .join('')
+
+    const element = this.wrap('table', tableBody)
+    return this.add(element).addNewline()
   }
 
   /**
-   * Adds a collapsable HTML details element to the summary
+   * Adds a collapsable HTML details element to the summary buffer
    *
    * @param {string} label text for the closed state
    * @param {string} content collapsable content
@@ -133,7 +197,7 @@ export class MarkdownSummary {
    * @returns {MarkdownSummary} markdown summary instance
    */
   addDetails(label: string, content: string): MarkdownSummary {
-    this.buffer += `<details><summary>${label}</summary>\n\n${content}</details>\n`
-    return this
+    const element = this.wrap('details', this.wrap('summary', label) + content)
+    return this.add(element).addNewline()
   }
 }
