@@ -1,3 +1,4 @@
+import {EOL} from 'os'
 import {constants, promises} from 'fs'
 const {access, appendFile, writeFile} = promises
 
@@ -106,16 +107,6 @@ export class MarkdownSummary {
   }
 
   /**
-   * Adds a newline to the summary buffer
-   *
-   * @returns {MarkdownSummary} markdown summary instance
-   */
-  addNewline(): MarkdownSummary {
-    this.buffer += '\n'
-    return this
-  }
-
-  /**
    * Adds raw text to the summary buffer
    *
    * @param {string} text content to add
@@ -125,6 +116,15 @@ export class MarkdownSummary {
   add(text: string): MarkdownSummary {
     this.buffer += text
     return this
+  }
+
+  /**
+   * Adds the operating system-specific end-of-line marker to the buffer
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addEOL(): MarkdownSummary {
+    return this.add(EOL)
   }
 
   /**
@@ -140,7 +140,7 @@ export class MarkdownSummary {
       ...(lang && {lang})
     }
     const element = this.wrap('pre', this.wrap('code', code), attrs)
-    return this.add(element).addNewline()
+    return this.add(element).addEOL()
   }
 
   /**
@@ -155,7 +155,7 @@ export class MarkdownSummary {
     const tag = ordered ? 'ol' : 'ul'
     const listItems = items.map(item => this.wrap('li', item)).join('')
     const element = this.wrap(tag, listItems)
-    return this.add(element).addNewline()
+    return this.add(element).addEOL()
   }
 
   /**
@@ -185,7 +185,7 @@ export class MarkdownSummary {
       .join('')
 
     const element = this.wrap('table', tableBody)
-    return this.add(element).addNewline()
+    return this.add(element).addEOL()
   }
 
   /**
@@ -198,6 +198,6 @@ export class MarkdownSummary {
    */
   addDetails(label: string, content: string): MarkdownSummary {
     const element = this.wrap('details', this.wrap('summary', label) + content)
-    return this.add(element).addNewline()
+    return this.add(element).addEOL()
   }
 }
