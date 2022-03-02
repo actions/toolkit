@@ -2,6 +2,9 @@ import {EOL} from 'os'
 import {constants, promises} from 'fs'
 const {access, appendFile, writeFile} = promises
 
+export const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
+
+export type SummaryTableRow = (SummaryTableCell | string)[]
 export interface SummaryTableCell {
   /**
    * Cell content
@@ -24,8 +27,20 @@ export interface SummaryTableCell {
   rowspan?: string
 }
 
+export interface SummaryImageOptions {
+  /**
+   * The width of the image in pixels. Must be an integer without a unit.
+   * (optional)
+   */
+  width?: string
+  /**
+   * The height of the image in pixels. Must be an integer without a unit.
+   * (optional)
+   */
+  height?: string
+}
+
 class MarkdownSummary {
-  static ENV_VAR = 'GITHUB_STEP_SUMMARY'
   private _buffer: string
 
   constructor() {
@@ -38,10 +53,10 @@ class MarkdownSummary {
    * @returns step summary file path
    */
   private async filePath(): Promise<string> {
-    const filePath = process.env[MarkdownSummary.ENV_VAR]
+    const filePath = process.env[SUMMARY_ENV_VAR]
     if (!filePath) {
       throw new Error(
-        `Unable to find environment variable for $${MarkdownSummary.ENV_VAR}`
+        `Unable to find environment variable for $${SUMMARY_ENV_VAR}`
       )
     }
 
@@ -58,21 +73,25 @@ class MarkdownSummary {
    * Wraps content in an HTML tag, adding any HTML attributes
    *
    * @param {string} tag HTML tag to wrap
-   * @param {string} content content within the tag
+   * @param {string | null} content content within the tag
    * @param {[attribute: string]: string} attrs key-value list of HTML attributes to add
    *
    * @returns {string} content wrapped in HTML element
    */
   private wrap(
     tag: string,
-    content: string,
+    content: string | null,
     attrs: {[attribute: string]: string} = {}
   ): string {
     const htmlAttrs = Object.entries(attrs)
-      .map(([key, value]) => `${key}="${value}"`)
-      .join(' ')
+      .map(([key, value]) => ` ${key}="${value}"`)
+      .join('')
 
-    return `<${tag}${htmlAttrs && htmlAttrs.padStart(1)}>${content}</${tag}>`
+    if (!content) {
+      return `<${tag}${htmlAttrs}>`
+    }
+
+    return `<${tag}${htmlAttrs}>${content}</${tag}>`
   }
 
   /**
@@ -176,11 +195,16 @@ class MarkdownSummary {
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  addTable(rows: SummaryTableCell[][]): MarkdownSummary {
+  addTable(rows: SummaryTableRow[]): MarkdownSummary {
     const tableBody = rows
       .map(row => {
         const cells = row
-          .map(({header, data, colspan, rowspan}) => {
+          .map(cell => {
+            if (typeof cell === 'string') {
+              return this.wrap('td', cell)
+            }
+
+            const {header, data, colspan, rowspan} = cell
             const tag = header ? 'th' : 'td'
             const attrs = {
               ...(colspan && {colspan}),
@@ -217,25 +241,39 @@ class MarkdownSummary {
    *
    * @param {string} src path to the image you to embed
    * @param {string} alt text description of the image
+   * @param {SummaryImageOptions} options addition image attributes
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  addImage(src: string, alt: string): MarkdownSummary {
-    const element = this.wrap('img', '', {src, alt})
+  addImage(
+    src: string,
+    alt: string,
+    options?: SummaryImageOptions
+  ): MarkdownSummary {
+    const {width, height} = options || {}
+    const attrs = {
+      ...(width && {width}),
+      ...(height && {height})
+    }
+
+    const element = this.wrap('img', null, {src, alt, ...attrs})
     return this.add(element).addEOL()
   }
 
   /**
    * Adds an HTML section heading element
    *
-   * @param {string} text path to the image you to embed
-   * @param {number} [level=1] (optional) the heading level, default: 1
+   * @param {string} text heading text
+   * @param {number | string} [level=1] (optional) the heading level, default: 1
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  addHeading(text: string, n = 1): MarkdownSummary {
-    const tag = [1, 2, 3, 4, 5, 6].includes(n) ? `h${n}` : 'h1'
-    const element = this.wrap(tag, text)
+  addHeading(text: string, level?: number | string): MarkdownSummary {
+    const tag = `h${level}`
+    const allowedTag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)
+      ? tag
+      : 'h1'
+    const element = this.wrap(allowedTag, text)
     return this.add(element).addEOL()
   }
 
@@ -245,12 +283,25 @@ class MarkdownSummary {
    * @returns {MarkdownSummary} markdown summary instance
    */
   addSeparator(): MarkdownSummary {
-    const element = this.wrap('hr', '')
+    const element = this.wrap('hr', null)
+    return this.add(element).addEOL()
+  }
+
+  /**
+   * Adds an HTML line break (<br>) to the summary buffer
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addBreak(): MarkdownSummary {
+    const element = this.wrap('br', null)
     return this.add(element).addEOL()
   }
 
   /**
    * Adds an HTML blockquote to the summary buffer
+   *
+   * @param {string} text quote text
+   * @param {string} cite (optional) citation url
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
