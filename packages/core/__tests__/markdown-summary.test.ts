@@ -60,6 +60,10 @@ const fixtures = {
   quote: {
     text: 'Where the world builds software',
     cite: 'https://github.com/about'
+  },
+  link: {
+    text: 'GitHub',
+    href: 'https://github.com/'
   }
 }
 
@@ -235,6 +239,14 @@ describe('@actions/core/src/markdown-summary', () => {
       .addQuote(fixtures.quote.text, fixtures.quote.cite)
       .write()
     const expected = `<blockquote cite="https://github.com/about">Where the world builds software</blockquote>${os.EOL}`
+    await assertSummary(expected)
+  })
+
+  it('adds a link with href', async () => {
+    await markdownSummary
+      .addLink(fixtures.link.text, fixtures.link.href)
+      .write()
+    const expected = `<a href="https://github.com/">GitHub</a>${os.EOL}`
     await assertSummary(expected)
   })
 })

@@ -5,6 +5,7 @@ const {access, appendFile, writeFile} = promises
 export const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
 
 export type SummaryTableRow = (SummaryTableCell | string)[]
+
 export interface SummaryTableCell {
   /**
    * Cell content
@@ -310,6 +311,19 @@ class MarkdownSummary {
       ...(cite && {cite})
     }
     const element = this.wrap('blockquote', text, attrs)
+    return this.add(element).addEOL()
+  }
+
+  /**
+   * Adds an HTML anchor tag to the summary buffer
+   *
+   * @param {string} text link text/content
+   * @param {string} href hyperlink
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addLink(text: string, href: string): MarkdownSummary {
+    const element = this.wrap('a', text, {href})
     return this.add(element).addEOL()
   }
 }
