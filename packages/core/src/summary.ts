@@ -26,10 +26,10 @@ export interface TableCell {
 
 export class MarkdownSummary {
   static ENV_VAR = 'GITHUB_STEP_SUMMARY'
-  private buffer: string
+  private _buffer: string
 
   constructor() {
-    this.buffer = ''
+    this._buffer = ''
   }
 
   /**
@@ -55,16 +55,18 @@ export class MarkdownSummary {
   }
 
   /**
-   * Wraps content in an html tag, adding any HTML attributes
+   * Wraps content in an HTML tag, adding any HTML attributes
    *
-   * @param tag HTML tag to wrap
-   * @param content content within the tag
-   * @param attrs key value list of html attributes to add
+   * @param {string} tag HTML tag to wrap
+   * @param {string} content content within the tag
+   * @param {[attribute: string]: string} attrs key-value list of HTML attributes to add
+   *
+   * @returns {string} content wrapped in HTML element
    */
   private wrap(
     tag: string,
     content: string,
-    attrs: {[key: string]: string} = {}
+    attrs: {[attribute: string]: string} = {}
   ): string {
     const htmlAttrs = Object.entries(attrs)
       .map(([key, value]) => `${key}="${value}"`)
@@ -78,13 +80,22 @@ export class MarkdownSummary {
    *
    * @param {boolean} [overwrite=false] (optional) replace existing content in summary file with buffer contents, default: false
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Promise<MarkdownSummary>} markdown summary instance
    */
   async write(overwrite = false): Promise<MarkdownSummary> {
     const filePath = await this.filePath()
     const writeFunc = overwrite ? writeFile : appendFile
-    await writeFunc(filePath, this.buffer, {encoding: 'utf8'})
-    return this.clearBuffer()
+    await writeFunc(filePath, this._buffer, {encoding: 'utf8'})
+    return this.emptyBuffer()
+  }
+
+  /**
+   * Returns the current summary buffer as a string
+   *
+   * @returns {string} string of summary buffer
+   */
+  stringify(): string {
+    return this._buffer
   }
 
   /**
@@ -93,7 +104,7 @@ export class MarkdownSummary {
    * @returns {boolen} true if the buffer is empty
    */
   isEmptyBuffer(): boolean {
-    return this.buffer.length === 0
+    return this._buffer.length === 0
   }
 
   /**
@@ -101,8 +112,8 @@ export class MarkdownSummary {
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  clearBuffer(): MarkdownSummary {
-    this.buffer = ''
+  emptyBuffer(): MarkdownSummary {
+    this._buffer = ''
     return this
   }
 
@@ -114,7 +125,7 @@ export class MarkdownSummary {
    * @returns {MarkdownSummary} markdown summary instance
    */
   add(text: string): MarkdownSummary {
-    this.buffer += text
+    this._buffer += text
     return this
   }
 
@@ -198,6 +209,56 @@ export class MarkdownSummary {
    */
   addDetails(label: string, content: string): MarkdownSummary {
     const element = this.wrap('details', this.wrap('summary', label) + content)
+    return this.add(element).addEOL()
+  }
+
+  /**
+   * Adds an HTML image tag to the summary buffer
+   *
+   * @param {string} src path to the image you to embed
+   * @param {string} alt text description of the image
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addImage(src: string, alt: string): MarkdownSummary {
+    const element = this.wrap('img', '', {src, alt})
+    return this.add(element).addEOL()
+  }
+
+  /**
+   * Adds an HTML section heading element
+   *
+   * @param {string} text path to the image you to embed
+   * @param {number} [level=1] (optional) the heading level, default: 1
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addHeading(text: string, n = 1): MarkdownSummary {
+    const tag = [1, 2, 3, 4, 5, 6].includes(n) ? `h${n}` : 'h1'
+    const element = this.wrap(tag, text)
+    return this.add(element).addEOL()
+  }
+
+  /**
+   * Adds an HTML thematic break (<hr>) to the summary buffer
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addSeparator(): MarkdownSummary {
+    const element = this.wrap('hr', '')
+    return this.add(element).addEOL()
+  }
+
+  /**
+   * Adds an HTML blockquote to the summary buffer
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  addQuote(text: string, cite?: string): MarkdownSummary {
+    const attrs = {
+      ...(cite && {cite})
+    }
+    const element = this.wrap('blockquote', text, attrs)
     return this.add(element).addEOL()
   }
 }
