@@ -2,7 +2,7 @@ import {EOL} from 'os'
 import {constants, promises} from 'fs'
 const {access, appendFile, writeFile} = promises
 
-export interface TableCell {
+export interface SummaryTableCell {
   /**
    * Cell content
    */
@@ -24,7 +24,7 @@ export interface TableCell {
   rowspan?: string
 }
 
-export class MarkdownSummary {
+class MarkdownSummary {
   static ENV_VAR = 'GITHUB_STEP_SUMMARY'
   private _buffer: string
 
@@ -41,7 +41,7 @@ export class MarkdownSummary {
     const filePath = process.env[MarkdownSummary.ENV_VAR]
     if (!filePath) {
       throw new Error(
-        `Unable to find environment variable for ${MarkdownSummary.ENV_VAR}`
+        `Unable to find environment variable for $${MarkdownSummary.ENV_VAR}`
       )
     }
 
@@ -172,11 +172,11 @@ export class MarkdownSummary {
   /**
    * Adds an HTML table to the summary buffer
    *
-   * @param {TableCell[]} rows table rows
+   * @param {SummaryTableCell[]} rows table rows
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  addTable(rows: TableCell[][]): MarkdownSummary {
+  addTable(rows: SummaryTableCell[][]): MarkdownSummary {
     const tableBody = rows
       .map(row => {
         const cells = row
@@ -262,3 +262,6 @@ export class MarkdownSummary {
     return this.add(element).addEOL()
   }
 }
+
+// singleton export
+export const markdownSummary = new MarkdownSummary()

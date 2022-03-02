@@ -359,3 +359,8 @@ export function getState(name: string): string {
 export async function getIDToken(aud?: string): Promise<string> {
   return await OidcClient.getIDToken(aud)
 }
+
+/**
+ * Markdown summary exports
+ */
+export {markdownSummary} from './markdown-summary'
