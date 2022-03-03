@@ -151,6 +151,13 @@ describe('@actions/core/src/markdown-summary', () => {
     expect(markdownSummary.isEmptyBuffer()).toBe(true)
   })
 
+  it('clears a buffer and summary file', async () => {
+    await fs.promises.writeFile(testFilePath, 'content', {encoding: 'utf8'})
+    await markdownSummary.clear()
+    await assertSummary('')
+    expect(markdownSummary.isEmptyBuffer()).toBe(true)
+  })
+
   it('adds EOL', async () => {
     await markdownSummary
       .addRaw(fixtures.text)

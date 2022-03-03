@@ -152,6 +152,15 @@ class MarkdownSummary {
   }
 
   /**
+   * Clears the summary buffer and wipes the summary file
+   *
+   * @returns {MarkdownSummary} markdown summary instance
+   */
+  async clear(): Promise<MarkdownSummary> {
+    return this.emptyBuffer().write(true)
+  }
+
+  /**
    * Returns the current summary buffer as a string
    *
    * @returns {string} string of summary buffer
@@ -170,7 +179,7 @@ class MarkdownSummary {
   }
 
   /**
-   * Clears the summary buffer without writing to summary file
+   * Resets the summary buffer without writing to summary file
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
