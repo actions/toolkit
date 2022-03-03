@@ -2,8 +2,11 @@ import {EOL} from 'os'
 import {constants, promises} from 'fs'
 const {access, appendFile, stat, writeFile} = promises
 
-export const SUMMARY_LIMIT_BYTES = 128_000
+// The runner & server will also block any upload greater than this size
+export const SUMMARY_LIMIT_BYTES = 128 * 1024
 export const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
+export const SUMMARY_DOCS_URL =
+  'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-markdown-summary'
 
 export type SummaryTableRow = (SummaryTableCell | string)[]
 
@@ -140,9 +143,9 @@ class MarkdownSummary {
 
     if (await this.willExceedLimit(overwrite)) {
       this.emptyBuffer()
-      const limitK = SUMMARY_LIMIT_BYTES / 1000
+      const limitK = SUMMARY_LIMIT_BYTES / 1024
       throw new Error(
-        `Aborting write to summary file. File size would exceed limit of ${limitK}K.`
+        `Aborting write to summary file. File size would exceed limit of ${limitK}k. For more information see: ${SUMMARY_DOCS_URL}`
       )
     }
 
