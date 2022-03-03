@@ -84,61 +84,67 @@ describe('@actions/core/src/markdown-summary', () => {
 
   it('throws if summary env var is undefined', async () => {
     process.env[SUMMARY_ENV_VAR] = undefined
-    const write = markdownSummary.add(fixtures.text).write()
+    const write = markdownSummary.addRaw(fixtures.text).write()
 
     await expect(write).rejects.toThrow()
   })
 
   it('throws if summary file does not exist', async () => {
     await fs.promises.unlink(testFilePath)
-    const write = markdownSummary.add(fixtures.text).write()
+    const write = markdownSummary.addRaw(fixtures.text).write()
 
     await expect(write).rejects.toThrow()
   })
 
   it('throws if write will exceed file limit', async () => {
     const aaa = 'a'.repeat(SUMMARY_LIMIT_BYTES + 1)
-    const write = markdownSummary.add(aaa).write()
+    const write = markdownSummary.addRaw(aaa).write()
 
     await expect(write).rejects.toThrow()
   })
 
   it('appends text to summary file', async () => {
     await fs.promises.writeFile(testFilePath, '# ', {encoding: 'utf8'})
-    await markdownSummary.add(fixtures.text).write()
+    await markdownSummary.addRaw(fixtures.text).write()
     await assertSummary(`# ${fixtures.text}`)
   })
 
   it('overwrites text to summary file', async () => {
     await fs.promises.writeFile(testFilePath, 'overwrite', {encoding: 'utf8'})
-    await markdownSummary.add(fixtures.text).write(true)
+    await markdownSummary.addRaw(fixtures.text).write(true)
     await assertSummary(fixtures.text)
+  })
+
+  it('appends text with EOL to summary file', async () => {
+    await fs.promises.writeFile(testFilePath, '# ', {encoding: 'utf8'})
+    await markdownSummary.addRaw(fixtures.text, true).write()
+    await assertSummary(`# ${fixtures.text}${os.EOL}`)
   })
 
   it('chains appends text to summary file', async () => {
     await fs.promises.writeFile(testFilePath, '', {encoding: 'utf8'})
     await markdownSummary
-      .add(fixtures.text)
-      .add(fixtures.text)
-      .add(fixtures.text)
+      .addRaw(fixtures.text)
+      .addRaw(fixtures.text)
+      .addRaw(fixtures.text)
       .write()
     await assertSummary([fixtures.text, fixtures.text, fixtures.text].join(''))
   })
 
   it('empties buffer after write', async () => {
     await fs.promises.writeFile(testFilePath, '', {encoding: 'utf8'})
-    await markdownSummary.add(fixtures.text).write()
+    await markdownSummary.addRaw(fixtures.text).write()
     await assertSummary(fixtures.text)
     expect(markdownSummary.isEmptyBuffer()).toBe(true)
   })
 
   it('returns summary buffer as string', () => {
-    markdownSummary.add(fixtures.text)
+    markdownSummary.addRaw(fixtures.text)
     expect(markdownSummary.stringify()).toEqual(fixtures.text)
   })
 
   it('return correct values for isEmptyBuffer', () => {
-    markdownSummary.add(fixtures.text)
+    markdownSummary.addRaw(fixtures.text)
     expect(markdownSummary.isEmptyBuffer()).toBe(false)
 
     markdownSummary.emptyBuffer()
@@ -147,7 +153,7 @@ describe('@actions/core/src/markdown-summary', () => {
 
   it('adds EOL', async () => {
     await markdownSummary
-      .add(fixtures.text)
+      .addRaw(fixtures.text)
       .addEOL()
       .write()
     await assertSummary(fixtures.text + os.EOL)

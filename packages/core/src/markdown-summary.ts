@@ -183,12 +183,13 @@ class MarkdownSummary {
    * Adds raw text to the summary buffer
    *
    * @param {string} text content to add
+   * @param {boolean} [addEOL=false] (optional) append an EOL to the raw text (default: false)
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
-  add(text: string): MarkdownSummary {
+  addRaw(text: string, addEOL = false): MarkdownSummary {
     this._buffer += text
-    return this
+    return addEOL ? this.addEOL() : this
   }
 
   /**
@@ -197,7 +198,7 @@ class MarkdownSummary {
    * @returns {MarkdownSummary} markdown summary instance
    */
   addEOL(): MarkdownSummary {
-    return this.add(EOL)
+    return this.addRaw(EOL)
   }
 
   /**
@@ -213,14 +214,14 @@ class MarkdownSummary {
       ...(lang && {lang})
     }
     const element = this.wrap('pre', this.wrap('code', code), attrs)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
    * Adds an HTML list to the summary buffer
    *
    * @param {string[]} items list of items to render
-   * @param {boolean} [ordered=false] if the rendered list should be ordered or not (default: false)
+   * @param {boolean} [ordered=false] (optional) if the rendered list should be ordered or not (default: false)
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
@@ -228,7 +229,7 @@ class MarkdownSummary {
     const tag = ordered ? 'ol' : 'ul'
     const listItems = items.map(item => this.wrap('li', item)).join('')
     const element = this.wrap(tag, listItems)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -263,7 +264,7 @@ class MarkdownSummary {
       .join('')
 
     const element = this.wrap('table', tableBody)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -276,7 +277,7 @@ class MarkdownSummary {
    */
   addDetails(label: string, content: string): MarkdownSummary {
     const element = this.wrap('details', this.wrap('summary', label) + content)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -284,7 +285,7 @@ class MarkdownSummary {
    *
    * @param {string} src path to the image you to embed
    * @param {string} alt text description of the image
-   * @param {SummaryImageOptions} options addition image attributes
+   * @param {SummaryImageOptions} options (optional) addition image attributes
    *
    * @returns {MarkdownSummary} markdown summary instance
    */
@@ -300,7 +301,7 @@ class MarkdownSummary {
     }
 
     const element = this.wrap('img', null, {src, alt, ...attrs})
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -317,7 +318,7 @@ class MarkdownSummary {
       ? tag
       : 'h1'
     const element = this.wrap(allowedTag, text)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -327,7 +328,7 @@ class MarkdownSummary {
    */
   addSeparator(): MarkdownSummary {
     const element = this.wrap('hr', null)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -337,7 +338,7 @@ class MarkdownSummary {
    */
   addBreak(): MarkdownSummary {
     const element = this.wrap('br', null)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -353,7 +354,7 @@ class MarkdownSummary {
       ...(cite && {cite})
     }
     const element = this.wrap('blockquote', text, attrs)
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 
   /**
@@ -366,7 +367,7 @@ class MarkdownSummary {
    */
   addLink(text: string, href: string): MarkdownSummary {
     const element = this.wrap('a', text, {href})
-    return this.add(element).addEOL()
+    return this.addRaw(element).addEOL()
   }
 }
 
