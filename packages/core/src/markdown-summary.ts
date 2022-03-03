@@ -1,7 +1,8 @@
 import {EOL} from 'os'
 import {constants, promises} from 'fs'
-const {access, appendFile, writeFile} = promises
+const {access, appendFile, stat, writeFile} = promises
 
+export const SUMMARY_LIMIT_BYTES = 128_000
 export const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
 
 export type SummaryTableRow = (SummaryTableCell | string)[]
@@ -43,31 +44,62 @@ export interface SummaryImageOptions {
 
 class MarkdownSummary {
   private _buffer: string
+  private _filePath?: string
 
   constructor() {
     this._buffer = ''
   }
 
   /**
-   * Finds the summary file path from the environment, rejects if not found
+   * Finds the summary file path from the environment, rejects if env var is not found or file does not exist
+   * Also checks r/w permissions.
    *
    * @returns step summary file path
    */
   private async filePath(): Promise<string> {
-    const filePath = process.env[SUMMARY_ENV_VAR]
-    if (!filePath) {
+    if (this._filePath) {
+      return this._filePath
+    }
+
+    const pathFromEnv = process.env[SUMMARY_ENV_VAR]
+    if (!pathFromEnv) {
       throw new Error(
-        `Unable to find environment variable for $${SUMMARY_ENV_VAR}`
+        `Unable to find environment variable for $${SUMMARY_ENV_VAR}. Check if your runtime environment supports markdown summaries.`
       )
     }
 
     try {
-      await access(filePath, constants.R_OK | constants.W_OK)
+      await access(pathFromEnv, constants.R_OK | constants.W_OK)
     } catch {
-      throw new Error(`Unable to access summary file: ${filePath}`)
+      throw new Error(
+        `Unable to access summary file: '${pathFromEnv}'. Check if the file has correct read/write permissions.`
+      )
     }
 
-    return filePath
+    this._filePath = pathFromEnv
+    return this._filePath
+  }
+
+  /**
+   * Checks if the write of the current buffer will exceed the job summary upload limit
+   *
+   * @param {boolean} overwrite if the operation is overwrite (otherwise it's append)
+   *
+   * @returns {Promise<boolean>} whether or not the file will exceed the limit
+   */
+  private async willExceedLimit(overwrite: boolean): Promise<boolean> {
+    let expectedSize = 0
+    if (!overwrite) {
+      // if appending, we need to check the current size of the summary file
+      const filePath = await this.filePath()
+      const {size} = await stat(filePath)
+      expectedSize += size
+    }
+
+    const bufferLen = Buffer.byteLength(this._buffer, 'utf8')
+    expectedSize += bufferLen
+
+    return expectedSize > SUMMARY_LIMIT_BYTES
   }
 
   /**
@@ -96,7 +128,8 @@ class MarkdownSummary {
   }
 
   /**
-   * Writes text in the buffer to the summary buffer file, will append by default
+   * Writes text in the buffer to the summary buffer file and empties buffer. Will append by default.
+   * Checks if resulting file size > SUMMARY_LIMIT_BYTES, will throw and empty buffer
    *
    * @param {boolean} [overwrite=false] (optional) replace existing content in summary file with buffer contents, default: false
    *
@@ -104,6 +137,15 @@ class MarkdownSummary {
    */
   async write(overwrite = false): Promise<MarkdownSummary> {
     const filePath = await this.filePath()
+
+    if (await this.willExceedLimit(overwrite)) {
+      this.emptyBuffer()
+      const limitK = SUMMARY_LIMIT_BYTES / 1000
+      throw new Error(
+        `Aborting write to summary file. File size would exceed limit of ${limitK}K.`
+      )
+    }
+
     const writeFunc = overwrite ? writeFile : appendFile
     await writeFunc(filePath, this._buffer, {encoding: 'utf8'})
     return this.emptyBuffer()

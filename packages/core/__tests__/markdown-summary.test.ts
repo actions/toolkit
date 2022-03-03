@@ -1,7 +1,11 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import path from 'path'
-import {markdownSummary, SUMMARY_ENV_VAR} from '../src/markdown-summary'
+import {
+  markdownSummary,
+  SUMMARY_ENV_VAR,
+  SUMMARY_LIMIT_BYTES
+} from '../src/markdown-summary'
 
 const testFilePath = path.join(__dirname, 'test', 'test-summary.md')
 
@@ -68,16 +72,35 @@ const fixtures = {
 }
 
 describe('@actions/core/src/markdown-summary', () => {
-  beforeAll(() => {
-    process.env[SUMMARY_ENV_VAR] = testFilePath
-  })
-
   beforeEach(async () => {
+    process.env[SUMMARY_ENV_VAR] = testFilePath
     await fs.promises.writeFile(testFilePath, '', {encoding: 'utf8'})
+    markdownSummary.emptyBuffer()
   })
 
   afterAll(async () => {
     await fs.promises.unlink(testFilePath)
+  })
+
+  it('throws if summary env var is undefined', async () => {
+    process.env[SUMMARY_ENV_VAR] = undefined
+    const write = markdownSummary.add(fixtures.text).write()
+
+    await expect(write).rejects.toThrow()
+  })
+
+  it('throws if summary file does not exist', async () => {
+    await fs.promises.unlink(testFilePath)
+    const write = markdownSummary.add(fixtures.text).write()
+
+    await expect(write).rejects.toThrow()
+  })
+
+  it('throws if write will exceed file limit', async () => {
+    const aaa = 'a'.repeat(SUMMARY_LIMIT_BYTES + 1)
+    const write = markdownSummary.add(aaa).write()
+
+    await expect(write).rejects.toThrow()
   })
 
   it('appends text to summary file', async () => {
