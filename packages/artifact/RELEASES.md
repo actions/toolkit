@@ -74,3 +74,7 @@
 ### 0.6.1
 
 - Fix for failing 0 byte file uploads on Windows [#962](https://github.com/actions/toolkit/pull/962)
+
+### 1.0.0
+
+- Update `lockfileVersion` to `v2` in `package-lock.json [#1009](https://github.com/actions/toolkit/pull/1009)
