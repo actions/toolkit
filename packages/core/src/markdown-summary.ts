@@ -45,6 +45,14 @@ export interface SummaryImageOptions {
   height?: string
 }
 
+export interface SummaryWriteOptions {
+  /**
+   * Replace all existing content in summary file with buffer contents
+   * (optional) default: false
+   */
+  overwrite?: boolean
+}
+
 class MarkdownSummary {
   private _buffer: string
   private _filePath?: string
@@ -134,11 +142,12 @@ class MarkdownSummary {
    * Writes text in the buffer to the summary buffer file and empties buffer. Will append by default.
    * Checks if resulting file size > SUMMARY_LIMIT_BYTES, will throw and empty buffer
    *
-   * @param {boolean} [overwrite=false] (optional) replace existing content in summary file with buffer contents, default: false
+   * @param {SummaryWriteOptions | undefined} options (optional) options for write operation
    *
    * @returns {Promise<MarkdownSummary>} markdown summary instance
    */
-  async write(overwrite = false): Promise<MarkdownSummary> {
+  async write(options?: SummaryWriteOptions): Promise<MarkdownSummary> {
+    const overwrite = !!options?.overwrite
     const filePath = await this.filePath()
 
     if (await this.willExceedLimit(overwrite)) {
@@ -160,7 +169,7 @@ class MarkdownSummary {
    * @returns {MarkdownSummary} markdown summary instance
    */
   async clear(): Promise<MarkdownSummary> {
-    return this.emptyBuffer().write(true)
+    return this.emptyBuffer().write({overwrite: true})
   }
 
   /**

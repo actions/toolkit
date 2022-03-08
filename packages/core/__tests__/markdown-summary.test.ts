@@ -111,7 +111,7 @@ describe('@actions/core/src/markdown-summary', () => {
 
   it('overwrites text to summary file', async () => {
     await fs.promises.writeFile(testFilePath, 'overwrite', {encoding: 'utf8'})
-    await markdownSummary.addRaw(fixtures.text).write(true)
+    await markdownSummary.addRaw(fixtures.text).write({overwrite: true})
     await assertSummary(fixtures.text)
   })
 
