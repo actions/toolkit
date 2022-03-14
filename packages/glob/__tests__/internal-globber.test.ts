@@ -753,7 +753,7 @@ describe('globber', () => {
     const searchPaths = await getSearchPaths(
       `#aaa/*${os.EOL}/foo/*${os.EOL}#bbb/*${os.EOL}/bar/*`
     )
-    const drive = IS_WINDOWS ? process.cwd().substr(0, 2) : ''
+    const drive = IS_WINDOWS ? process.cwd().slice(0, 2) : ''
     expect(searchPaths).toEqual([
       IS_WINDOWS ? `${drive}\\foo` : '/foo',
       IS_WINDOWS ? `${drive}\\bar` : '/bar'
@@ -764,7 +764,7 @@ describe('globber', () => {
     const searchPaths = await getSearchPaths(
       `${os.EOL}${os.EOL}/foo/*${os.EOL}${os.EOL}/bar/*${os.EOL}/baz/**${os.EOL}`
     )
-    const drive = IS_WINDOWS ? process.cwd().substr(0, 2) : ''
+    const drive = IS_WINDOWS ? process.cwd().slice(0, 2) : ''
     expect(searchPaths).toEqual([
       IS_WINDOWS ? `${drive}\\foo` : '/foo',
       IS_WINDOWS ? `${drive}\\bar` : '/bar',

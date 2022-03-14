@@ -91,7 +91,7 @@ export class Pattern {
     // Negate
     while (pattern.startsWith('!')) {
       this.negate = !this.negate
-      pattern = pattern.substr(1).trim()
+      pattern = pattern.slice(1).trim()
     }
 
     // Normalize slashes and ensures absolute root
@@ -221,7 +221,7 @@ export class Pattern {
 
     // Replace leading `.` segment
     if (pattern === '.' || pattern.startsWith(`.${path.sep}`)) {
-      pattern = Pattern.globEscape(process.cwd()) + pattern.substr(1)
+      pattern = Pattern.globEscape(process.cwd()) + pattern.slice(1)
     }
     // Replace leading `~` segment
     else if (pattern === '~' || pattern.startsWith(`~${path.sep}`)) {
@@ -231,7 +231,7 @@ export class Pattern {
         pathHelper.hasAbsoluteRoot(homedir),
         `Expected HOME directory to be a rooted path. Actual '${homedir}'`
       )
-      pattern = Pattern.globEscape(homedir) + pattern.substr(1)
+      pattern = Pattern.globEscape(homedir) + pattern.slice(1)
     }
     // Replace relative drive root, e.g. pattern is C: or C:foo
     else if (
@@ -240,12 +240,12 @@ export class Pattern {
     ) {
       let root = pathHelper.ensureAbsoluteRoot(
         'C:\\dummy-root',
-        pattern.substr(0, 2)
+        pattern.slice(0, 2)
       )
       if (pattern.length > 2 && !root.endsWith('\\')) {
         root += '\\'
       }
-      pattern = Pattern.globEscape(root) + pattern.substr(2)
+      pattern = Pattern.globEscape(root) + pattern.slice(2)
     }
     // Replace relative root, e.g. pattern is \ or \foo
     else if (IS_WINDOWS && (pattern === '\\' || pattern.match(/^\\[^\\]/))) {
@@ -253,7 +253,7 @@ export class Pattern {
       if (!root.endsWith('\\')) {
         root += '\\'
       }
-      pattern = Pattern.globEscape(root) + pattern.substr(1)
+      pattern = Pattern.globEscape(root) + pattern.slice(1)
     }
     // Otherwise ensure absolute root
     else {
