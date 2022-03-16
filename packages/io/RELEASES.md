@@ -1,5 +1,8 @@
 # @actions/io Releases
 
+### 1.1.2
+- Update `lockfileVersion` to `v2` in `package-lock.json [#1020](https://github.com/actions/toolkit/pull/1020) 
+
 ### 1.1.1
 - [Fixed a bug where we incorrectly escaped paths for rmrf](https://github.com/actions/toolkit/pull/828)
 
