@@ -1,5 +1,8 @@
 # @actions/glob Releases
 
+### 0.2.1
+- Update `lockfileVersion` to `v2` in `package-lock.json [#1023](https://github.com/actions/toolkit/pull/1023) 
+
 ### 0.2.0
 - [Added the hashFiles function to Glob](https://github.com/actions/toolkit/pull/830)
 - [Added an option to filter out directories](https://github.com/actions/toolkit/pull/728)
