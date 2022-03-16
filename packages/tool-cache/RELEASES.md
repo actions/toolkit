@@ -1,5 +1,8 @@
 # @actions/tool-cache Releases
 
+### 1.7.2
+- Update `lockfileVersion` to `v2` in `package-lock.json [#1025](https://github.com/actions/toolkit/pull/1025) 
+
 ### 1.7.1
 - [Fallback to os-releases file to get linux version](https://github.com/actions/toolkit/pull/594)
 - [Update to latest @actions/io verison](https://github.com/actions/toolkit/pull/838)
