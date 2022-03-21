@@ -32,7 +32,10 @@ const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
   // Ideally we just use ACTIONS_CACHE_URL
+  // For cases where ACTIONS_* cannot be overwritten, allow the usage
+  // of GITHUB_ACTIONS_CACHE_URL.
   const baseUrl: string = (
+    process.env['GITHUB_ACTIONS_CACHE_URL'] ||
     process.env['ACTIONS_CACHE_URL'] ||
     process.env['ACTIONS_RUNTIME_URL'] ||
     ''
