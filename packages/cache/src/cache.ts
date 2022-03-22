@@ -44,17 +44,17 @@ function checkKey(key: string): void {
 }
 
 /**
- * isEnable to check the presence of Artifact cache service.
+ * isEnable to check the presence of Artifact cache service
  * 
- * @returns boolean
+ * @returns boolean return true if Artifact cache service is enable, otherwise false
  */
 
- export function isEnable(): boolean{
-  if (process.env['ACTIONS_CACHE_URL']){
-    return true;
+ export function isEnable(): boolean {
+  if (process.env['ACTIONS_CACHE_URL']) {
+    return true
   }
 
-  return false;
+  return false
 }
 
 /**
