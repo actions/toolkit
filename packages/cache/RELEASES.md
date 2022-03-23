@@ -52,4 +52,4 @@
 - Update `lockfileVersion` to `v2` in `package-lock.json [#1022](https://github.com/actions/toolkit/pull/1022) 
 
 ### 1.0.11
-- Added support to check if Artifact cache service is enabled or not.
+- Added support to check if Artifact cache service is available or not.
