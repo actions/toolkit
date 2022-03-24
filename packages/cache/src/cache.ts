@@ -44,9 +44,9 @@ function checkKey(key: string): void {
 }
 
 /**
- * isFeatureAvailable to check the presence of Artifact cache service
+ * isFeatureAvailable to check the presence of Actions cache service
  *
- * @returns boolean return true if Artifact cache service is available, otherwise false
+ * @returns boolean return true if Actions cache service feature is available, otherwise false
  */
 
 export function isFeatureAvailable(): boolean {
