@@ -123,7 +123,3 @@ export function assertDefined<T>(name: string, value?: T): T {
 
   return value
 }
-
-export function isFeatureAvailable(): boolean {
-  return !!process.env['ACTIONS_CACHE_URL']
-}
