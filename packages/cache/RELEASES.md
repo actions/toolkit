@@ -49,4 +49,7 @@
   - Use @azure/storage-blob v12.8.0
 
 ### 1.0.10
-- Update `lockfileVersion` to `v2` in `package-lock.json [#1022](https://github.com/actions/toolkit/pull/1022) 
+- Update `lockfileVersion` to `v2` in `package-lock.json [#1022](https://github.com/actions/toolkit/pull/1022)
+
+### 1.0.11
+- Fix file downloads > 2GB([issue](https://github.com/actions/cache/issues/773))
