@@ -55,4 +55,4 @@
 - Fix file downloads > 2GB([issue](https://github.com/actions/cache/issues/773))
 
 ### 2.0.0
-- Added support to check if Actions cache service feature is available or not [#1028](https://github.com/actions/toolkit/pull/1028)
+- Added support to check if Actions cache service feature is available or not [#1028](https://github.com/actions/toolkit/pull/1028).
