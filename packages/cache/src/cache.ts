@@ -50,7 +50,7 @@ function checkKey(key: string): void {
  */
 
 export function isFeatureAvailable(): boolean {
-  return utils.isFeatureAvailable();
+  return utils.isFeatureAvailable()
 }
 
 /**
