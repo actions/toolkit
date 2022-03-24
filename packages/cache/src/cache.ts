@@ -126,7 +126,7 @@ export async function restoreCache(
 }
 
 /**
- * Saves a list of files test with the specified key
+ * Saves a list of files test with the specified key.  
  *
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
