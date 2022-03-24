@@ -44,12 +44,12 @@ function checkKey(key: string): void {
 }
 
 /**
- * isAvailable to check the presence of Artifact cache service
+ * isFeatureAvailable to check the presence of Artifact cache service
  *
  * @returns boolean return true if Artifact cache service is available, otherwise false
  */
 
-export function isAvailable(): boolean {
+export function isFeatureAvailable(): boolean {
   if (process.env['ACTIONS_CACHE_URL']) {
     return true
   }
