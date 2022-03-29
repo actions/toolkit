@@ -44,16 +44,6 @@ function checkKey(key: string): void {
 }
 
 /**
- * isFeatureAvailable to check the presence of Actions cache service
- *
- * @returns boolean return true if Actions cache service feature is available, otherwise false
- */
-
-export function isFeatureAvailable(): boolean {
-  return !!process.env['ACTIONS_CACHE_URL']
-}
-
-/**
  * Restores cache from keys
  *
  * @param paths a list of file paths to restore from the cache
@@ -152,17 +142,7 @@ export async function saveCache(
   checkKey(key)
 
   const compressionMethod = await utils.getCompressionMethod()
-
-  core.debug('Reserving Cache')
-  const cacheId = await cacheHttpClient.reserveCache(key, paths, {
-    compressionMethod
-  })
-  if (cacheId === -1) {
-    throw new ReserveCacheError(
-      `Unable to reserve cache with key ${key}, another job may be creating this cache.`
-    )
-  }
-  core.debug(`Cache ID: ${cacheId}`)
+  let cacheId = null
 
   const cachePaths = await utils.resolvePaths(paths)
   core.debug('Cache Paths:')
@@ -185,13 +165,31 @@ export async function saveCache(
     const fileSizeLimit = 10 * 1024 * 1024 * 1024 // 10GB per repo limit
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
-    if (archiveFileSize > fileSizeLimit) {
+    if (archiveFileSize > fileSizeLimit && !utils.isGhes()) {
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
         )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
       )
     }
+
+    const cacheSize = utils.isGhes() ? archiveFileSize : undefined
+    core.debug('Reserving Cache')
+    cacheId = await cacheHttpClient.reserveCache(key, paths, {
+      compressionMethod,
+      cacheSize
+    })
+    if (cacheId === -1) {
+      throw new ReserveCacheError(
+        `Unable to reserve cache with key ${key}, another job may be creating this cache.`
+      )
+    }
+    if (cacheId === -2) {
+      throw new ReserveCacheError(
+        `Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+      )
+    }
+    core.debug(`Cache ID: ${cacheId}`)
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
     await cacheHttpClient.saveCache(cacheId, archivePath, options)

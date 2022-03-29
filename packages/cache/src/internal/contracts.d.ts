@@ -14,6 +14,7 @@ export interface CommitCacheRequest {
 export interface ReserveCacheRequest {
   key: string
   version?: string
+  cacheSize?: number
 }
 
 export interface ReserveCacheResponse {
@@ -22,4 +23,5 @@ export interface ReserveCacheResponse {
 
 export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
+  cacheSize?: number
 }
