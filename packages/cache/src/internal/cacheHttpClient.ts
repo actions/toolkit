@@ -31,7 +31,12 @@ import {
 const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
-  const baseUrl: string = process.env['ACTIONS_CACHE_URL'] || ''
+  // Ideally we just use ACTIONS_CACHE_URL
+  const baseUrl: string = (
+    process.env['ACTIONS_CACHE_URL'] ||
+    process.env['ACTIONS_RUNTIME_URL'] ||
+    ''
+  ).replace('pipelines', 'artifactcache')
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
@@ -149,7 +154,8 @@ export async function reserveCache(
 
   const reserveCacheRequest: ReserveCacheRequest = {
     key,
-    version
+    version,
+    cacheSize: options?.cacheSize
   }
   const response = await retryTypedResponse('reserveCache', async () =>
     httpClient.postJson<ReserveCacheResponse>(
@@ -157,6 +163,9 @@ export async function reserveCache(
       reserveCacheRequest
     )
   )
+  if(response?.statusCode === 400){
+    return -2
+  }
   return response?.result?.cacheId ?? -1
 }
 
