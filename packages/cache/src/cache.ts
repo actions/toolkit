@@ -49,7 +49,7 @@ function checkKey(key: string): void {
  * @returns boolean return true if Actions cache service feature is available, otherwise false
  */
 
- export function isFeatureAvailable(): boolean {
+export function isFeatureAvailable(): boolean {
   return !!process.env['ACTIONS_CACHE_URL']
 }
 
