@@ -32,11 +32,7 @@ const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
   // Ideally we just use ACTIONS_CACHE_URL
-  const baseUrl: string = (
-    process.env['ACTIONS_CACHE_URL'] ||
-    process.env['ACTIONS_RUNTIME_URL'] ||
-    ''
-  ).replace('pipelines', 'artifactcache')
+  const baseUrl: string = process.env['ACTIONS_CACHE_URL'] || ''
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
