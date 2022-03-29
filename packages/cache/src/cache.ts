@@ -44,6 +44,16 @@ function checkKey(key: string): void {
 }
 
 /**
+ * isFeatureAvailable to check the presence of Actions cache service
+ *
+ * @returns boolean return true if Actions cache service feature is available, otherwise false
+ */
+
+ export function isFeatureAvailable(): boolean {
+  return !!process.env['ACTIONS_CACHE_URL']
+}
+
+/**
  * Restores cache from keys
  *
  * @param paths a list of file paths to restore from the cache
