@@ -143,7 +143,7 @@ export async function reserveCache(
   key: string,
   paths: string[],
   options?: InternalCacheOptions
-): Promise<number> {
+): Promise<ITypedResponse<ReserveCacheResponse>> {
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
 
@@ -158,10 +158,7 @@ export async function reserveCache(
       reserveCacheRequest
     )
   )
-  if(response?.statusCode === 400){
-    return -2
-  }
-  return response?.result?.cacheId ?? -1
+  return response
 }
 
 function getContentRange(start: number, end: number): string {
