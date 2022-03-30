@@ -172,35 +172,31 @@ export async function saveCache(
       await listTar(archivePath, compressionMethod)
     }
 
-    const fileSizeLimit = 10 * 1024 * 1024 * 1024 // 10GB per repo limit
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
-    if (archiveFileSize > fileSizeLimit && !utils.isGhes()) {
-      throw new Error(
-        `Cache size of ~${Math.round(
-          archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
-      )
-    }
 
-    const cacheSize = utils.isGhes() ? archiveFileSize : undefined
+    const cacheSize = archiveFileSize
     core.debug('Reserving Cache')
-    cacheId = await cacheHttpClient.reserveCache(key, paths, {
+    let reserveCacheResponse = await cacheHttpClient.reserveCache(key, paths, {
       compressionMethod,
       cacheSize
     })
-    if (cacheId === -1) {
-      throw new ReserveCacheError(
-        `Unable to reserve cache with key ${key}, another job may be creating this cache.`
-      )
-    }
-    if (cacheId === -2) {
+
+    if(reserveCacheResponse?.statusCode === 400){
       throw new ReserveCacheError(
         `Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     }
-    core.debug(`Cache ID: ${cacheId}`)
 
+    if(reserveCacheResponse?.result?.cacheId){
+      cacheId = reserveCacheResponse?.result?.cacheId
+    }else{
+      throw new ReserveCacheError(
+        `Unable to reserve cache with key ${key}, another job may be creating this cache.`
+      )
+    }
+
+    core.debug(`Cache ID: ${cacheId}`)
     core.debug(`Saving Cache (ID: ${cacheId})`)
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
   } finally {
