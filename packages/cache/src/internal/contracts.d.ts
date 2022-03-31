@@ -1,4 +1,12 @@
 import {CompressionMethod} from './constants'
+import {
+  ITypedResponse
+} from '@actions/http-client/interfaces'
+
+export interface ITypedResponseWithErrorMessage<T> extends ITypedResponse<T> {
+  message?: string
+  typeKey?: string
+}
 
 export interface ArtifactCacheEntry {
   cacheKey?: string
@@ -24,4 +32,8 @@ export interface ReserveCacheResponse {
 export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
   cacheSize?: number
+}
+
+export interface CommitCacheRequest {
+  size: number
 }
