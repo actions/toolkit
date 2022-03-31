@@ -10,6 +10,7 @@ import {
   ReserveCacheResponse,
   ITypedResponseWithErrorMessage
 } from '../src/internal/contracts'
+import { HttpClientError } from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -60,10 +61,87 @@ test('save with large cache outputs should fail', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
+  await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
+    'Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
+  )
+
+  const archiveFolder = '/foo/bar'
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(createTarMock).toHaveBeenCalledWith(
+    archiveFolder,
+    cachePaths,
+    compression
+  )
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
+test('save with large cache outputs should fail in GHES with error message', async () => {
+  const filePath = 'node_modules'
+  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(filePath)]
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+
+  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(cacheSize)
+  const compression = CompressionMethod.Gzip
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValueOnce(Promise.resolve(compression))
+
+  jest.spyOn(cacheUtils, 'isGhes').mockReturnValueOnce(true)
+
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
+      const response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {
+        statusCode: 400,
+        result: null,
+        headers: {},
+        error: new HttpClientError("The cache filesize must be between 0 and 1073741824 bytes",400)
+      }
+      return response
+    })
+
+  await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
+    'The cache filesize must be between 0 and 1073741824 bytes'
+  )
+
+  const archiveFolder = '/foo/bar'
+  expect(reserveCacheMock).toHaveBeenCalledTimes(1)
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(createTarMock).toHaveBeenCalledWith(
+    archiveFolder,
+    cachePaths,
+    compression
+  )
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
+test('save with large cache outputs should fail in GHES without error message', async () => {
+  const filePath = 'node_modules'
+  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(filePath)]
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+
+  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(cacheSize)
+  const compression = CompressionMethod.Gzip
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValueOnce(Promise.resolve(compression))
+
+  jest.spyOn(cacheUtils, 'isGhes').mockReturnValueOnce(true)
+
+  const reserveCacheMock = jest
+    .spyOn(cacheHttpClient, 'reserveCache')
+    .mockImplementation(async () => {
+      const response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {
         statusCode: 400,
         result: null,
         headers: {}
@@ -72,7 +150,7 @@ test('save with large cache outputs should fail', async () => {
     })
 
   await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
-    'Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
+    'Cache size of ~11264 MB (11811160064 B) is over the data cap limit, not saving cache.'
   )
 
   const archiveFolder = '/foo/bar'
