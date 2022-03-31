@@ -126,7 +126,7 @@ export function assertDefined<T>(name: string, value?: T): T {
 
 export function isGhes(): boolean {
   const ghUrl = new URL(
-      process.env["GITHUB_SERVER_URL"] || "https://github.com"
-  );
-  return ghUrl.hostname.toUpperCase() !== "GITHUB.COM";
+    process.env['GITHUB_SERVER_URL'] || 'https://github.com'
+  )
+  return ghUrl.hostname.toUpperCase() !== 'GITHUB.COM'
 }

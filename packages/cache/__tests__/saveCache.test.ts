@@ -10,7 +10,7 @@ import {
   ReserveCacheResponse,
   ITypedResponseWithErrorMessage
 } from '../src/internal/contracts'
-import { HttpClientError } from '@actions/http-client'
+import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -100,7 +100,7 @@ test('save with large cache outputs should fail in GHES with error message', asy
         statusCode: 400,
         result: null,
         headers: {},
-        error: new HttpClientError("The cache filesize must be between 0 and 1073741824 bytes",400)
+        error: new HttpClientError("The cache filesize must be between 0 and 1073741824 bytes", 400)
       }
       return response
     })
