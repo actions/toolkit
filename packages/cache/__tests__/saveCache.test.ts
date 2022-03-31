@@ -77,7 +77,7 @@ test('save with large cache outputs should fail', async () => {
   )
 
   const archiveFolder = '/foo/bar'
-
+  expect(reserveCacheMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
