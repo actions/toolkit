@@ -31,7 +31,3 @@ export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
   cacheSize?: number
 }
-
-export interface CommitCacheRequest {
-  size: number
-}
