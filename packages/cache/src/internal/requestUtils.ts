@@ -1,8 +1,10 @@
 import * as core from '@actions/core'
 import {HttpCodes, HttpClientError} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {
+  IHttpClientResponse,
+  ITypedResponse
+} from '@actions/http-client/interfaces'
 import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
-import {ITypedResponseWithErrorMessage} from './contracts'
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
@@ -92,14 +94,14 @@ export async function retry<T>(
 
 export async function retryTypedResponse<T>(
   name: string,
-  method: () => Promise<ITypedResponseWithErrorMessage<T>>,
+  method: () => Promise<ITypedResponse<T>>,
   maxAttempts = DefaultRetryAttempts,
   delay = DefaultRetryDelay
-): Promise<ITypedResponseWithErrorMessage<T>> {
+): Promise<ITypedResponse<T>> {
   return await retry(
     name,
     method,
-    (response: ITypedResponseWithErrorMessage<T>) => response.statusCode,
+    (response: ITypedResponse<T>) => response.statusCode,
     maxAttempts,
     delay,
     // If the error object contains the statusCode property, extract it and return
@@ -109,8 +111,7 @@ export async function retryTypedResponse<T>(
         return {
           statusCode: error.statusCode,
           result: null,
-          headers: {},
-          error: error
+          headers: {}
         }
       } else {
         return undefined
