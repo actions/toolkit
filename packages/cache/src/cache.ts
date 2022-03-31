@@ -182,8 +182,9 @@ export async function saveCache(
       cacheSize
     })
 
-    if(reserveCacheResponse?.statusCode === 400){
+    if(reserveCacheResponse?.statusCode === 400 && reserveCacheResponse?.typeKey === "InvalidReserveCacheRequestException"){
       throw new ReserveCacheError(
+        reserveCacheResponse?.message ??
         `Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     }

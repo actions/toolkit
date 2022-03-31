@@ -6,7 +6,7 @@ import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import {ITypedResponse} from '@actions/http-client/interfaces'
-import {ReserveCacheResponse} from '../src/internal/contracts'
+import {ReserveCacheResponse, ITypedResponseWithErrorMessage} from '../src/internal/contracts'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -60,7 +60,7 @@ test('save with large cache outputs should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      let response: ITypedResponse<ReserveCacheResponse> = {statusCode:400, result: null, headers:{}}
+      let response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {statusCode:400, result: null, headers:{}, typeKey:"InvalidReserveCacheRequestException"}
       return  response
     })
 
@@ -86,7 +86,7 @@ test('save with reserve cache failure should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      let response: ITypedResponse<ReserveCacheResponse> = {statusCode:500, result: null, headers:{}}
+      let response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {statusCode:500, result: null, headers:{}}
       return  response
     })
 
