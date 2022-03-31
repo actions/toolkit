@@ -110,8 +110,7 @@ export async function retryTypedResponse<T>(
           statusCode: error.statusCode,
           result: null,
           headers: {},
-          message: error.message,
-          typeKey: error.result.typeKey
+          error: error
         }
       } else {
         return undefined

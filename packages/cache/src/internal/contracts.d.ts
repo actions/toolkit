@@ -1,9 +1,9 @@
 import {CompressionMethod} from './constants'
 import {ITypedResponse} from '@actions/http-client/interfaces'
+import {HttpClientError} from '@actions/http-client'
 
 export interface ITypedResponseWithErrorMessage<T> extends ITypedResponse<T> {
-  message?: string
-  typeKey?: string
+  error?: HttpClientError
 }
 
 export interface ArtifactCacheEntry {
