@@ -159,7 +159,6 @@ export async function reserveCache(
       reserveCacheRequest
     )
   )
-  console.log(response)
   return response
 }
 
