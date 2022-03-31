@@ -13,8 +13,7 @@ import {
   InternalCacheOptions,
   CommitCacheRequest,
   ReserveCacheRequest,
-  ReserveCacheResponse,
-  ITypedResponseWithErrorMessage
+  ReserveCacheResponse
 } from './contracts'
 import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
 import {
@@ -144,14 +143,13 @@ export async function reserveCache(
   key: string,
   paths: string[],
   options?: InternalCacheOptions
-): Promise<ITypedResponseWithErrorMessage<ReserveCacheResponse>> {
+): Promise<number> {
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
 
   const reserveCacheRequest: ReserveCacheRequest = {
     key,
-    version,
-    cacheSize: options?.cacheSize
+    version
   }
   const response = await retryTypedResponse('reserveCache', async () =>
     httpClient.postJson<ReserveCacheResponse>(
@@ -159,7 +157,7 @@ export async function reserveCache(
       reserveCacheRequest
     )
   )
-  return response
+  return response?.result?.cacheId ?? -1
 }
 
 function getContentRange(start: number, end: number): string {

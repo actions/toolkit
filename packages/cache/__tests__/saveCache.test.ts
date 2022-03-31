@@ -5,11 +5,6 @@ import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
-import {ITypedResponse} from '@actions/http-client/interfaces'
-import {
-  ReserveCacheResponse,
-  ITypedResponseWithErrorMessage
-} from '../src/internal/contracts'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -60,23 +55,12 @@ test('save with large cache outputs should fail', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-  const reserveCacheMock = jest
-    .spyOn(cacheHttpClient, 'reserveCache')
-    .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
-        statusCode: 400,
-        result: null,
-        headers: {}
-      }
-      return response
-    })
-
   await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
     'Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
   )
 
   const archiveFolder = '/foo/bar'
-  expect(reserveCacheMock).toHaveBeenCalledTimes(1)
+
   expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
@@ -93,12 +77,7 @@ test('save with reserve cache failure should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
-        statusCode: 500,
-        result: null,
-        headers: {}
-      }
-      return response
+      return -1
     })
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -115,7 +94,7 @@ test('save with reserve cache failure should fail', async () => {
   expect(reserveCacheMock).toHaveBeenCalledWith(primaryKey, paths, {
     compressionMethod: compression
   })
-  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(createTarMock).toHaveBeenCalledTimes(0)
   expect(saveCacheMock).toHaveBeenCalledTimes(0)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
@@ -129,12 +108,7 @@ test('save with server error should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
-        statusCode: 500,
-        result: {cacheId},
-        headers: {}
-      }
-      return response
+      return cacheId
     })
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -181,12 +155,7 @@ test('save with valid inputs uploads a cache', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
-        statusCode: 500,
-        result: {cacheId},
-        headers: {}
-      }
-      return response
+      return cacheId
     })
   const createTarMock = jest.spyOn(tar, 'createTar')
 
