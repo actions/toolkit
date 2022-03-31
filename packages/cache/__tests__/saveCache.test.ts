@@ -6,7 +6,10 @@ import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import {ITypedResponse} from '@actions/http-client/interfaces'
-import {ReserveCacheResponse, ITypedResponseWithErrorMessage} from '../src/internal/contracts'
+import {
+  ReserveCacheResponse,
+  ITypedResponseWithErrorMessage
+} from '../src/internal/contracts'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -56,12 +59,17 @@ test('save with large cache outputs should fail', async () => {
   const getCompressionMock = jest
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
-  
+
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      let response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {statusCode:400, result: null, headers:{}, typeKey:"InvalidReserveCacheRequestException"}
-      return  response
+      const response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {
+        statusCode: 400,
+        result: null,
+        headers: {},
+        typeKey: 'InvalidReserveCacheRequestException'
+      }
+      return response
     })
 
   await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
@@ -86,8 +94,12 @@ test('save with reserve cache failure should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      let response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {statusCode:500, result: null, headers:{}}
-      return  response
+      const response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {
+        statusCode: 500,
+        result: null,
+        headers: {}
+      }
+      return response
     })
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -118,8 +130,12 @@ test('save with server error should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      let response: ITypedResponse<ReserveCacheResponse> = {statusCode:500, result: {cacheId}, headers:{}}
-      return  response
+      const response: ITypedResponse<ReserveCacheResponse> = {
+        statusCode: 500,
+        result: {cacheId},
+        headers: {}
+      }
+      return response
     })
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -166,8 +182,12 @@ test('save with valid inputs uploads a cache', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      let response: ITypedResponse<ReserveCacheResponse> = {statusCode:500, result: {cacheId}, headers:{}}
-      return  response
+      const response: ITypedResponse<ReserveCacheResponse> = {
+        statusCode: 500,
+        result: {cacheId},
+        headers: {}
+      }
+      return response
     })
   const createTarMock = jest.spyOn(tar, 'createTar')
 

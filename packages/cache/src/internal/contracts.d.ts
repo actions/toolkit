@@ -1,7 +1,5 @@
 import {CompressionMethod} from './constants'
-import {
-  ITypedResponse
-} from '@actions/http-client/interfaces'
+import {ITypedResponse} from '@actions/http-client/interfaces'
 
 export interface ITypedResponseWithErrorMessage<T> extends ITypedResponse<T> {
   message?: string

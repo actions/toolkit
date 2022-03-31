@@ -1,8 +1,7 @@
 import * as core from '@actions/core'
 import {HttpCodes, HttpClientError} from '@actions/http-client'
 import {
-  IHttpClientResponse,
-  ITypedResponse
+  IHttpClientResponse
 } from '@actions/http-client/interfaces'
 import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
 import {ITypedResponseWithErrorMessage} from './contracts'
@@ -113,8 +112,8 @@ export async function retryTypedResponse<T>(
           statusCode: error.statusCode,
           result: null,
           headers: {},
-          message:error.message,
-          typeKey:error.result.typeKey
+          message: error.message,
+          typeKey: error.result.typeKey
         }
       } else {
         return undefined

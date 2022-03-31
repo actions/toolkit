@@ -177,21 +177,30 @@ export async function saveCache(
 
     const cacheSize = archiveFileSize
     core.debug('Reserving Cache')
-    let reserveCacheResponse = await cacheHttpClient.reserveCache(key, paths, {
-      compressionMethod,
-      cacheSize
-    })
+    const reserveCacheResponse = await cacheHttpClient.reserveCache(
+      key,
+      paths,
+      {
+        compressionMethod,
+        cacheSize
+      }
+    )
 
-    if(reserveCacheResponse?.statusCode === 400 && reserveCacheResponse?.typeKey === "InvalidReserveCacheRequestException"){
+    if (
+      reserveCacheResponse?.statusCode === 400 &&
+      reserveCacheResponse?.typeKey === 'InvalidReserveCacheRequestException'
+    ) {
       throw new ReserveCacheError(
         reserveCacheResponse?.message ??
-        `Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+          `Cache size of ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     }
 
-    if(reserveCacheResponse?.result?.cacheId){
+    if (reserveCacheResponse?.result?.cacheId) {
       cacheId = reserveCacheResponse?.result?.cacheId
-    }else{
+    } else {
       throw new ReserveCacheError(
         `Unable to reserve cache with key ${key}, another job may be creating this cache.`
       )
