@@ -1,5 +1,7 @@
 # @actions/github Releases
 
+### 5.0.1
+- [Update Octokit Dependencies](https://github.com/actions/toolkit/pull/1037)
 ### 5.0.0
 - [Update @actions/github to include latest octokit definitions](https://github.com/actions/toolkit/pull/783)
 - [Add urls to context](https://github.com/actions/toolkit/pull/794)
