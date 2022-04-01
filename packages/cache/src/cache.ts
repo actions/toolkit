@@ -205,7 +205,7 @@ export async function saveCache(
       )
     } else {
       throw new ReserveCacheError(
-        `Unable to reserve cache with key ${key}, another job may be creating this cache.`
+        `Unable to reserve cache with key ${key}, another job may be creating this cache. More details: ${reserveCacheResponse?.error?.message}`
       )
     }
 
