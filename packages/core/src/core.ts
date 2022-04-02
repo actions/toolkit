@@ -86,7 +86,7 @@ export function exportVariable(name: string, val: any): void {
 
   const filePath = process.env['GITHUB_ENV'] || ''
   if (filePath) {
-    const delimiter = '_GitHubActionsFileCommandDelimeter_'
+    const delimiter = '_GitHubActionsFileCommandDelimiter_'
     const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`
     issueFileCommand('ENV', commandValue)
   } else {

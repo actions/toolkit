@@ -91,7 +91,7 @@ describe('@actions/core', () => {
     core.exportVariable('my var', 'var val')
     verifyFileCommand(
       command,
-      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}var val${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+      `my var<<_GitHubActionsFileCommandDelimiter_${os.EOL}var val${os.EOL}_GitHubActionsFileCommandDelimiter_${os.EOL}`
     )
   })
 
@@ -101,7 +101,7 @@ describe('@actions/core', () => {
     core.exportVariable('my var', true)
     verifyFileCommand(
       command,
-      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}true${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+      `my var<<_GitHubActionsFileCommandDelimiter_${os.EOL}true${os.EOL}_GitHubActionsFileCommandDelimiter_${os.EOL}`
     )
   })
 
@@ -111,7 +111,7 @@ describe('@actions/core', () => {
     core.exportVariable('my var', 5)
     verifyFileCommand(
       command,
-      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}5${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+      `my var<<_GitHubActionsFileCommandDelimiter_${os.EOL}5${os.EOL}_GitHubActionsFileCommandDelimiter_${os.EOL}`
     )
   })
 
