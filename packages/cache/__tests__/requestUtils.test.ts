@@ -161,7 +161,7 @@ test('retryTypedResponse gives an error with error message', async () => {
   const key = 'sample_key'
   const filePathList = ['node_modules']
   await expect(
-    (await reserveCache(key, filePathList)).error.message ===
+    (await reserveCache(key, filePathList))?.error?.message ===
       'The cache filesize must be between 0 and 10 * 1024 * 1024 bytes'
   )
 
