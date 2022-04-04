@@ -89,7 +89,6 @@ test('save with large cache outputs should fail in GHES with error message', asy
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-
   jest.spyOn(cacheUtils, 'isGhes').mockReturnValueOnce(true)
 
   const reserveCacheMock = jest
