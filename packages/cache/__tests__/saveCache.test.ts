@@ -16,6 +16,11 @@ jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
 jest.mock('../src/internal/tar')
 
+let primaryKey
+let compression
+let getCompressionMock
+let createTarMock
+
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {})
   jest.spyOn(core, 'debug').mockImplementation(() => {})
@@ -35,11 +40,24 @@ beforeAll(() => {
   jest.spyOn(cacheUtils, 'createTempDirectory').mockImplementation(async () => {
     return Promise.resolve('/foo/bar')
   })
+
+  primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  compression = CompressionMethod.Zstd
+  getCompressionMock = jest
+  .spyOn(cacheUtils, 'getCompressionMethod')
+  .mockReturnValueOnce(Promise.resolve(compression))
+  createTarMock = jest.spyOn(tar, 'createTar')
 })
+
+function mockGetArchiveFileSizeInBytes(cacheSize){
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(cacheSize)
+}
 
 test('save with missing input should fail', async () => {
   const paths: string[] = []
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  
   await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
     `Path Validation Error: At least one directory or file path is required`
   )
@@ -47,19 +65,9 @@ test('save with missing input should fail', async () => {
 
 test('save with large cache outputs should fail', async () => {
   const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const cachePaths = [path.resolve(filePath)]
 
-  const createTarMock = jest.spyOn(tar, 'createTar')
-
-  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
-  jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-    .mockReturnValueOnce(cacheSize)
-  const compression = CompressionMethod.Gzip
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
+  mockGetArchiveFileSizeInBytes(11 * 1024 * 1024 * 1024) //~11GB, over the 10GB limit
 
   await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
     'Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
@@ -77,19 +85,9 @@ test('save with large cache outputs should fail', async () => {
 
 test('save with large cache outputs should fail in GHES with error message', async () => {
   const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const cachePaths = [path.resolve(filePath)]
 
-  const createTarMock = jest.spyOn(tar, 'createTar')
-
-  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
-  jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-    .mockReturnValueOnce(cacheSize)
-  const compression = CompressionMethod.Gzip
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
+  mockGetArchiveFileSizeInBytes(11 * 1024 * 1024 * 1024) //~11GB, over the 10GB limit
 
   jest.spyOn(cacheUtils, 'isGhes').mockReturnValueOnce(true)
 
@@ -125,19 +123,9 @@ test('save with large cache outputs should fail in GHES with error message', asy
 
 test('save with large cache outputs should fail in GHES without error message', async () => {
   const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const cachePaths = [path.resolve(filePath)]
 
-  const createTarMock = jest.spyOn(tar, 'createTar')
-
-  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
-  jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-    .mockReturnValueOnce(cacheSize)
-  const compression = CompressionMethod.Gzip
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
+  mockGetArchiveFileSizeInBytes(11 * 1024 * 1024 * 1024) //~11GB, over the 10GB limit
 
   jest.spyOn(cacheUtils, 'isGhes').mockReturnValueOnce(true)
 
@@ -169,7 +157,6 @@ test('save with large cache outputs should fail in GHES without error message', 
 
 test('save with reserve cache failure should fail', async () => {
   const paths = ['node_modules']
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
 
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
@@ -182,13 +169,8 @@ test('save with reserve cache failure should fail', async () => {
       return response
     })
 
-  const createTarMock = jest.spyOn(tar, 'createTar')
   const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
-  const compression = CompressionMethod.Zstd
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
-
+  
   await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
     `Unable to reserve cache with key ${primaryKey}, another job may be creating this cache.`
   )
@@ -203,7 +185,6 @@ test('save with reserve cache failure should fail', async () => {
 
 test('save with server error should fail', async () => {
   const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const cachePaths = [path.resolve(filePath)]
 
   const cacheId = 4
@@ -218,18 +199,12 @@ test('save with server error should fail', async () => {
       return response
     })
 
-  const createTarMock = jest.spyOn(tar, 'createTar')
-
   const saveCacheMock = jest
     .spyOn(cacheHttpClient, 'saveCache')
     .mockImplementationOnce(() => {
       throw new Error('HTTP Error Occurred')
     })
-  const compression = CompressionMethod.Zstd
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
-
+  
   await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
     'HTTP Error Occurred'
   )
@@ -255,7 +230,7 @@ test('save with server error should fail', async () => {
 
 test('save with valid inputs uploads a cache', async () => {
   const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  
   const cachePaths = [path.resolve(filePath)]
 
   const cacheId = 4
@@ -269,14 +244,9 @@ test('save with valid inputs uploads a cache', async () => {
       }
       return response
     })
-  const createTarMock = jest.spyOn(tar, 'createTar')
 
   const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
-  const compression = CompressionMethod.Zstd
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValue(Promise.resolve(compression))
-
+  
   await saveCache([filePath], primaryKey)
 
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
