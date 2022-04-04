@@ -1,9 +1,10 @@
-import {debug, info, warning} from '@actions/core'
+import * as crypto from 'crypto'
 import {promises as fs} from 'fs'
+import {IncomingHttpHeaders} from 'http'
+import {debug, info, warning} from '@actions/core'
 import {HttpCodes, HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/auth'
 import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces'
-import {IncomingHttpHeaders} from 'http'
 import {
   getRuntimeToken,
   getRuntimeUrl,
@@ -180,7 +181,8 @@ export function getUploadHeaders(
   isGzip?: boolean,
   uncompressedLength?: number,
   contentLength?: number,
-  contentRange?: string
+  contentRange?: string,
+  digest?: string
 ): IHeaders {
   const requestOptions: IHeaders = {}
   requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
@@ -201,6 +203,10 @@ export function getUploadHeaders(
   }
   if (contentRange) {
     requestOptions['Content-Range'] = contentRange
+  }
+  if (digest) {
+    // TODO(robherley): should we use 'Digest' directly? https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest
+    requestOptions['X-Digest'] = `sha-256=${digest}`
   }
 
   return requestOptions
@@ -290,4 +296,16 @@ export function getProperRetention(
 
 export async function sleep(milliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+export async function digestForStream(
+  stream: NodeJS.ReadableStream
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // TODO(robherley): switch to crc64 for production
+    const hasher = crypto.createHash('sha256')
+    stream.on('data', data => hasher.update(data))
+    stream.on('end', () => resolve(hasher.digest('hex')))
+    stream.on('error', reject)
+  })
 }
