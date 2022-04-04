@@ -17,7 +17,7 @@ jest.mock('../src/internal/cacheUtils')
 jest.mock('../src/internal/tar')
 
 let primaryKey: string
-let compression: string
+let compression: any
 let getCompressionMock: any
 let createTarMock: any
 
@@ -49,7 +49,7 @@ beforeAll(() => {
   createTarMock = jest.spyOn(tar, 'createTar')
 })
 
-function mockGetArchiveFileSizeInBytes(cacheSize) {
+function mockGetArchiveFileSizeInBytes(cacheSize: number) {
   jest
     .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
     .mockReturnValueOnce(cacheSize)
