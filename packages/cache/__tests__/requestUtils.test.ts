@@ -1,7 +1,7 @@
 import {retry} from '../src/internal/requestUtils'
 import {HttpClientError} from '@actions/http-client'
 import * as requestUtils from '../src/internal/requestUtils'
-import {reserveCache} from '../src/internal/cacheHttpClient'
+import {retryTypedResponse} from '../src/internal/requestUtils'
 
 interface ITestResponse {
   statusCode: number
@@ -155,15 +155,21 @@ test('retryTypedResponse gives an error with error message', async () => {
   )
   jest.spyOn(requestUtils, 'retry').mockReturnValue(
     new Promise((resolve, reject) => {
-      reject(httpClientError)
+      resolve(httpClientError)
     })
   )
-  const key = 'sample_key'
-  const filePathList = ['node_modules']
-  await expect(
-    (await reserveCache(key, filePathList))?.error?.message ===
+  
+  try{
+    await retryTypedResponse('reserveCache', async () =>
+      new Promise((resolve, reject) => {
+        resolve(null)
+      })
+    )
+  }catch(error){
+    expect(error).toHaveProperty(
+      'message',
       'The cache filesize must be between 0 and 10 * 1024 * 1024 bytes'
-  )
-
-  await expect((await reserveCache(key, filePathList)).statusCode === 400)
+    );
+  }
+  
 })
