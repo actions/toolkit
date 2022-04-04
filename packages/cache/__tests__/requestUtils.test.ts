@@ -2,6 +2,7 @@ import {retry} from '../src/internal/requestUtils'
 import {HttpClientError} from '@actions/http-client'
 import * as requestUtils from '../src/internal/requestUtils'
 import {retryTypedResponse} from '../src/internal/requestUtils'
+import { ITypedResponseWithError } from '../src/internal/contracts'
 
 interface ITestResponse {
   statusCode: number
@@ -157,17 +158,16 @@ test('retryTypedResponse gives an error with error message', async () => {
     new Promise((resolve, reject) => {
       resolve(httpClientError)
     })
-  )
-  
+  )¯
   try{
-    await retryTypedResponse('reserveCache', async () =>
+    await retryTypedResponse<string>('reserveCache', async () =>
       new Promise((resolve, reject) => {
-        resolve(undefined)
+        resolve({statusCode:400, result: "", headers:{}, error:httpClientError })
       })
     )
   }catch(error){
     expect(error).toHaveProperty(
-      error.message,
+      'message',
       'The cache filesize must be between 0 and 10 * 1024 * 1024 bytes'
     );
   }
