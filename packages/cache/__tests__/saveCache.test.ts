@@ -16,10 +16,10 @@ jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
 jest.mock('../src/internal/tar')
 
-let primaryKey
-let compression
-let getCompressionMock
-let createTarMock
+let primaryKey: string
+let compression: string
+let getCompressionMock: any
+let createTarMock: any
 
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {})
