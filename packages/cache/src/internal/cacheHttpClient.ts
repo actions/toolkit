@@ -14,7 +14,7 @@ import {
   CommitCacheRequest,
   ReserveCacheRequest,
   ReserveCacheResponse,
-  ITypedResponseWithErrorMessage
+  ITypedResponseWithError
 } from './contracts'
 import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
 import {
@@ -144,7 +144,7 @@ export async function reserveCache(
   key: string,
   paths: string[],
   options?: InternalCacheOptions
-): Promise<ITypedResponseWithErrorMessage<ReserveCacheResponse>> {
+): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
 

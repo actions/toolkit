@@ -2,7 +2,7 @@ import {CompressionMethod} from './constants'
 import {ITypedResponse} from '@actions/http-client/interfaces'
 import {HttpClientError} from '@actions/http-client'
 
-export interface ITypedResponseWithErrorMessage<T> extends ITypedResponse<T> {
+export interface ITypedResponseWithError<T> extends ITypedResponse<T> {
   error?: HttpClientError
 }
 

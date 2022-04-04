@@ -8,7 +8,7 @@ import * as tar from '../src/internal/tar'
 import {ITypedResponse} from '@actions/http-client/interfaces'
 import {
   ReserveCacheResponse,
-  ITypedResponseWithErrorMessage
+  ITypedResponseWithError
 } from '../src/internal/contracts'
 import {HttpClientError} from '@actions/http-client'
 
@@ -96,7 +96,7 @@ test('save with large cache outputs should fail in GHES with error message', asy
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {
+      const response: ITypedResponseWithError<ReserveCacheResponse> = {
         statusCode: 400,
         result: null,
         headers: {},
@@ -144,7 +144,7 @@ test('save with large cache outputs should fail in GHES without error message', 
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponseWithErrorMessage<ReserveCacheResponse> = {
+      const response: ITypedResponseWithError<ReserveCacheResponse> = {
         statusCode: 400,
         result: null,
         headers: {}
