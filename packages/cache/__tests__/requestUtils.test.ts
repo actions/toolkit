@@ -162,7 +162,7 @@ test('retryTypedResponse gives an error with error message', async () => {
   try{
     await retryTypedResponse('reserveCache', async () =>
       new Promise((resolve, reject) => {
-        resolve(null)
+        resolve(undefined)
       })
     )
   }catch(error){
