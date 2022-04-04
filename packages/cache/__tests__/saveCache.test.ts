@@ -44,12 +44,12 @@ beforeAll(() => {
   primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   compression = CompressionMethod.Zstd
   getCompressionMock = jest
-  .spyOn(cacheUtils, 'getCompressionMethod')
-  .mockReturnValueOnce(Promise.resolve(compression))
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValueOnce(Promise.resolve(compression))
   createTarMock = jest.spyOn(tar, 'createTar')
 })
 
-function mockGetArchiveFileSizeInBytes(cacheSize){
+function mockGetArchiveFileSizeInBytes(cacheSize) {
   jest
     .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
     .mockReturnValueOnce(cacheSize)
@@ -57,7 +57,7 @@ function mockGetArchiveFileSizeInBytes(cacheSize){
 
 test('save with missing input should fail', async () => {
   const paths: string[] = []
-  
+
   await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
     `Path Validation Error: At least one directory or file path is required`
   )
@@ -170,7 +170,7 @@ test('save with reserve cache failure should fail', async () => {
     })
 
   const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
-  
+
   await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
     `Unable to reserve cache with key ${primaryKey}, another job may be creating this cache.`
   )
@@ -204,7 +204,7 @@ test('save with server error should fail', async () => {
     .mockImplementationOnce(() => {
       throw new Error('HTTP Error Occurred')
     })
-  
+
   await expect(saveCache([filePath], primaryKey)).rejects.toThrowError(
     'HTTP Error Occurred'
   )
@@ -230,7 +230,7 @@ test('save with server error should fail', async () => {
 
 test('save with valid inputs uploads a cache', async () => {
   const filePath = 'node_modules'
-  
+
   const cachePaths = [path.resolve(filePath)]
 
   const cacheId = 4
@@ -246,7 +246,7 @@ test('save with valid inputs uploads a cache', async () => {
     })
 
   const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
-  
+
   await saveCache([filePath], primaryKey)
 
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
