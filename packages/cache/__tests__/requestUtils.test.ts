@@ -158,7 +158,7 @@ test('retryTypedResponse gives an error with error message', async () => {
     new Promise((resolve, reject) => {
       resolve(httpClientError)
     })
-  )¯
+  )
   try{
     await retryTypedResponse<string>('reserveCache', async () =>
       new Promise((resolve, reject) => {
