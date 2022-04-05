@@ -10,6 +10,7 @@ import {
   getInitialRetryIntervalInMilliseconds,
   getRetryMultiplier
 } from '../src/internal/config-variables'
+import {Readable} from 'stream'
 
 jest.mock('../src/internal/config-variables')
 
@@ -74,15 +75,18 @@ describe('Utils', () => {
     const size = 24
     const uncompressedLength = 100
     const range = 'bytes 0-199/200'
+    const digest =
+      '5e2bf57d3f40c4b6df69daf1936cb766f832374b4fc0259a7cbff06e2f70f269'
     const headers = utils.getUploadHeaders(
       contentType,
       true,
       true,
       uncompressedLength,
       size,
-      range
+      range,
+      digest
     )
-    expect(Object.keys(headers).length).toEqual(8)
+    expect(Object.keys(headers).length).toEqual(9)
     expect(headers['Accept']).toEqual(
       `application/json;api-version=${utils.getApiVersion()}`
     )
@@ -93,6 +97,7 @@ describe('Utils', () => {
     expect(headers['x-tfs-filelength']).toEqual(uncompressedLength)
     expect(headers['Content-Length']).toEqual(size)
     expect(headers['Content-Range']).toEqual(range)
+    expect(headers['X-Digest']).toEqual(`sha-256=${digest}`)
   })
 
   it('Test constructing upload headers with only required parameter', () => {
@@ -218,5 +223,15 @@ describe('Utils', () => {
     await expect(fs.promises.access(emptyFile2)).resolves.toEqual(undefined)
     const size2 = (await fs.promises.stat(emptyFile2)).size
     expect(size2).toEqual(0)
+  })
+
+  it('Creates a digest from a readable stream', async () => {
+    const data = 'lorem ipsum'
+    const stream = Readable.from(data)
+    const digest = await utils.digestForStream(stream)
+
+    expect(digest).toBe(
+      '5e2bf57d3f40c4b6df69daf1936cb766f832374b4fc0259a7cbff06e2f70f269'
+    )
   })
 })
