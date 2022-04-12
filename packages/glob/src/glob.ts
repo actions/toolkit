@@ -27,7 +27,7 @@ export async function create(
 export async function hashFiles(
   patterns: string,
   options?: HashFileOptions,
-  verboseMode: Boolean = false
+  verbose: Boolean = false
 ): Promise<string> {
   let followSymbolicLinks = true
   if (options && typeof options.followSymbolicLinks === 'boolean') {
