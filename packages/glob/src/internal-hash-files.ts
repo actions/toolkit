@@ -6,7 +6,10 @@ import * as util from 'util'
 import * as path from 'path'
 import {Globber} from './glob'
 
-export async function hashFiles(globber: Globber, verboseMode: Boolean = false): Promise<string> {
+export async function hashFiles(
+  globber: Globber,
+  verboseMode: Boolean = false
+): Promise<string> {
   const writeDelegate = verboseMode ? core.info : core.debug
   let hasMatch = false
   const githubWorkspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
