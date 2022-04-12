@@ -26,12 +26,13 @@ export async function create(
  */
 export async function hashFiles(
   patterns: string,
-  options?: HashFileOptions
+  options?: HashFileOptions,
+  verboseMode: Boolean = false
 ): Promise<string> {
   let followSymbolicLinks = true
   if (options && typeof options.followSymbolicLinks === 'boolean') {
     followSymbolicLinks = options.followSymbolicLinks
   }
   const globber = await create(patterns, {followSymbolicLinks})
-  return _hashFiles(globber)
+  return _hashFiles(globber, verboseMode)
 }
