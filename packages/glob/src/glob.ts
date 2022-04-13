@@ -34,5 +34,5 @@ export async function hashFiles(
     followSymbolicLinks = options.followSymbolicLinks
   }
   const globber = await create(patterns, {followSymbolicLinks})
-  return _hashFiles(globber, verboseMode)
+  return _hashFiles(globber, verbose)
 }

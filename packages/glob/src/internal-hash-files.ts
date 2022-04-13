@@ -8,9 +8,9 @@ import {Globber} from './glob'
 
 export async function hashFiles(
   globber: Globber,
-  verboseMode: Boolean = false
+  verbose: Boolean = false
 ): Promise<string> {
-  const writeDelegate = verboseMode ? core.info : core.debug
+  const writeDelegate = verbose ? core.info : core.debug
   let hasMatch = false
   const githubWorkspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
   const result = crypto.createHash('sha256')
