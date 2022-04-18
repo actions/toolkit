@@ -1,8 +1,5 @@
 # @actions/exec Releases
 
-### 1.2.0
-- Added a `verbose` option to HashFiles [#1052](https://github.com/actions/toolkit/pull/1052/files)
-
 ### 1.1.1
 - Update `lockfileVersion` to `v2` in `package-lock.json [#1024](https://github.com/actions/toolkit/pull/1024) 
 
