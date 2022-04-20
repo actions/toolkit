@@ -1,11 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import path from 'path'
-import {
-  markdownSummary,
-  SUMMARY_ENV_VAR,
-  SUMMARY_LIMIT_BYTES
-} from '../src/markdown-summary'
+import {markdownSummary, SUMMARY_ENV_VAR} from '../src/markdown-summary'
 
 const testFilePath = path.join(__dirname, 'test', 'test-summary.md')
 
@@ -92,13 +88,6 @@ describe('@actions/core/src/markdown-summary', () => {
   it('throws if summary file does not exist', async () => {
     await fs.promises.unlink(testFilePath)
     const write = markdownSummary.addRaw(fixtures.text).write()
-
-    await expect(write).rejects.toThrow()
-  })
-
-  it('throws if write will exceed file limit', async () => {
-    const aaa = 'a'.repeat(SUMMARY_LIMIT_BYTES + 1)
-    const write = markdownSummary.addRaw(aaa).write()
 
     await expect(write).rejects.toThrow()
   })

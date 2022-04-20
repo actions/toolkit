@@ -1,9 +1,7 @@
 import {EOL} from 'os'
 import {constants, promises} from 'fs'
-const {access, appendFile, stat, writeFile} = promises
+const {access, appendFile, writeFile} = promises
 
-// The runner & server will also block any upload greater than this size
-export const SUMMARY_LIMIT_BYTES = 1024 * 1024 // 1MiB
 export const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
 export const SUMMARY_DOCS_URL =
   'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-markdown-summary'
@@ -92,28 +90,6 @@ class MarkdownSummary {
   }
 
   /**
-   * Checks if the write of the current buffer will exceed the job summary upload limit
-   *
-   * @param {boolean} overwrite if the operation is overwrite (otherwise it's append)
-   *
-   * @returns {Promise<boolean>} whether or not the file will exceed the limit
-   */
-  private async willExceedLimit(overwrite: boolean): Promise<boolean> {
-    let expectedSize = 0
-    if (!overwrite) {
-      // if appending, we need to check the current size of the summary file
-      const filePath = await this.filePath()
-      const {size} = await stat(filePath)
-      expectedSize += size
-    }
-
-    const bufferLen = Buffer.byteLength(this._buffer, 'utf8')
-    expectedSize += bufferLen
-
-    return expectedSize > SUMMARY_LIMIT_BYTES
-  }
-
-  /**
    * Wraps content in an HTML tag, adding any HTML attributes
    *
    * @param {string} tag HTML tag to wrap
@@ -140,24 +116,14 @@ class MarkdownSummary {
 
   /**
    * Writes text in the buffer to the summary buffer file and empties buffer. Will append by default.
-   * Checks if resulting file size > SUMMARY_LIMIT_BYTES, will throw and empty buffer
    *
-   * @param {SummaryWriteOptions | undefined} options (optional) options for write operation
+   * @param {SummaryWriteOptions} [options] (optional) options for write operation
    *
    * @returns {Promise<MarkdownSummary>} markdown summary instance
    */
   async write(options?: SummaryWriteOptions): Promise<MarkdownSummary> {
     const overwrite = !!options?.overwrite
     const filePath = await this.filePath()
-
-    if (await this.willExceedLimit(overwrite)) {
-      this.emptyBuffer()
-      const limitK = SUMMARY_LIMIT_BYTES / 1024
-      throw new Error(
-        `Aborting write to summary file. File size would exceed limit of ${limitK}KiB. For more information see: ${SUMMARY_DOCS_URL}`
-      )
-    }
-
     const writeFunc = overwrite ? writeFile : appendFile
     await writeFunc(filePath, this._buffer, {encoding: 'utf8'})
     return this.emptyBuffer()
