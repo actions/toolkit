@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.7.0
+- [Added `markdownSummary` extension](https://github.com/actions/toolkit/pull/1014)
+
 ### 1.6.0
 - [Added OIDC Client function `getIDToken`](https://github.com/actions/toolkit/pull/919)
 - [Added `file` parameter to `AnnotationProperties`](https://github.com/actions/toolkit/pull/896) 
