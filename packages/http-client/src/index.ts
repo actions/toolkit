@@ -49,7 +49,7 @@ export enum MediaTypes {
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
  */
 export function getProxyUrl(serverUrl: string): string {
-  let proxyUrl = pm.getProxyUrl(new URL(serverUrl))
+  const proxyUrl = pm.getProxyUrl(new URL(serverUrl))
   return proxyUrl ? proxyUrl.href : ''
 }
 
@@ -77,8 +77,8 @@ export class HttpClientError extends Error {
     Object.setPrototypeOf(this, HttpClientError.prototype)
   }
 
-  public statusCode: number
-  public result?: any
+  statusCode: number
+  result?: any
 }
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
@@ -86,8 +86,8 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     this.message = message
   }
 
-  public message: http.IncomingMessage
-  readBody(): Promise<string> {
+  message: http.IncomingMessage
+  async readBody(): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
       let output = Buffer.alloc(0)
 
@@ -103,7 +103,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 }
 
 export function isHttps(requestUrl: string) {
-  let parsedUrl: URL = new URL(requestUrl)
+  const parsedUrl: URL = new URL(requestUrl)
   return parsedUrl.protocol === 'https:'
 }
 
@@ -112,17 +112,17 @@ export class HttpClient {
   handlers: ifm.IRequestHandler[]
   requestOptions: ifm.IRequestOptions | undefined
 
-  private _ignoreSslError: boolean = false
+  private _ignoreSslError = false
   private _socketTimeout: number | undefined
-  private _allowRedirects: boolean = true
-  private _allowRedirectDowngrade: boolean = false
-  private _maxRedirects: number = 50
-  private _allowRetries: boolean = false
-  private _maxRetries: number = 1
+  private _allowRedirects = true
+  private _allowRedirectDowngrade = false
+  private _maxRedirects = 50
+  private _allowRetries = false
+  private _maxRetries = 1
   private _agent: any
   private _proxyAgent: any
-  private _keepAlive: boolean = false
-  private _disposed: boolean = false
+  private _keepAlive = false
+  private _disposed = false
 
   constructor(
     userAgent?: string,
@@ -165,28 +165,28 @@ export class HttpClient {
     }
   }
 
-  public options(
+  async options(
     requestUrl: string,
     additionalHeaders?: ifm.IHeaders
   ): Promise<ifm.IHttpClientResponse> {
     return this.request('OPTIONS', requestUrl, null, additionalHeaders || {})
   }
 
-  public get(
+  async get(
     requestUrl: string,
     additionalHeaders?: ifm.IHeaders
   ): Promise<ifm.IHttpClientResponse> {
     return this.request('GET', requestUrl, null, additionalHeaders || {})
   }
 
-  public del(
+  async del(
     requestUrl: string,
     additionalHeaders?: ifm.IHeaders
   ): Promise<ifm.IHttpClientResponse> {
     return this.request('DELETE', requestUrl, null, additionalHeaders || {})
   }
 
-  public post(
+  async post(
     requestUrl: string,
     data: string,
     additionalHeaders?: ifm.IHeaders
@@ -194,7 +194,7 @@ export class HttpClient {
     return this.request('POST', requestUrl, data, additionalHeaders || {})
   }
 
-  public patch(
+  async patch(
     requestUrl: string,
     data: string,
     additionalHeaders?: ifm.IHeaders
@@ -202,7 +202,7 @@ export class HttpClient {
     return this.request('PATCH', requestUrl, data, additionalHeaders || {})
   }
 
-  public put(
+  async put(
     requestUrl: string,
     data: string,
     additionalHeaders?: ifm.IHeaders
@@ -210,14 +210,14 @@ export class HttpClient {
     return this.request('PUT', requestUrl, data, additionalHeaders || {})
   }
 
-  public head(
+  async head(
     requestUrl: string,
     additionalHeaders?: ifm.IHeaders
   ): Promise<ifm.IHttpClientResponse> {
     return this.request('HEAD', requestUrl, null, additionalHeaders || {})
   }
 
-  public sendStream(
+  async sendStream(
     verb: string,
     requestUrl: string,
     stream: NodeJS.ReadableStream,
@@ -230,7 +230,7 @@ export class HttpClient {
    * Gets a typed object from an endpoint
    * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
    */
-  public async getJson<T>(
+  async getJson<T>(
     requestUrl: string,
     additionalHeaders: ifm.IHeaders = {}
   ): Promise<ifm.ITypedResponse<T>> {
@@ -239,19 +239,19 @@ export class HttpClient {
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    let res: ifm.IHttpClientResponse = await this.get(
+    const res: ifm.IHttpClientResponse = await this.get(
       requestUrl,
       additionalHeaders
     )
     return this._processResponse<T>(res, this.requestOptions)
   }
 
-  public async postJson<T>(
+  async postJson<T>(
     requestUrl: string,
     obj: any,
     additionalHeaders: ifm.IHeaders = {}
   ): Promise<ifm.ITypedResponse<T>> {
-    let data: string = JSON.stringify(obj, null, 2)
+    const data: string = JSON.stringify(obj, null, 2)
     additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
       additionalHeaders,
       Headers.Accept,
@@ -262,31 +262,7 @@ export class HttpClient {
       Headers.ContentType,
       MediaTypes.ApplicationJson
     )
-    let res: ifm.IHttpClientResponse = await this.post(
-      requestUrl,
-      data,
-      additionalHeaders
-    )
-    return this._processResponse<T>(res, this.requestOptions)
-  }
-
-  public async putJson<T>(
-    requestUrl: string,
-    obj: any,
-    additionalHeaders: ifm.IHeaders = {}
-  ): Promise<ifm.ITypedResponse<T>> {
-    let data: string = JSON.stringify(obj, null, 2)
-    additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.Accept,
-      MediaTypes.ApplicationJson
-    )
-    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.ContentType,
-      MediaTypes.ApplicationJson
-    )
-    let res: ifm.IHttpClientResponse = await this.put(
+    const res: ifm.IHttpClientResponse = await this.post(
       requestUrl,
       data,
       additionalHeaders
@@ -294,12 +270,12 @@ export class HttpClient {
     return this._processResponse<T>(res, this.requestOptions)
   }
 
-  public async patchJson<T>(
+  async putJson<T>(
     requestUrl: string,
     obj: any,
     additionalHeaders: ifm.IHeaders = {}
   ): Promise<ifm.ITypedResponse<T>> {
-    let data: string = JSON.stringify(obj, null, 2)
+    const data: string = JSON.stringify(obj, null, 2)
     additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
       additionalHeaders,
       Headers.Accept,
@@ -310,7 +286,31 @@ export class HttpClient {
       Headers.ContentType,
       MediaTypes.ApplicationJson
     )
-    let res: ifm.IHttpClientResponse = await this.patch(
+    const res: ifm.IHttpClientResponse = await this.put(
+      requestUrl,
+      data,
+      additionalHeaders
+    )
+    return this._processResponse<T>(res, this.requestOptions)
+  }
+
+  async patchJson<T>(
+    requestUrl: string,
+    obj: any,
+    additionalHeaders: ifm.IHeaders = {}
+  ): Promise<ifm.ITypedResponse<T>> {
+    const data: string = JSON.stringify(obj, null, 2)
+    additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
+      additionalHeaders,
+      Headers.Accept,
+      MediaTypes.ApplicationJson
+    )
+    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
+      additionalHeaders,
+      Headers.ContentType,
+      MediaTypes.ApplicationJson
+    )
+    const res: ifm.IHttpClientResponse = await this.patch(
       requestUrl,
       data,
       additionalHeaders
@@ -323,7 +323,7 @@ export class HttpClient {
    * All other methods such as get, post, patch, and request ultimately call this.
    * Prefer get, del, post and patch
    */
-  public async request(
+  async request(
     verb: string,
     requestUrl: string,
     data: string | NodeJS.ReadableStream | null,
@@ -333,15 +333,15 @@ export class HttpClient {
       throw new Error('Client has already been disposed.')
     }
 
-    let parsedUrl = new URL(requestUrl)
+    const parsedUrl = new URL(requestUrl)
     let info: ifm.IRequestInfo = this._prepareRequest(verb, parsedUrl, headers)
 
     // Only perform retries on reads since writes may not be idempotent.
-    let maxTries: number =
-      this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1
+    const maxTries: number =
+      this._allowRetries && RetryableHttpVerbs.includes(verb)
         ? this._maxRetries + 1
         : 1
-    let numTries: number = 0
+    let numTries = 0
 
     let response: HttpClientResponse | undefined
     do {
@@ -373,16 +373,17 @@ export class HttpClient {
 
       let redirectsRemaining: number = this._maxRedirects
       while (
-        HttpRedirectCodes.indexOf(response.message.statusCode!) != -1 &&
+        HttpRedirectCodes.includes(response.message.statusCode!) &&
         this._allowRedirects &&
         redirectsRemaining > 0
       ) {
-        const redirectUrl: string | undefined = response.message.headers['location']
+        const redirectUrl: string | undefined =
+          response.message.headers['location']
         if (!redirectUrl) {
           // if there's no location to redirect to, we won't
           break
         }
-        let parsedRedirectUrl = new URL(redirectUrl)
+        const parsedRedirectUrl = new URL(redirectUrl)
         if (
           parsedUrl.protocol == 'https:' &&
           parsedUrl.protocol != parsedRedirectUrl.protocol &&
@@ -399,7 +400,7 @@ export class HttpClient {
 
         // strip authorization header if redirected to a different hostname
         if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
-          for (let header in headers) {
+          for (const header in headers) {
             // header names are case insensitive
             if (header.toLowerCase() === 'authorization') {
               delete headers[header]
@@ -413,7 +414,7 @@ export class HttpClient {
         redirectsRemaining--
       }
 
-      if (HttpResponseRetryCodes.indexOf(response.message.statusCode!) == -1) {
+      if (!HttpResponseRetryCodes.includes(response.message.statusCode!)) {
         // If not a retry code, return immediately instead of retrying
         return response
       }
@@ -432,7 +433,7 @@ export class HttpClient {
   /**
    * Needs to be called if keepAlive is set to true in request options.
    */
-  public dispose() {
+  dispose() {
     if (this._agent) {
       this._agent.destroy()
     }
@@ -445,7 +446,7 @@ export class HttpClient {
    * @param info
    * @param data
    */
-  public requestRaw(
+  async requestRaw(
     info: ifm.IRequestInfo,
     data: string | NodeJS.ReadableStream | null
   ): Promise<ifm.IHttpClientResponse> {
@@ -469,7 +470,7 @@ export class HttpClient {
    * @param data
    * @param onResult
    */
-  public requestRawWithCallback(
+  requestRawWithCallback(
     info: ifm.IRequestInfo,
     data: string | NodeJS.ReadableStream | null,
     onResult: (err?: Error, res?: ifm.IHttpClientResponse) => void
@@ -480,7 +481,7 @@ export class HttpClient {
       info.options.headers!['Content-Length'] = Buffer.byteLength(data, 'utf8')
     }
 
-    let callbackCalled: boolean = false
+    let callbackCalled = false
     function handleResult(err?: Error, res?: HttpClientResponse) {
       if (!callbackCalled) {
         callbackCalled = true
@@ -488,10 +489,10 @@ export class HttpClient {
       }
     }
 
-    let req: http.ClientRequest = info.httpModule.request(
+    const req: http.ClientRequest = info.httpModule.request(
       info.options,
       (msg: http.IncomingMessage) => {
-        let res: HttpClientResponse = new HttpClientResponse(msg)
+        const res: HttpClientResponse = new HttpClientResponse(msg)
         handleResult(undefined, res)
       }
     )
@@ -505,10 +506,10 @@ export class HttpClient {
       if (socket) {
         socket.end()
       }
-      handleResult(new Error('Request timeout: ' + info.options.path))
+      handleResult(new Error(`Request timeout: ${info.options.path}`))
     })
 
-    req.on('error', function (err) {
+    req.on('error', function(err) {
       // err has statusCode property
       // res should have headers
       handleResult(err)
@@ -519,7 +520,7 @@ export class HttpClient {
     }
 
     if (data && typeof data !== 'string') {
-      data.on('close', function () {
+      data.on('close', function() {
         req.end()
       })
 
@@ -534,8 +535,8 @@ export class HttpClient {
    * routing through a proxy server - depending upon the url and proxy environment variables.
    * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
    */
-  public getAgent(serverUrl: string): http.Agent {
-    let parsedUrl = new URL(serverUrl)
+  getAgent(serverUrl: string): http.Agent {
+    const parsedUrl = new URL(serverUrl)
     return this._getAgent(parsedUrl)
   }
 
@@ -578,7 +579,10 @@ export class HttpClient {
 
   private _mergeHeaders(headers?: ifm.IHeaders): ifm.IHeaders {
     const lowercaseKeys = (obj: any) =>
-      Object.keys(obj).reduce((c: any, k) => ((c[k.toLowerCase()] = obj[k]), c), {})
+      Object.keys(obj).reduce(
+        (c: any, k) => ((c[k.toLowerCase()] = obj[k]), c),
+        {}
+      )
 
     if (this.requestOptions && this.requestOptions.headers) {
       return Object.assign(
@@ -597,7 +601,10 @@ export class HttpClient {
     _default: string
   ) {
     const lowercaseKeys = (obj: any) =>
-      Object.keys(obj).reduce((c: any, k) => ((c[k.toLowerCase()] = obj[k]), c), {})
+      Object.keys(obj).reduce(
+        (c: any, k) => ((c[k.toLowerCase()] = obj[k]), c),
+        {}
+      )
 
     let clientHeader: string | undefined
     if (this.requestOptions && this.requestOptions.headers) {
@@ -608,8 +615,8 @@ export class HttpClient {
 
   private _getAgent(parsedUrl: URL): http.Agent {
     let agent
-    let proxyUrl = pm.getProxyUrl(parsedUrl)
-    let useProxy = proxyUrl && proxyUrl.hostname
+    const proxyUrl = pm.getProxyUrl(parsedUrl)
+    const useProxy = proxyUrl && proxyUrl.hostname
 
     if (this._keepAlive && useProxy) {
       agent = this._proxyAgent
@@ -620,13 +627,13 @@ export class HttpClient {
     }
 
     // if agent is already assigned use that agent.
-    if (!!agent) {
+    if (agent) {
       return agent
     }
 
     const usingSsl = parsedUrl.protocol === 'https:'
     let maxSockets = 100
-    if (!!this.requestOptions) {
+    if (this.requestOptions) {
       maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
     }
 
@@ -638,7 +645,7 @@ export class HttpClient {
       }
 
       const agentOptions = {
-        maxSockets: maxSockets,
+        maxSockets,
         keepAlive: this._keepAlive,
         proxy: {
           ...((proxyUrl.username || proxyUrl.password) && {
@@ -663,7 +670,7 @@ export class HttpClient {
 
     // if reusing agent across request and tunneling agent isn't assigned create a new agent
     if (this._keepAlive && !agent) {
-      const options = {keepAlive: this._keepAlive, maxSockets: maxSockets}
+      const options = {keepAlive: this._keepAlive, maxSockets}
       agent = usingSsl ? new https.Agent(options) : new http.Agent(options)
       this._agent = agent
     }
@@ -685,7 +692,7 @@ export class HttpClient {
     return agent
   }
 
-  private _performExponentialBackoff(retryNumber: number): Promise<void> {
+  private async _performExponentialBackoff(retryNumber: number): Promise<void> {
     retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber)
     const ms: number = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber)
     return new Promise(resolve => setTimeout(() => resolve(), ms))
@@ -693,7 +700,7 @@ export class HttpClient {
 
   private static dateTimeDeserializer(key: any, value: any): any {
     if (typeof value === 'string') {
-      let a = new Date(value)
+      const a = new Date(value)
       if (!isNaN(a.valueOf())) {
         return a
       }
@@ -710,7 +717,7 @@ export class HttpClient {
       const statusCode: number = res.message.statusCode!
 
       const response: ifm.ITypedResponse<T> = {
-        statusCode: statusCode,
+        statusCode,
         result: null,
         headers: {}
       }
@@ -752,10 +759,10 @@ export class HttpClient {
           // it may be the case that the exception is in the body message as string
           msg = contents
         } else {
-          msg = 'Failed request: (' + statusCode + ')'
+          msg = `Failed request: (${statusCode})`
         }
 
-        let err = new HttpClientError(msg, statusCode)
+        const err = new HttpClientError(msg, statusCode)
         err.result = response.result
 
         reject(err)

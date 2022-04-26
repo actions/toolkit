@@ -1,5 +1,5 @@
 export function getProxyUrl(reqUrl: URL): URL | undefined {
-  let usingSsl = reqUrl.protocol === 'https:'
+  const usingSsl = reqUrl.protocol === 'https:'
 
   if (checkBypass(reqUrl)) {
     return undefined
@@ -25,7 +25,7 @@ export function checkBypass(reqUrl: URL): boolean {
     return false
   }
 
-  let noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || ''
+  const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || ''
   if (!noProxy) {
     return false
   }
@@ -41,13 +41,13 @@ export function checkBypass(reqUrl: URL): boolean {
   }
 
   // Format the request hostname and hostname with port
-  let upperReqHosts = [reqUrl.hostname.toUpperCase()]
+  const upperReqHosts = [reqUrl.hostname.toUpperCase()]
   if (typeof reqPort === 'number') {
     upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`)
   }
 
   // Compare request host against noproxy
-  for (let upperNoProxyItem of noProxy
+  for (const upperNoProxyItem of noProxy
     .split(',')
     .map(x => x.trim().toUpperCase())
     .filter(x => x)) {
