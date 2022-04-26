@@ -1,4 +1,3 @@
-import * as crypto from 'crypto'
 import {promises as fs} from 'fs'
 import {IncomingHttpHeaders} from 'http'
 import {debug, info, warning} from '@actions/core'
@@ -12,6 +11,7 @@ import {
   getRetryMultiplier,
   getInitialRetryIntervalInMilliseconds
 } from './config-variables'
+import CRC64 from './crc64'
 
 /**
  * Returns a retry time in milliseconds that exponentially gets larger
@@ -205,8 +205,7 @@ export function getUploadHeaders(
     requestOptions['Content-Range'] = contentRange
   }
   if (digest) {
-    // TODO(robherley): should we use 'Digest' directly? https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest
-    requestOptions['X-Digest'] = `sha-256=${digest}`
+    requestOptions['X-GH-Actions-CRC64'] = digest
   }
 
   return requestOptions
@@ -302,10 +301,9 @@ export async function digestForStream(
   stream: NodeJS.ReadableStream
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    // TODO(robherley): switch to crc64 for production
-    const hasher = crypto.createHash('sha256')
+    const hasher = new CRC64()
     stream.on('data', data => hasher.update(data))
-    stream.on('end', () => resolve(hasher.digest('hex')))
+    stream.on('end', () => resolve(hasher.digest()))
     stream.on('error', reject)
   })
 }

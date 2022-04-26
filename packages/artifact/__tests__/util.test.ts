@@ -97,7 +97,7 @@ describe('Utils', () => {
     expect(headers['x-tfs-filelength']).toEqual(uncompressedLength)
     expect(headers['Content-Length']).toEqual(size)
     expect(headers['Content-Range']).toEqual(range)
-    expect(headers['X-Digest']).toEqual(`sha-256=${digest}`)
+    expect(headers['X-GH-Actions-CRC64']).toEqual(digest)
   })
 
   it('Test constructing upload headers with only required parameter', () => {
@@ -230,8 +230,6 @@ describe('Utils', () => {
     const stream = Readable.from(data)
     const digest = await utils.digestForStream(stream)
 
-    expect(digest).toBe(
-      '5e2bf57d3f40c4b6df69daf1936cb766f832374b4fc0259a7cbff06e2f70f269'
-    )
+    expect(digest).toBe('FFFCD6894DC82C6D')
   })
 })
