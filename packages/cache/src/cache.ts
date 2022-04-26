@@ -197,7 +197,7 @@ export async function saveCache(
     if (reserveCacheResponse?.result?.cacheId) {
       cacheId = reserveCacheResponse?.result?.cacheId
     } else if (reserveCacheResponse?.statusCode === 400) {
-      throw new ReserveCacheError(
+      throw new Error(
         reserveCacheResponse?.error?.message ??
           `Cache size of ~${Math.round(
             archiveFileSize / (1024 * 1024)

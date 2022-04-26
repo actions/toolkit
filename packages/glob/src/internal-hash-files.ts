@@ -6,19 +6,23 @@ import * as util from 'util'
 import * as path from 'path'
 import {Globber} from './glob'
 
-export async function hashFiles(globber: Globber): Promise<string> {
+export async function hashFiles(
+  globber: Globber,
+  verbose: Boolean = false
+): Promise<string> {
+  const writeDelegate = verbose ? core.info : core.debug
   let hasMatch = false
   const githubWorkspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
   const result = crypto.createHash('sha256')
   let count = 0
   for await (const file of globber.globGenerator()) {
-    core.debug(file)
+    writeDelegate(file)
     if (!file.startsWith(`${githubWorkspace}${path.sep}`)) {
-      core.debug(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`)
+      writeDelegate(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`)
       continue
     }
     if (fs.statSync(file).isDirectory()) {
-      core.debug(`Skip directory '${file}'.`)
+      writeDelegate(`Skip directory '${file}'.`)
       continue
     }
     const hash = crypto.createHash('sha256')
@@ -33,10 +37,10 @@ export async function hashFiles(globber: Globber): Promise<string> {
   result.end()
 
   if (hasMatch) {
-    core.debug(`Found ${count} files to hash.`)
+    writeDelegate(`Found ${count} files to hash.`)
     return result.digest('hex')
   } else {
-    core.debug(`No matches found for glob`)
+    writeDelegate(`No matches found for glob`)
     return ''
   }
 }

@@ -1,5 +1,8 @@
 # @actions/glob Releases
 
+### 0.3.0
+- Added a `verbose` option to HashFiles [#1052](https://github.com/actions/toolkit/pull/1052/files)
+
 ### 0.2.1
 - Update `lockfileVersion` to `v2` in `package-lock.json [#1023](https://github.com/actions/toolkit/pull/1023) 
 
