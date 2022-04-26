@@ -75,8 +75,7 @@ describe('Utils', () => {
     const size = 24
     const uncompressedLength = 100
     const range = 'bytes 0-199/200'
-    const digest =
-      '5e2bf57d3f40c4b6df69daf1936cb766f832374b4fc0259a7cbff06e2f70f269'
+    const digest = 'FFFCD6894DC82C6D'
     const headers = utils.getUploadHeaders(
       contentType,
       true,
