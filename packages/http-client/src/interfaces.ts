@@ -94,5 +94,5 @@ export interface IRequestOptions {
 export interface ITypedResponse<T> {
   statusCode: number
   result: T | null
-  headers: Object
+  headers: http.IncomingHttpHeaders
 }
