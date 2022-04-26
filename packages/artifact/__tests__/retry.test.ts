@@ -3,7 +3,7 @@ import * as net from 'net'
 import * as core from '@actions/core'
 import * as configVariables from '../src/internal/config-variables'
 import {retry} from '../src/internal/requestUtils'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {IHttpClientResponse} from '@actions/http-client/lib/interfaces'
 import {HttpClientResponse} from '@actions/http-client'
 
 jest.mock('../src/internal/config-variables')

@@ -13,7 +13,7 @@ import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
 import {RetryHelper} from './retry-helper'
-import {IHeaders} from '@actions/http-client/interfaces'
+import {IHeaders} from '@actions/http-client/lib/interfaces'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {

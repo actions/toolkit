@@ -1,5 +1,7 @@
 # @actions/core Releases
 
+### 1.8.1
+- Update to v2.0.0 of `@actions/http-client`
 ### 1.8.0
 - Deprecate `markdownSummary` extension export in favor of `summary`
   - https://github.com/actions/toolkit/pull/1072

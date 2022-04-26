@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 import * as actions_http_client from '@actions/http-client'
-import {IRequestOptions} from '@actions/http-client/interfaces'
+import {IRequestOptions} from '@actions/http-client/lib/interfaces'
 import {HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {debug, setSecret} from './core'
 interface TokenResponse {
   value?: string

@@ -1,5 +1,8 @@
 # @actions/tool-cache Releases
 
+### 1.7.3
+- Update to v2.0.0 of `@actions/http-client`
+
 ### 1.7.2
 - Update `lockfileVersion` to `v2` in `package-lock.json [#1025](https://github.com/actions/toolkit/pull/1025) 
 

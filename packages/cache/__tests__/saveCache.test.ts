@@ -5,7 +5,7 @@ import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
-import {ITypedResponse} from '@actions/http-client/interfaces'
+import {ITypedResponse} from '@actions/http-client/lib/interfaces'
 import {
   ReserveCacheResponse,
   ITypedResponseWithError

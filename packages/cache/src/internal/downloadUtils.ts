@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import {HttpClient} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {IHttpClientResponse} from '@actions/http-client/lib/interfaces'
 import {BlockBlobClient} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/ms-rest-js'
 import * as buffer from 'buffer'

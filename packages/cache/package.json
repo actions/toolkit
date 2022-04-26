@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -40,7 +40,7 @@
     "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.1",
     "@actions/glob": "^0.1.0",
-    "@actions/http-client": "^1.0.9",
+    "@actions/http-client": "^2.0.0",
     "@actions/io": "^1.0.1",
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.8.0",

@@ -1,8 +1,8 @@
 import {debug, info, warning} from '@actions/core'
 import {promises as fs} from 'fs'
 import {HttpCodes, HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces'
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
+import {IHeaders, IHttpClientResponse} from '@actions/http-client/lib/interfaces'
 import {IncomingHttpHeaders} from 'http'
 import {
   getRuntimeToken,
