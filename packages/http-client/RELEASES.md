@@ -1,5 +1,13 @@
 ## Releases
 
+## 2.0.0
+- The package is now compiled with TypeScript's [`strict` compiler setting](https://www.typescriptlang.org/tsconfig#strict). To comply with stricter rules:
+  - Some exported types now include `| null` or `| undefined`, matching their actual behavior.
+  - Types implementing the method `RequestHandler.handleAuthentication()` now throw an `Error` rather than returning `null` if they do not support handling an HTTP 401 response. Callers can still use `canHandleAuthentication()` to determine if this handling is supported or not.
+  - Types using `any` have been scoped to more specific types.
+- Following TypeScript's naming conventions, exported interfaces no longer begin with the prefix `I-`.
+- The source code of the package was moved to build with [actions/toolkit](https://github.com/actions/toolkit).
+
 ## 1.0.11
 
 Contains a bug fix where proxy is defined without a user and password. see [PR here](https://github.com/actions/http-client/pull/42)   

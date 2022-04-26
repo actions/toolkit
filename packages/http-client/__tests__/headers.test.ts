@@ -1,5 +1,6 @@
-import * as httpm from '../_out'
-import * as ifm from '../_out/interfaces'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import * as httpm from '..'
 
 describe('headers', () => {
   let _http: httpm.HttpClient
@@ -9,8 +10,8 @@ describe('headers', () => {
   })
 
   it('preserves existing headers on getJson', async () => {
-    let additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.getJson<any>(
+    const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
+    let jsonObj = await _http.getJson<any>(
       'https://httpbin.org/get',
       additionalHeaders
     )
@@ -19,7 +20,7 @@ describe('headers', () => {
       httpm.MediaTypes.ApplicationJson
     )
 
-    let httpWithHeaders = new httpm.HttpClient()
+    const httpWithHeaders = new httpm.HttpClient()
     httpWithHeaders.requestOptions = {
       headers: {
         [httpm.Headers.Accept]: 'baz'
@@ -33,8 +34,8 @@ describe('headers', () => {
   })
 
   it('preserves existing headers on postJson', async () => {
-    let additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.postJson<any>(
+    const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
+    let jsonObj = await _http.postJson<any>(
       'https://httpbin.org/post',
       {},
       additionalHeaders
@@ -44,7 +45,7 @@ describe('headers', () => {
       httpm.MediaTypes.ApplicationJson
     )
 
-    let httpWithHeaders = new httpm.HttpClient()
+    const httpWithHeaders = new httpm.HttpClient()
     httpWithHeaders.requestOptions = {
       headers: {
         [httpm.Headers.Accept]: 'baz'
@@ -61,8 +62,8 @@ describe('headers', () => {
   })
 
   it('preserves existing headers on putJson', async () => {
-    let additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.putJson<any>(
+    const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
+    let jsonObj = await _http.putJson<any>(
       'https://httpbin.org/put',
       {},
       additionalHeaders
@@ -72,7 +73,7 @@ describe('headers', () => {
       httpm.MediaTypes.ApplicationJson
     )
 
-    let httpWithHeaders = new httpm.HttpClient()
+    const httpWithHeaders = new httpm.HttpClient()
     httpWithHeaders.requestOptions = {
       headers: {
         [httpm.Headers.Accept]: 'baz'
@@ -86,8 +87,8 @@ describe('headers', () => {
   })
 
   it('preserves existing headers on patchJson', async () => {
-    let additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.patchJson<any>(
+    const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
+    let jsonObj = await _http.patchJson<any>(
       'https://httpbin.org/patch',
       {},
       additionalHeaders
@@ -97,7 +98,7 @@ describe('headers', () => {
       httpm.MediaTypes.ApplicationJson
     )
 
-    let httpWithHeaders = new httpm.HttpClient()
+    const httpWithHeaders = new httpm.HttpClient()
     httpWithHeaders.requestOptions = {
       headers: {
         [httpm.Headers.Accept]: 'baz'

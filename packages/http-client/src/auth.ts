@@ -1,6 +1,7 @@
-import ifm = require('./interfaces')
+import * as http from 'http'
+import * as ifm from './interfaces'
 
-export class BasicCredentialHandler implements ifm.IRequestHandler {
+export class BasicCredentialHandler implements ifm.RequestHandler {
   username: string
   password: string
 
@@ -9,27 +10,26 @@ export class BasicCredentialHandler implements ifm.IRequestHandler {
     this.password = password
   }
 
-  prepareRequest(options: any): void {
-    options.headers['Authorization'] =
-      'Basic ' +
-      Buffer.from(this.username + ':' + this.password).toString('base64')
+  prepareRequest(options: http.RequestOptions): void {
+    if (!options.headers) {
+      throw Error('The request has no headers')
+    }
+    options.headers['Authorization'] = `Basic ${Buffer.from(
+      `${this.username}:${this.password}`
+    ).toString('base64')}`
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(): boolean {
     return false
   }
 
-  handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs
-  ): Promise<ifm.IHttpClientResponse> {
-    return null
+  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
+    throw new Error('not implemented')
   }
 }
 
-export class BearerCredentialHandler implements ifm.IRequestHandler {
+export class BearerCredentialHandler implements ifm.RequestHandler {
   token: string
 
   constructor(token: string) {
@@ -38,26 +38,25 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
 
   // currently implements pre-authorization
   // TODO: support preAuth = false where it hooks on 401
-  prepareRequest(options: any): void {
-    options.headers['Authorization'] = 'Bearer ' + this.token
+  prepareRequest(options: http.RequestOptions): void {
+    if (!options.headers) {
+      throw Error('The request has no headers')
+    }
+    options.headers['Authorization'] = `Bearer ${this.token}`
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(): boolean {
     return false
   }
 
-  handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs
-  ): Promise<ifm.IHttpClientResponse> {
-    return null
+  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
+    throw new Error('not implemented')
   }
 }
 
 export class PersonalAccessTokenCredentialHandler
-  implements ifm.IRequestHandler {
+  implements ifm.RequestHandler {
   token: string
 
   constructor(token: string) {
@@ -66,21 +65,21 @@ export class PersonalAccessTokenCredentialHandler
 
   // currently implements pre-authorization
   // TODO: support preAuth = false where it hooks on 401
-  prepareRequest(options: any): void {
-    options.headers['Authorization'] =
-      'Basic ' + Buffer.from('PAT:' + this.token).toString('base64')
+  prepareRequest(options: http.RequestOptions): void {
+    if (!options.headers) {
+      throw Error('The request has no headers')
+    }
+    options.headers['Authorization'] = `Basic ${Buffer.from(
+      `PAT:${this.token}`
+    ).toString('base64')}`
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(): boolean {
     return false
   }
 
-  handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs
-  ): Promise<ifm.IHttpClientResponse> {
-    return null
+  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
+    throw new Error('not implemented')
   }
 }
