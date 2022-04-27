@@ -375,7 +375,8 @@ export class HttpClient {
 
       let redirectsRemaining: number = this._maxRedirects
       while (
-        HttpRedirectCodes.includes(response.message.statusCode!) &&
+        response.message.statusCode &&
+        HttpRedirectCodes.includes(response.message.statusCode) &&
         this._allowRedirects &&
         redirectsRemaining > 0
       ) {
@@ -416,7 +417,10 @@ export class HttpClient {
         redirectsRemaining--
       }
 
-      if (!HttpResponseRetryCodes.includes(response.message.statusCode!)) {
+      if (
+        !response.message.statusCode ||
+        !HttpResponseRetryCodes.includes(response.message.statusCode)
+      ) {
         // If not a retry code, return immediately instead of retrying
         return response
       }
@@ -483,7 +487,10 @@ export class HttpClient {
     onResult: (err?: Error, res?: ifm.IHttpClientResponse) => void
   ): void {
     if (typeof data === 'string') {
-      info.options.headers!['Content-Length'] = Buffer.byteLength(data, 'utf8')
+      if (!info.options.headers) {
+        info.options.headers = {}
+      }
+      info.options.headers['Content-Length'] = Buffer.byteLength(data, 'utf8')
     }
 
     let callbackCalled = false
@@ -692,7 +699,7 @@ export class HttpClient {
     options?: ifm.IRequestOptions
   ): Promise<ifm.ITypedResponse<T>> {
     return new Promise<ifm.ITypedResponse<T>>(async (resolve, reject) => {
-      const statusCode: number = res.message.statusCode!
+      const statusCode = res.message.statusCode || 0
 
       const response: ifm.ITypedResponse<T> = {
         statusCode,
