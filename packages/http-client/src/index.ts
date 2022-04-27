@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as http from 'http'
 import * as https from 'https'
 import * as ifm from './interfaces'
