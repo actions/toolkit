@@ -6,11 +6,11 @@
  * but without the slicing-by-8 optimization: https://cs.opensource.google/go/go/+/master:src/hash/crc64/crc64.go
  *
  * This implementation uses a pregenerated table based on 0x9A6C9329AC4BC9B5 as the polynomial, the same polynomial that
- * is used for Azure Storage: https://github.com/Azure/azure-storage-net
+ * is used for Azure Storage: https://github.com/Azure/azure-storage-net/blob/cbe605f9faa01bfc3003d75fc5a16b2eaccfe102/Lib/Common/Core/Util/Crc64.cs#L27
  */
 
 // when transpile target is >= ES2020 (after dropping node 12) these can be changed to bigint literals - ts(2737)
-const AZURE_TABLE = [
+const PREGEN_POLY_TABLE = [
   BigInt('0x0000000000000000'),
   BigInt('0x7F6EF0C830358979'),
   BigInt('0xFEDDE190606B12F2'),
@@ -282,7 +282,7 @@ class CRC64 {
 
     for (const dataByte of buffer) {
       const crcByte = Number(crc & BigInt(0xff))
-      crc = AZURE_TABLE[crcByte ^ dataByte] ^ (crc >> BigInt(8))
+      crc = PREGEN_POLY_TABLE[crcByte ^ dataByte] ^ (crc >> BigInt(8))
     }
 
     this._crc = CRC64.flip64Bits(crc)
