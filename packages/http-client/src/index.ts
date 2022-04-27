@@ -458,9 +458,11 @@ export class HttpClient {
       ): void {
         if (err) {
           reject(err)
+        } else if (!res) {
+          // If `err` is not passed, then `res` must be passed.
+          reject("Unknown error")
         } else {
-          // Precondition: if `err` is not passed, `res` must be passed.
-          resolve(res!)
+          resolve(res)
         }
       }
 
@@ -632,6 +634,7 @@ export class HttpClient {
     if (proxyUrl && proxyUrl.hostname) {
       // If using proxy, need tunnel
       if (!tunnel) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         tunnel = require('tunnel')
       }
 

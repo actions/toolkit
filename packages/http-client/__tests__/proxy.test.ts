@@ -1,6 +1,7 @@
 import * as http from 'http'
 import * as httpm from '../lib/'
 import * as pm from '../lib/proxy'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const proxy = require('proxy')
 
 let _proxyConnects: string[]
@@ -200,6 +201,7 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent: any = httpClient.getAgent('https://some-url')
+    // eslint-disable-next-line no-console
     console.log(agent)
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
@@ -210,6 +212,7 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://user:password@127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent: any = httpClient.getAgent('https://some-url')
+    // eslint-disable-next-line no-console
     console.log(agent)
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
