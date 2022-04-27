@@ -96,7 +96,7 @@ describe('Utils', () => {
     expect(headers['x-tfs-filelength']).toEqual(uncompressedLength)
     expect(headers['Content-Length']).toEqual(size)
     expect(headers['Content-Range']).toEqual(range)
-    expect(headers['X-GH-Actions-CRC64']).toEqual(digest)
+    expect(headers['x-actions-result-crc64']).toEqual(digest)
   })
 
   it('Test constructing upload headers with only required parameter', () => {

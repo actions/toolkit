@@ -205,7 +205,7 @@ export function getUploadHeaders(
     requestOptions['Content-Range'] = contentRange
   }
   if (digest) {
-    requestOptions['X-GH-Actions-CRC64'] = digest
+    requestOptions['x-actions-result-crc64'] = digest
   }
 
   return requestOptions
