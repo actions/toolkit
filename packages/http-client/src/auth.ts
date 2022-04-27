@@ -1,4 +1,4 @@
-import ifm = require('./interfaces')
+import * as ifm from './interfaces'
 
 export class BasicCredentialHandler implements ifm.IRequestHandler {
   username: string
@@ -16,15 +16,11 @@ export class BasicCredentialHandler implements ifm.IRequestHandler {
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(): boolean {
     return false
   }
 
-  async handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs: any
-  ): Promise<ifm.IHttpClientResponse> {
+  async handleAuthentication(): Promise<ifm.IHttpClientResponse> {
     throw new Error('not implemented')
   }
 }
@@ -43,15 +39,11 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(): boolean {
     return false
   }
 
-  async handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs: any
-  ): Promise<ifm.IHttpClientResponse> {
+  async handleAuthentication(): Promise<ifm.IHttpClientResponse> {
     throw new Error('not implemented')
   }
 }
@@ -73,15 +65,11 @@ export class PersonalAccessTokenCredentialHandler
   }
 
   // This handler cannot handle 401
-  canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+  canHandleAuthentication(): boolean {
     return false
   }
 
-  async handleAuthentication(
-    httpClient: ifm.IHttpClient,
-    requestInfo: ifm.IRequestInfo,
-    objs: any
-  ): Promise<ifm.IHttpClientResponse> {
+  async handleAuthentication(): Promise<ifm.IHttpClientResponse> {
     throw new Error('not implemented')
   }
 }

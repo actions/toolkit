@@ -19,7 +19,7 @@ describe('auth', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     const auth: string = obj.headers.Authorization
     const creds: string = Buffer.from(
       auth.substring('Basic '.length),
@@ -43,7 +43,7 @@ describe('auth', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     const auth: string = obj.headers.Authorization
     const creds: string = Buffer.from(
       auth.substring('Basic '.length),
@@ -65,7 +65,7 @@ describe('auth', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     const auth: string = obj.headers.Authorization
     expect(auth).toBe(`Bearer ${token}`)
     expect(obj.url).toBe('http://httpbin.org/get')

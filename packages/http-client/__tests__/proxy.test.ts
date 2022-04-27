@@ -1,8 +1,6 @@
 import * as http from 'http'
 import * as httpm from '../lib/'
 import * as pm from '../lib/proxy'
-import * as tunnelm from 'tunnel'
-
 const proxy = require('proxy')
 
 let _proxyConnects: string[]
@@ -152,7 +150,7 @@ describe('proxy', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('http://httpbin.org/get')
     expect(_proxyConnects).toEqual(['httpbin.org:80'])
   })
@@ -166,7 +164,7 @@ describe('proxy', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('http://httpbin.org/get')
     expect(_proxyConnects).toHaveLength(0)
   })
@@ -179,7 +177,7 @@ describe('proxy', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('https://httpbin.org/get')
     expect(_proxyConnects).toEqual(['httpbin.org:443'])
   })
@@ -193,7 +191,7 @@ describe('proxy', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('https://httpbin.org/get')
     expect(_proxyConnects).toHaveLength(0)
   })
@@ -219,7 +217,7 @@ describe('proxy', () => {
   })
 })
 
-function _clearVars() {
+function _clearVars(): void {
   delete process.env.http_proxy
   delete process.env.HTTP_PROXY
   delete process.env.https_proxy

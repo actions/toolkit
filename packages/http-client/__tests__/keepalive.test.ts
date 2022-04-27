@@ -17,7 +17,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('http://httpbin.org/get')
   })
 
@@ -34,7 +34,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    JSON.parse(body)
   })
 
   it('does basic http post request with keepAlive true', async () => {
@@ -45,7 +45,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.data).toBe(b)
     expect(obj.url).toBe('http://httpbin.org/post')
   })
@@ -58,7 +58,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.data).toBe(b)
     expect(obj.url).toBe('http://httpbin.org/patch')
   })

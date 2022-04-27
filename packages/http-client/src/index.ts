@@ -1,7 +1,8 @@
-import http = require('http')
-import https = require('https')
-import ifm = require('./interfaces')
-import pm = require('./proxy')
+import * as http from 'http'
+import * as https from 'https'
+import * as ifm from './interfaces'
+import * as net from 'net'
+import * as pm from './proxy'
 
 let tunnel: any
 
@@ -88,7 +89,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 
   message: http.IncomingMessage
   async readBody(): Promise<string> {
-    return new Promise<string>(async (resolve, reject) => {
+    return new Promise<string>(async resolve => {
       let output = Buffer.alloc(0)
 
       this.message.on('data', (chunk: Buffer) => {
@@ -102,7 +103,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
   }
 }
 
-export function isHttps(requestUrl: string) {
+export function isHttps(requestUrl: string): boolean {
   const parsedUrl: URL = new URL(requestUrl)
   return parsedUrl.protocol === 'https:'
 }
@@ -355,9 +356,9 @@ export class HttpClient {
       ) {
         let authenticationHandler: ifm.IRequestHandler | undefined
 
-        for (let i = 0; i < this.handlers.length; i++) {
-          if (this.handlers[i].canHandleAuthentication(response)) {
-            authenticationHandler = this.handlers[i]
+        for (const handler of this.handlers) {
+          if (handler.canHandleAuthentication(response)) {
+            authenticationHandler = handler
             break
           }
         }
@@ -385,8 +386,8 @@ export class HttpClient {
         }
         const parsedRedirectUrl = new URL(redirectUrl)
         if (
-          parsedUrl.protocol == 'https:' &&
-          parsedUrl.protocol != parsedRedirectUrl.protocol &&
+          parsedUrl.protocol === 'https:' &&
+          parsedUrl.protocol !== parsedRedirectUrl.protocol &&
           !this._allowRedirectDowngrade
         ) {
           throw new Error(
@@ -433,7 +434,7 @@ export class HttpClient {
   /**
    * Needs to be called if keepAlive is set to true in request options.
    */
-  dispose() {
+  dispose(): void {
     if (this._agent) {
       this._agent.destroy()
     }
@@ -451,7 +452,10 @@ export class HttpClient {
     data: string | NodeJS.ReadableStream | null
   ): Promise<ifm.IHttpClientResponse> {
     return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-      function callbackForResult(err?: Error, res?: ifm.IHttpClientResponse) {
+      function callbackForResult(
+        err?: Error,
+        res?: ifm.IHttpClientResponse
+      ): void {
         if (err) {
           reject(err)
         } else {
@@ -475,14 +479,12 @@ export class HttpClient {
     data: string | NodeJS.ReadableStream | null,
     onResult: (err?: Error, res?: ifm.IHttpClientResponse) => void
   ): void {
-    let socket: any
-
     if (typeof data === 'string') {
       info.options.headers!['Content-Length'] = Buffer.byteLength(data, 'utf8')
     }
 
     let callbackCalled = false
-    function handleResult(err?: Error, res?: HttpClientResponse) {
+    function handleResult(err?: Error, res?: HttpClientResponse): void {
       if (!callbackCalled) {
         callbackCalled = true
         onResult(err, res)
@@ -497,6 +499,7 @@ export class HttpClient {
       }
     )
 
+    let socket: net.Socket
     req.on('socket', sock => {
       socket = sock
     })
@@ -569,26 +572,20 @@ export class HttpClient {
 
     // gives handlers an opportunity to participate
     if (this.handlers) {
-      this.handlers.forEach(handler => {
+      for (const handler of this.handlers) {
         handler.prepareRequest(info.options)
-      })
+      }
     }
 
     return info
   }
 
   private _mergeHeaders(headers?: ifm.IHeaders): ifm.IHeaders {
-    const lowercaseKeys = (obj: any) =>
-      Object.keys(obj).reduce(
-        (c: any, k) => ((c[k.toLowerCase()] = obj[k]), c),
-        {}
-      )
-
     if (this.requestOptions && this.requestOptions.headers) {
       return Object.assign(
         {},
         lowercaseKeys(this.requestOptions.headers),
-        lowercaseKeys(headers)
+        lowercaseKeys(headers || {})
       )
     }
 
@@ -599,13 +596,7 @@ export class HttpClient {
     additionalHeaders: ifm.IHeaders,
     header: string,
     _default: string
-  ) {
-    const lowercaseKeys = (obj: any) =>
-      Object.keys(obj).reduce(
-        (c: any, k) => ((c[k.toLowerCase()] = obj[k]), c),
-        {}
-      )
-
+  ): ifm.IHeaders | string | undefined {
     let clientHeader: string | undefined
     if (this.requestOptions && this.requestOptions.headers) {
       clientHeader = lowercaseKeys(this.requestOptions.headers)[header]
@@ -698,17 +689,6 @@ export class HttpClient {
     return new Promise(resolve => setTimeout(() => resolve(), ms))
   }
 
-  private static dateTimeDeserializer(key: any, value: any): any {
-    if (typeof value === 'string') {
-      const a = new Date(value)
-      if (!isNaN(a.valueOf())) {
-        return a
-      }
-    }
-
-    return value
-  }
-
   private async _processResponse<T>(
     res: ifm.IHttpClientResponse,
     options?: ifm.IRequestOptions
@@ -723,19 +703,31 @@ export class HttpClient {
       }
 
       // not found leads to null obj returned
-      if (statusCode == HttpCodes.NotFound) {
+      if (statusCode === HttpCodes.NotFound) {
         resolve(response)
+      }
+
+      // get the result from the body
+
+      function dateTimeDeserializer(key: any, value: any): any {
+        if (typeof value === 'string') {
+          const a = new Date(value)
+          if (!isNaN(a.valueOf())) {
+            return a
+          }
+        }
+
+        return value
       }
 
       let obj: any
       let contents: string | undefined
 
-      // get the result from the body
       try {
         contents = await res.readBody()
         if (contents && contents.length > 0) {
           if (options && options.deserializeDates) {
-            obj = JSON.parse(contents, HttpClient.dateTimeDeserializer)
+            obj = JSON.parse(contents, dateTimeDeserializer)
           } else {
             obj = JSON.parse(contents)
           }
@@ -772,3 +764,6 @@ export class HttpClient {
     })
   }
 }
+
+const lowercaseKeys = (obj: {[index: string]: any}): any =>
+  Object.keys(obj).reduce((c: any, k) => ((c[k.toLowerCase()] = obj[k]), c), {})

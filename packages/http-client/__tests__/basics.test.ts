@@ -45,7 +45,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('http://httpbin.org/get')
     expect(obj.headers['User-Agent']).toBeTruthy()
   })
@@ -57,7 +57,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('http://httpbin.org/get')
     expect(obj.headers['User-Agent']).toBeFalsy()
   })
@@ -68,7 +68,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('https://httpbin.org/get')
   })
 
@@ -88,7 +88,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.headers.Accept).toBe('application/json')
     expect(obj.headers['Content-Type']).toBe('application/json')
     expect(obj.url).toBe('http://httpbin.org/get')
@@ -113,7 +113,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.headers.Accept).toBe('application/json')
     expect(obj.headers['Content-Type']).toBe(
       'application/x-www-form-urlencoded'
@@ -122,13 +122,13 @@ describe('basics', () => {
   })
 
   it('pipes a get request', async () => {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<void>(async resolve => {
       const file: any = fs.createWriteStream(sampleFilePath)
       ;(await _http.get('https://httpbin.org/get')).message
         .pipe(file)
         .on('close', () => {
           const body: string = fs.readFileSync(sampleFilePath).toString()
-          const obj: any = JSON.parse(body)
+          const obj = JSON.parse(body)
           expect(obj.url).toBe('https://httpbin.org/get')
           resolve()
         })
@@ -143,7 +143,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('https://httpbin.org/get')
   })
 
@@ -155,7 +155,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.url).toBe('https://httpbin.org/get')
   })
 
@@ -198,7 +198,7 @@ describe('basics', () => {
 
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     // httpbin "fixes" the casing
     expect(obj.headers['Accept']).toBe('application/json')
     expect(obj.headers['Authorization']).toBeUndefined()
@@ -220,7 +220,7 @@ describe('basics', () => {
 
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     // httpbin "fixes" the casing
     expect(obj.headers['Accept']).toBe('application/json')
     expect(obj.headers['Authorization']).toBeUndefined()
@@ -241,7 +241,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    JSON.parse(body)
   })
 
   it('does basic http post request', async () => {
@@ -252,7 +252,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.data).toBe(b)
     expect(obj.url).toBe('http://httpbin.org/post')
   })
@@ -265,7 +265,7 @@ describe('basics', () => {
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj: any = JSON.parse(body)
+    const obj = JSON.parse(body)
     expect(obj.data).toBe(b)
     expect(obj.url).toBe('http://httpbin.org/patch')
   })
@@ -275,7 +275,7 @@ describe('basics', () => {
       'http://httpbin.org'
     )
     expect(res.message.statusCode).toBe(200)
-    const body: string = await res.readBody()
+    await res.readBody()
   })
 
   it('returns 404 for not found get request', async () => {
@@ -283,7 +283,7 @@ describe('basics', () => {
       'http://httpbin.org/status/404'
     )
     expect(res.message.statusCode).toBe(404)
-    const body: string = await res.readBody()
+    await res.readBody()
   })
 
   it('gets a json object', async () => {
