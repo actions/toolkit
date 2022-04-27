@@ -1,7 +1,7 @@
 import * as http from 'http'
 import * as httpm from '../lib/'
 import * as pm from '../lib/proxy'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const proxy = require('proxy')
 
 let _proxyConnects: string[]

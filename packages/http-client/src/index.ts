@@ -3,8 +3,7 @@ import * as https from 'https'
 import * as ifm from './interfaces'
 import * as net from 'net'
 import * as pm from './proxy'
-
-let tunnel: any
+import * as tunnel from 'tunnel'
 
 export enum HttpCodes {
   OK = 200,
@@ -460,7 +459,7 @@ export class HttpClient {
           reject(err)
         } else if (!res) {
           // If `err` is not passed, then `res` must be passed.
-          reject("Unknown error")
+          reject(new Error('Unknown error'))
         } else {
           resolve(res)
         }
@@ -632,12 +631,6 @@ export class HttpClient {
 
     // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
     if (proxyUrl && proxyUrl.hostname) {
-      // If using proxy, need tunnel
-      if (!tunnel) {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        tunnel = require('tunnel')
-      }
-
       const agentOptions = {
         maxSockets,
         keepAlive: this._keepAlive,

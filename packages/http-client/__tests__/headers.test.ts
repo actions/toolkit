@@ -1,5 +1,4 @@
 import * as httpm from '..'
-import * as ifm from '../lib/interfaces'
 
 describe('headers', () => {
   let _http: httpm.HttpClient
@@ -10,7 +9,7 @@ describe('headers', () => {
 
   it('preserves existing headers on getJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.getJson<any>(
+    let jsonObj = await _http.getJson<any>(
       'https://httpbin.org/get',
       additionalHeaders
     )
@@ -34,7 +33,7 @@ describe('headers', () => {
 
   it('preserves existing headers on postJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.postJson<any>(
+    let jsonObj = await _http.postJson<any>(
       'https://httpbin.org/post',
       {},
       additionalHeaders
@@ -62,7 +61,7 @@ describe('headers', () => {
 
   it('preserves existing headers on putJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.putJson<any>(
+    let jsonObj = await _http.putJson<any>(
       'https://httpbin.org/put',
       {},
       additionalHeaders
@@ -87,7 +86,7 @@ describe('headers', () => {
 
   it('preserves existing headers on patchJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
-    let jsonObj: ifm.ITypedResponse<any> = await _http.patchJson<any>(
+    let jsonObj = await _http.patchJson<any>(
       'https://httpbin.org/patch',
       {},
       additionalHeaders

@@ -1,3 +1,4 @@
+import * as http from 'http'
 import * as ifm from './interfaces'
 
 export class BasicCredentialHandler implements ifm.IRequestHandler {
@@ -9,7 +10,10 @@ export class BasicCredentialHandler implements ifm.IRequestHandler {
     this.password = password
   }
 
-  prepareRequest(options: any): void {
+  prepareRequest(options: http.RequestOptions): void {
+    if (!options.headers) {
+      throw Error('The request has no headers')
+    }
     options.headers['Authorization'] = `Basic ${Buffer.from(
       `${this.username}:${this.password}`
     ).toString('base64')}`
@@ -34,7 +38,10 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
 
   // currently implements pre-authorization
   // TODO: support preAuth = false where it hooks on 401
-  prepareRequest(options: any): void {
+  prepareRequest(options: http.RequestOptions): void {
+    if (!options.headers) {
+      throw Error('The request has no headers')
+    }
     options.headers['Authorization'] = `Bearer ${this.token}`
   }
 
@@ -58,7 +65,10 @@ export class PersonalAccessTokenCredentialHandler
 
   // currently implements pre-authorization
   // TODO: support preAuth = false where it hooks on 401
-  prepareRequest(options: any): void {
+  prepareRequest(options: http.RequestOptions): void {
+    if (!options.headers) {
+      throw Error('The request has no headers')
+    }
     options.headers['Authorization'] = `Basic ${Buffer.from(
       `PAT:${this.token}`
     ).toString('base64')}`

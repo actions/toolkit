@@ -1,6 +1,8 @@
 import * as http from 'http'
+import * as https from 'https'
 
 export interface IHeaders {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any
 }
 
@@ -61,7 +63,7 @@ export interface IRequestHandler {
   handleAuthentication(
     httpClient: IHttpClient,
     requestInfo: IRequestInfo,
-    objs: any
+    data: string | NodeJS.ReadableStream | null
   ): Promise<IHttpClientResponse>
 }
 
@@ -73,7 +75,7 @@ export interface IHttpClientResponse {
 export interface IRequestInfo {
   options: http.RequestOptions
   parsedUrl: URL
-  httpModule: any
+  httpModule: typeof http | typeof https
 }
 
 export interface IRequestOptions {

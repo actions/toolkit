@@ -1,5 +1,4 @@
 import * as httpm from '..'
-import * as ifm from '../lib/interfaces'
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -123,7 +122,7 @@ describe('basics', () => {
 
   it('pipes a get request', async () => {
     return new Promise<void>(async resolve => {
-      const file: any = fs.createWriteStream(sampleFilePath)
+      const file = fs.createWriteStream(sampleFilePath)
       ;(await _http.get('https://httpbin.org/get')).message
         .pipe(file)
         .on('close', () => {
@@ -287,9 +286,7 @@ describe('basics', () => {
   })
 
   it('gets a json object', async () => {
-    const jsonObj: ifm.ITypedResponse<HttpBinData> = await _http.getJson<
-      HttpBinData
-    >('https://httpbin.org/get')
+    const jsonObj = await _http.getJson<HttpBinData>('https://httpbin.org/get')
     expect(jsonObj.statusCode).toBe(200)
     expect(jsonObj.result).toBeDefined()
     expect(jsonObj.result?.url).toBe('https://httpbin.org/get')
@@ -302,18 +299,19 @@ describe('basics', () => {
   })
 
   it('getting a non existent json object returns null', async () => {
-    const jsonObj: ifm.ITypedResponse<HttpBinData> = await _http.getJson<
-      HttpBinData
-    >('https://httpbin.org/status/404')
+    const jsonObj = await _http.getJson<HttpBinData>(
+      'https://httpbin.org/status/404'
+    )
     expect(jsonObj.statusCode).toBe(404)
     expect(jsonObj.result).toBeNull()
   })
 
   it('posts a json object', async () => {
-    const res: any = {name: 'foo'}
-    const restRes: ifm.ITypedResponse<HttpBinData> = await _http.postJson<
-      HttpBinData
-    >('https://httpbin.org/post', res)
+    const res = {name: 'foo'}
+    const restRes = await _http.postJson<HttpBinData>(
+      'https://httpbin.org/post',
+      res
+    )
     expect(restRes.statusCode).toBe(200)
     expect(restRes.result).toBeDefined()
     expect(restRes.result?.url).toBe('https://httpbin.org/post')
@@ -330,10 +328,11 @@ describe('basics', () => {
   })
 
   it('puts a json object', async () => {
-    const res: any = {name: 'foo'}
-    const restRes: ifm.ITypedResponse<HttpBinData> = await _http.putJson<
-      HttpBinData
-    >('https://httpbin.org/put', res)
+    const res = {name: 'foo'}
+    const restRes = await _http.putJson<HttpBinData>(
+      'https://httpbin.org/put',
+      res
+    )
     expect(restRes.statusCode).toBe(200)
     expect(restRes.result).toBeDefined()
     expect(restRes.result?.url).toBe('https://httpbin.org/put')
@@ -351,10 +350,11 @@ describe('basics', () => {
   })
 
   it('patch a json object', async () => {
-    const res: any = {name: 'foo'}
-    const restRes: ifm.ITypedResponse<HttpBinData> = await _http.patchJson<
-      HttpBinData
-    >('https://httpbin.org/patch', res)
+    const res = {name: 'foo'}
+    const restRes = await _http.patchJson<HttpBinData>(
+      'https://httpbin.org/patch',
+      res
+    )
     expect(restRes.statusCode).toBe(200)
     expect(restRes.result).toBeDefined()
     expect(restRes.result?.url).toBe('https://httpbin.org/patch')
