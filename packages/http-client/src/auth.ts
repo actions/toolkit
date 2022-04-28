@@ -1,5 +1,6 @@
 import * as http from 'http'
 import * as ifm from './interfaces'
+import {HttpClientResponse} from './index'
 
 export class BasicCredentialHandler implements ifm.RequestHandler {
   username: string
@@ -24,7 +25,7 @@ export class BasicCredentialHandler implements ifm.RequestHandler {
     return false
   }
 
-  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
+  async handleAuthentication(): Promise<HttpClientResponse> {
     throw new Error('not implemented')
   }
 }
@@ -50,7 +51,7 @@ export class BearerCredentialHandler implements ifm.RequestHandler {
     return false
   }
 
-  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
+  async handleAuthentication(): Promise<HttpClientResponse> {
     throw new Error('not implemented')
   }
 }
@@ -79,7 +80,7 @@ export class PersonalAccessTokenCredentialHandler
     return false
   }
 
-  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
+  async handleAuthentication(): Promise<HttpClientResponse> {
     throw new Error('not implemented')
   }
 }

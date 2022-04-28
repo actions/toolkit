@@ -1,49 +1,46 @@
 import * as http from 'http'
 import * as https from 'https'
-
-export interface Headers {
-  [header: string]: string
-}
+import {HttpClientResponse} from './index'
 
 export interface HttpClient {
   options(
     requestUrl: string,
-    additionalHeaders?: Headers
+    additionalHeaders?: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   get(
     requestUrl: string,
-    additionalHeaders?: Headers
+    additionalHeaders?: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   del(
     requestUrl: string,
-    additionalHeaders?: Headers
+    additionalHeaders?: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   post(
     requestUrl: string,
     data: string,
-    additionalHeaders?: Headers
+    additionalHeaders?: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   patch(
     requestUrl: string,
     data: string,
-    additionalHeaders?: Headers
+    additionalHeaders?: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   put(
     requestUrl: string,
     data: string,
-    additionalHeaders?: Headers
+    additionalHeaders?: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   sendStream(
     verb: string,
     requestUrl: string,
     stream: NodeJS.ReadableStream,
-    additionalHeaders?: Headers
+    additionalHeaders?: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   request(
     verb: string,
     requestUrl: string,
     data: string | NodeJS.ReadableStream,
-    headers: Headers
+    headers: http.OutgoingHttpHeaders
   ): Promise<HttpClientResponse>
   requestRaw(
     info: RequestInfo,
@@ -66,11 +63,6 @@ export interface RequestHandler {
   ): Promise<HttpClientResponse>
 }
 
-export interface HttpClientResponse {
-  message: http.IncomingMessage
-  readBody(): Promise<string>
-}
-
 export interface RequestInfo {
   options: http.RequestOptions
   parsedUrl: URL
@@ -78,7 +70,7 @@ export interface RequestInfo {
 }
 
 export interface RequestOptions {
-  headers?: Headers
+  headers?: http.OutgoingHttpHeaders
   socketTimeout?: number
   ignoreSslError?: boolean
   allowRedirects?: boolean
