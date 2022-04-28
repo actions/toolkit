@@ -1,0 +1,5 @@
+_out
+node_modules
+.DS_Store
+testoutput.txt
+npm-debug.log
