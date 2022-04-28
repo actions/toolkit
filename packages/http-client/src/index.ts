@@ -606,7 +606,7 @@ export class HttpClient {
     additionalHeaders: ifm.Headers,
     header: string,
     _default: string
-  ): ifm.Headers | string | undefined {
+  ): string {
     let clientHeader: string | undefined
     if (this.requestOptions && this.requestOptions.headers) {
       clientHeader = lowercaseKeys(this.requestOptions.headers)[header]

@@ -2,8 +2,7 @@ import * as http from 'http'
 import * as https from 'https'
 
 export interface Headers {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any
+  [header: string]: string
 }
 
 export interface HttpClient {
