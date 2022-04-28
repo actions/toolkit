@@ -1,85 +1,85 @@
 import * as http from 'http'
 import * as https from 'https'
 
-export interface IHeaders {
+export interface Headers {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any
 }
 
-export interface IHttpClient {
+export interface HttpClient {
   options(
     requestUrl: string,
-    additionalHeaders?: IHeaders
-  ): Promise<IHttpClientResponse>
+    additionalHeaders?: Headers
+  ): Promise<HttpClientResponse>
   get(
     requestUrl: string,
-    additionalHeaders?: IHeaders
-  ): Promise<IHttpClientResponse>
+    additionalHeaders?: Headers
+  ): Promise<HttpClientResponse>
   del(
     requestUrl: string,
-    additionalHeaders?: IHeaders
-  ): Promise<IHttpClientResponse>
+    additionalHeaders?: Headers
+  ): Promise<HttpClientResponse>
   post(
     requestUrl: string,
     data: string,
-    additionalHeaders?: IHeaders
-  ): Promise<IHttpClientResponse>
+    additionalHeaders?: Headers
+  ): Promise<HttpClientResponse>
   patch(
     requestUrl: string,
     data: string,
-    additionalHeaders?: IHeaders
-  ): Promise<IHttpClientResponse>
+    additionalHeaders?: Headers
+  ): Promise<HttpClientResponse>
   put(
     requestUrl: string,
     data: string,
-    additionalHeaders?: IHeaders
-  ): Promise<IHttpClientResponse>
+    additionalHeaders?: Headers
+  ): Promise<HttpClientResponse>
   sendStream(
     verb: string,
     requestUrl: string,
     stream: NodeJS.ReadableStream,
-    additionalHeaders?: IHeaders
-  ): Promise<IHttpClientResponse>
+    additionalHeaders?: Headers
+  ): Promise<HttpClientResponse>
   request(
     verb: string,
     requestUrl: string,
     data: string | NodeJS.ReadableStream,
-    headers: IHeaders
-  ): Promise<IHttpClientResponse>
+    headers: Headers
+  ): Promise<HttpClientResponse>
   requestRaw(
-    info: IRequestInfo,
+    info: RequestInfo,
     data: string | NodeJS.ReadableStream
-  ): Promise<IHttpClientResponse>
+  ): Promise<HttpClientResponse>
   requestRawWithCallback(
-    info: IRequestInfo,
+    info: RequestInfo,
     data: string | NodeJS.ReadableStream,
-    onResult: (err?: Error, res?: IHttpClientResponse) => void
+    onResult: (err?: Error, res?: HttpClientResponse) => void
   ): void
 }
 
-export interface IRequestHandler {
+export interface RequestHandler {
   prepareRequest(options: http.RequestOptions): void
-  canHandleAuthentication(response: IHttpClientResponse): boolean
+  canHandleAuthentication(response: HttpClientResponse): boolean
   handleAuthentication(
-    httpClient: IHttpClient,
-    requestInfo: IRequestInfo,
+    httpClient: HttpClient,
+    requestInfo: RequestInfo,
     data: string | NodeJS.ReadableStream | null
-  ): Promise<IHttpClientResponse>
+  ): Promise<HttpClientResponse>
 }
 
-export interface IHttpClientResponse {
+export interface HttpClientResponse {
   message: http.IncomingMessage
   readBody(): Promise<string>
 }
 
-export interface IRequestInfo {
+export interface RequestInfo {
   options: http.RequestOptions
   parsedUrl: URL
   httpModule: typeof http | typeof https
 }
 
-export interface IRequestOptions {
-  headers?: IHeaders
+export interface RequestOptions {
+  headers?: Headers
   socketTimeout?: number
   ignoreSslError?: boolean
   allowRedirects?: boolean
@@ -93,7 +93,7 @@ export interface IRequestOptions {
   maxRetries?: number
 }
 
-export interface ITypedResponse<T> {
+export interface TypedResponse<T> {
   statusCode: number
   result: T | null
   headers: http.IncomingHttpHeaders

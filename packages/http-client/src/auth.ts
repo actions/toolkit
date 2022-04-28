@@ -1,7 +1,7 @@
 import * as http from 'http'
 import * as ifm from './interfaces'
 
-export class BasicCredentialHandler implements ifm.IRequestHandler {
+export class BasicCredentialHandler implements ifm.RequestHandler {
   username: string
   password: string
 
@@ -24,12 +24,12 @@ export class BasicCredentialHandler implements ifm.IRequestHandler {
     return false
   }
 
-  async handleAuthentication(): Promise<ifm.IHttpClientResponse> {
+  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
     throw new Error('not implemented')
   }
 }
 
-export class BearerCredentialHandler implements ifm.IRequestHandler {
+export class BearerCredentialHandler implements ifm.RequestHandler {
   token: string
 
   constructor(token: string) {
@@ -50,13 +50,13 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
     return false
   }
 
-  async handleAuthentication(): Promise<ifm.IHttpClientResponse> {
+  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
     throw new Error('not implemented')
   }
 }
 
 export class PersonalAccessTokenCredentialHandler
-  implements ifm.IRequestHandler {
+  implements ifm.RequestHandler {
   token: string
 
   constructor(token: string) {
@@ -79,7 +79,7 @@ export class PersonalAccessTokenCredentialHandler
     return false
   }
 
-  async handleAuthentication(): Promise<ifm.IHttpClientResponse> {
+  async handleAuthentication(): Promise<ifm.HttpClientResponse> {
     throw new Error('not implemented')
   }
 }

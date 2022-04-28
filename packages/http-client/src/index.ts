@@ -83,7 +83,7 @@ export class HttpClientError extends Error {
   result?: any
 }
 
-export class HttpClientResponse implements ifm.IHttpClientResponse {
+export class HttpClientResponse implements ifm.HttpClientResponse {
   constructor(message: http.IncomingMessage) {
     this.message = message
   }
@@ -111,8 +111,8 @@ export function isHttps(requestUrl: string): boolean {
 
 export class HttpClient {
   userAgent: string | undefined
-  handlers: ifm.IRequestHandler[]
-  requestOptions: ifm.IRequestOptions | undefined
+  handlers: ifm.RequestHandler[]
+  requestOptions: ifm.RequestOptions | undefined
 
   private _ignoreSslError = false
   private _socketTimeout: number | undefined
@@ -128,8 +128,8 @@ export class HttpClient {
 
   constructor(
     userAgent?: string,
-    handlers?: ifm.IRequestHandler[],
-    requestOptions?: ifm.IRequestOptions
+    handlers?: ifm.RequestHandler[],
+    requestOptions?: ifm.RequestOptions
   ) {
     this.userAgent = userAgent
     this.handlers = handlers || []
@@ -169,53 +169,53 @@ export class HttpClient {
 
   async options(
     requestUrl: string,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request('OPTIONS', requestUrl, null, additionalHeaders || {})
   }
 
   async get(
     requestUrl: string,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request('GET', requestUrl, null, additionalHeaders || {})
   }
 
   async del(
     requestUrl: string,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request('DELETE', requestUrl, null, additionalHeaders || {})
   }
 
   async post(
     requestUrl: string,
     data: string,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request('POST', requestUrl, data, additionalHeaders || {})
   }
 
   async patch(
     requestUrl: string,
     data: string,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request('PATCH', requestUrl, data, additionalHeaders || {})
   }
 
   async put(
     requestUrl: string,
     data: string,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request('PUT', requestUrl, data, additionalHeaders || {})
   }
 
   async head(
     requestUrl: string,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request('HEAD', requestUrl, null, additionalHeaders || {})
   }
 
@@ -223,8 +223,8 @@ export class HttpClient {
     verb: string,
     requestUrl: string,
     stream: NodeJS.ReadableStream,
-    additionalHeaders?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    additionalHeaders?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     return this.request(verb, requestUrl, stream, additionalHeaders)
   }
 
@@ -234,14 +234,14 @@ export class HttpClient {
    */
   async getJson<T>(
     requestUrl: string,
-    additionalHeaders: ifm.IHeaders = {}
-  ): Promise<ifm.ITypedResponse<T>> {
+    additionalHeaders: ifm.Headers = {}
+  ): Promise<ifm.TypedResponse<T>> {
     additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
       additionalHeaders,
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    const res: ifm.IHttpClientResponse = await this.get(
+    const res: ifm.HttpClientResponse = await this.get(
       requestUrl,
       additionalHeaders
     )
@@ -251,8 +251,8 @@ export class HttpClient {
   async postJson<T>(
     requestUrl: string,
     obj: any,
-    additionalHeaders: ifm.IHeaders = {}
-  ): Promise<ifm.ITypedResponse<T>> {
+    additionalHeaders: ifm.Headers = {}
+  ): Promise<ifm.TypedResponse<T>> {
     const data: string = JSON.stringify(obj, null, 2)
     additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
       additionalHeaders,
@@ -264,7 +264,7 @@ export class HttpClient {
       Headers.ContentType,
       MediaTypes.ApplicationJson
     )
-    const res: ifm.IHttpClientResponse = await this.post(
+    const res: ifm.HttpClientResponse = await this.post(
       requestUrl,
       data,
       additionalHeaders
@@ -275,8 +275,8 @@ export class HttpClient {
   async putJson<T>(
     requestUrl: string,
     obj: any,
-    additionalHeaders: ifm.IHeaders = {}
-  ): Promise<ifm.ITypedResponse<T>> {
+    additionalHeaders: ifm.Headers = {}
+  ): Promise<ifm.TypedResponse<T>> {
     const data: string = JSON.stringify(obj, null, 2)
     additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
       additionalHeaders,
@@ -288,7 +288,7 @@ export class HttpClient {
       Headers.ContentType,
       MediaTypes.ApplicationJson
     )
-    const res: ifm.IHttpClientResponse = await this.put(
+    const res: ifm.HttpClientResponse = await this.put(
       requestUrl,
       data,
       additionalHeaders
@@ -299,8 +299,8 @@ export class HttpClient {
   async patchJson<T>(
     requestUrl: string,
     obj: any,
-    additionalHeaders: ifm.IHeaders = {}
-  ): Promise<ifm.ITypedResponse<T>> {
+    additionalHeaders: ifm.Headers = {}
+  ): Promise<ifm.TypedResponse<T>> {
     const data: string = JSON.stringify(obj, null, 2)
     additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
       additionalHeaders,
@@ -312,7 +312,7 @@ export class HttpClient {
       Headers.ContentType,
       MediaTypes.ApplicationJson
     )
-    const res: ifm.IHttpClientResponse = await this.patch(
+    const res: ifm.HttpClientResponse = await this.patch(
       requestUrl,
       data,
       additionalHeaders
@@ -329,14 +329,14 @@ export class HttpClient {
     verb: string,
     requestUrl: string,
     data: string | NodeJS.ReadableStream | null,
-    headers?: ifm.IHeaders
-  ): Promise<ifm.IHttpClientResponse> {
+    headers?: ifm.Headers
+  ): Promise<ifm.HttpClientResponse> {
     if (this._disposed) {
       throw new Error('Client has already been disposed.')
     }
 
     const parsedUrl = new URL(requestUrl)
-    let info: ifm.IRequestInfo = this._prepareRequest(verb, parsedUrl, headers)
+    let info: ifm.RequestInfo = this._prepareRequest(verb, parsedUrl, headers)
 
     // Only perform retries on reads since writes may not be idempotent.
     const maxTries: number =
@@ -355,7 +355,7 @@ export class HttpClient {
         response.message &&
         response.message.statusCode === HttpCodes.Unauthorized
       ) {
-        let authenticationHandler: ifm.IRequestHandler | undefined
+        let authenticationHandler: ifm.RequestHandler | undefined
 
         for (const handler of this.handlers) {
           if (handler.canHandleAuthentication(response)) {
@@ -453,13 +453,13 @@ export class HttpClient {
    * @param data
    */
   async requestRaw(
-    info: ifm.IRequestInfo,
+    info: ifm.RequestInfo,
     data: string | NodeJS.ReadableStream | null
-  ): Promise<ifm.IHttpClientResponse> {
-    return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
+  ): Promise<ifm.HttpClientResponse> {
+    return new Promise<ifm.HttpClientResponse>((resolve, reject) => {
       function callbackForResult(
         err?: Error,
-        res?: ifm.IHttpClientResponse
+        res?: ifm.HttpClientResponse
       ): void {
         if (err) {
           reject(err)
@@ -482,9 +482,9 @@ export class HttpClient {
    * @param onResult
    */
   requestRawWithCallback(
-    info: ifm.IRequestInfo,
+    info: ifm.RequestInfo,
     data: string | NodeJS.ReadableStream | null,
-    onResult: (err?: Error, res?: ifm.IHttpClientResponse) => void
+    onResult: (err?: Error, res?: ifm.HttpClientResponse) => void
   ): void {
     if (typeof data === 'string') {
       if (!info.options.headers) {
@@ -556,9 +556,9 @@ export class HttpClient {
   private _prepareRequest(
     method: string,
     requestUrl: URL,
-    headers?: ifm.IHeaders
-  ): ifm.IRequestInfo {
-    const info: ifm.IRequestInfo = <ifm.IRequestInfo>{}
+    headers?: ifm.Headers
+  ): ifm.RequestInfo {
+    const info: ifm.RequestInfo = <ifm.RequestInfo>{}
 
     info.parsedUrl = requestUrl
     const usingSsl: boolean = info.parsedUrl.protocol === 'https:'
@@ -590,7 +590,7 @@ export class HttpClient {
     return info
   }
 
-  private _mergeHeaders(headers?: ifm.IHeaders): ifm.IHeaders {
+  private _mergeHeaders(headers?: ifm.Headers): ifm.Headers {
     if (this.requestOptions && this.requestOptions.headers) {
       return Object.assign(
         {},
@@ -603,10 +603,10 @@ export class HttpClient {
   }
 
   private _getExistingOrDefaultHeader(
-    additionalHeaders: ifm.IHeaders,
+    additionalHeaders: ifm.Headers,
     header: string,
     _default: string
-  ): ifm.IHeaders | string | undefined {
+  ): ifm.Headers | string | undefined {
     let clientHeader: string | undefined
     if (this.requestOptions && this.requestOptions.headers) {
       clientHeader = lowercaseKeys(this.requestOptions.headers)[header]
@@ -695,13 +695,13 @@ export class HttpClient {
   }
 
   private async _processResponse<T>(
-    res: ifm.IHttpClientResponse,
-    options?: ifm.IRequestOptions
-  ): Promise<ifm.ITypedResponse<T>> {
-    return new Promise<ifm.ITypedResponse<T>>(async (resolve, reject) => {
+    res: ifm.HttpClientResponse,
+    options?: ifm.RequestOptions
+  ): Promise<ifm.TypedResponse<T>> {
+    return new Promise<ifm.TypedResponse<T>>(async (resolve, reject) => {
       const statusCode = res.message.statusCode || 0
 
-      const response: ifm.ITypedResponse<T> = {
+      const response: ifm.TypedResponse<T> = {
         statusCode,
         result: null,
         headers: {}

@@ -3,7 +3,7 @@
 ## 2.0.0
 The package is now compiled with TypeScript's [`strict` compiler setting](https://www.typescriptlang.org/tsconfig#strict). To comply with stricter rules:
 - Some exported types now include `| null` or `| undefined`, matching their actual behavior.
-- Types implementing the method `IRequestHandler.handleAuthentication()` now throw an `Error` rather than returning `null` if they do not support handling an HTTP 401 response. Callers can still use `canHandleAuthentication()` to determine if this handling is supported or not.
+- Types implementing the method `RequestHandler.handleAuthentication()` now throw an `Error` rather than returning `null` if they do not support handling an HTTP 401 response. Callers can still use `canHandleAuthentication()` to determine if this handling is supported or not.
 
 Also in this release, the source code of the package was moved to build with https://github.com/actions/toolkit.
 
