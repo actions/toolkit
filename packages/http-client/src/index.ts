@@ -457,10 +457,7 @@ export class HttpClient {
     data: string | NodeJS.ReadableStream | null
   ): Promise<HttpClientResponse> {
     return new Promise<HttpClientResponse>((resolve, reject) => {
-      function callbackForResult(
-        err?: Error,
-        res?: HttpClientResponse
-      ): void {
+      function callbackForResult(err?: Error, res?: HttpClientResponse): void {
         if (err) {
           reject(err)
         } else if (!res) {
@@ -590,7 +587,9 @@ export class HttpClient {
     return info
   }
 
-  private _mergeHeaders(headers?: http.OutgoingHttpHeaders): http.OutgoingHttpHeaders {
+  private _mergeHeaders(
+    headers?: http.OutgoingHttpHeaders
+  ): http.OutgoingHttpHeaders {
     if (this.requestOptions && this.requestOptions.headers) {
       return Object.assign(
         {},
