@@ -354,5 +354,10 @@ class Summary {
   }
 }
 
-// singleton export
-export const summary = new Summary()
+const _summary = new Summary()
+
+/**
+ * @deprecated use `core.summary`
+ */
+export const markdownSummary = _summary
+export const summary = _summary
