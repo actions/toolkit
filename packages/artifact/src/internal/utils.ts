@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import {promises as fs} from 'fs'
 import {IncomingHttpHeaders} from 'http'
 import {debug, info, warning} from '@actions/core'
@@ -182,7 +183,7 @@ export function getUploadHeaders(
   uncompressedLength?: number,
   contentLength?: number,
   contentRange?: string,
-  digest?: string
+  digest?: StreamDigest
 ): IHeaders {
   const requestOptions: IHeaders = {}
   requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
@@ -205,7 +206,8 @@ export function getUploadHeaders(
     requestOptions['Content-Range'] = contentRange
   }
   if (digest) {
-    requestOptions['x-actions-result-crc64'] = digest
+    requestOptions['x-actions-results-crc64'] = digest.crc64
+    requestOptions['x-actions-results-md5'] = digest.md5
   }
 
   return requestOptions
@@ -297,13 +299,28 @@ export async function sleep(milliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
+export interface StreamDigest {
+  crc64: string
+  md5: string
+}
+
 export async function digestForStream(
   stream: NodeJS.ReadableStream
-): Promise<string> {
+): Promise<StreamDigest> {
   return new Promise((resolve, reject) => {
-    const hasher = new CRC64()
-    stream.on('data', data => hasher.update(data))
-    stream.on('end', () => resolve(hasher.digest()))
-    stream.on('error', reject)
+    const crc64 = new CRC64()
+    const md5 = crypto.createHash('sha256')
+    stream
+      .on('data', data => {
+        crc64.update(data)
+        md5.update(data)
+      })
+      .on('end', () =>
+        resolve({
+          crc64: crc64.digest('base64') as string,
+          md5: md5.digest('base64')
+        })
+      )
+      .on('error', reject)
   })
 }

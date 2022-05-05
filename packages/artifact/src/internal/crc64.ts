@@ -269,6 +269,8 @@ const PREGEN_POLY_TABLE = [
   BigInt('0x2ADA5047EFEC8728')
 ]
 
+export type CRC64DigestEncoding = 'hex' | 'base64' | 'buffer'
+
 class CRC64 {
   private _crc: bigint
 
@@ -288,8 +290,23 @@ class CRC64 {
     this._crc = CRC64.flip64Bits(crc)
   }
 
-  digest(): string {
-    return this._crc.toString(16).toUpperCase()
+  digest(encoding?: CRC64DigestEncoding): string | Buffer {
+    switch (encoding) {
+      case 'hex':
+        return this._crc.toString(16).toUpperCase()
+      case 'base64':
+        return this.toBuffer().toString('base64')
+      default:
+        return this.toBuffer()
+    }
+  }
+
+  private toBuffer(): Buffer {
+    return Buffer.from(
+      [0, 8, 16, 24, 32, 40, 48, 56].map(s =>
+        Number((this._crc >> BigInt(s)) & BigInt(0xff))
+      )
+    )
   }
 
   static flip64Bits(n: bigint): bigint {

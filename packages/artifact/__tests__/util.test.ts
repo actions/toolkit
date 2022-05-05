@@ -75,7 +75,10 @@ describe('Utils', () => {
     const size = 24
     const uncompressedLength = 100
     const range = 'bytes 0-199/200'
-    const digest = 'FFFCD6894DC82C6D'
+    const digest = {
+      crc64: 'bSzITYnW/P8=',
+      md5: 'Xiv1fT9AxLbfadrxk2y3ZvgyN0tPwCWafL/wbi9w8mk='
+    }
     const headers = utils.getUploadHeaders(
       contentType,
       true,
@@ -85,7 +88,7 @@ describe('Utils', () => {
       range,
       digest
     )
-    expect(Object.keys(headers).length).toEqual(9)
+    expect(Object.keys(headers).length).toEqual(10)
     expect(headers['Accept']).toEqual(
       `application/json;api-version=${utils.getApiVersion()}`
     )
@@ -96,7 +99,8 @@ describe('Utils', () => {
     expect(headers['x-tfs-filelength']).toEqual(uncompressedLength)
     expect(headers['Content-Length']).toEqual(size)
     expect(headers['Content-Range']).toEqual(range)
-    expect(headers['x-actions-result-crc64']).toEqual(digest)
+    expect(headers['x-actions-results-crc64']).toEqual(digest.crc64)
+    expect(headers['x-actions-results-md5']).toEqual(digest.md5)
   })
 
   it('Test constructing upload headers with only required parameter', () => {
@@ -229,6 +233,7 @@ describe('Utils', () => {
     const stream = Readable.from(data)
     const digest = await utils.digestForStream(stream)
 
-    expect(digest).toBe('FFFCD6894DC82C6D')
+    expect(digest.crc64).toBe('bSzITYnW/P8=')
+    expect(digest.md5).toBe('Xiv1fT9AxLbfadrxk2y3ZvgyN0tPwCWafL/wbi9w8mk=')
   })
 })
