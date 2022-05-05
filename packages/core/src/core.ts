@@ -364,3 +364,8 @@ export async function getIDToken(aud?: string): Promise<string> {
  * Summary exports
  */
 export {summary} from './summary'
+
+/**
+ * @deprecated use core.summary
+ */
+export {markdownSummary} from './summary'
