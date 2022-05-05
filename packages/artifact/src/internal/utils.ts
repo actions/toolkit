@@ -309,7 +309,7 @@ export async function digestForStream(
 ): Promise<StreamDigest> {
   return new Promise((resolve, reject) => {
     const crc64 = new CRC64()
-    const md5 = crypto.createHash('sha256')
+    const md5 = crypto.createHash('md5')
     stream
       .on('data', data => {
         crc64.update(data)

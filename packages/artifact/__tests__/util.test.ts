@@ -234,6 +234,6 @@ describe('Utils', () => {
     const digest = await utils.digestForStream(stream)
 
     expect(digest.crc64).toBe('bSzITYnW/P8=')
-    expect(digest.md5).toBe('Xiv1fT9AxLbfadrxk2y3ZvgyN0tPwCWafL/wbi9w8mk=')
+    expect(digest.md5).toBe('gKdR/eV3AoZAxBkADjPrpg==')
   })
 })
