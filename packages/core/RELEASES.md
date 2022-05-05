@@ -1,5 +1,10 @@
 # @actions/core Releases
 
+### 1.8.0
+- Deprecate `markdownSummary` extension export in favor of `summary`
+  - https://github.com/actions/toolkit/pull/1072
+  - https://github.com/actions/toolkit/pull/1073
+
 ### 1.7.0
 - [Added `markdownSummary` extension](https://github.com/actions/toolkit/pull/1014)
 
