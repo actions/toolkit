@@ -361,6 +361,6 @@ export async function getIDToken(aud?: string): Promise<string> {
 }
 
 /**
- * Markdown summary exports
+ * Summary exports
  */
-export {markdownSummary} from './markdown-summary'
+export {summary} from './summary'

@@ -4,7 +4,7 @@ const {access, appendFile, writeFile} = promises
 
 export const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'
 export const SUMMARY_DOCS_URL =
-  'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-markdown-summary'
+  'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary'
 
 export type SummaryTableRow = (SummaryTableCell | string)[]
 
@@ -51,7 +51,7 @@ export interface SummaryWriteOptions {
   overwrite?: boolean
 }
 
-class MarkdownSummary {
+class Summary {
   private _buffer: string
   private _filePath?: string
 
@@ -73,7 +73,7 @@ class MarkdownSummary {
     const pathFromEnv = process.env[SUMMARY_ENV_VAR]
     if (!pathFromEnv) {
       throw new Error(
-        `Unable to find environment variable for $${SUMMARY_ENV_VAR}. Check if your runtime environment supports markdown summaries.`
+        `Unable to find environment variable for $${SUMMARY_ENV_VAR}. Check if your runtime environment supports job summaries.`
       )
     }
 
@@ -119,9 +119,9 @@ class MarkdownSummary {
    *
    * @param {SummaryWriteOptions} [options] (optional) options for write operation
    *
-   * @returns {Promise<MarkdownSummary>} markdown summary instance
+   * @returns {Promise<Summary>} summary instance
    */
-  async write(options?: SummaryWriteOptions): Promise<MarkdownSummary> {
+  async write(options?: SummaryWriteOptions): Promise<Summary> {
     const overwrite = !!options?.overwrite
     const filePath = await this.filePath()
     const writeFunc = overwrite ? writeFile : appendFile
@@ -132,9 +132,9 @@ class MarkdownSummary {
   /**
    * Clears the summary buffer and wipes the summary file
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  async clear(): Promise<MarkdownSummary> {
+  async clear(): Promise<Summary> {
     return this.emptyBuffer().write({overwrite: true})
   }
 
@@ -159,9 +159,9 @@ class MarkdownSummary {
   /**
    * Resets the summary buffer without writing to summary file
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  emptyBuffer(): MarkdownSummary {
+  emptyBuffer(): Summary {
     this._buffer = ''
     return this
   }
@@ -172,9 +172,9 @@ class MarkdownSummary {
    * @param {string} text content to add
    * @param {boolean} [addEOL=false] (optional) append an EOL to the raw text (default: false)
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addRaw(text: string, addEOL = false): MarkdownSummary {
+  addRaw(text: string, addEOL = false): Summary {
     this._buffer += text
     return addEOL ? this.addEOL() : this
   }
@@ -182,9 +182,9 @@ class MarkdownSummary {
   /**
    * Adds the operating system-specific end-of-line marker to the buffer
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addEOL(): MarkdownSummary {
+  addEOL(): Summary {
     return this.addRaw(EOL)
   }
 
@@ -194,9 +194,9 @@ class MarkdownSummary {
    * @param {string} code content to render within fenced code block
    * @param {string} lang (optional) language to syntax highlight code
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addCodeBlock(code: string, lang?: string): MarkdownSummary {
+  addCodeBlock(code: string, lang?: string): Summary {
     const attrs = {
       ...(lang && {lang})
     }
@@ -210,9 +210,9 @@ class MarkdownSummary {
    * @param {string[]} items list of items to render
    * @param {boolean} [ordered=false] (optional) if the rendered list should be ordered or not (default: false)
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addList(items: string[], ordered = false): MarkdownSummary {
+  addList(items: string[], ordered = false): Summary {
     const tag = ordered ? 'ol' : 'ul'
     const listItems = items.map(item => this.wrap('li', item)).join('')
     const element = this.wrap(tag, listItems)
@@ -224,9 +224,9 @@ class MarkdownSummary {
    *
    * @param {SummaryTableCell[]} rows table rows
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addTable(rows: SummaryTableRow[]): MarkdownSummary {
+  addTable(rows: SummaryTableRow[]): Summary {
     const tableBody = rows
       .map(row => {
         const cells = row
@@ -260,9 +260,9 @@ class MarkdownSummary {
    * @param {string} label text for the closed state
    * @param {string} content collapsable content
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addDetails(label: string, content: string): MarkdownSummary {
+  addDetails(label: string, content: string): Summary {
     const element = this.wrap('details', this.wrap('summary', label) + content)
     return this.addRaw(element).addEOL()
   }
@@ -274,13 +274,9 @@ class MarkdownSummary {
    * @param {string} alt text description of the image
    * @param {SummaryImageOptions} options (optional) addition image attributes
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addImage(
-    src: string,
-    alt: string,
-    options?: SummaryImageOptions
-  ): MarkdownSummary {
+  addImage(src: string, alt: string, options?: SummaryImageOptions): Summary {
     const {width, height} = options || {}
     const attrs = {
       ...(width && {width}),
@@ -297,9 +293,9 @@ class MarkdownSummary {
    * @param {string} text heading text
    * @param {number | string} [level=1] (optional) the heading level, default: 1
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addHeading(text: string, level?: number | string): MarkdownSummary {
+  addHeading(text: string, level?: number | string): Summary {
     const tag = `h${level}`
     const allowedTag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)
       ? tag
@@ -311,9 +307,9 @@ class MarkdownSummary {
   /**
    * Adds an HTML thematic break (<hr>) to the summary buffer
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addSeparator(): MarkdownSummary {
+  addSeparator(): Summary {
     const element = this.wrap('hr', null)
     return this.addRaw(element).addEOL()
   }
@@ -321,9 +317,9 @@ class MarkdownSummary {
   /**
    * Adds an HTML line break (<br>) to the summary buffer
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addBreak(): MarkdownSummary {
+  addBreak(): Summary {
     const element = this.wrap('br', null)
     return this.addRaw(element).addEOL()
   }
@@ -334,9 +330,9 @@ class MarkdownSummary {
    * @param {string} text quote text
    * @param {string} cite (optional) citation url
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addQuote(text: string, cite?: string): MarkdownSummary {
+  addQuote(text: string, cite?: string): Summary {
     const attrs = {
       ...(cite && {cite})
     }
@@ -350,13 +346,13 @@ class MarkdownSummary {
    * @param {string} text link text/content
    * @param {string} href hyperlink
    *
-   * @returns {MarkdownSummary} markdown summary instance
+   * @returns {Summary} summary instance
    */
-  addLink(text: string, href: string): MarkdownSummary {
+  addLink(text: string, href: string): Summary {
     const element = this.wrap('a', text, {href})
     return this.addRaw(element).addEOL()
   }
 }
 
 // singleton export
-export const markdownSummary = new MarkdownSummary()
+export const summary = new Summary()
