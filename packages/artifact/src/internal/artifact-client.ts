@@ -157,11 +157,24 @@ Note: The size of downloaded zips can differ significantly from the reported siz
   async downloadArtifact(
     name: string,
     path?: string | undefined,
-    options?: DownloadOptions | undefined
+    options?: DownloadOptions | undefined,
+    owner?: string,
+    repo?: string,
+    workflow?: string,
+    branch?: string
   ): Promise<DownloadResponse> {
     const downloadHttpClient = new DownloadHttpClient()
 
-    const artifacts = await downloadHttpClient.listArtifacts()
+    const artifacts =
+      owner || repo || workflow || branch
+        ? await downloadHttpClient.listArtifactsForWorkflowRun(
+            owner,
+            repo,
+            workflow,
+            branch
+          )
+        : await downloadHttpClient.listArtifacts()
+
     if (artifacts.count === 0) {
       throw new Error(
         `Unable to find any artifacts for the associated workflow`
@@ -219,12 +232,24 @@ Note: The size of downloaded zips can differ significantly from the reported siz
   }
 
   async downloadAllArtifacts(
-    path?: string | undefined
+    path?: string | undefined,
+    owner?: string,
+    repo?: string,
+    workflow?: string,
+    branch?: string
   ): Promise<DownloadResponse[]> {
     const downloadHttpClient = new DownloadHttpClient()
 
     const response: DownloadResponse[] = []
-    const artifacts = await downloadHttpClient.listArtifacts()
+    const artifacts =
+      owner || repo || workflow || branch
+        ? await downloadHttpClient.listArtifactsForWorkflowRun(
+            owner,
+            repo,
+            workflow,
+            branch
+          )
+        : await downloadHttpClient.listArtifacts()
     if (artifacts.count === 0) {
       core.info('Unable to find any artifacts for the associated workflow')
       return response
