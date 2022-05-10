@@ -1,5 +1,9 @@
 import * as core from '@actions/core'
-import {HttpCodes, HttpClientError, HttpClientResponse} from '@actions/http-client'
+import {
+  HttpCodes,
+  HttpClientError,
+  HttpClientResponse
+} from '@actions/http-client'
 import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
 import {ITypedResponseWithError} from './contracts'
 
