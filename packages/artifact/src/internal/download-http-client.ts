@@ -18,7 +18,7 @@ import {URL} from 'url'
 import {StatusReporter} from './status-reporter'
 import {performance} from 'perf_hooks'
 import {ListArtifactsResponse, QueryArtifactResponse} from './contracts'
-import {IHttpClientResponse} from '@actions/http-client/lib/interfaces'
+import {HttpClientResponse} from '@actions/http-client'
 import {HttpManager} from './http-manager'
 import {DownloadItem} from './download-specification'
 import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
@@ -152,7 +152,7 @@ export class DownloadHttpClient {
     const headers = getDownloadHeaders('application/json', true, true)
 
     // a single GET request is used to download a file
-    const makeDownloadRequest = async (): Promise<IHttpClientResponse> => {
+    const makeDownloadRequest = async (): Promise<HttpClientResponse> => {
       const client = this.downloadHttpManager.getClient(httpClientIndex)
       return await client.get(artifactLocation, headers)
     }
@@ -225,7 +225,7 @@ export class DownloadHttpClient {
 
     // keep trying to download a file until a retry limit has been reached
     while (retryCount <= retryLimit) {
-      let response: IHttpClientResponse
+      let response: HttpClientResponse
       try {
         response = await makeDownloadRequest()
       } catch (error) {
@@ -295,7 +295,7 @@ export class DownloadHttpClient {
    * @param isGzip a boolean denoting if the content is compressed using gzip and if we need to decode it
    */
   async pipeResponseToFile(
-    response: IHttpClientResponse,
+    response: HttpClientResponse,
     destinationStream: fs.WriteStream,
     isGzip: boolean
   ): Promise<void> {

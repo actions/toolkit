@@ -32,7 +32,7 @@ import {URL} from 'url'
 import {performance} from 'perf_hooks'
 import {StatusReporter} from './status-reporter'
 import {HttpCodes} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/lib/interfaces'
+import {HttpClientResponse} from '@actions/http-client'
 import {HttpManager} from './http-manager'
 import {UploadSpecification} from './upload-specification'
 import {UploadOptions} from './upload-options'
@@ -416,7 +416,7 @@ export class UploadHttpClient {
       getContentRange(start, end, uploadFileSize)
     )
 
-    const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
+    const uploadChunkRequest = async (): Promise<HttpClientResponse> => {
       const client = this.uploadHttpManager.getClient(httpClientIndex)
       return await client.sendStream('PUT', resourceUrl, openStream(), headers)
     }
@@ -427,7 +427,7 @@ export class UploadHttpClient {
     // Increments the current retry count and then checks if the retry limit has been reached
     // If there have been too many retries, fail so the download stops
     const incrementAndCheckRetryLimit = (
-      response?: IHttpClientResponse
+      response?: HttpClientResponse
     ): boolean => {
       retryCount++
       if (retryCount > retryLimit) {
@@ -464,7 +464,7 @@ export class UploadHttpClient {
 
     // allow for failed chunks to be retried multiple times
     while (retryCount <= retryLimit) {
-      let response: IHttpClientResponse
+      let response: HttpClientResponse
 
       try {
         response = await uploadChunkRequest()

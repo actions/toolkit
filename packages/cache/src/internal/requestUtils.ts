@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
-import {HttpCodes, HttpClientError} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/lib/interfaces'
+import {HttpCodes, HttpClientError, HttpClientResponse} from '@actions/http-client'
 import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
 import {ITypedResponseWithError} from './contracts'
 
@@ -103,7 +102,7 @@ export async function retryTypedResponse<T>(
     maxAttempts,
     delay,
     // If the error object contains the statusCode property, extract it and return
-    // an ITypedResponse<T> so it can be processed by the retry logic.
+    // an TypedResponse<T> so it can be processed by the retry logic.
     (error: Error) => {
       if (error instanceof HttpClientError) {
         return {
@@ -121,14 +120,14 @@ export async function retryTypedResponse<T>(
 
 export async function retryHttpClientResponse(
   name: string,
-  method: () => Promise<IHttpClientResponse>,
+  method: () => Promise<HttpClientResponse>,
   maxAttempts = DefaultRetryAttempts,
   delay = DefaultRetryDelay
-): Promise<IHttpClientResponse> {
+): Promise<HttpClientResponse> {
   return await retry(
     name,
     method,
-    (response: IHttpClientResponse) => response.message.statusCode,
+    (response: HttpClientResponse) => response.message.statusCode,
     maxAttempts,
     delay
   )

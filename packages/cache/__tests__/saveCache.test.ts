@@ -5,7 +5,7 @@ import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
-import {ITypedResponse} from '@actions/http-client/lib/interfaces'
+import {TypedResponse} from '@actions/http-client/lib/interfaces'
 import {
   ReserveCacheResponse,
   ITypedResponseWithError
@@ -172,7 +172,7 @@ test('save with reserve cache failure should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
+      const response: TypedResponse<ReserveCacheResponse> = {
         statusCode: 500,
         result: null,
         headers: {}
@@ -208,7 +208,7 @@ test('save with server error should fail', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
+      const response: TypedResponse<ReserveCacheResponse> = {
         statusCode: 500,
         result: {cacheId},
         headers: {}
@@ -257,7 +257,7 @@ test('save with valid inputs uploads a cache', async () => {
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
-      const response: ITypedResponse<ReserveCacheResponse> = {
+      const response: TypedResponse<ReserveCacheResponse> = {
         statusCode: 500,
         result: {cacheId},
         headers: {}
