@@ -1,4 +1,4 @@
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpClientResponse} from '@actions/http-client'
 import {
   isRetryableStatusCode,
   isSuccessStatusCode,
@@ -11,11 +11,11 @@ import {getRetryLimit} from './config-variables'
 
 export async function retry(
   name: string,
-  operation: () => Promise<IHttpClientResponse>,
+  operation: () => Promise<HttpClientResponse>,
   customErrorMessages: Map<number, string>,
   maxAttempts: number
-): Promise<IHttpClientResponse> {
-  let response: IHttpClientResponse | undefined = undefined
+): Promise<HttpClientResponse> {
+  let response: HttpClientResponse | undefined = undefined
   let statusCode: number | undefined = undefined
   let isRetryable = false
   let errorMessage = ''
@@ -71,9 +71,9 @@ export async function retry(
 
 export async function retryHttpClientRequest(
   name: string,
-  method: () => Promise<IHttpClientResponse>,
+  method: () => Promise<HttpClientResponse>,
   customErrorMessages: Map<number, string> = new Map(),
   maxAttempts = getRetryLimit()
-): Promise<IHttpClientResponse> {
+): Promise<HttpClientResponse> {
   return await retry(name, method, customErrorMessages, maxAttempts)
 }

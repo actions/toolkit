@@ -77,4 +77,8 @@
 
 ### 1.0.0
 
-- Update `lockfileVersion` to `v2` in `package-lock.json [#1009](https://github.com/actions/toolkit/pull/1009)
+- Update `lockfileVersion` to `v2` in `package-lock.json` [#1009](https://github.com/actions/toolkit/pull/1009)
+
+### 1.0.1
+
+- Update to v2.0.0 of `@actions/http-client`
