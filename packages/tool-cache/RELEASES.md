@@ -1,5 +1,8 @@
 # @actions/tool-cache Releases
 
+### 2.0.1
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
 ### 2.0.0
 - Update to v2.0.0 of `@actions/http-client`
 - The type of the `headers` parameter in the exported function `downloadTool` has been narrowed from `{ [header: string]: any }` to `{ [header: string]: number | string | string[] | undefined; }` (that is, `http.OutgoingHttpHeaders`).
