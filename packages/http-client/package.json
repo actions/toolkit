@@ -38,9 +38,11 @@
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
   },
+  "dependencies" {
+    "tunnel": "0.0.6"
+  },
   "devDependencies": {
     "@types/tunnel": "0.0.3",
-    "proxy": "^1.0.1",
-    "tunnel": "0.0.6"
+    "proxy": "^1.0.1"
   }
 }
