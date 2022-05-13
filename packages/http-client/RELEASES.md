@@ -1,5 +1,8 @@
 ## Releases
 
+## 2.0.1
+- Fix an issue with missing `tunnel` dependency [#1085](https://github.com/actions/toolkit/pull/1085)
+
 ## 2.0.0
 - The package is now compiled with TypeScript's [`strict` compiler setting](https://www.typescriptlang.org/tsconfig#strict). To comply with stricter rules:
   - Some exported types now include `| null` or `| undefined`, matching their actual behavior.
