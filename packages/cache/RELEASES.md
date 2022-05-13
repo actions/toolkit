@@ -59,3 +59,6 @@
 
 ### 2.0.3
 - Update to v2.0.0 of `@actions/http-client`
+
+### 2.0.4
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
