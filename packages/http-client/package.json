@@ -40,7 +40,9 @@
   },
   "devDependencies": {
     "@types/tunnel": "0.0.3",
-    "proxy": "^1.0.1",
-    "tunnel": "0.0.6"
+    "proxy": "^1.0.1"
+  },
+  "dependencies": {
+    "tunnel": "^0.0.6"
   }
 }
