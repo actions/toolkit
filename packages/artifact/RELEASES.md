@@ -86,3 +86,7 @@
 ### 1.0.2
 
 - Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 1.1.0
+
+- Add `x-actions-results-crc64` and `x-actions-results-md5` checksum headers on upload [#1063](https://github.com/actions/toolkit/pull/1063)
