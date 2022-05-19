@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import {promises as fs} from 'fs'
 import {IncomingHttpHeaders, OutgoingHttpHeaders} from 'http'
 import {debug, info, warning} from '@actions/core'
@@ -10,6 +11,7 @@ import {
   getRetryMultiplier,
   getInitialRetryIntervalInMilliseconds
 } from './config-variables'
+import CRC64 from './crc64'
 
 /**
  * Returns a retry time in milliseconds that exponentially gets larger
@@ -179,7 +181,8 @@ export function getUploadHeaders(
   isGzip?: boolean,
   uncompressedLength?: number,
   contentLength?: number,
-  contentRange?: string
+  contentRange?: string,
+  digest?: StreamDigest
 ): OutgoingHttpHeaders {
   const requestOptions: OutgoingHttpHeaders = {}
   requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
@@ -200,6 +203,10 @@ export function getUploadHeaders(
   }
   if (contentRange) {
     requestOptions['Content-Range'] = contentRange
+  }
+  if (digest) {
+    requestOptions['x-actions-results-crc64'] = digest.crc64
+    requestOptions['x-actions-results-md5'] = digest.md5
   }
 
   return requestOptions
@@ -289,4 +296,30 @@ export function getProperRetention(
 
 export async function sleep(milliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+export interface StreamDigest {
+  crc64: string
+  md5: string
+}
+
+export async function digestForStream(
+  stream: NodeJS.ReadableStream
+): Promise<StreamDigest> {
+  return new Promise((resolve, reject) => {
+    const crc64 = new CRC64()
+    const md5 = crypto.createHash('md5')
+    stream
+      .on('data', data => {
+        crc64.update(data)
+        md5.update(data)
+      })
+      .on('end', () =>
+        resolve({
+          crc64: crc64.digest('base64') as string,
+          md5: md5.digest('base64')
+        })
+      )
+      .on('error', reject)
+  })
 }

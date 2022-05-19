@@ -9,6 +9,7 @@ import {
   UploadResults
 } from './contracts'
 import {
+  digestForStream,
   getArtifactUrl,
   getContentRange,
   getUploadHeaders,
@@ -405,6 +406,9 @@ export class UploadHttpClient {
     isGzip: boolean,
     totalFileSize: number
   ): Promise<boolean> {
+    // open a new stream and read it to compute the digest
+    const digest = await digestForStream(openStream())
+
     // prepare all the necessary headers before making any http call
     const headers = getUploadHeaders(
       'application/octet-stream',
@@ -412,7 +416,8 @@ export class UploadHttpClient {
       isGzip,
       totalFileSize,
       end - start + 1,
-      getContentRange(start, end, uploadFileSize)
+      getContentRange(start, end, uploadFileSize),
+      digest
     )
 
     const uploadChunkRequest = async (): Promise<HttpClientResponse> => {
