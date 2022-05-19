@@ -1,10 +1,9 @@
 import crypto from 'crypto'
 import {promises as fs} from 'fs'
-import {IncomingHttpHeaders} from 'http'
+import {IncomingHttpHeaders, OutgoingHttpHeaders} from 'http'
 import {debug, info, warning} from '@actions/core'
-import {HttpCodes, HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpCodes, HttpClient, HttpClientResponse} from '@actions/http-client'
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {
   getRuntimeToken,
   getRuntimeUrl,
@@ -141,8 +140,8 @@ export function getDownloadHeaders(
   contentType: string,
   isKeepAlive?: boolean,
   acceptGzip?: boolean
-): IHeaders {
-  const requestOptions: IHeaders = {}
+): OutgoingHttpHeaders {
+  const requestOptions: OutgoingHttpHeaders = {}
 
   if (contentType) {
     requestOptions['Content-Type'] = contentType
@@ -184,8 +183,8 @@ export function getUploadHeaders(
   contentLength?: number,
   contentRange?: string,
   digest?: StreamDigest
-): IHeaders {
-  const requestOptions: IHeaders = {}
+): OutgoingHttpHeaders {
+  const requestOptions: OutgoingHttpHeaders = {}
   requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
   if (contentType) {
     requestOptions['Content-Type'] = contentType
@@ -234,7 +233,7 @@ export function getArtifactUrl(): string {
  * Certain information such as the TLSSocket and the Readable state are not really useful for diagnostic purposes so they can be avoided.
  * Other information such as the headers, the response code and message might be useful, so this is displayed.
  */
-export function displayHttpDiagnostics(response: IHttpClientResponse): void {
+export function displayHttpDiagnostics(response: HttpClientResponse): void {
   info(
     `##### Begin Diagnostic HTTP information #####
 Status Code: ${response.message.statusCode}

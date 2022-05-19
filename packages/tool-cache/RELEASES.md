@@ -1,5 +1,13 @@
 # @actions/tool-cache Releases
 
+### 2.0.1
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 2.0.0
+- Update to v2.0.0 of `@actions/http-client`
+- The type of the `headers` parameter in the exported function `downloadTool` has been narrowed from `{ [header: string]: any }` to `{ [header: string]: number | string | string[] | undefined; }` (that is, `http.OutgoingHttpHeaders`).
+    This is strictly a compile-time change for TypeScript consumers. Previous attempts to use a header value of a type other than those now accepted would have resulted in an error at run time.
+
 ### 1.7.2
 - Update `lockfileVersion` to `v2` in `package-lock.json [#1025](https://github.com/actions/toolkit/pull/1025) 
 

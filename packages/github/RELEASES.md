@@ -1,5 +1,11 @@
 # @actions/github Releases
 
+### 5.0.3
+- - Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 5.0.2
+- Update to v2.0.0 of `@actions/http-client`
+
 ### 5.0.1
 - [Update Octokit Dependencies](https://github.com/actions/toolkit/pull/1037)
 ### 5.0.0

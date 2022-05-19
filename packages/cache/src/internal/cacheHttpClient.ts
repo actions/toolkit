@@ -1,7 +1,10 @@
 import * as core from '@actions/core'
 import {HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IRequestOptions, ITypedResponse} from '@actions/http-client/interfaces'
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
+import {
+  RequestOptions,
+  TypedResponse
+} from '@actions/http-client/lib/interfaces'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import {URL} from 'url'
@@ -46,8 +49,8 @@ function createAcceptHeader(type: string, apiVersion: string): string {
   return `${type};api-version=${apiVersion}`
 }
 
-function getRequestOptions(): IRequestOptions {
-  const requestOptions: IRequestOptions = {
+function getRequestOptions(): RequestOptions {
+  const requestOptions: RequestOptions = {
     headers: {
       Accept: createAcceptHeader('application/json', '6.0-preview.1')
     }
@@ -275,7 +278,7 @@ async function commitCache(
   httpClient: HttpClient,
   cacheId: number,
   filesize: number
-): Promise<ITypedResponse<null>> {
+): Promise<TypedResponse<null>> {
   const commitCacheRequest: CommitCacheRequest = {size: filesize}
   return await retryTypedResponse('commitCache', async () =>
     httpClient.postJson<null>(

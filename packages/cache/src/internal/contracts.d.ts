@@ -1,8 +1,8 @@
 import {CompressionMethod} from './constants'
-import {ITypedResponse} from '@actions/http-client/interfaces'
+import {TypedResponse} from '@actions/http-client/lib/interfaces'
 import {HttpClientError} from '@actions/http-client'
 
-export interface ITypedResponseWithError<T> extends ITypedResponse<T> {
+export interface ITypedResponseWithError<T> extends TypedResponse<T> {
   error?: HttpClientError
 }
 
