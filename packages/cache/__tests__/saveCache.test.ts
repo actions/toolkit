@@ -292,12 +292,12 @@ test('save with valid inputs uploads a cache', async () => {
 })
 
 test('save with non existing path should not save cache', async () => {
-  const paths: string[] = ['node_modules']
+  const path = 'node_modules'
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async filePaths => {
+  jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async () => {
     return []
   })
-  await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
+  await expect(saveCache([path], primaryKey)).rejects.toThrowError(
     `Path Validation Error: Path(s) specified in the action do not exist, hence no cache is being saved.`
   )
 })
