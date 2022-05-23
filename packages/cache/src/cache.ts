@@ -160,7 +160,7 @@ export async function saveCache(
 
   if (cachePaths.length === 0) {
     throw new Error(
-      `Path Validation Error: Path(s) specified in the action do not exist, hence no cache is being saved.`
+      `Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`
     )
   }
 
