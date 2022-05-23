@@ -292,7 +292,7 @@ test('save with valid inputs uploads a cache', async () => {
 })
 
 test('save with non existing path should not save cache', async () => {
-  const paths: string[] = ['aPathThatDoesnotExist']
+  const paths: string[] = ['node_modules']
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async filePaths => {
     return []
