@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 import * as actions_http_client from '@actions/http-client'
-import {IRequestOptions} from '@actions/http-client/interfaces'
+import {RequestOptions} from '@actions/http-client/lib/interfaces'
 import {HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
+
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {debug, setSecret} from './utils'
+
 interface TokenResponse {
   value?: string
 }
@@ -13,7 +15,7 @@ export class OidcClient {
     allowRetry = true,
     maxRetry = 10
   ): actions_http_client.HttpClient {
-    const requestOptions: IRequestOptions = {
+    const requestOptions: RequestOptions = {
       allowRetries: allowRetry,
       maxRetries: maxRetry
     }

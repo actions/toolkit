@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
-import {HttpClient} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {BlockBlobClient} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/ms-rest-js'
 import * as buffer from 'buffer'
@@ -20,7 +19,7 @@ import {retryHttpClientResponse} from './requestUtils'
  * @param output the writable stream
  */
 async function pipeResponseToStream(
-  response: IHttpClientResponse,
+  response: HttpClientResponse,
   output: NodeJS.WritableStream
 ): Promise<void> {
   const pipeline = util.promisify(stream.pipeline)
@@ -240,7 +239,8 @@ export async function downloadCacheStorageSDK(
     //
     // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
     // on 64-bit systems), split the download into multiple segments
-    const maxSegmentSize = buffer.constants.MAX_LENGTH
+    // ~2 GB = 2147483647, beyond this, we start getting out of range error. So, capping it accordingly.
+    const maxSegmentSize = Math.min(2147483647, buffer.constants.MAX_LENGTH)
     const downloadProgress = new DownloadProgress(contentLength)
 
     const fd = fs.openSync(archivePath, 'w')

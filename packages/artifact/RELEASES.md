@@ -74,3 +74,19 @@
 ### 0.6.1
 
 - Fix for failing 0 byte file uploads on Windows [#962](https://github.com/actions/toolkit/pull/962)
+
+### 1.0.0
+
+- Update `lockfileVersion` to `v2` in `package-lock.json` [#1009](https://github.com/actions/toolkit/pull/1009)
+
+### 1.0.1
+
+- Update to v2.0.0 of `@actions/http-client`
+
+### 1.0.2
+
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 1.1.0
+
+- Add `x-actions-results-crc64` and `x-actions-results-md5` checksum headers on upload [#1063](https://github.com/actions/toolkit/pull/1063)

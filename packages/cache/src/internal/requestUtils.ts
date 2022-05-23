@@ -1,10 +1,11 @@
 import * as core from '@actions/core'
-import {HttpCodes, HttpClientError} from '@actions/http-client'
 import {
-  IHttpClientResponse,
-  ITypedResponse
-} from '@actions/http-client/interfaces'
+  HttpCodes,
+  HttpClientError,
+  HttpClientResponse
+} from '@actions/http-client'
 import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
+import {ITypedResponseWithError} from './contracts'
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {
@@ -94,24 +95,25 @@ export async function retry<T>(
 
 export async function retryTypedResponse<T>(
   name: string,
-  method: () => Promise<ITypedResponse<T>>,
+  method: () => Promise<ITypedResponseWithError<T>>,
   maxAttempts = DefaultRetryAttempts,
   delay = DefaultRetryDelay
-): Promise<ITypedResponse<T>> {
+): Promise<ITypedResponseWithError<T>> {
   return await retry(
     name,
     method,
-    (response: ITypedResponse<T>) => response.statusCode,
+    (response: ITypedResponseWithError<T>) => response.statusCode,
     maxAttempts,
     delay,
     // If the error object contains the statusCode property, extract it and return
-    // an ITypedResponse<T> so it can be processed by the retry logic.
+    // an TypedResponse<T> so it can be processed by the retry logic.
     (error: Error) => {
       if (error instanceof HttpClientError) {
         return {
           statusCode: error.statusCode,
           result: null,
-          headers: {}
+          headers: {},
+          error
         }
       } else {
         return undefined
@@ -122,14 +124,14 @@ export async function retryTypedResponse<T>(
 
 export async function retryHttpClientResponse(
   name: string,
-  method: () => Promise<IHttpClientResponse>,
+  method: () => Promise<HttpClientResponse>,
   maxAttempts = DefaultRetryAttempts,
   delay = DefaultRetryDelay
-): Promise<IHttpClientResponse> {
+): Promise<HttpClientResponse> {
   return await retry(
     name,
     method,
-    (response: IHttpClientResponse) => response.message.statusCode,
+    (response: HttpClientResponse) => response.message.statusCode,
     maxAttempts,
     delay
   )

@@ -8,12 +8,12 @@ import * as httpm from '@actions/http-client'
 import * as semver from 'semver'
 import * as stream from 'stream'
 import * as util from 'util'
+import {ok} from 'assert'
+import {OutgoingHttpHeaders} from 'http'
 import uuidV4 from 'uuid/v4'
 import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
-import {ok} from 'assert'
 import {RetryHelper} from './retry-helper'
-import {IHeaders} from '@actions/http-client/interfaces'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -39,7 +39,7 @@ export async function downloadTool(
   url: string,
   dest?: string,
   auth?: string,
-  headers?: IHeaders
+  headers?: OutgoingHttpHeaders
 ): Promise<string> {
   dest = dest || path.join(_getTempDirectory(), uuidV4())
   await io.mkdirP(path.dirname(dest))
@@ -82,7 +82,7 @@ async function downloadToolAttempt(
   url: string,
   dest: string,
   auth?: string,
-  headers?: IHeaders
+  headers?: OutgoingHttpHeaders
 ): Promise<string> {
   if (fs.existsSync(dest)) {
     throw new Error(`Destination file path ${dest} already exists`)
@@ -596,7 +596,7 @@ export async function getManifestFromRepo(
   const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
 
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
-  const headers: IHeaders = {}
+  const headers: OutgoingHttpHeaders = {}
   if (auth) {
     core.debug('set auth')
     headers.authorization = auth

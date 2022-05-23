@@ -46,6 +46,15 @@ $ npm install @actions/glob
 ```
 <br/>
 
+:phone: [@actions/http-client](packages/http-client)
+
+A lightweight HTTP client optimized for building actions. Read more [here](packages/http-client)
+
+```bash
+$ npm install @actions/http-client
+```
+<br/>
+
 :pencil2: [@actions/io](packages/io)
 
 Provides disk i/o functions like cp, mv, rmRF, which etc. Read more [here](packages/io)

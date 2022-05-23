@@ -9,5 +9,5 @@ if [[ -z "$name" ]]; then
   exit 1
 fi
 
-lerna create @actions/$name
-cp packages/toolkit/tsconfig.json packages/$name/tsconfig.json
+npx lerna create @actions/$name
+cp packages/core/tsconfig.json packages/$name/tsconfig.json

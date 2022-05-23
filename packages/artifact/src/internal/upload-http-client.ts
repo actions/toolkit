@@ -9,6 +9,7 @@ import {
   UploadResults
 } from './contracts'
 import {
+  digestForStream,
   getArtifactUrl,
   getContentRange,
   getUploadHeaders,
@@ -31,8 +32,7 @@ import {promisify} from 'util'
 import {URL} from 'url'
 import {performance} from 'perf_hooks'
 import {StatusReporter} from './status-reporter'
-import {HttpCodes} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpCodes, HttpClientResponse} from '@actions/http-client'
 import {HttpManager} from './http-manager'
 import {UploadSpecification} from './upload-specification'
 import {UploadOptions} from './upload-options'
@@ -406,6 +406,9 @@ export class UploadHttpClient {
     isGzip: boolean,
     totalFileSize: number
   ): Promise<boolean> {
+    // open a new stream and read it to compute the digest
+    const digest = await digestForStream(openStream())
+
     // prepare all the necessary headers before making any http call
     const headers = getUploadHeaders(
       'application/octet-stream',
@@ -413,10 +416,11 @@ export class UploadHttpClient {
       isGzip,
       totalFileSize,
       end - start + 1,
-      getContentRange(start, end, uploadFileSize)
+      getContentRange(start, end, uploadFileSize),
+      digest
     )
 
-    const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
+    const uploadChunkRequest = async (): Promise<HttpClientResponse> => {
       const client = this.uploadHttpManager.getClient(httpClientIndex)
       return await client.sendStream('PUT', resourceUrl, openStream(), headers)
     }
@@ -427,7 +431,7 @@ export class UploadHttpClient {
     // Increments the current retry count and then checks if the retry limit has been reached
     // If there have been too many retries, fail so the download stops
     const incrementAndCheckRetryLimit = (
-      response?: IHttpClientResponse
+      response?: HttpClientResponse
     ): boolean => {
       retryCount++
       if (retryCount > retryLimit) {
@@ -464,7 +468,7 @@ export class UploadHttpClient {
 
     // allow for failed chunks to be retried multiple times
     while (retryCount <= retryLimit) {
-      let response: IHttpClientResponse
+      let response: HttpClientResponse
 
       try {
         response = await uploadChunkRequest()
