@@ -158,11 +158,10 @@ export async function saveCache(
   core.debug('Cache Paths:')
   core.debug(`${JSON.stringify(cachePaths)}`)
 
-  
-  if(cachePaths.length === 0){
+  if (cachePaths.length === 0) {
     throw new Error(
       `Path Validation Error: Path(s) specified in the action do not exist, hence no cache is being saved.`
-      )
+    )
   }
 
   const archiveFolder = await utils.createTempDirectory()
