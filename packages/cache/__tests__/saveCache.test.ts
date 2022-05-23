@@ -298,6 +298,6 @@ test('save with non existing path should not save cache', async () => {
     return []
   })
   await expect(saveCache([path], primaryKey)).rejects.toThrowError(
-    `Path Validation Error: Path(s) specified in the action do not exist, hence no cache is being saved.`
+    `Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`
   )
 })
