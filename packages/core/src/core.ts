@@ -369,3 +369,8 @@ export {summary} from './summary'
  * @deprecated use core.summary
  */
 export {markdownSummary} from './summary'
+
+/**
+ * Path exports
+ */
+export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils'
