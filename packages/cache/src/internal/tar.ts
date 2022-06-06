@@ -118,8 +118,6 @@ export async function createTar(
     ...getCompressionProgram(),
     '-cf',
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-    '--exclude',
-    cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
     '-C',
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),

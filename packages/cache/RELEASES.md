@@ -65,6 +65,3 @@
 
 ### 2.0.5
 - Fix to avoid saving empty cache when no files are available for caching. ([issue](https://github.com/actions/cache/issues/624))
-
-### 2.0.6
-- Fix `Tar failed with error: The process '/usr/bin/tar' failed with exit code 1` issue when temp directory where tar is getting created is actually the subdirectory of the path mentioned by the user for caching. ([issue](https://github.com/actions/cache/issues/689))
