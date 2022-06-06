@@ -183,7 +183,7 @@ test('gzip create tar', async () => {
       '-cf',
       IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
       '--exclude',
-      IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
+      IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Gzip,
       '-P',
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
