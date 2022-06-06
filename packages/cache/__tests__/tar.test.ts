@@ -5,7 +5,7 @@ import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import * as utils from '../src/internal/cacheUtils'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-import fs = require('fs')
+import * as fs from 'fs'
 
 jest.mock('@actions/exec')
 jest.mock('@actions/io')
