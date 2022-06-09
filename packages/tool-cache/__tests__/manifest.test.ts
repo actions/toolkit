@@ -289,7 +289,7 @@ describe('@actions/tool-cache-manifest', () => {
       BUG_REPORT_URL="https://bugs.debian.org/"`
     })
 
-    const debugOutput: Array<string> = []
+    const debugOutput: string[] = []
     const coreSpy = jest.spyOn(core, 'debug')
     // it will be cleared in afterEach
     coreSpy.mockImplementation(message => debugOutput.push(message))
