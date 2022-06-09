@@ -7,6 +7,8 @@ import osm = require('os')
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import cp = require('child_process')
 //import {coerce} from 'semver'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import core = require('@actions/core')
 
 // we fetch the manifest file from main of a repo
 const owner = 'actions'
@@ -245,6 +247,64 @@ describe('@actions/tool-cache-manifest', () => {
     expect(release).toBeUndefined()
   })
 
+  it('does not match ubuntu 18.04 platform version spec on Debain 10', async () => {
+    os.platform = 'linux'
+    os.arch = 'x64'
+
+    const manifest: mm.IToolRelease[] | null = await tc.getManifestFromRepo(
+      owner,
+      repo,
+      fakeToken
+    )
+
+    readLsbSpy.mockImplementation(() => {
+      return `NAME="Ubuntu"
+        VERSION="18.04.5 LTS (Bionic Beaver)"
+        ID=ubuntu
+        ID_LIKE=debian
+        PRETTY_NAME="Ubuntu 18.04.5 LTS"
+        VERSION_ID="18.04"
+        HOME_URL="https://www.ubuntu.com/"
+        SUPPORT_URL="https://help.ubuntu.com/"
+        BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+        PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+        VERSION_CODENAME=bionic
+        UBUNTU_CODENAME=bionic`
+    })
+
+    const releaseUbuntu:
+      | tc.IToolRelease
+      | undefined = await tc.findFromManifest('1.2.4', true, manifest)
+    expect(releaseUbuntu).toBeDefined()
+
+    readLsbSpy.mockImplementation(() => {
+      return `PRETTY_NAME="Debian GNU/Linux 10 (buster)"
+      NAME="Debian GNU/Linux"
+      VERSION_ID="10"
+      VERSION="10 (buster)"
+      VERSION_CODENAME=buster
+      ID=debian
+      HOME_URL="https://www.debian.org/"
+      SUPPORT_URL="https://www.debian.org/support"
+      BUG_REPORT_URL="https://bugs.debian.org/"`
+    })
+
+    const debugOutput: Array<string> = []
+    const coreSpy = jest.spyOn(core, 'debug')
+    // it will be cleared in afterEach
+    coreSpy.mockImplementation(message => debugOutput.push(message))
+
+    const releaseDebian:
+      | tc.IToolRelease
+      | undefined = await tc.findFromManifest('1.2.4', true, manifest)
+    expect(releaseDebian).toBeUndefined()
+    expect(
+      debugOutput.indexOf(
+        'OS version: "10" does not match the version python binary is built for: "18.04"'
+      )
+    ).toBeGreaterThan(-1)
+  })
+
   it('does not match with unmatched darwin platform version spec', async () => {
     os.platform = 'darwin'
     os.arch = 'x64'
@@ -297,6 +357,28 @@ describe('@actions/tool-cache-manifest', () => {
 
     expect(osm.platform()).toBe('linux')
     expect(version).toBe('16.04')
+  })
+
+  it('should get version from lsb on debian 10', async () => {
+    os.platform = 'linux'
+    os.arch = 'x64'
+
+    readLsbSpy.mockImplementation(() => {
+      return `PRETTY_NAME="Debian GNU/Linux 10 (buster)"
+      NAME="Debian GNU/Linux"
+      VERSION_ID="10"
+      VERSION="10 (buster)"
+      VERSION_CODENAME=buster
+      ID=debian
+      HOME_URL="https://www.debian.org/"
+      SUPPORT_URL="https://www.debian.org/support"
+      BUG_REPORT_URL="https://bugs.debian.org/"`
+    })
+
+    const version = mm._getOsVersion()
+
+    expect(osm.platform()).toBe('linux')
+    expect(version).toBe('10')
   })
 
   // sw_vers -productVersion
