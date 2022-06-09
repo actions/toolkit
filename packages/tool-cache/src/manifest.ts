@@ -92,6 +92,11 @@ export async function _findMatch(
             chk = true
           } else {
             chk = semver.satisfies(osVersion, item.platform_version)
+            if (!chk) {
+              debug(
+                `os version: "${osVersion}" does not match version python is built for: "${item.platform_version}"`
+              )
+            }
           }
         }
 
