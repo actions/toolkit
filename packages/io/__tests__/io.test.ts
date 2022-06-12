@@ -332,23 +332,9 @@ describe('rmRF', () => {
     await assertExists(filePath)
 
     const fd = await fs.open(filePath, 'r')
+    await io.rmRF(testPath)
 
-    let worked: boolean
-
-    try {
-      await io.rmRF(testPath)
-      worked = true
-    } catch (err) {
-      worked = false
-    }
-
-    if (os.platform() === 'win32') {
-      expect(worked).toBe(false)
-      await assertExists(testPath)
-    } else {
-      expect(worked).toBe(true)
-      await assertNotExists(testPath)
-    }
+    await assertNotExists(testPath)
 
     await fd.close()
     await io.rmRF(testPath)

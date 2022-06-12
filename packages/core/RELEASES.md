@@ -1,5 +1,19 @@
 # @actions/core Releases
 
+### 1.8.2
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 1.8.1
+- Update to v2.0.0 of `@actions/http-client`
+
+### 1.8.0
+- Deprecate `markdownSummary` extension export in favor of `summary`
+  - https://github.com/actions/toolkit/pull/1072
+  - https://github.com/actions/toolkit/pull/1073
+
+### 1.7.0
+- [Added `markdownSummary` extension](https://github.com/actions/toolkit/pull/1014)
+
 ### 1.6.0
 - [Added OIDC Client function `getIDToken`](https://github.com/actions/toolkit/pull/919)
 - [Added `file` parameter to `AnnotationProperties`](https://github.com/actions/toolkit/pull/896) 

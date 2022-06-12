@@ -3,7 +3,6 @@ import * as net from 'net'
 import * as core from '@actions/core'
 import * as configVariables from '../src/internal/config-variables'
 import {retry} from '../src/internal/requestUtils'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
 import {HttpClientResponse} from '@actions/http-client'
 
 jest.mock('../src/internal/config-variables')
@@ -42,7 +41,7 @@ async function testRetry(
 
 async function handleResponse(
   testResponseCode: number | undefined
-): Promise<IHttpClientResponse> {
+): Promise<HttpClientResponse> {
   if (!testResponseCode) {
     throw new Error(
       'Test incorrectly set up. reverse.pop() was called too many times so not enough test response codes were supplied'
@@ -72,7 +71,7 @@ async function emptyMockReadBody(): Promise<string> {
 
 async function setupSingleMockResponse(
   statusCode: number
-): Promise<IHttpClientResponse> {
+): Promise<HttpClientResponse> {
   const mockMessage = new http.IncomingMessage(new net.Socket())
   const mockReadBody = emptyMockReadBody
   mockMessage.statusCode = statusCode

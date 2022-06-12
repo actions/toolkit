@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "1.0.7",
+  "version": "2.0.6",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -40,16 +40,16 @@
     "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.1",
     "@actions/glob": "^0.1.0",
-    "@actions/http-client": "^1.0.9",
+    "@actions/http-client": "^2.0.1",
     "@actions/io": "^1.0.1",
-    "@azure/ms-rest-js": "^2.0.7",
-    "@azure/storage-blob": "^12.1.2",
+    "@azure/ms-rest-js": "^2.6.0",
+    "@azure/storage-blob": "^12.8.0",
     "semver": "^6.1.0",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "typescript": "^3.8.3",
     "@types/semver": "^6.0.0",
-    "@types/uuid": "^3.4.5"
+    "@types/uuid": "^3.4.5",
+    "typescript": "^3.8.3"
   }
 }

@@ -1,4 +1,4 @@
-import {HttpClient} from '@actions/http-client/index'
+import {HttpClient} from '@actions/http-client'
 import {createHttpClient} from './utils'
 
 /**

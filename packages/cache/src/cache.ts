@@ -44,6 +44,16 @@ function checkKey(key: string): void {
 }
 
 /**
+ * isFeatureAvailable to check the presence of Actions cache service
+ *
+ * @returns boolean return true if Actions cache service feature is available, otherwise false
+ */
+
+export function isFeatureAvailable(): boolean {
+  return !!process.env['ACTIONS_CACHE_URL']
+}
+
+/**
  * Restores cache from keys
  *
  * @param paths a list of file paths to restore from the cache
@@ -142,21 +152,17 @@ export async function saveCache(
   checkKey(key)
 
   const compressionMethod = await utils.getCompressionMethod()
-
-  core.debug('Reserving Cache')
-  const cacheId = await cacheHttpClient.reserveCache(key, paths, {
-    compressionMethod
-  })
-  if (cacheId === -1) {
-    throw new ReserveCacheError(
-      `Unable to reserve cache with key ${key}, another job may be creating this cache.`
-    )
-  }
-  core.debug(`Cache ID: ${cacheId}`)
+  let cacheId = null
 
   const cachePaths = await utils.resolvePaths(paths)
   core.debug('Cache Paths:')
   core.debug(`${JSON.stringify(cachePaths)}`)
+
+  if (cachePaths.length === 0) {
+    throw new Error(
+      `Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`
+    )
+  }
 
   const archiveFolder = await utils.createTempDirectory()
   const archivePath = path.join(
@@ -171,15 +177,41 @@ export async function saveCache(
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
-
-    const fileSizeLimit = 5 * 1024 * 1024 * 1024 // 5GB per repo limit
+    const fileSizeLimit = 10 * 1024 * 1024 * 1024 // 10GB per repo limit
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
-    if (archiveFileSize > fileSizeLimit) {
+
+    // For GHES, this check will take place in ReserveCache API with enterprise file size limit
+    if (archiveFileSize > fileSizeLimit && !utils.isGhes()) {
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the 5GB limit, not saving cache.`
+        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
+      )
+    }
+
+    core.debug('Reserving Cache')
+    const reserveCacheResponse = await cacheHttpClient.reserveCache(
+      key,
+      paths,
+      {
+        compressionMethod,
+        cacheSize: archiveFileSize
+      }
+    )
+
+    if (reserveCacheResponse?.result?.cacheId) {
+      cacheId = reserveCacheResponse?.result?.cacheId
+    } else if (reserveCacheResponse?.statusCode === 400) {
+      throw new Error(
+        reserveCacheResponse?.error?.message ??
+          `Cache size of ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+      )
+    } else {
+      throw new ReserveCacheError(
+        `Unable to reserve cache with key ${key}, another job may be creating this cache. More details: ${reserveCacheResponse?.error?.message}`
       )
     }
 

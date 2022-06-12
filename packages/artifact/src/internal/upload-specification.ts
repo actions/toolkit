@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import {debug} from '@actions/core'
 import {join, normalize, resolve} from 'path'
-import {checkArtifactName, checkArtifactFilePath} from './utils'
+import {checkArtifactFilePath} from './path-and-artifact-name-validation'
 
 export interface UploadSpecification {
   absoluteFilePath: string
@@ -19,8 +19,7 @@ export function getUploadSpecification(
   rootDirectory: string,
   artifactFiles: string[]
 ): UploadSpecification[] {
-  checkArtifactName(artifactName)
-
+  // artifact name was checked earlier on, no need to check again
   const specifications: UploadSpecification[] = []
 
   if (!fs.existsSync(rootDirectory)) {

@@ -9,10 +9,10 @@ import {UploadOptions} from './upload-options'
 import {DownloadOptions} from './download-options'
 import {DownloadResponse} from './download-response'
 import {
-  checkArtifactName,
   createDirectoriesForArtifact,
   createEmptyFilesForArtifact
 } from './utils'
+import {checkArtifactName} from './path-and-artifact-name-validation'
 import {DownloadHttpClient} from './download-http-client'
 import {getDownloadSpecification} from './download-specification'
 import {getWorkSpaceDirectory} from './config-variables'
@@ -72,6 +72,10 @@ export class DefaultArtifactClient implements ArtifactClient {
     rootDirectory: string,
     options?: UploadOptions | undefined
   ): Promise<UploadResponse> {
+    core.info(
+      `Starting artifact upload
+For more detailed logs during the artifact upload process, enable step-debugging: https://docs.github.com/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-step-debug-logging`
+    )
     checkArtifactName(name)
 
     // Get specification for the files being uploaded
@@ -103,7 +107,11 @@ export class DefaultArtifactClient implements ArtifactClient {
           'No URL provided by the Artifact Service to upload an artifact to'
         )
       }
+
       core.debug(`Upload Resource URL: ${response.fileContainerResourceUrl}`)
+      core.info(
+        `Container for artifact "${name}" successfully created. Starting upload of file(s)`
+      )
 
       // Upload each of the files that were found concurrently
       const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
@@ -114,10 +122,27 @@ export class DefaultArtifactClient implements ArtifactClient {
 
       // Update the size of the artifact to indicate we are done uploading
       // The uncompressed size is used for display when downloading a zip of the artifact from the UI
+      core.info(
+        `File upload process has finished. Finalizing the artifact upload`
+      )
       await uploadHttpClient.patchArtifactSize(uploadResult.totalSize, name)
 
+      if (uploadResult.failedItems.length > 0) {
+        core.info(
+          `Upload finished. There were ${uploadResult.failedItems.length} items that failed to upload`
+        )
+      } else {
+        core.info(
+          `Artifact has been finalized. All files have been successfully uploaded!`
+        )
+      }
+
       core.info(
-        `Finished uploading artifact ${name}. Reported size is ${uploadResult.uploadSize} bytes. There were ${uploadResult.failedItems.length} items that failed to upload`
+        `
+The raw size of all the files that were specified for upload is ${uploadResult.totalSize} bytes
+The size of all the files that were uploaded is ${uploadResult.uploadSize} bytes. This takes into account any gzip compression used to reduce the upload size, time and storage
+
+Note: The size of downloaded zips can differ significantly from the reported size. For more information see: https://github.com/actions/upload-artifact#zipped-artifact-downloads \r\n`
       )
 
       uploadResponse.artifactItems = uploadSpecification.map(
@@ -215,6 +240,9 @@ export class DefaultArtifactClient implements ArtifactClient {
     while (downloadedArtifacts < artifacts.count) {
       const currentArtifactToDownload = artifacts.value[downloadedArtifacts]
       downloadedArtifacts += 1
+      core.info(
+        `starting download of artifact ${currentArtifactToDownload.name} : ${downloadedArtifacts}/${artifacts.count}`
+      )
 
       // Get container entries for the specific artifact
       const items = await downloadHttpClient.getContainerItems(

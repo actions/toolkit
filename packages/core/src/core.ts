@@ -359,3 +359,13 @@ export function getState(name: string): string {
 export async function getIDToken(aud?: string): Promise<string> {
   return await OidcClient.getIDToken(aud)
 }
+
+/**
+ * Summary exports
+ */
+export {summary} from './summary'
+
+/**
+ * @deprecated use core.summary
+ */
+export {markdownSummary} from './summary'

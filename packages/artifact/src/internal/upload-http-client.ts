@@ -9,6 +9,7 @@ import {
   UploadResults
 } from './contracts'
 import {
+  digestForStream,
   getArtifactUrl,
   getContentRange,
   getUploadHeaders,
@@ -31,8 +32,7 @@ import {promisify} from 'util'
 import {URL} from 'url'
 import {performance} from 'perf_hooks'
 import {StatusReporter} from './status-reporter'
-import {HttpCodes} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpCodes, HttpClientResponse} from '@actions/http-client'
 import {HttpManager} from './http-manager'
 import {UploadSpecification} from './upload-specification'
 import {UploadOptions} from './upload-options'
@@ -219,29 +219,41 @@ export class UploadHttpClient {
     httpClientIndex: number,
     parameters: UploadFileParameters
   ): Promise<UploadFileResult> {
-    const totalFileSize: number = (await stat(parameters.file)).size
+    const fileStat: fs.Stats = await stat(parameters.file)
+    const totalFileSize = fileStat.size
+    const isFIFO = fileStat.isFIFO()
     let offset = 0
     let isUploadSuccessful = true
     let failedChunkSizes = 0
     let uploadFileSize = 0
     let isGzip = true
 
-    // the file that is being uploaded is less than 64k in size, to increase throughput and to minimize disk I/O
+    // the file that is being uploaded is less than 64k in size to increase throughput and to minimize disk I/O
     // for creating a new GZip file, an in-memory buffer is used for compression
-    if (totalFileSize < 65536) {
+    // with named pipes the file size is reported as zero in that case don't read the file in memory
+    if (!isFIFO && totalFileSize < 65536) {
+      core.debug(
+        `${parameters.file} is less than 64k in size. Creating a gzip file in-memory to potentially reduce the upload size`
+      )
       const buffer = await createGZipFileInBuffer(parameters.file)
 
-      //An open stream is needed in the event of a failure and we need to retry. If a NodeJS.ReadableStream is directly passed in,
+      // An open stream is needed in the event of a failure and we need to retry. If a NodeJS.ReadableStream is directly passed in,
       // it will not properly get reset to the start of the stream if a chunk upload needs to be retried
       let openUploadStream: () => NodeJS.ReadableStream
 
       if (totalFileSize < buffer.byteLength) {
         // compression did not help with reducing the size, use a readable stream from the original file for upload
+        core.debug(
+          `The gzip file created for ${parameters.file} did not help with reducing the size of the file. The original file will be uploaded as-is`
+        )
         openUploadStream = () => fs.createReadStream(parameters.file)
         isGzip = false
         uploadFileSize = totalFileSize
       } else {
         // create a readable stream using a PassThrough stream that is both readable and writable
+        core.debug(
+          `A gzip file created for ${parameters.file} helped with reducing the size of the original file. The file will be uploaded using gzip.`
+        )
         openUploadStream = () => {
           const passThrough = new stream.PassThrough()
           passThrough.end(buffer)
@@ -277,6 +289,9 @@ export class UploadHttpClient {
       // the file that is being uploaded is greater than 64k in size, a temporary file gets created on disk using the
       // npm tmp-promise package and this file gets used to create a GZipped file
       const tempFile = await tmp.file()
+      core.debug(
+        `${parameters.file} is greater than 64k in size. Creating a gzip file on-disk ${tempFile.path} to potentially reduce the upload size`
+      )
 
       // create a GZip file of the original file being uploaded, the original file should not be modified in any way
       uploadFileSize = await createGZipFileOnDisk(
@@ -287,10 +302,18 @@ export class UploadHttpClient {
       let uploadFilePath = tempFile.path
 
       // compression did not help with size reduction, use the original file for upload and delete the temp GZip file
-      if (totalFileSize < uploadFileSize) {
+      // for named pipes totalFileSize is zero, this assumes compression did help
+      if (!isFIFO && totalFileSize < uploadFileSize) {
+        core.debug(
+          `The gzip file created for ${parameters.file} did not help with reducing the size of the file. The original file will be uploaded as-is`
+        )
         uploadFileSize = totalFileSize
         uploadFilePath = parameters.file
         isGzip = false
+      } else {
+        core.debug(
+          `The gzip file created for ${parameters.file} is smaller than the original file. The file will be uploaded using gzip.`
+        )
       }
 
       let abortFileUpload = false
@@ -301,17 +324,8 @@ export class UploadHttpClient {
           parameters.maxChunkSize
         )
 
-        // if an individual file is greater than 100MB (1024*1024*100) in size, display extra information about the upload status
-        if (uploadFileSize > 104857600) {
-          this.statusReporter.updateLargeFileStatus(
-            parameters.file,
-            offset,
-            uploadFileSize
-          )
-        }
-
-        const start = offset
-        const end = offset + chunkSize - 1
+        const startChunkIndex = offset
+        const endChunkIndex = offset + chunkSize - 1
         offset += parameters.maxChunkSize
 
         if (abortFileUpload) {
@@ -325,12 +339,12 @@ export class UploadHttpClient {
           parameters.resourceUrl,
           () =>
             fs.createReadStream(uploadFilePath, {
-              start,
-              end,
+              start: startChunkIndex,
+              end: endChunkIndex,
               autoClose: false
             }),
-          start,
-          end,
+          startChunkIndex,
+          endChunkIndex,
           uploadFileSize,
           isGzip,
           totalFileSize
@@ -343,11 +357,22 @@ export class UploadHttpClient {
           failedChunkSizes += chunkSize
           core.warning(`Aborting upload for ${parameters.file} due to failure`)
           abortFileUpload = true
+        } else {
+          // if an individual file is greater than 8MB (1024*1024*8) in size, display extra information about the upload status
+          if (uploadFileSize > 8388608) {
+            this.statusReporter.updateLargeFileStatus(
+              parameters.file,
+              startChunkIndex,
+              endChunkIndex,
+              uploadFileSize
+            )
+          }
         }
       }
 
       // Delete the temporary file that was created as part of the upload. If the temp file does not get manually deleted by
       // calling cleanup, it gets removed when the node process exits. For more info see: https://www.npmjs.com/package/tmp-promise#about
+      core.debug(`deleting temporary gzip file ${tempFile.path}`)
       await tempFile.cleanup()
 
       return {
@@ -381,6 +406,9 @@ export class UploadHttpClient {
     isGzip: boolean,
     totalFileSize: number
   ): Promise<boolean> {
+    // open a new stream and read it to compute the digest
+    const digest = await digestForStream(openStream())
+
     // prepare all the necessary headers before making any http call
     const headers = getUploadHeaders(
       'application/octet-stream',
@@ -388,10 +416,11 @@ export class UploadHttpClient {
       isGzip,
       totalFileSize,
       end - start + 1,
-      getContentRange(start, end, uploadFileSize)
+      getContentRange(start, end, uploadFileSize),
+      digest
     )
 
-    const uploadChunkRequest = async (): Promise<IHttpClientResponse> => {
+    const uploadChunkRequest = async (): Promise<HttpClientResponse> => {
       const client = this.uploadHttpManager.getClient(httpClientIndex)
       return await client.sendStream('PUT', resourceUrl, openStream(), headers)
     }
@@ -402,7 +431,7 @@ export class UploadHttpClient {
     // Increments the current retry count and then checks if the retry limit has been reached
     // If there have been too many retries, fail so the download stops
     const incrementAndCheckRetryLimit = (
-      response?: IHttpClientResponse
+      response?: HttpClientResponse
     ): boolean => {
       retryCount++
       if (retryCount > retryLimit) {
@@ -439,7 +468,7 @@ export class UploadHttpClient {
 
     // allow for failed chunks to be retried multiple times
     while (retryCount <= retryLimit) {
-      let response: IHttpClientResponse
+      let response: HttpClientResponse
 
       try {
         response = await uploadChunkRequest()

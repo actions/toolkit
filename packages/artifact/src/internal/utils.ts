@@ -1,9 +1,9 @@
-import {debug, info, warning} from '@actions/core'
+import crypto from 'crypto'
 import {promises as fs} from 'fs'
-import {HttpCodes, HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/auth'
-import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces'
-import {IncomingHttpHeaders} from 'http'
+import {IncomingHttpHeaders, OutgoingHttpHeaders} from 'http'
+import {debug, info, warning} from '@actions/core'
+import {HttpCodes, HttpClient, HttpClientResponse} from '@actions/http-client'
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {
   getRuntimeToken,
   getRuntimeUrl,
@@ -11,6 +11,7 @@ import {
   getRetryMultiplier,
   getInitialRetryIntervalInMilliseconds
 } from './config-variables'
+import CRC64 from './crc64'
 
 /**
  * Returns a retry time in milliseconds that exponentially gets larger
@@ -30,7 +31,7 @@ export function getExponentialRetryTimeInMilliseconds(
   const maxTime = minTime * getRetryMultiplier()
 
   // returns a random number between the minTime (inclusive) and the maxTime (exclusive)
-  return Math.random() * (maxTime - minTime) + minTime
+  return Math.trunc(Math.random() * (maxTime - minTime) + minTime)
 }
 
 /**
@@ -139,8 +140,8 @@ export function getDownloadHeaders(
   contentType: string,
   isKeepAlive?: boolean,
   acceptGzip?: boolean
-): IHeaders {
-  const requestOptions: IHeaders = {}
+): OutgoingHttpHeaders {
+  const requestOptions: OutgoingHttpHeaders = {}
 
   if (contentType) {
     requestOptions['Content-Type'] = contentType
@@ -180,9 +181,10 @@ export function getUploadHeaders(
   isGzip?: boolean,
   uncompressedLength?: number,
   contentLength?: number,
-  contentRange?: string
-): IHeaders {
-  const requestOptions: IHeaders = {}
+  contentRange?: string,
+  digest?: StreamDigest
+): OutgoingHttpHeaders {
+  const requestOptions: OutgoingHttpHeaders = {}
   requestOptions['Accept'] = `application/json;api-version=${getApiVersion()}`
   if (contentType) {
     requestOptions['Content-Type'] = contentType
@@ -201,6 +203,10 @@ export function getUploadHeaders(
   }
   if (contentRange) {
     requestOptions['Content-Range'] = contentRange
+  }
+  if (digest) {
+    requestOptions['x-actions-results-crc64'] = digest.crc64
+    requestOptions['x-actions-results-md5'] = digest.md5
   }
 
   return requestOptions
@@ -227,7 +233,7 @@ export function getArtifactUrl(): string {
  * Certain information such as the TLSSocket and the Readable state are not really useful for diagnostic purposes so they can be avoided.
  * Other information such as the headers, the response code and message might be useful, so this is displayed.
  */
-export function displayHttpDiagnostics(response: IHttpClientResponse): void {
+export function displayHttpDiagnostics(response: HttpClientResponse): void {
   info(
     `##### Begin Diagnostic HTTP information #####
 Status Code: ${response.message.statusCode}
@@ -235,55 +241,6 @@ Status Message: ${response.message.statusMessage}
 Header Information: ${JSON.stringify(response.message.headers, undefined, 2)}
 ###### End Diagnostic HTTP information ######`
   )
-}
-
-/**
- * Invalid characters that cannot be in the artifact name or an uploaded file. Will be rejected
- * from the server if attempted to be sent over. These characters are not allowed due to limitations with certain
- * file systems such as NTFS. To maintain platform-agnostic behavior, all characters that are not supported by an
- * individual filesystem/platform will not be supported on all fileSystems/platforms
- *
- * FilePaths can include characters such as \ and / which are not permitted in the artifact name alone
- */
-const invalidArtifactFilePathCharacters = ['"', ':', '<', '>', '|', '*', '?']
-const invalidArtifactNameCharacters = [
-  ...invalidArtifactFilePathCharacters,
-  '\\',
-  '/'
-]
-
-/**
- * Scans the name of the artifact to make sure there are no illegal characters
- */
-export function checkArtifactName(name: string): void {
-  if (!name) {
-    throw new Error(`Artifact name: ${name}, is incorrectly provided`)
-  }
-
-  for (const invalidChar of invalidArtifactNameCharacters) {
-    if (name.includes(invalidChar)) {
-      throw new Error(
-        `Artifact name is not valid: ${name}. Contains character: "${invalidChar}". Invalid artifact name characters include: ${invalidArtifactNameCharacters.toString()}.`
-      )
-    }
-  }
-}
-
-/**
- * Scans the name of the filePath used to make sure there are no illegal characters
- */
-export function checkArtifactFilePath(path: string): void {
-  if (!path) {
-    throw new Error(`Artifact path: ${path}, is incorrectly provided`)
-  }
-
-  for (const invalidChar of invalidArtifactFilePathCharacters) {
-    if (path.includes(invalidChar)) {
-      throw new Error(
-        `Artifact path is not valid: ${path}. Contains character: "${invalidChar}". Invalid characters include: ${invalidArtifactFilePathCharacters.toString()}.`
-      )
-    }
-  }
 }
 
 export async function createDirectoriesForArtifact(
@@ -339,4 +296,30 @@ export function getProperRetention(
 
 export async function sleep(milliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+export interface StreamDigest {
+  crc64: string
+  md5: string
+}
+
+export async function digestForStream(
+  stream: NodeJS.ReadableStream
+): Promise<StreamDigest> {
+  return new Promise((resolve, reject) => {
+    const crc64 = new CRC64()
+    const md5 = crypto.createHash('md5')
+    stream
+      .on('data', data => {
+        crc64.update(data)
+        md5.update(data)
+      })
+      .on('end', () =>
+        resolve({
+          crc64: crc64.digest('base64') as string,
+          md5: md5.digest('base64')
+        })
+      )
+      .on('error', reject)
+  })
 }

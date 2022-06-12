@@ -10,6 +10,7 @@ import {
   getInitialRetryIntervalInMilliseconds,
   getRetryMultiplier
 } from '../src/internal/config-variables'
+import {Readable} from 'stream'
 
 jest.mock('../src/internal/config-variables')
 
@@ -46,66 +47,6 @@ describe('Utils', () => {
     }
   })
 
-  it('Check Artifact Name for any invalid characters', () => {
-    const invalidNames = [
-      'my\\artifact',
-      'my/artifact',
-      'my"artifact',
-      'my:artifact',
-      'my<artifact',
-      'my>artifact',
-      'my|artifact',
-      'my*artifact',
-      'my?artifact',
-      ''
-    ]
-    for (const invalidName of invalidNames) {
-      expect(() => {
-        utils.checkArtifactName(invalidName)
-      }).toThrow()
-    }
-
-    const validNames = [
-      'my-normal-artifact',
-      'myNormalArtifact',
-      'm¥ñðrmålÄr†ï£å¢†'
-    ]
-    for (const validName of validNames) {
-      expect(() => {
-        utils.checkArtifactName(validName)
-      }).not.toThrow()
-    }
-  })
-
-  it('Check Artifact File Path for any invalid characters', () => {
-    const invalidNames = [
-      'some/invalid"artifact/path',
-      'some/invalid:artifact/path',
-      'some/invalid<artifact/path',
-      'some/invalid>artifact/path',
-      'some/invalid|artifact/path',
-      'some/invalid*artifact/path',
-      'some/invalid?artifact/path',
-      ''
-    ]
-    for (const invalidName of invalidNames) {
-      expect(() => {
-        utils.checkArtifactFilePath(invalidName)
-      }).toThrow()
-    }
-
-    const validNames = [
-      'my/perfectly-normal/artifact-path',
-      'my/perfectly\\Normal/Artifact-path',
-      'm¥/ñðrmål/Är†ï£å¢†'
-    ]
-    for (const validName of validNames) {
-      expect(() => {
-        utils.checkArtifactFilePath(validName)
-      }).not.toThrow()
-    }
-  })
-
   it('Test negative artifact retention throws', () => {
     expect(() => {
       utils.getProperRetention(-1, undefined)
@@ -134,15 +75,20 @@ describe('Utils', () => {
     const size = 24
     const uncompressedLength = 100
     const range = 'bytes 0-199/200'
+    const digest = {
+      crc64: 'bSzITYnW/P8=',
+      md5: 'Xiv1fT9AxLbfadrxk2y3ZvgyN0tPwCWafL/wbi9w8mk='
+    }
     const headers = utils.getUploadHeaders(
       contentType,
       true,
       true,
       uncompressedLength,
       size,
-      range
+      range,
+      digest
     )
-    expect(Object.keys(headers).length).toEqual(8)
+    expect(Object.keys(headers).length).toEqual(10)
     expect(headers['Accept']).toEqual(
       `application/json;api-version=${utils.getApiVersion()}`
     )
@@ -153,6 +99,8 @@ describe('Utils', () => {
     expect(headers['x-tfs-filelength']).toEqual(uncompressedLength)
     expect(headers['Content-Length']).toEqual(size)
     expect(headers['Content-Range']).toEqual(range)
+    expect(headers['x-actions-results-crc64']).toEqual(digest.crc64)
+    expect(headers['x-actions-results-md5']).toEqual(digest.md5)
   })
 
   it('Test constructing upload headers with only required parameter', () => {
@@ -278,5 +226,14 @@ describe('Utils', () => {
     await expect(fs.promises.access(emptyFile2)).resolves.toEqual(undefined)
     const size2 = (await fs.promises.stat(emptyFile2)).size
     expect(size2).toEqual(0)
+  })
+
+  it('Creates a digest from a readable stream', async () => {
+    const data = 'lorem ipsum'
+    const stream = Readable.from(data)
+    const digest = await utils.digestForStream(stream)
+
+    expect(digest.crc64).toBe('bSzITYnW/P8=')
+    expect(digest.md5).toBe('gKdR/eV3AoZAxBkADjPrpg==')
   })
 })

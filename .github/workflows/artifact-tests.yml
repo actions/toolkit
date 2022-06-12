@@ -44,24 +44,27 @@ jobs:
         npm ci
         npm run tsc
       working-directory: packages/artifact
-    
+
     - name: Set artifact file contents
       shell: bash
       run: |
         echo "non-gzip-artifact-content=hello" >> $GITHUB_ENV
         echo "gzip-artifact-content=Some large amount of text that has a compression ratio that is greater than 100%. If greater than 100%, gzip is used to upload the file" >> $GITHUB_ENV
+        echo "empty-artifact-content=_EMPTY_" >> $GITHUB_ENV
 
     - name: Create files that will be uploaded
       run: |
-        mkdir artifact-path 
+        mkdir artifact-path
         echo ${{ env.non-gzip-artifact-content }} > artifact-path/world.txt
         echo ${{ env.gzip-artifact-content }} > artifact-path/gzip.txt
+        touch artifact-path/empty.txt
 
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
       run: |
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], '${{ github.workspace }}'))"
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-2',['artifact-path/gzip.txt'], '${{ github.workspace }}'))"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-3',['artifact-path/empty.txt'], '${{ github.workspace }}'))"
 
     - name: Download artifacts using downloadArtifact()
       run: |
@@ -69,12 +72,15 @@ jobs:
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-1','artifact-1-directory'))"
         mkdir artifact-2-directory
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-2','artifact-2-directory'))"
-    
+        mkdir artifact-3-directory
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-3','artifact-3-directory'))"
+
     - name: Verify downloadArtifact()
       shell: bash
       run: |
         packages/artifact/__tests__/test-artifact-file.sh "artifact-1-directory/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
         packages/artifact/__tests__/test-artifact-file.sh "artifact-2-directory/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"
+        packages/artifact/__tests__/test-artifact-file.sh "artifact-3-directory/artifact-path/empty.txt" "${{ env.empty-artifact-content }}"
 
     - name: Download artifacts using downloadAllArtifacts()
       run: |
@@ -86,3 +92,4 @@ jobs:
       run: |
         packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-1/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
         packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-2/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"
+        packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-3/artifact-path/empty.txt" "${{ env.empty-artifact-content }}"
