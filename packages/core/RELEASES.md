@@ -1,7 +1,7 @@
 # @actions/core Releases
 
 ### 1.9.0
-- Added `toPosixPath`, `toWin32Path` and `toPlatformPath` utilities
+- Added `toPosixPath`, `toWin32Path` and `toPlatformPath` utilities [#1102](https://github.com/actions/toolkit/pull/1102)
 
 ### 1.8.2
 - Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
