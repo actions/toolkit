@@ -9,15 +9,26 @@ const stat = promisify(fs.stat)
  * If any of these types of files are encountered then on-disk gzip creation will be skipped and the original file will be uploaded as-is
  */
 const gzipExemptFileExtensions = [
-  '.gzip',
-  '.zip',
-  '.tar.lz',
-  '.tar.gz',
-  '.tar.bz2',
-  '.tar.zst',
-  '.tar.zstd',
-  '.tzst',
-  '.7z'
+  '.gz', // GZIP
+  '.gzip', // GZIP
+  '.tgz', // GZIP
+  '.taz', // GZIP
+  '.Z', // COMPRESS
+  '.taZ', // COMPRESS
+  '.bz2', // BZIP2
+  '.tbz', // BZIP2
+  '.tbz2', // BZIP2
+  '.tz2', // BZIP2
+  '.lz', // LZIP
+  '.lzma', // LZMA
+  '.tlz', // LZMA
+  '.lzo', // LZOP
+  '.xz', // XZ
+  '.txz', // XZ
+  '.zst', // ZSTD
+  '.tzst', // ZSTD
+  '.zip', // ZIP
+  '.7z' // 7ZIP
 ]
 
 /**
