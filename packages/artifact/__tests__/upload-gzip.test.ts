@@ -122,6 +122,9 @@ test('Number.MAX_SAFE_INTEGER is returned when an existing compressed file is us
   expect(await createGZipFileOnDisk(tempTzstFilePath, tempFile.path)).toEqual(
     Number.MAX_SAFE_INTEGER
   )
+  expect(await createGZipFileOnDisk(tempZipFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
   expect(await createGZipFileOnDisk(temp7zFilePath, tempFile.path)).toEqual(
     Number.MAX_SAFE_INTEGER
   )
