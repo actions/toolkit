@@ -128,7 +128,7 @@ export async function restoreCache(
     return cacheEntry.cacheKey
   } catch (error) {
     // Supress all cache related errors because caching should be optional
-    core.warning(`Fail to restore: ${(error as Error).message}`)
+    core.warning(`Failed to restore: ${(error as Error).message}`)
   } finally {
     // Try to delete the archive to save space
     try {
@@ -226,9 +226,9 @@ export async function saveCache(
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ReserveCacheError.name) {
-      core.info(`Fail to save: ${typedError.message}`)
+      core.info(`Failed to save: ${typedError.message}`)
     } else {
-      core.warning(`Fail to save: ${typedError.message}`)
+      core.warning(`Failed to save: ${typedError.message}`)
     }
   } finally {
     // Try to delete the archive to save space

@@ -83,7 +83,7 @@ test('restore with server error should fail', async () => {
   expect(cacheKey).toBe(undefined)
   expect(logWarningMock).toHaveBeenCalledTimes(1)
   expect(logWarningMock).toHaveBeenCalledWith(
-    'Fail to restore: HTTP Error Occurred'
+    'Failed to restore: HTTP Error Occurred'
   )
 })
 
