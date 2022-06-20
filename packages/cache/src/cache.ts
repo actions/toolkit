@@ -225,7 +225,12 @@ export async function saveCache(
     core.debug(`Saving Cache (ID: ${cacheId})`)
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
   } catch(error) {
-    core.warning(`Fail to save: ${error}`)
+    const typedError = error as Error;
+    if (typedError.name === ReserveCacheError.name) {
+      core.info(`Fail to save: ${typedError.message}`)
+    } else {
+      core.warning(`Fail to save: ${typedError.message}`)
+    }
   } finally {
     // Try to delete the archive to save space
     try {
