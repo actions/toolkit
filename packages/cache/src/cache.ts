@@ -4,6 +4,7 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
+import { ArtifactCacheEntry } from './internal/contracts'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -86,23 +87,24 @@ export async function restoreCache(
   }
 
   const compressionMethod = await utils.getCompressionMethod()
-
-  // path are needed to compute version
-  const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-    compressionMethod
-  })
-  if (!cacheEntry?.archiveLocation) {
-    // Cache not found
-    return undefined
-  }
-
-  const archivePath = path.join(
-    await utils.createTempDirectory(),
-    utils.getCacheFileName(compressionMethod)
-  )
-  core.debug(`Archive Path: ${archivePath}`)
-
+  let archivePath = ""
   try {
+      // path are needed to compute version
+      const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+      compressionMethod
+    })
+
+    if (!cacheEntry?.archiveLocation) {
+      // Cache not found
+      return undefined
+    }
+  
+      archivePath = path.join(
+      await utils.createTempDirectory(),
+      utils.getCacheFileName(compressionMethod)
+    )
+    core.debug(`Archive Path: ${archivePath}`)
+  
     // Download the cache from the cache entry
     await cacheHttpClient.downloadCache(
       cacheEntry.archiveLocation,
@@ -123,7 +125,12 @@ export async function restoreCache(
 
     await extractTar(archivePath, compressionMethod)
     core.info('Cache restored successfully')
-  } finally {
+    
+    return cacheEntry.cacheKey
+  } catch(error) {
+      // Supress all cache related errors because caching should be optional
+      core.warning(`Fail to restore: ${error}`);
+  }finally {
     // Try to delete the archive to save space
     try {
       await utils.unlinkFile(archivePath)
@@ -132,7 +139,7 @@ export async function restoreCache(
     }
   }
 
-  return cacheEntry.cacheKey
+  return undefined
 }
 
 /**
@@ -152,7 +159,7 @@ export async function saveCache(
   checkKey(key)
 
   const compressionMethod = await utils.getCompressionMethod()
-  let cacheId = null
+  let cacheId = -1
 
   const cachePaths = await utils.resolvePaths(paths)
   core.debug('Cache Paths:')
@@ -217,6 +224,8 @@ export async function saveCache(
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
+  } catch(error) {
+    core.warning(`Fail to save: ${error}`)
   } finally {
     // Try to delete the archive to save space
     try {
