@@ -5,6 +5,7 @@ import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
 
+
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -128,7 +129,7 @@ export async function restoreCache(
     return cacheEntry.cacheKey
   } catch (error) {
     // Supress all cache related errors because caching should be optional
-    core.warning(`Fail to restore: ${error}`)
+    core.warning(`Fail to restore: ${(error as Error).message}`)
   } finally {
     // Try to delete the archive to save space
     try {
