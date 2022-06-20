@@ -4,7 +4,6 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
-import {ArtifactCacheEntry} from './internal/contracts'
 
 export class ValidationError extends Error {
   constructor(message: string) {
