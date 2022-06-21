@@ -127,8 +127,13 @@ export async function restoreCache(
 
     return cacheEntry.cacheKey
   } catch (error) {
-    // Supress all cache related errors because caching should be optional
-    core.warning(`Failed to restore: ${(error as Error).message}`)
+    const typedError = error as Error
+    if (typedError.name === ValidationError.name) {
+      throw error
+    } else {
+      // Supress all non-validation cache related errors because caching should be optional
+      core.warning(`Failed to restore: ${(error as Error).message}`)
+    }
   } finally {
     // Try to delete the archive to save space
     try {
@@ -225,7 +230,9 @@ export async function saveCache(
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
   } catch (error) {
     const typedError = error as Error
-    if (typedError.name === ReserveCacheError.name) {
+    if (typedError.name === ValidationError.name) {
+      throw error
+    } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
       core.warning(`Failed to save: ${typedError.message}`)
