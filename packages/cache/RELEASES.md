@@ -68,3 +68,6 @@
 
 ### 2.0.6
 - Fix `Tar failed with error: The process '/usr/bin/tar' failed with exit code 1` issue when temp directory where tar is getting created is actually the subdirectory of the path mentioned by the user for caching. ([issue](https://github.com/actions/cache/issues/689))
+
+### 3.0.0
+- Updated actions/cache to suppress Actions cache server error and log warning for those error  [#1122](https://github.com/actions/toolkit/pull/1122)
