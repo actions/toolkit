@@ -52,7 +52,12 @@ export async function resolvePaths(patterns: string[]): Promise<string[]> {
       .replace(new RegExp(`\\${path.sep}`, 'g'), '/')
     core.debug(`Matched: ${relativeFile}`)
     // Paths are made relative so the tar entries are all relative to the root of the workspace.
-    paths.push(`${relativeFile}`)
+    if (relativeFile === "") {
+      // path.relative returns empty string if workspace and file are equal
+      paths.push(".")
+    } else {
+      paths.push(`${relativeFile}`)
+    }
   }
 
   return paths

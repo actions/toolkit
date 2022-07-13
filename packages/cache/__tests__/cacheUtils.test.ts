@@ -32,3 +32,8 @@ test('assertDefined throws if undefined', () => {
 test('assertDefined returns value', () => {
   expect(cacheUtils.assertDefined('test', 5)).toBe(5)
 })
+
+test('resolvePaths works on current directory', async () => {
+  const resolvedPath = await cacheUtils.resolvePaths(['.'])
+  expect(resolvedPath).toBe(['.'])
+})
