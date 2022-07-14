@@ -1,6 +1,5 @@
 import {promises as fs} from 'fs'
 import * as path from 'path'
-import { coerce } from 'semver'
 import * as cacheUtils from '../src/internal/cacheUtils'
 
 test('getArchiveFileSizeInBytes returns file size', () => {
