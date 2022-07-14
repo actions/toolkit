@@ -61,15 +61,15 @@ export async function extractTar(
   // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
-  // --d: Decompress.
+  // --decompress: Decompress.
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        return ['--use-compress-program', 'zstd -d --long=30']
+        return ['--use-compress-program', 'zstd --decompress --long=30']
       case CompressionMethod.ZstdWithoutLong:
-        return ['--use-compress-program', 'zstd -d']
+        return ['--use-compress-program', 'zstd --decompress']
       default:
         return ['-z']
     }
@@ -99,16 +99,16 @@ export async function createTar(
   )
   const workingDirectory = getWorkingDirectory()
 
-  // -T#: Compress using # working thread. If # is 0, attempt to detect and use the number of physical CPU cores.
+  // --threads=#: Compress using # working thread. If # is 0, attempt to detect and use the number of physical CPU cores.
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   // Long range mode is added to zstd in v1.3.2 release, so we will not use --long in older version of zstd.
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        return ['--use-compress-program', 'zstd -T0 --long=30']
+        return ['--use-compress-program', 'zstd --threads=0 --long=30']
       case CompressionMethod.ZstdWithoutLong:
-        return ['--use-compress-program', 'zstd -T0']
+        return ['--use-compress-program', 'zstd --threads=0']
       default:
         return ['-z']
     }
@@ -133,16 +133,15 @@ export async function listTar(
   archivePath: string,
   compressionMethod: CompressionMethod
 ): Promise<void> {
-  // --d: Decompress.
   // --long=#: Enables long distance matching with # bits.
   // Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        return ['--use-compress-program', 'zstd -d --long=30']
+        return ['--use-compress-program', 'zstd --long=30']
       case CompressionMethod.ZstdWithoutLong:
-        return ['--use-compress-program', 'zstd -d']
+        return ['--use-compress-program', 'zstd']
       default:
         return ['-z']
     }
