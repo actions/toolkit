@@ -36,5 +36,5 @@ test('assertDefined returns value', () => {
 
 test('resolvePaths works on current directory', async () => {
   const paths = await cacheUtils.resolvePaths(['.'])
-  expect(paths).toContain('.')
+  expect(paths.length).toBe(1)
 })
