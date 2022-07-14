@@ -1,5 +1,6 @@
 import {promises as fs} from 'fs'
 import * as path from 'path'
+import { coerce } from 'semver'
 import * as cacheUtils from '../src/internal/cacheUtils'
 
 test('getArchiveFileSizeInBytes returns file size', () => {
@@ -34,6 +35,6 @@ test('assertDefined returns value', () => {
 })
 
 test('resolvePaths works on current directory', async () => {
-  const resolvedPath = await cacheUtils.resolvePaths(['.'])
-  expect(resolvedPath).toStrictEqual(['.'])
+  const paths = await cacheUtils.resolvePaths(['.'])
+  expect(paths).toContain('.')
 })
