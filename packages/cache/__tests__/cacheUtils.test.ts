@@ -33,7 +33,8 @@ test('assertDefined returns value', () => {
   expect(cacheUtils.assertDefined('test', 5)).toBe(5)
 })
 
-test('resolvePaths works on current directory', async () => {
-  const paths = await cacheUtils.resolvePaths(['.'])
-  expect(paths.length).toBe(1)
+test('resolvePaths works on github workspace directory', async () => {
+  const workspace = process.env['GITHUB_WORKSPACE'] ?? '.'
+  const paths = await cacheUtils.resolvePaths([workspace])
+  expect(paths.length).toBeGreaterThan(0)
 })
