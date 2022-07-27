@@ -878,6 +878,45 @@ describe('@actions/tool-cache', function() {
       }
     )
   })
+
+  it('checks for invalid tool name when creating the tool dir', async function() {
+    for (const invalidTool of [
+      path.join('foo', 'bar'),
+      path.join('..', 'baz'),
+      '..',
+      '.'
+    ]) {
+      await expect(
+        tc.cacheDir(__dirname, invalidTool, '1.1.0')
+      ).rejects.toThrow(/invalid tool/)
+    }
+  })
+
+  it('checks for invalid version when creating the tool dir', async function() {
+    for (const invalidVersion of [
+      path.join('1.1.0', '0'),
+      path.join('..', '1.1.0'),
+      '..',
+      '.'
+    ]) {
+      await expect(
+        tc.cacheDir(__dirname, 'foo', invalidVersion)
+      ).rejects.toThrow(/invalid version/)
+    }
+  })
+
+  it('checks for invalid architecture when creating the tool dir', async function() {
+    for (const invalidArch of [
+      path.join('amd', 'a64'),
+      path.join('..', 'x64'),
+      '..',
+      '.'
+    ]) {
+      await expect(
+        tc.cacheDir(__dirname, 'foo', '1.1.0', invalidArch)
+      ).rejects.toThrow(/invalid architecture/)
+    }
+  })
 })
 
 /**
