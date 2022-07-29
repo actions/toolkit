@@ -260,7 +260,7 @@ export async function downloadCacheStorageSDK(
 
         downloadProgress.nextSegment(segmentSize)
 
-        const result = await Promise.Race([client.downloadToBuffer(
+        const result = await Promise.race([client.downloadToBuffer(
             segmentStart,
             segmentSize,
             {
