@@ -6,6 +6,7 @@ import * as buffer from 'buffer'
 import * as fs from 'fs'
 import * as stream from 'stream'
 import * as util from 'util'
+import * as timer from 'timers/promises'
 
 import * as utils from './cacheUtils'
 import {SocketTimeout} from './constants'
@@ -259,14 +260,19 @@ export async function downloadCacheStorageSDK(
 
         downloadProgress.nextSegment(segmentSize)
 
-        const result = await client.downloadToBuffer(
-          segmentStart,
-          segmentSize,
-          {
-            concurrency: options.downloadConcurrency,
-            onProgress: downloadProgress.onProgress()
-          }
-        )
+        const result = await Promise.Race([client.downloadToBuffer(
+            segmentStart,
+            segmentSize,
+            {
+              concurrency: options.downloadConcurrency,
+              onProgress: downloadProgress.onProgress()
+            }
+          ),
+          timer.setTimeout(60 * 60 * 1000, 'timeout')]);
+          
+        if(result === 'timeout') {
+          throw new Error("Segment download timed out");
+        }
 
         fs.writeFileSync(fd, result)
       }
