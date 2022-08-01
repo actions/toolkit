@@ -149,7 +149,7 @@ echo "FOO=BAR" >> $GITHUB_ENV
 
 Running `$FOO` in a future step will now return `BAR`
 
-For multiline strings, you may use a heredoc style syntax with your choice of delimeter. In the below example, we use `EOF`.
+For multiline strings, you may use a heredoc style syntax with your choice of delimiter. In the below example, we use `EOF`.
 
 ```
 steps:
