@@ -251,6 +251,7 @@ export async function downloadCacheStorageSDK(
     try {
       downloadProgress.startDisplayTimer()
       const controller = new AbortController();
+      const timerController = new AbortController();
       const abortSignal = controller.signal;
       while (!downloadProgress.isDone()) {
         const segmentStart =
@@ -262,7 +263,6 @@ export async function downloadCacheStorageSDK(
         )
 
         downloadProgress.nextSegment(segmentSize)
-
         const result = await Promise.race([client.downloadToBuffer(
             segmentStart,
             segmentSize,
@@ -272,11 +272,14 @@ export async function downloadCacheStorageSDK(
               onProgress: downloadProgress.onProgress()
             }
           ),
-          timer.setTimeout(options.abortTimeInMs, 'timeout')]);
+          timer.setTimeout(options.abortTimeInMs, 'timeout',{ signal: timerController.signal })]);
           
         if(result === 'timeout') {
           controller.abort();
           throw new Error("Download aborted, segment download timed out.");
+        } else {
+          timerController.abort();
+          core.debug("Download completely successfully, cancelling timer.")
         }
 
         fs.writeFileSync(fd, result)
