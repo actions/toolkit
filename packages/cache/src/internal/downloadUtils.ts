@@ -12,7 +12,7 @@ import {SocketTimeout} from './constants'
 import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
-import { AbortController } from "@azure/abort-controller";
+import {AbortController} from '@azure/abort-controller'
 
 /**
  * Pipes the body of a HTTP response to a stream
@@ -249,8 +249,7 @@ export async function downloadCacheStorageSDK(
 
     try {
       downloadProgress.startDisplayTimer()
-      const controller = new AbortController();
-      const abortSignal = controller.signal;
+      const controller = new AbortController()
       while (!downloadProgress.isDone()) {
         const segmentStart =
           downloadProgress.segmentOffset + downloadProgress.segmentSize
@@ -261,24 +260,22 @@ export async function downloadCacheStorageSDK(
         )
 
         downloadProgress.nextSegment(segmentSize)
-        const abortTimeInMs = options.abortTimeInMs == undefined ? 2700000 : options.abortTimeInMs;
-        const result = await promiseWithTimeout(abortTimeInMs, client.downloadToBuffer(
-          segmentStart,
-          segmentSize,
-          {
-            abortSignal: abortSignal,
+        const abortTimeInMs =
+          options.abortTimeInMs === undefined ? 2700000 : options.abortTimeInMs
+        const result = await promiseWithTimeout(
+          abortTimeInMs,
+          client.downloadToBuffer(segmentStart, segmentSize, {
+            abortSignal: controller.signal,
             concurrency: options.downloadConcurrency,
             onProgress: downloadProgress.onProgress()
-          }
-        ));
-        if(result === 'timeout') {
-          controller.abort();
-          throw new Error("Download aborted, segment download timed out.");
-        } else {
-          core.debug("Download completely successfully, cancelling timer.")
+          })
+        )
+        if (result === 'timeout') {
+          controller.abort()
+          throw new Error('Download aborted, segment download timed out.')
+        } else if (Buffer.isBuffer(result)) {
+          fs.writeFileSync(fd, result)
         }
-
-        fs.writeFileSync(fd, result)
       }
     } finally {
       downloadProgress.stopDisplayTimer()
@@ -287,17 +284,17 @@ export async function downloadCacheStorageSDK(
   }
 }
 
-const promiseWithTimeout = (timeoutMs: number, promise: Promise<any>) => { 
-  let timeoutHandle: NodeJS.Timeout;
-  const timeoutPromise = new Promise((resolve, reject) => {
-    timeoutHandle = setTimeout(() => resolve('timeout'), timeoutMs);
-  });
+const promiseWithTimeout = async (
+  timeoutMs: number,
+  promise: Promise<Buffer>
+): Promise<unknown> => {
+  let timeoutHandle: NodeJS.Timeout
+  const timeoutPromise = new Promise(resolve => {
+    timeoutHandle = setTimeout(() => resolve('timeout'), timeoutMs)
+  })
 
-  return Promise.race([ 
-    promise, 
-    timeoutPromise, 
-  ]).then((result) => {
-    clearTimeout(timeoutHandle);
-    return result;
-  }); 
+  return Promise.race([promise, timeoutPromise]).then(result => {
+    clearTimeout(timeoutHandle)
+    return result
+  })
 }

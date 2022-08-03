@@ -45,16 +45,14 @@ export interface DownloadOptions {
    *
    * @default 30000
    */
-   timeoutInMs?: number
+  timeoutInMs?: number
 
-  
   /**
    * Time after which download should be aborted if stuck
    *
    * @default 2700000
    */
-   abortTimeInMs?: number
-
+  abortTimeInMs?: number
 }
 
 /**
