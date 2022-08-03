@@ -13,6 +13,8 @@ import {SocketTimeout} from './constants'
 import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
+import { AbortController } from "@azure/abort-controller";
+
 /**
  * Pipes the body of a HTTP response to a stream
  *
@@ -248,7 +250,8 @@ export async function downloadCacheStorageSDK(
 
     try {
       downloadProgress.startDisplayTimer()
-
+      const controller = new AbortController();
+      const abortSignal = controller.signal;
       while (!downloadProgress.isDone()) {
         const segmentStart =
           downloadProgress.segmentOffset + downloadProgress.segmentSize
@@ -264,14 +267,16 @@ export async function downloadCacheStorageSDK(
             segmentStart,
             segmentSize,
             {
+              abortSignal: abortSignal,
               concurrency: options.downloadConcurrency,
               onProgress: downloadProgress.onProgress()
             }
           ),
-          timer.setTimeout(60 * 60 * 1000, 'timeout')]);
+          timer.setTimeout(options.abortTimeInMs, 'timeout')]);
           
         if(result === 'timeout') {
-          throw new Error("Segment download timed out");
+          controller.abort();
+          throw new Error("Download aborted, segment download timed out.");
         }
 
         fs.writeFileSync(fd, result)
