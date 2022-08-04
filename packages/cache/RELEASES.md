@@ -71,3 +71,7 @@
 
 ### 3.0.0
 - Updated actions/cache to suppress Actions cache server error and log warning for those error  [#1122](https://github.com/actions/toolkit/pull/1122)
+
+### 3.0.1
+- Fix [#833](https://github.com/actions/cache/issues/833) - cache doesn't work with github workspace directory.
+- Fix [#809](https://github.com/actions/cache/issues/809) `zstd -d: no such file or directory` error on AWS self-hosted runners.
