@@ -249,7 +249,12 @@ export async function downloadCacheStorageSDK(
 
     try {
       downloadProgress.startDisplayTimer()
-      const controller = new AbortController()
+      const abortTimeInMs =
+        options.abortTimeInMs === undefined ? 3600000 : options.abortTimeInMs
+      const abortSignal = AbortController.timeout(abortTimeInMs)
+      abortSignal.addEventListener('abort', () => {
+        core.warning("Cache download aborted, segment download timed out.")
+      })
       while (!downloadProgress.isDone()) {
         const segmentStart =
           downloadProgress.segmentOffset + downloadProgress.segmentSize
@@ -260,41 +265,22 @@ export async function downloadCacheStorageSDK(
         )
 
         downloadProgress.nextSegment(segmentSize)
-        const abortTimeInMs =
-          options.abortTimeInMs === undefined ? 3600000 : options.abortTimeInMs
-        const result = await promiseWithTimeout(
-          abortTimeInMs,
-          client.downloadToBuffer(segmentStart, segmentSize, {
-            abortSignal: controller.signal,
+
+        const result = await client.downloadToBuffer(
+          segmentStart,
+          segmentSize,
+          {
+            abortSignal: abortSignal,
             concurrency: options.downloadConcurrency,
             onProgress: downloadProgress.onProgress()
-          })
+          }
         )
-        if (result === 'timeout') {
-          controller.abort()
-          throw new Error('Download aborted, segment download timed out.')
-        } else if (Buffer.isBuffer(result)) {
-          fs.writeFileSync(fd, result)
-        }
+
+        fs.writeFileSync(fd, result)
       }
     } finally {
       downloadProgress.stopDisplayTimer()
       fs.closeSync(fd)
     }
   }
-}
-
-const promiseWithTimeout = async (
-  timeoutMs: number,
-  promise: Promise<Buffer>
-): Promise<unknown> => {
-  let timeoutHandle: NodeJS.Timeout
-  const timeoutPromise = new Promise(resolve => {
-    timeoutHandle = setTimeout(() => resolve('timeout'), timeoutMs)
-  })
-
-  return Promise.race([promise, timeoutPromise]).then(result => {
-    clearTimeout(timeoutHandle)
-    return result
-  })
 }
