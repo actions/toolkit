@@ -261,7 +261,7 @@ export async function downloadCacheStorageSDK(
 
         downloadProgress.nextSegment(segmentSize)
         const abortTimeInMs =
-          options.abortTimeInMs === undefined ? 2700000 : options.abortTimeInMs
+          options.abortTimeInMs === undefined ? 3600000 : options.abortTimeInMs
         const result = await promiseWithTimeout(
           abortTimeInMs,
           client.downloadToBuffer(segmentStart, segmentSize, {

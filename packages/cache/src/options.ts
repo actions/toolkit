@@ -50,7 +50,7 @@ export interface DownloadOptions {
   /**
    * Time after which download should be aborted if stuck
    *
-   * @default 2700000
+   * @default 3600000
    */
   abortTimeInMs?: number
 }
@@ -92,7 +92,7 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     useAzureSdk: true,
     downloadConcurrency: 8,
     timeoutInMs: 30000,
-    abortTimeInMs: 2700000
+    abortTimeInMs: 3600000
   }
 
   if (copy) {

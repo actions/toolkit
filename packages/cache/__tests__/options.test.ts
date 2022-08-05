@@ -8,7 +8,7 @@ import {
 const useAzureSdk = true
 const downloadConcurrency = 8
 const timeoutInMs = 30000
-const abortTimeInMs = 2700000
+const abortTimeInMs = 3600000
 const uploadConcurrency = 4
 const uploadChunkSize = 32 * 1024 * 1024
 
@@ -28,7 +28,7 @@ test('getDownloadOptions overrides all settings', async () => {
     useAzureSdk: false,
     downloadConcurrency: 14,
     timeoutInMs: 20000,
-    abortTimeInMs: 2700000
+    abortTimeInMs: 3600000
   }
 
   const actualOptions = getDownloadOptions(expectedOptions)
