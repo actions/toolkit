@@ -253,7 +253,7 @@ export async function downloadCacheStorageSDK(
         options.abortTimeInMs === undefined ? 3600000 : options.abortTimeInMs
       const abortSignal = AbortController.timeout(abortTimeInMs)
       abortSignal.addEventListener('abort', () => {
-        core.warning("Cache download aborted, segment download timed out.")
+        core.warning('Cache download aborted, segment download timed out.')
       })
       while (!downloadProgress.isDone()) {
         const segmentStart =
@@ -270,7 +270,7 @@ export async function downloadCacheStorageSDK(
           segmentStart,
           segmentSize,
           {
-            abortSignal: abortSignal,
+            abortSignal,
             concurrency: options.downloadConcurrency,
             onProgress: downloadProgress.onProgress()
           }
