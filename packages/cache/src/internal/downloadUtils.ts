@@ -249,9 +249,9 @@ export async function downloadCacheStorageSDK(
 
     try {
       downloadProgress.startDisplayTimer()
-      const abortTimeInMs =
-        options.abortTimeInMs === undefined ? 3600000 : options.abortTimeInMs
-      const abortSignal = AbortController.timeout(abortTimeInMs)
+      const segmentTimeoutInMs =
+        options.segmentTimeoutInMs === undefined ? 3600000 : options.segmentTimeoutInMs
+      const abortSignal = AbortController.timeout(segmentTimeoutInMs)
       abortSignal.addEventListener('abort', () => {
         core.warning('Cache download aborted, segment download timed out.')
       })
