@@ -132,10 +132,12 @@ describe('@actions/core', () => {
   it('exportVariable does not allow delimiter as value', () => {
     const command = 'ENV'
     createFileCommandFile(command)
-    
+
     expect(() => {
       core.exportVariable('my var', `good stuff ${DELIMITER} bad stuff`)
-    }).toThrow(`Unexpected input: value should not contain the delimiter "${DELIMITER}"`)
+    }).toThrow(
+      `Unexpected input: value should not contain the delimiter "${DELIMITER}"`
+    )
 
     const filePath = path.join(__dirname, `test/${command}`)
     fs.unlinkSync(filePath)
@@ -144,11 +146,13 @@ describe('@actions/core', () => {
   it('exportVariable does not allow delimiter as name', () => {
     const command = 'ENV'
     createFileCommandFile(command)
-    
+
     expect(() => {
       core.exportVariable(`good stuff ${DELIMITER} bad stuff`, 'test')
-    }).toThrow(`Unexpected input: name should not contain the delimiter "${DELIMITER}"`)
-    
+    }).toThrow(
+      `Unexpected input: name should not contain the delimiter "${DELIMITER}"`
+    )
+
     const filePath = path.join(__dirname, `test/${command}`)
     fs.unlinkSync(filePath)
   })
