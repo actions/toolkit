@@ -249,13 +249,11 @@ export async function downloadCacheStorageSDK(
 
     try {
       downloadProgress.startDisplayTimer()
-      const segmentTimeoutInMs =
-        options.segmentTimeoutInMs === undefined
-          ? 3600000
-          : options.segmentTimeoutInMs
-      const abortSignal = AbortController.timeout(segmentTimeoutInMs)
+      const abortSignal = AbortController.timeout(
+        options.segmentTimeoutInMs || 3600000
+      )
       abortSignal.addEventListener('abort', () => {
-        core.warning('Cache download aborted, segment download timed out.')
+        core.warning('Aborting cache download as it exceeded the timeout.')
       })
       while (!downloadProgress.isDone()) {
         const segmentStart =
@@ -277,7 +275,6 @@ export async function downloadCacheStorageSDK(
             onProgress: downloadProgress.onProgress()
           }
         )
-
         fs.writeFileSync(fd, result)
       }
     } finally {
