@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.9.1
+- Randomize delimiter when calling `core.exportVariable`
+
 ### 1.9.0
 - Added `toPosixPath`, `toWin32Path` and `toPlatformPath` utilities [#1102](https://github.com/actions/toolkit/pull/1102)
 

@@ -4,6 +4,7 @@ import {toCommandProperties, toCommandValue} from './utils'
 
 import * as os from 'os'
 import * as path from 'path'
+import {v4 as uuidv4} from 'uuid'
 
 import {OidcClient} from './oidc-utils'
 
@@ -86,7 +87,21 @@ export function exportVariable(name: string, val: any): void {
 
   const filePath = process.env['GITHUB_ENV'] || ''
   if (filePath) {
-    const delimiter = '_GitHubActionsFileCommandDelimeter_'
+    const delimiter = `ghadelimiter_${uuidv4()}`
+
+    // These should realistically never happen, but just in case someone finds a way to exploit uuid generation let's not allow keys or values that contain the delimiter.
+    if (name.includes(delimiter)) {
+      throw new Error(
+        `Unexpected input: name should not contain the delimiter "${delimiter}"`
+      )
+    }
+
+    if (convertedVal.includes(delimiter)) {
+      throw new Error(
+        `Unexpected input: value should not contain the delimiter "${delimiter}"`
+      )
+    }
+
     const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`
     issueFileCommand('ENV', commandValue)
   } else {

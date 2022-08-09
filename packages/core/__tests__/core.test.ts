@@ -4,6 +4,9 @@ import * as path from 'path'
 import * as core from '../src/core'
 import {HttpClient} from '@actions/http-client'
 import {toCommandProperties} from '../src/utils'
+import * as uuid from 'uuid'
+
+jest.mock('uuid')
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -41,6 +44,9 @@ const testEnvVars = {
   GITHUB_ENV: ''
 }
 
+const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+const DELIMITER = `ghadelimiter_${UUID}`
+
 describe('@actions/core', () => {
   beforeAll(() => {
     const filePath = path.join(__dirname, `test`)
@@ -54,6 +60,14 @@ describe('@actions/core', () => {
       process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
     }
     process.stdout.write = jest.fn()
+
+    jest.spyOn(uuid, 'v4').mockImplementation(() => {
+      return UUID
+    })
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
   })
 
   it('legacy exportVariable produces the correct command and sets the env', () => {
@@ -91,7 +105,7 @@ describe('@actions/core', () => {
     core.exportVariable('my var', 'var val')
     verifyFileCommand(
       command,
-      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}var val${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+      `my var<<${DELIMITER}${os.EOL}var val${os.EOL}${DELIMITER}${os.EOL}`
     )
   })
 
@@ -101,7 +115,7 @@ describe('@actions/core', () => {
     core.exportVariable('my var', true)
     verifyFileCommand(
       command,
-      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}true${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+      `my var<<${DELIMITER}${os.EOL}true${os.EOL}${DELIMITER}${os.EOL}`
     )
   })
 
@@ -111,8 +125,36 @@ describe('@actions/core', () => {
     core.exportVariable('my var', 5)
     verifyFileCommand(
       command,
-      `my var<<_GitHubActionsFileCommandDelimeter_${os.EOL}5${os.EOL}_GitHubActionsFileCommandDelimeter_${os.EOL}`
+      `my var<<${DELIMITER}${os.EOL}5${os.EOL}${DELIMITER}${os.EOL}`
     )
+  })
+
+  it('exportVariable does not allow delimiter as value', () => {
+    const command = 'ENV'
+    createFileCommandFile(command)
+
+    expect(() => {
+      core.exportVariable('my var', `good stuff ${DELIMITER} bad stuff`)
+    }).toThrow(
+      `Unexpected input: value should not contain the delimiter "${DELIMITER}"`
+    )
+
+    const filePath = path.join(__dirname, `test/${command}`)
+    fs.unlinkSync(filePath)
+  })
+
+  it('exportVariable does not allow delimiter as name', () => {
+    const command = 'ENV'
+    createFileCommandFile(command)
+
+    expect(() => {
+      core.exportVariable(`good stuff ${DELIMITER} bad stuff`, 'test')
+    }).toThrow(
+      `Unexpected input: name should not contain the delimiter "${DELIMITER}"`
+    )
+
+    const filePath = path.join(__dirname, `test/${command}`)
+    fs.unlinkSync(filePath)
   })
 
   it('setSecret produces the correct command', () => {
