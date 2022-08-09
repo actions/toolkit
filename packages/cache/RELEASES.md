@@ -75,3 +75,6 @@
 ### 3.0.1
 - Fix [#833](https://github.com/actions/cache/issues/833) - cache doesn't work with github workspace directory.
 - Fix [#809](https://github.com/actions/cache/issues/809) `zstd -d: no such file or directory` error on AWS self-hosted runners.
+
+### 3.0.2
+- Added 1 hour timeout for the download stuck issue [#810](https://github.com/actions/cache/issues/810).

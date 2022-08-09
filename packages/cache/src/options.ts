@@ -46,6 +46,13 @@ export interface DownloadOptions {
    * @default 30000
    */
   timeoutInMs?: number
+
+  /**
+   * Time after which a segment download should be aborted if stuck
+   *
+   * @default 3600000
+   */
+  segmentTimeoutInMs?: number
 }
 
 /**
@@ -84,7 +91,8 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
   const result: DownloadOptions = {
     useAzureSdk: true,
     downloadConcurrency: 8,
-    timeoutInMs: 30000
+    timeoutInMs: 30000,
+    segmentTimeoutInMs: 3600000
   }
 
   if (copy) {
@@ -99,11 +107,16 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     if (typeof copy.timeoutInMs === 'number') {
       result.timeoutInMs = copy.timeoutInMs
     }
+
+    if (typeof copy.segmentTimeoutInMs === 'number') {
+      result.segmentTimeoutInMs = copy.segmentTimeoutInMs
+    }
   }
 
   core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
   core.debug(`Download concurrency: ${result.downloadConcurrency}`)
   core.debug(`Request timeout (ms): ${result.timeoutInMs}`)
+  core.debug(`Segment download timeout (ms): ${result.segmentTimeoutInMs}`)
 
   return result
 }

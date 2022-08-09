@@ -12,6 +12,8 @@ import {SocketTimeout} from './constants'
 import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
+import {AbortController} from '@azure/abort-controller'
+
 /**
  * Pipes the body of a HTTP response to a stream
  *
@@ -247,7 +249,12 @@ export async function downloadCacheStorageSDK(
 
     try {
       downloadProgress.startDisplayTimer()
-
+      const abortSignal = AbortController.timeout(
+        options.segmentTimeoutInMs || 3600000
+      )
+      abortSignal.addEventListener('abort', () => {
+        core.warning('Aborting cache download as it exceeded the timeout.')
+      })
       while (!downloadProgress.isDone()) {
         const segmentStart =
           downloadProgress.segmentOffset + downloadProgress.segmentSize
@@ -263,11 +270,11 @@ export async function downloadCacheStorageSDK(
           segmentStart,
           segmentSize,
           {
+            abortSignal,
             concurrency: options.downloadConcurrency,
             onProgress: downloadProgress.onProgress()
           }
         )
-
         fs.writeFileSync(fd, result)
       }
     } finally {
