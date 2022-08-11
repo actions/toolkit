@@ -78,3 +78,6 @@
 
 ### 3.0.2
 - Added 1 hour timeout for the download stuck issue [#810](https://github.com/actions/cache/issues/810).
+
+### 3.0.3
+- Bug fixes for download stuck issue [#810](https://github.com/actions/cache/issues/810).
