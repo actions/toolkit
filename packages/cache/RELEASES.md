@@ -81,3 +81,6 @@
 
 ### 3.0.3
 - Bug fixes for download stuck issue [#810](https://github.com/actions/cache/issues/810).
+
+### 3.0.4
+- Fix zstd not working for windows on gnu tar in issues [#888](https://github.com/actions/cache/issues/888) and [#891](https://github.com/actions/cache/issues/891).
