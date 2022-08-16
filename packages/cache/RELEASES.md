@@ -81,3 +81,6 @@
 
 ### 3.0.3
 - Bug fixes for download stuck issue [#810](https://github.com/actions/cache/issues/810).
+
+### 3.0.4
+- Allowing users to provide a custom timeout as input for aborting cache download using an environment variable `CACHE_DOWNLOAD_TIMEOUT_MINS`. Default is 1 hour.
