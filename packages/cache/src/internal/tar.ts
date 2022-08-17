@@ -68,10 +68,14 @@ export async function extractTar(
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        if (process.platform === 'win32') return ['--use-compress-program=zstd -d --long=30']
+        if (process.platform === 'win32') {
+          return ['--use-compress-program=zstd -d --long=30']
+        }
         return ['--use-compress-program', 'unzstd --long=30']
       case CompressionMethod.ZstdWithoutLong:
-        if (process.platform === 'win32') return ['--use-compress-program=zstd -d']
+        if (process.platform === 'win32') {
+          return ['--use-compress-program=zstd -d']
+        }
         return ['--use-compress-program', 'unzstd']
       default:
         return ['-z']
@@ -110,10 +114,14 @@ export async function createTar(
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        if (process.platform === 'win32') return ['--use-compress-program=zstd -T0 --long=30']
+        if (process.platform === 'win32') {
+          return ['--use-compress-program=zstd -T0 --long=30']
+        }
         return ['--use-compress-program', 'zstdmt --long=30']
       case CompressionMethod.ZstdWithoutLong:
-        if (process.platform === 'win32') return ['--use-compress-program=zstd -T0']
+        if (process.platform === 'win32') {
+          return ['--use-compress-program=zstd -T0']
+        }
         return ['--use-compress-program', 'zstdmt']
       default:
         return ['-z']
@@ -147,10 +155,14 @@ export async function listTar(
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        if (process.platform === 'win32') return ['--use-compress-program=zstd -d --long=30']
+        if (process.platform === 'win32') {
+          return ['--use-compress-program=zstd -d --long=30']
+        }
         return ['--use-compress-program', 'unzstd --long=30']
       case CompressionMethod.ZstdWithoutLong:
-        if (process.platform === 'win32') return ['--use-compress-program=zstd -d']
+        if (process.platform === 'win32') {
+          return ['--use-compress-program=zstd -d']
+        }
         return ['--use-compress-program', 'unzstd']
       default:
         return ['-z']
