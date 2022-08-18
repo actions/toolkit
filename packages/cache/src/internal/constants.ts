@@ -11,12 +11,6 @@ export enum CompressionMethod {
   Zstd = 'zstd'
 }
 
-export enum TarOperation {
-  Create = 'create',
-  List = 'list',
-  Extract = 'extract'
-}
-
 // The default number of retry attempts.
 export const DefaultRetryAttempts = 2
 
