@@ -112,20 +112,21 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
       result.segmentTimeoutInMs = copy.segmentTimeoutInMs
     }
   }
-  const customDownloadTimeoutMins = process.env['CACHE_DOWNLOAD_TIMEOUT_MINS']
+  const segmentDownloadTimeoutMins =
+    process.env['SEGMENT_DOWNLOAD_TIMEOUT_MINS']
 
   if (
-    customDownloadTimeoutMins &&
-    !isNaN(Number(customDownloadTimeoutMins)) &&
-    isFinite(Number(customDownloadTimeoutMins))
+    segmentDownloadTimeoutMins &&
+    !isNaN(Number(segmentDownloadTimeoutMins)) &&
+    isFinite(Number(segmentDownloadTimeoutMins))
   ) {
-    result.segmentTimeoutInMs = Number(customDownloadTimeoutMins) * 60 * 1000
+    result.segmentTimeoutInMs = Number(segmentDownloadTimeoutMins) * 60 * 1000
   }
   core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
   core.debug(`Download concurrency: ${result.downloadConcurrency}`)
   core.debug(`Request timeout (ms): ${result.timeoutInMs}`)
   core.debug(
-    `Cache download timeout mins env var: ${process.env['CACHE_DOWNLOAD_TIMEOUT_MINS']}`
+    `Cache segment download timeout mins env var: ${process.env['SEGMENT_DOWNLOAD_TIMEOUT_MINS']}`
   )
   core.debug(`Segment download timeout (ms): ${result.segmentTimeoutInMs}`)
 

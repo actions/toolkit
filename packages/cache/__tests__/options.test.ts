@@ -63,7 +63,7 @@ test('getDownloadOptions overrides download timeout minutes', async () => {
     timeoutInMs: 20000,
     segmentTimeoutInMs: 3600000
   }
-  process.env.CACHE_DOWNLOAD_TIMEOUT_MINS = '10'
+  process.env.SEGMENT_DOWNLOAD_TIMEOUT_MINS = '10'
   const actualOptions = getDownloadOptions(expectedOptions)
 
   expect(actualOptions.useAzureSdk).toEqual(expectedOptions.useAzureSdk)

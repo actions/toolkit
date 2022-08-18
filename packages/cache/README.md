@@ -42,3 +42,8 @@ const restoreKeys = [
 const cacheKey = await cache.restoreCache(paths, key, restoreKeys)
 ```
 
+##### Cache segment restore timeout
+
+Starting `v3.0.5` of `actions/toolkit`, in case any issue occurs while downloading the cache, the download will be aborted by default within 1 hour if any `segment` doesn't download completely. A `segment` is limited to size of `1GB` for a `32-bit` runner and `2GB` for a `64-bit` runner. So for any cache that exceeds the size of one segment, multiple segments will be downloaded in sequence to complete the download.
+
+To customise the `segment` download timeout, an environment variable `SEGMENT_DOWNLOAD_TIMEOUT_MINS` needs to be set with the timeout minutes. This way the download wouldn't get stuck forever and proceed to next step in the workflow without any problem.
