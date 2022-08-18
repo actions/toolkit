@@ -55,3 +55,21 @@ test('getUploadOptions overrides all settings', async () => {
 
   expect(actualOptions).toEqual(expectedOptions)
 })
+
+test('getDownloadOptions overrides download timeout minutes', async () => {
+  const expectedOptions: DownloadOptions = {
+    useAzureSdk: false,
+    downloadConcurrency: 14,
+    timeoutInMs: 20000,
+    segmentTimeoutInMs: 3600000
+  }
+  process.env.SEGMENT_DOWNLOAD_TIMEOUT_MINS = '10'
+  const actualOptions = getDownloadOptions(expectedOptions)
+
+  expect(actualOptions.useAzureSdk).toEqual(expectedOptions.useAzureSdk)
+  expect(actualOptions.downloadConcurrency).toEqual(
+    expectedOptions.downloadConcurrency
+  )
+  expect(actualOptions.timeoutInMs).toEqual(expectedOptions.timeoutInMs)
+  expect(actualOptions.segmentTimeoutInMs).toEqual(600000)
+})

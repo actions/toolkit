@@ -3,7 +3,7 @@ import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
 import * as utils from './cacheUtils'
-import {CompressionMethod, TarOperation} from './constants'
+import {CompressionMethod} from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
 
