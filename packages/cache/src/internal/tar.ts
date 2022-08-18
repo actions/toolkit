@@ -66,13 +66,10 @@ function getCompressionProgram(compressionMethod: CompressionMethod): string[] {
     case CompressionMethod.Zstd:
       return [
         '--use-compress-program',
-        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30',
+        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
       ]
     case CompressionMethod.ZstdWithoutLong:
-      return [
-        '--use-compress-program',
-        IS_WINDOWS ? 'zstd -d' : 'unzstd',
-      ]
+      return ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
     default:
       return ['-z']
   }
@@ -136,10 +133,7 @@ export async function createTar(
           IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
         ]
       case CompressionMethod.ZstdWithoutLong:
-        return [
-          '--use-compress-program',
-          IS_WINDOWS ? 'zstd -T0' : 'zstdmt'
-        ]
+        return ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt']
       default:
         return ['-z']
     }
