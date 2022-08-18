@@ -83,7 +83,7 @@ export async function listTar(
   compressionMethod: CompressionMethod
 ): Promise<void> {
   const args = [
-    getCompressionProgram(compressionMethod),
+    ...getCompressionProgram(compressionMethod),
     '-tf',
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P'
@@ -99,7 +99,7 @@ export async function extractTar(
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
   const args = [
-    getCompressionProgram(compressionMethod),
+    ...getCompressionProgram(compressionMethod),
     '-xf',
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
