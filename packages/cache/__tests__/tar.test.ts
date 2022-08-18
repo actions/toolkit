@@ -50,7 +50,7 @@ test('zstd extract tar', async () => {
     `"${defaultTarPath}"`,
     [
       '--use-compress-program',
-      'unzstd --long=30',
+      IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30',
       '-xf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P',
@@ -140,7 +140,7 @@ test('zstd create tar', async () => {
     [
       '--posix',
       '--use-compress-program',
-      'zstdmt --long=30',
+      IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30',
       '-cf',
       IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd,
       '--exclude',
@@ -210,7 +210,7 @@ test('zstd list tar', async () => {
     `"${defaultTarPath}"`,
     [
       '--use-compress-program',
-      'unzstd --long=30',
+      IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30',
       '-tf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P'
@@ -235,7 +235,7 @@ test('zstdWithoutLong list tar', async () => {
     `"${defaultTarPath}"`,
     [
       '--use-compress-program',
-      'unzstd',
+      IS_WINDOWS ? 'zstd -d' : 'unzstd',
       '-tf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P'
