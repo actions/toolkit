@@ -205,7 +205,7 @@ export async function downloadCacheHttpClient(
 
 /**
  * Download the cache using the Azure Storage SDK.  Only call this method if the
- * URL points to an Azure Storage endpoint.
+ * URL points to an Azure Storage endpoint. Using connection strings.
  *
  * @param archiveLocation the URL for the cache
  * @param archivePath the local path where the cache is saved
@@ -235,6 +235,87 @@ export async function downloadCacheStorageSDK(
     )
 
     await downloadCacheHttpClient(archiveLocation, archivePath)
+  } else {
+    // Use downloadToBuffer for faster downloads, since internally it splits the
+    // file into 4 MB chunks which can then be parallelized and retried independently
+    //
+    // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
+    // on 64-bit systems), split the download into multiple segments
+    // ~2 GB = 2147483647, beyond this, we start getting out of range error. So, capping it accordingly.
+    const maxSegmentSize = Math.min(2147483647, buffer.constants.MAX_LENGTH)
+    const downloadProgress = new DownloadProgress(contentLength)
+
+    const fd = fs.openSync(archivePath, 'w')
+
+    try {
+      downloadProgress.startDisplayTimer()
+      const controller = new AbortController()
+      const abortSignal = controller.signal
+      while (!downloadProgress.isDone()) {
+        const segmentStart =
+          downloadProgress.segmentOffset + downloadProgress.segmentSize
+
+        const segmentSize = Math.min(
+          maxSegmentSize,
+          contentLength - segmentStart
+        )
+
+        downloadProgress.nextSegment(segmentSize)
+        const result = await promiseWithTimeout(
+          options.segmentTimeoutInMs || 3600000,
+          client.downloadToBuffer(segmentStart, segmentSize, {
+            abortSignal,
+            concurrency: options.downloadConcurrency,
+            onProgress: downloadProgress.onProgress()
+          })
+        )
+        if (result === 'timeout') {
+          controller.abort()
+          throw new Error(
+            'Aborting cache download as the download time exceeded the timeout.'
+          )
+        } else if (Buffer.isBuffer(result)) {
+          fs.writeFileSync(fd, result)
+        }
+      }
+    } finally {
+      downloadProgress.stopDisplayTimer()
+      fs.closeSync(fd)
+    }
+  }
+}
+
+/**
+ * Download the cache using the Azure Storage SDK.  Only call this method if the
+ * URL points to an Azure Storage endpoint.
+ *
+ * @param archiveLocation the URL for the cache
+ * @param archivePath the local path where the cache is saved
+ * @param options the download options with the defaults set
+ */
+
+export async function downloadCacheBlobStorage(
+  key: string,
+  archivePath: string,
+  options: DownloadOptions,
+  blobContainerName: string,
+  connectionString: string
+): Promise<void> {
+  const client = new BlockBlobClient(connectionString, blobContainerName, key, {
+    retryOptions: {
+      // Override the timeout used when downloading each 4 MB chunk
+      // The default is 2 min / MB, which is way too slow
+      tryTimeoutInMs: options.timeoutInMs
+    }
+  })
+
+  const properties = await client.getProperties()
+  const contentLength = properties.contentLength ?? -1
+
+  if (contentLength < 0) {
+    // We should never hit this condition, but just in case fall back to downloading the
+    // file as one large stream
+    core.debug('Unable to determine content length')
   } else {
     // Use downloadToBuffer for faster downloads, since internally it splits the
     // file into 4 MB chunks which can then be parallelized and retried independently

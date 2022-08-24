@@ -66,7 +66,9 @@ export async function restoreCache(
   paths: string[],
   primaryKey: string,
   restoreKeys?: string[],
-  options?: DownloadOptions
+  options?: DownloadOptions,
+  blobContainerName?: string,
+  connectionString?: string
 ): Promise<string | undefined> {
   checkPaths(paths)
 
@@ -89,11 +91,17 @@ export async function restoreCache(
   let archivePath = ''
   try {
     // path are needed to compute version
-    const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-      compressionMethod
-    })
+    const cacheEntry = await cacheHttpClient.getCacheEntry(
+      keys,
+      paths,
+      {
+        compressionMethod
+      },
+      blobContainerName,
+      connectionString
+    )
 
-    if (!cacheEntry?.archiveLocation) {
+    if (!cacheEntry?.archiveLocation && !cacheEntry?.cacheKey) {
       // Cache not found
       return undefined
     }
@@ -106,9 +114,11 @@ export async function restoreCache(
 
     // Download the cache from the cache entry
     await cacheHttpClient.downloadCache(
-      cacheEntry.archiveLocation,
+      cacheEntry,
       archivePath,
-      options
+      options,
+      blobContainerName,
+      connectionString
     )
 
     if (core.isDebug()) {
@@ -157,7 +167,9 @@ export async function restoreCache(
 export async function saveCache(
   paths: string[],
   key: string,
-  options?: UploadOptions
+  options?: UploadOptions,
+  blobContainerName?: string,
+  connectionString?: string
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
@@ -208,7 +220,9 @@ export async function saveCache(
       {
         compressionMethod,
         cacheSize: archiveFileSize
-      }
+      },
+      blobContainerName,
+      connectionString
     )
 
     if (reserveCacheResponse?.result?.cacheId) {
@@ -227,7 +241,14 @@ export async function saveCache(
     }
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
-    await cacheHttpClient.saveCache(cacheId, archivePath, options)
+    await cacheHttpClient.saveCache(
+      cacheId,
+      archivePath,
+      key,
+      options,
+      blobContainerName,
+      connectionString
+    )
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {

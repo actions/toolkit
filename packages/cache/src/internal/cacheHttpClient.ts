@@ -19,7 +19,11 @@ import {
   ReserveCacheResponse,
   ITypedResponseWithError
 } from './contracts'
-import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
+import {
+  downloadCacheBlobStorage,
+  downloadCacheHttpClient,
+  downloadCacheStorageSDK
+} from './downloadUtils'
 import {
   DownloadOptions,
   UploadOptions,
@@ -31,6 +35,10 @@ import {
   retryHttpClientResponse,
   retryTypedResponse
 } from './requestUtils'
+import {
+  BlobServiceClient,
+  BlockBlobClient
+} from '@azure/storage-blob'
 
 const versionSalt = '1.0'
 
@@ -89,11 +97,55 @@ export function getCacheVersion(
     .digest('hex')
 }
 
+async function getCacheEntryBlob(
+  connectionString: string,
+  blobContainerName: string,
+  keys: string[],
+  paths: string[]
+): Promise<ArtifactCacheEntry | null> {
+  const primaryKey = keys[0]
+  const notPrimaryKey = keys.slice(1)
+  const blobService = BlobServiceClient.fromConnectionString(connectionString)
+  const blobContainer = blobService.getContainerClient(blobContainerName)
+  const blobList = blobContainer.listBlobsFlat()
+
+  for await (const blob of blobList) {
+    if (blob.name === primaryKey) {
+      return {
+        cacheKey: primaryKey,
+        creationTime: blob.properties.lastModified.toISOString()
+      }
+    }
+
+    for (const key of notPrimaryKey) {
+      if (blob.name === key) {
+        return {
+          cacheKey: blob.name,
+          creationTime: blob.properties.lastModified.toISOString()
+        }
+      }
+    }
+  }
+
+  return null
+}
+
 export async function getCacheEntry(
   keys: string[],
   paths: string[],
-  options?: InternalCacheOptions
+  options?: InternalCacheOptions,
+  blobContainerName?: string,
+  connectionString?: string
 ): Promise<ArtifactCacheEntry | null> {
+  if (blobContainerName && connectionString) {
+    return await getCacheEntryBlob(
+      connectionString,
+      blobContainerName,
+      keys,
+      paths
+    )
+  }
+
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
   const resource = `cache?keys=${encodeURIComponent(
@@ -123,10 +175,14 @@ export async function getCacheEntry(
 }
 
 export async function downloadCache(
-  archiveLocation: string,
+  cacheEntry: ArtifactCacheEntry,
   archivePath: string,
-  options?: DownloadOptions
+  options?: DownloadOptions,
+  blobContainerName?: string,
+  connectionString?: string
 ): Promise<void> {
+  const archiveLocation =
+    cacheEntry.archiveLocation ?? 'https://NoArchiveLocationFound.com'
   const archiveUrl = new URL(archiveLocation)
   const downloadOptions = getDownloadOptions(options)
 
@@ -136,6 +192,15 @@ export async function downloadCache(
   ) {
     // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
     await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
+  }
+  if (blobContainerName && connectionString && cacheEntry.cacheKey) {
+    await downloadCacheBlobStorage(
+      cacheEntry.cacheKey,
+      archivePath,
+      downloadOptions,
+      blobContainerName,
+      connectionString
+    )
   } else {
     // Otherwise, download using the Actions http-client.
     await downloadCacheHttpClient(archiveLocation, archivePath)
@@ -146,8 +211,19 @@ export async function downloadCache(
 export async function reserveCache(
   key: string,
   paths: string[],
-  options?: InternalCacheOptions
+  options?: InternalCacheOptions,
+  blobContainerName?: string,
+  connectionString?: string
 ): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
+  if (blobContainerName && connectionString) {
+    const response: ITypedResponseWithError<ReserveCacheResponse> = {
+      statusCode: 0,
+      result: null,
+      headers: {}
+    }
+    return response
+  }
+
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
 
@@ -212,16 +288,40 @@ async function uploadChunk(
   }
 }
 
+async function uploadFileBlob(
+  blobContainerName: string,
+  connectionString: string,
+  archivePath: string,
+  key: string,
+  concurrency: number
+): Promise<void> {
+  core.debug(`Start upload to (blobContainerName: ${blobContainerName})`)
+
+  const fileStream = fs.createReadStream(archivePath)
+  try {
+    const blockBlobClient = new BlockBlobClient(
+      connectionString,
+      blobContainerName,
+      key
+    )
+
+    await blockBlobClient.uploadStream(fileStream, undefined, concurrency)
+  } catch (error) {
+    throw new Error(`Cache upload failed because ${error}`)
+  }
+  return
+}
+
 async function uploadFile(
   httpClient: HttpClient,
   cacheId: number,
   archivePath: string,
-  options?: UploadOptions
+  key: string,
+  options?: UploadOptions,
+  blobContainerName?: string,
+  connectionString?: string
 ): Promise<void> {
   // Upload Chunks
-  const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
-  const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`)
-  const fd = fs.openSync(archivePath, 'r')
   const uploadOptions = getUploadOptions(options)
 
   const concurrency = utils.assertDefined(
@@ -236,6 +336,21 @@ async function uploadFile(
   const parallelUploads = [...new Array(concurrency).keys()]
   core.debug('Awaiting all uploads')
   let offset = 0
+
+  if (blobContainerName && connectionString) {
+    await uploadFileBlob(
+      blobContainerName,
+      connectionString,
+      archivePath,
+      key,
+      concurrency
+    )
+    return
+  }
+
+  const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
+  const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`)
+  const fd = fs.openSync(archivePath, 'r')
 
   try {
     await Promise.all(
@@ -291,12 +406,23 @@ async function commitCache(
 export async function saveCache(
   cacheId: number,
   archivePath: string,
-  options?: UploadOptions
+  key: string,
+  options?: UploadOptions,
+  blobContainerName?: string,
+  connectionString?: string
 ): Promise<void> {
   const httpClient = createHttpClient()
 
   core.debug('Upload cache')
-  await uploadFile(httpClient, cacheId, archivePath, options)
+  await uploadFile(
+    httpClient,
+    cacheId,
+    archivePath,
+    key,
+    options,
+    blobContainerName,
+    connectionString
+  )
 
   // Commit Cache
   core.debug('Commiting cache')
