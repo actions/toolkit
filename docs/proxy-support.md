@@ -4,7 +4,7 @@ Self-hosted runners [can be configured](https://help.github.com/en/actions/hosti
 
 For actions to **just work** behind a proxy server:
 
-  1. Use [tool-cache] version >= 1.3.1
-  2. Optionally use [actions/http-client](https://github.com/actions/http-client)
+  1. Use [tool-cache](https://github.com/actions/toolkit/tree/main/packages/tool-cache) version >= 1.3.1
+  2. Optionally use [actions/http-client](https://github.com/actions/toolkit/tree/main/packages/http-client)
 
 If you are using other http clients, refer to the [environment variables set by the runner](https://help.github.com/en/actions/hosting-your-own-runners/using-a-proxy-server-with-self-hosted-runners).
