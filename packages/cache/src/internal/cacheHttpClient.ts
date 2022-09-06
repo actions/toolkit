@@ -211,18 +211,8 @@ export async function downloadCache(
 export async function reserveCache(
   key: string,
   paths: string[],
-  options?: InternalCacheOptions,
-  blobContainerName?: string,
-  connectionString?: string
+  options?: InternalCacheOptions
 ): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
-  if (blobContainerName && connectionString) {
-    const response: ITypedResponseWithError<ReserveCacheResponse> = {
-      statusCode: 0,
-      result: null,
-      headers: {}
-    }
-    return response
-  }
 
   const httpClient = createHttpClient()
   const version = getCacheVersion(paths, options?.compressionMethod)
@@ -431,12 +421,14 @@ export async function saveCache(
     `Cache Size: ~${Math.round(cacheSize / (1024 * 1024))} MB (${cacheSize} B)`
   )
 
-  const commitCacheResponse = await commitCache(httpClient, cacheId, cacheSize)
-  if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
-    throw new Error(
-      `Cache service responded with ${commitCacheResponse.statusCode} during commit cache.`
-    )
-  }
+  if(!connectionString && !blobContainerName ) {
+    const commitCacheResponse = await commitCache(httpClient, cacheId, cacheSize)
+    if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
+      throw new Error(
+        `Cache service responded with ${commitCacheResponse.statusCode} during commit cache.`
+      )
+    }
+  } 
 
   core.info('Cache saved successfully')
 }

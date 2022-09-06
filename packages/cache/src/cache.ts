@@ -214,30 +214,33 @@ export async function saveCache(
     }
 
     core.debug('Reserving Cache')
-    const reserveCacheResponse = await cacheHttpClient.reserveCache(
-      key,
-      paths,
-      {
-        compressionMethod,
-        cacheSize: archiveFileSize
-      },
-      blobContainerName,
-      connectionString
-    )
-
-    if (reserveCacheResponse?.result?.cacheId) {
-      cacheId = reserveCacheResponse?.result?.cacheId
-    } else if (reserveCacheResponse?.statusCode === 400) {
-      throw new Error(
-        reserveCacheResponse?.error?.message ??
-          `Cache size of ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+    if (blobContainerName && connectionString) {
+      cacheId = 0
+    }
+    else {
+      const reserveCacheResponse = await cacheHttpClient.reserveCache(
+        key,
+        paths,
+        {
+          compressionMethod,
+          cacheSize: archiveFileSize
+        },
       )
-    } else {
-      throw new ReserveCacheError(
-        `Unable to reserve cache with key ${key}, another job may be creating this cache. More details: ${reserveCacheResponse?.error?.message}`
-      )
+  
+      if (reserveCacheResponse?.result?.cacheId) {
+        cacheId = reserveCacheResponse?.result?.cacheId
+      } else if (reserveCacheResponse?.statusCode === 400) {
+        throw new Error(
+          reserveCacheResponse?.error?.message ??
+            `Cache size of ~${Math.round(
+              archiveFileSize / (1024 * 1024)
+            )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+        )
+      } else {
+        throw new ReserveCacheError(
+          `Unable to reserve cache with key ${key}, another job may be creating this cache. More details: ${reserveCacheResponse?.error?.message}`
+        )
+      }
     }
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
