@@ -283,7 +283,7 @@ describe('@actions/core', () => {
     ).toEqual(['  val1  ', '  val2  ', '  '])
   })
 
-  it('setOutput produces the correct command', () => {
+  it('legacy setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
     assertWriteCalls([
       os.EOL,
@@ -291,14 +291,72 @@ describe('@actions/core', () => {
     ])
   })
 
-  it('setOutput handles bools', () => {
+  it('legacy setOutput handles bools', () => {
     core.setOutput('some output', false)
     assertWriteCalls([os.EOL, `::set-output name=some output::false${os.EOL}`])
   })
 
-  it('setOutput handles numbers', () => {
+  it('legacy setOutput handles numbers', () => {
     core.setOutput('some output', 1.01)
     assertWriteCalls([os.EOL, `::set-output name=some output::1.01${os.EOL}`])
+  })
+
+  it('setOutput produces the correct command and sets the output', () => {
+    const command = 'OUTPUT'
+    createFileCommandFile(command)
+    core.setOutput('my out', 'out val')
+    verifyFileCommand(
+      command,
+      `my out<<${DELIMITER}${os.EOL}out val${os.EOL}${DELIMITER}${os.EOL}`
+    )
+  })
+
+  it('setOutput handles boolean inputs', () => {
+    const command = 'OUTPUT'
+    createFileCommandFile(command)
+    core.setOutput('my out', true)
+    verifyFileCommand(
+      command,
+      `my out<<${DELIMITER}${os.EOL}true${os.EOL}${DELIMITER}${os.EOL}`
+    )
+  })
+
+  it('setOutput handles number inputs', () => {
+    const command = 'OUTPUT'
+    createFileCommandFile(command)
+    core.setOutput('my out', 5)
+    verifyFileCommand(
+      command,
+      `my out<<${DELIMITER}${os.EOL}5${os.EOL}${DELIMITER}${os.EOL}`
+    )
+  })
+
+  it('setOutput does not allow delimiter as value', () => {
+    const command = 'OUTPUT'
+    createFileCommandFile(command)
+
+    expect(() => {
+      core.setOutput('my out', `good stuff ${DELIMITER} bad stuff`)
+    }).toThrow(
+      `Unexpected input: value should not contain the delimiter "${DELIMITER}"`
+    )
+
+    const filePath = path.join(__dirname, `test/${command}`)
+    fs.unlinkSync(filePath)
+  })
+
+  it('setOutput does not allow delimiter as name', () => {
+    const command = 'OUTPUT'
+    createFileCommandFile(command)
+
+    expect(() => {
+      core.setOutput(`good stuff ${DELIMITER} bad stuff`, 'test')
+    }).toThrow(
+      `Unexpected input: name should not contain the delimiter "${DELIMITER}"`
+    )
+
+    const filePath = path.join(__dirname, `test/${command}`)
+    fs.unlinkSync(filePath)
   })
 
   it('setFailed sets the correct exit code and failure message', () => {
@@ -466,19 +524,77 @@ describe('@actions/core', () => {
     assertWriteCalls([`::debug::%0D%0Adebug%0A${os.EOL}`])
   })
 
-  it('saveState produces the correct command', () => {
+  it('legacy saveState produces the correct command', () => {
     core.saveState('state_1', 'some value')
     assertWriteCalls([`::save-state name=state_1::some value${os.EOL}`])
   })
 
-  it('saveState handles numbers', () => {
+  it('legacy saveState handles numbers', () => {
     core.saveState('state_1', 1)
     assertWriteCalls([`::save-state name=state_1::1${os.EOL}`])
   })
 
-  it('saveState handles bools', () => {
+  it('legacy saveState handles bools', () => {
     core.saveState('state_1', true)
     assertWriteCalls([`::save-state name=state_1::true${os.EOL}`])
+  })
+
+  it('saveState produces the correct command and saves the state', () => {
+    const command = 'STATE'
+    createFileCommandFile(command)
+    core.saveState('my state', 'out val')
+    verifyFileCommand(
+      command,
+      `my state<<${DELIMITER}${os.EOL}out val${os.EOL}${DELIMITER}${os.EOL}`
+    )
+  })
+
+  it('saveState handles boolean inputs', () => {
+    const command = 'STATE'
+    createFileCommandFile(command)
+    core.saveState('my state', true)
+    verifyFileCommand(
+      command,
+      `my state<<${DELIMITER}${os.EOL}true${os.EOL}${DELIMITER}${os.EOL}`
+    )
+  })
+
+  it('saveState handles number inputs', () => {
+    const command = 'STATE'
+    createFileCommandFile(command)
+    core.saveState('my state', 5)
+    verifyFileCommand(
+      command,
+      `my state<<${DELIMITER}${os.EOL}5${os.EOL}${DELIMITER}${os.EOL}`
+    )
+  })
+
+  it('saveState does not allow delimiter as value', () => {
+    const command = 'STATE'
+    createFileCommandFile(command)
+
+    expect(() => {
+      core.saveState('my state', `good stuff ${DELIMITER} bad stuff`)
+    }).toThrow(
+      `Unexpected input: value should not contain the delimiter "${DELIMITER}"`
+    )
+
+    const filePath = path.join(__dirname, `test/${command}`)
+    fs.unlinkSync(filePath)
+  })
+
+  it('saveState does not allow delimiter as name', () => {
+    const command = 'STATE'
+    createFileCommandFile(command)
+
+    expect(() => {
+      core.saveState(`good stuff ${DELIMITER} bad stuff`, 'test')
+    }).toThrow(
+      `Unexpected input: name should not contain the delimiter "${DELIMITER}"`
+    )
+
+    const filePath = path.join(__dirname, `test/${command}`)
+    fs.unlinkSync(filePath)
   })
 
   it('getState gets wrapper action state', () => {

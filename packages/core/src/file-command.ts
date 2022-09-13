@@ -5,6 +5,7 @@
 
 import * as fs from 'fs'
 import * as os from 'os'
+import {v4 as uuidv4} from 'uuid'
 import {toCommandValue} from './utils'
 
 export function issueCommand(command: string, message: any): void {
@@ -21,4 +22,26 @@ export function issueCommand(command: string, message: any): void {
   fs.appendFileSync(filePath, `${toCommandValue(message)}${os.EOL}`, {
     encoding: 'utf8'
   })
+}
+
+export function prepareKeyValueMessage(key: string, value: any): string {
+  const delimiter = `ghadelimiter_${uuidv4()}`
+  const convertedValue = toCommandValue(value)
+
+  // These should realistically never happen, but just in case someone finds a
+  // way to exploit uuid generation let's not allow keys or values that contain
+  // the delimiter.
+  if (key.includes(delimiter)) {
+    throw new Error(
+      `Unexpected input: name should not contain the delimiter "${delimiter}"`
+    )
+  }
+
+  if (convertedValue.includes(delimiter)) {
+    throw new Error(
+      `Unexpected input: value should not contain the delimiter "${delimiter}"`
+    )
+  }
+
+  return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`
 }
