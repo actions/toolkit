@@ -1,8 +1,5 @@
 import {issue, issueCommand} from './command'
-import {
-  issueCommand as issueFileCommand,
-  prepareKeyValueMessage as prepareCommandValue
-} from './file-command'
+import {issueFileCommand, prepareKeyValueMessage} from './file-command'
 import {toCommandProperties, toCommandValue} from './utils'
 
 import * as os from 'os'
@@ -89,7 +86,7 @@ export function exportVariable(name: string, val: any): void {
 
   const filePath = process.env['GITHUB_ENV'] || ''
   if (filePath) {
-    return issueFileCommand('ENV', prepareCommandValue(name, val))
+    return issueFileCommand('ENV', prepareKeyValueMessage(name, val))
   }
 
   issueCommand('set-env', {name}, convertedVal)
@@ -195,7 +192,7 @@ export function getBooleanInput(name: string, options?: InputOptions): boolean {
 export function setOutput(name: string, value: any): void {
   const filePath = process.env['GITHUB_OUTPUT'] || ''
   if (filePath) {
-    return issueFileCommand('OUTPUT', prepareCommandValue(name, value))
+    return issueFileCommand('OUTPUT', prepareKeyValueMessage(name, value))
   }
 
   process.stdout.write(os.EOL)
@@ -355,7 +352,7 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
 export function saveState(name: string, value: any): void {
   const filePath = process.env['GITHUB_STATE'] || ''
   if (filePath) {
-    return issueFileCommand('STATE', prepareCommandValue(name, value))
+    return issueFileCommand('STATE', prepareKeyValueMessage(name, value))
   }
 
   issueCommand('save-state', {name}, toCommandValue(value))

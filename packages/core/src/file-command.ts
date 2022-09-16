@@ -8,7 +8,7 @@ import * as os from 'os'
 import {v4 as uuidv4} from 'uuid'
 import {toCommandValue} from './utils'
 
-export function issueCommand(command: string, message: any): void {
+export function issueFileCommand(command: string, message: any): void {
   const filePath = process.env[`GITHUB_${command}`]
   if (!filePath) {
     throw new Error(
