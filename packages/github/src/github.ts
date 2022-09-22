@@ -17,9 +17,6 @@ export function getOctokit(
   options?: OctokitOptions,
   ...additionalPlugins: OctokitPlugin[]
 ): InstanceType<typeof GitHub> {
-  if (additionalPlugins.length) {
-    const GitHubWithPlugins = GitHub.plugin(...additionalPlugins)
-    return new GitHubWithPlugins(getOctokitOptions(token, options))
-  }
-  return new GitHub(getOctokitOptions(token, options))
+  const GitHubWithPlugins = GitHub.plugin(...additionalPlugins)
+  return new GitHubWithPlugins(getOctokitOptions(token, options))
 }
