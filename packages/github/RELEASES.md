@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 5.1.0
+- Add additionalPlugins parameter to getOctokit method [#1181](https://github.com/actions/toolkit/pull/1181)
+- Dependency updates [#1180](https://github.com/actions/toolkit/pull/1180)
+
+
 ### 5.0.3
 - - Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
 
