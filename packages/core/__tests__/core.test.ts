@@ -35,6 +35,9 @@ const testEnvVars = {
   INPUT_WITH_TRAILING_WHITESPACE: '  some val  ',
 
   INPUT_MY_INPUT_LIST: 'val1\nval2\nval3',
+  INPUT_MY_INPUT_LIST_2: 'val1,val2,val3',
+  INPUT_MY_INPUT_LIST_3: '[val1,val2,val3]',
+  INPUT_MY_INPUT_LIST_4: '[val1, val2, val3]',
 
   // Save inputs
   STATE_TEST_1: 'state_val',
@@ -214,6 +217,24 @@ describe('@actions/core', () => {
 
   it('getMultilineInput works', () => {
     expect(core.getMultilineInput('my input list')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
+
+    expect(core.getMultilineInput('my input list 2')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
+
+    expect(core.getMultilineInput('my input list 3')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
+
+    expect(core.getMultilineInput('my input list 4')).toEqual([
       'val1',
       'val2',
       'val3'
