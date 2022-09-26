@@ -22,6 +22,7 @@ const testEnvVars = {
   // Set inputs
   INPUT_MY_INPUT: 'val',
   INPUT_MISSING: '',
+  INPUT_EMPTY_STRING: '',
   'INPUT_SPECIAL_CHARS_\'\t"\\': '\'\t"\\ response ',
   INPUT_MULTIPLE_SPACES_VARIABLE: 'I have multiple spaces',
   INPUT_BOOLEAN_INPUT: 'true',
@@ -259,6 +260,12 @@ describe('@actions/core', () => {
         `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``
     )
   })
+
+  it('hasInput determines presence of Input enviromment variable', () => {
+    expect(core.hasInput('my_input')).toBe(true)
+    expect(core.hasInput('empty_string')).toBe(true)
+    expect(core.hasInput('input_does_not_exist')).toBe(false)
+  });
 
   it('setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')

@@ -132,6 +132,16 @@ export function addPath(inputPath: string): void {
 }
 
 /**
+ * Determines if the Input has been provided.
+ *
+ * @param   name name of the input to check for presence of
+ * @returns boolean
+ */
+export function hasInput(name: string): boolean {
+  return inputEnvKey(name) in process.env
+}
+
+/**
  * Gets the value of an input.
  * Unless trimWhitespace is set to false in InputOptions, the value is also trimmed.
  * Returns an empty string if the value is not defined.
@@ -141,8 +151,8 @@ export function addPath(inputPath: string): void {
  * @returns   string
  */
 export function getInput(name: string, options?: InputOptions): string {
-  const val: string =
-    process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
+  const val: string = process.env[inputEnvKey(name)] || ''
+
   if (options && options.required && !val) {
     throw new Error(`Input required and not supplied: ${name}`)
   }
@@ -152,6 +162,16 @@ export function getInput(name: string, options?: InputOptions): string {
   }
 
   return val.trim()
+}
+
+/**
+ * Create Environment Variable key for input by name.
+ *
+ * @param     name     name of the input to generate Environment Key for.
+ * @returns   string
+ */
+function inputEnvKey(name: string): string {
+  return `INPUT_${name.replace(/ /g, '_').toUpperCase()}`
 }
 
 /**
