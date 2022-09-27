@@ -15,7 +15,7 @@ const gzipExemptFileExtensions = [
   '.tar.gz',
   '.tar.bz2',
   '.tar.zst',
-  '.7z',
+  '.7z'
 ]
 
 /**
