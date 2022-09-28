@@ -170,7 +170,11 @@ export function getMultilineInput(
     .split('\n')
     .filter(x => x !== '')
 
-  return inputs
+  if (options && options.trimWhitespace === false) {
+    return inputs
+  }
+
+  return inputs.map(input => input.trim())
 }
 
 /**
