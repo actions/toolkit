@@ -1,5 +1,9 @@
 # @actions/core Releases
 
+### 1.10.0
+- `saveState` and `setOutput` now use environment files if available [#1178](https://github.com/actions/toolkit/pull/1178)
+- `getMultilineInput` now correctly trims whitespace by default [#1185](https://github.com/actions/toolkit/pull/1185)
+
 ### 1.9.1
 - Randomize delimiter when calling `core.exportVariable`
 
