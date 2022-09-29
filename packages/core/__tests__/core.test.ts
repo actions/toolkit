@@ -41,7 +41,9 @@ const testEnvVars = {
 
   // File Commands
   GITHUB_PATH: '',
-  GITHUB_ENV: ''
+  GITHUB_ENV: '',
+  GITHUB_OUTPUT: '',
+  GITHUB_STATE: ''
 }
 
 const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
