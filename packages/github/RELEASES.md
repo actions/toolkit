@@ -1,5 +1,8 @@
 # @actions/github Releases
 
+### 5.1.1
+- Export default octokit options [#1188](https://github.com/actions/toolkit/pull/1188)
+
 ### 5.1.0
 - Add additionalPlugins parameter to getOctokit method [#1181](https://github.com/actions/toolkit/pull/1181)
 - Dependency updates [#1180](https://github.com/actions/toolkit/pull/1180)
