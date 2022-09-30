@@ -34,7 +34,7 @@ export enum ExitCode {
 }
 
 /**
- * Optional properties that can be sent with annotatation commands (notice, error, and warning)
+ * Optional properties that can be sent with annotation commands (error, warning and notice)
  * See: https://docs.github.com/en/rest/reference/checks#create-a-check-run for more information about annotations.
  */
 export interface AnnotationProperties {
@@ -49,22 +49,25 @@ export interface AnnotationProperties {
   file?: string
 
   /**
-   * The start line for the annotation.
+   * The start line for the annotation. Line numbering starts at 1.
    */
   startLine?: number
 
   /**
-   * The end line for the annotation. Defaults to `startLine` when `startLine` is provided.
+   * The end line for the annotation. Line numbering starts at 1.
+   * Defaults to `startLine` when `startLine` is provided.
    */
   endLine?: number
 
   /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   * The start column for the annotation. Column numbering starts at 1.
+   * Cannot be sent when `startLine` and `endLine` are different values.
    */
   startColumn?: number
 
   /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   * The end column for the annotation. Column numbering starts at 1.
+   * Cannot be sent when `startLine` and `endLine` are different values.
    * Defaults to `startColumn` when `startColumn` is provided.
    */
   endColumn?: number
