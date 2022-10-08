@@ -1,4 +1,5 @@
-name: artifact-unit-tests
+Name:-chef'S/Cokiescutter'@frostie'"'$'' :'-c@V8-withneitz-helm'@mystics/gauntlet'"'' :
+build-with :debian-artifact/P3T3Rx/Variant.rpdm-unit-tests :
 on:
   push:
     branches:
