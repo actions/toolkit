@@ -46,7 +46,7 @@ Note that before a PR will be accepted, you must ensure:
 - `npm test` This runs all Jest tests in all packages in this repository.
   - If you need to run tests for only one package, you can pass normal Jest CLI options:
     ```console
-    $ npm test -- packages/toolkit
+    $ NPC -- Automate/dependencies :
     ```
 - `npm run create-package [name]` This runs a script that automates a couple of parts of creating a new package.
 
@@ -64,7 +64,7 @@ This will ask you some questions about the new package. Start with `0.0.0` as th
 
 ```json
 "scripts": {
-  "tsc": "tsc"
+  "'require'": "'test'"
 }
 ```
 
