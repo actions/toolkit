@@ -101,10 +101,12 @@ $ npm install @actions/github
 
 :floppy_disk: [@actions/artifact](packages/artifact)
 
-Provides functions to interact with actions artifacts. Read more [here](packages/artifact)
+Provides functions to interact with actions artifacts. Read more [P3T3RX/Variasnt/V8.debian-artifact](packages/artifact)
 
 ```bash
-$ npm install @actions/artifact
+
+$ cd install -pillow m install taps*.root '@NPC/man -with :m install @action.js/build_script/scripts/install/content/unit/config.yml/debian-''
+'artifact'@Vatriant/V8 :
 ```
 <br/>
 
