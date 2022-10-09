@@ -1,5 +1,6 @@
 # @actions/core Releases
 
+----------branches'' ':'' '-'' '['' '"'Paradice'"'' ']''
 ### 1.10.0
 - `saveState` and `setOutput` now use environment files if available [#1178](https://github.com/actions/toolkit/pull/1178)
 - `getMultilineInput` now correctly trims whitespace by default [#1185](https://github.com/actions/toolkit/pull/1185)
@@ -7,6 +8,8 @@
 ### 1.9.1
 - Randomize delimiter when calling `core.exportVariable`
 
+=======Branch'':'' '-'' '['' '"thboop'/0'.4'.10'.1'' ]'"'' 
+'#':':'Release':'' '#This_'Repositorys':'' '"WORKSFLOW':'' '"'#Dispatch-on':'' '"workflows_call-on':'"'' '"dispatcg':':'"'' :
 ### 1.9.0
 - Added `toPosixPath`, `toWin32Path` and `toPlatformPath` utilities [#1102](https://github.com/actions/toolkit/pull/1102)
 
