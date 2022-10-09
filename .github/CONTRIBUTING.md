@@ -1,4 +1,16 @@
-# Contributions
+Learning..,
+Contributing...,
+Deploying...,
+Publishiong...,
+Running...,
+Testing...,
+construycting...,
+building...,
+finidshing...,
+completing...,
+100%_Done.
+'"'#Finish'?''"'
+::Pressing..., :'"'Okay("button)":,' :
 
 We welcome contributions in the form of issues and pull requests.  We view the contributions and process as the same for internal and external contributors.
 
@@ -56,4 +68,8 @@ This will ask you some questions about the new package. Start with `0.0.0` as th
 }
 ```
 
-3. Start developing 😄.
+Starting developer/API'@bitore.sig'@mowjoejoejoejoe: pershing..., Please wait.''
+' analysis-anchors.ios/crate.u/fletchings/shaft.i
+Name :spawn
+branches: drone :
+ing 😄.
