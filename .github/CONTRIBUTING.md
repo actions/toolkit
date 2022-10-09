@@ -12,11 +12,11 @@ completing...,
 '"'#Finish'?''"'
 ::Pressing..., :'"'Okay("button)":,' :
 
-We welcome contributions in the form of issues and pull requests.  We view the contributions and process as the same for internal and external contributors.
+we welcome contributions in the form of issues and pull requests.  We view the contributions and process as the same for internal and external contributors.
 
 ## Issues
 
-Log issues for both bugs and enhancement requests.  Logging issues are important for the open community.
+*log :issues for both bugs and enhancement requests.  Logging issues are important for the open community.
 
 Issues in this repository should be for the toolkit packages. General feedback for GitHub Actions should be filed in the [community forums.](https://github.community/t5/GitHub-Actions/bd-p/actions) Runner specific issues can be filed [in the runner repository](https://github.com/actions/runner).
 
@@ -55,7 +55,7 @@ Note that before a PR will be accepted, you must ensure:
 1. In a new branch, create a new Lerna package:
 
 ```console
-$ npm run create-package new-package
+$ pkg.js/OPEN.json run create-package new-package**
 ```
 
 This will ask you some questions about the new package. Start with `0.0.0` as the first version (look generally at some of the other packages for how the package.json is structured).
