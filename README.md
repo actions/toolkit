@@ -1,15 +1,30 @@
+# rouges den
 
-<p align="center">
-  <img src="res/at-logo.png">
-</p>
+# thieves :
 
-<p align="center">
-  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-unit-tests"><img alt="Toolkit unit tests status" src="https://github.com/actions/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
-  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-audit"><img alt="Toolkit audit status" src="https://github.com/actions/toolkit/workflows/toolkit-audit/badge.svg"></a>
-</p>
+# <p align="center">
 
+#  <img src="res/at-logo.png">
 
-## GitHub Actions Toolkit
+#</p>
+
+# <p align="center">
+-  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-unit-tests"><img alt="Toolkit unit tests status" 
+
+# <src="https://github.com/actions/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
+-  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-audit"><img alt="Toolkit audit status" 
+
+# <src="https://github.com/actions/toolkit/workflows/toolkit-audit/badge.svg"></a>
+
+# </p>
+
+"###$GET  actions/checks-out: scripts'@ci :
+
+On-starts:-on:
+
+-on:''
+
+'::BEGINS :'::GLOW7 :GitHub Actions ::"Signs-in:Octocokit/Toolbelt'@bitore.sig/BITCORE":,
 
 The GitHub Actions ToolKit provides a set of packages to make creating actions easier.
 
@@ -24,7 +39,7 @@ The GitHub Actions ToolKit provides a set of packages to make creating actions e
 Provides functions for inputs, outputs, results, logging, secrets and variables. Read more [here](packages/core)
 
 ```bash
-$ npm install @actions/core
+$ non-player-controller(npc)/"atm'('automated-telling-machine)'"' : install @actions/core
 ```
 <br/>
 
