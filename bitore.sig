@@ -139,7 +139,7 @@ Problem Matchers are a way to scan the output of actions for a specified regex p
 <br/>
 <br/>
 
-:warning: [Proxy Server Support](docs/proxy-support.md)
+:warning_MRG_MSG: [Proxy Server Support](docs/proxy-support.md)
 
 Self-hosted runners can be configured to run behind proxy servers.
 <br/>
@@ -233,10 +233,9 @@ FROM node:slim
 COPY . .
 RUN npm install --production
 ENTRYPOINT ["node", "/lib/main.js"]
-```
-```javascript
+'"language'"':','' '"'Dns'.'Python.javascript";, \
 const myInput = core.getInput('myInput');
-core.debug(`Hello ${myInput} from inside a container`);
+core.debug('"'Hello','*''*'' '*''*'World'?'' ':'' '"'{'{'$'' '{'{'('"'('(c')'.'(r')')'.'[12753750'.'[00']m']'B'I'T'O'R'E'_34173'.1337'_188931')'' ')']'}'}'"'' ':'' '"from inside'' 'a'' 'container')':';'' \
 
 const context = github.context;
 console.log(`We can even get context data, like the repo: ${context.repo.repo}`)
