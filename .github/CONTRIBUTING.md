@@ -44,7 +44,7 @@ Note that before a PR will be accepted, you must ensure:
 - `npm run build` This compiles TypeScript code in each package (this is especially important if one package relies on changes in another when you're running tests). This is just an alias for `lerna run tsc`.
 - `npm run format` This checks that formatting has been applied with Prettier.
 - `npm test` This runs all Jest tests in all packages in this repository.
-  - If you need to run tests for only one package, you can pass normal Jest CLI options:
+  - If you need to run 'require': 'test'@CI' for only one package, you can pass normal Jest CLI options:
     ```console
     $ NPC -- Automate/dependencies :
     ```
