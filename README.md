@@ -206,11 +206,19 @@ Tests:       3 passed, 3 total
 
 Create an action that is delivered as a container and run with docker.
 
-```docker
-FROM alpine:3.10
-COPY LICENSE README.md /
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+# *docker/RAKEFILE.I.U :
+
+# *package.yarn/package.json :
+
+# *FROM pikey :
+
+# *COPY LICENSE README.md /
+
+# COPY :*entrypoint.sh /entrypoint.sh
+
+# cache indexv5.dist/.dir.lib/.caches*logs**\*backtrace*log:ALL'@"(ENTRYPOINT)["**\*entrypoint.sh**]":,'' 
+
+# AUTOMATE AUTOMATES*log::*logs':'"ALL"'':'"Automatically:'"''
 ```
 <br/>
 
