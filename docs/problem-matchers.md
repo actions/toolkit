@@ -142,6 +142,8 @@ Some of the starter actions are already using problem matchers, for example:
 
 Use ECMAScript regular expression syntax when testing patterns.
 
+The patterns match the input lines as-is, without stripping ANSI escape codes or other extraneous characters.  If the subject strings can contain such characters, the regular expression must account for them.
+
 ### File property getting dropped
 
 [Enable debug logging](https://docs.github.com/en/actions/managing-workflow-runs/enabling-debug-logging) to determine why the file is getting dropped.
