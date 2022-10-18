@@ -88,3 +88,6 @@
 
 ### 3.0.5
 - Update `@actions/cache` to use `@actions/core@^1.10.0`
+
+### 3.0.6
+- Added `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
