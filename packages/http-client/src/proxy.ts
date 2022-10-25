@@ -51,7 +51,7 @@ export function checkBypass(reqUrl: URL): boolean {
     .split(',')
     .map(x => x.trim().toUpperCase())
     .filter(x => x)) {
-    if (upperReqHosts.some(x => x === upperNoProxyItem)) {
+    if (upperReqHosts.some(x => x.includes(upperNoProxyItem))) {
       return true
     }
   }
