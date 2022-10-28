@@ -9,7 +9,7 @@
 </p>
 
 
-## GitHub Actions Toolkit
+## GitHub Actions Toolkit Test
 
 The GitHub Actions ToolKit provides a set of packages to make creating actions easier.
 
