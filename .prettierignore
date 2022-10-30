@@ -1,3 +1,47 @@
 node_modules/
 packages/*/node_modules/
 packages/*/lib/
+From efc0c3f3d5ff04a564f9f138dc5b22cd15c6f6e6 Mon Sep 17 00:00:00 2001
+From: Zachry T Wood III <zachryiixixiiwood@gmail.com>
+Date: Fri, 25 Mar 2022 00:47:31 +0000
+Subject: [PATCH] Add .circleci/config.yml
+
+---
+ .circleci/config.yml | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 .circleci/config.yml
+
+diff --git a/.circleci/config.yml b/.circleci/config.yml
+new file mode 100644
+index 0000000..6554e1f
+--- /dev/null
++++ b/.circleci/config.yml
+@@ -0,0 +1,26 @@
++# Use the latest 2.1 version of CircleCI pipeline process engine.
++# See: https://circleci.com/docs/2.0/configuration-reference
++version: 2.1
++
++# Define a job to be invoked later in a workflow.
++# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
++jobs:
++  say-hello:
++    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
++    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
++    docker:
++      - image: cimg/base:stable
++    # Add steps to the job
++    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
++    steps:
++      - checkout
++      - run:
++          name: "Say hello"
++          command: "echo Hello, World!"
++
++# Invoke jobs via workflows
++# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
++workflows:
++  say-hello-workflow:
++    jobs:
++      - say-hello
+-- 
+2.38.1
