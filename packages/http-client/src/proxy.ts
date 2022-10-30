@@ -30,6 +30,11 @@ export function checkBypass(reqUrl: URL): boolean {
     return false
   }
 
+  // '*' match all hosts (https://about.gitlab.com/blog/2021/01/27/we-need-to-talk-no-proxy/#standardizing-no_proxy)
+  if (noProxy === '*') {
+    return true
+  }
+
   // Determine the request port
   let reqPort: number | undefined
   if (reqUrl.port) {
@@ -50,8 +55,13 @@ export function checkBypass(reqUrl: URL): boolean {
   for (const upperNoProxyItem of noProxy
     .split(',')
     .map(x => x.trim().toUpperCase())
+    .map(x => (x.startsWith('.') ? x.substring(1) : x)) // Strip leading dot (https://about.gitlab.com/blog/2021/01/27/we-need-to-talk-no-proxy/#standardizing-no_proxy)
     .filter(x => x)) {
-    if (upperReqHosts.some(x => x.includes(upperNoProxyItem))) {
+    if (
+      upperReqHosts.some(
+        x => x === upperNoProxyItem || x.endsWith(`.${upperNoProxyItem}`)
+      )
+    ) {
       return true
     }
   }

@@ -145,6 +145,30 @@ describe('proxy', () => {
     expect(bypass).toBeFalsy()
   })
 
+  it('checkBypass returns true if host with subdomain in no_proxy', () => {
+    process.env['no_proxy'] = 'myserver.com'
+    const bypass = pm.checkBypass(new URL('https://sub.myserver.com'))
+    expect(bypass).toBeTruthy()
+  })
+
+  it('checkBypass returns true if host with leading dot in no_proxy', () => {
+    process.env['no_proxy'] = '.myserver.com'
+    const bypass = pm.checkBypass(new URL('https://myserver.com'))
+    expect(bypass).toBeTruthy()
+  })
+
+  it('checkBypass returns false if no_proxy is subdomain', () => {
+    process.env['no_proxy'] = 'myserver.com'
+    const bypass = pm.checkBypass(new URL('https://myserver.com.evil.org'))
+    expect(bypass).toBeFalsy()
+  })
+
+  it('checkBypass returns true if no_proxy is "*"', () => {
+    process.env['no_proxy'] = '*'
+    const bypass = pm.checkBypass(new URL('https://anything.whatsoever.com'))
+    expect(bypass).toBeTruthy()
+  })
+
   it('HttpClient does basic http get request through proxy', async () => {
     process.env['http_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
