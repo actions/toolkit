@@ -18,10 +18,11 @@ jobs:
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
 
-      - name: Set Node.js 12.x
+      - name: Set Node.js 14.x
         uses: actions/setup-node@v1
         with:
           node-version: 14.x
+    - run: npm install -g npm@latest
 
       - name: npm install
         run: npm install
