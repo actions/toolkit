@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
-    - run: npm install -g npm@latest
+      - run: npm install -g npm@latest
 
       - name: npm install
         run: npm install
