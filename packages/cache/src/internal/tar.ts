@@ -14,7 +14,11 @@ async function getTarPath(
   switch (process.platform) {
     case 'win32': {
       const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-      if (compressionMethod !== CompressionMethod.Gzip) {
+      const gnuTar = `${process.env['windir']}\\Program Files\\Git\\usr\\bin\\tar.exe`
+      if (compressionMethod !== CompressionMethod.Gzip && existsSync(gnuTar)) {
+        args.push('--force-local')
+        return gnuTar
+      } else if (compressionMethod !== CompressionMethod.Gzip) {
         // We only use zstandard compression on windows when gnu tar is installed due to
         // a bug with compressing large files with bsdtar + zstd
         args.push('--force-local')
