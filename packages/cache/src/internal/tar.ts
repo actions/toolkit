@@ -15,7 +15,7 @@ async function getTarPath(
     case 'win32': {
       const systemTar = `${process.env['windir']}\\System32\\tar.exe`
       const gnuTar = `${process.env['windir']}\\Program Files\\Git\\usr\\bin\\tar.exe`
-      if (compressionMethod !== CompressionMethod.Gzip && existsSync(gnuTar)) {
+      if (existsSync(gnuTar)) {
         args.push('--force-local')
         return gnuTar
       } else if (compressionMethod !== CompressionMethod.Gzip) {
