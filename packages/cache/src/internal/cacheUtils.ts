@@ -117,7 +117,7 @@ export function getCacheFileName(compressionMethod: CompressionMethod): string {
 }
 
 export async function isGnuTarInstalled(): Promise<boolean> {
-  const gnuTar = `${process.env['windir']}\\Program Files\\Git\\usr\\bin\\tar.exe`
+  const gnuTar = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
   const versionOutput = await getVersion('tar')
   return (
     versionOutput.toLowerCase().includes('gnu tar') || fs.existsSync(gnuTar)

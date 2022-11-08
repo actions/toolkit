@@ -14,7 +14,7 @@ async function getTarPath(
   switch (process.platform) {
     case 'win32': {
       const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-      const gnuTar = `${process.env['windir']}\\Program Files\\Git\\usr\\bin\\tar.exe`
+      const gnuTar = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
       if (existsSync(gnuTar)) {
         // Making GNUtar + zstd as default on windows
         args.push('--force-local')
