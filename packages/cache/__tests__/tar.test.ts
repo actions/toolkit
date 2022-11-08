@@ -92,9 +92,9 @@ test('gzip extract tar', async () => {
   )
 })
 
-test('gzip extract GNU tar on windows', async () => {
+test('gzip extract GNU tar on windows with GNUtar in path', async () => {
   if (IS_WINDOWS) {
-    jest.spyOn(fs, 'existsSync').mockReturnValueOnce(false)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false)
 
     const isGnuMock = jest
       .spyOn(utils, 'isGnuTarInstalled')
