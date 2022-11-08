@@ -16,17 +16,18 @@ async function getTarPath(
       const systemTar = `${process.env['windir']}\\System32\\tar.exe`
       const gnuTar = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
       if (existsSync(gnuTar)) {
-        // Making GNUtar + zstd as default on windows
+        // Use GNUtar as default on windows
         args.push('--force-local')
         return gnuTar
-      } else if (compressionMethod !== CompressionMethod.Gzip) {
+      } else if (
+        compressionMethod !== CompressionMethod.Gzip ||
+        (await utils.isGnuTarInstalled())
+      ) {
         // We only use zstandard compression on windows when gnu tar is installed due to
         // a bug with compressing large files with bsdtar + zstd
         args.push('--force-local')
       } else if (existsSync(systemTar)) {
         return systemTar
-      } else if (await utils.isGnuTarInstalled()) {
-        args.push('--force-local')
       }
       break
     }
