@@ -11,7 +11,7 @@ async function getTarPath(
   args: string[],
   compressionMethod: CompressionMethod
 ): Promise<string> {
-  var tarPath = await io.which('tar', true)
+  let tarPath = await io.which('tar', true)
   switch (process.platform) {
     case 'win32': {
       const gnuTar = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
