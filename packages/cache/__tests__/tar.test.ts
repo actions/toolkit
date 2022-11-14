@@ -12,6 +12,7 @@ jest.mock('@actions/io')
 
 const IS_WINDOWS = process.platform === 'win32'
 const IS_MAC = process.platform === 'darwin'
+const windowsGnuTar = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
 
 const defaultTarPath = process.platform === 'darwin' ? 'gtar' : 'tar'
 
@@ -46,7 +47,7 @@ test('zstd extract tar', async () => {
     : 'cache.tar'
   const workspace = process.env['GITHUB_WORKSPACE']
   const tarPath = IS_WINDOWS
-    ? `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+    ? windowsGnuTar
     : defaultTarPath
 
   await tar.extractTar(archivePath, CompressionMethod.Zstd)
@@ -82,7 +83,7 @@ test('gzip extract tar', async () => {
 
   expect(mkdirMock).toHaveBeenCalledWith(workspace)
   const tarPath = IS_WINDOWS
-    ? `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+    ? windowsGnuTar
     : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
@@ -144,7 +145,7 @@ test('zstd create tar', async () => {
   await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Zstd)
 
   const tarPath = IS_WINDOWS
-    ? `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+    ? windowsGnuTar
     : defaultTarPath
 
   expect(execMock).toHaveBeenCalledTimes(1)
@@ -184,7 +185,7 @@ test('gzip create tar', async () => {
   await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Gzip)
 
   const tarPath = IS_WINDOWS
-    ? `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+    ? windowsGnuTar
     : defaultTarPath
 
   expect(execMock).toHaveBeenCalledTimes(1)
@@ -221,7 +222,7 @@ test('zstd list tar', async () => {
   await tar.listTar(archivePath, CompressionMethod.Zstd)
 
   const tarPath = IS_WINDOWS
-    ? `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+    ? windowsGnuTar
     : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
@@ -249,7 +250,7 @@ test('zstdWithoutLong list tar', async () => {
   await tar.listTar(archivePath, CompressionMethod.ZstdWithoutLong)
 
   const tarPath = IS_WINDOWS
-    ? `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+    ? windowsGnuTar
     : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
@@ -276,7 +277,7 @@ test('gzip list tar', async () => {
   await tar.listTar(archivePath, CompressionMethod.Gzip)
 
   const tarPath = IS_WINDOWS
-    ? `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+    ? windowsGnuTar
     : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(

@@ -11,14 +11,15 @@ async function getTarPath(
   args: string[],
   compressionMethod: CompressionMethod
 ): Promise<string> {
+  var tarPath = await io.which('tar', true)
   switch (process.platform) {
     case 'win32': {
-      const systemTar = `${process.env['windir']}\\System32\\tar.exe`
       const gnuTar = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+      const systemTar = `${process.env['windir']}\\System32\\tar.exe`
       if (existsSync(gnuTar)) {
         // Use GNUtar as default on windows
         args.push('--force-local')
-        return gnuTar
+        tarPath = gnuTar
       } else if (
         compressionMethod !== CompressionMethod.Gzip ||
         (await utils.isGnuTarInstalled())
@@ -27,7 +28,7 @@ async function getTarPath(
         // a bug with compressing large files with bsdtar + zstd
         args.push('--force-local')
       } else if (existsSync(systemTar)) {
-        return systemTar
+        tarPath = systemTar
       }
       break
     }
@@ -36,14 +37,14 @@ async function getTarPath(
       if (gnuTar) {
         // fix permission denied errors when extracting BSD tar archive with GNU tar - https://github.com/actions/cache/issues/527
         args.push('--delay-directory-restore')
-        return gnuTar
+        tarPath = gnuTar
       }
       break
     }
     default:
       break
   }
-  return await io.which('tar', true)
+  return tarPath
 }
 
 async function execTar(
