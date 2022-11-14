@@ -9,14 +9,8 @@ export interface ITypedResponseWithError<T> extends TypedResponse<T> {
 export interface ArtifactCacheEntry {
   cacheKey?: string
   scope?: string
-  cacheVersion?: string
   creationTime?: string
   archiveLocation?: string
-}
-
-export interface ArtifactCacheList {
-  totalCount: number
-  artifactCaches?: ArtifactCacheEntry[]
 }
 
 export interface CommitCacheRequest {

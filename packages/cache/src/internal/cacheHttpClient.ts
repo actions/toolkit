@@ -17,8 +17,7 @@ import {
   CommitCacheRequest,
   ReserveCacheRequest,
   ReserveCacheResponse,
-  ITypedResponseWithError,
-  ArtifactCacheList
+  ITypedResponseWithError
 } from './contracts'
 import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
 import {
@@ -114,21 +113,6 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
-    // List cache for primary key only if cache miss occurs
-    const resource = `caches?key=${encodeURIComponent(keys[0])}`
-    const response = await httpClient.getJson<ArtifactCacheList>(getCacheApiUrl(resource))
-    if(response.statusCode === 204) {
-      const cacheListResult = response.result
-      const totalCount = cacheListResult?.totalCount
-      if(totalCount && totalCount > 0) {
-        core.info(`Cache miss occurred on the cache key '${keys[0]}' and version '${version} but there is ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version`)
-        core.debug(`Other versions are as follows:`)
-        cacheListResult?.artifactCaches?.forEach(cacheEntry => {
-          core.debug(`Cache Key: ${cacheEntry?.cacheKey}, Cache Version: ${cacheEntry?.cacheVersion}, Cache Scope: ${cacheEntry?.scope}, Cache Created: ${cacheEntry?.creationTime}`)
-        })
-      }
-    }
-
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
