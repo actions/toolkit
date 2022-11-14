@@ -46,9 +46,7 @@ test('zstd extract tar', async () => {
     ? `${process.env['windir']}\\fakepath\\cache.tar`
     : 'cache.tar'
   const workspace = process.env['GITHUB_WORKSPACE']
-  const tarPath = IS_WINDOWS
-    ? windowsGnuTar
-    : defaultTarPath
+  const tarPath = IS_WINDOWS ? windowsGnuTar : defaultTarPath
 
   await tar.extractTar(archivePath, CompressionMethod.Zstd)
 
@@ -82,9 +80,7 @@ test('gzip extract tar', async () => {
   await tar.extractTar(archivePath, CompressionMethod.Gzip)
 
   expect(mkdirMock).toHaveBeenCalledWith(workspace)
-  const tarPath = IS_WINDOWS
-    ? windowsGnuTar
-    : defaultTarPath
+  const tarPath = IS_WINDOWS ? windowsGnuTar : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
@@ -144,9 +140,7 @@ test('zstd create tar', async () => {
 
   await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Zstd)
 
-  const tarPath = IS_WINDOWS
-    ? windowsGnuTar
-    : defaultTarPath
+  const tarPath = IS_WINDOWS ? windowsGnuTar : defaultTarPath
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
@@ -184,9 +178,7 @@ test('gzip create tar', async () => {
 
   await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Gzip)
 
-  const tarPath = IS_WINDOWS
-    ? windowsGnuTar
-    : defaultTarPath
+  const tarPath = IS_WINDOWS ? windowsGnuTar : defaultTarPath
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
@@ -221,9 +213,7 @@ test('zstd list tar', async () => {
 
   await tar.listTar(archivePath, CompressionMethod.Zstd)
 
-  const tarPath = IS_WINDOWS
-    ? windowsGnuTar
-    : defaultTarPath
+  const tarPath = IS_WINDOWS ? windowsGnuTar : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
@@ -249,9 +239,7 @@ test('zstdWithoutLong list tar', async () => {
 
   await tar.listTar(archivePath, CompressionMethod.ZstdWithoutLong)
 
-  const tarPath = IS_WINDOWS
-    ? windowsGnuTar
-    : defaultTarPath
+  const tarPath = IS_WINDOWS ? windowsGnuTar : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
@@ -276,9 +264,7 @@ test('gzip list tar', async () => {
 
   await tar.listTar(archivePath, CompressionMethod.Gzip)
 
-  const tarPath = IS_WINDOWS
-    ? windowsGnuTar
-    : defaultTarPath
+  const tarPath = IS_WINDOWS ? windowsGnuTar : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
