@@ -106,7 +106,7 @@ test('gzip extract GNU tar on windows with GNUtar in path', async () => {
     // GNU tar present in path but not at default location
     const isGnuMock = jest
       .spyOn(utils, 'getGnuTarPathOnWindows')
-      .mockReturnValue(Promise.resolve('C:\\Program Files\\gnutar\\tar.exe'))
+      .mockReturnValue(Promise.resolve('tar'))
     const execMock = jest.spyOn(exec, 'exec')
     const archivePath = `${process.env['windir']}\\fakepath\\cache.tar`
     const workspace = process.env['GITHUB_WORKSPACE']

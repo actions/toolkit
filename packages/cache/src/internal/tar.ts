@@ -7,10 +7,7 @@ import {CompressionMethod} from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
 
-async function getTarPath(
-  args: string[],
-  compressionMethod: CompressionMethod
-): Promise<string> {
+async function getTarPath(args: string[]): Promise<string> {
   let tarPath = await io.which('tar', true)
   switch (process.platform) {
     case 'win32': {
