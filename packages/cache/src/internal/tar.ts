@@ -14,19 +14,12 @@ async function getTarPath(
   let tarPath = await io.which('tar', true)
   switch (process.platform) {
     case 'win32': {
-      const gnuTar = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+      const gnuTar = await utils.getGnuTarPathOnWindows()
       const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-      if (existsSync(gnuTar)) {
+      if (gnuTar) {
         // Use GNUtar as default on windows
         args.push('--force-local')
         tarPath = gnuTar
-      } else if (
-        compressionMethod !== CompressionMethod.Gzip ||
-        (await utils.isGnuTarInstalled())
-      ) {
-        // We only use zstandard compression on windows when gnu tar is installed due to
-        // a bug with compressing large files with bsdtar + zstd
-        args.push('--force-local')
       } else if (existsSync(systemTar)) {
         tarPath = systemTar
       }

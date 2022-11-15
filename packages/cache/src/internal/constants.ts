@@ -21,3 +21,6 @@ export const DefaultRetryDelay = 5000
 // over the socket during this period, the socket is destroyed and the download
 // is aborted.
 export const SocketTimeout = 5000
+
+// The default path of GNUtar on hosted Windows runners
+export const GnuTarPathOnWindows = 'C:\\Program Files\\Git\\usr\\bin\\tar.exe'
