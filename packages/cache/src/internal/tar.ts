@@ -8,7 +8,6 @@ import {CompressionMethod} from './constants'
 const IS_WINDOWS = process.platform === 'win32'
 
 async function getTarPath(args: string[]): Promise<string> {
-  let tarPath = await io.which('tar', true)
   switch (process.platform) {
     case 'win32': {
       const gnuTar = await utils.getGnuTarPathOnWindows()
@@ -16,9 +15,9 @@ async function getTarPath(args: string[]): Promise<string> {
       if (gnuTar) {
         // Use GNUtar as default on windows
         args.push('--force-local')
-        tarPath = gnuTar
+        return gnuTar
       } else if (existsSync(systemTar)) {
-        tarPath = systemTar
+        return systemTar
       }
       break
     }
@@ -27,23 +26,19 @@ async function getTarPath(args: string[]): Promise<string> {
       if (gnuTar) {
         // fix permission denied errors when extracting BSD tar archive with GNU tar - https://github.com/actions/cache/issues/527
         args.push('--delay-directory-restore')
-        tarPath = gnuTar
+        return gnuTar
       }
       break
     }
     default:
       break
   }
-  return tarPath
+  return await io.which('tar', true)
 }
 
-async function execTar(
-  args: string[],
-  compressionMethod: CompressionMethod,
-  cwd?: string
-): Promise<void> {
+async function execTar(args: string[], cwd?: string): Promise<void> {
   try {
-    await exec(`"${await getTarPath(args, compressionMethod)}"`, args, {cwd})
+    await exec(`"${await getTarPath(args)}"`, args, {cwd})
   } catch (error) {
     throw new Error(`Tar failed with error: ${error?.message}`)
   }
@@ -82,7 +77,7 @@ export async function listTar(
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P'
   ]
-  await execTar(args, compressionMethod)
+  await execTar(args)
 }
 
 export async function extractTar(
@@ -100,7 +95,7 @@ export async function extractTar(
     '-C',
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
   ]
-  await execTar(args, compressionMethod)
+  await execTar(args)
 }
 
 export async function createTar(
@@ -148,5 +143,5 @@ export async function createTar(
     '--files-from',
     manifestFilename
   ]
-  await execTar(args, compressionMethod, archiveFolder)
+  await execTar(args, archiveFolder)
 }

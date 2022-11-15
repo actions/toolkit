@@ -23,4 +23,4 @@ export const DefaultRetryDelay = 5000
 export const SocketTimeout = 5000
 
 // The default path of GNUtar on hosted Windows runners
-export const GnuTarPathOnWindows = 'C:\\Program Files\\Git\\usr\\bin\\tar.exe'
+export const GnuTarPathOnWindows = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
