@@ -115,7 +115,7 @@ export async function getCacheEntry(
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
     // List cache for primary key only if cache miss occurs
-    await listCache(keys[0], httpClient, version)
+    await listCache(keys[0], httpClient, version, cacheResult?.scope)
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
@@ -128,7 +128,8 @@ export async function getCacheEntry(
 async function listCache(
   key: string,
   httpClient: HttpClient,
-  version: string
+  version: string,
+  scope?: string
 ): Promise<void> {
   const resource = `caches?key=${encodeURIComponent(key)}`
   const response = await retryTypedResponse('listCache', async () =>
@@ -139,7 +140,7 @@ async function listCache(
     const totalCount = cacheListResult?.totalCount
     if (totalCount && totalCount > 0) {
       core.info(
-        `Cache miss occurred on the cache key '${key}' and version '${version} but there is ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version`
+        `No matching cache found for cache key '${key}', version '${version} and scope ${scope} but there is ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version`
       )
       core.debug(`Other versions are as follows:`)
       cacheListResult?.artifactCaches?.forEach(cacheEntry => {
