@@ -54,7 +54,7 @@ function getWorkingDirectory(): string {
 }
 
 // Common function for extractTar and listTar to get the compression method
-async function getCompressionProgram(compressionMethod: CompressionMethod): string[] {
+async function getCompressionProgram(compressionMethod: CompressionMethod): Promise<string[]> {
   // -d: Decompress.
   // unzstd is equivalent to 'zstd -d'
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
@@ -90,7 +90,7 @@ export async function listTar(
 ): Promise<void> {
   const args = [
     '-tf',
-    ...getCompressionProgram(compressionMethod),
+    ...(await getCompressionProgram(compressionMethod)),
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P'
   ]
@@ -106,7 +106,7 @@ export async function extractTar(
   await io.mkdirP(workingDirectory)
   const args = [
     '-xf',
-    ...getCompressionProgram(compressionMethod),
+    ...(await getCompressionProgram(compressionMethod)),
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
     '-C',
@@ -134,7 +134,7 @@ export async function createTar(
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   // Long range mode is added to zstd in v1.3.2 release, so we will not use --long in older version of zstd.
-  async function getCompressionProgram(): string[] {
+  async function getCompressionProgram(): Promise<string[]> {
     const tarPath = await getTarPath([])
     const BSD_TAR_ZSTD = IS_WINDOWS && tarPath === SystemTarPathOnWindows
     switch (compressionMethod) {
@@ -168,7 +168,7 @@ export async function createTar(
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '--files-from',
     manifestFilename,
-    ...getCompressionProgram(),
+    ...(await getCompressionProgram()),
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
 
   ]
