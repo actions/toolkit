@@ -165,6 +165,7 @@ export async function createTar(
     '--files-from',
     manifestFilename,
     '-cf',
+    '-v',
     ...(await getCompressionProgram()),
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
 
