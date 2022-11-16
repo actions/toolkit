@@ -64,9 +64,7 @@ async function getCompressionProgram(compressionMethod: CompressionMethod): Prom
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
       if (BSD_TAR_ZSTD) {
-        return [
-          '-O', '|','zstd -d --long=30 -o'
-        ]
+        return ['-a'] // auto-detect compression
       }
       return [
         '--use-compress-program',
@@ -74,9 +72,7 @@ async function getCompressionProgram(compressionMethod: CompressionMethod): Prom
       ]
     case CompressionMethod.ZstdWithoutLong:
       if (BSD_TAR_ZSTD) {
-        return [
-          '-O', '|', 'zstd -d --long=30 -o'
-        ]
+        return ['a'] // auto-detect compression
       }
       return ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
     default:
@@ -168,6 +164,7 @@ export async function createTar(
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '--files-from',
     manifestFilename,
+    '-cf',
     ...(await getCompressionProgram()),
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
 
