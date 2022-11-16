@@ -7,21 +7,17 @@ import {CompressionMethod} from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
 
-async function getTarPath(
-  args: string[],
-  compressionMethod: CompressionMethod
-): Promise<string> {
+async function getTarPath(args: string[]): Promise<string> {
   switch (process.platform) {
     case 'win32': {
+      const gnuTar = await utils.getGnuTarPathOnWindows()
       const systemTar = `${process.env['windir']}\\System32\\tar.exe`
-      if (compressionMethod !== CompressionMethod.Gzip) {
-        // We only use zstandard compression on windows when gnu tar is installed due to
-        // a bug with compressing large files with bsdtar + zstd
+      if (gnuTar) {
+        // Use GNUtar as default on windows
         args.push('--force-local')
+        return gnuTar
       } else if (existsSync(systemTar)) {
         return systemTar
-      } else if (await utils.isGnuTarInstalled()) {
-        args.push('--force-local')
       }
       break
     }
@@ -40,13 +36,9 @@ async function getTarPath(
   return await io.which('tar', true)
 }
 
-async function execTar(
-  args: string[],
-  compressionMethod: CompressionMethod,
-  cwd?: string
-): Promise<void> {
+async function execTar(args: string[], cwd?: string): Promise<void> {
   try {
-    await exec(`"${await getTarPath(args, compressionMethod)}"`, args, {cwd})
+    await exec(`"${await getTarPath(args)}"`, args, {cwd})
   } catch (error) {
     throw new Error(`Tar failed with error: ${error?.message}`)
   }
@@ -85,7 +77,7 @@ export async function listTar(
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P'
   ]
-  await execTar(args, compressionMethod)
+  await execTar(args)
 }
 
 export async function extractTar(
@@ -103,7 +95,7 @@ export async function extractTar(
     '-C',
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
   ]
-  await execTar(args, compressionMethod)
+  await execTar(args)
 }
 
 export async function createTar(
@@ -151,5 +143,5 @@ export async function createTar(
     '--files-from',
     manifestFilename
   ]
-  await execTar(args, compressionMethod, archiveFolder)
+  await execTar(args, archiveFolder)
 }
