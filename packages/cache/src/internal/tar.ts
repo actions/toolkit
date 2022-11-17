@@ -3,7 +3,7 @@ import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
 import * as utils from './cacheUtils'
-import {CompressionMethod, GnuTarPathOnWindows, SystemTarPathOnWindows} from './constants'
+import {CompressionMethod, SystemTarPathOnWindows} from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -16,7 +16,7 @@ async function getTarPath(args: string[]): Promise<string> {
       if (gnuTar) {
         // Use GNUtar as default on windows
         if (args.length > 0) {
-          args.push('--force-local') 
+          args.push('--force-local')
         }
         return gnuTar
       } else if (existsSync(systemTar)) {
@@ -54,7 +54,9 @@ function getWorkingDirectory(): string {
 }
 
 // Common function for extractTar and listTar to get the compression method
-async function getCompressionProgram(compressionMethod: CompressionMethod): Promise<string[]> {
+async function getCompressionProgram(
+  compressionMethod: CompressionMethod
+): Promise<string[]> {
   // -d: Decompress.
   // unzstd is equivalent to 'zstd -d'
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
@@ -68,7 +70,7 @@ async function getCompressionProgram(compressionMethod: CompressionMethod): Prom
       }
       return [
         '--use-compress-program',
-        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30',
+        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
       ]
     case CompressionMethod.ZstdWithoutLong:
       if (BSD_TAR_ZSTD) {
@@ -136,9 +138,7 @@ export async function createTar(
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
         if (BSD_TAR_ZSTD) {
-          return [
-            '-O', '|', 'zstd -T0 --long=30 -o'
-          ]
+          return ['-O', '|', 'zstd -T0 --long=30 -o']
         }
         return [
           '--use-compress-program',
@@ -147,11 +147,13 @@ export async function createTar(
         ]
       case CompressionMethod.ZstdWithoutLong:
         if (BSD_TAR_ZSTD) {
-          return [
-            '-O', '|', 'zstd -T0 -o'
-          ]
+          return ['-O', '|', 'zstd -T0 -o']
         }
-        return ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt', '-cf']  
+        return [
+          '--use-compress-program',
+          IS_WINDOWS ? 'zstd -T0' : 'zstdmt',
+          '-cf'
+        ]
       default:
         return ['-z', '-cf']
     }
@@ -166,8 +168,7 @@ export async function createTar(
     '--files-from',
     manifestFilename,
     ...(await getCompressionProgram()),
-    cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-
+    cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
   ]
   await execTar(args, archiveFolder)
 }

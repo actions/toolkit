@@ -196,7 +196,7 @@ test('gzip create tar', async () => {
       'manifest.txt',
       '-z',
       '-cf',
-      IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
+      IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : []),
@@ -281,4 +281,3 @@ test('gzip list tar', async () => {
     {cwd: undefined}
   )
 })
-
