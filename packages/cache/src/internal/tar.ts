@@ -68,13 +68,14 @@ async function getCompressionProgram(compressionMethod: CompressionMethod): Prom
       }
       return [
         '--use-compress-program',
-        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
+        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30',
+        '-tf'
       ]
     case CompressionMethod.ZstdWithoutLong:
       if (BSD_TAR_ZSTD) {
         return ['a'] // auto-detect compression
       }
-      return ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
+      return ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd', '-tf']
     default:
       return ['-z']
   }
@@ -85,7 +86,6 @@ export async function listTar(
   compressionMethod: CompressionMethod
 ): Promise<void> {
   const args = [
-    '-tf',
     ...(await getCompressionProgram(compressionMethod)),
     archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P'
@@ -142,7 +142,8 @@ export async function createTar(
         }
         return [
           '--use-compress-program',
-          IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
+          IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30',
+          '-cf'
         ]
       case CompressionMethod.ZstdWithoutLong:
         if (BSD_TAR_ZSTD) {
@@ -150,7 +151,7 @@ export async function createTar(
             '-O', '|', 'zstd -T0 -o'
           ]
         }
-        return ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt']
+        return ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt', '-cf']  
       default:
         return ['-z']
     }
@@ -164,8 +165,6 @@ export async function createTar(
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '--files-from',
     manifestFilename,
-    '-cf',
-    '-v',
     ...(await getCompressionProgram()),
     cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
 
