@@ -113,7 +113,7 @@ test('gzip extract GNU tar on windows with GNUtar in path', async () => {
 
     await tar.extractTar(archivePath, CompressionMethod.Gzip)
 
-    expect(isGnuMock).toHaveBeenCalledTimes(1)
+    expect(isGnuMock).toHaveBeenCalledTimes(2)
     expect(execMock).toHaveBeenCalledTimes(1)
     expect(execMock).toHaveBeenCalledWith(
       `"tar"`,
