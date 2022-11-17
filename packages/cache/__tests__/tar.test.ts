@@ -149,17 +149,17 @@ test('zstd create tar', async () => {
     `"${tarPath}"`,
     [
       '--posix',
-      '--use-compress-program',
-      IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30',
-      '-cf',
-      IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd,
       '--exclude',
       IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd,
       '-P',
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
-      'manifest.txt'
+      'manifest.txt',
+      '--use-compress-program',
+      IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30',
+      '-cf',
+      IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : []),
@@ -187,16 +187,16 @@ test('gzip create tar', async () => {
     `"${tarPath}"`,
     [
       '--posix',
-      '-z',
-      '-cf',
-      IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
       '--exclude',
       IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
       '-P',
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
-      'manifest.txt'
+      'manifest.txt',
+      '-z',
+      '-cf',
+      IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : []),
@@ -281,3 +281,4 @@ test('gzip list tar', async () => {
     {cwd: undefined}
   )
 })
+
