@@ -62,10 +62,10 @@ async function getCompressionProgram(
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   const tarPath = await getTarPath([])
-  const BSD_TAR_ZSTD = IS_WINDOWS && tarPath === SystemTarPathOnWindows
+  const BSD_TAR_WINDOWS = IS_WINDOWS && tarPath === SystemTarPathOnWindows
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
-      if (BSD_TAR_ZSTD) {
+      if (BSD_TAR_WINDOWS) {
         return ['-a'] // auto-detect compression
       }
       return [
@@ -73,7 +73,7 @@ async function getCompressionProgram(
         IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
       ]
     case CompressionMethod.ZstdWithoutLong:
-      if (BSD_TAR_ZSTD) {
+      if (BSD_TAR_WINDOWS) {
         return ['a'] // auto-detect compression
       }
       return ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
@@ -121,6 +121,9 @@ export async function createTar(
   // Write source directories to manifest.txt to avoid command length limits
   const manifestFilename = 'manifest.txt'
   const cacheFileName = utils.getCacheFileName(compressionMethod)
+  const tarFile = 'cache.tar'
+  const tarPath = await getTarPath([])
+  const BSD_TAR_WINDOWS = IS_WINDOWS && tarPath === SystemTarPathOnWindows
   writeFileSync(
     path.join(archiveFolder, manifestFilename),
     sourceDirectories.join('\n')
@@ -133,42 +136,44 @@ export async function createTar(
   // Using 30 here because we also support 32-bit self-hosted runners.
   // Long range mode is added to zstd in v1.3.2 release, so we will not use --long in older version of zstd.
   async function getCompressionProgram(): Promise<string[]> {
-    const tarPath = await getTarPath([])
-    const BSD_TAR_ZSTD = IS_WINDOWS && tarPath === SystemTarPathOnWindows
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        if (BSD_TAR_ZSTD) {
-          return ['-O', '|', 'zstd -T0 --long=30 -o']
+        if (BSD_TAR_WINDOWS) {
+          return ['&&', 'zstd -T0 --long=30 -o']
         }
         return [
           '--use-compress-program',
-          IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30',
-          '-cf'
+          IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
         ]
       case CompressionMethod.ZstdWithoutLong:
-        if (BSD_TAR_ZSTD) {
-          return ['-O', '|', 'zstd -T0 -o']
+        if (BSD_TAR_WINDOWS) {
+          return ['&&', 'zstd -T0 -o']
         }
-        return [
-          '--use-compress-program',
-          IS_WINDOWS ? 'zstd -T0' : 'zstdmt',
-          '-cf'
-        ]
+        return ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt']
       default:
-        return ['-z', '-cf']
+        return ['-z']
     }
   }
   const args = [
     '--posix',
+    '-cf',
+    BSD_TAR_WINDOWS
+      ? tarFile
+      : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '--exclude',
-    cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+    BSD_TAR_WINDOWS
+      ? tarFile
+      : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '-P',
     '-C',
     workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
     '--files-from',
     manifestFilename,
-    ...(await getCompressionProgram()),
-    cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
-  ]
+    ...(await getCompressionProgram())
+  ].concat(
+    BSD_TAR_WINDOWS
+      ? [cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/')]
+      : []
+  )
   await execTar(args, archiveFolder)
 }
