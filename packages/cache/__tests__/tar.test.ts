@@ -4,7 +4,8 @@ import * as path from 'path'
 import {
   CacheFilename,
   CompressionMethod,
-  GnuTarPathOnWindows
+  GnuTarPathOnWindows,
+  SystemTarPathOnWindows
 } from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import * as utils from '../src/internal/cacheUtils'
@@ -179,33 +180,33 @@ test('zstd create tar with windows BSDtar', async () => {
     const archiveFolder = getTempDir()
     const workspace = process.env['GITHUB_WORKSPACE']
     const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+    const tarFilename = "cache.tar"
 
     await fs.promises.mkdir(archiveFolder, {recursive: true})
 
     await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Zstd)
 
-    const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+    const tarPath = SystemTarPathOnWindows
 
-    // expect(isGnuMock).toHaveBeenCalledTimes(1)
+    expect(isGnuMock).toHaveBeenCalledTimes(1)
     expect(execMock).toHaveBeenCalledTimes(1)
     expect(execMock).toHaveBeenCalledWith(
       `"${tarPath}"`,
       [
         '--posix',
         '-cf',
-        IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd,
+        tarFilename.replace(/\\/g, '/'),
         '--exclude',
-        IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd,
+        tarFilename.replace(/\\/g, '/'),
         '-P',
         '-C',
-        IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+        workspace?.replace(/\\/g, '/'),
         '--files-from',
         'manifest.txt',
-        '--use-compress-program',
-        IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
-      ]
-        .concat(IS_WINDOWS ? ['--force-local'] : [])
-        .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+        "&&",
+        "zstd -T0 --long=30 -o",
+        CacheFilename.Zstd.replace(/\\/g, '/')
+      ],
       {
         cwd: archiveFolder
       }
