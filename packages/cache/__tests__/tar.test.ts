@@ -169,6 +169,50 @@ test('zstd create tar', async () => {
   )
 })
 
+test('zstd create tar with windows BSDtar', async () => {
+  if (IS_WINDOWS) {
+    const execMock = jest.spyOn(exec, 'exec')
+    const isGnuMock = jest
+      .spyOn(utils, 'getGnuTarPathOnWindows')
+      .mockReturnValue(Promise.resolve(''))
+
+    const archiveFolder = getTempDir()
+    const workspace = process.env['GITHUB_WORKSPACE']
+    const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+
+    await fs.promises.mkdir(archiveFolder, {recursive: true})
+
+    await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Zstd)
+
+    const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+
+    // expect(isGnuMock).toHaveBeenCalledTimes(1)
+    expect(execMock).toHaveBeenCalledTimes(1)
+    expect(execMock).toHaveBeenCalledWith(
+      `"${tarPath}"`,
+      [
+        '--posix',
+        '-cf',
+        IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd,
+        '--exclude',
+        IS_WINDOWS ? CacheFilename.Zstd.replace(/\\/g, '/') : CacheFilename.Zstd,
+        '-P',
+        '-C',
+        IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+        '--files-from',
+        'manifest.txt',
+        '--use-compress-program',
+        IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
+      ]
+        .concat(IS_WINDOWS ? ['--force-local'] : [])
+        .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      {
+        cwd: archiveFolder
+      }
+    )
+  }
+})
+
 test('gzip create tar', async () => {
   const execMock = jest.spyOn(exec, 'exec')
 

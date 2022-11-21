@@ -74,7 +74,7 @@ async function getCompressionProgram(
       ]
     case CompressionMethod.ZstdWithoutLong:
       if (BSD_TAR_WINDOWS) {
-        return ['a'] // auto-detect compression
+        return ['-a'] // auto-detect compression
       }
       return ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
     default:
