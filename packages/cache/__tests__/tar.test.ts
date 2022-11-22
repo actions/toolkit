@@ -188,7 +188,7 @@ test('zstd create tar with windows BSDtar', async () => {
 
     const tarPath = SystemTarPathOnWindows
 
-    expect(isGnuMock).toHaveBeenCalledTimes(1)
+    expect(isGnuMock).toHaveBeenCalledTimes(2)
     expect(execMock).toHaveBeenCalledTimes(1)
     expect(execMock).toHaveBeenCalledWith(
       `"${tarPath}"`,
