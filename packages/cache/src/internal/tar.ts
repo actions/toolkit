@@ -149,7 +149,6 @@ async function getCompressionProgram(
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   const tarPath = await getTarPath()
-  const cacheFileName = utils.getCacheFileName(compressionMethod)
   const tarFile = 'cache.tar'
   const BSD_TAR_ZSTD =
     tarPath === SystemTarPathOnWindows &&
