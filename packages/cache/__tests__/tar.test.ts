@@ -59,13 +59,13 @@ test('zstd extract tar', async () => {
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
     [
-      '--use-compress-program',
-      IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30',
       '-xf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P',
       '-C',
-      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
+      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+      '--use-compress-program',
+      IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : []),
@@ -89,12 +89,12 @@ test('gzip extract tar', async () => {
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
     [
-      '-z',
       '-xf',
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P',
       '-C',
-      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
+      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+      '-z'
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : []),
@@ -180,11 +180,15 @@ test('zstd create tar with windows BSDtar', async () => {
     const archiveFolder = getTempDir()
     const workspace = process.env['GITHUB_WORKSPACE']
     const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
-    const tarFilename = "cache.tar"
+    const tarFilename = 'cache.tar'
 
     await fs.promises.mkdir(archiveFolder, {recursive: true})
 
-    await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.Zstd)
+    await tar.createTar(
+      archiveFolder,
+      sourceDirectories,
+      CompressionMethod.Zstd
+    )
 
     const tarPath = SystemTarPathOnWindows
 
@@ -203,9 +207,10 @@ test('zstd create tar with windows BSDtar', async () => {
         workspace?.replace(/\\/g, '/'),
         '--files-from',
         'manifest.txt',
-        "&&",
-        "zstd -T0 --long=30 -o",
-        CacheFilename.Zstd.replace(/\\/g, '/')
+        '&&',
+        'zstd -T0 --long=30 -o',
+        CacheFilename.Zstd.replace(/\\/g, '/'),
+        tarFilename.replace(/\\/g, '/')
       ],
       {
         cwd: archiveFolder
