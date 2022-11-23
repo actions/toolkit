@@ -63,12 +63,14 @@ test('zstd extract tar', async () => {
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P',
       '-C',
-      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
-      '--use-compress-program',
-      IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
+      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
-      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .concat([
+        '--use-compress-program',
+        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
+      ]),
     {cwd: undefined}
   )
 })
@@ -93,11 +95,11 @@ test('gzip extract tar', async () => {
       IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
       '-P',
       '-C',
-      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
-      '-z'
+      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
-      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .concat(['-z']),
     {cwd: undefined}
   )
 })
@@ -119,13 +121,13 @@ test('gzip extract GNU tar on windows with GNUtar in path', async () => {
     expect(execMock).toHaveBeenCalledWith(
       `"tar"`,
       [
-        '-z',
         '-xf',
         archivePath.replace(/\\/g, '/'),
         '-P',
         '-C',
         workspace?.replace(/\\/g, '/'),
-        '--force-local'
+        '--force-local',
+        '-z'
       ],
       {cwd: undefined}
     )
@@ -158,12 +160,14 @@ test('zstd create tar', async () => {
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
-      'manifest.txt',
-      '--use-compress-program',
-      IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
+      'manifest.txt'
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
-      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .concat([
+        '--use-compress-program',
+        IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
+      ]),
     {
       cwd: archiveFolder
     }
@@ -245,11 +249,11 @@ test('gzip create tar', async () => {
       '-C',
       IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
       '--files-from',
-      'manifest.txt',
-      '-z'
+      'manifest.txt'
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
-      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .concat(['-z']),
     {
       cwd: archiveFolder
     }
@@ -269,15 +273,13 @@ test('zstd list tar', async () => {
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
-    [
-      '--use-compress-program',
-      IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30',
-      '-tf',
-      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
-      '-P'
-    ]
+    ['-tf', IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath, '-P']
       .concat(IS_WINDOWS ? ['--force-local'] : [])
-      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .concat([
+        '--use-compress-program',
+        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
+      ]),
     {cwd: undefined}
   )
 })
@@ -295,15 +297,10 @@ test('zstdWithoutLong list tar', async () => {
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
-    [
-      '--use-compress-program',
-      IS_WINDOWS ? 'zstd -d' : 'unzstd',
-      '-tf',
-      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
-      '-P'
-    ]
+    ['-tf', IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath, '-P']
       .concat(IS_WINDOWS ? ['--force-local'] : [])
-      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .concat(['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']),
     {cwd: undefined}
   )
 })
@@ -320,14 +317,10 @@ test('gzip list tar', async () => {
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
     `"${tarPath}"`,
-    [
-      '-z',
-      '-tf',
-      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
-      '-P'
-    ]
+    ['-tf', IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath, '-P']
       .concat(IS_WINDOWS ? ['--force-local'] : [])
-      .concat(IS_MAC ? ['--delay-directory-restore'] : []),
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .concat(['-z']),
     {cwd: undefined}
   )
 })
