@@ -46,7 +46,9 @@ async function getTarArgs(
   const tarFile = 'cache.tar'
   const tarPath = await getTarPath()
   const workingDirectory = getWorkingDirectory()
-  const BSD_TAR_WINDOWS = IS_WINDOWS && tarPath === SystemTarPathOnWindows
+  const BSD_TAR_ZSTD =
+    tarPath === SystemTarPathOnWindows &&
+    compressionMethod !== CompressionMethod.Gzip
 
   // Method specific args
   switch (type) {
@@ -54,11 +56,11 @@ async function getTarArgs(
       args.push(
         '--posix',
         '-cf',
-        BSD_TAR_WINDOWS
+        BSD_TAR_ZSTD
           ? tarFile
           : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '--exclude',
-        BSD_TAR_WINDOWS
+        BSD_TAR_ZSTD
           ? tarFile
           : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
@@ -71,7 +73,7 @@ async function getTarArgs(
     case 'extract':
       args.push(
         '-xf',
-        BSD_TAR_WINDOWS
+        BSD_TAR_ZSTD
           ? tarFile
           : archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
@@ -79,11 +81,10 @@ async function getTarArgs(
         workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       )
       break
-    // TODO: Correct the below code especially archivePath for BSD_TAR_WINDOWS
     case 'list':
       args.push(
         '-tf',
-        BSD_TAR_WINDOWS
+        BSD_TAR_ZSTD
           ? tarFile
           : archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P'
@@ -149,31 +150,31 @@ async function getCompressionProgram(
   const tarPath = await getTarPath()
   const cacheFileName = utils.getCacheFileName(compressionMethod)
   const tarFile = 'cache.tar'
-  const BSD_TAR_WINDOWS = IS_WINDOWS && tarPath === SystemTarPathOnWindows
+  const BSD_TAR_ZSTD =
+    tarPath === SystemTarPathOnWindows &&
+    compressionMethod !== CompressionMethod.Gzip
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
-      if (BSD_TAR_WINDOWS) {
-        return [
-          'zstd -d --long=30 -o',
-          tarFile,
-          cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-          '&&'
-        ]
-      }
-      return [
-        '--use-compress-program',
-        IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
-      ]
+      return BSD_TAR_ZSTD
+        ? [
+            'zstd -d --long=30 -o',
+            tarFile,
+            cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+            '&&'
+          ]
+        : [
+            '--use-compress-program',
+            IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
+          ]
     case CompressionMethod.ZstdWithoutLong:
-      if (BSD_TAR_WINDOWS) {
-        return [
-          'zstd -d -o',
-          tarFile,
-          cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-          '&&'
-        ]
-      }
-      return ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
+      return BSD_TAR_ZSTD
+        ? [
+            'zstd -d -o',
+            tarFile,
+            cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+            '&&'
+          ]
+        : ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
     default:
       return ['-z']
   }
@@ -184,13 +185,15 @@ export async function listTar(
   compressionMethod: CompressionMethod
 ): Promise<void> {
   const tarPath = await getTarPath()
-  const BSD_TAR_WINDOWS = IS_WINDOWS && tarPath === SystemTarPathOnWindows
+  const BSD_TAR_ZSTD =
+    tarPath === SystemTarPathOnWindows &&
+    compressionMethod !== CompressionMethod.Gzip
   const compressionArgs = await getCompressionProgram(compressionMethod)
   const tarArgs = await getTarArgs(compressionMethod, 'list', archivePath)
   // TODO: Add a test for BSD tar on windows
-  if (BSD_TAR_WINDOWS) {
+  if (BSD_TAR_ZSTD) {
     const command = compressionArgs[0]
-    const args = compressionArgs.slice(1).concat(tarArgs)
+    const args = compressionArgs.slice(1).concat([tarPath]).concat(tarArgs)
     await execCommand(command, args)
   } else {
     const args = tarArgs.concat(compressionArgs)
@@ -205,13 +208,15 @@ export async function extractTar(
   // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
   const tarPath = await getTarPath()
-  const BSD_TAR_WINDOWS = IS_WINDOWS && tarPath === SystemTarPathOnWindows
+  const BSD_TAR_ZSTD =
+    tarPath === SystemTarPathOnWindows &&
+    compressionMethod !== CompressionMethod.Gzip
   await io.mkdirP(workingDirectory)
   const tarArgs = await getTarArgs(compressionMethod, 'extract', archivePath)
   const compressionArgs = await getCompressionProgram(compressionMethod)
-  if (BSD_TAR_WINDOWS) {
+  if (BSD_TAR_ZSTD) {
     const command = compressionArgs[0]
-    const args = compressionArgs.slice(1).concat(tarArgs)
+    const args = compressionArgs.slice(1).concat([tarPath]).concat(tarArgs)
     await execCommand(command, args)
   } else {
     const args = tarArgs.concat(compressionArgs)
@@ -229,12 +234,13 @@ export async function createTar(
   const cacheFileName = utils.getCacheFileName(compressionMethod)
   const tarFile = 'cache.tar'
   const tarPath = await getTarPath()
-  const BSD_TAR_WINDOWS = IS_WINDOWS && tarPath === SystemTarPathOnWindows
+  const BSD_TAR_ZSTD =
+    tarPath === SystemTarPathOnWindows &&
+    compressionMethod !== CompressionMethod.Gzip
   writeFileSync(
     path.join(archiveFolder, manifestFilename),
     sourceDirectories.join('\n')
   )
-  const workingDirectory = getWorkingDirectory()
 
   // -T#: Compress using # working thread. If # is 0, attempt to detect and use the number of physical CPU cores.
   // zstdmt is equivalent to 'zstd -T0'
@@ -244,28 +250,26 @@ export async function createTar(
   function getCompressionProgram(): string[] {
     switch (compressionMethod) {
       case CompressionMethod.Zstd:
-        if (BSD_TAR_WINDOWS) {
-          return [
-            '&&',
-            'zstd -T0 --long=30 -o',
-            cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-            tarFile
-          ]
-        }
-        return [
-          '--use-compress-program',
-          IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
-        ]
+        return BSD_TAR_ZSTD
+          ? [
+              '&&',
+              'zstd -T0 --long=30 -o',
+              cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+              tarFile
+            ]
+          : [
+              '--use-compress-program',
+              IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
+            ]
       case CompressionMethod.ZstdWithoutLong:
-        if (BSD_TAR_WINDOWS) {
-          return [
-            '&&',
-            'zstd -T0 -o',
-            cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-            tarFile
-          ]
-        }
-        return ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt']
+        return BSD_TAR_ZSTD
+          ? [
+              '&&',
+              'zstd -T0 -o',
+              cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+              tarFile
+            ]
+          : ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt']
       default:
         return ['-z']
     }
