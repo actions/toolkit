@@ -98,7 +98,7 @@ test('zstd extract tar with windows BSDtar', async () => {
         tarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '&&',
-        `"${tarPath}"`,
+        `${tarPath}`,
         '-xf',
         tarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
@@ -336,7 +336,7 @@ test('zstd list tar with windows BSDtar', async () => {
         tarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '&&',
-        `"${tarPath}"`,
+        `${tarPath}`,
         '-tf',
         tarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P'

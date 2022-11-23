@@ -141,7 +141,8 @@ function getWorkingDirectory(): string {
 
 // Common function for extractTar and listTar to get the compression method
 async function getCompressionProgram(
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  archivePath: string
 ): Promise<string[]> {
   // -d: Decompress.
   // unzstd is equivalent to 'zstd -d'
@@ -159,7 +160,7 @@ async function getCompressionProgram(
         ? [
             'zstd -d --long=30 -o',
             tarFile,
-            cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             '&&'
           ]
         : [
@@ -171,7 +172,7 @@ async function getCompressionProgram(
         ? [
             'zstd -d -o',
             tarFile,
-            cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             '&&'
           ]
         : ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
@@ -188,12 +189,18 @@ export async function listTar(
   const BSD_TAR_ZSTD =
     tarPath === SystemTarPathOnWindows &&
     compressionMethod !== CompressionMethod.Gzip
-  const compressionArgs = await getCompressionProgram(compressionMethod)
+  const compressionArgs = await getCompressionProgram(
+    compressionMethod,
+    archivePath
+  )
   const tarArgs = await getTarArgs(compressionMethod, 'list', archivePath)
   // TODO: Add a test for BSD tar on windows
   if (BSD_TAR_ZSTD) {
     const command = compressionArgs[0]
-    const args = compressionArgs.slice(1).concat([tarPath]).concat(tarArgs)
+    const args = compressionArgs
+      .slice(1)
+      .concat([tarPath])
+      .concat(tarArgs)
     await execCommand(command, args)
   } else {
     const args = tarArgs.concat(compressionArgs)
@@ -213,10 +220,16 @@ export async function extractTar(
     compressionMethod !== CompressionMethod.Gzip
   await io.mkdirP(workingDirectory)
   const tarArgs = await getTarArgs(compressionMethod, 'extract', archivePath)
-  const compressionArgs = await getCompressionProgram(compressionMethod)
+  const compressionArgs = await getCompressionProgram(
+    compressionMethod,
+    archivePath
+  )
   if (BSD_TAR_ZSTD) {
     const command = compressionArgs[0]
-    const args = compressionArgs.slice(1).concat([tarPath]).concat(tarArgs)
+    const args = compressionArgs
+      .slice(1)
+      .concat([tarPath])
+      .concat(tarArgs)
     await execCommand(command, args)
   } else {
     const args = tarArgs.concat(compressionArgs)
