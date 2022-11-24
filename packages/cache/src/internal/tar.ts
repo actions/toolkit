@@ -291,3 +291,116 @@ export async function createTar(
   const args = tarArgs.concat(compressionArgs)
   await execTar(args, archiveFolder)
 }
+
+const ARCHIVE_TOOL_GNU: string = 'gnu'
+const ARCHIVE_TOOL_BSD: string = 'bsd'
+
+const manifestFilename = 'manifest.txt'
+
+export async function createTar2(
+  archiveFolder: string,
+  sourceDirectories: string[]
+): Promise<void> {
+
+  // 1. decide the compression algo - zstd otherwise gzip
+  // 2. decide tar - gnutar otherwise bsdtar or systemtar
+  // 3. deide archiving/unarchiving args depending on tar
+  // 4. decide compression/decompression args depending on tar and compression
+  // 5. decide the exec command
+
+  let tar = getTarPath2()
+  let compression = getCompressionMethod2()
+  let args = argsMap.get({tar: tar, compression: compression, os: process.platform, "create"})
+
+
+
+
+}
+
+// return archive tool name and path
+async function getTarPath2(): Promise<ArchiveTool> {
+  switch (process.platform) {
+    case 'win32': {
+      const gnuTar = await utils.getGnuTarPathOnWindows()
+      const systemTar = SystemTarPathOnWindows
+      if (gnuTar) {
+        // Use GNUtar as default on windows
+        return <ArchiveTool>{ name: ARCHIVE_TOOL_GNU, path: gnuTar }
+      } else if (existsSync(systemTar)) {
+        return <ArchiveTool>{name: ARCHIVE_TOOL_BSD, path: systemTar}
+      }
+      break
+    }
+    case 'darwin': {
+      const gnuTar = await io.which('gtar', false)
+      if (gnuTar) {
+        // fix permission denied errors when extracting BSD tar archive with GNU tar - https://github.com/actions/cache/issues/527
+        return <ArchiveTool>{ name: ARCHIVE_TOOL_GNU, path: gnuTar }
+      } else {
+        const path = await io.which('tar', true)
+        return <ArchiveTool>{name: ARCHIVE_TOOL_BSD, path: path}
+      }
+    }
+    default:
+      break
+  }
+  const path = await io.which('tar', true)
+  return <ArchiveTool>{name: ARCHIVE_TOOL_GNU, path: path}
+}
+
+// Use zstandard if possible to maximize cache performance
+export async function getCompressionMethod2(): Promise<CompressionMethod> {
+  const versionOutput = await utils.getVersion('zstd')
+  const version = semver.clean(versionOutput)
+
+  if (!versionOutput.toLowerCase().includes('zstd command line interface')) {
+    // zstd is not installed
+    return CompressionMethod.Gzip
+  } else if (!version || semver.lt(version, 'v1.3.2')) {
+    // zstd is installed but using a version earlier than v1.3.2
+    // v1.3.2 is required to use the `--long` options in zstd
+    return CompressionMethod.ZstdWithoutLong
+  } else {
+    return CompressionMethod.Zstd
+  }
+}
+
+interface ArchiveTool {
+  name: string
+  path: string
+}
+
+// tar, compression, os, operation -> tar args + compression args
+const argsMap: Map<ArgsLookupKey, string[][]> = new Map()
+argsMap.set({tar: ARCHIVE_TOOL_GNU, compression: CompressionMethod.Zstd, os: "windows", operation: "create"},
+[[
+  '--posix',
+  '-cf',
+  '%%cacheFileName%%',
+  '--exclude',
+  '%%cacheFileName%%',
+  '-P',
+  '-C',
+  '%%workingDirectory%%',
+  '--files-from',
+  manifestFilename],
+  ['--use-compress-program',
+  'zstd -T0 --long=30']
+])
+
+argsMap.set({tar: ARCHIVE_TOOL_GNU, compression: CompressionMethod.Zstd, os: "linux", operation: "create"},
+[
+  '--use-compress-program',
+  'zstdmt --long=30'
+])
+
+
+
+interface ArgsLookupKey {
+  tar: string
+  compression: string
+  os: string
+  operation: string
+}
+
+
