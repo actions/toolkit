@@ -11,6 +11,11 @@ export enum CompressionMethod {
   Zstd = 'zstd'
 }
 
+export enum ArchiveToolType {
+  GNU = 'gnu',
+  BSD = 'bsd'
+}
+
 // The default number of retry attempts.
 export const DefaultRetryAttempts = 2
 
