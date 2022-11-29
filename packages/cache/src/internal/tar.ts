@@ -7,7 +7,9 @@ import {ArchiveTool} from './contracts'
 import {
   CompressionMethod,
   SystemTarPathOnWindows,
-  ArchiveToolType
+  ArchiveToolType,
+  TarFilename,
+  ManifestFilename
 } from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -55,7 +57,6 @@ async function getTarArgs(
   archivePath = ''
 ): Promise<string[]> {
   const args = [tarPath.path]
-  const manifestFilename = 'manifest.txt'
   const cacheFileName = utils.getCacheFileName(compressionMethod)
   const tarFile = 'cache.tar'
   const workingDirectory = getWorkingDirectory()
@@ -81,7 +82,7 @@ async function getTarArgs(
         '-C',
         workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '--files-from',
-        manifestFilename
+        ManifestFilename
       )
       break
     case 'extract':
@@ -162,7 +163,6 @@ async function getDecompressionProgram(
   // unzstd is equivalent to 'zstd -d'
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
-  const tarFile = 'cache.tar'
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
@@ -172,7 +172,7 @@ async function getDecompressionProgram(
       return BSD_TAR_ZSTD
         ? [
             'zstd -d --long=30 -o',
-            tarFile,
+            TarFilename,
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             '&&'
           ]
@@ -184,7 +184,7 @@ async function getDecompressionProgram(
       return BSD_TAR_ZSTD
         ? [
             'zstd -d -o',
-            tarFile,
+            TarFilename,
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             '&&'
           ]
@@ -204,7 +204,6 @@ async function getCompressionProgram(
   compressionMethod: CompressionMethod
 ): Promise<string[]> {
   const cacheFileName = utils.getCacheFileName(compressionMethod)
-  const tarFile = 'cache.tar'
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
@@ -216,7 +215,7 @@ async function getCompressionProgram(
             '&&',
             'zstd -T0 --long=30 -o',
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-            tarFile
+            TarFilename
           ]
         : [
             '--use-compress-program',
@@ -228,7 +227,7 @@ async function getCompressionProgram(
             '&&',
             'zstd -T0 -o',
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-            tarFile
+            TarFilename
           ]
         : ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt']
     default:
