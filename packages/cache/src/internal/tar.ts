@@ -56,7 +56,7 @@ async function getTarArgs(
   type: string,
   archivePath = ''
 ): Promise<string[]> {
-  const args = [tarPath.path]
+  const args = [`"${tarPath.path}"`]
   const cacheFileName = utils.getCacheFileName(compressionMethod)
   const tarFile = 'cache.tar'
   const workingDirectory = getWorkingDirectory()
@@ -260,11 +260,10 @@ export async function createTar(
   compressionMethod: CompressionMethod
 ): Promise<void> {
   // Write source directories to manifest.txt to avoid command length limits
-  const manifestFilename = 'manifest.txt'
   writeFileSync(
-    path.join(archiveFolder, manifestFilename),
+    path.join(archiveFolder, ManifestFilename),
     sourceDirectories.join('\n')
   )
   const args = await getArgs(compressionMethod, 'create')
-  await exec(args)
+  await exec(args, undefined, {cwd: archiveFolder})
 }

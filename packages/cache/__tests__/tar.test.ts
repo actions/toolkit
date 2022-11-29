@@ -73,8 +73,7 @@ test('zstd extract tar', async () => {
         '--use-compress-program',
         IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
       ])
-      .join(' '),
-    {cwd: undefined}
+      .join(' ')
   )
 })
 
@@ -106,8 +105,7 @@ test('zstd extract tar with windows BSDtar', async () => {
         '-P',
         '-C',
         workspace?.replace(/\\/g, '/')
-      ].join(' '),
-      {cwd: undefined}
+      ].join(' ')
     )
   }
 })
@@ -137,8 +135,7 @@ test('gzip extract tar', async () => {
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat(['-z'])
-      .join(' '),
-    {cwd: undefined}
+      .join(' ')
   )
 })
 
@@ -165,8 +162,7 @@ test('gzip extract GNU tar on windows with GNUtar in path', async () => {
         workspace?.replace(/\\/g, '/'),
         '--force-local',
         '-z'
-      ].join(' '),
-      {cwd: undefined}
+      ].join(' ')
     )
   }
 })
@@ -206,6 +202,7 @@ test('zstd create tar', async () => {
         IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
       ])
       .join(' '),
+    undefined, // args
     {
       cwd: archiveFolder
     }
@@ -252,6 +249,7 @@ test('zstd create tar with windows BSDtar', async () => {
         CacheFilename.Zstd.replace(/\\/g, '/'),
         TarFilename.replace(/\\/g, '/')
       ].join(' '),
+      undefined, // args
       {
         cwd: archiveFolder
       }
@@ -274,8 +272,8 @@ test('gzip create tar', async () => {
 
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    `"${tarPath}"`,
     [
+      `"${tarPath}"`,
       '--posix',
       '-cf',
       IS_WINDOWS ? CacheFilename.Gzip.replace(/\\/g, '/') : CacheFilename.Gzip,
@@ -291,6 +289,7 @@ test('gzip create tar', async () => {
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat(['-z'])
       .join(' '),
+    undefined, // args
     {
       cwd: archiveFolder
     }
@@ -309,15 +308,19 @@ test('zstd list tar', async () => {
   const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    [`"${tarPath}"`, '-tf', IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath, '-P']
+    [
+      `"${tarPath}"`,
+      '-tf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P'
+    ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
         '--use-compress-program',
         IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
       ])
-      .join(' '),
-    {cwd: undefined}
+      .join(' ')
   )
 })
 
@@ -343,8 +346,7 @@ test('zstd list tar with windows BSDtar', async () => {
         '-tf',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P'
-      ].join(' '),
-      {cwd: undefined}
+      ].join(' ')
     )
   }
 })
@@ -361,12 +363,16 @@ test('zstdWithoutLong list tar', async () => {
   const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    [`"${tarPath}"`, '-tf', IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath, '-P']
+    [
+      `"${tarPath}"`,
+      '-tf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P'
+    ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat(['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd'])
-      .join(' '),
-    {cwd: undefined}
+      .join(' ')
   )
 })
 
@@ -381,11 +387,15 @@ test('gzip list tar', async () => {
   const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
   expect(execMock).toHaveBeenCalledTimes(1)
   expect(execMock).toHaveBeenCalledWith(
-    [`"${tarPath}"`, '-tf', IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath, '-P']
+    [
+      `"${tarPath}"`,
+      '-tf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P'
+    ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat(['-z'])
-      .join(' '),
-    {cwd: undefined}
+      .join(' ')
   )
 })
