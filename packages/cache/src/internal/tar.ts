@@ -178,7 +178,7 @@ async function getDecompressionProgram(
           ]
         : [
             '--use-compress-program',
-            IS_WINDOWS ? 'zstd -d --long=30' : 'unzstd --long=30'
+            IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
           ]
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
@@ -188,7 +188,7 @@ async function getDecompressionProgram(
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             '&&'
           ]
-        : ['--use-compress-program', IS_WINDOWS ? 'zstd -d' : 'unzstd']
+        : ['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd']
     default:
       return ['-z']
   }
@@ -219,7 +219,7 @@ async function getCompressionProgram(
           ]
         : [
             '--use-compress-program',
-            IS_WINDOWS ? 'zstd -T0 --long=30' : 'zstdmt --long=30'
+            IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
           ]
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
@@ -229,7 +229,7 @@ async function getCompressionProgram(
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
-        : ['--use-compress-program', IS_WINDOWS ? 'zstd -T0' : 'zstdmt']
+        : ['--use-compress-program', IS_WINDOWS ? '"zstd -T0"' : 'zstdmt']
     default:
       return ['-z']
   }
