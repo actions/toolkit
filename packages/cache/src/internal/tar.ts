@@ -240,7 +240,11 @@ export async function listTar(
   compressionMethod: CompressionMethod
 ): Promise<void> {
   const args = await getArgs(compressionMethod, 'list', archivePath)
-  exec(args)
+  try {
+    await exec(args)
+  } catch (error) {
+    throw new Error(`Tar failed with error: ${error?.message}`)
+  }
 }
 
 export async function extractTar(
@@ -251,7 +255,11 @@ export async function extractTar(
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
   const args = await getArgs(compressionMethod, 'extract', archivePath)
-  exec(args)
+  try {
+    await exec(args)
+  } catch (error) {
+    throw new Error(`Tar failed with error: ${error?.message}`)
+  }
 }
 
 export async function createTar(
@@ -265,5 +273,9 @@ export async function createTar(
     sourceDirectories.join('\n')
   )
   const args = await getArgs(compressionMethod, 'create')
-  await exec(args, undefined, {cwd: archiveFolder})
+  try {
+    await exec(args, undefined, {cwd: archiveFolder})
+  } catch (error) {
+    throw new Error(`Tar failed with error: ${error?.message}`)
+  }
 }
