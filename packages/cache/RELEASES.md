@@ -91,3 +91,6 @@
 
 ### 3.0.6
 - Added `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
+
+### 3.1.0-beta.1
+- Update actions/cache on windows to use gnu tar and zstd by default and fallback to bsdtar and zstd if gnu tar is not available. ([issue](https://github.com/actions/cache/issues/984))
