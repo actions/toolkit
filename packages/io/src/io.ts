@@ -129,11 +129,11 @@ export async function rmRF(inputPath: string): Promise<void> {
     try {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await execFile(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
           env: {inputPath}
         })
       } else {
-        await execFile(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
           env: {inputPath}
         })
       }
