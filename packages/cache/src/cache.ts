@@ -103,8 +103,8 @@ export async function restoreCache(
       }
     } catch (error) {
       if (
-        process.platform == 'win32' &&
-        compressionMethod != CompressionMethod.Gzip
+        process.platform === 'win32' &&
+        compressionMethod !== CompressionMethod.Gzip
       ) {
         // On windows, we will try to download the cache entry with the same key
         // but with different compression method. This is to support the old cache entry created
