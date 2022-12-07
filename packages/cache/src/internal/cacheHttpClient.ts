@@ -122,6 +122,32 @@ export async function getCacheEntry(
   return cacheResult
 }
 
+// This is to support the old cache entry created
+// by the old version of the cache action on windows.
+export async function getCacheEntryForGzipFallbackOnWindows(
+  keys: string[],
+  paths: string[],
+  compressionMethod: CompressionMethod,
+  error: unknown
+): Promise<ArtifactCacheEntry> {
+  let cacheEntry: ArtifactCacheEntry | null
+  if (
+    process.platform === 'win32' &&
+    compressionMethod !== CompressionMethod.Gzip
+  ) {
+    compressionMethod = CompressionMethod.Gzip
+    cacheEntry = await getCacheEntry(keys, paths, {
+      compressionMethod
+    })
+    if (!cacheEntry?.archiveLocation) {
+      throw error
+    }
+  } else {
+    throw error
+  }
+  return cacheEntry
+}
+
 export async function downloadCache(
   archiveLocation: string,
   archivePath: string,

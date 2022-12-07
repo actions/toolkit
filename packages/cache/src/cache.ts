@@ -96,30 +96,19 @@ export async function restoreCache(
       cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
         compressionMethod
       })
-
-      if (!cacheEntry?.archiveLocation) {
-        // Cache not found
-        return undefined
-      }
     } catch (error) {
-      if (
-        process.platform === 'win32' &&
-        compressionMethod !== CompressionMethod.Gzip
-      ) {
-        // This is to support the old cache entry created
-        // by the old version of the cache action on windows.
-        compressionMethod = CompressionMethod.Gzip
-        cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-          compressionMethod
-        })
-        if (!cacheEntry?.archiveLocation) {
-          throw error
-        }
-      } else {
-        throw error
-      }
+      cacheEntry = await cacheHttpClient.getCacheEntryForGzipFallbackOnWindows(
+        keys,
+        paths,
+        compressionMethod,
+        error
+      )
     }
 
+    if (!cacheEntry?.archiveLocation) {
+      // Cache not found
+      return undefined
+    }
     archivePath = path.join(
       await utils.createTempDirectory(),
       utils.getCacheFileName(compressionMethod)

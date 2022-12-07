@@ -174,7 +174,7 @@ test('restore with zstd as default but gzip compressed cache found on windows', 
     const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
     getCacheMock
       .mockImplementationOnce(async () => {
-        return Promise.resolve(<ArtifactCacheEntry>{})
+        throw new Error('Cache not found.')
       })
       .mockImplementationOnce(async () => {
         return Promise.resolve(cacheEntry)
