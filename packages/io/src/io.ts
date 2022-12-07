@@ -4,7 +4,6 @@ import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
-const exec = promisify(childProcess.exec)
 const execFile = promisify(childProcess.execFile)
 
 /**
@@ -129,11 +128,11 @@ export async function rmRF(inputPath: string): Promise<void> {
     try {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+        await execFile(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
           env: {inputPath}
         })
       } else {
-        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+        await execFile(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
           env: {inputPath}
         })
       }
