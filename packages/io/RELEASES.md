@@ -1,5 +1,7 @@
 # @actions/io Releases
 
+### 1.1.3
+- [Fixed a security bug where we used child_proccess.exec instead of execFile for windows](https://github.com/actions/toolkit/pull/1255)
 ### 1.1.2
 - Update `lockfileVersion` to `v2` in `package-lock.json [#1020](https://github.com/actions/toolkit/pull/1020) 
 
