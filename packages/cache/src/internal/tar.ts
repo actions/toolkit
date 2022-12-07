@@ -46,7 +46,7 @@ async function execTar(
   cwd?: string
 ): Promise<void> {
   try {
-    await exec(`"${await getTarPath(args, compressionMethod)}"`, args, {cwd})
+    await exec(`sudo ${await getTarPath(args, compressionMethod)}`, args, {cwd})
   } catch (error) {
     throw new Error(`Tar failed with error: ${error?.message}`)
   }
