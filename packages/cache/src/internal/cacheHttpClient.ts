@@ -132,7 +132,7 @@ export async function downloadCache(
 
   if (
     downloadOptions.useAzureSdk &&
-    archiveUrl.hostname.endsWith('.blob.core.windows.net')
+    archiveUrl.hostname.endsWith('.blob.core.windows.net') && !process.env['DOWNLOAD_WITH_HTTP_CLIENT']
   ) {
     // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
     await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
