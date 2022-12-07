@@ -97,12 +97,22 @@ export async function restoreCache(
         compressionMethod
       })
     } catch (error) {
-      cacheEntry = await cacheHttpClient.getCacheEntryForGzipFallbackOnWindows(
-        keys,
-        paths,
-        compressionMethod,
-        error
-      )
+      // This is to support the old cache entry created
+      // by the old version of the cache action on windows.
+      if (
+        process.platform === 'win32' &&
+        compressionMethod !== CompressionMethod.Gzip
+      ) {
+        compressionMethod = CompressionMethod.Gzip
+        cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+          compressionMethod
+        })
+        if (!cacheEntry?.archiveLocation) {
+          throw error
+        }
+      } else {
+        throw error
+      }
     }
 
     if (!cacheEntry?.archiveLocation) {
