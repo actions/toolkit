@@ -106,9 +106,8 @@ export async function restoreCache(
         process.platform === 'win32' &&
         compressionMethod !== CompressionMethod.Gzip
       ) {
-        // On windows, we will try to download the cache entry with the same key
-        // but with different compression method. This is to support the old cache entry created
-        // by the old version of the cache action.
+        // This is to support the old cache entry created
+        // by the old version of the cache action on windows.
         compressionMethod = CompressionMethod.Gzip
         cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
           compressionMethod
