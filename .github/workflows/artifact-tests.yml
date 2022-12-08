@@ -22,12 +22,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Set Node.js 12.x
-      uses: actions/setup-node@v1
+    - name: Set Node.js 14.x
+      uses: actions/setup-node@v3
       with:
-        node-version: 12.x
+        node-version: 14.x
 
     # In order to upload & download artifacts from a shell script, certain env variables need to be set that are only available in the
     # node context. This runs a local action that gets and sets the necessary env variables that are needed
