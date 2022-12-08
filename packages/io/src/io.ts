@@ -126,15 +126,13 @@ export async function rmRF(inputPath: string): Promise<void> {
       )
     }
     try {
-      const cmdPath = ioUtil.getCmdPath()
+      // const cmdPath = ioUtil.getCmdPath()
+      const cmdArgs = ['/s', '/q', `${inputPath}`]
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await execFile(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
-          env: {inputPath}
-        })
+        await execFile('rd', cmdArgs)
       } else {
-        await execFile(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
-          env: {inputPath}
-        })
+        const cmdArgsDel = ['/f', '/a', `${inputPath}`]
+        await execFile('del', cmdArgsDel)
       }
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
