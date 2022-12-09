@@ -62,9 +62,9 @@ jobs:
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
       run: |
-        node -e 'Promise.resolve(require("./packages/artifact/lib/artifact-client").create().uploadArtifact("my-artifact-1",["artifact-path/world.txt"], "${{ github.workspace }}"))'
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-2',['artifact-path/gzip.txt'], `${{ github.workspace }}`))"
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-3',['artifact-path/empty.txt'], `${{ github.workspace }}`))"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], process.argv[1]))" "${{ github.workspace }}"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], process.argv[1]))" "${{ github.workspace }}"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], process.argv[1]))" "${{ github.workspace }}"
 
     - name: Download artifacts using downloadArtifact()
       run: |
