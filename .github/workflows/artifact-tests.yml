@@ -76,6 +76,7 @@ jobs:
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-3','artifact-3-directory'))"
 
     - name: Add additional logging
+      shell: bash
       run: | 
         find . -type f
       
