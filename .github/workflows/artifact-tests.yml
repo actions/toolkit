@@ -78,7 +78,10 @@ jobs:
     - name: Add additional logging
       shell: bash
       run: | 
-        find . -type f
+        cat ./artifact-1-directory/artifact-path/world.txt
+        cat ./artifact-2-directory/artifact-path/gzip.txt
+        cat ./artifact-3-directory/artifact-path/empty.txt
+        
       
     - name: Verify downloadArtifact()
       shell: bash
