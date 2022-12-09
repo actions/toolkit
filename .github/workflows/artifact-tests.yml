@@ -75,6 +75,10 @@ jobs:
         mkdir artifact-3-directory
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-3','artifact-3-directory'))"
 
+    - name: Add additional logging
+      run: | 
+        find . -type f
+      
     - name: Verify downloadArtifact()
       shell: bash
       run: |
