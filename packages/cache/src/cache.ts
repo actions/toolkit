@@ -91,18 +91,13 @@ export async function restoreCache(
   let compressionMethod = await utils.getCompressionMethod()
   let archivePath = ''
   try {
-    try {
-      console.log('before first get cache entry')
-      // path are needed to compute version
-      cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-        compressionMethod
-      })
-      console.log('after first get cache entry')
-      console.log(cacheEntry)
-    } catch (error) {
+    // path are needed to compute version
+    cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+      compressionMethod
+    })
+    if (!cacheEntry?.archiveLocation) {
       // This is to support the old cache entry created
       // by the old version of the cache action on windows.
-      console.log('in first catch block')
       if (
         process.platform === 'win32' &&
         compressionMethod !== CompressionMethod.Gzip
@@ -114,19 +109,15 @@ export async function restoreCache(
         cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
           compressionMethod
         })
-        console.log(cacheEntry)
         if (!cacheEntry?.archiveLocation) {
-          throw error
+          return undefined
         }
       } else {
-        throw error
+        // Cache not found
+        return undefined
       }
     }
 
-    if (!cacheEntry?.archiveLocation) {
-      // Cache not found
-      return undefined
-    }
     archivePath = path.join(
       await utils.createTempDirectory(),
       utils.getCacheFileName(compressionMethod)
@@ -156,8 +147,6 @@ export async function restoreCache(
 
     return cacheEntry.cacheKey
   } catch (error) {
-    console.log('In second catch block')
-    console.log(error)
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
@@ -193,8 +182,7 @@ export async function saveCache(
   checkPaths(paths)
   checkKey(key)
 
-  // const compressionMethod = await utils.getCompressionMethod()
-  const compressionMethod = CompressionMethod.Gzip
+  const compressionMethod = await utils.getCompressionMethod()
   let cacheId = -1
 
   const cachePaths = await utils.resolvePaths(paths)

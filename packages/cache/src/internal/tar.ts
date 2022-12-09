@@ -127,6 +127,8 @@ async function getArgs(
   type: string,
   archivePath = ''
 ): Promise<string> {
+  let args: string
+
   const tarPath = await getTarPath()
   const tarArgs = await getTarArgs(
     tarPath,
@@ -142,11 +144,18 @@ async function getArgs(
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
     IS_WINDOWS
+
   if (BSD_TAR_ZSTD && type !== 'create') {
-    return [...compressionArgs, ...tarArgs].join(' ')
+    args = [...compressionArgs, ...tarArgs].join(' ')
   } else {
-    return [...tarArgs, ...compressionArgs].join(' ')
+    args = [...tarArgs, ...compressionArgs].join(' ')
   }
+
+  if (BSD_TAR_ZSTD) {
+    args = ['cmd /c "', args, '"'].join(' ')
+  }
+
+  return args
 }
 
 function getWorkingDirectory(): string {
