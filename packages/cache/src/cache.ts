@@ -102,9 +102,6 @@ export async function restoreCache(
         process.platform === 'win32' &&
         compressionMethod !== CompressionMethod.Gzip
       ) {
-        console.log(
-          "Couldn't find cache entry with zstd compression, falling back to gzip compression"
-        )
         compressionMethod = CompressionMethod.Gzip
         cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
           compressionMethod
@@ -112,6 +109,10 @@ export async function restoreCache(
         if (!cacheEntry?.archiveLocation) {
           return undefined
         }
+
+        core.debug(
+          "Couldn't find cache entry with zstd compression, falling back to gzip compression"
+        )
       } else {
         // Cache not found
         return undefined
