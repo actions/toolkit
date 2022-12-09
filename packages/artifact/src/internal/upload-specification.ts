@@ -21,7 +21,7 @@ export function getUploadSpecification(
 ): UploadSpecification[] {
   // artifact name was checked earlier on, no need to check again
   const specifications: UploadSpecification[] = []
-
+  debug(rootDirectory)
   if (!fs.existsSync(rootDirectory)) {
     throw new Error(`Provided rootDirectory ${rootDirectory} does not exist`)
   }
