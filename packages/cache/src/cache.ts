@@ -92,21 +92,29 @@ export async function restoreCache(
   let archivePath = ''
   try {
     try {
+      console.log('before first get cache entry')
       // path are needed to compute version
       cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
         compressionMethod
       })
+      console.log('after first get cache entry')
+      console.log(cacheEntry)
     } catch (error) {
       // This is to support the old cache entry created
       // by the old version of the cache action on windows.
+      console.log('in first catch block')
       if (
         process.platform === 'win32' &&
         compressionMethod !== CompressionMethod.Gzip
       ) {
+        console.log(
+          "Couldn't find cache entry with zstd compression, falling back to gzip compression"
+        )
         compressionMethod = CompressionMethod.Gzip
         cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
           compressionMethod
         })
+        console.log(cacheEntry)
         if (!cacheEntry?.archiveLocation) {
           throw error
         }
@@ -148,6 +156,8 @@ export async function restoreCache(
 
     return cacheEntry.cacheKey
   } catch (error) {
+    console.log('In second catch block')
+    console.log(error)
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
@@ -183,7 +193,8 @@ export async function saveCache(
   checkPaths(paths)
   checkKey(key)
 
-  const compressionMethod = await utils.getCompressionMethod()
+  // const compressionMethod = await utils.getCompressionMethod()
+  const compressionMethod = CompressionMethod.Gzip
   let cacheId = -1
 
   const cachePaths = await utils.resolvePaths(paths)
