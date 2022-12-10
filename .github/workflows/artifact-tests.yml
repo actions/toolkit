@@ -58,6 +58,13 @@ jobs:
         echo ${{ env.non-gzip-artifact-content }} > artifact-path/world.txt
         echo ${{ env.gzip-artifact-content }} > artifact-path/gzip.txt
         touch artifact-path/empty.txt
+        
+    - name: Add additional logging after create
+      shell: bash
+      run: | 
+        cat ./artifact-path/world.txt
+        cat ./artifact-path/gzip.txt
+        cat ./artifact-path/empty.txt
 
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
@@ -74,7 +81,14 @@ jobs:
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-2','artifact-2-directory'))"
         mkdir artifact-3-directory
         node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-3','artifact-3-directory'))"
-
+    
+    - name: Add additional logging
+      shell: bash
+      run: | 
+        cat ./artifact-1-directory/artifact-path/world.txt
+        cat ./artifact-2-directory/artifact-path/gzip.txt
+        cat ./artifact-3-directory/artifact-path/empty.txt
+        
     - name: Verify downloadArtifact()
       shell: bash
       run: |
