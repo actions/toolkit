@@ -99,7 +99,7 @@ test('zstd extract tar with windows BSDtar', async () => {
     expect(execMock).toHaveBeenNthCalledWith(
       1,
       [
-        'zstd -d --long=30 --force -o',
+        'zstd -d --long=30 -o',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       ].join(' '),
@@ -273,7 +273,7 @@ test('zstd create tar with windows BSDtar', async () => {
     expect(execMock).toHaveBeenNthCalledWith(
       2,
       [
-        'zstd -T0 --long=30 --force -o',
+        'zstd -T0 --long=30 -o',
         CacheFilename.Zstd.replace(/\\/g, '/'),
         TarFilename.replace(/\\/g, '/')
       ].join(' '),
@@ -370,7 +370,7 @@ test('zstd list tar with windows BSDtar', async () => {
     expect(execMock).toHaveBeenNthCalledWith(
       1,
       [
-        'zstd -d --long=30 --force -o',
+        'zstd -d --long=30 -o',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       ].join(' '),

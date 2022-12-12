@@ -183,7 +183,7 @@ async function getDecompressionProgram(
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -d --long=30 --force -o',
+            'zstd -d --long=30 -o',
             TarFilename,
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
@@ -194,7 +194,7 @@ async function getDecompressionProgram(
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -d --force -o',
+            'zstd -d -o',
             TarFilename,
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
@@ -223,7 +223,7 @@ async function getCompressionProgram(
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -T0 --long=30 --force -o',
+            'zstd -T0 --long=30 -o',
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
@@ -234,7 +234,7 @@ async function getCompressionProgram(
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -T0 --force -o',
+            'zstd -T0 -o',
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]

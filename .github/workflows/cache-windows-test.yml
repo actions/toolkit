@@ -78,6 +78,7 @@ jobs:
       run: |
         rm -rf test-cache
         rm -rf ~/test-cache
+        rm -f cache.tar
 
     - name: Restore cache using restoreCache() with Azure SDK
       run: |
