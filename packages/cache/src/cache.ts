@@ -96,8 +96,7 @@ export async function restoreCache(
       compressionMethod
     })
     if (!cacheEntry?.archiveLocation) {
-      // This is to support the old cache entry created
-      // by the old version of the cache action on windows.
+      // This is to support the old cache entry created by gzip on windows.
       if (
         process.platform === 'win32' &&
         compressionMethod !== CompressionMethod.Gzip
@@ -111,7 +110,7 @@ export async function restoreCache(
         }
 
         core.debug(
-          "Couldn't find cache entry with zstd compression, falling back to gzip compression"
+          "Couldn't find cache entry with zstd compression, falling back to gzip compression."
         )
       } else {
         // Cache not found

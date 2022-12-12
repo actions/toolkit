@@ -104,6 +104,7 @@ export async function getCacheEntry(
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
   if (response.statusCode === 204) {
+    // Cache not found
     return null
   }
   if (!isSuccessStatusCode(response.statusCode)) {
@@ -113,6 +114,7 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
+    // Cache achiveLocation not found
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
