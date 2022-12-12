@@ -114,7 +114,7 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
-    // Cache achiveLocation not found
+    // Cache achiveLocation not found. This should never happen, and hence bail out.
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
