@@ -4,7 +4,7 @@ import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
-const execFileSync = promisify(childProcess.execFileSync)
+// const exec = promisify(childProcess.exec)
 // const fork = promisify(childProcess.fork)
 const execFile = promisify(childProcess.execFile)
 
@@ -130,14 +130,20 @@ export async function rmRF(inputPath: string): Promise<void> {
     try {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await execFileSync(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
-          env: {inputPath},
-          windowsVerbatimArguments: true
+        await execFile(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+          env: {inputPath}
+        }).catch(err => {
+          // if you try to delete a file that doesn't exist, desired result is achieved
+          // other errors are valid
+          if (err.code !== 'ENOENT') throw err
         })
       } else {
-        await execFileSync(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
-          env: {inputPath},
-          windowsVerbatimArguments: true
+        await execFile(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+          env: {inputPath}
+        }).catch(err => {
+          // if you try to delete a file that doesn't exist, desired result is achieved
+          // other errors are valid
+          if (err.code !== 'ENOENT') throw err
         })
       }
     } catch (err) {
