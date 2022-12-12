@@ -122,12 +122,12 @@ async function getTarArgs(
   return args
 }
 
-async function getArgs(
+async function getCommands(
   compressionMethod: CompressionMethod,
   type: string,
   archivePath = ''
-): Promise<string> {
-  let args: string
+): Promise<string[]> {
+  let args
 
   const tarPath = await getTarPath()
   const tarArgs = await getTarArgs(
@@ -146,16 +146,16 @@ async function getArgs(
     IS_WINDOWS
 
   if (BSD_TAR_ZSTD && type !== 'create') {
-    args = [...compressionArgs, ...tarArgs].join(' ')
+    args = [...compressionArgs, ...tarArgs]
   } else {
-    args = [...tarArgs, ...compressionArgs].join(' ')
+    args = [...tarArgs, ...compressionArgs]
   }
 
   if (BSD_TAR_ZSTD) {
-    args = ['cmd /c "', args, '"'].join(' ')
+    return args
   }
 
-  return args
+  return [args.join(' ')]
 }
 
 function getWorkingDirectory(): string {
@@ -182,8 +182,7 @@ async function getDecompressionProgram(
         ? [
             'zstd -d --long=30 -o',
             TarFilename,
-            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-            '&&'
+            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
         : [
             '--use-compress-program',
@@ -194,8 +193,7 @@ async function getDecompressionProgram(
         ? [
             'zstd -d -o',
             TarFilename,
-            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-            '&&'
+            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
         : ['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd']
     default:
@@ -221,7 +219,6 @@ async function getCompressionProgram(
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
         ? [
-            '&&',
             'zstd -T0 --long=30 -o',
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
@@ -233,7 +230,6 @@ async function getCompressionProgram(
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
         ? [
-            '&&',
             'zstd -T0 -o',
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
@@ -244,16 +240,22 @@ async function getCompressionProgram(
   }
 }
 
+async function execCommands(commands: string[], cwd?: string): Promise<void> {
+  for (const command of commands) {
+    try {
+      await exec(command, undefined, {cwd})
+    } catch (error) {
+      throw new Error(`${command[0]} failed with error: ${error?.message}`)
+    }
+  }
+}
+
 export async function listTar(
   archivePath: string,
   compressionMethod: CompressionMethod
 ): Promise<void> {
-  const args = await getArgs(compressionMethod, 'list', archivePath)
-  try {
-    await exec(args)
-  } catch (error) {
-    throw new Error(`Tar failed with error: ${error?.message}`)
-  }
+  const commands = await getCommands(compressionMethod, 'list', archivePath)
+  await execCommands(commands)
 }
 
 export async function extractTar(
@@ -263,12 +265,8 @@ export async function extractTar(
   // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
-  const args = await getArgs(compressionMethod, 'extract', archivePath)
-  try {
-    await exec(args)
-  } catch (error) {
-    throw new Error(`Tar failed with error: ${error?.message}`)
-  }
+  const commands = await getCommands(compressionMethod, 'extract', archivePath)
+  await execCommands(commands)
 }
 
 export async function createTar(
@@ -281,10 +279,6 @@ export async function createTar(
     path.join(archiveFolder, ManifestFilename),
     sourceDirectories.join('\n')
   )
-  const args = await getArgs(compressionMethod, 'create')
-  try {
-    await exec(args, undefined, {cwd: archiveFolder})
-  } catch (error) {
-    throw new Error(`Tar failed with error: ${error?.message}`)
-  }
+  const commands = await getCommands(compressionMethod, 'create')
+  await execCommands(commands, archiveFolder)
 }

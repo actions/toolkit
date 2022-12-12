@@ -73,7 +73,9 @@ test('zstd extract tar', async () => {
         '--use-compress-program',
         IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
       ])
-      .join(' ')
+      .join(' '),
+    undefined,
+    {cwd: undefined}
   )
 })
 
@@ -92,22 +94,31 @@ test('zstd extract tar with windows BSDtar', async () => {
     await tar.extractTar(archivePath, CompressionMethod.Zstd)
 
     expect(mkdirMock).toHaveBeenCalledWith(workspace)
-    expect(execMock).toHaveBeenCalledTimes(1)
-    expect(execMock).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledTimes(2)
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      1,
       [
-        'cmd /c "',
         'zstd -d --long=30 -o',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-        archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-        '&&',
+        archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+      ].join(' '),
+      undefined,
+      {cwd: undefined}
+    )
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      2,
+      [
         `"${tarPath}"`,
         '-xf',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
         '-C',
-        workspace?.replace(/\\/g, '/'),
-        '"' // end cmd /c
-      ].join(' ')
+        workspace?.replace(/\\/g, '/')
+      ].join(' '),
+      undefined,
+      {cwd: undefined}
     )
   }
 })
@@ -137,7 +148,9 @@ test('gzip extract tar', async () => {
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat(['-z'])
-      .join(' ')
+      .join(' '),
+    undefined,
+    {cwd: undefined}
   )
 })
 
@@ -164,7 +177,9 @@ test('gzip extract GNU tar on windows with GNUtar in path', async () => {
         workspace?.replace(/\\/g, '/'),
         '--force-local',
         '-z'
-      ].join(' ')
+      ].join(' '),
+      undefined,
+      {cwd: undefined}
     )
   }
 })
@@ -232,10 +247,11 @@ test('zstd create tar with windows BSDtar', async () => {
 
     const tarPath = SystemTarPathOnWindows
 
-    expect(execMock).toHaveBeenCalledTimes(1)
-    expect(execMock).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenCalledTimes(2)
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      1,
       [
-        'cmd /c "',
         `"${tarPath}"`,
         '--posix',
         '-cf',
@@ -246,12 +262,20 @@ test('zstd create tar with windows BSDtar', async () => {
         '-C',
         workspace?.replace(/\\/g, '/'),
         '--files-from',
-        ManifestFilename,
-        '&&',
+        ManifestFilename
+      ].join(' '),
+      undefined, // args
+      {
+        cwd: archiveFolder
+      }
+    )
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      2,
+      [
         'zstd -T0 --long=30 -o',
         CacheFilename.Zstd.replace(/\\/g, '/'),
-        TarFilename.replace(/\\/g, '/'),
-        '"' // end cmd /c
+        TarFilename.replace(/\\/g, '/')
       ].join(' '),
       undefined, // args
       {
@@ -324,7 +348,9 @@ test('zstd list tar', async () => {
         '--use-compress-program',
         IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
       ])
-      .join(' ')
+      .join(' '),
+    undefined,
+    {cwd: undefined}
   )
 })
 
@@ -340,19 +366,28 @@ test('zstd list tar with windows BSDtar', async () => {
 
     const tarPath = SystemTarPathOnWindows
     expect(execMock).toHaveBeenCalledTimes(1)
-    expect(execMock).toHaveBeenCalledWith(
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      1,
       [
-        'cmd /c "',
         'zstd -d --long=30 -o',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-        archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-        '&&',
+        archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+      ].join(' '),
+      undefined,
+      {cwd: undefined}
+    )
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      2,
+      [
         `"${tarPath}"`,
         '-tf',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-        '-P',
-        '"' // end cmd /c
-      ].join(' ')
+        '-P'
+      ].join(' '),
+      undefined,
+      {cwd: undefined}
     )
   }
 })
@@ -378,7 +413,9 @@ test('zstdWithoutLong list tar', async () => {
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat(['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd'])
-      .join(' ')
+      .join(' '),
+    undefined,
+    {cwd: undefined}
   )
 })
 
@@ -402,6 +439,8 @@ test('gzip list tar', async () => {
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat(['-z'])
-      .join(' ')
+      .join(' '),
+    undefined,
+    {cwd: undefined}
   )
 })
