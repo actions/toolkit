@@ -55,8 +55,8 @@ jobs:
     - name: Create files that will be uploaded
       run: |
         mkdir artifact-path
-        echo ${{ env.non-gzip-artifact-content }} > artifact-path/world.txt
-        echo ${{ env.gzip-artifact-content }} > artifact-path/gzip.txt
+        echo '${{ env.non-gzip-artifact-content }}' > artifact-path/world.txt
+        echo '${{ env.gzip-artifact-content }}' > artifact-path/gzip.txt
         touch artifact-path/empty.txt
         
     - name: Add additional logging
