@@ -91,14 +91,12 @@ export async function restoreCache(
   let compressionMethod = await utils.getCompressionMethod()
   let archivePath = ''
   try {
-    try {
-      // path are needed to compute version
-      cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-        compressionMethod
-      })
-    } catch (error) {
-      // This is to support the old cache entry created
-      // by the old version of the cache action on windows.
+    // path are needed to compute version
+    cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+      compressionMethod
+    })
+    if (!cacheEntry?.archiveLocation) {
+      // This is to support the old cache entry created by gzip on windows.
       if (
         process.platform === 'win32' &&
         compressionMethod !== CompressionMethod.Gzip
@@ -108,17 +106,18 @@ export async function restoreCache(
           compressionMethod
         })
         if (!cacheEntry?.archiveLocation) {
-          throw error
+          return undefined
         }
+
+        core.debug(
+          "Couldn't find cache entry with zstd compression, falling back to gzip compression."
+        )
       } else {
-        throw error
+        // Cache not found
+        return undefined
       }
     }
 
-    if (!cacheEntry?.archiveLocation) {
-      // Cache not found
-      return undefined
-    }
     archivePath = path.join(
       await utils.createTempDirectory(),
       utils.getCacheFileName(compressionMethod)
