@@ -146,9 +146,9 @@ async function getCommands(
     IS_WINDOWS
 
   if (BSD_TAR_ZSTD && type !== 'create') {
-    args = [...compressionArgs, ...tarArgs]
+    args = [[...compressionArgs].join(' '), [...tarArgs].join(' ')]
   } else {
-    args = [...tarArgs, ...compressionArgs]
+    args = [[...tarArgs].join(' '), [...compressionArgs].join(' ')]
   }
 
   if (BSD_TAR_ZSTD) {
