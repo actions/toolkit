@@ -365,7 +365,7 @@ test('zstd list tar with windows BSDtar', async () => {
     await tar.listTar(archivePath, CompressionMethod.Zstd)
 
     const tarPath = SystemTarPathOnWindows
-    expect(execMock).toHaveBeenCalledTimes(1)
+    expect(execMock).toHaveBeenCalledTimes(2)
 
     expect(execMock).toHaveBeenNthCalledWith(
       1,
