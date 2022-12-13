@@ -105,6 +105,10 @@ export async function getCacheEntry(
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
   if (response.statusCode === 204) {
+    // List cache for primary key only if cache miss occurs
+    if (core.isDebug()) {
+      await listCache(keys[0], httpClient, version, response)
+    }
     return null
   }
   if (!isSuccessStatusCode(response.statusCode)) {
@@ -114,8 +118,6 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
-    // List cache for primary key only if cache miss occurs
-    await listCache(keys[0], httpClient, version, cacheResult?.scope)
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
@@ -129,25 +131,25 @@ async function listCache(
   key: string,
   httpClient: HttpClient,
   version: string,
-  scope?: string
+  getCacheEntryResponse: any
 ): Promise<void> {
+  const scope = getCacheEntryResponse.result?.scope
   const resource = `caches?key=${encodeURIComponent(key)}`
   const response = await retryTypedResponse('listCache', async () =>
     httpClient.getJson<ArtifactCacheList>(getCacheApiUrl(resource))
   )
-  if (response.statusCode === 204) {
+  if (response.statusCode === 200) {
     const cacheListResult = response.result
     const totalCount = cacheListResult?.totalCount
     if (totalCount && totalCount > 0) {
-      core.info(
-        `No matching cache found for cache key '${key}', version '${version} and scope ${scope} but there is ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version`
+      core.debug(
+        `No matching cache found for cache key '${key}', version '${version} and scope ${scope} but there are ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version \nOther versions are as follows:`
       )
-      core.debug(`Other versions are as follows:`)
-      cacheListResult?.artifactCaches?.forEach(cacheEntry => {
+      for (const cacheEntry of cacheListResult.artifactCaches || []) {
         core.debug(
           `Cache Key: ${cacheEntry?.cacheKey}, Cache Version: ${cacheEntry?.cacheVersion}, Cache Scope: ${cacheEntry?.scope}, Cache Created: ${cacheEntry?.creationTime}`
         )
-      })
+      }
     }
   }
 }
