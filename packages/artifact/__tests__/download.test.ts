@@ -4,17 +4,17 @@ import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
 import * as configVariables from '../src/internal/config-variables'
-import {promises as fs} from 'fs'
-import {DownloadItem} from '../src/internal/download-specification'
-import {HttpClient, HttpClientResponse} from '@actions/http-client'
-import {DownloadHttpClient} from '../src/internal/download-http-client'
+import { promises as fs } from 'fs'
+import { DownloadItem } from '../src/internal/download-specification'
+import { HttpClient, HttpClientResponse } from '@actions/http-client'
+import { DownloadHttpClient } from '../src/internal/download-http-client'
 import {
   ListArtifactsResponse,
   QueryArtifactResponse
 } from '../src/internal/contracts'
 import * as stream from 'stream'
-import {gzip} from 'zlib'
-import {promisify} from 'util'
+import { gzip } from 'zlib'
+import { promisify } from 'util'
 
 const root = path.join(__dirname, '_temp', 'artifact-download-tests')
 const defaultEncoding = 'utf8'
@@ -24,17 +24,18 @@ jest.mock('@actions/http-client')
 
 describe('Download Tests', () => {
   beforeAll(async () => {
+    jest.setTimeout(300000);
     await io.rmRF(root)
     await fs.mkdir(path.join(root), {
       recursive: true
     })
 
     // mock all output so that there is less noise when running tests
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
-    jest.spyOn(core, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => { })
+    jest.spyOn(core, 'debug').mockImplementation(() => { })
+    jest.spyOn(core, 'info').mockImplementation(() => { })
+    jest.spyOn(core, 'warning').mockImplementation(() => { })
+    jest.spyOn(core, 'error').mockImplementation(() => { })
   })
 
   /**
@@ -163,14 +164,20 @@ describe('Download Tests', () => {
     await checkDestinationFile(targetPath, fileContents)
   })
 
-  it('Test retryable status codes during artifact download', async () => {
+  it.each([
+    429,
+    500,
+    502,
+    503,
+    504
+  ])('Test retryable status code %p during artifact download', async (scode: number) => {
     // The first http response should return a retryable status call while the subsequent call should return a 200 so
     // the download should successfully finish
-    const retryableStatusCodes = [429, 500, 502, 503, 504]
+    const retryableStatusCodes = [scode]
     for (const statusCode of retryableStatusCodes) {
       const fileContents = Buffer.from('try, try again\n', defaultEncoding)
-      const targetPath = path.join(root, `FileC-${statusCode}.txt`)
-
+      const targetPath = path.join(root, `AAAFileC-${statusCode}.txt`)
+ 
       setupDownloadItemResponse(fileContents, false, statusCode, false, true)
       const downloadHttpClient = new DownloadHttpClient()
 
@@ -186,7 +193,7 @@ describe('Download Tests', () => {
 
       await checkDestinationFile(targetPath, fileContents)
     }
-  })
+  });
 
   it('Test retry on truncated response with gzip', async () => {
     const fileContents = Buffer.from(
@@ -276,7 +283,7 @@ describe('Download Tests', () => {
         ]
       }
       const returnData: string = JSON.stringify(response, null, 2)
-      mockReadBody = async function(): Promise<string> {
+      mockReadBody = async function (): Promise<string> {
         return new Promise(resolve => {
           resolve(returnData)
         })
@@ -447,7 +454,7 @@ describe('Download Tests', () => {
         ]
       }
       const returnData: string = JSON.stringify(response, null, 2)
-      mockReadBody = async function(): Promise<string> {
+      mockReadBody = async function (): Promise<string> {
         return new Promise(resolve => {
           resolve(returnData)
         })
