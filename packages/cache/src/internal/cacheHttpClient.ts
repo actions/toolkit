@@ -107,7 +107,7 @@ export async function getCacheEntry(
   if (response.statusCode === 204) {
     // List cache for primary key only if cache miss occurs
     if (core.isDebug()) {
-      await listCache(keys[0], httpClient, version, response)
+      await listCache(keys[0], httpClient, version)
     }
     return null
   }
@@ -130,20 +130,19 @@ export async function getCacheEntry(
 async function listCache(
   key: string,
   httpClient: HttpClient,
-  version: string,
-  getCacheEntryResponse: any
+  version: string
 ): Promise<void> {
-  const scope = getCacheEntryResponse.result?.scope
   const resource = `caches?key=${encodeURIComponent(key)}`
   const response = await retryTypedResponse('listCache', async () =>
     httpClient.getJson<ArtifactCacheList>(getCacheApiUrl(resource))
   )
-  if (response.statusCode === 200) {
+  core.debug(`List Cache Response Status Code: ${response.statusCode}`)
+  if (response.statusCode !== 200) {
     const cacheListResult = response.result
     const totalCount = cacheListResult?.totalCount
     if (totalCount && totalCount > 0) {
       core.debug(
-        `No matching cache found for cache key '${key}', version '${version} and scope ${scope} but there are ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version \nOther versions are as follows:`
+        `No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']} but there are ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version \nOther versions are as follows:`
       )
       for (const cacheEntry of cacheListResult?.artifactCaches || []) {
         core.debug(
