@@ -145,7 +145,7 @@ async function listCache(
       core.debug(
         `No matching cache found for cache key '${key}', version '${version} and scope ${scope} but there are ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version \nOther versions are as follows:`
       )
-      for (const cacheEntry of cacheListResult.artifactCaches || []) {
+      for (const cacheEntry of cacheListResult?.artifactCaches || []) {
         core.debug(
           `Cache Key: ${cacheEntry?.cacheKey}, Cache Version: ${cacheEntry?.cacheVersion}, Cache Scope: ${cacheEntry?.scope}, Cache Created: ${cacheEntry?.creationTime}`
         )
