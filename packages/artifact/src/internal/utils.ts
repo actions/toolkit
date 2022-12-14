@@ -1,9 +1,9 @@
 import crypto from 'crypto'
-import {promises as fs} from 'fs'
-import {IncomingHttpHeaders, OutgoingHttpHeaders} from 'http'
-import {debug, info, warning} from '@actions/core'
-import {HttpCodes, HttpClient, HttpClientResponse} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
+import { promises as fs } from 'fs'
+import { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http'
+import { debug, info, warning } from '@actions/core'
+import { HttpCodes, HttpClient, HttpClientResponse } from '@actions/http-client'
+import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 import {
   getRuntimeToken,
   getRuntimeUrl,
@@ -270,6 +270,16 @@ export async function getFileSize(filePath: string): Promise<number> {
 }
 
 export async function rmFile(filePath: string): Promise<void> {
+  // TODO: find actual fix
+  // node 16 `CreateWriteStream` no longer creates a file
+  // download-http-client.ts#L151 no longer creates a file and we fail here
+  try {
+    await fs.stat(filePath)
+  }
+  catch (e) {
+    console.log("File does not exist.");
+    return;
+  }
   await fs.unlink(filePath)
 }
 
