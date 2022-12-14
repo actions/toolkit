@@ -219,14 +219,13 @@ export class DownloadHttpClient {
       fileDownloadPath: string
     ): Promise<void> => {
       destinationStream.close()
-      // await until file is created at downloadpath
-      // wrap destinationStream's open event in promise 
+      // await until file is created at downloadpath; node15 and up fs.createWriteStream had not created a file yet
       await new Promise<void>(resolve => {
         destinationStream.on('close', resolve)
         if (destinationStream.writableFinished) {
           resolve()
         }
-      });
+      })
       await rmFile(fileDownloadPath)
       destinationStream = fs.createWriteStream(fileDownloadPath)
     }
@@ -281,8 +280,8 @@ export class DownloadHttpClient {
         // if a throttled status code is received, try to get the retryAfter header value, else differ to standard exponential backoff
         isThrottledStatusCode(response.message.statusCode)
           ? await backOff(
-            tryGetRetryAfterValueTimeInMilliseconds(response.message.headers)
-          )
+              tryGetRetryAfterValueTimeInMilliseconds(response.message.headers)
+            )
           : await backOff()
       } else {
         // Some unexpected response code, fail immediately and stop the download
