@@ -270,15 +270,6 @@ export async function getFileSize(filePath: string): Promise<number> {
 }
 
 export async function rmFile(filePath: string): Promise<void> {
-  // TODO: find actual fix
-  // node 16 `CreateWriteStream` no longer creates a file
-  // download-http-client.ts#L151 no longer creates a file and we fail here
-  try {
-    await fs.stat(filePath)
-  } catch (e) {
-    // File does not exist
-    return
-  }
   await fs.unlink(filePath)
 }
 
