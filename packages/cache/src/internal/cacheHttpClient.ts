@@ -136,8 +136,7 @@ async function listCache(
   const response = await retryTypedResponse('listCache', async () =>
     httpClient.getJson<ArtifactCacheList>(getCacheApiUrl(resource))
   )
-  core.debug(`List Cache Response Status Code: ${response.statusCode}`)
-  if (response.statusCode !== 200) {
+  if (response.statusCode === 200) {
     const cacheListResult = response.result
     const totalCount = cacheListResult?.totalCount
     if (totalCount && totalCount > 0) {
