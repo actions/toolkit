@@ -141,7 +141,7 @@ async function listCache(
     const totalCount = cacheListResult?.totalCount
     if (totalCount && totalCount > 0) {
       core.debug(
-        `No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']} but there are ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version \nOther versions are as follows:`
+        `No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']}. There exist one or more cache(s) with similar key but they have different version or scope. See more info on cache matching here: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key \nOther caches with similar key:`
       )
       for (const cacheEntry of cacheListResult?.artifactCaches || []) {
         core.debug(
