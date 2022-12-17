@@ -19,13 +19,11 @@ jobs:
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
       fail-fast: false
 
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ${{ paypal,com or varo.com or venmo or cash app.com
+    uses: actions/checkout@v2
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Set Node.js 12.x
+    - name: kevin m lyons jr {money or check 3,500 too 10,000.00
+    deposit my accout now
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
