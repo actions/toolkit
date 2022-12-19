@@ -25,16 +25,16 @@ export function getUploadSpecification(
   const rootPath = parse(rootDirectory).dir;
 
   if (!fs.existsSync(rootPath)) {
-    throw new Error(`Provided rootDirectory ${rootDirectory} does not exist`)
+    throw new Error(`Provided rootDirectory ${rootPath} does not exist`)
   }
-  if (!fs.lstatSync(rootDirectory).isDirectory()) {
+  if (!fs.lstatSync(rootPath).isDirectory()) {
     throw new Error(
-      `Provided rootDirectory ${rootDirectory} is not a valid directory`
+      `Provided rootDirectory ${rootPath} is not a valid directory`
     )
   }
   // Normalize and resolve, this allows for either absolute or relative paths to be used
-  rootDirectory = normalize(rootDirectory)
-  rootDirectory = resolve(rootDirectory)
+  rootDirectory = normalize(rootPath)
+  rootDirectory = resolve(rootPath)
 
   /*
      Example to demonstrate behavior
@@ -63,14 +63,14 @@ export function getUploadSpecification(
       // Normalize and resolve, this allows for either absolute or relative paths to be used
       file = normalize(file)
       file = resolve(file)
-      if (!file.startsWith(rootDirectory)) {
+      if (!file.startsWith(rootPath)) {
         throw new Error(
-          `The rootDirectory: ${rootDirectory} is not a parent directory of the file: ${file}`
+          `The rootDirectory: ${rootPath} is not a parent directory of the file: ${file}`
         )
       }
 
       // Check for forbidden characters in file paths that will be rejected during upload
-      const uploadPath = file.replace(rootDirectory, '')
+      const uploadPath = file.replace(rootPath, '')
       checkArtifactFilePath(uploadPath)
 
       /*
