@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import {debug} from '@actions/core'
-import {join, normalize, resolve} from 'path'
+import {join, normalize, resolve, toNamespacedPath} from 'path'
 import {checkArtifactFilePath} from './path-and-artifact-name-validation'
 
 export interface UploadSpecification {
@@ -22,7 +22,7 @@ export function getUploadSpecification(
   // artifact name was checked earlier on, no need to check again
   const specifications: UploadSpecification[] = []
 
-  const rootPath = resolve(rootDirectory)
+  const rootPath = toNamespacedPath(rootDirectory)
 
   if (!fs.existsSync(rootPath)) {
     throw new Error(`Provided rootDirectory ${rootPath} does not exist`)
