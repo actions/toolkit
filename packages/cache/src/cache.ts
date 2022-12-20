@@ -250,10 +250,11 @@ export async function saveCache(
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
   } catch (error) {
     const typedError = error as Error
-    if (typedError.name === ValidationError.name) {
+    if (
+      typedError.name === ValidationError.name ||
+      typedError.name === ReserveCacheError.name
+    ) {
       throw error
-    } else if (typedError.name === ReserveCacheError.name) {
-      core.info(`Failed to save: ${typedError.message}`)
     } else {
       core.warning(`Failed to save: ${typedError.message}`)
     }

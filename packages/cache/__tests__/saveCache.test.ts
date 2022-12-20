@@ -180,7 +180,7 @@ test('save with large cache outputs should fail in GHES without error message', 
 test('save with reserve cache failure should fail', async () => {
   const paths = ['node_modules']
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const logInfoMock = jest.spyOn(core, 'info')
+  // const logWarnMock = jest.spyOn(core, 'warn')
 
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
@@ -200,13 +200,9 @@ test('save with reserve cache failure should fail', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-  const cacheId = await saveCache(paths, primaryKey)
-  expect(cacheId).toBe(-1)
-  expect(logInfoMock).toHaveBeenCalledTimes(1)
-  expect(logInfoMock).toHaveBeenCalledWith(
-    `Failed to save: Unable to reserve cache with key ${primaryKey}, another job may be creating this cache. More details: undefined`
+  await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
+    `Unable to reserve cache with key ${primaryKey}, another job may be creating this cache. More details: undefined`
   )
-
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
   expect(reserveCacheMock).toHaveBeenCalledWith(primaryKey, paths, {
     compressionMethod: compression
