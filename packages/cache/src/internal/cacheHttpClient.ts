@@ -143,7 +143,7 @@ async function printCachesListForDiagnostics(
       core.debug(
         `No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']}. There exist one or more cache(s) with similar key but they have different version or scope. See more info on cache matching here: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key \nOther caches with similar key:`
       )
-      for (const cacheEntry of cacheListResult.artifactCaches || []) {
+      for (const cacheEntry of cacheListResult?.artifactCaches || []) {
         core.debug(
           `Cache Key: ${cacheEntry?.cacheKey}, Cache Version: ${cacheEntry?.cacheVersion}, Cache Scope: ${cacheEntry?.scope}, Cache Created: ${cacheEntry?.creationTime}`
         )
