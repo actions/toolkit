@@ -107,7 +107,7 @@ export async function getCacheEntry(
   if (response.statusCode === 204) {
     // List cache for primary key only if cache miss occurs
     if (core.isDebug()) {
-      await listCache(keys[0], httpClient, version)
+      await printCachesListForDiagnostics(keys[0], httpClient, version)
     }
     return null
   }
@@ -127,7 +127,7 @@ export async function getCacheEntry(
   return cacheResult
 }
 
-async function listCache(
+async function printCachesListForDiagnostics(
   key: string,
   httpClient: HttpClient,
   version: string
@@ -143,7 +143,7 @@ async function listCache(
       core.debug(
         `No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']} but there are ${totalCount} existing version of the cache for this key. More info on versioning can be found here: https://github.com/actions/cache#cache-version \nOther versions are as follows:`
       )
-      for (const cacheEntry of cacheListResult?.artifactCaches || []) {
+      for (const cacheEntry of cacheListResult.artifactCaches || []) {
         core.debug(
           `Cache Key: ${cacheEntry?.cacheKey}, Cache Version: ${cacheEntry?.cacheVersion}, Cache Scope: ${cacheEntry?.scope}, Cache Created: ${cacheEntry?.creationTime}`
         )
