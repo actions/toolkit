@@ -17,7 +17,8 @@ import {
   CommitCacheRequest,
   ReserveCacheRequest,
   ReserveCacheResponse,
-  ITypedResponseWithError
+  ITypedResponseWithError,
+  ArtifactCacheList
 } from './contracts'
 import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
 import {
@@ -103,8 +104,12 @@ export async function getCacheEntry(
   const response = await retryTypedResponse('getCacheEntry', async () =>
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
+  // Cache not found
   if (response.statusCode === 204) {
-    // Cache not found
+    // List cache for primary key only if cache miss occurs
+    if (core.isDebug()) {
+      await printCachesListForDiagnostics(keys[0], httpClient, version)
+    }
     return null
   }
   if (!isSuccessStatusCode(response.statusCode)) {
@@ -122,6 +127,31 @@ export async function getCacheEntry(
   core.debug(JSON.stringify(cacheResult))
 
   return cacheResult
+}
+
+async function printCachesListForDiagnostics(
+  key: string,
+  httpClient: HttpClient,
+  version: string
+): Promise<void> {
+  const resource = `caches?key=${encodeURIComponent(key)}`
+  const response = await retryTypedResponse('listCache', async () =>
+    httpClient.getJson<ArtifactCacheList>(getCacheApiUrl(resource))
+  )
+  if (response.statusCode === 200) {
+    const cacheListResult = response.result
+    const totalCount = cacheListResult?.totalCount
+    if (totalCount && totalCount > 0) {
+      core.debug(
+        `No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']}. There exist one or more cache(s) with similar key but they have different version or scope. See more info on cache matching here: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key \nOther caches with similar key:`
+      )
+      for (const cacheEntry of cacheListResult?.artifactCaches || []) {
+        core.debug(
+          `Cache Key: ${cacheEntry?.cacheKey}, Cache Version: ${cacheEntry?.cacheVersion}, Cache Scope: ${cacheEntry?.scope}, Cache Created: ${cacheEntry?.creationTime}`
+        )
+      }
+    }
+  }
 }
 
 export async function downloadCache(
