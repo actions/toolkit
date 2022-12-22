@@ -109,7 +109,7 @@ export async function restoreCache(
           return undefined
         }
 
-        core.debug(
+        core.info(
           "Couldn't find cache entry with zstd compression, falling back to gzip compression."
         )
       } else {
