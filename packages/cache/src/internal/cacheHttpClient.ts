@@ -104,6 +104,7 @@ export async function getCacheEntry(
   const response = await retryTypedResponse('getCacheEntry', async () =>
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
+  // Cache not found
   if (response.statusCode === 204) {
     // List cache for primary key only if cache miss occurs
     if (core.isDebug()) {
@@ -118,6 +119,7 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
+    // Cache achiveLocation not found. This should never happen, and hence bail out.
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)

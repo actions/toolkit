@@ -4,6 +4,8 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
+import {CompressionMethod} from './internal/constants'
+import {ArtifactCacheEntry} from './internal/contracts'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -85,17 +87,35 @@ export async function restoreCache(
     checkKey(key)
   }
 
-  const compressionMethod = await utils.getCompressionMethod()
+  let cacheEntry: ArtifactCacheEntry | null
+  let compressionMethod = await utils.getCompressionMethod()
   let archivePath = ''
   try {
     // path are needed to compute version
-    const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+    cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
       compressionMethod
     })
-
     if (!cacheEntry?.archiveLocation) {
-      // Cache not found
-      return undefined
+      // This is to support the old cache entry created by gzip on windows.
+      if (
+        process.platform === 'win32' &&
+        compressionMethod !== CompressionMethod.Gzip
+      ) {
+        compressionMethod = CompressionMethod.Gzip
+        cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+          compressionMethod
+        })
+        if (!cacheEntry?.archiveLocation) {
+          return undefined
+        }
+
+        core.info(
+          "Couldn't find cache entry with zstd compression, falling back to gzip compression."
+        )
+      } else {
+        // Cache not found
+        return undefined
+      }
     }
 
     archivePath = path.join(
