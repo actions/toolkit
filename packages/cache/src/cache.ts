@@ -100,6 +100,11 @@ export async function restoreCache(
       return undefined
     }
 
+    if (options?.dryRun) {
+      core.info('Dry run - skipping download')
+      return cacheEntry.cacheKey
+    }
+
     archivePath = path.join(
       await utils.createTempDirectory(),
       utils.getCacheFileName(compressionMethod)
