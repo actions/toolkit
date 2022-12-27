@@ -37,8 +37,3 @@ export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
   cacheSize?: number
 }
-
-export interface ArchiveTool {
-  path: string
-  type: string
-}
