@@ -17,7 +17,7 @@ Binding to a major version is the latest of that major version ( e.g. `v1` == "1
 
 Major versions should guarantee compatibility.  A major version can add net new capabilities but should not break existing input compatibility or break existing workflows. 
 
-Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `main` branch has the latest code and is unstable to bind to since changes get committed to main and released to the market place by creating a tag.  In addition, a new major version carrying breaking changes will get implemented in main after branching off the previous major version.
+Major version binding allows you to take advantage of bug fixes and critical functionality and security fixes.  The `main` branch has the latest code and is unstable to bind to since changes get committed to `main` and released to the market place by creating a tag.  In addition, a new major version carrying breaking changes will get implemented in `main` after branching off the previous major version.
 
 > Warning: do not reference `main` since that is the latest code and can be carrying breaking changes of the next major version.
 
