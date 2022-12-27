@@ -2,6 +2,8 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
+import {CompressionMethod} from './internal/constants'
+import {ArtifactCacheEntry} from './internal/contracts'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
 
@@ -54,6 +56,44 @@ export function isFeatureAvailable(): boolean {
 }
 
 /**
+ * Get the cache entry from keys
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
+ * @param compressionMethod cache compression method
+ * @returns string returns the cache entry for the cache hit, otherwise returns null
+ */
+export async function getCacheEntry(
+  paths: string[],
+  primaryKey: string,
+  restoreKeys?: string[],
+  compressionMethod?: CompressionMethod
+): Promise<ArtifactCacheEntry | null> {
+  checkPaths(paths)
+
+  restoreKeys = restoreKeys || []
+  const keys = [primaryKey, ...restoreKeys]
+
+  core.debug('Resolved Keys:')
+  core.debug(JSON.stringify(keys))
+
+  if (keys.length > 10) {
+    throw new ValidationError(
+      `Key Validation Error: Keys are limited to a maximum of 10.`
+    )
+  }
+  for (const key of keys) {
+    checkKey(key)
+  }
+
+  // path are needed to compute version
+  return await cacheHttpClient.getCacheEntry(keys, paths, {
+    compressionMethod: compressionMethod ?? (await utils.getCompressionMethod())
+  })
+}
+
+/**
  * Restores cache from keys
  *
  * @param paths a list of file paths to restore from the cache
@@ -89,9 +129,12 @@ export async function restoreCache(
   let archivePath = ''
   try {
     // path are needed to compute version
-    const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+    const cacheEntry = await getCacheEntry(
+      paths,
+      primaryKey,
+      restoreKeys,
       compressionMethod
-    })
+    )
 
     if (!cacheEntry?.archiveLocation) {
       // Cache not found
