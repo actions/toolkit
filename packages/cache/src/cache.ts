@@ -61,16 +61,16 @@ export function isFeatureAvailable(): boolean {
  * @param paths a list of file paths to restore from the cache
  * @param primaryKey an explicit key for restoring the cache
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
- * @param crossOsEnabled an optional boolean enabled to restore on windows any cache created on any platform
  * @param downloadOptions cache download options
+ * @param crossOsEnabled an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
   paths: string[],
   primaryKey: string,
   restoreKeys?: string[],
-  crossOsEnabled = false,
-  options?: DownloadOptions
+  options?: DownloadOptions,
+  crossOsEnabled = false
 ): Promise<string | undefined> {
   checkPaths(paths)
 
@@ -181,8 +181,8 @@ export async function restoreCache(
 export async function saveCache(
   paths: string[],
   key: string,
-  crossOsEnabled = false,
-  options?: UploadOptions
+  options?: UploadOptions,
+  crossOsEnabled = false
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)

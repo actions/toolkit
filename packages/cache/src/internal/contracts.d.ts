@@ -34,9 +34,9 @@ export interface ReserveCacheResponse {
 }
 
 export interface InternalCacheOptions {
-  cacheSize?: number
   compressionMethod?: CompressionMethod
   crossOsEnabled?: boolean
+  cacheSize?: number
 }
 
 export interface ArchiveTool {

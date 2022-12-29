@@ -7,7 +7,7 @@ jest.mock('../src/internal/downloadUtils')
 
 test('getCacheVersion with one path returns version', async () => {
   const paths = ['node_modules']
-  const result = getCacheVersion(paths)
+  const result = getCacheVersion(paths, undefined, true)
   expect(result).toEqual(
     'b3e0c6cb5ecf32614eeb2997d905b9c297046d7cbf69062698f25b14b4cb0985'
   )
@@ -15,7 +15,7 @@ test('getCacheVersion with one path returns version', async () => {
 
 test('getCacheVersion with multiple paths returns version', async () => {
   const paths = ['node_modules', 'dist']
-  const result = getCacheVersion(paths)
+  const result = getCacheVersion(paths, undefined, true)
   expect(result).toEqual(
     '165c3053bc646bf0d4fac17b1f5731caca6fe38e0e464715c0c3c6b6318bf436'
   )
@@ -23,7 +23,7 @@ test('getCacheVersion with multiple paths returns version', async () => {
 
 test('getCacheVersion with zstd compression returns version', async () => {
   const paths = ['node_modules']
-  const result = getCacheVersion(paths, CompressionMethod.Zstd)
+  const result = getCacheVersion(paths, CompressionMethod.Zstd, true)
 
   expect(result).toEqual(
     '273877e14fd65d270b87a198edbfa2db5a43de567c9a548d2a2505b408befe24'
@@ -32,11 +32,22 @@ test('getCacheVersion with zstd compression returns version', async () => {
 
 test('getCacheVersion with gzip compression does not change vesion', async () => {
   const paths = ['node_modules']
-  const result = getCacheVersion(paths, CompressionMethod.Gzip)
+  const result = getCacheVersion(paths, CompressionMethod.Gzip, true)
 
   expect(result).toEqual(
     'b3e0c6cb5ecf32614eeb2997d905b9c297046d7cbf69062698f25b14b4cb0985'
   )
+})
+
+test('getCacheVersion with crossOsEnabled as false returns version on windows', async () => {
+  if (process.platform === 'win32') {
+    const paths = ['node_modules']
+    const result = getCacheVersion(paths)
+
+    expect(result).toEqual(
+      '2db19d6596dc34f51f0043120148827a264863f5c6ac857569c2af7119bad14e'
+    )
+  }
 })
 
 test('downloadCache uses http-client for non-Azure URLs', async () => {
