@@ -1,4 +1,5 @@
 import * as exec from '@actions/exec'
+import {exportVariable} from '@actions/core'
 import * as io from '@actions/io'
 import * as path from 'path'
 import {
@@ -13,6 +14,8 @@ import * as tar from '../src/internal/tar'
 import * as utils from '../src/internal/cacheUtils'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import fs = require('fs')
+
+exportVariable('MSYS', 'winsymlinks:nativestrict')
 
 jest.mock('@actions/exec')
 jest.mock('@actions/io')

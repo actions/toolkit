@@ -1,4 +1,5 @@
 import {exec} from '@actions/exec'
+import {exportVariable} from '@actions/core'
 import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
@@ -13,6 +14,7 @@ import {
 } from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
+exportVariable('MSYS', 'winsymlinks:nativestrict')
 
 // Returns tar path and type: BSD or GNU
 async function getTarPath(): Promise<ArchiveTool> {
