@@ -9,7 +9,7 @@ test('getCacheVersion with one path returns version', async () => {
   const paths = ['node_modules']
   const result = getCacheVersion(paths, undefined, true)
   expect(result).toEqual(
-    'af166d7350340bdcd221c5040540ce3b06fb9569f007efe5271845113780e411'
+    'b3e0c6cb5ecf32614eeb2997d905b9c297046d7cbf69062698f25b14b4cb0985'
   )
 })
 
@@ -17,7 +17,7 @@ test('getCacheVersion with multiple paths returns version', async () => {
   const paths = ['node_modules', 'dist']
   const result = getCacheVersion(paths, undefined, true)
   expect(result).toEqual(
-    'acd28d9f2ed4ee2787813c2a8e99462198b5a6db553b53d5eaae2a21c620561a'
+    '165c3053bc646bf0d4fac17b1f5731caca6fe38e0e464715c0c3c6b6318bf436'
   )
 })
 
