@@ -31,7 +31,7 @@ jobs:
     - name: Bootstrap
       run: npm run bootstrap
 
-    - name: audit tools
+    - name: audit tools (without allow-list)
       run: npm audit --audit-level=moderate
 
     - name: audit packages
