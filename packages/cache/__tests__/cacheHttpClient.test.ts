@@ -9,7 +9,7 @@ test('getCacheVersion with one path returns version', async () => {
   const paths = ['node_modules']
   const result = getCacheVersion(paths, undefined, true)
   expect(result).toEqual(
-    'b3e0c6cb5ecf32614eeb2997d905b9c297046d7cbf69062698f25b14b4cb0985'
+    '470e252814dbffc9524891b17cf4e5749b26c1b5026e63dd3f00972db2393117'
   )
 })
 
@@ -17,7 +17,7 @@ test('getCacheVersion with multiple paths returns version', async () => {
   const paths = ['node_modules', 'dist']
   const result = getCacheVersion(paths, undefined, true)
   expect(result).toEqual(
-    '165c3053bc646bf0d4fac17b1f5731caca6fe38e0e464715c0c3c6b6318bf436'
+    'acd28d9f2ed4ee2787813c2a8e99462198b5a6db553b53d5eaae2a21c620561a'
   )
 })
 
@@ -35,7 +35,7 @@ test('getCacheVersion with gzip compression does not change vesion', async () =>
   const result = getCacheVersion(paths, CompressionMethod.Gzip, true)
 
   expect(result).toEqual(
-    'b3e0c6cb5ecf32614eeb2997d905b9c297046d7cbf69062698f25b14b4cb0985'
+    '470e252814dbffc9524891b17cf4e5749b26c1b5026e63dd3f00972db2393117'
   )
 })
 
@@ -45,7 +45,7 @@ test('getCacheVersion with enableCrossOsArchive as false returns version on wind
     const result = getCacheVersion(paths)
 
     expect(result).toEqual(
-      '2db19d6596dc34f51f0043120148827a264863f5c6ac857569c2af7119bad14e'
+      'eaba4356cfc2107bac38279c46571b074aac575cbd3e0bae72c7dc9dff1132d7'
     )
   }
 })
