@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
@@ -40,7 +40,7 @@ jobs:
         working-directory: packages/${{ github.event.inputs.package }}
 
       - name: upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.inputs.package }}
           path: packages/${{ github.event.inputs.package }}/*.tgz
@@ -52,7 +52,7 @@ jobs:
     steps:
 
       - name: download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ github.event.inputs.package }}
 
