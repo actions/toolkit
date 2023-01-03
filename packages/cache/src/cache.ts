@@ -4,7 +4,6 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
-import {CompressionMethod} from './internal/constants'
 import {ArtifactCacheEntry} from './internal/contracts'
 
 export class ValidationError extends Error {
@@ -89,12 +88,11 @@ export async function restoreCache(
     checkKey(key)
   }
 
-  let cacheEntry: ArtifactCacheEntry | null
-  let compressionMethod = await utils.getCompressionMethod()
+  const compressionMethod = await utils.getCompressionMethod()
   let archivePath = ''
   try {
     // path are needed to compute version
-    cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+    const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
       compressionMethod,
       enableCrossOsArchive
     })

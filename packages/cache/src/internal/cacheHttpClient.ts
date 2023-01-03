@@ -79,7 +79,9 @@ export function getCacheVersion(
   const components = paths
     .concat([!compressionMethod ? '' : compressionMethod])
     .concat(
-      process.platform !== 'win32' || enableCrossOsArchive ? [] : ['windows-only']
+      process.platform !== 'win32' || enableCrossOsArchive
+        ? []
+        : ['windows-only']
     ) // Only check for windows platforms if enableCrossOsArchive is false
 
   // Add salt to cache version to support breaking changes in cache entry
