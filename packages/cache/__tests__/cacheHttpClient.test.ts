@@ -39,7 +39,7 @@ test('getCacheVersion with gzip compression does not change vesion', async () =>
   )
 })
 
-test('getCacheVersion with crossOsEnabled as false returns version on windows', async () => {
+test('getCacheVersion with enableCrossOsArchive as false returns version on windows', async () => {
   if (process.platform === 'win32') {
     const paths = ['node_modules']
     const result = getCacheVersion(paths)

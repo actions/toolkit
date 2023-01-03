@@ -62,7 +62,7 @@ export function isFeatureAvailable(): boolean {
  * @param primaryKey an explicit key for restoring the cache
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
  * @param downloadOptions cache download options
- * @param crossOsEnabled an optional boolean enabled to restore on windows any cache created on any platform
+ * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
@@ -70,7 +70,7 @@ export async function restoreCache(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  crossOsEnabled = false
+  enableCrossOsArchive = false
 ): Promise<string | undefined> {
   checkPaths(paths)
 
@@ -96,29 +96,11 @@ export async function restoreCache(
     // path are needed to compute version
     cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
       compressionMethod,
-      crossOsEnabled
+      enableCrossOsArchive
     })
     if (!cacheEntry?.archiveLocation) {
-      // This is to support the old cache entry created by gzip on windows.
-      if (
-        process.platform === 'win32' &&
-        compressionMethod !== CompressionMethod.Gzip
-      ) {
-        compressionMethod = CompressionMethod.Gzip
-        cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-          compressionMethod
-        })
-        if (!cacheEntry?.archiveLocation) {
-          return undefined
-        }
-
-        core.info(
-          "Couldn't find cache entry with zstd compression, falling back to gzip compression."
-        )
-      } else {
-        // Cache not found
-        return undefined
-      }
+      // Cache not found
+      return undefined
     }
 
     archivePath = path.join(
@@ -174,7 +156,7 @@ export async function restoreCache(
  *
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
- * @param crossOsEnabled an optional boolean enabled to save cache on windows which could be restored on any platform
+ * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
  * @param options cache upload options
  * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
  */
@@ -182,7 +164,7 @@ export async function saveCache(
   paths: string[],
   key: string,
   options?: UploadOptions,
-  crossOsEnabled = false
+  enableCrossOsArchive = false
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
@@ -232,7 +214,7 @@ export async function saveCache(
       paths,
       {
         compressionMethod,
-        crossOsEnabled,
+        enableCrossOsArchive,
         cacheSize: archiveFileSize
       }
     )

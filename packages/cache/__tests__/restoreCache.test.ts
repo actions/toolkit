@@ -143,7 +143,7 @@ test('restore with gzip compressed cache found', async () => {
   expect(cacheKey).toBe(key)
   expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
     compressionMethod: compression,
-    crossOsEnabled: false
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
@@ -212,7 +212,7 @@ test('restore with zstd as default but gzip compressed cache found on windows', 
     expect(cacheKey).toBe(key)
     expect(getCacheMock).toHaveBeenNthCalledWith(1, [key], paths, {
       compressionMethod: compression,
-      crossOsEnabled: false
+      enableCrossOsArchive: false
     })
     expect(getCacheMock).toHaveBeenNthCalledWith(2, [key], paths, {
       compressionMethod: CompressionMethod.Gzip
@@ -279,7 +279,7 @@ test('restore with zstd compressed cache found', async () => {
   expect(cacheKey).toBe(key)
   expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
     compressionMethod: compression,
-    crossOsEnabled: false
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
@@ -337,7 +337,7 @@ test('restore with cache found for restore key', async () => {
   expect(cacheKey).toBe(restoreKey)
   expect(getCacheMock).toHaveBeenCalledWith([key, restoreKey], paths, {
     compressionMethod: compression,
-    crossOsEnabled: false
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(

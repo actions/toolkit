@@ -74,17 +74,13 @@ function createHttpClient(): HttpClient {
 export function getCacheVersion(
   paths: string[],
   compressionMethod?: CompressionMethod,
-  crossOsEnabled = false
+  enableCrossOsArchive = false
 ): string {
   const components = paths
+    .concat([!compressionMethod ? '' : compressionMethod])
     .concat(
-      !compressionMethod || compressionMethod === CompressionMethod.Gzip
-        ? []
-        : [compressionMethod]
-    )
-    .concat(
-      process.platform !== 'win32' || crossOsEnabled ? [] : ['windows-only']
-    ) // Only check for windows platforms if crossOsEnabled is false
+      process.platform !== 'win32' || enableCrossOsArchive ? [] : ['windows-only']
+    ) // Only check for windows platforms if enableCrossOsArchive is false
 
   // Add salt to cache version to support breaking changes in cache entry
   components.push(versionSalt)
@@ -104,7 +100,7 @@ export async function getCacheEntry(
   const version = getCacheVersion(
     paths,
     options?.compressionMethod,
-    options?.crossOsEnabled
+    options?.enableCrossOsArchive
   )
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
@@ -193,7 +189,7 @@ export async function reserveCache(
   const version = getCacheVersion(
     paths,
     options?.compressionMethod,
-    options?.crossOsEnabled
+    options?.enableCrossOsArchive
   )
 
   const reserveCacheRequest: ReserveCacheRequest = {
