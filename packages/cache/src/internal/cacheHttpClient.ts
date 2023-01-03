@@ -77,7 +77,7 @@ export function getCacheVersion(
   enableCrossOsArchive = false
 ): string {
   const components = paths
-    .concat([!compressionMethod ? '' : compressionMethod])
+    .concat(!compressionMethod ? [] : [compressionMethod])
     .concat(
       process.platform !== 'win32' || enableCrossOsArchive
         ? []
