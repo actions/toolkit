@@ -9,7 +9,7 @@ test('getCacheVersion with one path returns version', async () => {
   const paths = ['node_modules']
   const result = getCacheVersion(paths, undefined, true)
   expect(result).toEqual(
-    '470e252814dbffc9524891b17cf4e5749b26c1b5026e63dd3f00972db2393117'
+    'af166d7350340bdcd221c5040540ce3b06fb9569f007efe5271845113780e411'
   )
 })
 
@@ -30,7 +30,7 @@ test('getCacheVersion with zstd compression returns version', async () => {
   )
 })
 
-test('getCacheVersion with gzip compression does not change vesion', async () => {
+test('getCacheVersion with gzip compression returns version', async () => {
   const paths = ['node_modules']
   const result = getCacheVersion(paths, CompressionMethod.Gzip, true)
 
