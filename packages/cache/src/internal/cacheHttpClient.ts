@@ -78,7 +78,7 @@ export function getCacheVersion(
 ): string {
   const components = paths
 
-  // Add compression method to cache version to restore 
+  // Add compression method to cache version to restore
   // compressed cache as per compression method
   if (compressionMethod) {
     components.push(compressionMethod)

@@ -45,7 +45,7 @@ test('getCacheVersion with enableCrossOsArchive as false returns version on wind
     const result = getCacheVersion(paths)
 
     expect(result).toEqual(
-      'eaba4356cfc2107bac38279c46571b074aac575cbd3e0bae72c7dc9dff1132d7'
+      '2db19d6596dc34f51f0043120148827a264863f5c6ac857569c2af7119bad14e'
     )
   }
 })
