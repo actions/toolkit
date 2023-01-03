@@ -77,12 +77,17 @@ export function getCacheVersion(
   enableCrossOsArchive = false
 ): string {
   const components = paths
-    .concat(!compressionMethod ? [] : [compressionMethod])
-    .concat(
-      process.platform !== 'win32' || enableCrossOsArchive
-        ? []
-        : ['windows-only']
-    ) // Only check for windows platforms if enableCrossOsArchive is false
+
+  // Add compression method to cache version to restore 
+  // compressed cache as per compression method
+  if (compressionMethod) {
+    components.push(compressionMethod)
+  }
+
+  // Only check for windows platforms if enableCrossOsArchive is false
+  if (process.platform === 'win32' && !enableCrossOsArchive) {
+    components.push('windows-only')
+  }
 
   // Add salt to cache version to support breaking changes in cache entry
   components.push(versionSalt)
