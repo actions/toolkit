@@ -219,6 +219,13 @@ export class DownloadHttpClient {
       fileDownloadPath: string
     ): Promise<void> => {
       destinationStream.close()
+      // await until file is created at downloadpath; node15 and up fs.createWriteStream had not created a file yet
+      await new Promise<void>(resolve => {
+        destinationStream.on('close', resolve)
+        if (destinationStream.writableFinished) {
+          resolve()
+        }
+      })
       await rmFile(fileDownloadPath)
       destinationStream = fs.createWriteStream(fileDownloadPath)
     }

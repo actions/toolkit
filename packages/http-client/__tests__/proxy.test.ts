@@ -19,7 +19,7 @@ describe('proxy', () => {
       _proxyServer.listen(port, () => resolve())
     })
     _proxyServer.on('connect', req => {
-      _proxyConnects.push(req.url)
+      _proxyConnects.push(req.url ?? '')
     })
   })
 
