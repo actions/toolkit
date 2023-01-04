@@ -105,3 +105,10 @@
 - Update actions/cache on windows to use gnu tar and zstd by default
 - Update actions/cache on windows to fallback to bsdtar and zstd if gnu tar is not available.
 - Added support for fallback to gzip to restore old caches on windows.
+
+### 3.1.1
+- Reverted changes in 3.1.0 to fix issue with symlink restoration on windows.
+- Added support for verbose logging about cache version during cache miss.
+
+### 3.1.2
+- Fix issue with symlink restoration on windows.
