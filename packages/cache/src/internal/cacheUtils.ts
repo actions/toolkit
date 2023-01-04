@@ -7,7 +7,11 @@ import * as path from 'path'
 import * as semver from 'semver'
 import * as util from 'util'
 import {v4 as uuidV4} from 'uuid'
-import {CacheFilename, CompressionMethod} from './constants'
+import {
+  CacheFilename,
+  CompressionMethod,
+  GnuTarPathOnWindows
+} from './constants'
 
 // From https://github.com/actions/toolkit/blob/main/packages/tool-cache/src/tool-cache.ts#L23
 export async function createTempDirectory(): Promise<string> {
@@ -90,11 +94,6 @@ async function getVersion(app: string): Promise<string> {
 
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
-  if (process.platform === 'win32' && !(await isGnuTarInstalled())) {
-    // Disable zstd due to bug https://github.com/actions/cache/issues/301
-    return CompressionMethod.Gzip
-  }
-
   const versionOutput = await getVersion('zstd')
   const version = semver.clean(versionOutput)
 
@@ -116,9 +115,12 @@ export function getCacheFileName(compressionMethod: CompressionMethod): string {
     : CacheFilename.Zstd
 }
 
-export async function isGnuTarInstalled(): Promise<boolean> {
+export async function getGnuTarPathOnWindows(): Promise<string> {
+  if (fs.existsSync(GnuTarPathOnWindows)) {
+    return GnuTarPathOnWindows
+  }
   const versionOutput = await getVersion('tar')
-  return versionOutput.toLowerCase().includes('gnu tar')
+  return versionOutput.toLowerCase().includes('gnu tar') ? io.which('tar') : ''
 }
 
 export function assertDefined<T>(name: string, value?: T): T {

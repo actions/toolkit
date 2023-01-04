@@ -91,3 +91,24 @@
 
 ### 3.0.6
 - Added `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
+
+### 3.1.0-beta.1
+- Update actions/cache on windows to use gnu tar and zstd by default and fallback to bsdtar and zstd if gnu tar is not available. ([issue](https://github.com/actions/cache/issues/984))
+
+### 3.1.0-beta.2
+- Added support for fallback to gzip to restore old caches on windows.
+
+### 3.1.0-beta.3
+- Bug Fixes for fallback to gzip to restore old caches on windows and bsdtar if gnutar is not available.
+
+### 3.1.0
+- Update actions/cache on windows to use gnu tar and zstd by default
+- Update actions/cache on windows to fallback to bsdtar and zstd if gnu tar is not available.
+- Added support for fallback to gzip to restore old caches on windows.
+
+### 3.1.1
+- Reverted changes in 3.1.0 to fix issue with symlink restoration on windows.
+- Added support for verbose logging about cache version during cache miss.
+
+### 3.1.2
+- Fix issue with symlink restoration on windows.

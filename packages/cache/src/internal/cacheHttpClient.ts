@@ -73,13 +73,21 @@ function createHttpClient(): HttpClient {
 
 export function getCacheVersion(
   paths: string[],
-  compressionMethod?: CompressionMethod
+  compressionMethod?: CompressionMethod,
+  enableCrossOsArchive = false
 ): string {
-  const components = paths.concat(
-    !compressionMethod || compressionMethod === CompressionMethod.Gzip
-      ? []
-      : [compressionMethod]
-  )
+  const components = paths
+
+  // Add compression method to cache version to restore
+  // compressed cache as per compression method
+  if (compressionMethod) {
+    components.push(compressionMethod)
+  }
+
+  // Only check for windows platforms if enableCrossOsArchive is false
+  if (process.platform === 'win32' && !enableCrossOsArchive) {
+    components.push('windows-only')
+  }
 
   // Add salt to cache version to support breaking changes in cache entry
   components.push(versionSalt)
@@ -96,7 +104,11 @@ export async function getCacheEntry(
   options?: InternalCacheOptions
 ): Promise<ArtifactCacheEntry | null> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(paths, options?.compressionMethod)
+  const version = getCacheVersion(
+    paths,
+    options?.compressionMethod,
+    options?.enableCrossOsArchive
+  )
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
   )}&version=${version}`
@@ -104,6 +116,7 @@ export async function getCacheEntry(
   const response = await retryTypedResponse('getCacheEntry', async () =>
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
+  // Cache not found
   if (response.statusCode === 204) {
     // List cache for primary key only if cache miss occurs
     if (core.isDebug()) {
@@ -118,6 +131,7 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
+    // Cache achiveLocation not found. This should never happen, and hence bail out.
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
@@ -179,7 +193,11 @@ export async function reserveCache(
   options?: InternalCacheOptions
 ): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(paths, options?.compressionMethod)
+  const version = getCacheVersion(
+    paths,
+    options?.compressionMethod,
+    options?.enableCrossOsArchive
+  )
 
   const reserveCacheRequest: ReserveCacheRequest = {
     key,

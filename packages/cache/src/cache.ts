@@ -60,13 +60,15 @@ export function isFeatureAvailable(): boolean {
  * @param primaryKey an explicit key for restoring the cache
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
  * @param downloadOptions cache download options
+ * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
   paths: string[],
   primaryKey: string,
   restoreKeys?: string[],
-  options?: DownloadOptions
+  options?: DownloadOptions,
+  enableCrossOsArchive = false
 ): Promise<string | undefined> {
   checkPaths(paths)
 
@@ -90,9 +92,9 @@ export async function restoreCache(
   try {
     // path are needed to compute version
     const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-      compressionMethod
+      compressionMethod,
+      enableCrossOsArchive
     })
-
     if (!cacheEntry?.archiveLocation) {
       // Cache not found
       return undefined
@@ -151,13 +153,15 @@ export async function restoreCache(
  *
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
+ * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
  * @param options cache upload options
  * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
  */
 export async function saveCache(
   paths: string[],
   key: string,
-  options?: UploadOptions
+  options?: UploadOptions,
+  enableCrossOsArchive = false
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
@@ -207,6 +211,7 @@ export async function saveCache(
       paths,
       {
         compressionMethod,
+        enableCrossOsArchive,
         cacheSize: archiveFileSize
       }
     )

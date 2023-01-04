@@ -35,5 +35,11 @@ export interface ReserveCacheResponse {
 
 export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
+  enableCrossOsArchive?: boolean
   cacheSize?: number
+}
+
+export interface ArchiveTool {
+  path: string
+  type: string
 }
