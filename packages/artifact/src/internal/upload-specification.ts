@@ -25,7 +25,7 @@ export function getUploadSpecification(
   if (!fs.existsSync(rootDirectory)) {
     throw new Error(`Provided rootDirectory ${rootDirectory} does not exist`)
   }
-  if (!fs.lstatSync(rootDirectory).isDirectory()) {
+  if (!fs.statSync(rootDirectory).isDirectory()) {
     throw new Error(
       `Provided rootDirectory ${rootDirectory} is not a valid directory`
     )
@@ -57,7 +57,7 @@ export function getUploadSpecification(
     if (!fs.existsSync(file)) {
       throw new Error(`File ${file} does not exist`)
     }
-    if (!fs.lstatSync(file).isDirectory()) {
+    if (!fs.statSync(file).isDirectory()) {
       // Normalize and resolve, this allows for either absolute or relative paths to be used
       file = normalize(file)
       file = resolve(file)
