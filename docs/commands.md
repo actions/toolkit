@@ -129,7 +129,7 @@ There are several commands to emit different levels of log output:
 | log level | example usage |
 |---|---|
 | [debug](action-debugging.md)  | `echo "::debug::My debug message"` |
-| notice | `echo "::notice::My debug message"` |
+| notice | `echo "::notice::My notice message"` |
 | warning | `echo "::warning::My warning message"` |
 | error | `echo "::error::My error message"` |
 
