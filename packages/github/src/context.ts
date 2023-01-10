@@ -78,4 +78,14 @@ export class Context {
       "context.repo requires a GITHUB_REPOSITORY environment variable like 'owner/repo'"
     )
   }
+
+  get repositoryPreferences(): {isFork: boolean} {
+    if (this.payload.repository) {
+      return {
+        isFork: this.payload.repository.fork === 'true'
+      }
+    }
+
+    throw new Error('context.payload.repository must be populated')
+  }
 }
