@@ -26,6 +26,7 @@ const gzipExemptFileExtensions = [
   '.xz', // XZ
   '.txz', // XZ
   '.zst', // ZSTD
+  '.zstd', // ZSTD
   '.tzst', // ZSTD
   '.zip', // ZIP
   '.7z' // 7ZIP

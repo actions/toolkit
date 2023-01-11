@@ -23,6 +23,7 @@ const tempLzoFilePath = path.join(root, 'file.lzo')
 const tempXzFilePath = path.join(root, 'file.xz')
 const tempTxzFilePath = path.join(root, 'file.txz')
 const tempZstFilePath = path.join(root, 'file.zst')
+const tempZstdFilePath = path.join(root, 'file.zstd')
 const tempTzstFilePath = path.join(root, 'file.tzst')
 const tempZipFilePath = path.join(root, 'file.zip')
 const temp7zFilePath = path.join(root, 'file.7z')
@@ -58,6 +59,7 @@ beforeAll(async () => {
   await fs.writeFile(tempXzFilePath, 'a file with a .xz file extension')
   await fs.writeFile(tempTxzFilePath, 'a file with a .txz file extension')
   await fs.writeFile(tempZstFilePath, 'a file with a .zst file extension')
+  await fs.writeFile(tempZstdFilePath, 'a file with a .zstd file extension')
   await fs.writeFile(tempTzstFilePath, 'a file with a .tzst file extension')
   await fs.writeFile(tempZipFilePath, 'a file with a .zip file extension')
   await fs.writeFile(temp7zFilePath, 'a file with a .7z file extension')
@@ -117,6 +119,9 @@ test('Number.MAX_SAFE_INTEGER is returned when an existing compressed file is us
     Number.MAX_SAFE_INTEGER
   )
   expect(await createGZipFileOnDisk(tempZstFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempZstdFilePath, tempFile.path)).toEqual(
     Number.MAX_SAFE_INTEGER
   )
   expect(await createGZipFileOnDisk(tempTzstFilePath, tempFile.path)).toEqual(
