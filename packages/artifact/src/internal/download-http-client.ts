@@ -311,7 +311,7 @@ export class DownloadHttpClient {
         const gunzip = zlib.createGunzip()
         response.message
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while attempting to read the response stream`
             )
             gunzip.close()
@@ -320,7 +320,7 @@ export class DownloadHttpClient {
           })
           .pipe(gunzip)
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while attempting to decompress the response stream`
             )
             destinationStream.close()
@@ -331,7 +331,7 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
@@ -339,7 +339,7 @@ export class DownloadHttpClient {
       } else {
         response.message
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while attempting to read the response stream`
             )
             destinationStream.close()
@@ -350,7 +350,7 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
