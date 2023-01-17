@@ -280,7 +280,7 @@ test('restore with cache found for restore key', async () => {
 test('restore with dry run', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
-  const options = {dryRun: true}
+  const options = {lookupOnly: true}
 
   const cacheEntry: ArtifactCacheEntry = {
     cacheKey: key,

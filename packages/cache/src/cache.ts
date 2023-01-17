@@ -100,8 +100,8 @@ export async function restoreCache(
       return undefined
     }
 
-    if (options?.dryRun) {
-      core.info('Dry run - skipping download')
+    if (options?.lookupOnly) {
+      core.info('Lookup only - skipping download')
       return cacheEntry.cacheKey
     }
 

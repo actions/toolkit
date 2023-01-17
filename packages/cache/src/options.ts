@@ -56,12 +56,12 @@ export interface DownloadOptions {
 
   /**
    * Weather to skip downloading the cache entry.
-   * If dryRun is set to true, the restore function will only check if
+   * If lookupOnly is set to true, the restore function will only check if
    * a matching cache entry exists and return the cache key if it does.
    *
    * @default false
    */
-  dryRun?: boolean
+  lookupOnly?: boolean
 }
 
 /**
@@ -102,7 +102,7 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     downloadConcurrency: 8,
     timeoutInMs: 30000,
     segmentTimeoutInMs: 3600000,
-    dryRun: false
+    lookupOnly: false
   }
 
   if (copy) {
@@ -122,8 +122,8 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
       result.segmentTimeoutInMs = copy.segmentTimeoutInMs
     }
 
-    if (typeof copy.dryRun === 'boolean') {
-      result.dryRun = copy.dryRun
+    if (typeof copy.lookupOnly === 'boolean') {
+      result.lookupOnly = copy.lookupOnly
     }
   }
   const segmentDownloadTimeoutMins =
@@ -143,7 +143,7 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     `Cache segment download timeout mins env var: ${process.env['SEGMENT_DOWNLOAD_TIMEOUT_MINS']}`
   )
   core.debug(`Segment download timeout (ms): ${result.segmentTimeoutInMs}`)
-  core.debug(`Dry run: ${result.dryRun}`)
+  core.debug(`Lookup only: ${result.lookupOnly}`)
 
   return result
 }
