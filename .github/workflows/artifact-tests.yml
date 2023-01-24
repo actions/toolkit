@@ -22,12 +22,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Set Node.js 12.x
-      uses: actions/setup-node@v1
+    - name: Set Node.js 16.x
+      uses: actions/setup-node@v3
       with:
-        node-version: 12.x
+        node-version: 16.x
 
     # In order to upload & download artifacts from a shell script, certain env variables need to be set that are only available in the
     # node context. This runs a local action that gets and sets the necessary env variables that are needed
@@ -55,16 +55,16 @@ jobs:
     - name: Create files that will be uploaded
       run: |
         mkdir artifact-path
-        echo ${{ env.non-gzip-artifact-content }} > artifact-path/world.txt
-        echo ${{ env.gzip-artifact-content }} > artifact-path/gzip.txt
+        echo '${{ env.non-gzip-artifact-content }}' > artifact-path/world.txt
+        echo '${{ env.gzip-artifact-content }}' > artifact-path/gzip.txt
         touch artifact-path/empty.txt
 
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
       run: |
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], '${{ github.workspace }}'))"
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-2',['artifact-path/gzip.txt'], '${{ github.workspace }}'))"
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-3',['artifact-path/empty.txt'], '${{ github.workspace }}'))"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], process.argv[1]))" "${{ github.workspace }}"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-2',['artifact-path/gzip.txt'], process.argv[1]))" "${{ github.workspace }}"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-3',['artifact-path/empty.txt'], process.argv[1]))" "${{ github.workspace }}"
 
     - name: Download artifacts using downloadArtifact()
       run: |

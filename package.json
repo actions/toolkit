@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
-    "@types/node": "^12.20.13",
+    "@types/node": "^16.18.1",
     "@types/signale": "^1.4.1",
     "@typescript-eslint/parser": "^4.0.0",
     "concurrently": "^6.1.0",

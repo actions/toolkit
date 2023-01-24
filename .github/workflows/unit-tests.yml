@@ -23,12 +23,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Set Node.js 12.x
-      uses: actions/setup-node@v1
+    - name: Set Node.js 16.x
+      uses: actions/setup-node@v3
       with:
-        node-version: 12.x
+        node-version: 16.x
 
     - name: npm install
       run: npm install
@@ -40,7 +40,7 @@ jobs:
       run: npm run build
 
     - name: npm test
-      run: npm test
+      run: npm test -- --runInBand
       env:
         GITHUB_TOKEN: ${{ github.token }}
 

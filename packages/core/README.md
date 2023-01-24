@@ -121,7 +121,7 @@ const result = await core.group('Do something async', async () => {
 
 This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run). 
 ```js
-core.error('This is a bad error. This will also fail the build.')
+core.error('This is a bad error, action may still succeed though.')
 
 core.warning('Something went wrong, but it\'s not bad enough to fail the build.')
 
@@ -163,7 +163,7 @@ export interface AnnotationProperties {
   startColumn?: number
 
   /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   * The end column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
    * Defaults to `startColumn` when `startColumn` is provided.
    */
   endColumn?: number

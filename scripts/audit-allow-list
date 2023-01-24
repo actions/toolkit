@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// NEEDS TO BE UPDATED TO WORK ON NODE 16 BECAUSE NPM AUDIT --JSON OUTPUT CHANGED
+// THE AUDIT WORKFLOW IS ONLY RUN ON PRS, BUT IT CAN BE IGNORED AND A RELEASE CAN BE CREATED NONETHELESS
+// @fhammerl @rentziass
+
 /*
 This script takes the output of npm audit --json from stdin
 and writes a filtered version to stdout.

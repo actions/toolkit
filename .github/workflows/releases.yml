@@ -13,15 +13,15 @@ jobs:
 
     steps:
       - name: setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
 
-      - name: Set Node.js 12.x
-        uses: actions/setup-node@v1
+      - name: Set Node.js 16.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 16.x
 
       - name: npm install
         run: npm install
@@ -40,7 +40,7 @@ jobs:
         working-directory: packages/${{ github.event.inputs.package }}
 
       - name: upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.inputs.package }}
           path: packages/${{ github.event.inputs.package }}/*.tgz
@@ -52,7 +52,7 @@ jobs:
     steps:
 
       - name: download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ github.event.inputs.package }}
 

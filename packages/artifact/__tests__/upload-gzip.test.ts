@@ -6,13 +6,28 @@ import {promises as fs} from 'fs'
 import {createGZipFileOnDisk} from '../src/internal/upload-gzip'
 
 const root = path.join(__dirname, '_temp', 'upload-gzip')
-const tempGzipFilePath = path.join(root, 'file1.gzip')
-const tempZipFilePath = path.join(root, 'file2.zip')
-const tempTarlzFilePath = path.join(root, 'file3.tar.lz')
-const tempGzFilePath = path.join(root, 'file4.tar.gz')
-const tempBz2FilePath = path.join(root, 'file5.tar.bz2')
-const temp7zFilePath = path.join(root, 'file6.7z')
-const tempNormalFilePath = path.join(root, 'file6.txt')
+const tempGzFilePath = path.join(root, 'file.gz')
+const tempGzipFilePath = path.join(root, 'file.gzip')
+const tempTgzFilePath = path.join(root, 'file.tgz')
+const tempTazFilePath = path.join(root, 'file.taz')
+const tempZFilePath = path.join(root, 'file.Z')
+const tempTaZFilePath = path.join(root, 'file.taZ')
+const tempBz2FilePath = path.join(root, 'file.bz2')
+const tempTbzFilePath = path.join(root, 'file.tbz')
+const tempTbz2FilePath = path.join(root, 'file.tbz2')
+const tempTz2FilePath = path.join(root, 'file.tz2')
+const tempLzFilePath = path.join(root, 'file.lz')
+const tempLzmaFilePath = path.join(root, 'file.lzma')
+const tempTlzFilePath = path.join(root, 'file.tlz')
+const tempLzoFilePath = path.join(root, 'file.lzo')
+const tempXzFilePath = path.join(root, 'file.xz')
+const tempTxzFilePath = path.join(root, 'file.txz')
+const tempZstFilePath = path.join(root, 'file.zst')
+const tempZstdFilePath = path.join(root, 'file.zstd')
+const tempTzstFilePath = path.join(root, 'file.tzst')
+const tempZipFilePath = path.join(root, 'file.zip')
+const temp7zFilePath = path.join(root, 'file.7z')
+const tempNormalFilePath = path.join(root, 'file.txt')
 
 jest.mock('../src/internal/config-variables')
 
@@ -27,11 +42,26 @@ beforeAll(async () => {
   // clear temp directory and create files that will be "uploaded"
   await io.rmRF(root)
   await fs.mkdir(path.join(root))
+  await fs.writeFile(tempGzFilePath, 'a file with a .gz file extension')
   await fs.writeFile(tempGzipFilePath, 'a file with a .gzip file extension')
-  await fs.writeFile(tempZipFilePath, 'a file with a .zip file extension')
-  await fs.writeFile(tempTarlzFilePath, 'a file with a tar.lz file extension')
-  await fs.writeFile(tempGzFilePath, 'a file with a gz file file extension')
+  await fs.writeFile(tempTgzFilePath, 'a file with a .tgz file extension')
+  await fs.writeFile(tempTazFilePath, 'a file with a .taz file extension')
+  await fs.writeFile(tempZFilePath, 'a file with a .Z file extension')
+  await fs.writeFile(tempTaZFilePath, 'a file with a .taZ file extension')
   await fs.writeFile(tempBz2FilePath, 'a file with a .bz2 file extension')
+  await fs.writeFile(tempTbzFilePath, 'a file with a .tbz file extension')
+  await fs.writeFile(tempTbz2FilePath, 'a file with a .tbz2 file extension')
+  await fs.writeFile(tempTz2FilePath, 'a file with a .tz2 file extension')
+  await fs.writeFile(tempLzFilePath, 'a file with a .lz file extension')
+  await fs.writeFile(tempLzmaFilePath, 'a file with a .lzma file extension')
+  await fs.writeFile(tempTlzFilePath, 'a file with a .tlz file extension')
+  await fs.writeFile(tempLzoFilePath, 'a file with a .lzo file extension')
+  await fs.writeFile(tempXzFilePath, 'a file with a .xz file extension')
+  await fs.writeFile(tempTxzFilePath, 'a file with a .txz file extension')
+  await fs.writeFile(tempZstFilePath, 'a file with a .zst file extension')
+  await fs.writeFile(tempZstdFilePath, 'a file with a .zstd file extension')
+  await fs.writeFile(tempTzstFilePath, 'a file with a .tzst file extension')
+  await fs.writeFile(tempZipFilePath, 'a file with a .zip file extension')
   await fs.writeFile(temp7zFilePath, 'a file with a .7z file extension')
   await fs.writeFile(tempNormalFilePath, 'a file with a .txt file extension')
 })
@@ -40,19 +70,64 @@ test('Number.MAX_SAFE_INTEGER is returned when an existing compressed file is us
   // create temporary file
   const tempFile = await tmp.file()
 
-  expect(await createGZipFileOnDisk(tempGzipFilePath, tempFile.path)).toEqual(
-    Number.MAX_SAFE_INTEGER
-  )
-  expect(await createGZipFileOnDisk(tempZipFilePath, tempFile.path)).toEqual(
-    Number.MAX_SAFE_INTEGER
-  )
-  expect(await createGZipFileOnDisk(tempTarlzFilePath, tempFile.path)).toEqual(
-    Number.MAX_SAFE_INTEGER
-  )
   expect(await createGZipFileOnDisk(tempGzFilePath, tempFile.path)).toEqual(
     Number.MAX_SAFE_INTEGER
   )
+  expect(await createGZipFileOnDisk(tempGzipFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTgzFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTazFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempZFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTaZFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
   expect(await createGZipFileOnDisk(tempBz2FilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTbzFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTbz2FilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTz2FilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempLzFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempLzmaFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTlzFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempLzoFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempXzFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTxzFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempZstFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempZstdFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempTzstFilePath, tempFile.path)).toEqual(
+    Number.MAX_SAFE_INTEGER
+  )
+  expect(await createGZipFileOnDisk(tempZipFilePath, tempFile.path)).toEqual(
     Number.MAX_SAFE_INTEGER
   )
   expect(await createGZipFileOnDisk(temp7zFilePath, tempFile.path)).toEqual(
