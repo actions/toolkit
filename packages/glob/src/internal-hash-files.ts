@@ -8,11 +8,14 @@ import {Globber} from './glob'
 
 export async function hashFiles(
   globber: Globber,
+  currentWorkspace: string,
   verbose: Boolean = false
 ): Promise<string> {
   const writeDelegate = verbose ? core.info : core.debug
   let hasMatch = false
-  const githubWorkspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
+  const githubWorkspace = currentWorkspace
+    ? currentWorkspace
+    : process.env['GITHUB_WORKSPACE'] ?? process.cwd()
   const result = crypto.createHash('sha256')
   let count = 0
   for await (const file of globber.globGenerator()) {
