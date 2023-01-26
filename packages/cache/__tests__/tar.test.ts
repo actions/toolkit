@@ -72,6 +72,7 @@ test('zstd extract tar', async () => {
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
+        '--warning=no-timestamp',
         '--use-compress-program',
         IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
       ])
@@ -158,7 +159,7 @@ test('gzip extract tar', async () => {
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
-      .concat(['-z'])
+      .concat(['--warning=no-timestamp', '-z'])
       .join(' '),
     undefined,
     {
