@@ -152,7 +152,7 @@ describe('proxy', () => {
   })
 
   it('checkBypass returns true if host with leading dot in no_proxy', () => {
-    process.env['no_proxy'] = '.myserver.com'
+    process.env['no_proxy'] = '.myserver.com' 
     const bypass = pm.checkBypass(new URL('https://myserver.com'))
     expect(bypass).toBeTruthy()
   })
