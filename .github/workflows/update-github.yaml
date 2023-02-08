@@ -20,7 +20,7 @@ jobs:
       working-directory: packages/github 
       run: | 
         if [[ "$(git status --porcelain)" != "" ]]; then 
-        echo "::set-output name=createPR::true"
+        echo "createPR=true" >> $GITHUB_OUTPUT
         git config --global user.email "github-actions@github.com"
         git config --global user.name "github-actions[bot]"
         git checkout -b bots/updateGitHubDependencies-${{github.run_number}}
