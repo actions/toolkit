@@ -1,5 +1,4 @@
 import {exec} from '@actions/exec'
-import {exportVariable} from '@actions/core'
 import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
@@ -14,7 +13,6 @@ import {
 } from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
-exportVariable('MSYS', 'winsymlinks:nativestrict')
 
 // Returns tar path and type: BSD or GNU
 async function getTarPath(): Promise<ArchiveTool> {
@@ -250,7 +248,10 @@ async function getCompressionProgram(
 async function execCommands(commands: string[], cwd?: string): Promise<void> {
   for (const command of commands) {
     try {
-      await exec(command, undefined, {cwd})
+      await exec(command, undefined, {
+        cwd,
+        env: {...(process.env as object), MSYS: 'winsymlinks:nativestrict'}
+      })
     } catch (error) {
       throw new Error(
         `${command.split(' ')[0]} failed with error: ${error?.message}`

@@ -1,5 +1,4 @@
 import * as exec from '@actions/exec'
-import {exportVariable} from '@actions/core'
 import * as io from '@actions/io'
 import * as path from 'path'
 import {
@@ -15,8 +14,6 @@ import * as utils from '../src/internal/cacheUtils'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import fs = require('fs')
 
-exportVariable('MSYS', 'winsymlinks:nativestrict')
-
 jest.mock('@actions/exec')
 jest.mock('@actions/io')
 
@@ -24,6 +21,8 @@ const IS_WINDOWS = process.platform === 'win32'
 const IS_MAC = process.platform === 'darwin'
 
 const defaultTarPath = IS_MAC ? 'gtar' : 'tar'
+
+const defaultEnv = {MSYS: 'winsymlinks:nativestrict'}
 
 function getTempDir(): string {
   return path.join(__dirname, '_temp', 'tar')
@@ -78,7 +77,10 @@ test('zstd extract tar', async () => {
       ])
       .join(' '),
     undefined,
-    {cwd: undefined}
+    {
+      cwd: undefined,
+      env: expect.objectContaining(defaultEnv)
+    }
   )
 })
 
@@ -107,7 +109,10 @@ test('zstd extract tar with windows BSDtar', async () => {
         archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       ].join(' '),
       undefined,
-      {cwd: undefined}
+      {
+        cwd: undefined,
+        env: expect.objectContaining(defaultEnv)
+      }
     )
 
     expect(execMock).toHaveBeenNthCalledWith(
@@ -121,7 +126,10 @@ test('zstd extract tar with windows BSDtar', async () => {
         workspace?.replace(/\\/g, '/')
       ].join(' '),
       undefined,
-      {cwd: undefined}
+      {
+        cwd: undefined,
+        env: expect.objectContaining(defaultEnv)
+      }
     )
   }
 })
@@ -153,7 +161,10 @@ test('gzip extract tar', async () => {
       .concat(['-z'])
       .join(' '),
     undefined,
-    {cwd: undefined}
+    {
+      cwd: undefined,
+      env: expect.objectContaining(defaultEnv)
+    }
   )
 })
 
@@ -182,7 +193,10 @@ test('gzip extract GNU tar on windows with GNUtar in path', async () => {
         '-z'
       ].join(' '),
       undefined,
-      {cwd: undefined}
+      {
+        cwd: undefined,
+        env: expect.objectContaining(defaultEnv)
+      }
     )
   }
 })
@@ -224,7 +238,8 @@ test('zstd create tar', async () => {
       .join(' '),
     undefined, // args
     {
-      cwd: archiveFolder
+      cwd: archiveFolder,
+      env: expect.objectContaining(defaultEnv)
     }
   )
 })
@@ -269,7 +284,8 @@ test('zstd create tar with windows BSDtar', async () => {
       ].join(' '),
       undefined, // args
       {
-        cwd: archiveFolder
+        cwd: archiveFolder,
+        env: expect.objectContaining(defaultEnv)
       }
     )
 
@@ -282,7 +298,8 @@ test('zstd create tar with windows BSDtar', async () => {
       ].join(' '),
       undefined, // args
       {
-        cwd: archiveFolder
+        cwd: archiveFolder,
+        env: expect.objectContaining(defaultEnv)
       }
     )
   }
@@ -322,7 +339,8 @@ test('gzip create tar', async () => {
       .join(' '),
     undefined, // args
     {
-      cwd: archiveFolder
+      cwd: archiveFolder,
+      env: expect.objectContaining(defaultEnv)
     }
   )
 })
@@ -353,7 +371,10 @@ test('zstd list tar', async () => {
       ])
       .join(' '),
     undefined,
-    {cwd: undefined}
+    {
+      cwd: undefined,
+      env: expect.objectContaining(defaultEnv)
+    }
   )
 })
 
@@ -378,7 +399,10 @@ test('zstd list tar with windows BSDtar', async () => {
         archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       ].join(' '),
       undefined,
-      {cwd: undefined}
+      {
+        cwd: undefined,
+        env: expect.objectContaining(defaultEnv)
+      }
     )
 
     expect(execMock).toHaveBeenNthCalledWith(
@@ -390,7 +414,10 @@ test('zstd list tar with windows BSDtar', async () => {
         '-P'
       ].join(' '),
       undefined,
-      {cwd: undefined}
+      {
+        cwd: undefined,
+        env: expect.objectContaining(defaultEnv)
+      }
     )
   }
 })
@@ -418,7 +445,10 @@ test('zstdWithoutLong list tar', async () => {
       .concat(['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd'])
       .join(' '),
     undefined,
-    {cwd: undefined}
+    {
+      cwd: undefined,
+      env: expect.objectContaining(defaultEnv)
+    }
   )
 })
 
@@ -444,6 +474,9 @@ test('gzip list tar', async () => {
       .concat(['-z'])
       .join(' '),
     undefined,
-    {cwd: undefined}
+    {
+      cwd: undefined,
+      env: expect.objectContaining(defaultEnv)
+    }
   )
 })
