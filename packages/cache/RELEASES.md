@@ -112,3 +112,6 @@
 
 ### 3.1.2
 - Fix issue with symlink restoration on windows.
+
+### 3.1.3
+- Fix to prevent from setting MYSYS environement variable globally [#1329](https://github.com/actions/toolkit/pull/1329).
