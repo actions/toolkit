@@ -33,7 +33,7 @@ export function isRetryableStatusCode(statusCode?: number): boolean {
   return retryableStatusCodes.includes(statusCode)
 }
 
-async function sleep(milliseconds: number): Promise<void> {
+export async function sleep(milliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 

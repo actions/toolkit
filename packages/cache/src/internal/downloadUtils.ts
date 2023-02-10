@@ -10,7 +10,7 @@ import * as util from 'util'
 import * as utils from './cacheUtils'
 import {SocketTimeout} from './constants'
 import {DownloadOptions} from '../options'
-import {retryHttpClientResponse} from './requestUtils'
+import {retryHttpClientResponse, sleep} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
 
@@ -162,22 +162,23 @@ export class DownloadProgress {
 }
 
 async function displayDownloadProgress(socket: any, startTime: number): Promise<void> {
-  while(!socket.complete) {
-    const transferredBytes = socket.bytesRead
+  while(!socket.destroyed) {
+    const byteRead = socket.bytesRead
     const totalBytes = 100000
-    const percentage = (100 * (transferredBytes / totalBytes)).toFixed(
+    const percentage = (100 * (byteRead / totalBytes)).toFixed(
       1
     )
     const elapsedTime = Date.now() - startTime
     const downloadSpeed = (
-      transferredBytes /
+      byteRead /
       (1024 * 1024) /
       (elapsedTime / 1000)
     ).toFixed(1)
 
     core.info(
-      `Received ${transferredBytes} of ${totalBytes} (${percentage}%), ${downloadSpeed} MBs/sec`
+      `Received ${byteRead} of ${totalBytes} (${percentage}%), ${downloadSpeed} MBs/sec`
     )
+    sleep(10)
   }
 }
 
