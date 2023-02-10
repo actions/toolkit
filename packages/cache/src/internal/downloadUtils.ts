@@ -161,8 +161,9 @@ export class DownloadProgress {
   }
 }
 
-async function displayDownloadProgress(socket: any, startTime: number): Promise<void> {
-  while(!socket.destroyed) {
+async function displayDownloadProgress(message: any, startTime: number): Promise<void> {
+  const socket = message.socket
+  while(!message.complete) {
     const byteRead = socket.bytesRead
     const totalBytes = 100000
     const percentage = (100 * (byteRead / totalBytes)).toFixed(
@@ -178,7 +179,7 @@ async function displayDownloadProgress(socket: any, startTime: number): Promise<
     core.info(
       `Received ${byteRead} of ${totalBytes} (${percentage}%), ${downloadSpeed} MBs/sec`
     )
-    sleep(10)
+    sleep(100)
   }
 }
 
@@ -206,7 +207,7 @@ export async function downloadCacheHttpClient(
     core.debug(`Aborting download, socket timed out after ${SocketTimeout} ms`)
   })
 
-  await displayDownloadProgress(downloadResponse.message.socket, startTime)
+  await displayDownloadProgress(downloadResponse.message, startTime)
 
   await pipeResponseToStream(downloadResponse, writeStream)
 
