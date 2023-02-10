@@ -161,6 +161,26 @@ export class DownloadProgress {
   }
 }
 
+async function displayDownloadProgress(socket: any, startTime: number): Promise<void> {
+  while(!socket.complete) {
+    const transferredBytes = socket.bytesRead
+    const totalBytes = 100000
+    const percentage = (100 * (transferredBytes / totalBytes)).toFixed(
+      1
+    )
+    const elapsedTime = Date.now() - startTime
+    const downloadSpeed = (
+      transferredBytes /
+      (1024 * 1024) /
+      (elapsedTime / 1000)
+    ).toFixed(1)
+
+    core.info(
+      `Received ${transferredBytes} of ${totalBytes} (${percentage}%), ${downloadSpeed} MBs/sec`
+    )
+  }
+}
+
 /**
  * Download the cache using the Actions toolkit http-client
  *
@@ -171,6 +191,7 @@ export async function downloadCacheHttpClient(
   archiveLocation: string,
   archivePath: string
 ): Promise<void> {
+  const startTime = Date.now()
   const writeStream = fs.createWriteStream(archivePath)
   const httpClient = new HttpClient('actions/cache')
   const downloadResponse = await retryHttpClientResponse(
@@ -183,6 +204,8 @@ export async function downloadCacheHttpClient(
     downloadResponse.message.destroy()
     core.debug(`Aborting download, socket timed out after ${SocketTimeout} ms`)
   })
+
+  await displayDownloadProgress(downloadResponse.message.socket, startTime)
 
   await pipeResponseToStream(downloadResponse, writeStream)
 
