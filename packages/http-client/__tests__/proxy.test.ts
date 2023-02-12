@@ -157,6 +157,12 @@ describe('proxy', () => {
     expect(bypass).toBeFalsy()
   })
 
+  it('checkBypass returns false if no_proxy is part of domain', () => {
+    process.env['no_proxy'] = 'myserver.com'
+    const bypass = pm.checkBypass(new URL('https://evilmyserver.com'))
+    expect(bypass).toBeFalsy()
+  })
+
   // Do not strip leading dots as per https://github.com/actions/runner/blob/97195bad5870e2ad0915ebfef1616083aacf5818/docs/adrs/0263-proxy-support.md
   it('checkBypass returns false if host with leading dot in no_proxy', () => {
     process.env['no_proxy'] = '.myserver.com'

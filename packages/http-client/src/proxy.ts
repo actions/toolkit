@@ -53,7 +53,11 @@ export function checkBypass(reqUrl: URL): boolean {
     .filter(x => x)) {
     if (
       upperReqHosts.some(
-        x => x === upperNoProxyItem || x.endsWith(`${upperNoProxyItem}`)
+        x =>
+          x === upperNoProxyItem ||
+          x.endsWith(`.${upperNoProxyItem}`) ||
+          (upperNoProxyItem.startsWith('.') &&
+            x.endsWith(`${upperNoProxyItem}`))
       )
     ) {
       return true
