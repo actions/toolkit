@@ -1,5 +1,8 @@
 # @actions/glob Releases
 
+### 0.4.0
+- Pass in the current workspace as a parameter to HashFiles [#1318](https://github.com/actions/toolkit/pull/1318)
+
 ### 0.3.0
 - Added a `verbose` option to HashFiles [#1052](https://github.com/actions/toolkit/pull/1052/files)
 

@@ -18,7 +18,7 @@ e.g. To use https://github.com/actions/setup-node, users will author:
 
 ```yaml
 steps:
-    using: actions/setup-node@v1
+    using: actions/setup-node@v3
 ```
 
 # Define Metadata

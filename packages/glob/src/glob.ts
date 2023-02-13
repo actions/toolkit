@@ -22,10 +22,13 @@ export async function create(
  * Computes the sha256 hash of a glob
  *
  * @param patterns  Patterns separated by newlines
+ * @param currentWorkspace  Workspace used when matching files
  * @param options   Glob options
+ * @param verbose   Enables verbose logging
  */
 export async function hashFiles(
   patterns: string,
+  currentWorkspace = '',
   options?: HashFileOptions,
   verbose: Boolean = false
 ): Promise<string> {
@@ -34,5 +37,5 @@ export async function hashFiles(
     followSymbolicLinks = options.followSymbolicLinks
   }
   const globber = await create(patterns, {followSymbolicLinks})
-  return _hashFiles(globber, verbose)
+  return _hashFiles(globber, currentWorkspace, verbose)
 }

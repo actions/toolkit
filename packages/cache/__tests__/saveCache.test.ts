@@ -209,7 +209,9 @@ test('save with reserve cache failure should fail', async () => {
 
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
   expect(reserveCacheMock).toHaveBeenCalledWith(primaryKey, paths, {
-    compressionMethod: compression
+    cacheSize: undefined,
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(saveCacheMock).toHaveBeenCalledTimes(0)
@@ -253,7 +255,9 @@ test('save with server error should fail', async () => {
 
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
   expect(reserveCacheMock).toHaveBeenCalledWith(primaryKey, [filePath], {
-    compressionMethod: compression
+    cacheSize: undefined,
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   const archiveFolder = '/foo/bar'
   const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
@@ -296,7 +300,9 @@ test('save with valid inputs uploads a cache', async () => {
 
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
   expect(reserveCacheMock).toHaveBeenCalledWith(primaryKey, [filePath], {
-    compressionMethod: compression
+    cacheSize: undefined,
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   const archiveFolder = '/foo/bar'
   const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)

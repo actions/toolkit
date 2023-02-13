@@ -18,12 +18,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Set Node.js 12.x
-      uses: actions/setup-node@v1
+    - name: Set Node.js 16.x
+      uses: actions/setup-node@v3
       with:
-        node-version: 12.x
+        node-version: 16.x
 
     - name: npm install
       run: npm install
@@ -31,9 +31,8 @@ jobs:
     - name: Bootstrap
       run: npm run bootstrap
 
-    - name: audit tools
-      # `|| npm audit` to pretty-print the output if vulnerabilies are found after filtering.
-      run: npm audit --audit-level=moderate --json | scripts/audit-allow-list || npm audit --audit-level=moderate
+    - name: audit tools (without allow-list)
+      run: npm audit --audit-level=moderate
 
     - name: audit packages
       run: npm run audit-all

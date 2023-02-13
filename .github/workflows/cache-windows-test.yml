@@ -1,4 +1,4 @@
-name: cache-unit-tests
+name: cache-windows-bsd-unit-tests
 on:
   push:
     branches:
@@ -13,21 +13,20 @@ jobs:
   build:
     name: Build
 
-    strategy:
-      matrix:
-        runs-on: [ubuntu-latest, windows-latest, macOS-latest]
-      fail-fast: false
-
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: windows-latest
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
 
-    - name: Set Node.js 16.x
-      uses: actions/setup-node@v3
+    - shell: bash
+      run: |
+        rm "C:\Program Files\Git\usr\bin\tar.exe"
+
+    - name: Set Node.js 12.x
+      uses: actions/setup-node@v1
       with:
-        node-version: 16.x
+        node-version: 12.x
 
     # In order to save & restore cache from a shell script, certain env variables need to be set that are only available in the
     # node context. This runs a local action that gets and sets the necessary env variables that are needed

@@ -203,7 +203,7 @@ Note: The size of downloaded zips can differ significantly from the reported siz
       await createDirectoriesForArtifact(
         downloadSpecification.directoryStructure
       )
-      core.info('Directory structure has been setup for the artifact')
+      core.info('Directory structure has been set up for the artifact')
       await createEmptyFilesForArtifact(
         downloadSpecification.emptyFilesToCreate
       )

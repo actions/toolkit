@@ -219,6 +219,13 @@ export class DownloadHttpClient {
       fileDownloadPath: string
     ): Promise<void> => {
       destinationStream.close()
+      // await until file is created at downloadpath; node15 and up fs.createWriteStream had not created a file yet
+      await new Promise<void>(resolve => {
+        destinationStream.on('close', resolve)
+        if (destinationStream.writableFinished) {
+          resolve()
+        }
+      })
       await rmFile(fileDownloadPath)
       destinationStream = fs.createWriteStream(fileDownloadPath)
     }
@@ -304,7 +311,7 @@ export class DownloadHttpClient {
         const gunzip = zlib.createGunzip()
         response.message
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while attempting to read the response stream`
             )
             gunzip.close()
@@ -313,7 +320,7 @@ export class DownloadHttpClient {
           })
           .pipe(gunzip)
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while attempting to decompress the response stream`
             )
             destinationStream.close()
@@ -324,7 +331,7 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)
@@ -332,7 +339,7 @@ export class DownloadHttpClient {
       } else {
         response.message
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while attempting to read the response stream`
             )
             destinationStream.close()
@@ -343,7 +350,7 @@ export class DownloadHttpClient {
             resolve()
           })
           .on('error', error => {
-            core.error(
+            core.info(
               `An error occurred while writing a downloaded file to ${destinationStream.path}`
             )
             reject(error)

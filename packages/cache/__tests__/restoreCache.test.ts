@@ -142,7 +142,8 @@ test('restore with gzip compressed cache found', async () => {
 
   expect(cacheKey).toBe(key)
   expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
-    compressionMethod: compression
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
@@ -201,7 +202,8 @@ test('restore with zstd compressed cache found', async () => {
 
   expect(cacheKey).toBe(key)
   expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
-    compressionMethod: compression
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
@@ -258,7 +260,8 @@ test('restore with cache found for restore key', async () => {
 
   expect(cacheKey).toBe(restoreKey)
   expect(getCacheMock).toHaveBeenCalledWith([key, restoreKey], paths, {
-    compressionMethod: compression
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(

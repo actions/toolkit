@@ -17,7 +17,8 @@ import {
   CommitCacheRequest,
   ReserveCacheRequest,
   ReserveCacheResponse,
-  ITypedResponseWithError
+  ITypedResponseWithError,
+  ArtifactCacheList
 } from './contracts'
 import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
 import {
@@ -72,13 +73,21 @@ function createHttpClient(): HttpClient {
 
 export function getCacheVersion(
   paths: string[],
-  compressionMethod?: CompressionMethod
+  compressionMethod?: CompressionMethod,
+  enableCrossOsArchive = false
 ): string {
-  const components = paths.concat(
-    !compressionMethod || compressionMethod === CompressionMethod.Gzip
-      ? []
-      : [compressionMethod]
-  )
+  const components = paths
+
+  // Add compression method to cache version to restore
+  // compressed cache as per compression method
+  if (compressionMethod) {
+    components.push(compressionMethod)
+  }
+
+  // Only check for windows platforms if enableCrossOsArchive is false
+  if (process.platform === 'win32' && !enableCrossOsArchive) {
+    components.push('windows-only')
+  }
 
   // Add salt to cache version to support breaking changes in cache entry
   components.push(versionSalt)
@@ -95,7 +104,11 @@ export async function getCacheEntry(
   options?: InternalCacheOptions
 ): Promise<ArtifactCacheEntry | null> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(paths, options?.compressionMethod)
+  const version = getCacheVersion(
+    paths,
+    options?.compressionMethod,
+    options?.enableCrossOsArchive
+  )
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
   )}&version=${version}`
@@ -103,7 +116,12 @@ export async function getCacheEntry(
   const response = await retryTypedResponse('getCacheEntry', async () =>
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
+  // Cache not found
   if (response.statusCode === 204) {
+    // List cache for primary key only if cache miss occurs
+    if (core.isDebug()) {
+      await printCachesListForDiagnostics(keys[0], httpClient, version)
+    }
     return null
   }
   if (!isSuccessStatusCode(response.statusCode)) {
@@ -113,6 +131,7 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
+    // Cache achiveLocation not found. This should never happen, and hence bail out.
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
@@ -120,6 +139,31 @@ export async function getCacheEntry(
   core.debug(JSON.stringify(cacheResult))
 
   return cacheResult
+}
+
+async function printCachesListForDiagnostics(
+  key: string,
+  httpClient: HttpClient,
+  version: string
+): Promise<void> {
+  const resource = `caches?key=${encodeURIComponent(key)}`
+  const response = await retryTypedResponse('listCache', async () =>
+    httpClient.getJson<ArtifactCacheList>(getCacheApiUrl(resource))
+  )
+  if (response.statusCode === 200) {
+    const cacheListResult = response.result
+    const totalCount = cacheListResult?.totalCount
+    if (totalCount && totalCount > 0) {
+      core.debug(
+        `No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']}. There exist one or more cache(s) with similar key but they have different version or scope. See more info on cache matching here: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key \nOther caches with similar key:`
+      )
+      for (const cacheEntry of cacheListResult?.artifactCaches || []) {
+        core.debug(
+          `Cache Key: ${cacheEntry?.cacheKey}, Cache Version: ${cacheEntry?.cacheVersion}, Cache Scope: ${cacheEntry?.scope}, Cache Created: ${cacheEntry?.creationTime}`
+        )
+      }
+    }
+  }
 }
 
 export async function downloadCache(
@@ -149,7 +193,11 @@ export async function reserveCache(
   options?: InternalCacheOptions
 ): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(paths, options?.compressionMethod)
+  const version = getCacheVersion(
+    paths,
+    options?.compressionMethod,
+    options?.enableCrossOsArchive
+  )
 
   const reserveCacheRequest: ReserveCacheRequest = {
     key,
