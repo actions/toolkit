@@ -145,7 +145,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         } else {
           result = childProcess.spawn(
             cmdPath,
-            ['/s', '/c', '"del /f /a "%inputPath%""'],
+            ['/s', '/c', '"del /f /q /a "%inputPath%""'],
             {
               env: {inputPath}
             }
