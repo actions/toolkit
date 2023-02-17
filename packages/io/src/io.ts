@@ -134,7 +134,7 @@ export async function rmRF(inputPath: string): Promise<void> {
           resolve('timeout')
         }, 500)
 
-        let result = null
+        let result: childProcess.ChildProcess
         if (await ioUtil.isDirectory(inputPath, true)) {
           result = childProcess.spawn(
             cmdPath,
@@ -153,15 +153,15 @@ export async function rmRF(inputPath: string): Promise<void> {
           )
         }
 
-        result.on('spawn', (data) => {
+        result.on('spawn', () => {
           console.log(`spawn: ${result.spawnargs}`)
         })
 
-        result.stdout.on('data', (data) => {
+        result.stdout?.on('data', (data) => {
           console.log(`stdout: ${data}`)
         });
 
-        result.stderr.on('data', (data) => {
+        result.stderr?.on('data', (data) => {
           console.log(`stdout: ${data}`)
         });
 
