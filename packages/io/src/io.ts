@@ -130,16 +130,18 @@ export async function rmRF(inputPath: string): Promise<void> {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
         await spawn(cmdPath, [`/s /c "rd /s /q "%inputPath%""`], {
-          shell: true,
-          env: {inputPath}
+          shell: false,
+          env: {inputPath},
+          timeout: 500
         })
         // await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
         //   env: {inputPath}
         // })
       } else {
         await spawn(cmdPath, [`/s /c "del /f /a "%inputPath%""`], {
-          shell: true,
-          env: {inputPath}
+          shell: false,
+          env: {inputPath},
+          timeout: 500
         })
         // await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
         //   env: {inputPath}
