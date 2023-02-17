@@ -4,9 +4,9 @@ import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
-const exec = promisify(childProcess.exec)
+// const exec = promisify(childProcess.exec)
 const execFile = promisify(childProcess.execFile)
-
+const spawn = promisify(childProcess.spawn)
 /**
  * Interface for cp/mv options
  */
@@ -129,13 +129,21 @@ export async function rmRF(inputPath: string): Promise<void> {
     try {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+        await spawn(cmdPath, [`/s /c "rd /s /q "%inputPath%""`], {
+          shell: true,
           env: {inputPath}
         })
+        // await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+        //   env: {inputPath}
+        // })
       } else {
-        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+        await spawn(cmdPath, [`/s /c "del /f /a "%inputPath%""`], {
+          shell: true,
           env: {inputPath}
         })
+        // await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+        //   env: {inputPath}
+        // })
       }
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
