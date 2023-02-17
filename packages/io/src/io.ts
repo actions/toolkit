@@ -4,6 +4,7 @@ import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
+const exec = promisify(childProcess.exec)
 const execFile = promisify(childProcess.execFile)
 
 /**
@@ -125,6 +126,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
       )
     }
+    console.log('a')
     try {
       const cmdPath = ioUtil.getCmdPath()
 
@@ -162,7 +164,7 @@ export async function rmRF(inputPath: string): Promise<void> {
       // other errors are valid
       if (err.code !== 'ENOENT') throw err
     }
-
+    console.log('b')
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
       await ioUtil.unlink(inputPath)
