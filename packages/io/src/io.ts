@@ -7,6 +7,8 @@ import * as ioUtil from './io-util'
 // const exec = promisify(childProcess.exec)
 const execFile = promisify(childProcess.execFile)
 const spawn = childProcess.spawn
+const subprocess = spawn('bad_command')
+
 /**
  * Interface for cp/mv options
  */
@@ -130,9 +132,12 @@ export async function rmRF(inputPath: string): Promise<void> {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
         spawn(cmdPath, [`/s /c "rd /s /q "%inputPath%""`], {
-          shell: false,
+          shell: true,
           env: {inputPath},
           timeout: 500
+        })
+        subprocess.on('error', err => {
+          throw new Error(`Failed to delete ${inputPath}: ${err}`)
         })
         // await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
         //   env: {inputPath}
@@ -142,6 +147,10 @@ export async function rmRF(inputPath: string): Promise<void> {
           shell: false,
           env: {inputPath},
           timeout: 500
+        })
+
+        subprocess.on('error', err => {
+          throw new Error(`Failed to delete ${inputPath}: ${err}`)
         })
         // await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
         //   env: {inputPath}
