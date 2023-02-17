@@ -131,7 +131,8 @@ export async function rmRF(inputPath: string): Promise<void> {
     try {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        spawn(cmdPath, [`/s /c "rd /s /q "%inputPath%""`], {
+        // deletes a dir then sets output to quiet
+        spawn(cmdPath, ['/s', '/c', ' rd "%inputPath%"'], {
           shell: true,
           env: {inputPath},
           timeout: 500
@@ -143,7 +144,8 @@ export async function rmRF(inputPath: string): Promise<void> {
         //   env: {inputPath}
         // })
       } else {
-        spawn(cmdPath, [`/s /c "del /f /a "%inputPath%""`], {
+        // deletes a file then pipes output 
+        spawn(cmdPath, ['/s', '/c', `del /f:on /a "%inputPath%"`], {
           shell: false,
           env: {inputPath},
           timeout: 500
