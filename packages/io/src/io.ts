@@ -153,6 +153,14 @@ export async function rmRF(inputPath: string): Promise<void> {
           )
         }
 
+        result.stdout.on('data', (data) => {
+          console.log(`stdout: ${data}`)
+        });
+
+        result.stderr.on('data', (data) => {
+          console.log(`stdout: ${data}`)
+        });
+
         result.on('close', code => {
           resolve(code)
         })
