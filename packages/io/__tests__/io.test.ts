@@ -200,11 +200,13 @@ describe('mv', () => {
     const root = path.join(getTestTemp(), ' mv_with_no_flags')
     const sourceFile = path.join(root, ' mv_source')
     const targetFile = path.join(root, ' mv_target')
+    console.log('make')
     await io.mkdirP(root)
+    console.log('write')
     await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
-
+    console.log('move')
     await io.mv(sourceFile, targetFile)
-
+    console.log('read')
     expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
