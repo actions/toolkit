@@ -128,15 +128,28 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
     try {
       const cmdPath = ioUtil.getCmdPath()
-      if (await ioUtil.isDirectory(inputPath, true)) {
-        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
-          env: {inputPath}
+
+      const p = new Promise(async (resolve, reject) => {
+        setTimeout(() => {
+          resolve("timeout")
+        }, 500)
+
+        let result = null;
+        if (await ioUtil.isDirectory(inputPath, true)) {
+          result = childProcess.spawn(cmdPath, ['/s', '/c', '"rd /s /q "%inputPath%""'], {
+            env: {inputPath}
+          })
+        } else {
+          result = childProcess.spawn('cmdPath', ['/s', '/c', '"del /f /a "%inputPath%""'], {
+            env: {inputPath}
+          })
+        }
+
+        result.on('close', (code) => {
+          resolve(code)
         })
-      } else {
-        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
-          env: {inputPath}
-        })
-      }
+      })
+      await p
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
