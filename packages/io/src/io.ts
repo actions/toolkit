@@ -153,6 +153,10 @@ export async function rmRF(inputPath: string): Promise<void> {
           )
         }
 
+        result.on('spawn', (data) => {
+          console.log(`spawn: ${result.spawnargs}`)
+        })
+
         result.stdout.on('data', (data) => {
           console.log(`stdout: ${data}`)
         });
