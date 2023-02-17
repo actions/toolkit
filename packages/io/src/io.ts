@@ -6,7 +6,7 @@ import * as ioUtil from './io-util'
 
 // const exec = promisify(childProcess.exec)
 const execFile = promisify(childProcess.execFile)
-const spawn = promisify(childProcess.spawn)
+const spawn = childProcess.spawn
 /**
  * Interface for cp/mv options
  */
@@ -129,7 +129,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     try {
       const cmdPath = ioUtil.getCmdPath()
       if (await ioUtil.isDirectory(inputPath, true)) {
-        await spawn(cmdPath, [`/s /c "rd /s /q "%inputPath%""`], {
+        spawn(cmdPath, [`/s /c "rd /s /q "%inputPath%""`], {
           shell: false,
           env: {inputPath},
           timeout: 500
@@ -138,7 +138,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         //   env: {inputPath}
         // })
       } else {
-        await spawn(cmdPath, [`/s /c "del /f /a "%inputPath%""`], {
+        spawn(cmdPath, [`/s /c "del /f /a "%inputPath%""`], {
           shell: false,
           env: {inputPath},
           timeout: 500
