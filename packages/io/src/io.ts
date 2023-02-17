@@ -167,7 +167,12 @@ export async function rmRF(inputPath: string): Promise<void> {
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
       if (await ioUtil.exists(inputPath)) {
-        console.log('exists')
+        if (await ioUtil.isDirectory(inputPath)) {
+          const files = await ioUtil.readdir(inputPath)
+          for (const file of files) {
+              console.log(file)
+          }
+        }
         await ioUtil.unlink(inputPath)
       }
     } catch (err) {
