@@ -140,7 +140,8 @@ export async function rmRF(inputPath: string): Promise<void> {
             cmdPath,
             ['/s', '/c', 'rd /s /q "%inputPath%"'],
             {
-              env: {inputPath}
+              env: {inputPath},
+              shell: true
             }
           )
         } else {
@@ -148,7 +149,8 @@ export async function rmRF(inputPath: string): Promise<void> {
             cmdPath,
             ['/s', '/c', 'del /f /q /a "%inputPath%"'],
             {
-              env: {inputPath}
+              env: {inputPath},
+              shell: true
             }
           )
         }
