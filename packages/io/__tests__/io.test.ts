@@ -193,6 +193,7 @@ describe('cp', () => {
 
 describe('mv', () => {
   beforeAll(async () => {
+    console.log('before')
     await io.rmRF(getTestTemp())
   })
 
