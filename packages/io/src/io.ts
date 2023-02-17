@@ -138,7 +138,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         if (await ioUtil.isDirectory(inputPath, true)) {
           result = childProcess.spawn(
             cmdPath,
-            ['/s', '/c', '"rd /s /q "%inputPath%""'],
+            ['/s', '/c', 'rd /s /q "%inputPath%"'],
             {
               env: {inputPath}
             }
@@ -146,7 +146,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         } else {
           result = childProcess.spawn(
             cmdPath,
-            ['/s', '/c', '"del /f /q /a "%inputPath%""'],
+            ['/s', '/c', 'del /f /q /a "%inputPath%"'],
             {
               env: {inputPath}
             }
