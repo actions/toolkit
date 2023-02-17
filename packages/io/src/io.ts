@@ -125,7 +125,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
       )
     }
-    console.log('a')
+
     try {
       const cmdPath = ioUtil.getCmdPath()
 
@@ -163,16 +163,17 @@ export async function rmRF(inputPath: string): Promise<void> {
       // other errors are valid
       if (err.code !== 'ENOENT') throw err
     }
-    console.log('b')
+
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
       if (await ioUtil.exists(inputPath)) {
+        console.log('exists')
         await ioUtil.unlink(inputPath)
       }
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
-      if (err.code !== 'ENOENT') throw err
+      if (err.code !== 'ENOENT' || err.code !== 'EPERM') throw err
     }
   } else {
     let isDir = false
