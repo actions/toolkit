@@ -95,7 +95,7 @@ async function getVersion(app: string): Promise<string> {
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
   const versionOutput = await getVersion('zstd')
-  const version = semver.clean(versionOutput)
+  const version = semver.clean(versionOutput.match(/v\d+\.\d+\.\d+/)[0])
 
   if (!versionOutput.toLowerCase().includes('zstd command line interface')) {
     // zstd is not installed
