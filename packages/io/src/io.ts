@@ -134,7 +134,7 @@ export async function rmRF(inputPath: string): Promise<void> {
           resolve("timeout")
         }, 500)
 
-        let result = null;
+        let result = null
         if (await ioUtil.isDirectory(inputPath, true)) {
           result = childProcess.spawn(cmdPath, ['/s', '/c', '"rd /s /q "%inputPath%""'], {
             env: {inputPath}
