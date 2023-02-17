@@ -4,7 +4,6 @@ import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
-const exec = promisify(childProcess.exec)
 const execFile = promisify(childProcess.execFile)
 
 /**
@@ -167,7 +166,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     console.log('b')
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
-      if (ioUtil.exists(inputPath)) {
+      if (await ioUtil.exists(inputPath)) {
         await ioUtil.unlink(inputPath)
       }
     } catch (err) {
