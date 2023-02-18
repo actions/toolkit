@@ -71,11 +71,12 @@ export async function unlinkFile(filePath: fs.PathLike): Promise<void> {
   return util.promisify(fs.unlink)(filePath)
 }
 
-async function getVersion(app: string): Promise<string> {
-  core.debug(`Checking ${app} --version`)
+async function getVersion(app: string, args: string[]): Promise<string> {
+  const argString = args.join(' ')
+  core.debug(`Checking ${app} ${argString}`)
   let versionOutput = ''
   try {
-    await exec.exec(`${app} --version`, [], {
+    await exec.exec(`${app} ${argString}`, [], {
       ignoreReturnCode: true,
       silent: true,
       listeners: {
@@ -94,13 +95,13 @@ async function getVersion(app: string): Promise<string> {
 
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
-  const versionOutput = await getVersion('zstd')
+  const versionOutput = await getVersion('zstd', ['--quiet', '--version'])
   const version = semver.clean(versionOutput)
 
-  if (!versionOutput.toLowerCase().includes('zstd command line interface')) {
+  if (!version) {
     // zstd is not installed
     return CompressionMethod.Gzip
-  } else if (!version || semver.lt(version, 'v1.3.2')) {
+  } else if (semver.lt(version, 'v1.3.2')) {
     // zstd is installed but using a version earlier than v1.3.2
     // v1.3.2 is required to use the `--long` options in zstd
     return CompressionMethod.ZstdWithoutLong
@@ -119,7 +120,7 @@ export async function getGnuTarPathOnWindows(): Promise<string> {
   if (fs.existsSync(GnuTarPathOnWindows)) {
     return GnuTarPathOnWindows
   }
-  const versionOutput = await getVersion('tar')
+  const versionOutput = await getVersion('tar', ['--version'])
   return versionOutput.toLowerCase().includes('gnu tar') ? io.which('tar') : ''
 }
 
