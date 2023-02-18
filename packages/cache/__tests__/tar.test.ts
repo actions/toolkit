@@ -73,7 +73,7 @@ test('zstd extract tar', async () => {
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
         '--use-compress-program',
-        IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
+        IS_WINDOWS ? '"zstd -d --long=30"' : '"unzstd --long=30"'
       ])
       .join(' '),
     undefined,
@@ -233,7 +233,7 @@ test('zstd create tar', async () => {
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
         '--use-compress-program',
-        IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
+        IS_WINDOWS ? '"zstd -T0 --long=30"' : '"zstdmt --long=30"'
       ])
       .join(' '),
     undefined, // args
@@ -367,7 +367,7 @@ test('zstd list tar', async () => {
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
         '--use-compress-program',
-        IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
+        IS_WINDOWS ? '"zstd -d --long=30"' : '"unzstd --long=30"'
       ])
       .join(' '),
     undefined,

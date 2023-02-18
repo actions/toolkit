@@ -189,7 +189,7 @@ async function getDecompressionProgram(
           ]
         : [
             '--use-compress-program',
-            IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
+            IS_WINDOWS ? '"zstd -d --long=30"' : '"unzstd --long=30"'
           ]
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
@@ -229,7 +229,7 @@ async function getCompressionProgram(
           ]
         : [
             '--use-compress-program',
-            IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
+            IS_WINDOWS ? '"zstd -T0 --long=30"' : '"zstdmt --long=30"'
           ]
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
