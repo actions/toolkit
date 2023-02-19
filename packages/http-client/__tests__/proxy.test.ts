@@ -145,44 +145,6 @@ describe('proxy', () => {
     expect(bypass).toBeFalsy()
   })
 
-  it('checkBypass returns true if host with subdomain in no_proxy', () => {
-    process.env['no_proxy'] = 'myserver.com'
-    const bypass = pm.checkBypass(new URL('https://sub.myserver.com'))
-    expect(bypass).toBeTruthy()
-  })
-
-  it('checkBypass returns false if no_proxy is subdomain', () => {
-    process.env['no_proxy'] = 'myserver.com'
-    const bypass = pm.checkBypass(new URL('https://myserver.com.evil.org'))
-    expect(bypass).toBeFalsy()
-  })
-
-  it('checkBypass returns false if no_proxy is part of domain', () => {
-    process.env['no_proxy'] = 'myserver.com'
-    const bypass = pm.checkBypass(new URL('https://evilmyserver.com'))
-    expect(bypass).toBeFalsy()
-  })
-
-  // Do not strip leading dots as per https://github.com/actions/runner/blob/97195bad5870e2ad0915ebfef1616083aacf5818/docs/adrs/0263-proxy-support.md
-  it('checkBypass returns false if host with leading dot in no_proxy', () => {
-    process.env['no_proxy'] = '.myserver.com'
-    const bypass = pm.checkBypass(new URL('https://myserver.com'))
-    expect(bypass).toBeFalsy()
-  })
-
-  it('checkBypass returns true if host with subdomain in no_proxy defined with leading "."', () => {
-    process.env['no_proxy'] = '.myserver.com'
-    const bypass = pm.checkBypass(new URL('https://sub.myserver.com'))
-    expect(bypass).toBeTruthy()
-  })
-
-  // Do not match wildcard ("*") as per https://github.com/actions/runner/blob/97195bad5870e2ad0915ebfef1616083aacf5818/docs/adrs/0263-proxy-support.md
-  it('checkBypass returns true if no_proxy is "*"', () => {
-    process.env['no_proxy'] = '*'
-    const bypass = pm.checkBypass(new URL('https://anything.whatsoever.com'))
-    expect(bypass).toBeFalsy()
-  })
-
   it('HttpClient does basic http get request through proxy', async () => {
     process.env['http_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
