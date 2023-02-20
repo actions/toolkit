@@ -99,12 +99,17 @@ async function getVersion(app: string, args?: string[]): Promise<string> {
 export async function getCompressionMethod(): Promise<CompressionMethod> {
   const versionOutput = await getVersion('zstd', ['--quiet'])
   const version = semver.clean(versionOutput)
-  if (version) {
+
+  if (versionOutput === '') {
+    // zstd is not installed
+    return CompressionMethod.Gzip
+  } else if (!version || semver.lt(version, 'v1.3.2')) {
+    // zstd is installed but using a version earlier than v1.3.2
+    // v1.3.2 is required to use the `--long` options in zstd
     return CompressionMethod.ZstdWithoutLong
   } else {
-    return CompressionMethod.Gzip
+    return CompressionMethod.Zstd
   }
-
 }
 
 export function getCacheFileName(compressionMethod: CompressionMethod): string {
