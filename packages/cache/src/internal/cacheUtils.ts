@@ -71,13 +71,12 @@ export async function unlinkFile(filePath: fs.PathLike): Promise<void> {
   return util.promisify(fs.unlink)(filePath)
 }
 
-async function getVersion(app: string, args?: string[]): Promise<string> {
+async function getVersion(app: string, additionalArgs: string[] = []): Promise<string> {
   let versionOutput = ''
-  typeof args !== 'undefined' ? args : (args = [])
-  args.push('--version')
-  core.debug(`Checking ${app} ${args.join(' ')}`)
+  additionalArgs.push('--version')
+  core.debug(`Checking ${app} ${additionalArgs.join(' ')}`)
   try {
-    await exec.exec(`${app}`, args, {
+    await exec.exec(`${app}`, additionalArgs, {
       ignoreReturnCode: true,
       silent: true,
       listeners: {
