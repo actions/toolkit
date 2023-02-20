@@ -98,20 +98,13 @@ async function getVersion(app: string, args?: string[]): Promise<string> {
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
   const versionOutput = await getVersion('zstd', ['--quiet'])
-  core.debug(`versionOutput: ${versionOutput}`)
   const version = semver.clean(versionOutput)
-  core.debug(`version: ${version}`)
-
-  if (!versionOutput.toLowerCase().includes('zstd command line interface')) {
-    // zstd is not installed
-    return CompressionMethod.Gzip
-  } else if (!version || semver.lt(version, 'v1.3.2')) {
-    // zstd is installed but using a version earlier than v1.3.2
-    // v1.3.2 is required to use the `--long` options in zstd
+  if (version) {
     return CompressionMethod.ZstdWithoutLong
   } else {
-    return CompressionMethod.Zstd
+    return CompressionMethod.Gzip
   }
+
 }
 
 export function getCacheFileName(compressionMethod: CompressionMethod): string {
