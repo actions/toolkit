@@ -79,7 +79,7 @@ async function getVersion(
   additionalArgs.push('--version')
   core.debug(`Checking ${app} ${additionalArgs.join(' ')}`)
   try {
-    await exec.exec(`${app}`, additionalArgs, {
+    await exec.exec(`${app} `, additionalArgs, {
       ignoreReturnCode: true,
       silent: true,
       listeners: {
