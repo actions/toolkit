@@ -3,6 +3,7 @@ import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
 import * as io from '@actions/io'
 import * as fs from 'fs'
+import { type } from 'os'
 import * as path from 'path'
 import * as semver from 'semver'
 import * as util from 'util'
@@ -71,11 +72,13 @@ export async function unlinkFile(filePath: fs.PathLike): Promise<void> {
   return util.promisify(fs.unlink)(filePath)
 }
 
-async function getVersion(app: string): Promise<string> {
+async function getVersion(app: string, args?: string[]): Promise<string> {
   core.debug(`Checking ${app} --version`)
   let versionOutput = ''
+  typeof args !== 'undefined' ? args : (args = [])
+  args.push('--version')
   try {
-    await exec.exec(`${app} --version`, [], {
+    await exec.exec(`${app}`, args, {
       ignoreReturnCode: true,
       silent: true,
       listeners: {
@@ -94,7 +97,7 @@ async function getVersion(app: string): Promise<string> {
 
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
-  const versionOutput = await getVersion('zstd')
+  const versionOutput = await getVersion('zstd', ['--quiet'])
   core.debug(`versionOutput: ${versionOutput}`)
   const version = semver.clean(versionOutput)
   core.debug(`version: ${version}`)
