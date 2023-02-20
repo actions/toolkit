@@ -115,3 +115,6 @@
 
 ### 3.1.3
 - Fix to prevent from setting MYSYS environement variable globally [#1329](https://github.com/actions/toolkit/pull/1329).
+
+### 3.1.4
+- Fix zstd not being used due to `zstd --version` output change in zstd 1.5.4 release. See [#1353](https://github.com/actions/toolkit/pull/1353).
