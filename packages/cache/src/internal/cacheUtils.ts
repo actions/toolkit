@@ -3,7 +3,6 @@ import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
 import * as io from '@actions/io'
 import * as fs from 'fs'
-import { type } from 'os'
 import * as path from 'path'
 import * as semver from 'semver'
 import * as util from 'util'
@@ -100,15 +99,11 @@ export async function getCompressionMethod(): Promise<CompressionMethod> {
   const versionOutput = await getVersion('zstd', ['--quiet'])
   const version = semver.clean(versionOutput)
 
-  if (versionOutput === '') {
+  if (versionOutput === '' || version === null) {
     // zstd is not installed
     return CompressionMethod.Gzip
-  } else if (!version || semver.lt(version, 'v1.3.2')) {
-    // zstd is installed but using a version earlier than v1.3.2
-    // v1.3.2 is required to use the `--long` options in zstd
+  } else{
     return CompressionMethod.ZstdWithoutLong
-  } else {
-    return CompressionMethod.Zstd
   }
 }
 
