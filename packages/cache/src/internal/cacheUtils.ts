@@ -79,7 +79,7 @@ async function getVersion(
   additionalArgs.push('--version')
   core.debug(`Checking ${app} ${additionalArgs.join(' ')}`)
   try {
-    await exec.exec(`${app} `, additionalArgs, {
+    await exec.exec(`${app}`, additionalArgs, {
       ignoreReturnCode: true,
       silent: true,
       listeners: {
@@ -100,9 +100,9 @@ async function getVersion(
 export async function getCompressionMethod(): Promise<CompressionMethod> {
   const versionOutput = await getVersion('zstd', ['--quiet'])
   const version = semver.clean(versionOutput)
+  core.debug(`zstd version: ${version}`)
 
-  if (versionOutput === '' || version === null) {
-    // zstd is not installed
+  if (versionOutput === '') {
     return CompressionMethod.Gzip
   } else {
     return CompressionMethod.ZstdWithoutLong
