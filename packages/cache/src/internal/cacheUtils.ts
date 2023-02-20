@@ -102,7 +102,7 @@ export async function getCompressionMethod(): Promise<CompressionMethod> {
   if (versionOutput === '' || version === null) {
     // zstd is not installed
     return CompressionMethod.Gzip
-  } else{
+  } else {
     return CompressionMethod.ZstdWithoutLong
   }
 }
