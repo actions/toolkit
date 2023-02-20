@@ -72,10 +72,10 @@ export async function unlinkFile(filePath: fs.PathLike): Promise<void> {
 }
 
 async function getVersion(app: string, args?: string[]): Promise<string> {
-  core.debug(`Checking ${app} --version`)
   let versionOutput = ''
   typeof args !== 'undefined' ? args : (args = [])
   args.push('--version')
+  core.debug(`Checking ${app} ${args.join(' ')}`)
   try {
     await exec.exec(`${app}`, args, {
       ignoreReturnCode: true,
