@@ -127,12 +127,12 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
 
     try {
-      const cmdPath = ioUtil.getCmdPath()
-
       await ioUtil.rm(inputPath, {
         recursive: true,
         force: true
       })
+
+      // const cmdPath = ioUtil.getCmdPath()
 
       // const p = new Promise(async resolve => {
       //   setTimeout(() => {
@@ -197,12 +197,6 @@ export async function rmRF(inputPath: string): Promise<void> {
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
       if (await ioUtil.exists(inputPath)) {
-        if (await ioUtil.isDirectory(inputPath)) {
-          const files = await ioUtil.readdir(inputPath)
-          for (const file of files) {
-            console.log(`second ioUtil.readdir: ${file}`)
-          }
-        }
         await ioUtil.unlink(inputPath)
       }
     } catch (err) {
