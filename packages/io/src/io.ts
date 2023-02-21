@@ -128,8 +128,10 @@ export async function rmRF(inputPath: string): Promise<void> {
 
     try {
       await ioUtil.rm(inputPath, {
+        force: true,
+        maxRetries: 3,
         recursive: true,
-        force: true
+        retryDelay: 200
       })
 
       // const cmdPath = ioUtil.getCmdPath()
