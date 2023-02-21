@@ -159,15 +159,16 @@ export async function rmRF(inputPath: string): Promise<void> {
           console.log(`spawn: ${result.spawnargs}`)
         })
 
-        result.stdout?.on('data', (data) => {
+        result.stdout?.on('data', data => {
           console.log(`stdout: ${data}`)
-        });
+        })
 
-        result.stderr?.on('data', (data) => {
+        result.stderr?.on('data', data => {
           console.log(`stdout: ${data}`)
-        });
+        })
 
         result.on('close', code => {
+          console.log(`close: ${code}`)
           resolve(code)
         })
       })
