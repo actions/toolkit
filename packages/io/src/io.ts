@@ -136,6 +136,11 @@ export async function rmRF(inputPath: string): Promise<void> {
 
         let result: childProcess.ChildProcess
         if (await ioUtil.isDirectory(inputPath, true)) {
+          const files = await ioUtil.readdir(inputPath)
+          for (const file of files) {
+            console.log(`first ioUtil.readdir: ${file}`)
+          }
+
           result = childProcess.spawn(
             cmdPath,
             ['/s', '/c', 'rd', '/s', '/q', `"${inputPath}"`]
@@ -181,7 +186,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         if (await ioUtil.isDirectory(inputPath)) {
           const files = await ioUtil.readdir(inputPath)
           for (const file of files) {
-            console.log(file)
+            console.log(`second ioUtil.readdir: ${file}`)
           }
         }
         await ioUtil.unlink(inputPath)
