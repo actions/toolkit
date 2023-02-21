@@ -6,6 +6,7 @@ import * as io from '../src/io'
 
 describe('cp', () => {
   beforeAll(async () => {
+    console.log('beforeAll')
     await io.rmRF(getTestTemp())
   })
 
