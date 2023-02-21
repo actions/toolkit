@@ -165,6 +165,10 @@ export async function rmRF(inputPath: string): Promise<void> {
           console.log(`stdout: ${data}`)
         })
 
+        result.on('error', err => {
+          console.log(`error: ${err}, ${err.code}`)
+        })
+
         result.on('close', code => {
           console.log(`close: ${code}`)
           resolve(code)
