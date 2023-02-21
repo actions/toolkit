@@ -5,7 +5,11 @@ import * as path from 'path'
 import * as io from '../src/io'
 
 describe('cp', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    await io.mkdirP(getTestTemp())
+  })
+
+  afterEach(async () => {
     await io.rmRF(getTestTemp())
   })
 
@@ -192,7 +196,11 @@ describe('cp', () => {
 })
 
 describe('mv', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    await io.mkdirP(getTestTemp())
+  })
+
+  afterEach(async () => {
     await io.rmRF(getTestTemp())
   })
 
@@ -294,7 +302,11 @@ describe('mv', () => {
 })
 
 describe('rmRF', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    await io.mkdirP(getTestTemp())
+  })
+
+  afterEach(async () => {
     await io.rmRF(getTestTemp())
   })
 
@@ -332,7 +344,6 @@ describe('rmRF', () => {
     await assertExists(filePath)
 
     const fd = await fs.open(filePath, 'r')
-    console.log(fd)
     await io.rmRF(testPath)
 
     await assertNotExists(testPath)
@@ -738,7 +749,11 @@ describe('rmRF', () => {
 })
 
 describe('mkdirP', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    await io.mkdirP(getTestTemp())
+  })
+
+  afterEach(async () => {
     await io.rmRF(getTestTemp())
   })
 
@@ -876,7 +891,11 @@ describe('mkdirP', () => {
 })
 
 describe('which', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    await io.mkdirP(getTestTemp())
+  })
+
+  afterEach(async () => {
     await io.rmRF(getTestTemp())
   })
 
@@ -1413,7 +1432,11 @@ describe('which', () => {
 })
 
 describe('findInPath', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    await io.mkdirP(getTestTemp())
+  })
+
+  afterEach(async () => {
     await io.rmRF(getTestTemp())
   })
 
