@@ -183,7 +183,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         if (await ioUtil.isDirectory(inputPath)) {
           const files = await ioUtil.readdir(inputPath)
           for (const file of files) {
-              console.log(file)
+            console.log(file)
           }
         }
         await ioUtil.unlink(inputPath)
