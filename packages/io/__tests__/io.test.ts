@@ -329,6 +329,7 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
     const fd = await fs.open(filePath, 'r')
+    console.log(fd)
     await io.rmRF(testPath)
 
     await assertNotExists(testPath)
