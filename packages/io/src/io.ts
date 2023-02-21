@@ -138,18 +138,12 @@ export async function rmRF(inputPath: string): Promise<void> {
         if (await ioUtil.isDirectory(inputPath, true)) {
           result = childProcess.spawn(
             cmdPath,
-            ['/s', '/c', 'rd', '/s', '/q', '"%inputPath%"'],
-            {
-              env: {inputPath}
-            }
+            ['/s', '/c', 'rd', '/s', '/q', `"${inputPath}"`]
           )
         } else {
           result = childProcess.spawn(
             cmdPath,
-            ['/s', '/c', 'del', '/f', '/q', '/a', '"%inputPath%"'],
-            {
-              env: {inputPath}
-            }
+            ['/s', '/c', 'del', '/f', '/q', '/a', `"${inputPath}"`]
           )
         }
 
@@ -162,7 +156,7 @@ export async function rmRF(inputPath: string): Promise<void> {
         })
 
         result.stderr?.on('data', data => {
-          console.log(`stdout: ${data}`)
+          console.log(`stderr: ${data}`)
         })
 
         result.on('error', err => {
