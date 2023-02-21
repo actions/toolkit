@@ -6,7 +6,6 @@ import * as io from '../src/io'
 
 describe('cp', () => {
   beforeAll(async () => {
-    console.log('beforeAll')
     await io.rmRF(getTestTemp())
   })
 
@@ -329,12 +328,10 @@ describe('rmRF', () => {
     const filePath = path.join(testPath, 'file.txt')
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
-    console.log('before remove while open')
     const fd = await fs.open(filePath, 'r')
     await io.rmRF(testPath)
 
     await assertNotExists(testPath)
-    console.log('before remove after closed')
     await fd.close()
     await io.rmRF(testPath)
     await assertNotExists(testPath)

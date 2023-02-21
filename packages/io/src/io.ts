@@ -127,7 +127,6 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
 
     try {
-      console.log('a')
       await ioUtil.rm(inputPath, {
         force: true,
         maxRetries: 3,
@@ -194,19 +193,16 @@ export async function rmRF(inputPath: string): Promise<void> {
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
-      console.log('b')
+      console.log(err)
       if (err.code !== 'ENOENT') throw err
     }
 
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
-      console.log('c')
       if (await ioUtil.exists(inputPath)) {
-        console.log('d')
         await ioUtil.unlink(inputPath)
       }
     } catch (err) {
-      console.log('e')
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
       if (err.code !== 'ENOENT' || err.code !== 'EPERM') throw err
