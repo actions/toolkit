@@ -348,7 +348,8 @@ describe('rmRF', () => {
 
     // can't remove folder with locked file on windows
     if (ioUtil.IS_WINDOWS) {
-      await assertExists(testPath)
+      // additionally, can't stat an open file on Windows without getting EPERM
+      await ioUtil.access(filePath)
     } else {
       await assertNotExists(testPath)
     }
