@@ -9,6 +9,7 @@ export const {
   readdir,
   readlink,
   rename,
+  rm,
   rmdir,
   stat,
   symlink,
