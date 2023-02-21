@@ -339,19 +339,19 @@ describe('rmRF', () => {
     await io.mkdirP(testPath)
     await assertExists(testPath)
 
-    // can't remove folder with locked file on windows
     const filePath = path.join(testPath, 'file.txt')
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
     const fd = await fs.open(filePath, 'r')
-    const files = await ioUtil.readdir(getTestTemp())
-    for (const file of files) {
-      console.log(file)
-    }
     await io.rmRF(testPath)
 
-    await assertNotExists(testPath)
+    // can't remove folder with locked file on windows
+    if (ioUtil.IS_WINDOWS) {
+      await assertExists(testPath)
+    } else {
+      await assertNotExists(testPath)
+    }
 
     await fd.close()
     await io.rmRF(testPath)
