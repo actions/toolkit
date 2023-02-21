@@ -202,7 +202,9 @@ describe('mv', () => {
     const targetFile = path.join(root, ' mv_target')
     await io.mkdirP(root)
     await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
+
     await io.mv(sourceFile, targetFile)
+
     expect(await fs.readFile(targetFile, {encoding: 'utf8'})).toBe(
       'test file content'
     )
@@ -328,11 +330,13 @@ describe('rmRF', () => {
     const filePath = path.join(testPath, 'file.txt')
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
+
     const fd = await fs.open(filePath, 'r')
     console.log(fd)
     await io.rmRF(testPath)
 
     await assertNotExists(testPath)
+
     await fd.close()
     await io.rmRF(testPath)
     await assertNotExists(testPath)

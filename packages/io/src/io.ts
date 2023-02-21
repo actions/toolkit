@@ -133,63 +133,6 @@ export async function rmRF(inputPath: string): Promise<void> {
         recursive: true,
         retryDelay: 200
       })
-
-      // const cmdPath = ioUtil.getCmdPath()
-
-      // const p = new Promise(async resolve => {
-      //   setTimeout(() => {
-      //     resolve('timeout')
-      //   }, 500)
-
-      //   let result: childProcess.ChildProcess
-      //   if (await ioUtil.isDirectory(inputPath, true)) {
-      //     const files = await ioUtil.readdir(inputPath)
-      //     for (const file of files) {
-      //       console.log(`first ioUtil.readdir: ${file}`)
-      //     }
-
-      //     result = childProcess.spawn(cmdPath, [
-      //       '/s',
-      //       '/c',
-      //       'rd',
-      //       '/s',
-      //       '/q',
-      //       `"${inputPath}"`
-      //     ])
-      //   } else {
-      //     result = childProcess.spawn(cmdPath, [
-      //       '/s',
-      //       '/c',
-      //       'del',
-      //       '/f',
-      //       '/q',
-      //       '/a',
-      //       `"${inputPath}"`
-      //     ])
-      //   }
-
-      //   result.on('spawn', () => {
-      //     console.log(`spawn: ${result.spawnargs}`)
-      //   })
-
-      //   result.stdout?.on('data', data => {
-      //     console.log(`stdout: ${data}`)
-      //   })
-
-      //   result.stderr?.on('data', data => {
-      //     console.log(`stderr: ${data}`)
-      //   })
-
-      //   result.on('error', err => {
-      //     console.log(`error: ${err}`)
-      //   })
-
-      //   result.on('close', code => {
-      //     console.log(`close: ${code}`)
-      //     resolve(code)
-      //   })
-      // })
-      // await p
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
@@ -199,13 +142,11 @@ export async function rmRF(inputPath: string): Promise<void> {
 
     // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
     try {
-      if (await ioUtil.exists(inputPath)) {
-        await ioUtil.unlink(inputPath)
-      }
+      await ioUtil.unlink(inputPath)
     } catch (err) {
       // if you try to delete a file that doesn't exist, desired result is achieved
       // other errors are valid
-      if (err.code !== 'ENOENT' || err.code !== 'EPERM') throw err
+      if (err.code !== 'ENOENT') throw err
     }
   } else {
     let isDir = false
