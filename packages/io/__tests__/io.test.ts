@@ -354,6 +354,7 @@ describe('rmRF', () => {
         expect(err.code).toBe('EPERM')
       }
     } else {
+      await io.rmRF(testPath)
       await assertNotExists(testPath)
     }
 
