@@ -4,8 +4,6 @@ import * as path from 'path'
 import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
-const execFile = promisify(childProcess.execFile)
-
 /**
  * Interface for cp/mv options
  */
