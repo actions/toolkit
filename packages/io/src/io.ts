@@ -120,11 +120,11 @@ export async function rmRF(inputPath: string): Promise<void> {
     }
   }
 
-  await ioUtil.rm(inputPath, {
+  ioUtil.rmSync(inputPath, {
     force: true,
     maxRetries: 3,
     recursive: true,
-    retryDelay: 200
+    retryDelay: 300
   })
 }
 

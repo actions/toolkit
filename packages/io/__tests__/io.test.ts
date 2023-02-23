@@ -345,18 +345,18 @@ describe('rmRF', () => {
 
     const fd = await fs.open(filePath, 'r')
 
-    // can't remove folder with locked file on windows
-    if (ioUtil.IS_WINDOWS) {
-      try {
-        // additionally, can't stat an open file on Windows without getting EPERM
-        await io.rmRF(testPath)
-      } catch (err) {
-        expect(err.code).toBe('EPERM')
-      }
-    } else {
-      await io.rmRF(testPath)
-      await assertNotExists(testPath)
-    }
+    // // can't remove folder with locked file on windows
+    // if (ioUtil.IS_WINDOWS) {
+    //   try {
+    //     // additionally, can't stat an open file on Windows without getting EPERM
+    //     await io.rmRF(testPath)
+    //   } catch (err) {
+    //     expect(err.code).toBe('EPERM')
+    //   }
+    // } else {
+    await io.rmRF(testPath)
+    await assertNotExists(testPath)
+    // }
 
     await fd.close()
     await io.rmRF(testPath)
