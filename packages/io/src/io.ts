@@ -1,7 +1,5 @@
 import {ok} from 'assert'
-import * as childProcess from 'child_process'
 import * as path from 'path'
-import {promisify} from 'util'
 import * as ioUtil from './io-util'
 
 /**
