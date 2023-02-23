@@ -176,11 +176,16 @@ describe('proxy', () => {
     expect(bypass).toBeTruthy()
   })
 
-  // Do not match wildcard ("*") as per https://github.com/actions/runner/blob/97195bad5870e2ad0915ebfef1616083aacf5818/docs/adrs/0263-proxy-support.md
   it('checkBypass returns true if no_proxy is "*"', () => {
     process.env['no_proxy'] = '*'
     const bypass = pm.checkBypass(new URL('https://anything.whatsoever.com'))
-    expect(bypass).toBeFalsy()
+    expect(bypass).toBeTruthy()
+  })
+
+  it('checkBypass returns true if no_proxy contains comma separated "*"', () => {
+    process.env['no_proxy'] = 'domain.com,* , example.com'
+    const bypass = pm.checkBypass(new URL('https://anything.whatsoever.com'))
+    expect(bypass).toBeTruthy()
   })
 
   it('HttpClient does basic http get request through proxy', async () => {
