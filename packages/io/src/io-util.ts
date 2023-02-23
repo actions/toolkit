@@ -17,9 +17,7 @@ export const {
   unlink
 } = fs.promises
 
-export const {
-  rmSync
-} = fs
+export const {rmSync} = fs
 
 export const IS_WINDOWS = process.platform === 'win32'
 

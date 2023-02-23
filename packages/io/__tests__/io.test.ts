@@ -3,7 +3,7 @@ import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
-import * as ioUtil from '../src/io-util'
+// import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
   beforeEach(async () => {
