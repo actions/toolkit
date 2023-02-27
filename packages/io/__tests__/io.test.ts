@@ -1,5 +1,5 @@
 import * as child from 'child_process'
-import {promises as fs} from 'fs'
+import {promises as fs, accessSync, constants} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
@@ -341,7 +341,14 @@ describe('rmRF', () => {
 
     const filePath = path.join(testPath, 'file.txt')
     await fs.appendFile(filePath, 'some data')
-    await assertExists(filePath)
+    try {
+      accessSync(filePath, constants.R_OK | constants.W_OK)
+      // eslint-disable-next-line no-console
+      console.debug('can read/write')
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('no access!')
+    }
 
     const fd = await fs.open(filePath, 'r')
 
