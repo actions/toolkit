@@ -1,6 +1,7 @@
 import {ok} from 'assert'
 import * as path from 'path'
 import * as ioUtil from './io-util'
+import {access, constants} from 'node:fs/promises'
 
 /**
  * Interface for cp/mv options
@@ -119,13 +120,18 @@ export async function rmRF(inputPath: string): Promise<void> {
       )
     }
   }
-
-  ioUtil.rmSync(inputPath, {
-    force: true,
-    maxRetries: 3,
-    recursive: true,
-    retryDelay: 300
-  })
+  try {
+    await access(inputPath, constants.R_OK | constants.W_OK)
+    ioUtil.rmSync(inputPath, {
+      force: true,
+      maxRetries: 3,
+      recursive: true,
+      retryDelay: 300
+    })
+    throw new Error('Can Access')
+  } catch {
+    throw new Error('Can Not Access')
+  }
 }
 
 /**
