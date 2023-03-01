@@ -242,7 +242,7 @@ export async function downloadCacheStorageSDK(
     // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
     // on 64-bit systems), split the download into multiple segments
     // ~2 GB = 2147483647, beyond this, we start getting out of range error. So, capping it accordingly.
-    const maxSegmentSize = Math.min(2147483647, buffer.constants.MAX_LENGTH)
+    const maxSegmentSize = Math.min(102760447, buffer.constants.MAX_LENGTH)
     const downloadProgress = new DownloadProgress(contentLength)
 
     const fd = fs.openSync(archivePath, 'w')
@@ -275,7 +275,23 @@ export async function downloadCacheStorageSDK(
             'Aborting cache download as the download time exceeded the timeout.'
           )
         } else if (Buffer.isBuffer(result)) {
+          core.info(
+            `Segment offset before writing result to the file ${downloadProgress.segmentOffset}`
+          )
+          core.info(
+            `Download progress object before writing result ${JSON.stringify(
+              downloadProgress
+            )}`
+          )
           fs.writeFileSync(fd, result)
+          core.info(
+            `Segment offset after writing result to the file ${downloadProgress.segmentOffset}`
+          )
+          core.info(
+            `Download progress object after writing result ${JSON.stringify(
+              downloadProgress
+            )}`
+          )
         }
       }
     } finally {
