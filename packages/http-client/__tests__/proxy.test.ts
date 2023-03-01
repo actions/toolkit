@@ -223,19 +223,29 @@ describe('proxy', () => {
     expect(_proxyConnects).toEqual(['httpbin.org:443'])
   })
 
-  it('HttpClient does basic https get request when bypass proxy', async () => {
-    process.env['https_proxy'] = _proxyUrl
-    process.env['no_proxy'] = 'httpbin.org'
+it('HttpClient bypasses proxy for loopback addresses (localhost, ::1, 127.*)', async () => {
+  // setup a server listening on localhost:8091
+  var server = http.createServer(function (request, response) {
+    response.writeHead(200);
+    request.pipe(response);
+  });
+  await server.listen(8091)
+  try {
+    process.env['http_proxy'] = _proxyUrl 
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'https://httpbin.org/get'
+      'http://localhost:8091'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
-    const obj = JSON.parse(body)
-    expect(obj.url).toBe('https://httpbin.org/get')
-    expect(_proxyConnects).toHaveLength(0)
-  })
+    expect(body).toEqual('');
+    // proxy at _proxyUrl was ignored
+    expect(_proxyConnects).toEqual(undefined)
+  }
+  finally {
+    await server.close()
+  }
+})
 
   it('proxyAuth not set in tunnel agent when authentication is not provided', async () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
