@@ -240,7 +240,7 @@ it('HttpClient bypasses proxy for loopback addresses (localhost, ::1, 127.*)', a
     const body: string = await res.readBody()
     expect(body).toEqual('');
     // proxy at _proxyUrl was ignored
-    expect(_proxyConnects).toEqual(undefined)
+    expect(_proxyConnects).toEqual([])
   }
   finally {
     await server.close()
