@@ -223,6 +223,20 @@ describe('proxy', () => {
     expect(_proxyConnects).toEqual(['httpbin.org:443'])
   })
 
+  it('HttpClient does basic https get request when bypass proxy', async () => {
+    process.env['https_proxy'] = _proxyUrl
+    process.env['no_proxy'] = 'httpbin.org'
+    const httpClient = new httpm.HttpClient()
+    const res: httpm.HttpClientResponse = await httpClient.get(
+      'https://httpbin.org/get'
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    expect(obj.url).toBe('https://httpbin.org/get')
+    expect(_proxyConnects).toHaveLength(0)
+  })
+
 it('HttpClient bypasses proxy for loopback addresses (localhost, ::1, 127.*)', async () => {
   // setup a server listening on localhost:8091
   var server = http.createServer(function (request, response) {
