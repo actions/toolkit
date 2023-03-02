@@ -28,7 +28,7 @@ describe('proxy', () => {
     _clearVars()
   })
 
-  afterEach(() => { })
+  afterEach(() => {})
 
   afterAll(async () => {
     _clearVars()
@@ -239,7 +239,7 @@ describe('proxy', () => {
 
   it('HttpClient bypasses proxy for loopback addresses (localhost, ::1, 127.*)', async () => {
     // setup a server listening on localhost:8091
-    const server = http.createServer(function (request, response) {
+    const server = http.createServer((request, response) => {
       response.writeHead(200)
       request.pipe(response)
     })
@@ -247,18 +247,13 @@ describe('proxy', () => {
     try {
       process.env['http_proxy'] = _proxyUrl
       const httpClient = new httpm.HttpClient()
-      let res = await httpClient.get(
-        'http://localhost:8091'
-      )
+      let res = await httpClient.get('http://localhost:8091')
       expect(res.message.statusCode).toBe(200)
-      res = await httpClient.get(
-        'http://127.0.0.1:8091'
-      )
+      res = await httpClient.get('http://127.0.0.1:8091')
       expect(res.message.statusCode).toBe(200)
 
       // no support for ipv6 for now
-      expect(httpClient.get(
-        'http://[::1]:8091')).rejects.toThrow()
+      expect(httpClient.get('http://[::1]:8091')).rejects.toThrow()
 
       // ipv6 not supported atm
       // expect(async () => await httpClient.get(
