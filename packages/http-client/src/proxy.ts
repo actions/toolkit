@@ -77,6 +77,7 @@ function isLoopbackAddress(host: string): boolean {
   return (
     hostLower === 'localhost' ||
     hostLower.startsWith('127.') ||
-    hostLower.startsWith('::1')
+    hostLower.startsWith('[::1]') ||
+    hostLower.startsWith('[0:0:0:0:0:0:0:1]')
   )
 }
