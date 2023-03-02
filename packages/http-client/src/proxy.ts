@@ -73,10 +73,10 @@ export function checkBypass(reqUrl: URL): boolean {
 }
 
 function isLoopbackAddress(host: string): boolean {
-  const hostUpper = host.toUpperCase()
+  const hostLower = host.toLowerCase()
   return (
-    hostUpper === 'LOCALHOST' ||
-    hostUpper.startsWith('127.') ||
-    hostUpper.startsWith('::1')
+    hostLower === 'localhost' ||
+    hostLower.startsWith('127.') ||
+    hostLower.startsWith('::1')
   )
 }
