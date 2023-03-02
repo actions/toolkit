@@ -255,11 +255,6 @@ describe('proxy', () => {
       // no support for ipv6 for now
       expect(httpClient.get('http://[::1]:8091')).rejects.toThrow()
 
-      // ipv6 not supported atm
-      // expect(async () => await httpClient.get(
-      //   'http://[::1]:8091'
-      // )).toThrow()
-
       // proxy at _proxyUrl was ignored
       expect(_proxyConnects).toEqual([])
     } finally {
