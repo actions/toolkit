@@ -1,5 +1,9 @@
 ## Releases
 
+## 2.1.0
+- Add support for `*` and subdomains in `no_proxy` [#1355](https://github.com/actions/toolkit/pull/1355) [#1223](https://github.com/actions/toolkit/pull/1223)
+- Bypass proxy for loopback IP adresses [#1360](https://github.com/actions/toolkit/pull/1360))
+
 ## 2.0.1
 - Fix an issue with missing `tunnel` dependency [#1085](https://github.com/actions/toolkit/pull/1085)
 
