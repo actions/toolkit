@@ -242,6 +242,31 @@ describe('proxy', () => {
     expect(_proxyConnects).toHaveLength(0)
   })
 
+  it('HttpClient bypasses proxy for loopback addresses (localhost, ::1, 127.*)', async () => {
+    // setup a server listening on localhost:8091
+    const server = http.createServer((request, response) => {
+      response.writeHead(200)
+      request.pipe(response)
+    })
+    server.listen(8091)
+    try {
+      process.env['http_proxy'] = _proxyUrl
+      const httpClient = new httpm.HttpClient()
+      let res = await httpClient.get('http://localhost:8091')
+      expect(res.message.statusCode).toBe(200)
+      res = await httpClient.get('http://127.0.0.1:8091')
+      expect(res.message.statusCode).toBe(200)
+
+      // no support for ipv6 for now
+      expect(httpClient.get('http://[::1]:8091')).rejects.toThrow()
+
+      // proxy at _proxyUrl was ignored
+      expect(_proxyConnects).toEqual([])
+    } finally {
+      server.close()
+    }
+  })
+
   it('proxyAuth not set in tunnel agent when authentication is not provided', async () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()

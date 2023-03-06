@@ -25,6 +25,11 @@ export function checkBypass(reqUrl: URL): boolean {
     return false
   }
 
+  const reqHost = reqUrl.hostname
+  if (isLoopbackAddress(reqHost)) {
+    return true
+  }
+
   const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || ''
   if (!noProxy) {
     return false
@@ -66,4 +71,14 @@ export function checkBypass(reqUrl: URL): boolean {
   }
 
   return false
+}
+
+function isLoopbackAddress(host: string): boolean {
+  const hostLower = host.toLowerCase()
+  return (
+    hostLower === 'localhost' ||
+    hostLower.startsWith('127.') ||
+    hostLower.startsWith('[::1]') ||
+    hostLower.startsWith('[0:0:0:0:0:0:0:1]')
+  )
 }
