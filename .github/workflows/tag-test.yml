@@ -14,7 +14,7 @@ jobs:
       - id: commit
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - id: tag
-        run: echo "tag=http-client-$(cat packages/http-client/package.json | jq .version)" >> "$GITHUB_OUTPUT"
+        run: echo "tag=@actions/http-client-$(cat packages/http-client/package.json | jq .version)-test-tag" >> "$GITHUB_OUTPUT"
   publish:
     runs-on: macos-latest
     needs: test
