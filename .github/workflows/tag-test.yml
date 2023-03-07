@@ -42,7 +42,7 @@ jobs:
           ref: 'refs/tags/${{ needs.test.outputs.tag }}',
           sha: '${{ needs.test.outputs.sha }}'
         })
-    - name: notify slack on failure
+    # - name: notify slack on failure
     # if: failure()
     # run: |
     #   curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Publish of ${{ github.event.inputs.package }} was successful, but failed to tag commit ${{ needs.test.outputs.sha }} with version ${{ needs.test.outputs.tag }}"}' $SLACK_WEBHOOK
