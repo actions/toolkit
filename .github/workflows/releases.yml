@@ -100,9 +100,9 @@ jobs:
           sha: '${{ needs.test.outputs.sha }}'
         })
     - name: notify slack on failure
-    if: failure()
-    run: |
-      curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Publish of ${{ github.event.inputs.package }} was successful, but failed to tag commit ${{ needs.test.outputs.sha }} with version ${{ needs.test.outputs.tag }}"}' $SLACK_WEBHOOK
-    env:
-      SLACK_WEBHOOK: ${{ secrets.SLACK }}
+      if: failure()
+      run: |
+        curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Publish of ${{ github.event.inputs.package }} was successful, but failed to tag commit ${{ needs.test.outputs.sha }} with version ${{ needs.test.outputs.tag }}"}' $SLACK_WEBHOOK
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK }}
 
