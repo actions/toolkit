@@ -1,11 +1,6 @@
 name: Tag test
 
-on:
-  workflow_dispatch:
-    inputs:
-      package:
-        required: true
-        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache'
+on: push
 
 jobs:
   test:
@@ -19,15 +14,15 @@ jobs:
       - id: commit
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - id: tag
-        run: echo "tag=${{ github.event.inputs.package }}-$(cat packages/tool-cache/package.json | jq .version)" >> "$GITHUB_OUTPUT"
+        run: echo "tag=http-client-$(cat packages/http-client/package.json | jq .version)" >> "$GITHUB_OUTPUT"
   publish:
     runs-on: macos-latest
     needs: test
     steps:
-      - name: foo
-        run: echo "foo"
+      - name: skip publish
+        run: echo "skip publish"
   tag:
-    name: "Tag commit with ${{ github.event.inputs.package }}-version"
+    name: "Tag ${{ needs.test.outputs.sha }} with ${{ needs.test.outputs.tag }}"
     runs-on: "macos-latest"
     needs: [test, publish]
     steps:
