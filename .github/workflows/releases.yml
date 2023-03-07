@@ -19,7 +19,7 @@ jobs:
       - id: commit
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - id: tag
-        run: echo "tag=${{ github.event.inputs.package }}-$(cat packages/tool-cache/package.json | jq .version)" >> "$GITHUB_OUTPUT"
+        run: echo "tag=${{ github.event.inputs.package }}-$(cat packages/${{ github.event.inputs.package }}/package.json | jq .version)" >> "$GITHUB_OUTPUT"
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
