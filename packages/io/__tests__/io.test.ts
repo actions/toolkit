@@ -734,6 +734,16 @@ describe('rmRF', () => {
     await io.rmRF(file)
     await assertNotExists(file)
   })
+
+  it('removes directories starting with a hyphen with rmRF', async () => {
+    const root = path.join(getTestTemp(), '.rmRF_hyphen_directory')
+    const hyphenDirectory = path.join(root, '-hyphen')
+    await io.mkdirP(hyphenDirectory)
+    await assertExists(hyphenDirectory)
+    process.chdir(root)
+    await io.rmRF('-hyphen')
+    await assertNotExists(hyphenDirectory)
+  })
 })
 
 describe('mkdirP', () => {
