@@ -92,13 +92,13 @@ jobs:
     - name: Create tag
       uses: actions/github-script@v6
       with:
-      script: |
-        github.rest.git.createRef({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          ref: 'refs/tags/${{ needs.test.outputs.tag }}',
-          sha: '${{ needs.test.outputs.sha }}'
-        })
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${{ needs.test.outputs.tag }}',
+            sha: '${{ needs.test.outputs.sha }}'
+          })
     - name: notify slack on failure
       if: failure()
       run: |
