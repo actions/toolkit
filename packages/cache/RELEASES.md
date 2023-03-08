@@ -153,6 +153,10 @@
 
 - Fix zstd not being used due to `zstd --version` output change in zstd 1.5.4 release. See [#1353](https://github.com/actions/toolkit/pull/1353).
 
-### 3.1.5
+### 3.2.0
+
+- Add `lookupOnly` to cache restore `DownloadOptions`.
+
+### 3.2.1
 
 - Updated @azure/storage-blob to `v12.13.0`

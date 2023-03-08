@@ -100,6 +100,11 @@ export async function restoreCache(
       return undefined
     }
 
+    if (options?.lookupOnly) {
+      core.info('Lookup only - skipping download')
+      return cacheEntry.cacheKey
+    }
+
     archivePath = path.join(
       await utils.createTempDirectory(),
       utils.getCacheFileName(compressionMethod)

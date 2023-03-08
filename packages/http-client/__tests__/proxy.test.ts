@@ -176,11 +176,16 @@ describe('proxy', () => {
     expect(bypass).toBeTruthy()
   })
 
-  // Do not match wildcard ("*") as per https://github.com/actions/runner/blob/97195bad5870e2ad0915ebfef1616083aacf5818/docs/adrs/0263-proxy-support.md
   it('checkBypass returns true if no_proxy is "*"', () => {
     process.env['no_proxy'] = '*'
     const bypass = pm.checkBypass(new URL('https://anything.whatsoever.com'))
-    expect(bypass).toBeFalsy()
+    expect(bypass).toBeTruthy()
+  })
+
+  it('checkBypass returns true if no_proxy contains comma separated "*"', () => {
+    process.env['no_proxy'] = 'domain.com,* , example.com'
+    const bypass = pm.checkBypass(new URL('https://anything.whatsoever.com'))
+    expect(bypass).toBeTruthy()
   })
 
   it('HttpClient does basic http get request through proxy', async () => {
@@ -235,6 +240,31 @@ describe('proxy', () => {
     const obj = JSON.parse(body)
     expect(obj.url).toBe('https://httpbin.org/get')
     expect(_proxyConnects).toHaveLength(0)
+  })
+
+  it('HttpClient bypasses proxy for loopback addresses (localhost, ::1, 127.*)', async () => {
+    // setup a server listening on localhost:8091
+    const server = http.createServer((request, response) => {
+      response.writeHead(200)
+      request.pipe(response)
+    })
+    server.listen(8091)
+    try {
+      process.env['http_proxy'] = _proxyUrl
+      const httpClient = new httpm.HttpClient()
+      let res = await httpClient.get('http://localhost:8091')
+      expect(res.message.statusCode).toBe(200)
+      res = await httpClient.get('http://127.0.0.1:8091')
+      expect(res.message.statusCode).toBe(200)
+
+      // no support for ipv6 for now
+      expect(httpClient.get('http://[::1]:8091')).rejects.toThrow()
+
+      // proxy at _proxyUrl was ignored
+      expect(_proxyConnects).toEqual([])
+    } finally {
+      server.close()
+    }
   })
 
   it('proxyAuth not set in tunnel agent when authentication is not provided', async () => {
