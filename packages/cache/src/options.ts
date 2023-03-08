@@ -92,7 +92,7 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     useAzureSdk: true,
     downloadConcurrency: 8,
     timeoutInMs: 30000,
-    segmentTimeoutInMs: 3600000
+    segmentTimeoutInMs: 600000
   }
 
   if (copy) {
