@@ -8,7 +8,7 @@ import {
 const useAzureSdk = true
 const downloadConcurrency = 8
 const timeoutInMs = 30000
-const segmentTimeoutInMs = 3600000
+const segmentTimeoutInMs = 600000
 const lookupOnly = false
 const uploadConcurrency = 4
 const uploadChunkSize = 32 * 1024 * 1024
