@@ -341,29 +341,11 @@ describe('rmRF', () => {
 
     const filePath = path.join(testPath, 'file.txt')
     await fs.appendFile(filePath, 'some data')
-    try {
-      accessSync(filePath, constants.R_OK | constants.W_OK)
-      // eslint-disable-next-line no-console
-      console.debug('can read/write')
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('no access!')
-    }
 
-    const fd = await fs.open(filePath, 'r')
+    const fd = await fs.open(filePath, fs.constants.O_RDONLY | 0x10000000)
 
-    // // can't remove folder with locked file on windows
-    // if (ioUtil.IS_WINDOWS) {
-    //   try {
-    //     // additionally, can't stat an open file on Windows without getting EPERM
-    //     await io.rmRF(testPath)
-    //   } catch (err) {
-    //     expect(err.code).toBe('EPERM')
-    //   }
-    // } else {
     await io.rmRF(testPath)
     await assertNotExists(testPath)
-    // }
 
     await fd.close()
     await io.rmRF(testPath)

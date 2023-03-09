@@ -119,14 +119,6 @@ export async function rmRF(inputPath: string): Promise<void> {
       )
     }
   }
-  try {
-    ioUtil.accessSync(inputPath, ioUtil.constants.R_OK | ioUtil.constants.W_OK)
-    // eslint-disable-next-line no-console
-    console.debug('can read/write')
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error('no access!')
-  }
 
   ioUtil.rmSync(inputPath, {
     force: true,
