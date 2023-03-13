@@ -1,5 +1,6 @@
 import * as child from 'child_process'
 import {promises as fs} from 'fs'
+import { constants } from 'fs/promises'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
@@ -331,7 +332,7 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    const fd = await fs.open(filePath, fs.constants.O_RDONLY | fs.constants.UV_FS_O_EXLOCK)
+    const fd = await fs.open(filePath, fs.constants.O_RDONLY | 0x10000000)
     await io.rmRF(testPath)
 
     await assertNotExists(testPath)
