@@ -331,7 +331,7 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    const fd = await fs.open(filePath, 'r')
+    const fd = await fs.open(filePath, fs.constants.O_RDONLY | fs.constants.UV_FS_O_EXLOCK)
     await io.rmRF(testPath)
 
     await assertNotExists(testPath)
