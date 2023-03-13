@@ -1,6 +1,5 @@
 import * as child from 'child_process'
 import {promises as fs} from 'fs'
-import { constants } from 'fs/promises'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
