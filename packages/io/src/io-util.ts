@@ -16,9 +16,11 @@ export const {
   unlink
 } = fs.promises
 
-// export const {rm} = fs
+export const {open, close} = fs
 
 export const IS_WINDOWS = process.platform === 'win32'
+
+export const READONLY = fs.constants.O_RDONLY
 
 export async function exists(fsPath: string): Promise<boolean> {
   try {

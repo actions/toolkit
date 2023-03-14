@@ -122,7 +122,9 @@ export async function rmRF(inputPath: string): Promise<void> {
   // ioUtil.rm(inputPath, {recursive: true}, err => {
   //   throw new Error(`File was unable to be removed ${err}`)
   // })
+  let fd
   try {
+    fd = ioUtil.open(inputPath, 'r')
     await ioUtil.rm(inputPath, {
       force: true,
       maxRetries: 3,
@@ -130,7 +132,15 @@ export async function rmRF(inputPath: string): Promise<void> {
       retryDelay: 300
     })
   } catch (e) {
-    throw new Error(`File was unable to be removed ${e}`)
+    if (e.code === 'ENOENT') {
+      return
+    } else {
+      throw new Error(`File was unable to be removed ${e}`)
+    }
+  } finally {
+    if (fd) {
+      ioUtil.close(fd)
+    }
   }
 }
 
