@@ -784,7 +784,7 @@ describe('mkdirP', () => {
   })
 
   it('creates folder', async () => {
-de    const testPath = path.join(getTestTemp(), 'mkdirTest')
+    const testPath = path.join(getTestTemp(), 'mkdirTest')
     await io.mkdirP(testPath)
 
     await assertExists(testPath)
