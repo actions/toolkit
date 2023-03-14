@@ -53,6 +53,15 @@ export interface DownloadOptions {
    * @default 3600000
    */
   segmentTimeoutInMs?: number
+
+  /**
+   * Weather to skip downloading the cache entry.
+   * If lookupOnly is set to true, the restore function will only check if
+   * a matching cache entry exists and return the cache key if it does.
+   *
+   * @default false
+   */
+  lookupOnly?: boolean
 }
 
 /**
@@ -92,7 +101,8 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     useAzureSdk: true,
     downloadConcurrency: 8,
     timeoutInMs: 30000,
-    segmentTimeoutInMs: 3600000
+    segmentTimeoutInMs: 600000,
+    lookupOnly: false
   }
 
   if (copy) {
@@ -110,6 +120,10 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
 
     if (typeof copy.segmentTimeoutInMs === 'number') {
       result.segmentTimeoutInMs = copy.segmentTimeoutInMs
+    }
+
+    if (typeof copy.lookupOnly === 'boolean') {
+      result.lookupOnly = copy.lookupOnly
     }
   }
   const segmentDownloadTimeoutMins =
@@ -129,6 +143,7 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     `Cache segment download timeout mins env var: ${process.env['SEGMENT_DOWNLOAD_TIMEOUT_MINS']}`
   )
   core.debug(`Segment download timeout (ms): ${result.segmentTimeoutInMs}`)
+  core.debug(`Lookup only: ${result.lookupOnly}`)
 
   return result
 }

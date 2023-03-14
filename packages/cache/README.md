@@ -44,6 +44,8 @@ const cacheKey = await cache.restoreCache(paths, key, restoreKeys)
 
 ##### Cache segment restore timeout
 
-A cache gets downloaded in multiple segments of fixed sizes (`1GB` for a `32-bit` runner and `2GB` for a `64-bit` runner). Sometimes, a segment download gets stuck which causes the workflow job to be stuck forever and fail. Version `v3.0.4` of cache package introduces a segment download timeout. The segment download timeout will allow the segment download to get aborted and hence allow the job to proceed with a cache miss.
+A cache gets downloaded in multiple segments of fixed sizes (now `128MB` to fail-fast, previously `1GB` for a `32-bit` runner and `2GB` for a `64-bit` runner were used). Sometimes, a segment download gets stuck which causes the workflow job to be stuck forever and fail. Version `v3.0.4` of cache package introduces a segment download timeout. The segment download timeout will allow the segment download to get aborted and hence allow the job to proceed with a cache miss.
 
-Default value of this timeout is 60 minutes and can be customized by specifying an [environment variable](https://docs.github.com/en/actions/learn-github-actions/environment-variables) named `SEGMENT_DOWNLOAD_TIMEOUT_MINS` with timeout value in minutes.
+Default value of this timeout is 10 minutes (starting `v3.2.1` and higher, previously 60 minutes in versions between `v.3.0.4` and `v3.2.0`, both included) and can be customized by specifying an [environment variable](https://docs.github.com/en/actions/learn-github-actions/environment-variables) named `SEGMENT_DOWNLOAD_TIMEOUT_MINS` with timeout value in minutes.
+
+

@@ -343,13 +343,8 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    // we need to open the file with an explicit executive lock
-    // otherwise node will allow the file to be deleted even though it's open
-    // https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
-    const fd = await fs.open(
-      filePath,
-      fs.constants.O_RDONLY | ioUtil.UV_FS_O_EXLOCK
-    )
+    const fd = await fs.open(filePath, fs.constants.O_RDONLY | 0x10000000)
+    await io.rmRF(testPath)
 
     // // can't remove folder with locked file on windows
     if (ioUtil.IS_WINDOWS) {

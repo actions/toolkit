@@ -71,11 +71,15 @@ export async function unlinkFile(filePath: fs.PathLike): Promise<void> {
   return util.promisify(fs.unlink)(filePath)
 }
 
-async function getVersion(app: string): Promise<string> {
-  core.debug(`Checking ${app} --version`)
+async function getVersion(
+  app: string,
+  additionalArgs: string[] = []
+): Promise<string> {
   let versionOutput = ''
+  additionalArgs.push('--version')
+  core.debug(`Checking ${app} ${additionalArgs.join(' ')}`)
   try {
-    await exec.exec(`${app} --version`, [], {
+    await exec.exec(`${app}`, additionalArgs, {
       ignoreReturnCode: true,
       silent: true,
       listeners: {
@@ -94,18 +98,14 @@ async function getVersion(app: string): Promise<string> {
 
 // Use zstandard if possible to maximize cache performance
 export async function getCompressionMethod(): Promise<CompressionMethod> {
-  const versionOutput = await getVersion('zstd')
+  const versionOutput = await getVersion('zstd', ['--quiet'])
   const version = semver.clean(versionOutput)
+  core.debug(`zstd version: ${version}`)
 
-  if (!versionOutput.toLowerCase().includes('zstd command line interface')) {
-    // zstd is not installed
+  if (versionOutput === '') {
     return CompressionMethod.Gzip
-  } else if (!version || semver.lt(version, 'v1.3.2')) {
-    // zstd is installed but using a version earlier than v1.3.2
-    // v1.3.2 is required to use the `--long` options in zstd
-    return CompressionMethod.ZstdWithoutLong
   } else {
-    return CompressionMethod.Zstd
+    return CompressionMethod.ZstdWithoutLong
   }
 }
 

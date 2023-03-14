@@ -8,7 +8,8 @@ import {
 const useAzureSdk = true
 const downloadConcurrency = 8
 const timeoutInMs = 30000
-const segmentTimeoutInMs = 3600000
+const segmentTimeoutInMs = 600000
+const lookupOnly = false
 const uploadConcurrency = 4
 const uploadChunkSize = 32 * 1024 * 1024
 
@@ -19,7 +20,8 @@ test('getDownloadOptions sets defaults', async () => {
     useAzureSdk,
     downloadConcurrency,
     timeoutInMs,
-    segmentTimeoutInMs
+    segmentTimeoutInMs,
+    lookupOnly
   })
 })
 
@@ -28,7 +30,8 @@ test('getDownloadOptions overrides all settings', async () => {
     useAzureSdk: false,
     downloadConcurrency: 14,
     timeoutInMs: 20000,
-    segmentTimeoutInMs: 3600000
+    segmentTimeoutInMs: 3600000,
+    lookupOnly: true
   }
 
   const actualOptions = getDownloadOptions(expectedOptions)
@@ -61,7 +64,8 @@ test('getDownloadOptions overrides download timeout minutes', async () => {
     useAzureSdk: false,
     downloadConcurrency: 14,
     timeoutInMs: 20000,
-    segmentTimeoutInMs: 3600000
+    segmentTimeoutInMs: 3600000,
+    lookupOnly: true
   }
   process.env.SEGMENT_DOWNLOAD_TIMEOUT_MINS = '10'
   const actualOptions = getDownloadOptions(expectedOptions)
@@ -72,4 +76,5 @@ test('getDownloadOptions overrides download timeout minutes', async () => {
   )
   expect(actualOptions.timeoutInMs).toEqual(expectedOptions.timeoutInMs)
   expect(actualOptions.segmentTimeoutInMs).toEqual(600000)
+  expect(actualOptions.lookupOnly).toEqual(expectedOptions.lookupOnly)
 })
