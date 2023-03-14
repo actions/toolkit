@@ -6,6 +6,7 @@ export const {
   copyFile,
   lstat,
   mkdir,
+  open,
   readdir,
   readlink,
   rename,
@@ -15,7 +16,7 @@ export const {
   symlink,
   unlink
 } = fs.promises
-
+// export const {open} = 'fs'
 export const IS_WINDOWS = process.platform === 'win32'
 
 export const READONLY = fs.constants.O_RDONLY

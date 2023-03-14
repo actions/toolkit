@@ -123,7 +123,7 @@ export async function rmRF(inputPath: string): Promise<void> {
   //   throw new Error(`File was unable to be removed ${err}`)
   // })
   try {
-    await ioUtil.stat(inputPath)
+    await ioUtil.open(inputPath)
     await ioUtil.rm(inputPath, {
       force: true,
       maxRetries: 3,
