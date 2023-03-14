@@ -3,7 +3,7 @@ import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
-// import * as ioUtil from '../src/io-util'
+import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
   beforeEach(async () => {
@@ -343,20 +343,26 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    const fd = await fs.open(filePath, 'r')
+    // we need to open the file with an explicit executive lock
+    // otherwise node will allow the file to be deleted even though it's open
+    // https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
+    const fd = await fs.open(
+      filePath,
+      fs.constants.O_RDONLY | ioUtil.UV_FS_O_EXLOCK
+    )
 
     // // can't remove folder with locked file on windows
-    // if (ioUtil.IS_WINDOWS) {
-    //   try {
-    //     // additionally, can't stat an open file on Windows without getting EPERM
-    //     await io.rmRF(testPath)
-    //   } catch (err) {
-    //     expect(err.code).toBe('EPERM')
-    //   }
-    // } else {
-    await io.rmRF(testPath)
-    await assertNotExists(testPath)
-    // }
+    if (ioUtil.IS_WINDOWS) {
+      try {
+        // additionally, can't stat an open file on Windows without getting EPERM
+        await io.rmRF(testPath)
+      } catch (err) {
+        expect(err.code).toBe('EPERM')
+      }
+    } else {
+      await io.rmRF(testPath)
+      await assertNotExists(testPath)
+    }
 
     await fd.close()
     await io.rmRF(testPath)

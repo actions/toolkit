@@ -17,9 +17,8 @@ export const {
   unlink
 } = fs.promises
 
-export const {rmSync} = fs
-
 export const IS_WINDOWS = process.platform === 'win32'
+export const UV_FS_O_EXLOCK = 0x10000000
 
 export async function exists(fsPath: string): Promise<boolean> {
   try {
