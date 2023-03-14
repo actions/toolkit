@@ -353,6 +353,8 @@ describe('rmRF', () => {
 
     // // can't remove folder with locked file on windows
     if (ioUtil.IS_WINDOWS) {
+      // eslint-disable-next-line no-console
+      console.debug(`Version: ${process.versions.node.split('.')[0]}`)
       try {
         // additionally, can't stat an open file on Windows without getting EPERM
         await io.rmRF(testPath)

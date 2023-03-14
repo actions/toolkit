@@ -119,8 +119,6 @@ export async function rmRF(inputPath: string): Promise<void> {
       )
     }
   }
-  // eslint-disable-next-line no-console
-  console.debug(`Version: ${process.version}`)
   ioUtil.rm(inputPath, {
     force: true,
     maxRetries: 3,
