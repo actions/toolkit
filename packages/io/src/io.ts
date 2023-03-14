@@ -124,7 +124,7 @@ export async function rmRF(inputPath: string): Promise<void> {
       )
     }
   }
-  ioUtil.rm(inputPath, {
+  ioUtil.rmSync(inputPath, {
     force: true,
     maxRetries: 3,
     recursive: true,
