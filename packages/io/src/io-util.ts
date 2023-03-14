@@ -16,8 +16,6 @@ export const {
   unlink
 } = fs.promises
 
-export const {openSync, close} = fs
-
 export const IS_WINDOWS = process.platform === 'win32'
 
 export const READONLY = fs.constants.O_RDONLY
