@@ -1,11 +1,6 @@
 import {ok} from 'assert'
-import * as childProcess from 'child_process'
 import * as path from 'path'
-import {promisify} from 'util'
 import * as ioUtil from './io-util'
-
-const exec = promisify(childProcess.exec)
-const execFile = promisify(childProcess.execFile)
 
 /**
  * Interface for cp/mv options
@@ -128,10 +123,11 @@ export async function rmRF(inputPath: string): Promise<void> {
   //   throw new Error(`File was unable to be removed ${err}`)
   // })
 
-  ioUtil.rm(inputPath, {recursive: true}, err => {
-    if (err) {
-      throw new Error(`no such file or directory: ${err}`)
-    }
+  ioUtil.rmSync(inputPath, {
+    force: true,
+    maxRetries: 3,
+    recursive: true,
+    retryDelay: 300
   })
 }
 
