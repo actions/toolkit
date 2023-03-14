@@ -131,21 +131,29 @@ export async function rmRF(inputPath: string): Promise<void> {
 
       const p = new Promise(async (resolve, reject) => {
         setTimeout(() => {
-          resolve("timeout")
+          resolve('timeout')
         }, 500)
 
-        let result = null;
+        let result = null
         if (await ioUtil.isDirectory(inputPath, true)) {
-          result = childProcess.spawn(cmdPath, ['/s', '/c', '"rd /s /q "%inputPath%""'], {
-            env: {inputPath}
-          })
+          result = childProcess.spawn(
+            cmdPath,
+            ['/s', '/c', '"rd /s /q "%inputPath%""'],
+            {
+              env: {inputPath}
+            }
+          )
         } else {
-          result = childProcess.spawn('cmdPath', ['/s', '/c', '"del /f /a "%inputPath%""'], {
-            env: {inputPath}
-          })
+          result = childProcess.spawn(
+            'cmdPath',
+            ['/s', '/c', '"del /f /a "%inputPath%""'],
+            {
+              env: {inputPath}
+            }
+          )
         }
 
-        result.on('close', (code) => {
+        result.on('close', code => {
           resolve(code)
         })
       })
