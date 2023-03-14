@@ -124,7 +124,7 @@ export async function rmRF(inputPath: string): Promise<void> {
   // })
   let fd
   try {
-    fd = ioUtil.open(inputPath, 'r')
+    fd = ioUtil.openSync(inputPath, 'r')
     await ioUtil.rm(inputPath, {
       force: true,
       maxRetries: 3,

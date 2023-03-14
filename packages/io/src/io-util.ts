@@ -16,7 +16,7 @@ export const {
   unlink
 } = fs.promises
 
-export const {open, close} = fs
+export const {openSync, close} = fs
 
 export const IS_WINDOWS = process.platform === 'win32'
 
