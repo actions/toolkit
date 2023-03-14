@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "3.1.3",
+  "version": "3.2.1",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -44,13 +44,13 @@
     "@actions/io": "^1.0.1",
     "@azure/abort-controller": "^1.1.0",
     "@azure/ms-rest-js": "^2.6.0",
-    "@azure/storage-blob": "^12.8.0",
+    "@azure/storage-blob": "^12.13.0",
     "semver": "^6.1.0",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@types/semver": "^6.0.0",
     "@types/uuid": "^3.4.5",
-    "typescript": "^3.8.3"
+    "typescript": "^4.8.0"
   }
 }

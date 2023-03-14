@@ -242,7 +242,9 @@ export async function downloadCacheStorageSDK(
     // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
     // on 64-bit systems), split the download into multiple segments
     // ~2 GB = 2147483647, beyond this, we start getting out of range error. So, capping it accordingly.
-    const maxSegmentSize = Math.min(2147483647, buffer.constants.MAX_LENGTH)
+
+    // Updated segment size to 128MB = 134217728 bytes, to complete a segment faster and fail fast
+    const maxSegmentSize = Math.min(134217728, buffer.constants.MAX_LENGTH)
     const downloadProgress = new DownloadProgress(contentLength)
 
     const fd = fs.openSync(archivePath, 'w')
