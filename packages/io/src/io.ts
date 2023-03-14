@@ -122,13 +122,16 @@ export async function rmRF(inputPath: string): Promise<void> {
   // ioUtil.rm(inputPath, {recursive: true}, err => {
   //   throw new Error(`File was unable to be removed ${err}`)
   // })
-
-  ioUtil.rmSync(inputPath, {
-    force: true,
-    maxRetries: 3,
-    recursive: true,
-    retryDelay: 300
-  })
+  try {
+    await ioUtil.rm(inputPath, {
+      force: true,
+      maxRetries: 3,
+      recursive: true,
+      retryDelay: 300
+    })
+  } catch (e) {
+    throw new Error(`File was unable to be removed ${e}`)
+  }
 }
 
 /**
