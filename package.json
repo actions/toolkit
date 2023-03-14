@@ -11,7 +11,7 @@
     "lint": "eslint packages/**/*.ts",
     "lint-fix": "eslint packages/**/*.ts --fix",
     "new-package": "scripts/create-package",
-    "test": "jest --testTimeout 10000 --detectOpenHandles"
+    "test": "jest --testTimeout 10000 --forceExit"
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
