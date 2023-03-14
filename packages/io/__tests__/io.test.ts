@@ -332,19 +332,19 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    const fd = await fs.open(filePath, 'r')
-    if (ioUtil.IS_WINDOWS) {
-      try {
-        // additionally, can't stat an open file on Windows without getting EPERM
-        await io.rmRF(testPath)
-      } catch (err) {
-        expect(err).toContain('EPERM')
-      }
-    } else {
-      await io.rmRF(testPath)
+    const fd = await fs.open(filePath, fs.constants.O_RDONLY | 0x10000000)
+    // if (ioUtil.IS_WINDOWS) {
+    //   try {
+    //     // additionally, can't stat an open file on Windows without getting EPERM
+    //     await io.rmRF(testPath)
+    //   } catch (err) {
+    //     expect(err).toContain('EPERM')
+    //   }
+    // } else {
+    await io.rmRF(testPath)
 
-      await assertNotExists(testPath)
-    }
+    await assertNotExists(testPath)
+    // }
     await fd.close()
     await io.rmRF(testPath)
     await assertNotExists(testPath)
