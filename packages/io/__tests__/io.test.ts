@@ -338,7 +338,7 @@ describe('rmRF', () => {
         // additionally, can't stat an open file on Windows without getting EPERM
         await io.rmRF(testPath)
       } catch (err) {
-        expect(err).toContain("EPERM")
+        expect(err).toContain('EPERM')
       }
     } else {
       await io.rmRF(testPath)
