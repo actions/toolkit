@@ -3,6 +3,7 @@ import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
+import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
   beforeAll(async () => {
@@ -332,10 +333,18 @@ describe('rmRF', () => {
     await assertExists(filePath)
 
     const fd = await fs.open(filePath, 'r')
-    await io.rmRF(testPath)
+    if (ioUtil.IS_WINDOWS) {
+      try {
+        // additionally, can't stat an open file on Windows without getting EPERM
+        await io.rmRF(testPath)
+      } catch (err) {
+        expect(err.code).toBe('EPERM')
+      }
+    } else {
+      await io.rmRF(testPath)
 
-    await assertNotExists(testPath)
-
+      await assertNotExists(testPath)
+    }
     await fd.close()
     await io.rmRF(testPath)
     await assertNotExists(testPath)
