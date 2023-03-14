@@ -124,11 +124,14 @@ export async function rmRF(inputPath: string): Promise<void> {
       )
     }
   }
-  ioUtil.rmSync(inputPath, {
-    force: true,
-    maxRetries: 3,
-    recursive: true,
-    retryDelay: 300
+  // ioUtil.rm(inputPath, {recursive: true}, err => {
+  //   throw new Error(`File was unable to be removed ${err}`)
+  // })
+
+  ioUtil.rm(inputPath, {recursive: true}, err => {
+    if (err) {
+      throw new Error(`no such file or directory: ${err}`)
+    }
   })
 }
 
