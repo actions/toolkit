@@ -133,7 +133,7 @@ export async function rmRF(inputPath: string): Promise<void> {
     })
   } catch (e) {
     if (e.code === 'ENOENT') {
-      return
+      return e
     } else {
       throw new Error(`File was unable to be removed ${e}`)
     }
