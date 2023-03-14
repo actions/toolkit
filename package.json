@@ -11,7 +11,7 @@
     "lint": "eslint packages/**/*.ts",
     "lint-fix": "eslint packages/**/*.ts --fix",
     "new-package": "scripts/create-package",
-    "test": "jest --testTimeout 10000"
+    "test": "jest --testTimeout 10000 --detectOpenHandles"
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
@@ -28,5 +28,8 @@
     "prettier": "^1.19.1",
     "ts-jest": "^27.0.5",
     "typescript": "^3.9.9"
+  },
+  "dependencies": {
+    "package-lock-only": "^0.0.4"
   }
 }

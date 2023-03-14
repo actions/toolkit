@@ -353,8 +353,6 @@ describe('rmRF', () => {
 
     // // can't remove folder with locked file on windows
     if (ioUtil.IS_WINDOWS) {
-      // eslint-disable-next-line no-console
-      console.debug(`Version: ${process.versions.node.split('.')[0]}`)
       try {
         // additionally, can't stat an open file on Windows without getting EPERM
         await io.rmRF(testPath)
@@ -786,7 +784,7 @@ describe('mkdirP', () => {
   })
 
   it('creates folder', async () => {
-    const testPath = path.join(getTestTemp(), 'mkdirTest')
+de    const testPath = path.join(getTestTemp(), 'mkdirTest')
     await io.mkdirP(testPath)
 
     await assertExists(testPath)
