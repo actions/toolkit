@@ -334,7 +334,7 @@ describe('rmRF', () => {
 
     // For windows we need to explicitly set an exclusive lock flag, because by default Node will open the file with the 'Delete' FileShare flag.
     // See the exclusive lock windows flag definition:
-   // https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
+    // https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
     const fd = await fs.open(
       filePath,
       fs.constants.O_RDONLY | ioUtil.UV_FS_O_EXLOCK
