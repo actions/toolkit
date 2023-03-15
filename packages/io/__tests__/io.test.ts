@@ -332,20 +332,17 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    // exclusive lock windows flag: https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
+    // For windows we need to explicitly set an exclusive lock flag, because by default Node will open the file with the 'Delete' FileShare flag.
+    // See the exclusive lock windows flag definition:
+   // https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
     const fd = await fs.open(
       filePath,
       fs.constants.O_RDONLY | ioUtil.UV_FS_O_EXLOCK
     )
     if (ioUtil.IS_WINDOWS) {
-      try {
-        // for windows, we need to explicitly set an exclusive lock
-        // or we won't get an EBUSY error. this can be fixed after
-        // https://github.com/libuv/libuv/issues/3267 is resolved
-        await io.rmRF(testPath)
-      } catch (err) {
-        expect(err.message).toContain('EBUSY')
-      }
+      // On Windows, we expect an error due to an lstat call implementation in the underlying libuv code.
+      // See https://github.com/libuv/libuv/issues/3267 is resolved
+      await expect(() => io.rmRF(testPath)).rejects.toThrow('EBUSY')
     } else {
       await io.rmRF(testPath)
 
