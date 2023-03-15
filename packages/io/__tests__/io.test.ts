@@ -332,7 +332,7 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    // for windows, we need to explicitly set an exlcusive lock
+    // for windows, we need to explicitly set an exclusive lock
     // or we won't get an EBUSY error. this can be fixed after
     // https://github.com/libuv/libuv/issues/3267 is resolved
     // exclusive lock windows flag: https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
