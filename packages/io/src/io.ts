@@ -123,7 +123,12 @@ export async function rmRF(inputPath: string): Promise<void> {
   //   throw new Error(`File was unable to be removed ${err}`)
   // })
   try {
-    await ioUtil.open(inputPath)
+    const symbolicStats = await ioUtil.lstat(inputPath)
+    if (symbolicStats.isSymbolicLink()) {
+      await ioUtil.readlink(inputPath)
+    } else {
+      await ioUtil.open(inputPath, 'r')
+    }
     await ioUtil.rm(inputPath, {
       force: true,
       maxRetries: 3,
