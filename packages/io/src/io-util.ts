@@ -18,6 +18,7 @@ export const {
 } = fs.promises
 // export const {open} = 'fs'
 export const IS_WINDOWS = process.platform === 'win32'
+// See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
 export const UV_FS_O_EXLOCK = 0x10000000
 export const READONLY = fs.constants.O_RDONLY
 
