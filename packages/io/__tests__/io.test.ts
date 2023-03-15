@@ -342,7 +342,7 @@ describe('rmRF', () => {
     if (ioUtil.IS_WINDOWS) {
       // On Windows, we expect an error due to an lstat call implementation in the underlying libuv code.
       // See https://github.com/libuv/libuv/issues/3267 is resolved
-      await expect(() => io.rmRF(testPath)).rejects.toThrow('EBUSY')
+      await expect(async () => io.rmRF(testPath)).rejects.toThrow('EBUSY')
     } else {
       await io.rmRF(testPath)
 
