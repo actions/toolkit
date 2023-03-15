@@ -344,7 +344,7 @@ describe('rmRF', () => {
         // https://github.com/libuv/libuv/issues/3267 is resolved
         await io.rmRF(testPath)
       } catch (err) {
-        expect(err.message).toContain('EBUSY')
+        expect(err.message).toContain('EPERM')
       }
     } else {
       await io.rmRF(testPath)
