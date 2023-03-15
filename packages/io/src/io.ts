@@ -119,17 +119,8 @@ export async function rmRF(inputPath: string): Promise<void> {
       )
     }
   }
-  // ioUtil.rm(inputPath, {recursive: true}, err => {
-  //   throw new Error(`File was unable to be removed ${err}`)
-  // })
-  // let fd
   try {
-    // const symbolicStats = await ioUtil.lstat(inputPath)
-    // if (symbolicStats.isSymbolicLink()) {
-    //   await ioUtil.readlink(inputPath)
-    // } else {
-    //   fd = await ioUtil.open(inputPath, 'r')
-    // }
+    // note if path does not exist, error is silent
     await ioUtil.rm(inputPath, {
       force: true,
       maxRetries: 3,
@@ -139,12 +130,6 @@ export async function rmRF(inputPath: string): Promise<void> {
   } catch (err) {
     throw new Error(`File was unable to be removed ${err}`)
   }
-  // }
-  // finally {
-  //   if (!symbolicStats.isSymbolicLink()) {
-  //     fd.close()
-  //   }
-  // }
 }
 
 /**

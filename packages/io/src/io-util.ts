@@ -18,7 +18,7 @@ export const {
 } = fs.promises
 // export const {open} = 'fs'
 export const IS_WINDOWS = process.platform === 'win32'
-
+export const UV_FS_O_EXLOCK = 0x10000000
 export const READONLY = fs.constants.O_RDONLY
 
 export async function exists(fsPath: string): Promise<boolean> {

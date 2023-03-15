@@ -332,7 +332,14 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    const fd = await fs.open(filePath, fs.constants.O_RDONLY | 0x10000000)
+    // for windows, we need to explicitly set an exlcusive lock
+    // or we won't get an EBUSY error. this can be fixed after
+    // https://github.com/libuv/libuv/issues/3267 is resolved
+    // exclusive lock windows flag: https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
+    const fd = await fs.open(
+      filePath,
+      fs.constants.O_RDONLY | ioUtil.UV_FS_O_EXLOCK
+    )
     if (ioUtil.IS_WINDOWS) {
       try {
         // additionally, can't stat an open file on Windows without getting EPERM
@@ -381,26 +388,6 @@ describe('rmRF', () => {
     await io.rmRF(file)
     await assertNotExists(file)
   })
-
-  // it('removes symlink folder with rmRF', async () => {
-  //   // create the following layout:
-  //   //   real_directory
-  //   //   real_directory/real_file
-  //   //   symlink_directory -> real_directory
-  //   const root: string = path.join(getTestTemp(), 'rmRF_sym_dir_test')
-  //   const realDirectory: string = path.join(root, 'real_directory')
-  //   const realFile: string = path.join(root, 'real_directory', 'real_file')
-  //   const symlinkDirectory: string = path.join(root, 'symlink_directory')
-  //   await io.mkdirP(realDirectory)
-  //   await fs.writeFile(realFile, 'test file content')
-  //   await createSymlinkDir(realDirectory, symlinkDirectory)
-  //   await assertExists(path.join(symlinkDirectory, 'real_file'))
-
-  //   await io.rmRF(symlinkDirectory)
-  //   await assertExists(realDirectory)
-  //   await assertExists(realFile)
-  //   await assertNotExists(symlinkDirectory)
-  // })
 
   // creating a symlink to a file on Windows requires elevated
   if (os.platform() !== 'win32') {
