@@ -9,7 +9,7 @@ export {ExecOptions, ExecOutput, ExecListeners}
  * Output will be streamed to the live console.
  * Returns promise with return code
  *
- * @param     commandLine        command to execute (can include additional args). Must be correctly escaped.
+ * @param     commandLine        command to execute (can include additional args). Must be correctly escaped. Currently, only double quotes are supported for splitting args.
  * @param     args               optional arguments for tool. Escaping is handled by the lib.
  * @param     options            optional exec options.  See ExecOptions
  * @returns   Promise<number>    exit code
@@ -35,7 +35,7 @@ export async function exec(
  * Output will be streamed to the live console.
  * Returns promise with the exit code and collected stdout and stderr
  *
- * @param     commandLine           command to execute (can include additional args). Must be correctly escaped.
+ * @param     commandLine           command to execute (can include additional args). Must be correctly escaped. Currently, only double quotes are supported for splitting args.
  * @param     args                  optional arguments for tool. Escaping is handled by the lib.
  * @param     options               optional exec options.  See ExecOptions
  * @returns   Promise<ExecOutput>   exit code, stdout, and stderr
