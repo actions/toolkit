@@ -12,8 +12,6 @@ import {SocketTimeout} from './constants'
 import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
-import {AbortController} from '@azure/abort-controller'
-
 /**
  * Pipes the body of a HTTP response to a stream
  *
@@ -251,8 +249,8 @@ export async function downloadCacheStorageSDK(
 
     try {
       downloadProgress.startDisplayTimer()
-      const controller = new AbortController()
-      const abortSignal = controller.signal
+      // const controller = new AbortController()
+      // const abortSignal = controller.signal
       while (!downloadProgress.isDone()) {
         const segmentStart =
           downloadProgress.segmentOffset + downloadProgress.segmentSize
@@ -263,41 +261,19 @@ export async function downloadCacheStorageSDK(
         )
 
         downloadProgress.nextSegment(segmentSize)
-        const result = await promiseWithTimeout(
-          options.segmentTimeoutInMs || 3600000,
-          client.downloadToBuffer(segmentStart, segmentSize, {
-            abortSignal,
+        const result = await client.downloadToBuffer(
+          segmentStart,
+          segmentSize,
+          {
             concurrency: options.downloadConcurrency,
             onProgress: downloadProgress.onProgress()
-          })
+          }
         )
-        if (result === 'timeout') {
-          controller.abort()
-          throw new Error(
-            'Aborting cache download as the download time exceeded the timeout.'
-          )
-        } else if (Buffer.isBuffer(result)) {
-          fs.writeFileSync(fd, result)
-        }
+        fs.writeFileSync(fd, result)
       }
     } finally {
       downloadProgress.stopDisplayTimer()
       fs.closeSync(fd)
     }
   }
-}
-
-const promiseWithTimeout = async (
-  timeoutMs: number,
-  promise: Promise<Buffer>
-): Promise<unknown> => {
-  let timeoutHandle: NodeJS.Timeout
-  const timeoutPromise = new Promise(resolve => {
-    timeoutHandle = setTimeout(() => resolve('timeout'), timeoutMs)
-  })
-
-  return Promise.race([promise, timeoutPromise]).then(result => {
-    clearTimeout(timeoutHandle)
-    return result
-  })
 }
