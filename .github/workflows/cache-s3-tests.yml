@@ -1,0 +1,102 @@
+name: cache-s3-unit-tests
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    name: Build
+
+    strategy:
+      matrix:
+        runs-on: [ubuntu-latest, macOS-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - name: Configure
+      shell: bash
+      id: config
+      run: |
+        DATA=$(echo '{
+          "region": "${{ secrets.TEST_AWS_REGION }}",
+          "forcePathStyle": true,
+          "credentials": {
+            "accessKeyId": "${{ secrets.TEST_AWS_ACCESS_KEY_ID }}",
+            "secretAccessKey": "${{ secrets.TEST_AWS_SECRET_ACCESS_KEY }}"
+          }
+        }' | jq -M -c | sed 's/["]/\\&/g')
+        echo "data=$DATA" >> $GITHUB_OUTPUT
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set Node.js 16.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+        cache: npm
+        cache-dependency-path: |
+          package-lock.json
+          packager/**/package-lock.json
+
+    # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
+    # without these to just compile the cache package
+    - name: npm install
+      run: npm install
+
+    - name: Bootstrap
+      run: npm run bootstrap
+
+    - name: Compile
+      run: npm run build
+
+    - name: Generate files in working directory
+      shell: bash
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} test-cache
+
+    - name: Generate files outside working directory
+      shell: bash
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
+    
+    # We're using node -e to call the functions directly available in the @actions/cache package
+    - name: Save cache using saveCache()
+      run: |
+        node -e "Promise.resolve(require('./packages/cache-s3/lib/cache-s3').saveCache( \
+          ['test-cache','~/test-cache'], \
+          'test-${{ runner.os }}-${{ github.run_id }}', \
+          {},
+          ${{ steps.config.outputs.data }}, \
+          '${{ secrets.TEST_AWS_BUCKET }}' \
+        ))"
+
+    - name: Delete cache folders before restoring
+      shell: bash
+      run: |
+        rm -rf test-cache
+        rm -rf ~/test-cache
+
+    - name: Restore cache using restoreCache() with http-client
+      shell: bash
+      run: |
+        node -e "Promise.resolve(require('./packages/cache-s3/lib/cache-s3').restoreCache( \
+          ['test-cache','~/test-cache'], \
+          'test-${{ runner.os }}-${{ github.run_id }}', \
+          [], \
+          {useAzureSdk: false}, \
+          ${{ steps.config.outputs.data }}, \
+          '${{ secrets.TEST_AWS_BUCKET }}' \
+        ))"
+
+    - name: Verify cache restored with http-client
+      shell: bash
+      run: |
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache
