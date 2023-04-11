@@ -27,7 +27,7 @@ import {
   ReserveCacheRequest,
   ReserveCacheResponse,
   ITypedResponseWithError
-} from '@actions/cache/lib/internal/contracts'
+} from './contracts'
 import {
   downloadCacheHttpClient,
   downloadCacheStorageSDK

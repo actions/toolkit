@@ -1,9 +1,9 @@
 {
-  "name": "@actions/cache-s3",
-  "version": "1.0.0",
-  "description": "> TODO: description",
+  "name": "github-actions.cache-s3",
+  "version": "1.0.1",
+  "description": "A mostly drop-in replacement for @actions/cache used for storing cache in AWS S3",
   "author": "Boris Staal <boris@staal.io>",
-  "homepage": "https://github.com/justvanilla/shared-gha-toolkit-s3#readme",
+  "homepage": "https://github.com/inossidabile/github-actions.toolkit-s3#readme",
   "license": "ISC",
   "main": "lib/cache-s3.js",
   "types": "lib/cache-s3.d.ts",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/justvanilla/shared-gha-toolkit-s3.git"
+    "url": "git+https://github.com/inossidabile/github-actions.toolkit-s3.git"
   },
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
@@ -28,7 +28,7 @@
     "tsc": "tsc"
   },
   "bugs": {
-    "url": "https://github.com/justvanilla/shared-gha-toolkit-s3/issues"
+    "url": "https://github.com/inossidabile/github-actions.toolkit-s3/issues"
   },
   "dependencies": {
     "@actions/cache": "^3.2.1",

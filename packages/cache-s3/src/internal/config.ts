@@ -6,7 +6,8 @@ import ProxyAgent from 'proxy-agent'
 export function getConfig(
   region: string,
   access_key_id: string,
-  secret_access_key: string
+  secret_access_key: string,
+  endpoint: string | null = null
 ): S3ClientConfig {
   const proxy = getProxyUrl('https://amazonaws.com')
 
@@ -17,6 +18,10 @@ export function getConfig(
     },
     forcePathStyle: true,
     region
+  }
+
+  if (endpoint) {
+    config.endpoint = endpoint
   }
 
   if (proxy) {

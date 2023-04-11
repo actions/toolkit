@@ -9,16 +9,25 @@ on:
     paths-ignore:
       - '**.md'
 
+permissions: write-all
+
 jobs:
   build:
-    name: Build
+    name: Test
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest, macOS-latest]
+        runs-on: [ubuntu-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}
+
+    services:
+      s3mock:
+        image: adobe/s3mock
+        ports: ['9090:9090', '9191:9191']
+        env:
+          initialBuckets: 'bucket'
 
     steps:
     - name: Configure
@@ -26,11 +35,12 @@ jobs:
       id: config
       run: |
         DATA=$(echo '{
-          "region": "${{ secrets.TEST_AWS_REGION }}",
+          "region": "us-east-1",
           "forcePathStyle": true,
+          "endpoint": "http://localhost:9090",
           "credentials": {
-            "accessKeyId": "${{ secrets.TEST_AWS_ACCESS_KEY_ID }}",
-            "secretAccessKey": "${{ secrets.TEST_AWS_SECRET_ACCESS_KEY }}"
+            "accessKeyId": "test",
+            "secretAccessKey": "test"
           }
         }' | jq -M -c | sed 's/["]/\\&/g')
         echo "data=$DATA" >> $GITHUB_OUTPUT
@@ -50,13 +60,10 @@ jobs:
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the cache package
     - name: npm install
-      run: npm install
-
-    - name: Bootstrap
-      run: npm run bootstrap
-
-    - name: Compile
-      run: npm run build
+      run: |
+        npm install
+        npm run bootstrap
+        npm run build
 
     - name: Generate files in working directory
       shell: bash
@@ -74,7 +81,7 @@ jobs:
           'test-${{ runner.os }}-${{ github.run_id }}', \
           {},
           ${{ steps.config.outputs.data }}, \
-          '${{ secrets.TEST_AWS_BUCKET }}' \
+          'bucket' \
         ))"
 
     - name: Delete cache folders before restoring
@@ -92,7 +99,7 @@ jobs:
           [], \
           {useAzureSdk: false}, \
           ${{ steps.config.outputs.data }}, \
-          '${{ secrets.TEST_AWS_BUCKET }}' \
+          'bucket' \
         ))"
 
     - name: Verify cache restored with http-client
