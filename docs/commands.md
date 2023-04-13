@@ -152,7 +152,7 @@ echo "FOO=BAR" >> $GITHUB_ENV
 
 Running `$FOO` in a future step will now return `BAR`
 
-For multiline strings, you may use a heredoc style syntax with your choice of delimeter. In the below example, we use `EOF`.
+For multiline strings, you may use a heredoc style syntax with your choice of delimiter. In the below example, we use `EOF`.
 
 ```
 steps:
@@ -169,9 +169,9 @@ This would set the value of the `JSON_RESPONSE` env variable to the value of the
 The expected syntax for the heredoc style is:
 
 ```
-{VARIABLE_NAME}<<{DELIMETER}
+{VARIABLE_NAME}<<{DELIMITER}
 {VARIABLE_VALUE}
-{DELIMETER}
+{DELIMITER}
 ```
 
 This is wrapped by the core `exportVariable` method which sets for future steps but also updates the variable for this step.

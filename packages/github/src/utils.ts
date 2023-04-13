@@ -23,7 +23,7 @@ export const GitHub = Octokit.plugin(
 ).defaults(defaults)
 
 /**
- * Convience function to correctly format Octokit Options to pass into the constructor.
+ * Convenience function to correctly format Octokit Options to pass into the constructor.
  *
  * @param     token    the repo PAT or GITHUB_TOKEN
  * @param     options  other options to set
