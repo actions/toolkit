@@ -14,13 +14,12 @@ export interface SummaryTableCell {
    */
   data: string
   /**
-   * @deprecated use `core.summary`
+   * @deprecated use `heading`
    * Render cell as heading
    * (optional) default: false
    */
   header?: boolean
   /**
-   * @deprecated use `core.summary`
    * Render cell as heading
    * (optional) default: false
    */
