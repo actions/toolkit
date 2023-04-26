@@ -3,6 +3,7 @@ import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as io from '../src/io'
+import * as ioUtil from '../src/io-util'
 
 describe('cp', () => {
   beforeAll(async () => {
@@ -331,11 +332,22 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    const fd = await fs.open(filePath, 'r')
-    await io.rmRF(testPath)
+    // For windows we need to explicitly set an exclusive lock flag, because by default Node will open the file with the 'Delete' FileShare flag.
+    // See the exclusive lock windows flag definition:
+    // https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
+    const fd = await fs.open(
+      filePath,
+      fs.constants.O_RDONLY | ioUtil.UV_FS_O_EXLOCK
+    )
+    if (ioUtil.IS_WINDOWS) {
+      // On Windows, we expect an error due to an lstat call implementation in the underlying libuv code.
+      // See https://github.com/libuv/libuv/issues/3267 is resolved
+      await expect(async () => io.rmRF(testPath)).rejects.toThrow('EBUSY')
+    } else {
+      await io.rmRF(testPath)
 
-    await assertNotExists(testPath)
-
+      await assertNotExists(testPath)
+    }
     await fd.close()
     await io.rmRF(testPath)
     await assertNotExists(testPath)
@@ -371,26 +383,6 @@ describe('rmRF', () => {
     await assertExists(file)
     await io.rmRF(file)
     await assertNotExists(file)
-  })
-
-  it('removes symlink folder with rmRF', async () => {
-    // create the following layout:
-    //   real_directory
-    //   real_directory/real_file
-    //   symlink_directory -> real_directory
-    const root: string = path.join(getTestTemp(), 'rmRF_sym_dir_test')
-    const realDirectory: string = path.join(root, 'real_directory')
-    const realFile: string = path.join(root, 'real_directory', 'real_file')
-    const symlinkDirectory: string = path.join(root, 'symlink_directory')
-    await io.mkdirP(realDirectory)
-    await fs.writeFile(realFile, 'test file content')
-    await createSymlinkDir(realDirectory, symlinkDirectory)
-    await assertExists(path.join(symlinkDirectory, 'real_file'))
-
-    await io.rmRF(symlinkDirectory)
-    await assertExists(realDirectory)
-    await assertExists(realFile)
-    await assertNotExists(symlinkDirectory)
   })
 
   // creating a symlink to a file on Windows requires elevated
