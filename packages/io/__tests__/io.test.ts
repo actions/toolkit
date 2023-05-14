@@ -864,6 +864,25 @@ describe('mkdirP', () => {
       (await fs.lstat(path.join(realDirPath, 'sub_dir'))).isDirectory()
     ).toBe(true)
   })
+
+  if (ioUtil.IS_WINDOWS) {
+    it('show error only if Windows drive does not exist', async () => {
+      let errMsg: string
+      const driveRoot = path.parse(getTestTemp()).root
+      // Assuming 'A:\' is not a common Windows drive lets us test for a non-existing drive
+      for (const testPath of [driveRoot, 'A:\\']) {
+        if (await ioUtil.exists(testPath)) {
+          await io.mkdirP(testPath)
+        } else {
+          errMsg = `Drive '${testPath}' does not exist.`
+          await expect(io.mkdirP(testPath)).rejects.toHaveProperty(
+            'message',
+            errMsg
+          )
+        }
+      }
+    })
+  }
 })
 
 describe('which', () => {
