@@ -141,17 +141,16 @@ export async function rmRF(inputPath: string): Promise<void> {
  */
 export async function mkdirP(fsPath: string): Promise<void> {
   ok(fsPath, 'a path argument must be provided')
-  // mkdirP would throw EPERM error if `fsPath` is a Windows drive root dir, e.g. 'C:\'
-  // even when it exists. This aligns with node's fs.mkdir impl. However, mkdirP shouldn't
-  // throw errors if `fsPath` exists regardless of the underlying platform.
-  // In this case, we will only check if drive exists and throw an error if it doesn't.
-  if (ioUtil.IS_WINDOWS && path.parse(fsPath).root === fsPath) {
-    if (!(await ioUtil.exists(fsPath))) {
-      throw new Error(`Drive '${fsPath}' does not exist.`)
-    }
-  } else {
-    await ioUtil.mkdir(fsPath, {recursive: true})
+  // don't call mkdirP for root paths (e.g. C:\) on Windows. This leads to
+  // 'EPERM: operation not permitted' error when drive already exists.
+  if (
+    ioUtil.IS_WINDOWS &&
+    path.parse(fsPath).root === fsPath &&
+    (await ioUtil.exists(fsPath))
+  ) {
+    return
   }
+  await ioUtil.mkdir(fsPath, {recursive: true})
 }
 
 /**
