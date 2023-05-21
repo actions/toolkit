@@ -744,8 +744,7 @@ export class HttpClient {
         // Invalid resource (contents not json);  leaving result obj null
       }
 
-      // note that 3xx redirects are handled by the http layer.
-      if (statusCode > 299) {
+      if (statusCode > 399) {
         let msg: string
 
         // if exception/error in body, attempt to get better error
