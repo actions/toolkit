@@ -50,10 +50,9 @@ function setSecret(secret: string): void {}
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
 
-**WARNING** The add-mask command only supports single line secrets. To register
-a multiline secret you must register each line individually otherwise it will
-not be masked, if you use `@actions/core >= 1.11.0` `setSecret` will do this
-for you.
+**WARNING** The add-mask command only supports single-line secrets. To register
+a multi-line secret, the recommended practice is to register each line individually. Otherwise, it will
+not be masked. `@actions/core >= 1.11.0` `setSecret` will perform this automatically.
 
 **WARNING** Do **not** mask short values if you can avoid it, it could render your output unreadable (and future steps' output as well).
 For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` will now print `He*********o FOO BAR Wor****d`
