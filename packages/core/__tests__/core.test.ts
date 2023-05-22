@@ -164,6 +164,15 @@ describe('@actions/core', () => {
     assertWriteCalls([`::add-mask::secret val${os.EOL}`])
   })
 
+  it('setSecret splits multi line secrets into multiple commands', () => {
+    core.setSecret('first\nsecond\r\nthird')
+    assertWriteCalls([
+      `::add-mask::first${os.EOL}`,
+      `::add-mask::second${os.EOL}`,
+      `::add-mask::third${os.EOL}`
+    ])
+  })
+
   it('prependPath produces the correct commands and sets the env', () => {
     const command = 'PATH'
     createFileCommandFile(command)
