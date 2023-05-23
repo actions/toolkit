@@ -97,7 +97,7 @@ export function exportVariable(name: string, val: any): void {
  * @param secret value of the secret
  */
 export function setSecret(secret: string): void {
-  for (const part of secret.split(/[\r\n]/)) {
+  for (const part of secret.split(/[\r\n]+/)) {
     if (part) {
       issueCommand('add-mask', {}, part)
     }
