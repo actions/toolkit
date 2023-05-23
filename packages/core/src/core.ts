@@ -93,15 +93,15 @@ export function exportVariable(name: string, val: any): void {
 }
 
 /**
- * Registers a secret which will get masked from logs
- * @param secret value of the secret
- */
+  * Registers a secret which will get masked from logs
+* @param secret value of the secret
+*/
 export function setSecret(secret: string): void {
-  secret.split(/[\r\n]/).forEach(part => {
+  for (const part of secret.split(/[\r\n]/)) {
     if (part) {
-      issueCommand('add-mask', {}, part)
+      issueCommand('add-mask', {}, part);
     }
-  })
+  }
 }
 
 /**
