@@ -201,7 +201,7 @@ describe('proxy', () => {
     expect(_proxyConnects).toEqual(['postman-echo.com:80'])
   })
 
-  it('HttoClient does basic http get request when bypass proxy', async () => {
+  it('HttpClient does basic http get request when bypass proxy', async () => {
     process.env['http_proxy'] = _proxyUrl
     process.env['no_proxy'] = 'postman-echo.com'
     const httpClient = new httpm.HttpClient()
