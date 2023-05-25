@@ -50,7 +50,7 @@ function setSecret(secret: string): void {}
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
 
-**WARNING** The add-mask and setSecret  commands only support single-line
+**WARNING** The add-mask and setSecret commands only support single-line
 secrets or multi-line secrets that have been escaped. `@actions/core`
 `setSecret` will escape the string you provide by default. When an escaped
 multi-line string is provided the whole string and each of its lines
