@@ -161,7 +161,11 @@ describe('@actions/core', () => {
 
   it('setSecret produces the correct command', () => {
     core.setSecret('secret val')
-    assertWriteCalls([`::add-mask::secret val${os.EOL}`])
+    core.setSecret('multi\nline\r\nsecret')
+    assertWriteCalls([
+      `::add-mask::secret val${os.EOL}`,
+      `::add-mask::multi%0Aline%0D%0Asecret${os.EOL}`
+    ])
   })
 
   it('prependPath produces the correct commands and sets the env', () => {
