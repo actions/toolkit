@@ -21,6 +21,9 @@ describe('proxy', () => {
     _proxyServer.on('connect', req => {
       _proxyConnects.push(req.url ?? '')
     })
+    _proxyServer.on('request', req => {
+      _proxyConnects.push(req.url ?? '')
+    })
   })
 
   beforeEach(() => {
@@ -198,7 +201,8 @@ describe('proxy', () => {
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.url).toBe('http://postman-echo.com/get')
-    expect(_proxyConnects).toEqual(['postman-echo.com:80'])
+    // when target is http we don't expect a tls tunnel. so there should be no connect request and so we can access the entire url
+    expect(_proxyConnects).toEqual(['http://postman-echo.com/get'])
   })
 
   it('HttpClient does basic http get request when bypass proxy', async () => {
@@ -271,22 +275,26 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent: any = httpClient.getAgent('https://some-url')
+    const proxyUrl = new URL(agent.getProxyForUrl('https://some-url'))
     // eslint-disable-next-line no-console
-    console.log(agent)
-    expect(agent.proxyOptions.host).toBe('127.0.0.1')
-    expect(agent.proxyOptions.port).toBe('8080')
-    expect(agent.proxyOptions.proxyAuth).toBe(undefined)
+    console.log(proxyUrl)
+    expect(proxyUrl.hostname).toBe('127.0.0.1')
+    expect(proxyUrl.port).toBe('8080')
+    expect(proxyUrl.username).toBe('')
+    expect(proxyUrl.password).toBe('')
   })
 
   it('proxyAuth is set in tunnel agent when authentication is provided', async () => {
     process.env['https_proxy'] = 'http://user:password@127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent: any = httpClient.getAgent('https://some-url')
+    const proxyUrl = new URL(agent.getProxyForUrl('https://some-url'))
     // eslint-disable-next-line no-console
-    console.log(agent)
-    expect(agent.proxyOptions.host).toBe('127.0.0.1')
-    expect(agent.proxyOptions.port).toBe('8080')
-    expect(agent.proxyOptions.proxyAuth).toBe('user:password')
+    console.log(proxyUrl)
+    expect(proxyUrl.hostname).toBe('127.0.0.1')
+    expect(proxyUrl.port).toBe('8080')
+    expect(proxyUrl.username).toBe('user')
+    expect(proxyUrl.password).toBe('password')
   })
 })
 

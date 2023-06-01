@@ -5,7 +5,7 @@ import * as https from 'https'
 import * as ifm from './interfaces'
 import * as net from 'net'
 import * as pm from './proxy'
-import * as tunnel from 'tunnel'
+import {ProxyAgent} from 'proxy-agent'
 
 export enum HttpCodes {
   OK = 200,
@@ -639,27 +639,10 @@ export class HttpClient {
 
     // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
     if (proxyUrl && proxyUrl.hostname) {
-      const agentOptions = {
+      agent = new ProxyAgent({
         maxSockets,
-        keepAlive: this._keepAlive,
-        proxy: {
-          ...((proxyUrl.username || proxyUrl.password) && {
-            proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
-          }),
-          host: proxyUrl.hostname,
-          port: proxyUrl.port
-        }
-      }
-
-      let tunnelAgent: Function
-      const overHttps = proxyUrl.protocol === 'https:'
-      if (usingSsl) {
-        tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp
-      } else {
-        tunnelAgent = overHttps ? tunnel.httpOverHttps : tunnel.httpOverHttp
-      }
-
-      agent = tunnelAgent(agentOptions)
+        keepAlive: this._keepAlive
+      })
       this._proxyAgent = agent
     }
 
