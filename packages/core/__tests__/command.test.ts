@@ -1,5 +1,5 @@
 import * as command from '../src/command'
-import * as os from 'os'
+import * as os from 'node:os'
 import {type SpyInstance, beforeEach, describe, expect, it, vi} from 'vitest'
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -13,8 +13,8 @@ describe('@actions/core/src/command', () => {
   function assertWriteCalls(calls: string[]): void {
     expect(stdOutSpy).toHaveBeenCalledTimes(calls.length)
 
-    for (let i = 0; i < calls.length; i++) {
-      expect(stdOutSpy).toHaveBeenNthCalledWith(i + 1, calls[i])
+    for (const [i, call] of calls.entries()) {
+      expect(stdOutSpy).toHaveBeenNthCalledWith(i + 1, call)
     }
   }
 

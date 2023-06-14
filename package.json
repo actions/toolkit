@@ -6,9 +6,11 @@
     "clean": "turbo clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{json,cjs,js,ts}\"",
     "format:check": "prettier -c \"**/*.{json,cjs,js,ts}\"",
-    "lint": "eslint packages/**/*.ts",
-    "lint-fix": "eslint packages/**/*.ts --fix",
-    "test": "vitest run"
+    "lint": "eslint .",
+    "lint:fix": "pnpm run lint --fix",
+    "lint:ls": "DEBUG=eslint:cli-engine pnpm run lint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "engines": {
     "node": "^16.20.0",
@@ -17,9 +19,8 @@
   "packageManager": "pnpm@8.6.1",
   "devDependencies": {
     "@types/node": "16.18.36",
-    "@typescript-eslint/parser": "^5.59.11",
-    "eslint": "^8.42.0",
-    "eslint-plugin-github": "^4.8.0",
+    "eslint": "8.42.0",
+    "eslint-config-custom": "workspace:*",
     "prettier": "^2.8.8",
     "tsconfig": "workspace:*",
     "turbo": "1.10.3",

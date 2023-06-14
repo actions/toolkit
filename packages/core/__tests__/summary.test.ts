@@ -1,16 +1,19 @@
-import * as fs from 'fs'
-import * as os from 'os'
-import path from 'path'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import path from 'node:path'
+import {fileURLToPath} from 'node:url'
+
 import {describe, expect, it, beforeEach, afterAll} from 'vitest'
 
 import {summary, SUMMARY_ENV_VAR} from '../src/summary'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const testDirectoryPath = path.join(__dirname, 'test')
 const testFilePath = path.join(testDirectoryPath, 'test-summary.md')
 
 async function assertSummary(expected: string): Promise<void> {
   const file = await fs.promises.readFile(testFilePath, {encoding: 'utf8'})
-  expect(file).toEqual(expected)
+  expect(file).toStrictEqual(expected)
 }
 
 const fixtures = {
@@ -86,14 +89,18 @@ describe('@actions/core/src/summary', () => {
     process.env[SUMMARY_ENV_VAR] = undefined
     const write = summary.addRaw(fixtures.text).write()
 
-    await expect(write).rejects.toThrow()
+    await expect(write).rejects.toThrow(
+      `Unable to find environment variable for $GITHUB_STEP_SUMMARY. Check if your runtime environment supports job summaries.`
+    )
   })
 
   it('throws if summary file does not exist', async () => {
     await fs.promises.unlink(testFilePath)
     const write = summary.addRaw(fixtures.text).write()
 
-    await expect(write).rejects.toThrow()
+    await expect(write).rejects.toThrow(
+      `Unable to access summary file: '/workspaces/unlike-github-actions-toolkit/toolkit/packages/core/__tests__/test/test-summary.md'. Check if the file has correct read/write permissions.`
+    )
   })
 
   it('appends text to summary file', async () => {
@@ -133,7 +140,7 @@ describe('@actions/core/src/summary', () => {
 
   it('returns summary buffer as string', () => {
     summary.addRaw(fixtures.text)
-    expect(summary.stringify()).toEqual(fixtures.text)
+    expect(summary.stringify()).toStrictEqual(fixtures.text)
   })
 
   it('return correct values for isEmptyBuffer', () => {
@@ -236,7 +243,7 @@ describe('@actions/core/src/summary', () => {
       .addHeading('heading', 'foobar')
       .addHeading('heading', 1337)
       .addHeading('heading', -1)
-      .addHeading('heading', Infinity)
+      .addHeading('heading', Number.POSITIVE_INFINITY)
       .write()
     const expected = `<h1>heading</h1>${os.EOL}<h1>heading</h1>${os.EOL}<h1>heading</h1>${os.EOL}<h1>heading</h1>${os.EOL}`
     await assertSummary(expected)

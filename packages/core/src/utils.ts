@@ -26,7 +26,7 @@ export function toCommandValue(input: any): string {
 export function toCommandProperties(
   annotationProperties: AnnotationProperties
 ): CommandProperties {
-  if (!Object.keys(annotationProperties).length) {
+  if (Object.keys(annotationProperties).length === 0) {
     return {}
   }
 

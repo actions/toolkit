@@ -1,20 +1,23 @@
-import * as fs from 'fs'
-import * as os from 'os'
-import * as path from 'path'
-import * as core from '../src/core'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
+import {fileURLToPath} from 'node:url'
+
 import {HttpClient} from '@actions/http-client'
-import {toCommandProperties} from '../src/utils'
 import * as uuid from 'uuid'
 import {
-  type SpyInstance,
   afterEach,
   beforeAll,
   beforeEach,
   describe,
   expect,
   it,
-  vi
+  vi,
+  type SpyInstance
 } from 'vitest'
+
+import * as core from '../src/core'
+import {toCommandProperties} from '../src/utils'
 
 vi.mock('vitest')
 
@@ -56,8 +59,19 @@ const testEnvVars = {
   GITHUB_STATE: ''
 }
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 const DELIMITER = `ghadelimiter_${UUID}`
+
+function verifyFileCommand(command: string, expectedContents: string): void {
+  const filePath = path.join(__dirname, `test/${command}`)
+  const contents = fs.readFileSync(filePath, 'utf8')
+  try {
+    expect(contents).toStrictEqual(expectedContents)
+  } finally {
+    fs.unlinkSync(filePath)
+  }
+}
 
 describe('@actions/core', () => {
   let stdOutSpy: SpyInstance<
@@ -69,8 +83,8 @@ describe('@actions/core', () => {
   function assertWriteCalls(calls: string[]): void {
     expect(stdOutSpy).toHaveBeenCalledTimes(calls.length)
 
-    for (let i = 0; i < calls.length; i++) {
-      expect(stdOutSpy).toHaveBeenNthCalledWith(i + 1, calls[i])
+    for (const [i, call] of calls.entries()) {
+      expect(stdOutSpy).toHaveBeenNthCalledWith(i + 1, call)
     }
   }
 
@@ -82,15 +96,6 @@ describe('@actions/core', () => {
     })
   }
 
-  function verifyFileCommand(command: string, expectedContents: string): void {
-    const filePath = path.join(__dirname, `test/${command}`)
-    const contents = fs.readFileSync(filePath, 'utf8')
-    try {
-      expect(contents).toEqual(expectedContents)
-    } finally {
-      fs.unlinkSync(filePath)
-    }
-  }
   beforeAll(() => {
     const filePath = path.join(__dirname, `test`)
     if (!fs.existsSync(filePath)) {
@@ -300,7 +305,7 @@ describe('@actions/core', () => {
   })
 
   it('getMultilineInput works', () => {
-    expect(core.getMultilineInput('my input list')).toEqual([
+    expect(core.getMultilineInput('my input list')).toStrictEqual([
       'val1',
       'val2',
       'val3'
@@ -308,10 +313,9 @@ describe('@actions/core', () => {
   })
 
   it('getMultilineInput trims whitespace by default', () => {
-    expect(core.getMultilineInput('list with trailing whitespace')).toEqual([
-      'val1',
-      'val2'
-    ])
+    expect(
+      core.getMultilineInput('list with trailing whitespace')
+    ).toStrictEqual(['val1', 'val2'])
   })
 
   it('getMultilineInput trims whitespace when option is explicitly true', () => {
@@ -319,7 +323,7 @@ describe('@actions/core', () => {
       core.getMultilineInput('list with trailing whitespace', {
         trimWhitespace: true
       })
-    ).toEqual(['val1', 'val2'])
+    ).toStrictEqual(['val1', 'val2'])
   })
 
   it('getMultilineInput does not trim whitespace when option is false', () => {
@@ -327,7 +331,7 @@ describe('@actions/core', () => {
       core.getMultilineInput('list with trailing whitespace', {
         trimWhitespace: false
       })
-    ).toEqual(['  val1  ', '  val2  ', '  '])
+    ).toStrictEqual(['  val1  ', '  val2  ', '  '])
   })
 
   it('legacy setOutput produces the correct command', () => {
@@ -651,7 +655,7 @@ describe('@actions/core', () => {
   it('isDebug check debug state', () => {
     const current = process.env['RUNNER_DEBUG']
     try {
-      delete process.env.RUNNER_DEBUG
+      delete process.env['RUNNER_DEBUG']
       expect(core.isDebug()).toBe(false)
 
       process.env['RUNNER_DEBUG'] = '1'
@@ -677,12 +681,12 @@ function getTokenEndPoint(): string {
 }
 
 describe('oidc-client-tests', () => {
-  it('Get Http Client', async () => {
+  it('get Http Client', async () => {
     const http = new HttpClient('actions/oidc-client')
     expect(http).toBeDefined()
   })
 
-  it('HTTP get request to get token endpoint', async () => {
+  it('hTTP get request to get token endpoint', async () => {
     const http = new HttpClient('actions/oidc-client')
     const res = await http.get(getTokenEndPoint())
     expect(res.message.statusCode).toBe(200)

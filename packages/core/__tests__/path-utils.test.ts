@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import {describe, expect, test} from 'vitest'
+import {describe, expect, it} from 'vitest'
 
 import {toPlatformPath, toPosixPath, toWin32Path} from '../src/path-utils'
 
@@ -43,7 +43,7 @@ describe.each<Items>([
     expected: '/foo/bar/baz'
   }
 ])('toPosixPath', ({name, input, expected}) => {
-  test(`${name}`, () => {
+  it(`${name}`, () => {
     const result = toPosixPath(input)
     expect(result).toStrictEqual(expected)
   })
@@ -86,7 +86,7 @@ describe.each<Items>([
     expected: '\\foo\\bar\\baz'
   }
 ])('toWin32Path', ({name, input, expected}) => {
-  test(`${name}`, () => {
+  it(`${name}`, () => {
     const result = toWin32Path(input)
     expect(result).toStrictEqual(expected)
   })
@@ -129,7 +129,7 @@ describe.each<Items>([
     expected: path.join(path.sep, 'foo', 'bar', 'baz')
   }
 ])('#toPlatformPath', ({name, input, expected}) => {
-  test(`${name}`, () => {
+  it(`${name}`, () => {
     const result = toPlatformPath(input)
     expect(result).toStrictEqual(expected)
   })

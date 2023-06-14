@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf .turbo && rm -rf node_modules"
+  },
   "dependencies": {
     "@tsconfig/node16": "1.0.4",
     "@tsconfig/strictest": "2.0.1"
