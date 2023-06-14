@@ -10,7 +10,6 @@ on:
       - '**.md'
 
 jobs:
-
   build:
     name: Build
 
@@ -22,30 +21,23 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3.5.2
 
-    - name: Set Node.js 16.x
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16.x
+      - uses: unlike-ltd/github-actions/setup-pnpm@main
+        with:
+          node-version: 16.x
 
-    - name: npm install
-      run: npm install
+      - name: Compile
+        run: pnpm run build
 
-    - name: Bootstrap
-      run: npm run bootstrap
+      - name: npm test
+        run: pnpm test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Compile
-      run: npm run build
+      - name: Lint
+        run: pnpm run lint
 
-    - name: npm test
-      run: npm test -- --runInBand
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-
-    - name: Lint
-      run: npm run lint
-
-    - name: Format
-      run: npm run format-check
+      - name: Format
+        run: pnpm run format-check

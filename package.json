@@ -4,8 +4,8 @@
   "scripts": {
     "build": "turbo run build",
     "clean": "turbo clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{json,cjs,js,ts}\"",
-    "format:check": "prettier -c \"**/*.{json,cjs,js,ts}\"",
+    "format": "prettier --write \"**/*.{json,cjs,js,ts,yml,yaml}\"",
+    "format:check": "prettier -c \"**/*.{json,cjs,js,ts,yml,yaml}\"",
     "lint": "eslint .",
     "lint:fix": "pnpm run lint --fix",
     "lint:ls": "DEBUG=eslint:cli-engine pnpm run lint",
