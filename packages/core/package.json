@@ -30,7 +30,7 @@
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc",
-    "build": "tsc",
+    "build": "rm -rf lib && tsc",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf lib"
   },
   "bugs": {
@@ -41,9 +41,10 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/jest": "29.5.2",
-    "@types/node": "^16.18.36",
+    "@types/node": "16.18.36",
     "@types/uuid": "^8.3.4",
-    "typescript": "^5.1.3"
+    "tsconfig": "workspace:*",
+    "typescript": "5.1.3",
+    "vitest": "0.32.0"
   }
 }

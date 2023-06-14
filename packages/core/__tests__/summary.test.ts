@@ -1,6 +1,8 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import path from 'path'
+import {describe, expect, it, beforeEach, afterAll} from 'vitest'
+
 import {summary, SUMMARY_ENV_VAR} from '../src/summary'
 
 const testDirectoryPath = path.join(__dirname, 'test')

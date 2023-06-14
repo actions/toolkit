@@ -9,20 +9,23 @@
     "format:check": "prettier -c \"**/*.{json,cjs,js,ts}\"",
     "lint": "eslint packages/**/*.ts",
     "lint-fix": "eslint packages/**/*.ts --fix",
-    "test": "jest --testTimeout 10000"
+    "test": "vitest run"
   },
+  "engines": {
+    "node": "^16.20.0",
+    "pnpm": "^8.6.1"
+  },
+  "packageManager": "pnpm@8.6.1",
   "devDependencies": {
-    "@types/jest": "29.5.2",
     "@types/node": "16.18.36",
     "@typescript-eslint/parser": "^5.59.11",
     "concurrently": "^6.5.1",
     "eslint": "^8.42.0",
     "eslint-plugin-github": "^4.8.0",
-    "eslint-plugin-jest": "^27.2.1",
-    "jest": "29.5.0",
     "prettier": "^2.8.8",
-    "ts-jest": "29.1.0",
+    "tsconfig": "workspace:*",
     "turbo": "1.10.3",
-    "typescript": "5.1.3"
+    "typescript": "5.1.3",
+    "vitest": "0.32.0"
   }
 }

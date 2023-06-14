@@ -5,8 +5,18 @@ import * as core from '../src/core'
 import {HttpClient} from '@actions/http-client'
 import {toCommandProperties} from '../src/utils'
 import * as uuid from 'uuid'
+import {
+  type SpyInstance,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
-jest.mock('uuid')
+vi.mock('vitest')
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -50,6 +60,37 @@ const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 const DELIMITER = `ghadelimiter_${UUID}`
 
 describe('@actions/core', () => {
+  let stdOutSpy: SpyInstance<
+    Parameters<typeof process.stdout.write>,
+    ReturnType<typeof process.stdout.write>
+  >
+
+  // Assert that process.stdout.write calls called only with the given arguments.
+  function assertWriteCalls(calls: string[]): void {
+    expect(stdOutSpy).toHaveBeenCalledTimes(calls.length)
+
+    for (let i = 0; i < calls.length; i++) {
+      expect(stdOutSpy).toHaveBeenNthCalledWith(i + 1, calls[i])
+    }
+  }
+
+  function createFileCommandFile(command: string): void {
+    const filePath = path.join(__dirname, `test/${command}`)
+    process.env[`GITHUB_${command}`] = filePath
+    fs.appendFileSync(filePath, '', {
+      encoding: 'utf8'
+    })
+  }
+
+  function verifyFileCommand(command: string, expectedContents: string): void {
+    const filePath = path.join(__dirname, `test/${command}`)
+    const contents = fs.readFileSync(filePath, 'utf8')
+    try {
+      expect(contents).toEqual(expectedContents)
+    } finally {
+      fs.unlinkSync(filePath)
+    }
+  }
   beforeAll(() => {
     const filePath = path.join(__dirname, `test`)
     if (!fs.existsSync(filePath)) {
@@ -61,15 +102,15 @@ describe('@actions/core', () => {
     for (const key in testEnvVars) {
       process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
     }
-    process.stdout.write = jest.fn()
+    stdOutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
 
-    jest.spyOn(uuid, 'v4').mockImplementation(() => {
+    vi.spyOn(uuid, 'v4').mockImplementation(() => {
       return UUID
     })
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   it('legacy exportVariable produces the correct command and sets the env', () => {
@@ -630,33 +671,6 @@ describe('@actions/core', () => {
     assertWriteCalls([`::echo::off${os.EOL}`])
   })
 })
-
-// Assert that process.stdout.write calls called only with the given arguments.
-function assertWriteCalls(calls: string[]): void {
-  expect(process.stdout.write).toHaveBeenCalledTimes(calls.length)
-
-  for (let i = 0; i < calls.length; i++) {
-    expect(process.stdout.write).toHaveBeenNthCalledWith(i + 1, calls[i])
-  }
-}
-
-function createFileCommandFile(command: string): void {
-  const filePath = path.join(__dirname, `test/${command}`)
-  process.env[`GITHUB_${command}`] = filePath
-  fs.appendFileSync(filePath, '', {
-    encoding: 'utf8'
-  })
-}
-
-function verifyFileCommand(command: string, expectedContents: string): void {
-  const filePath = path.join(__dirname, `test/${command}`)
-  const contents = fs.readFileSync(filePath, 'utf8')
-  try {
-    expect(contents).toEqual(expectedContents)
-  } finally {
-    fs.unlinkSync(filePath)
-  }
-}
 
 function getTokenEndPoint(): string {
   return 'https://vstoken.actions.githubusercontent.com/.well-known/openid-configuration'

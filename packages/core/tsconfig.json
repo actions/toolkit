@@ -1,8 +1,9 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "tsconfig/base.json",
   "compilerOptions": {
+    "declaration": true,
     "outDir": "./lib"
   },
-  "include": ["src"],
-  "exclude": ["lib", "node_modules"]
+  "include": ["./src"],
+  "exclude": ["./lib", "node_modules"]
 }

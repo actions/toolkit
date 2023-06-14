@@ -1,25 +1,25 @@
 import * as command from '../src/command'
 import * as os from 'os'
-
+import {type SpyInstance, beforeEach, describe, expect, it, vi} from 'vitest'
 /* eslint-disable @typescript-eslint/unbound-method */
 
-let originalWriteFunction: (str: string) => boolean
-
 describe('@actions/core/src/command', () => {
-  beforeAll(() => {
-    originalWriteFunction = process.stdout.write
-  })
+  let stdOutSpy: SpyInstance<
+    Parameters<typeof process.stdout.write>,
+    ReturnType<typeof process.stdout.write>
+  >
+
+  // Assert that process.stdout.write calls called only with the given arguments.
+  function assertWriteCalls(calls: string[]): void {
+    expect(stdOutSpy).toHaveBeenCalledTimes(calls.length)
+
+    for (let i = 0; i < calls.length; i++) {
+      expect(stdOutSpy).toHaveBeenNthCalledWith(i + 1, calls[i])
+    }
+  }
 
   beforeEach(() => {
-    process.stdout.write = jest.fn()
-  })
-
-  afterEach(() => {})
-
-  afterAll(() => {
-    process.stdout.write = originalWriteFunction as unknown as (
-      str: string
-    ) => boolean
+    stdOutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
   })
 
   it('command only', () => {
@@ -39,7 +39,7 @@ describe('@actions/core/src/command', () => {
     ])
 
     // Verify literal escape sequences
-    process.stdout.write = jest.fn()
+    stdOutSpy.mockClear()
     command.issueCommand('some-command', {}, '%25 %25 %0D %0D %0A %0A')
     assertWriteCalls([
       `::some-command::%2525 %2525 %250D %250D %250A %250A${os.EOL}`
@@ -60,7 +60,7 @@ describe('@actions/core/src/command', () => {
     ])
 
     // Verify literal escape sequences
-    process.stdout.write = jest.fn()
+    stdOutSpy.mockClear()
     command.issueCommand(
       'some-command',
       {},
@@ -127,12 +127,3 @@ describe('@actions/core/src/command', () => {
     ])
   })
 })
-
-// Assert that process.stdout.write calls called only with the given arguments.
-function assertWriteCalls(calls: string[]): void {
-  expect(process.stdout.write).toHaveBeenCalledTimes(calls.length)
-
-  for (let i = 0; i < calls.length; i++) {
-    expect(process.stdout.write).toHaveBeenNthCalledWith(i + 1, calls[i])
-  }
-}

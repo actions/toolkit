@@ -1,0 +1,10 @@
+{
+  "name": "tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "@tsconfig/node16": "1.0.4",
+    "@tsconfig/strictest": "2.0.1"
+  }
+}

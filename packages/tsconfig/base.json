@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
+  "extends": [
+    "@tsconfig/strictest/tsconfig.json",
+    "@tsconfig/node16/tsconfig.json"
+  ],
+  "compilerOptions": {
+    "declaration": true,
+    "resolveJsonModule": true,
+    "sourceMap": true
+  },
+  "exclude": ["node_modules"]
+}
