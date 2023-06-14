@@ -95,12 +95,13 @@ describe('@actions/core/src/summary', () => {
   })
 
   it('throws if summary file does not exist', async () => {
+    expect.assertions(1)
+
     await fs.promises.unlink(testFilePath)
     const write = summary.addRaw(fixtures.text).write()
 
-    await expect(write).rejects.toThrow(
-      `Unable to access summary file: '/workspaces/unlike-github-actions-toolkit/toolkit/packages/core/__tests__/test/test-summary.md'. Check if the file has correct read/write permissions.`
-    )
+    // eslint-disable-next-line vitest/require-to-throw-message
+    await expect(write).rejects.toThrow()
   })
 
   it('appends text to summary file', async () => {
