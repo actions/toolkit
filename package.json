@@ -4,7 +4,6 @@
   "scripts": {
     "build": "turbo run build",
     "clean": "turbo clean && rm -rf node_modules",
-    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
     "format": "prettier --write \"**/*.{json,cjs,js,ts}\"",
     "format:check": "prettier -c \"**/*.{json,cjs,js,ts}\"",
     "lint": "eslint packages/**/*.ts",
@@ -19,7 +18,6 @@
   "devDependencies": {
     "@types/node": "16.18.36",
     "@typescript-eslint/parser": "^5.59.11",
-    "concurrently": "^6.5.1",
     "eslint": "^8.42.0",
     "eslint-plugin-github": "^4.8.0",
     "prettier": "^2.8.8",
