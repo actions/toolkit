@@ -19,6 +19,9 @@
       "require": "./lib/cjs/core.cjs"
     }
   },
+  "files": [
+    "lib"
+  ],
   "publishConfig": {
     "access": "public"
   },
