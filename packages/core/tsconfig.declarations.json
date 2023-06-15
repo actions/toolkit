@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": ["./tsconfig.json", "tsconfig/declarations.json"],
+  "compilerOptions": {
+    "declarationDir": "./lib/types"
+  }
+}
