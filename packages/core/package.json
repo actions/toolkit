@@ -1,13 +1,13 @@
 {
-  "name": "@actions/core",
-  "version": "1.10.0",
+  "name": "@unlike/github-actions-core",
+  "version": "0.0.0",
   "description": "Actions core lib",
   "keywords": [
     "github",
     "actions",
     "core"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/main/packages/core",
+  "homepage": "https://github.com/unlike-ltd/github-actions-toolkit/tree/main/packages/core",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/toolkit.git",
+    "url": "git+https://github.com/unlike-ltd/github-actions-toolkit.git",
     "directory": "packages/core"
   },
   "scripts": {
@@ -34,7 +34,10 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf lib"
   },
   "bugs": {
-    "url": "https://github.com/actions/toolkit/issues"
+    "url": "https://github.com/unlike-ltd/github-actions-toolkit/issues"
+  },
+  "engines": {
+    "node": ">=v16.20.0"
   },
   "dependencies": {
     "@actions/http-client": "^2.1.0",

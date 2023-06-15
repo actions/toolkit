@@ -1,17 +1,21 @@
-# `@actions/core`
+# `@unlike/github-actions-core`
 
 > Core functions for setting results, logging, registering secrets and exporting variables across actions
+
+## **FORK OF [@actions/core](https://github.com/actions/toolkit/tree/main/packages/core)**
+
+Supports
+
+- `NodeJS` ^16.20.0
+- Dual `CommonJS` / `ES` npm package
+- [Tree shaking](https://esbuild.github.io/api/#tree-shaking)
 
 ## Usage
 
 ### Import the package
 
 ```js
-// javascript
-const core = require('@actions/core');
-
-// typescript
-import * as core from '@actions/core';
+import core from '@unlike/github-actions-core'
 ```
 
 #### Inputs/Outputs
@@ -21,10 +25,14 @@ Action inputs can be read with `getInput` which returns a `string` or `getBoolea
 Outputs can be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
 
 ```js
-const myInput = core.getInput('inputName', { required: true });
-const myBooleanInput = core.getBooleanInput('booleanInputName', { required: true });
-const myMultilineInput = core.getMultilineInput('multilineInputName', { required: true });
-core.setOutput('outputKey', 'outputVal');
+const myInput = core.getInput('inputName', {required: true})
+const myBooleanInput = core.getBooleanInput('booleanInputName', {
+  required: true
+})
+const myMultilineInput = core.getMultilineInput('multilineInputName', {
+  required: true
+})
+core.setOutput('outputKey', 'outputVal')
 ```
 
 #### Exporting variables
@@ -32,7 +40,7 @@ core.setOutput('outputKey', 'outputVal');
 Since each step runs in a separate process, you can use `exportVariable` to add it to this step and future steps environment blocks.
 
 ```js
-core.exportVariable('envVar', 'Val');
+core.exportVariable('envVar', 'Val')
 ```
 
 #### Setting a secret
@@ -40,30 +48,29 @@ core.exportVariable('envVar', 'Val');
 Setting a secret registers the secret with the runner to ensure it is masked in logs.
 
 ```js
-core.setSecret('myPassword');
+core.setSecret('myPassword')
 ```
 
 #### PATH Manipulation
 
-To make a tool's path available in the path for the remainder of the job (without altering the machine or containers state), use `addPath`.  The runner will prepend the path given to the jobs PATH.
+To make a tool's path available in the path for the remainder of the job (without altering the machine or containers state), use `addPath`. The runner will prepend the path given to the jobs PATH.
 
 ```js
-core.addPath('/path/to/mytool');
+core.addPath('/path/to/mytool')
 ```
 
 #### Exit codes
 
-You should use this library to set the failing exit code for your action.  If status is not set and the script runs to completion, that will lead to a success.
+You should use this library to set the failing exit code for your action. If status is not set and the script runs to completion, that will lead to a success.
 
 ```js
-const core = require('@actions/core');
+import core from '@unlike/github-actions-core'
 
 try {
   // Do stuff
-}
-catch (err) {
+} catch (err) {
   // setFailed logs the message and sets a failing exit code
-  core.setFailed(`Action failed with error ${err}`);
+  core.setFailed(`Action failed with error ${err}`)
 }
 ```
 
@@ -74,16 +81,16 @@ Note that `setNeutral` is not yet implemented in actions V2 but equivalent funct
 Finally, this library provides some utilities for logging. Note that debug logging is hidden from the logs by default. This behavior can be toggled by enabling the [Step Debug Logs](../../docs/action-debugging.md#step-debug-logs).
 
 ```js
-const core = require('@actions/core');
+import core from '@unlike/github-actions-core'
 
-const myInput = core.getInput('input');
+const myInput = core.getInput('input')
 try {
-  core.debug('Inside try block');
-  
+  core.debug('Inside try block')
+
   if (!myInput) {
-    core.warning('myInput was not set');
+    core.warning('myInput was not set')
   }
-  
+
   if (core.isDebug()) {
     // curl -v https://github.com
   } else {
@@ -94,16 +101,15 @@ try {
   core.info('Output to the actions build log')
 
   core.notice('This is a message that will also emit an annotation')
-}
-catch (err) {
-  core.error(`Error ${err}, action may still succeed though`);
+} catch (err) {
+  core.error(`Error ${err}, action may still succeed though`)
 }
 ```
 
 This library can also wrap chunks of output in foldable groups.
 
 ```js
-const core = require('@actions/core')
+import core from '@unlike/github-actions-core'
 
 // Manually wrap output
 core.startGroup('Do some function')
@@ -119,11 +125,12 @@ const result = await core.group('Do something async', async () => {
 
 #### Annotations
 
-This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run). 
+This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run).
+
 ```js
 core.error('This is a bad error, action may still succeed though.')
 
-core.warning('Something went wrong, but it\'s not bad enough to fail the build.')
+core.warning("Something went wrong, but it's not bad enough to fail the build.")
 
 core.notice('Something happened that you might want to know about.')
 ```
@@ -132,9 +139,10 @@ These will surface to the UI in the Actions page and on Pull Requests. They look
 
 ![Annotations Image](../../docs/assets/annotations.png)
 
-These annotations can also be attached to particular lines and columns of your source files to show exactly where a problem is occuring. 
+These annotations can also be attached to particular lines and columns of your source files to show exactly where a problem is occuring.
 
-These options are: 
+These options are:
+
 ```typescript
 export interface AnnotationProperties {
   /**
@@ -191,7 +199,7 @@ Background colors:
 
 ```js
 // 3/4 bit
-core.info('\u001b[43mThis background will be yellow');
+core.info('\u001b[43mThis background will be yellow')
 
 // 8 bit
 core.info('\u001b[48;5;6mThis background will be cyan')
@@ -211,7 +219,9 @@ core.info('\u001b[4mUnderlined text')
 ANSI escape codes can be combined with one another:
 
 ```js
-core.info('\u001b[31;46mRed foreground with a cyan background and \u001b[1mbold text at the end');
+core.info(
+  '\u001b[31;46mRed foreground with a cyan background and \u001b[1mbold text at the end'
+)
 ```
 
 > Note: Escape codes reset at the start of each line
@@ -224,7 +234,7 @@ core.info('This foreground will reset to the default')
 Manually typing escape codes can be a little difficult, but you can use third party modules such as [ansi-styles](https://github.com/chalk/ansi-styles).
 
 ```js
-const style = require('ansi-styles');
+const style = require('ansi-styles')
 core.info(style.color.ansi16m.hex('#abcdef') + 'Hello world!')
 ```
 
@@ -248,19 +258,19 @@ runs:
 In action's `main.js`:
 
 ```js
-const core = require('@actions/core');
+import core from '@unlike/github-actions-core'
 
-core.saveState("pidToKill", 12345);
+core.saveState('pidToKill', 12345)
 ```
 
 In action's `cleanup.js`:
 
 ```js
-const core = require('@actions/core');
+import core from '@unlike/github-actions-core'
 
-var pid = core.getState("pidToKill");
+const pid = core.getState('pidToKill')
 
-process.kill(pid);
+process.kill(pid)
 ```
 
 #### OIDC Token
@@ -278,16 +288,16 @@ audience : optional
 A [JWT](https://jwt.io/) ID Token
 
 In action's `main.ts`:
-```js
-const core = require('@actions/core');
+
+```typescript
+import core from '@unlike/github-actions-core'
 async function getIDTokenAction(): Promise<void> {
-  
-   const audience = core.getInput('audience', {required: false})
-   
-   const id_token1 = await core.getIDToken()            // ID Token with default audience
-   const id_token2 = await core.getIDToken(audience)    // ID token with custom audience
-   
-   // this id_token can be used to get access token from third party cloud providers
+  const audience = core.getInput('audience', {required: false})
+
+  const id_token1 = await core.getIDToken() // ID Token with default audience
+  const id_token2 = await core.getIDToken(audience) // ID token with custom audience
+
+  // this id_token can be used to get access token from third party cloud providers
 }
 getIDTokenAction()
 ```
@@ -298,16 +308,16 @@ In action's `actions.yml`:
 name: 'GetIDToken'
 description: 'Get ID token from Github OIDC provider'
 inputs:
-  audience:  
+  audience:
     description: 'Audience for which the ID token is intended for'
     required: false
 outputs:
-  id_token1: 
+  id_token1:
     description: 'ID token obtained from OIDC provider'
-  id_token2: 
+  id_token2:
     description: 'ID token obtained from OIDC provider'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 ```
 
