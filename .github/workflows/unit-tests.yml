@@ -1,11 +1,9 @@
 name: unit-tests
 on:
+  pull_request:
   push:
     branches:
       - main
-    paths-ignore:
-      - '**.md'
-  pull_request:
     paths-ignore:
       - '**.md'
 
