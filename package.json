@@ -1,6 +1,7 @@
 {
   "name": "root",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "clean": "turbo clean && rm -rf node_modules",

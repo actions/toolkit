@@ -6,7 +6,7 @@
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import {v4 as uuidv4} from 'uuid'
-import {toCommandValue} from './utils'
+import {toCommandValue} from './utils.js'
 
 export function issueFileCommand(command: string, message: any): void {
   const filePath = process.env[`GITHUB_${command}`]
