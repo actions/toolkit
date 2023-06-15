@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "changeset": "changeset",
-    "version-packages": "changeset version"
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish"
   },
   "engines": {
     "node": "^16.20.0",
