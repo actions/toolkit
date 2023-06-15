@@ -1,6 +1,8 @@
 /* eslint-disable unicorn/no-null */
-import {EOL} from 'node:os'
+
 import {constants, promises} from 'node:fs'
+import {EOL} from 'node:os'
+
 const {access, appendFile, writeFile} = promises
 
 export const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY'

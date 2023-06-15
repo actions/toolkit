@@ -1,4 +1,5 @@
 import * as os from 'node:os'
+
 import {toCommandValue} from './utils.js'
 
 // For internal use, subject to change.

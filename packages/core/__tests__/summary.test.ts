@@ -3,7 +3,7 @@ import * as os from 'node:os'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 
-import {describe, expect, it, beforeEach, afterAll} from 'vitest'
+import {afterAll, beforeEach, describe, expect, it} from 'vitest'
 
 import {summary, SUMMARY_ENV_VAR} from '../src/summary'
 

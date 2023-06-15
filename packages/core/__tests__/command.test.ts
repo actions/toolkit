@@ -1,6 +1,11 @@
-import * as command from '../src/command'
+import type {SpyInstance} from 'vitest'
+
 import * as os from 'node:os'
-import {type SpyInstance, beforeEach, describe, expect, it, vi} from 'vitest'
+
+import {beforeEach, describe, expect, it, vi} from 'vitest'
+
+import * as command from '../src/command'
+
 /* eslint-disable @typescript-eslint/unbound-method */
 
 describe('@actions/core/src/command', () => {

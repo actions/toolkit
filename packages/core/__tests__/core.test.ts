@@ -1,3 +1,5 @@
+import type {SpyInstance} from 'vitest'
+
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
@@ -12,8 +14,7 @@ import {
   describe,
   expect,
   it,
-  vi,
-  type SpyInstance
+  vi
 } from 'vitest'
 
 import * as core from '../src/core'

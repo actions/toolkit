@@ -1,11 +1,10 @@
-import {issue, issueCommand} from './command.js'
-import {issueFileCommand, prepareKeyValueMessage} from './file-command.js'
-import {toCommandProperties, toCommandValue} from './utils.js'
-
 import * as os from 'node:os'
 import * as path from 'node:path'
 
+import {issue, issueCommand} from './command.js'
+import {issueFileCommand, prepareKeyValueMessage} from './file-command.js'
 import {OidcClient} from './oidc-utils.js'
+import {toCommandProperties, toCommandValue} from './utils.js'
 
 /**
  * Interface for getInput options
