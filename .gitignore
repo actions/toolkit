@@ -1,7 +1,39 @@
-node_modules/
-packages/*/node_modules/
-packages/*/lib/
-packages/*/__tests__/_temp/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+package-lock.json
+yarn.lock
+.pnp
+.pnp.js
+
+# testing
+coverage
+packages/**/__tests__/test/
+
+# misc
 .DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# turbo
+.turbo
+
+# vercel
+.vercel
+
+# build output
+lib
+
 *.xar
-packages/*/audit.json

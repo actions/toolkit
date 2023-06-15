@@ -1,4 +1,4 @@
-import * as os from 'os'
+import * as os from 'node:os'
 import {toCommandValue} from './utils'
 
 // For internal use, subject to change.
@@ -79,16 +79,16 @@ class Command {
 
 function escapeData(s: any): string {
   return toCommandValue(s)
-    .replace(/%/g, '%25')
-    .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A')
+    .replaceAll('%', '%25')
+    .replaceAll('\r', '%0D')
+    .replaceAll('\n', '%0A')
 }
 
 function escapeProperty(s: any): string {
   return toCommandValue(s)
-    .replace(/%/g, '%25')
-    .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A')
-    .replace(/:/g, '%3A')
-    .replace(/,/g, '%2C')
+    .replaceAll('%', '%25')
+    .replaceAll('\r', '%0D')
+    .replaceAll('\n', '%0A')
+    .replaceAll(':', '%3A')
+    .replaceAll(',', '%2C')
 }
