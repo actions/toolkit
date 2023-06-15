@@ -1,5 +1,11 @@
 # @unlike/github-actions-core
 
+## 0.0.3
+
+### Patch Changes
+
+- 5cb76bb: Use more arrow functions
+
 ## 0.0.2
 
 ### Patch Changes
