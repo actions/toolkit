@@ -28,13 +28,13 @@ export default defineConfig(() => {
   const esm: Options = {
     ...common,
     format: 'esm',
-    outDir: './lib/esm'
+    outDir: './dist/esm'
   }
 
   const cjs: Options = {
     ...common,
     format: 'cjs',
-    outDir: './lib/cjs'
+    outDir: './dist/cjs'
   }
 
   return [esm, cjs]

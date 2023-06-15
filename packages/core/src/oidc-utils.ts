@@ -1,22 +1,17 @@
-/* eslint-disable @typescript-eslint/no-extraneous-class */
-
 import type {RequestOptions} from '@actions/http-client/lib/interfaces.js'
 
-import * as actions_http_client from '@actions/http-client'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth.js'
 
-import {debug, setSecret} from './core.js'
+import {debug} from './logging.js'
+import {setSecret} from './variables.js'
 
 interface TokenResponse {
   value?: string
 }
 
 export class OidcClient {
-  private static createHttpClient(
-    allowRetry = true,
-    maxRetry = 10
-  ): actions_http_client.HttpClient {
+  static #createHttpClient(allowRetry = true, maxRetry = 10): HttpClient {
     const requestOptions: RequestOptions = {
       allowRetries: allowRetry,
       maxRetries: maxRetry
@@ -24,12 +19,12 @@ export class OidcClient {
 
     return new HttpClient(
       'actions/oidc-client',
-      [new BearerCredentialHandler(OidcClient.getRequestToken())],
+      [new BearerCredentialHandler(OidcClient.#getRequestToken())],
       requestOptions
     )
   }
 
-  private static getRequestToken(): string {
+  static #getRequestToken(): string {
     const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN']
     if (!token) {
       throw new Error(
@@ -39,7 +34,7 @@ export class OidcClient {
     return token
   }
 
-  private static getIDTokenUrl(): string {
+  static #getIDTokenUrl(): string {
     const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL']
     if (!runtimeUrl) {
       throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable')
@@ -47,8 +42,8 @@ export class OidcClient {
     return runtimeUrl
   }
 
-  private static async getCall(id_token_url: string): Promise<string> {
-    const httpclient = OidcClient.createHttpClient()
+  static async #getCall(id_token_url: string): Promise<string> {
+    const httpclient = OidcClient.#createHttpClient()
 
     const res = await httpclient
       .getJson<TokenResponse>(id_token_url)
@@ -70,7 +65,7 @@ export class OidcClient {
   static async getIDToken(audience?: string): Promise<string> {
     try {
       // New ID Token is requested from action service
-      let id_token_url: string = OidcClient.getIDTokenUrl()
+      let id_token_url: string = OidcClient.#getIDTokenUrl()
       if (audience) {
         const encodedAudience = encodeURIComponent(audience)
         id_token_url = `${id_token_url}&audience=${encodedAudience}`
@@ -78,12 +73,13 @@ export class OidcClient {
 
       debug(`ID token url is ${id_token_url}`)
 
-      const id_token = await OidcClient.getCall(id_token_url)
+      const id_token = await OidcClient.#getCall(id_token_url)
       setSecret(id_token)
       return id_token
     } catch (error) {
-      if (error instanceof Error)
-        throw new Error(`Error message: ${error.message}`)
+      if (error instanceof Error) {
+        throw new TypeError(`Error message: ${error.message}`)
+      }
 
       throw new Error(`Error message: unknown error`)
     }

@@ -1,8 +1,7 @@
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type {CommandProperties} from './command.js'
-import type {AnnotationProperties} from './core.js'
+import type {AnnotationProperties, CommandProperties} from '../types.js'
 
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
@@ -26,7 +25,7 @@ export function toCommandValue(input: any): string {
 export function toCommandProperties(
   annotationProperties: AnnotationProperties
 ): CommandProperties {
-  if (Object.keys(annotationProperties).length === 0) {
+  if (!annotationProperties || Object.keys(annotationProperties).length === 0) {
     return {}
   }
 

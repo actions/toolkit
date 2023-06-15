@@ -1,14 +1,13 @@
 import type {SpyInstance} from 'vitest'
 
-import * as os from 'node:os'
+import os from 'node:os'
+import process from 'node:process'
 
-import {beforeEach, describe, expect, it, vi} from 'vitest'
+import {beforeEach, describe, expect, test, vi} from 'vitest'
 
-import * as command from '../src/command'
+import * as command from '../../src/lib/command.js'
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
-describe('@actions/core/src/command', () => {
+describe('lib/command', () => {
   let stdOutSpy: SpyInstance<
     Parameters<typeof process.stdout.write>,
     ReturnType<typeof process.stdout.write>
@@ -27,12 +26,12 @@ describe('@actions/core/src/command', () => {
     stdOutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
   })
 
-  it('command only', () => {
+  test('command only', () => {
     command.issueCommand('some-command', {}, '')
     assertWriteCalls([`::some-command::${os.EOL}`])
   })
 
-  it('command escapes message', () => {
+  test('command escapes message', () => {
     // Verify replaces each instance, not just first instance
     command.issueCommand(
       'some-command',
@@ -51,7 +50,7 @@ describe('@actions/core/src/command', () => {
     ])
   })
 
-  it('command escapes property', () => {
+  test('command escapes property', () => {
     // Verify replaces each instance, not just first instance
     command.issueCommand(
       'some-command',
@@ -76,12 +75,12 @@ describe('@actions/core/src/command', () => {
     ])
   })
 
-  it('command with message', () => {
+  test('command with message', () => {
     command.issueCommand('some-command', {}, 'some message')
     assertWriteCalls([`::some-command::some message${os.EOL}`])
   })
 
-  it('command with message and properties', () => {
+  test('command with message and properties', () => {
     command.issueCommand(
       'some-command',
       {prop1: 'value 1', prop2: 'value 2'},
@@ -92,12 +91,12 @@ describe('@actions/core/src/command', () => {
     ])
   })
 
-  it('command with one property', () => {
+  test('command with one property', () => {
     command.issueCommand('some-command', {prop1: 'value 1'}, '')
     assertWriteCalls([`::some-command prop1=value 1::${os.EOL}`])
   })
 
-  it('command with two properties', () => {
+  test('command with two properties', () => {
     command.issueCommand(
       'some-command',
       {prop1: 'value 1', prop2: 'value 2'},
@@ -106,7 +105,7 @@ describe('@actions/core/src/command', () => {
     assertWriteCalls([`::some-command prop1=value 1,prop2=value 2::${os.EOL}`])
   })
 
-  it('command with three properties', () => {
+  test('command with three properties', () => {
     command.issueCommand(
       'some-command',
       {prop1: 'value 1', prop2: 'value 2', prop3: 'value 3'},
@@ -117,7 +116,7 @@ describe('@actions/core/src/command', () => {
     ])
   })
 
-  it('should handle issuing commands for non-string objects', () => {
+  test('should handle issuing commands for non-string objects', () => {
     command.issueCommand(
       'some-command',
       {

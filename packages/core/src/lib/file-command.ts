@@ -3,30 +3,30 @@
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import * as fs from 'node:fs'
-import * as os from 'node:os'
+import {appendFileSync, existsSync} from 'node:fs'
+import {EOL} from 'node:os'
 
 import {v4 as uuidv4} from 'uuid'
 
 import {toCommandValue} from './utils.js'
 
-export function issueFileCommand(command: string, message: any): void {
+export const issueFileCommand = (command: string, message: any): void => {
   const filePath = process.env[`GITHUB_${command}`]
   if (!filePath) {
     throw new Error(
       `Unable to find environment variable for file command ${command}`
     )
   }
-  if (!fs.existsSync(filePath)) {
+  if (!existsSync(filePath)) {
     throw new Error(`Missing file at path: ${filePath}`)
   }
 
-  fs.appendFileSync(filePath, `${toCommandValue(message)}${os.EOL}`, {
+  appendFileSync(filePath, `${toCommandValue(message)}${EOL}`, {
     encoding: 'utf8'
   })
 }
 
-export function prepareKeyValueMessage(key: string, value: any): string {
+export const prepareKeyValueMessage = (key: string, value: any): string => {
   const delimiter = `ghadelimiter_${uuidv4()}`
   const convertedValue = toCommandValue(value)
 
@@ -45,5 +45,5 @@ export function prepareKeyValueMessage(key: string, value: any): string {
     )
   }
 
-  return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`
+  return `${key}<<${delimiter}${EOL}${convertedValue}${EOL}${delimiter}`
 }

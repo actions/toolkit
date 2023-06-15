@@ -1,4 +1,4 @@
-import * as path from 'node:path'
+import {sep} from 'node:path'
 
 /**
  * toPosixPath converts the given path to the posix form. On Windows, \\ will be
@@ -7,7 +7,7 @@ import * as path from 'node:path'
  * @param pth. Path to transform.
  * @return string Posix path.
  */
-export function toPosixPath(pth: string): string {
+export const toPosixPath = (pth: string): string => {
   return pth.replaceAll('\\', '/')
 }
 
@@ -18,7 +18,7 @@ export function toPosixPath(pth: string): string {
  * @param pth. Path to transform.
  * @return string Win32 path.
  */
-export function toWin32Path(pth: string): string {
+export const toWin32Path = (pth: string): string => {
   return pth.replaceAll('/', '\\')
 }
 
@@ -30,6 +30,6 @@ export function toWin32Path(pth: string): string {
  * @param pth The path to platformize.
  * @return string The platform-specific path.
  */
-export function toPlatformPath(pth: string): string {
-  return pth.replaceAll(/[/\\]/g, path.sep)
+export const toPlatformPath = (pth: string): string => {
+  return pth.replaceAll(/[/\\]/g, sep)
 }

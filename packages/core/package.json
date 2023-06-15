@@ -11,16 +11,16 @@
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
-  "types": "./lib/types/core.d.ts",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     "node": {
-      "types": "./lib/types/core.d.ts",
-      "import": "./lib/esm/core.js",
-      "require": "./lib/cjs/core.cjs"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs"
     }
   },
   "files": [
-    "lib"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
@@ -32,9 +32,9 @@
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "rm -rf lib && tsup-node && pnpm run build:types",
+    "build": "rm -rf dist && tsup-node && pnpm run build:types",
     "build:types": "tsc -p tsconfig.declarations.json",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf lib"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "bugs": {
     "url": "https://github.com/unlike-ltd/github-actions-toolkit/issues"

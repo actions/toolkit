@@ -55,11 +55,11 @@ export interface SummaryWriteOptions {
 }
 
 class Summary {
-  private _buffer: string
-  private _filePath?: string
+  #buffer: string
+  #filePath?: string
 
   constructor() {
-    this._buffer = ''
+    this.#buffer = ''
   }
 
   /**
@@ -68,9 +68,9 @@ class Summary {
    *
    * @returns step summary file path
    */
-  private async filePath(): Promise<string> {
-    if (this._filePath) {
-      return this._filePath
+  async #fileSummaryPath(): Promise<string> {
+    if (this.#filePath) {
+      return this.#filePath
     }
 
     const pathFromEnv = process.env[SUMMARY_ENV_VAR]
@@ -88,8 +88,8 @@ class Summary {
       )
     }
 
-    this._filePath = pathFromEnv
-    return this._filePath
+    this.#filePath = pathFromEnv
+    return this.#filePath
   }
 
   /**
@@ -101,7 +101,7 @@ class Summary {
    *
    * @returns {string} content wrapped in HTML element
    */
-  private wrap(
+  #wrap(
     tag: string,
     content: string | null,
     attrs: {[attribute: string]: string} = {}
@@ -126,9 +126,9 @@ class Summary {
    */
   async write(options?: SummaryWriteOptions): Promise<Summary> {
     const overwrite = !!options?.overwrite
-    const filePath = await this.filePath()
+    const filePath = await this.#fileSummaryPath()
     const writeFunc = overwrite ? writeFile : appendFile
-    await writeFunc(filePath, this._buffer, {encoding: 'utf8'})
+    await writeFunc(filePath, this.#buffer, {encoding: 'utf8'})
     return this.emptyBuffer()
   }
 
@@ -147,7 +147,7 @@ class Summary {
    * @returns {string} string of summary buffer
    */
   stringify(): string {
-    return this._buffer
+    return this.#buffer
   }
 
   /**
@@ -156,7 +156,7 @@ class Summary {
    * @returns {boolen} true if the buffer is empty
    */
   isEmptyBuffer(): boolean {
-    return this._buffer.length === 0
+    return this.#buffer.length === 0
   }
 
   /**
@@ -165,7 +165,7 @@ class Summary {
    * @returns {Summary} summary instance
    */
   emptyBuffer(): Summary {
-    this._buffer = ''
+    this.#buffer = ''
     return this
   }
 
@@ -178,7 +178,7 @@ class Summary {
    * @returns {Summary} summary instance
    */
   addRaw(text: string, addEOL = false): Summary {
-    this._buffer += text
+    this.#buffer += text
     return addEOL ? this.addEOL() : this
   }
 
@@ -203,7 +203,7 @@ class Summary {
     const attrs = {
       ...(lang && {lang})
     }
-    const element = this.wrap('pre', this.wrap('code', code), attrs)
+    const element = this.#wrap('pre', this.#wrap('code', code), attrs)
     return this.addRaw(element).addEOL()
   }
 
@@ -217,8 +217,8 @@ class Summary {
    */
   addList(items: string[], ordered = false): Summary {
     const tag = ordered ? 'ol' : 'ul'
-    const listItems = items.map(item => this.wrap('li', item)).join('')
-    const element = this.wrap(tag, listItems)
+    const listItems = items.map(item => this.#wrap('li', item)).join('')
+    const element = this.#wrap(tag, listItems)
     return this.addRaw(element).addEOL()
   }
 
@@ -235,7 +235,7 @@ class Summary {
         const cells = row
           .map(cell => {
             if (typeof cell === 'string') {
-              return this.wrap('td', cell)
+              return this.#wrap('td', cell)
             }
 
             const {header, data, colspan, rowspan} = cell
@@ -245,15 +245,15 @@ class Summary {
               ...(rowspan && {rowspan})
             }
 
-            return this.wrap(tag, data, attrs)
+            return this.#wrap(tag, data, attrs)
           })
           .join('')
 
-        return this.wrap('tr', cells)
+        return this.#wrap('tr', cells)
       })
       .join('')
 
-    const element = this.wrap('table', tableBody)
+    const element = this.#wrap('table', tableBody)
     return this.addRaw(element).addEOL()
   }
 
@@ -266,7 +266,10 @@ class Summary {
    * @returns {Summary} summary instance
    */
   addDetails(label: string, content: string): Summary {
-    const element = this.wrap('details', this.wrap('summary', label) + content)
+    const element = this.#wrap(
+      'details',
+      this.#wrap('summary', label) + content
+    )
     return this.addRaw(element).addEOL()
   }
 
@@ -286,7 +289,7 @@ class Summary {
       ...(height && {height})
     }
 
-    const element = this.wrap('img', null, {src, alt, ...attrs})
+    const element = this.#wrap('img', null, {src, alt, ...attrs})
     return this.addRaw(element).addEOL()
   }
 
@@ -303,7 +306,7 @@ class Summary {
     const allowedTag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)
       ? tag
       : 'h1'
-    const element = this.wrap(allowedTag, text)
+    const element = this.#wrap(allowedTag, text)
     return this.addRaw(element).addEOL()
   }
 
@@ -313,7 +316,7 @@ class Summary {
    * @returns {Summary} summary instance
    */
   addSeparator(): Summary {
-    const element = this.wrap('hr', null)
+    const element = this.#wrap('hr', null)
     return this.addRaw(element).addEOL()
   }
 
@@ -323,7 +326,7 @@ class Summary {
    * @returns {Summary} summary instance
    */
   addBreak(): Summary {
-    const element = this.wrap('br', null)
+    const element = this.#wrap('br', null)
     return this.addRaw(element).addEOL()
   }
 
@@ -339,7 +342,7 @@ class Summary {
     const attrs = {
       ...(cite && {cite})
     }
-    const element = this.wrap('blockquote', text, attrs)
+    const element = this.#wrap('blockquote', text, attrs)
     return this.addRaw(element).addEOL()
   }
 
@@ -352,15 +355,11 @@ class Summary {
    * @returns {Summary} summary instance
    */
   addLink(text: string, href: string): Summary {
-    const element = this.wrap('a', text, {href})
+    const element = this.#wrap('a', text, {href})
     return this.addRaw(element).addEOL()
   }
 }
 
 const _summary = new Summary()
 
-/**
- * @deprecated use `core.summary`
- */
-export const markdownSummary = _summary
 export const summary = _summary

@@ -10,6 +10,7 @@ yarn.lock
 # testing
 coverage
 packages/**/__tests__/test/
+_temp
 
 # misc
 .DS_Store
@@ -34,6 +35,6 @@ yarn-error.log*
 .vercel
 
 # build output
-lib
+dist
 
 *.xar
