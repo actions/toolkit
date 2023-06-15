@@ -1,6 +1,6 @@
 {
   "name": "@unlike/github-actions-core",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Actions core lib",
   "keywords": [
     "github",
