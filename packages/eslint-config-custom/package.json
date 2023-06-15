@@ -8,15 +8,15 @@
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "5.59.9",
-    "@typescript-eslint/parser": "5.59.9",
+    "@typescript-eslint/eslint-plugin": "5.59.11",
+    "@typescript-eslint/parser": "5.59.11",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-config-turbo": "^1.9.3",
+    "eslint-config-turbo": "^1.10.3",
     "eslint-plugin-unicorn": "47.0.0",
-    "eslint-plugin-vitest": "0.2.5"
+    "eslint-plugin-vitest": "0.2.6"
   },
   "devDependencies": {
-    "@types/eslint": "8.40.0"
+    "@types/eslint": "8.40.2"
   },
   "peerDependencies": {
     "eslint": "^8.42.0"
