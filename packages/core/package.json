@@ -43,8 +43,7 @@
     "node": ">=v16.20.0"
   },
   "dependencies": {
-    "@actions/http-client": "^2.1.0",
-    "uuid": "^9.0.0"
+    "@actions/http-client": "^2.1.0"
   },
   "devDependencies": {
     "@types/node": "16.18.36",

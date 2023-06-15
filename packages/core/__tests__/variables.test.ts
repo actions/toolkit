@@ -25,11 +25,14 @@ import {
 import {
   DELIMITER,
   TEST_DIRECTORY_PATH,
-  TEST_ENV_VARS
+  TEST_ENV_VARS,
+  UUID
 } from './helpers/constants.js'
 import {createFileCommandFile, verifyFileCommand} from './helpers/utils.js'
 
-vi.mock('uuid')
+vi.mock('node:crypto', () => ({
+  randomUUID: () => UUID
+}))
 describe('variables', () => {
   let stdOutSpy: SpyInstance<
     Parameters<typeof process.stdout.write>,

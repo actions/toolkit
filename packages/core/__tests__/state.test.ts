@@ -10,11 +10,14 @@ import * as state from '../src/state.js'
 import {
   DELIMITER,
   TEST_DIRECTORY_PATH,
-  TEST_ENV_VAR_PATH
+  TEST_ENV_VAR_PATH,
+  UUID
 } from './helpers/constants.js'
 import {createFileCommandFile, verifyFileCommand} from './helpers/utils.js'
 
-vi.mock('uuid')
+vi.mock('node:crypto', () => ({
+  randomUUID: () => UUID
+}))
 
 describe('state', () => {
   let stdOutSpy: SpyInstance<

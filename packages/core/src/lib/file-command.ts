@@ -3,10 +3,9 @@
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import {randomUUID as uuidv4} from 'node:crypto'
 import {appendFileSync, existsSync} from 'node:fs'
 import {EOL} from 'node:os'
-
-import {v4 as uuidv4} from 'uuid'
 
 import {toCommandValue} from './utils.js'
 
