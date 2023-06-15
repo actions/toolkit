@@ -9,10 +9,10 @@ import {ExitCode} from './types.js'
  * @param message error issue message. Errors will be converted to string via toString()
  * @param properties optional properties to add to the annotation.
  */
-export function error(
+export const error = (
   message: string | Error,
   properties: AnnotationProperties = {}
-): void {
+): void => {
   issueCommand(
     'error',
     toCommandProperties(properties),
@@ -25,7 +25,7 @@ export function error(
  * When the action exits it will be with an exit code of 1
  * @param message add error issue message
  */
-export function setFailed(message: string | Error): void {
+export const setFailed = (message: string | Error): void => {
   process.exitCode = ExitCode.Failure
 
   error(message)

@@ -9,7 +9,7 @@ import {toCommandValue} from './lib/utils.js'
  * @param     value    value to store. Non-string values will be converted to a string via JSON.stringify
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function saveState(name: string, value: any): void {
+export const saveState = (name: string, value: any): void => {
   const filePath = process.env['GITHUB_STATE'] || ''
   if (filePath) {
     return issueFileCommand('STATE', prepareKeyValueMessage(name, value))
@@ -24,6 +24,6 @@ export function saveState(name: string, value: any): void {
  * @param     name     name of the state to get
  * @returns   string
  */
-export function getState(name: string): string {
+export const getState = (name: string): string => {
   return process.env[`STATE_${name}`] || ''
 }

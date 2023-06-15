@@ -33,7 +33,7 @@ jobs:
       - name: Compile
         run: pnpm run build
 
-      - name: npm test
+      - name: Test
         run: pnpm test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

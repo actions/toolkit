@@ -7,7 +7,7 @@ import {type AnnotationProperties} from './types.js'
 /**
  * Gets whether Actions Step Debug is on or not
  */
-export function isDebug(): boolean {
+export const isDebug = (): boolean => {
   return process.env['RUNNER_DEBUG'] === '1'
 }
 
@@ -15,7 +15,7 @@ export function isDebug(): boolean {
  * Writes debug message to user log
  * @param message debug message
  */
-export function debug(message: string): void {
+export const debug = (message: string): void => {
   issueCommand('debug', {}, message)
 }
 
@@ -24,10 +24,10 @@ export function debug(message: string): void {
  * @param message warning issue message. Errors will be converted to string via toString()
  * @param properties optional properties to add to the annotation.
  */
-export function warning(
+export const warning = (
   message: string | Error,
   properties: AnnotationProperties = {}
-): void {
+): void => {
   issueCommand(
     'warning',
     toCommandProperties(properties),
@@ -40,10 +40,10 @@ export function warning(
  * @param message notice issue message. Errors will be converted to string via toString()
  * @param properties optional properties to add to the annotation.
  */
-export function notice(
+export const notice = (
   message: string | Error,
   properties: AnnotationProperties = {}
-): void {
+): void => {
   issueCommand(
     'notice',
     toCommandProperties(properties),
@@ -55,7 +55,7 @@ export function notice(
  * Writes info to log with console.log.
  * @param message info message
  */
-export function info(message: string): void {
+export const info = (message: string): void => {
   process.stdout.write(message + EOL)
 }
 
@@ -66,14 +66,14 @@ export function info(message: string): void {
  *
  * @param name The name of the output group
  */
-export function startGroup(name: string): void {
+export const startGroup = (name: string): void => {
   issue('group', name)
 }
 
 /**
  * End an output group.
  */
-export function endGroup(): void {
+export const endGroup = (): void => {
   issue('endgroup')
 }
 
@@ -85,7 +85,10 @@ export function endGroup(): void {
  * @param name The name of the group
  * @param fn The function to wrap in the group
  */
-export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
+export const group = async <T>(
+  name: string,
+  fn: () => Promise<T>
+): Promise<T> => {
   startGroup(name)
 
   let result: T
