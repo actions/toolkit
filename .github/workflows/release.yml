@@ -3,6 +3,11 @@
 name: release
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.changeset/**'
   workflow_run:
     workflows:
       - unit-tests
