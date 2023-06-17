@@ -35,7 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3.5.2
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2.3.5
+        uses: github/codeql-action/init@v2.20.0
         with:
           languages: ${{ matrix.language }}
       - uses: unlike-ltd/github-actions/setup-pnpm@main
@@ -44,6 +44,6 @@ jobs:
       - name: Rebuild the dist/ directory
         run: pnpm run build
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2.3.5
+        uses: github/codeql-action/analyze@v2.20.0
         with:
           category: '/language:${{matrix.language}}'
