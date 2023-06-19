@@ -92,19 +92,19 @@ export class DownloadProgress {
   }
 
   setLastTimeOfNewBytes(): void {
-    this.lastTimeOfNewBytes = Date.now();
+    this.lastTimeOfNewBytes = Date.now()
   }
 
   getLastTimeOfNewBytes(): number | undefined {
-    return this.lastTimeOfNewBytes;
+    return this.lastTimeOfNewBytes
   }
 
   setAbortController(abortReference: AbortController): void {
-    this.abortController = abortReference;
+    this.abortController = abortReference
   }
 
   triggerAbortController(): void {
-    this.abortController?.abort();
+    this.abortController?.abort()
   }
 
   /**
@@ -149,11 +149,15 @@ export class DownloadProgress {
   onProgress(): (progress: TransferProgressEvent) => void {
     return (progress: TransferProgressEvent) => {
       if (progress.loadedBytes > this.getTransferredBytes()) {
-        this.setReceivedBytes(progress.loadedBytes);
-        this.setLastTimeOfNewBytes();
+        this.setReceivedBytes(progress.loadedBytes)
+        this.setLastTimeOfNewBytes()
       } else {
-        if (this.getLastTimeOfNewBytes !== undefined && Date.now() - this.getLastTimeOfNewBytes()! > 120000) { // if download hanging for more than 2 minutes
-          this.triggerAbortController();
+        // if download hanging for more than 2 minutes
+        if (
+          this.getLastTimeOfNewBytes() !== undefined &&
+          Date.now() - this.getLastTimeOfNewBytes()! > 120000
+        ) {
+          this.triggerAbortController()
           throw new Error(
             'Aborting cache download as the download has stalled for more than 2 minutes.'
           )
