@@ -50,7 +50,18 @@ function setSecret(secret: string): void {}
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
 
-**WARNING** The add-mask and setSecret  commands only support single line secrets. To register a multiline secrets you must register each line individually otherwise it will not be masked.
+**WARNING** The add-mask and setSecret commands only support single-line
+secrets or multi-line secrets that have been escaped. `@actions/core`
+`setSecret` will escape the string you provide by default. When an escaped
+multi-line string is provided the whole string and each of its lines
+individually will be masked. For example you can mask `first\nsecond\r\nthird`
+using:
+
+```sh
+echo "::add-mask::first%0Asecond%0D%0Athird"
+```
+
+This will mask `first%0Asecond%0D%0Athird`, `first`, `second` and `third`.
 
 **WARNING** Do **not** mask short values if you can avoid it, it could render your output unreadable (and future steps' output as well).
 For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` will now print `He*********o FOO BAR Wor****d`
