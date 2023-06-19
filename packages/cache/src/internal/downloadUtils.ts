@@ -37,9 +37,12 @@ export class DownloadProgress {
   segmentSize: number
   segmentOffset: number
   receivedBytes: number
+  previouslyReceivedBytes: number
+  lastTimeOfNewBytes?: number
   startTime: number
   displayedComplete: boolean
   timeoutHandle?: ReturnType<typeof setTimeout>
+  abortController?: AbortController
 
   constructor(contentLength: number) {
     this.contentLength = contentLength
@@ -47,8 +50,11 @@ export class DownloadProgress {
     this.segmentSize = 0
     this.segmentOffset = 0
     this.receivedBytes = 0
+    this.previouslyReceivedBytes = 0
+    this.lastTimeOfNewBytes = undefined
     this.displayedComplete = false
     this.startTime = Date.now()
+    this.abortController = undefined
   }
 
   /**
@@ -62,6 +68,7 @@ export class DownloadProgress {
     this.segmentIndex = this.segmentIndex + 1
     this.segmentSize = segmentSize
     this.receivedBytes = 0
+    this.previouslyReceivedBytes = 0
 
     core.debug(
       `Downloading segment at offset ${this.segmentOffset} with length ${this.segmentSize}...`
@@ -82,6 +89,22 @@ export class DownloadProgress {
    */
   getTransferredBytes(): number {
     return this.segmentOffset + this.receivedBytes
+  }
+
+  setLastTimeOfNewBytes(): void {
+    this.lastTimeOfNewBytes = Date.now();
+  }
+
+  getLastTimeOfNewBytes(): number | undefined {
+    return this.lastTimeOfNewBytes;
+  }
+
+  setAbortController(abortReference: AbortController): void {
+    this.abortController = abortReference;
+  }
+
+  triggerAbortController(): void {
+    this.abortController?.abort();
   }
 
   /**
@@ -125,7 +148,17 @@ export class DownloadProgress {
    */
   onProgress(): (progress: TransferProgressEvent) => void {
     return (progress: TransferProgressEvent) => {
-      this.setReceivedBytes(progress.loadedBytes)
+      if (progress.loadedBytes > this.getTransferredBytes()) {
+        this.setReceivedBytes(progress.loadedBytes);
+        this.setLastTimeOfNewBytes();
+      } else {
+        if (this.getLastTimeOfNewBytes !== undefined && Date.now() - this.getLastTimeOfNewBytes()! > 120000) { // if download hanging for more than 2 minutes
+          this.triggerAbortController();
+          throw new Error(
+            'Aborting cache download as the download has stalled for more than 2 minutes.'
+          )
+        }
+      }
     }
   }
 
@@ -252,6 +285,7 @@ export async function downloadCacheStorageSDK(
     try {
       downloadProgress.startDisplayTimer()
       const controller = new AbortController()
+      downloadProgress.setAbortController(controller)
       const abortSignal = controller.signal
       while (!downloadProgress.isDone()) {
         const segmentStart =
