@@ -16,10 +16,9 @@ export function getProxyUrl(reqUrl: URL): URL | undefined {
   if (proxyVar) {
     try {
       return new URL(proxyVar)
-    }
-    catch {
+    } catch {
       if (!proxyVar.startsWith('http://') && !proxyVar.startsWith('https://'))
-      return new URL('http://' + proxyVar)
+        return new URL('http://' + proxyVar)
     }
   } else {
     return undefined
