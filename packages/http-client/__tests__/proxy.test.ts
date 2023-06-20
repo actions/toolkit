@@ -91,6 +91,12 @@ describe('proxy', () => {
     expect(proxyUrl).toBeDefined()
   })
 
+  it('getProxyUrl returns proxyUrl if http_proxy has no protocol', () => {
+    process.env['http_proxy'] = 'myproxysvr'
+    const proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
+    expect(proxyUrl?.toString()).toBe('http://myproxysvr/')
+  })
+
   it('checkBypass returns true if host as no_proxy list', () => {
     process.env['no_proxy'] = 'myserver'
     const bypass = pm.checkBypass(new URL('https://myserver'))
