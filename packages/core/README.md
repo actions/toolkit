@@ -15,7 +15,13 @@ Supports
 ### Import the package
 
 ```js
-import core from '@unlike/github-actions-core'
+import * as core from '@unlike/github-actions-core'
+```
+
+or
+
+```js
+import {getInput} from '@unlike/github-actions-core'
 ```
 
 #### Inputs/Outputs
@@ -64,13 +70,13 @@ core.addPath('/path/to/mytool')
 You should use this library to set the failing exit code for your action. If status is not set and the script runs to completion, that will lead to a success.
 
 ```js
-import core from '@unlike/github-actions-core'
+import {setFailed} from '@unlike/github-actions-core'
 
 try {
   // Do stuff
 } catch (err) {
   // setFailed logs the message and sets a failing exit code
-  core.setFailed(`Action failed with error ${err}`)
+  setFailed(`Action failed with error ${err}`)
 }
 ```
 
@@ -81,7 +87,7 @@ Note that `setNeutral` is not yet implemented in actions V2 but equivalent funct
 Finally, this library provides some utilities for logging. Note that debug logging is hidden from the logs by default. This behavior can be toggled by enabling the [Step Debug Logs](../../docs/action-debugging.md#step-debug-logs).
 
 ```js
-import core from '@unlike/github-actions-core'
+import * as core from '@unlike/github-actions-core'
 
 const myInput = core.getInput('input')
 try {
@@ -109,7 +115,7 @@ try {
 This library can also wrap chunks of output in foldable groups.
 
 ```js
-import core from '@unlike/github-actions-core'
+import * as core from '@unlike/github-actions-core'
 
 // Manually wrap output
 core.startGroup('Do some function')
@@ -258,17 +264,17 @@ runs:
 In action's `main.js`:
 
 ```js
-import core from '@unlike/github-actions-core'
+import {saveState} from '@unlike/github-actions-core'
 
-core.saveState('pidToKill', 12345)
+saveState('pidToKill', 12345)
 ```
 
 In action's `cleanup.js`:
 
 ```js
-import core from '@unlike/github-actions-core'
+import {getState} from '@unlike/github-actions-core'
 
-const pid = core.getState('pidToKill')
+const pid = getState('pidToKill')
 
 process.kill(pid)
 ```
@@ -290,7 +296,8 @@ A [JWT](https://jwt.io/) ID Token
 In action's `main.ts`:
 
 ```typescript
-import core from '@unlike/github-actions-core'
+import * as core from '@unlike/github-actions-core'
+
 async function getIDTokenAction(): Promise<void> {
   const audience = core.getInput('audience', {required: false})
 
