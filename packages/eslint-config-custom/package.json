@@ -8,8 +8,8 @@
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "5.59.11",
-    "@typescript-eslint/parser": "5.59.11",
+    "@typescript-eslint/eslint-plugin": "5.60.0",
+    "@typescript-eslint/parser": "5.60.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-turbo": "^1.10.3",
     "eslint-plugin-unicorn": "47.0.0",
