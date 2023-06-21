@@ -11,7 +11,7 @@
     "@typescript-eslint/eslint-plugin": "5.60.0",
     "@typescript-eslint/parser": "5.60.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-config-turbo": "^1.10.3",
+    "eslint-config-turbo": "^1.10.4",
     "eslint-plugin-unicorn": "47.0.0",
     "eslint-plugin-vitest": "0.2.6"
   },
