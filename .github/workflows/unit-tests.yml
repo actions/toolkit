@@ -17,6 +17,7 @@ jobs:
 
     strategy:
       matrix:
+        version: [16.x, 18.x, 20.x]
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
       fail-fast: false
 
@@ -28,7 +29,7 @@ jobs:
 
       - uses: unlike-ltd/github-actions/setup-pnpm@main
         with:
-          node-version: 16.x
+          node-version: ${{ matrix.version }}
 
       - name: Compile
         run: pnpm run build
