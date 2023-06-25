@@ -40,7 +40,7 @@
     "@actions/exec": "^1.0.0",
     "@actions/http-client": "^2.0.1",
     "@actions/io": "^1.1.1",
-    "semver": "^6.1.0",
+    "semver": "^7.5.2",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
