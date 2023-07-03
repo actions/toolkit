@@ -27,7 +27,7 @@
   - `GitHub.plugin()` no longer supports an array as first argument. Multiple args must be passed in instead.
 
 ### 3.0.0
-- [Swap to @octokit/core and use plugins to leverage lastest octokit apis](https://github.com/actions/toolkit/pull/453)
+- [Swap to @octokit/core and use plugins to leverage latest octokit apis](https://github.com/actions/toolkit/pull/453)
 - [Add comment field to payload context](https://github.com/actions/toolkit/pull/375) 
 
 ### 2.2.0
