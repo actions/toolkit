@@ -102,6 +102,15 @@ $ npm install @actions/cache
 ```
 <br/>
 
+:dart: [@actions/pull](packages/pull)
+
+Provides functions to cache dependencies and build outputs to improve workflow execution time. Read more [here](packages/pull)
+
+```bash
+$ npm install @actions/pull
+```
+<br/>
+
 ## Creating an Action with the Toolkit
 
 :question: [Choosing an action type](docs/action-types.md)
