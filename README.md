@@ -102,7 +102,7 @@ $ npm install @actions/cache
 ```
 <br/>
 
-:🤖: [@actions/pull](packages/pull)
+🤖 [@actions/pull](packages/pull)
 
 Provides functions to cache dependencies and build outputs to improve workflow execution time. Read more [here](packages/pull)
 
