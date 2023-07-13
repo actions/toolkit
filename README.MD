@@ -1,4 +1,5 @@
-
+PROPIETARIO PROPUESTA UNICO:Daoxingdai
+unico correos electronicos conecting:daoxing.dai@icloud.com
 <p align="center">
   <img src="res/at-logo.png">
 </p>
