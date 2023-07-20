@@ -77,18 +77,15 @@ class Command {
   }
 }
 
+function escapeChar(ch: string): string {
+  return ch.replace(/[%\r\n:,]/g, c =>
+    '%' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'))
+}
+
 function escapeData(s: any): string {
-  return toCommandValue(s)
-    .replace(/%/g, '%25')
-    .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A')
+  return toCommandValue(s).replace(/%\r\n/g, escapeChar)
 }
 
 function escapeProperty(s: any): string {
-  return toCommandValue(s)
-    .replace(/%/g, '%25')
-    .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A')
-    .replace(/:/g, '%3A')
-    .replace(/,/g, '%2C')
+  return toCommandValue(s).replace(/[%\r\n:,]/g, escapeChar)
 }
