@@ -1,1 +1,6 @@
 gh pr checkout 10
+https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History#:~:text=%24%20git%20log%20%2Dp,git.show%0A%2Dend
+https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History#:~:text=%24%20git%20log%0Acommit,0700%0A%0A%20%20%20%20Initial%20commit
+https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History#:~:text=%24%20git%20log%20%2D%2Dpretty%3Doneline%0Aca82a6dff817ec66f44342007202690a93763949%20Change%20version%20number%0A085bb3bcb608e1e8451d4b2432f8ecbe6306e7e7%20Remove%20unnecessary%20test%0Aa11bef06a3f659402fe7563abf99ad00de2209e6%20Initial%20commit
+https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History#:~:text=%24%20git%20log%20%2D%2Dpretty%3Dformat%3A%22%25h%20%25s,them%0A%7C/%0A*%20d6016bc%20Require%20time%20for%20xmlschema%0A*
+https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History#:~:text=%24%20git%20log%20%2D%2Dpretty%3D%22%25h,into%20an%20unborn%20branch
