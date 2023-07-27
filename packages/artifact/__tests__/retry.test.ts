@@ -65,7 +65,13 @@ beforeAll(async () => {
  */
 async function emptyMockReadBody(): Promise<string> {
   return new Promise(resolve => {
-    resolve()
+    resolve('')
+  })
+}
+
+async function emptyMockReadBodyBuffer(): Promise<Buffer> {
+  return new Promise(resolve => {
+    resolve(Buffer.alloc(0))
   })
 }
 
@@ -78,7 +84,8 @@ async function setupSingleMockResponse(
   return new Promise<HttpClientResponse>(resolve => {
     resolve({
       message: mockMessage,
-      readBody: mockReadBody
+      readBody: mockReadBody,
+      readBodyBuffer: emptyMockReadBodyBuffer
     })
   })
 }

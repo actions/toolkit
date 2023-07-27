@@ -429,7 +429,13 @@ describe('Upload Tests', () => {
    */
   async function emptyMockReadBody(): Promise<string> {
     return new Promise(resolve => {
-      resolve()
+      resolve('')
+    })
+  }
+
+  async function emptyMockReadBodyBuffer(): Promise<Buffer> {
+    return new Promise(resolve => {
+      resolve(Buffer.alloc(0))
     })
   }
 
@@ -475,7 +481,8 @@ describe('Upload Tests', () => {
         return new Promise<HttpClientResponse>(resolve => {
           resolve({
             message: mockMessage,
-            readBody: mockReadBody
+            readBody: mockReadBody,
+            readBodyBuffer: emptyMockReadBodyBuffer
           })
         })
       })
@@ -498,7 +505,8 @@ describe('Upload Tests', () => {
         return new Promise<HttpClientResponse>(resolve => {
           resolve({
             message: mockMessage,
-            readBody: emptyMockReadBody
+            readBody: emptyMockReadBody,
+            readBodyBuffer: emptyMockReadBodyBuffer
           })
         })
       })
@@ -543,7 +551,8 @@ describe('Upload Tests', () => {
         return new Promise<HttpClientResponse>(resolve => {
           resolve({
             message: mockMessage,
-            readBody: mockReadBody
+            readBody: mockReadBody,
+            readBodyBuffer: emptyMockReadBodyBuffer
           })
         })
       })
