@@ -2,22 +2,22 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
-import {mocked} from 'ts-jest/utils'
-import {exec, execSync} from 'child_process'
-import {createGunzip} from 'zlib'
-import {promisify} from 'util'
-import {UploadHttpClient} from '../src/internal/upload-http-client'
+import { mocked } from 'ts-jest/utils'
+import { exec, execSync } from 'child_process'
+import { createGunzip } from 'zlib'
+import { promisify } from 'util'
+import { UploadHttpClient } from '../src/internal/upload-http-client'
 import * as core from '@actions/core'
-import {promises as fs} from 'fs'
-import {getRuntimeUrl} from '../src/internal/config-variables'
-import {HttpClient, HttpClientResponse} from '@actions/http-client'
+import { promises as fs } from 'fs'
+import { getRuntimeUrl } from '../src/internal/config-variables'
+import { HttpClient, HttpClientResponse } from '@actions/http-client'
 import {
   ArtifactResponse,
   PatchArtifactSizeSuccessResponse
 } from '../src/internal/contracts'
-import {UploadSpecification} from '../src/internal/upload-specification'
-import {getArtifactUrl} from '../src/internal/utils'
-import {UploadOptions} from '../src/internal/upload-options'
+import { UploadSpecification } from '../src/internal/upload-specification'
+import { getArtifactUrl } from '../src/internal/utils'
+import { UploadOptions } from '../src/internal/upload-options'
 
 const root = path.join(__dirname, '_temp', 'artifact-upload')
 const file1Path = path.join(root, 'file1.txt')
@@ -38,11 +38,11 @@ jest.mock('@actions/http-client')
 describe('Upload Tests', () => {
   beforeAll(async () => {
     // mock all output so that there is less noise when running tests
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
-    jest.spyOn(core, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => { })
+    jest.spyOn(core, 'debug').mockImplementation(() => { })
+    jest.spyOn(core, 'info').mockImplementation(() => { })
+    jest.spyOn(core, 'warning').mockImplementation(() => { })
+    jest.spyOn(core, 'error').mockImplementation(() => { })
 
     // setup mocking for calls that got through the HttpClient
     setupHttpClientMock()
@@ -196,7 +196,7 @@ describe('Upload Tests', () => {
       // create a named pipe 'pipe' with content 'hello pipe'
       const content = Buffer.from('hello pipe')
       const pipeFilePath = path.join(root, 'pipe')
-      await promisify(exec)('mkfifo pipe', {cwd: root})
+      await promisify(exec)('mkfifo pipe', { cwd: root })
       // don't want to await here as that would block until read
       fs.writeFile(pipeFilePath, content)
 
@@ -280,7 +280,7 @@ describe('Upload Tests', () => {
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
-      {continueOnError: true}
+      { continueOnError: true }
     )
     expect(uploadResult.failedItems.length).toEqual(1)
     expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
@@ -317,7 +317,7 @@ describe('Upload Tests', () => {
     const uploadResult = await uploadHttpClient.uploadArtifactToFileContainer(
       uploadUrl,
       uploadSpecification,
-      {continueOnError: false}
+      { continueOnError: false }
     )
     expect(uploadResult.failedItems.length).toEqual(2)
     expect(uploadResult.uploadSize).toEqual(expectedPartialSize)
@@ -429,7 +429,7 @@ describe('Upload Tests', () => {
    */
   async function emptyMockReadBody(): Promise<string> {
     return new Promise(resolve => {
-      resolve()
+      resolve('mockResolve')
     })
   }
 
@@ -461,12 +461,11 @@ describe('Upload Tests', () => {
             fileContainerResourceUrl: `${getRuntimeUrl()}_apis/resources/Containers/13`,
             type: 'actions_storage',
             name: inputData.Name,
-            url: `${getRuntimeUrl()}_apis/pipelines/1/runs/1/artifacts?artifactName=${
-              inputData.Name
-            }`
+            url: `${getRuntimeUrl()}_apis/pipelines/1/runs/1/artifacts?artifactName=${inputData.Name
+              }`
           }
           const returnData: string = JSON.stringify(response, null, 2)
-          mockReadBody = async function(): Promise<string> {
+          mockReadBody = async function (): Promise<string> {
             return new Promise(resolve => {
               resolve(returnData)
             })
@@ -534,7 +533,7 @@ describe('Upload Tests', () => {
             uploadUrl: `${getRuntimeUrl()}_apis/resources/Containers/13`
           }
           const returnData: string = JSON.stringify(response, null, 2)
-          mockReadBody = async function(): Promise<string> {
+          mockReadBody = async function (): Promise<string> {
             return new Promise(resolve => {
               resolve(returnData)
             })

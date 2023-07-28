@@ -65,7 +65,7 @@ beforeAll(async () => {
  */
 async function emptyMockReadBody(): Promise<string> {
   return new Promise(resolve => {
-    resolve()
+    resolve('mockResolved')
   })
 }
 
