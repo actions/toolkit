@@ -1169,6 +1169,7 @@ export class StringStream extends stream.Writable {
     encoding: string,
     next: Function
   ): void {
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     this.contents += data
     next()
   }
