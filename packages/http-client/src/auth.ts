@@ -57,7 +57,8 @@ export class BearerCredentialHandler implements ifm.RequestHandler {
 }
 
 export class PersonalAccessTokenCredentialHandler
-  implements ifm.RequestHandler {
+  implements ifm.RequestHandler
+{
   token: string
 
   constructor(token: string) {

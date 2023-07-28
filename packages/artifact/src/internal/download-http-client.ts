@@ -14,16 +14,16 @@ import {
   rmFile,
   sleep
 } from './utils'
-import { URL } from 'url'
-import { StatusReporter } from './status-reporter'
-import { performance } from 'perf_hooks'
-import { ListArtifactsResponse, QueryArtifactResponse } from './contracts'
-import { HttpClientResponse } from '@actions/http-client'
-import { HttpManager } from './http-manager'
-import { DownloadItem } from './download-specification'
-import { getDownloadFileConcurrency, getRetryLimit } from './config-variables'
-import { IncomingHttpHeaders } from 'http'
-import { retryHttpClientRequest } from './requestUtils'
+import {URL} from 'url'
+import {StatusReporter} from './status-reporter'
+import {performance} from 'perf_hooks'
+import {ListArtifactsResponse, QueryArtifactResponse} from './contracts'
+import {HttpClientResponse} from '@actions/http-client'
+import {HttpManager} from './http-manager'
+import {DownloadItem} from './download-specification'
+import {getDownloadFileConcurrency, getRetryLimit} from './config-variables'
+import {IncomingHttpHeaders} from 'http'
+import {retryHttpClientRequest} from './requestUtils'
 
 export class DownloadHttpClient {
   // http manager is used for concurrent connections when downloading multiple files at once
@@ -113,7 +113,8 @@ export class DownloadHttpClient {
 
           if (core.isDebug()) {
             core.debug(
-              `File: ${++downloadedFiles}/${downloadItems.length}. ${currentFileToDownload.targetPath
+              `File: ${++downloadedFiles}/${downloadItems.length}. ${
+                currentFileToDownload.targetPath
               } took ${(performance.now() - startTime).toFixed(
                 3
               )} milliseconds to finish downloading`
@@ -279,8 +280,8 @@ export class DownloadHttpClient {
         // if a throttled status code is received, try to get the retryAfter header value, else differ to standard exponential backoff
         isThrottledStatusCode(response.message.statusCode)
           ? await backOff(
-            tryGetRetryAfterValueTimeInMilliseconds(response.message.headers)
-          )
+              tryGetRetryAfterValueTimeInMilliseconds(response.message.headers)
+            )
           : await backOff()
       } else {
         // Some unexpected response code, fail immediately and stop the download
