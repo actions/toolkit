@@ -5,7 +5,8 @@
     "strict": true,
     "declaration": true,
     "target": "es6",
-    "sourceMap": true
+    "sourceMap": true,
+    "useUnknownInCatchVariables": false,
   },
   "exclude": [
     "node_modules",
