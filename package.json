@@ -32,6 +32,9 @@
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
-    "@actions/io": "^1.1.3"
+    "@actions/exec": "^1.1.1",
+    "@actions/io": "^1.1.3",
+    "tmp-promise": "^3.0.3",
+    "uuid": "^7.0.0"
   }
 }
