@@ -31,6 +31,7 @@
     "typescript": "^4.3.0"
   },
   "dependencies": {
-    "@actions/core": "^1.10.0"
+    "@actions/core": "^1.10.0",
+    "@actions/io": "^1.1.3"
   }
 }
