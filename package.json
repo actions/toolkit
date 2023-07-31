@@ -40,6 +40,7 @@
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
     "nock": "^13.3.2",
+    "proxy": "^2.1.1",
     "tmp-promise": "^3.0.3",
     "uuid": "^7.0.3"
   }
