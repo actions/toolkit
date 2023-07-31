@@ -37,8 +37,5 @@
   },
   "dependencies": {
     "@actions/io": "^1.0.1"
-  },
-  "devDependencies": {
-    "@types/node": "^12.0.2"
   }
 }
