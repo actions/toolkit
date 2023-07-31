@@ -5,7 +5,8 @@
     "outDir": "./lib",
     "rootDir": "./src",
     "lib": ["es6", "dom"],
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    "noImplicitAny": false
   },
   "include": [
     "./src"
