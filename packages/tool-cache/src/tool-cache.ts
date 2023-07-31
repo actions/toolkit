@@ -10,7 +10,8 @@ import * as stream from 'stream'
 import * as util from 'util'
 import {ok} from 'assert'
 import {OutgoingHttpHeaders} from 'http'
-import uuidV4 from 'uuid/v4'
+import uuidV4 from 'uuid';
+
 import {exec} from '@actions/exec/lib/exec'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {RetryHelper} from './retry-helper'
