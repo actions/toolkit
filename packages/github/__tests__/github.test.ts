@@ -1,5 +1,5 @@
 import * as http from 'http'
-import proxy from 'proxy'
+import {ProxyServer, createProxy} from 'proxy'
 import {getOctokit} from '../src/github'
 import {GitHub, getOctokitOptions} from '../src/utils'
 
@@ -12,7 +12,7 @@ describe('@actions/github', () => {
 
   beforeAll(async () => {
     // Start proxy server
-    proxyServer = proxy()
+    proxyServer = createProxy(http.createServer())
     await new Promise(resolve => {
       const port = Number(proxyUrl.split(':')[2])
       proxyServer.listen(port, () => resolve(null))
