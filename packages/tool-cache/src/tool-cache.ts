@@ -42,7 +42,7 @@ export async function downloadTool(
   auth?: string,
   headers?: OutgoingHttpHeaders
 ): Promise<string> {
-  dest = dest || path.join(_getTempDirectory(), v4())
+  dest = dest || path.join(_getTempDirectory(), uuidv4())
   await io.mkdirP(path.dirname(dest))
   core.debug(`Downloading ${url}`)
   core.debug(`Destination ${dest}`)
@@ -652,7 +652,7 @@ export async function findFromManifest(
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(_getTempDirectory(), v4())
+    dest = path.join(_getTempDirectory(), uuidv4())
   }
   await io.mkdirP(dest)
   return dest
