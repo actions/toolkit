@@ -40,7 +40,7 @@
     "@actions/core": "^1.9.1",
     "@actions/http-client": "^2.0.1",
     "tmp": "^0.2.1",
-    "tmp-promise": "^3.0.2"
+    "tmp-promise": "^3.0.3"
   },
   "devDependencies": {
     "@types/tmp": "^0.2.1",

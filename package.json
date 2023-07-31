@@ -29,5 +29,8 @@
     "prettier": "^3.0.0",
     "ts-jest": "^27.0.5",
     "typescript": "^4.3.0"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.0"
   }
 }
