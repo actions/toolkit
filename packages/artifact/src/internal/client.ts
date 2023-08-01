@@ -22,12 +22,12 @@ export interface ArtifactClient {
   // TODO Download functionality
 }
 
-export class DefaultArtifactClient implements ArtifactClient {
+export class Client implements ArtifactClient {
   /**
-   * Constructs a DefaultArtifactClient
+   * Constructs a Client
    */
-  static create(): DefaultArtifactClient {
-    return new DefaultArtifactClient()
+  static create(): Client {
+    return new Client()
   }
 
   /**

@@ -1,4 +1,4 @@
-import { ArtifactClient, DefaultArtifactClient} from './internal/internal-artifact-client'
+import { ArtifactClient, Client} from './internal/client'
 import { UploadOptions } from './internal/upload/upload-options'
 import { UploadResponse } from './internal/upload/upload-response'
 
@@ -12,5 +12,5 @@ export {
 }
 
 export function create(): ArtifactClient {
-  return DefaultArtifactClient.create()
+  return Client.create()
 }
