@@ -6,9 +6,9 @@
     "bootstrap": "lerna exec -- npm i",
     "build": "lerna run tsc",
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
-    "format": "prettier --write packages/**/*.ts",
+    "format": "prettier --write './**/*.{ts,tsx}'",
     "format-check": "prettier --check packages/**/*.ts",
-    "lint": "eslint packages/**/*.ts",
+    "lint": "eslint packages/**/*.ts --affected",
     "lint-fix": "eslint packages/**/*.ts --fix",
     "new-package": "scripts/create-package",
     "test": "jest --testTimeout 10000"
