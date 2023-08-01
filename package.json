@@ -27,7 +27,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "flow-bin": "^0.115.0",
     "jest": "^27.2.5",
-    "lerna": "^7.1.4",
+    "lerna": "^7.1.0",
     "prettier": "^3.0.0",
     "ts-jest": "^27.0.5",
     "typescript": "^3.9.9"
