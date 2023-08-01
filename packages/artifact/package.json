@@ -40,6 +40,9 @@
     "@actions/core": "^1.10.0"
   },
   "devDependencies": {
+    "@protobuf-ts/plugin": "^2.2.3-alpha.1",
+    "@types/tmp": "^0.2.1",
+    "twirp-ts": "^2.5.0",
     "typescript": "^3.9.10"
   }
 }
