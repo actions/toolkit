@@ -18,6 +18,8 @@ export interface ArtifactClient {
     rootDirectory: string,
     options?: UploadOptions
   ): Promise<UploadResponse>
+
+  // TODO Download functionality
 }
 
 export class DefaultArtifactClient implements ArtifactClient {
