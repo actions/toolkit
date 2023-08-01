@@ -5,7 +5,7 @@ export interface UploadResponse {
     artifactName: string
   
     /**
-     * Total size of the artifact in bytes that was uploaded
+     * Total size of the artifact that was uploaded in bytes
      */
     size: number
   }
