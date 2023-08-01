@@ -37,15 +37,12 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.9.1",
-    "@actions/http-client": "^2.0.1",
-    "tmp": "^0.2.1",
-    "tmp-promise": "^3.0.2"
+    "@actions/core": "^1.10.0"
   },
   "devDependencies": {
     "@protobuf-ts/plugin": "^2.2.3-alpha.1",
     "@types/tmp": "^0.2.1",
     "twirp-ts": "^2.5.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.10"
   }
 }
