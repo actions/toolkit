@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "audit-all": "lerna run audit-moderate",
-    "bootstrap": "npm install",
+    "bootstrap": "lerna exec -- npm i",
     "build": "lerna run tsc",
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
     "format": "prettier --write packages/**/*.ts",
