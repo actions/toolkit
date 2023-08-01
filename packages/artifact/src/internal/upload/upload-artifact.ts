@@ -16,6 +16,7 @@ export async function uploadArtifact(
     // TODO Twirp call to create new artifact
 
     // TODO Upload to blob storage using SAS URL
+    // testing.ts is being used to prototype this functionality
 
     // TODO Twirp call to finalize the new artifact upload
 
