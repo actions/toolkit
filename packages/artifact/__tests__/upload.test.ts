@@ -216,6 +216,7 @@ describe('Upload Tests', () => {
       )
 
       // accesses the ReadableStream that was passed into sendStream
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       const stream = mocked(HttpClient.prototype.sendStream).mock.calls[0][2]
       expect(stream).not.toBeNull()
       // decompresses the passed stream
