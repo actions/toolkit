@@ -276,7 +276,7 @@ describe('Download Tests', () => {
         ]
       }
       const returnData: string = JSON.stringify(response, null, 2)
-      mockReadBody = async function(): Promise<string> {
+      mockReadBody = async function (): Promise<string> {
         return new Promise(resolve => {
           resolve(returnData)
         })
@@ -447,7 +447,7 @@ describe('Download Tests', () => {
         ]
       }
       const returnData: string = JSON.stringify(response, null, 2)
-      mockReadBody = async function(): Promise<string> {
+      mockReadBody = async function (): Promise<string> {
         return new Promise(resolve => {
           resolve(returnData)
         })

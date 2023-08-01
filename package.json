@@ -21,10 +21,11 @@
     "eslint": "^8.0.1",
     "eslint-plugin-github": "^4.9.2",
     "eslint-plugin-jest": "^27.2.3",
+    "eslint-plugin-prettier": "^5.0.0",
     "flow-bin": "^0.115.0",
     "jest": "^27.2.5",
     "lerna": "^7.1.4",
-    "prettier": "^1.19.1",
+    "prettier": "^3.0.0",
     "ts-jest": "^27.0.5",
     "typescript": "^3.9.9"
   }
