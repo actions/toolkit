@@ -21,7 +21,6 @@ export async function uploadArtifact(
 
     const uploadResponse: UploadResponse = {
       artifactName: name,
-      artifactItems: [],
       size: 0
     }
 

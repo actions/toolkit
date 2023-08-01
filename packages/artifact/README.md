@@ -85,8 +85,6 @@ The returned `UploadResponse` will contain the following information
 
 - `artifactName`
     - The name of the artifact that was uploaded
-- `artifactItems`
-    - A list of all files that describe what is uploaded if there are no errors encountered. Usually this will be equal to the inputted `files` with the exception of empty directories (will not be uploaded)
 - `size`
     - Total size of the artifact that was uploaded in bytes
 

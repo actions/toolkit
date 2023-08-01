@@ -8,9 +8,4 @@ export interface UploadResponse {
      * Total size of the artifact in bytes that was uploaded
      */
     size: number
-
-    /**
-     * A list of items that were uploaded as part of the artifact
-     */
-    artifactItems: string[]
   }
