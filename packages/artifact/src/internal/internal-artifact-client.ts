@@ -1,6 +1,6 @@
-import {checkArtifactName} from './path-and-artifact-name-validation'
-import {UploadOptions} from './upload-options'
-import {UploadResponse} from './upload-response'
+import { UploadOptions } from './upload/upload-options'
+import { UploadResponse } from './upload/upload-response'
+import { uploadArtifact } from './upload/upload-artifact'
 
 export interface ArtifactClient {
   /**
@@ -39,22 +39,6 @@ export class DefaultArtifactClient implements ArtifactClient {
     rootDirectory: string,
     options?: UploadOptions | undefined
   ): Promise<UploadResponse> {
-
-    // Need to keep checking the artifact name
-    checkArtifactName(name)
-
-    // TODO Twirp call to create new artifact
-
-    // TODO Upload to blob storage using SAS URL
-
-    // TODO Twirp call to finalize the new artifact upload
-
-    const uploadResponse: UploadResponse = {
-      artifactName: name,
-      artifactItems: [],
-      size: 0
-    }
-
-    return uploadResponse
+    return uploadArtifact(name, files, rootDirectory, options)
   }
 }

@@ -1,6 +1,6 @@
-import { ArtifactClient, DefaultArtifactClient} from './internal/artifact-client'
-import { UploadOptions } from './internal/upload-options'
-import { UploadResponse } from './internal/upload-response'
+import { ArtifactClient, DefaultArtifactClient} from './internal/internal-artifact-client'
+import { UploadOptions } from './internal/upload/upload-options'
+import { UploadResponse } from './internal/upload/upload-response'
 
 /**
  * Exported functionality that we want to expose for any users of @actions/artifact
