@@ -33,3 +33,18 @@ export function getWorkSpaceDirectory(): string {
 export function getRetentionDays(): string | undefined {
     return process.env['GITHUB_RETENTION_DAYS']
 }
+
+export function getInitialRetryIntervalInMilliseconds(): number {
+  return 3000
+}
+
+// With exponential backoff, the larger the retry count, the larger the wait time before another attempt
+// The retry multiplier controls by how much the backOff time increases depending on the number of retries
+export function getRetryMultiplier(): number {
+  return 1.5
+}
+
+// The maximum number of retries that can be attempted before an upload or download fails
+export function getRetryLimit(): number {
+  return 5
+}

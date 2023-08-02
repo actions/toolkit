@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
+    "@actions/http-client": "^2.1.0",
     "@azure/storage-blob": "^12.15.0",
     "@types/node": "^20.4.5",
     "archiver": "^5.3.1"
