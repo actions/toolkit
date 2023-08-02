@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "audit-all": "lerna run audit-moderate",
-    "bootstrap": "lerna exec -- npm ci",
+    "bootstrap": "lerna exec -- npm install",
     "build": "lerna run tsc",
     "clean": "lerna clean",
     "repair": "lerna repair",

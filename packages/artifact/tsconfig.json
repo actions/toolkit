@@ -4,7 +4,6 @@
     "baseUrl": "./",
     "outDir": "./lib",
     "rootDir": "./src",
-    "useUnknownInCatchVariables": false,
     "paths": {
       "@actions/core": [
         "../core"
