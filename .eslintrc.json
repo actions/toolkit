@@ -15,7 +15,12 @@
     "project": "./tsconfig.eslint.json"
   },
   "rules": {
-    "prettier/prettier": "error",
+    "prettier/prettier": [
+      "error",
+      {
+        "endOfLine": "auto"
+      }
+    ],
     "eslint-comments/no-use": "off",
     "github/no-then": "off",
     "import/no-namespace": "off",
