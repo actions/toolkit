@@ -4,7 +4,7 @@
     "baseUrl": "./",
     "outDir": "./lib",
     "rootDir": "./src",
-    "useUnknownInCatchVariables": false
+    "": false
   },
   "include": [
     "./src"

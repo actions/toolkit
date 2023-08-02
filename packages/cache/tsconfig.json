@@ -8,6 +8,7 @@
       "es6",
       "dom"
     ],
+    "": false,
     "useUnknownInCatchVariables": false
   },
   "include": [
