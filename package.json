@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "audit-all": "lerna run audit-moderate",
-    "bootstrap": "lerna exec -- npm i",
+    "bootstrap": "lerna exec -- npm ci",
     "build": "lerna run tsc",
     "clean": "lerna clean",
     "repair": "lerna repair",
@@ -32,9 +32,5 @@
     "prettier": "^3.0.0",
     "ts-jest": "^27.0.5",
     "typescript": "^3.9.9"
-  },
-  "dependencies": {
-    "@actions/core": "^1.10.0",
-    "@actions/http-client": "^2.1.0"
   }
 }
