@@ -11,7 +11,8 @@
       "@actions/http-client": [
         "../http-client"
       ]
-    }
+    },
+    "useUnknownInCatchVariables": false
   },
   "include": [
     "./src"

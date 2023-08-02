@@ -5,6 +5,7 @@
     "outDir": "./lib",
     "declaration": true,
     "rootDir": "./src",
+    "useUnknownInCatchVariables": false
   },
   "include": [
     "./src"
