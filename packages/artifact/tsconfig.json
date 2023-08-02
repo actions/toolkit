@@ -4,7 +4,15 @@
     "baseUrl": "./",
     "outDir": "./lib",
     "rootDir": "./src",
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    "paths": {
+      "@actions/core": [
+        "../core"
+      ],
+      "@actions/http-client": [
+        "../http-client"
+      ]
+    }
   },
   "include": [
     "./src"
