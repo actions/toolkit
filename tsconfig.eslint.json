@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "exclude": [
-    "node_modules",
-    "packages/glob/__tests__/_temp/*"
+    "node_modules"
   ]
 }
