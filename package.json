@@ -16,6 +16,7 @@
     "test": "jest --testTimeout 10000"
   },
   "devDependencies": {
+    "@types/babel__traverse": "^7.20.1",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.18.1",
     "@types/signale": "^1.4.1",
@@ -28,9 +29,9 @@
     "flow-bin": "^0.115.0",
     "jest": "^27.2.5",
     "lerna": "^7.1.4",
+    "nx": "16.6.0",
     "prettier": "^3.0.0",
     "ts-jest": "^27.0.5",
-    "typescript": "^3.9.9",
-    "nx": "16.6.0"
+    "typescript": "^3.9.9"
   }
 }
