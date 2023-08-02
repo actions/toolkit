@@ -31,7 +31,9 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "bootstrap": "cd ../../ && npm run bootstrap",
+    "tsc-run": "tsc",
+    "tsc": "npm run bootstrap && npm run tsc-run"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
