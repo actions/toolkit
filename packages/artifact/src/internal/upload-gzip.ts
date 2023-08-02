@@ -80,7 +80,8 @@ export async function createGZipFileInBuffer(
     const gzip = zlib.createGzip()
     inputStream.pipe(gzip)
     // read stream into buffer, using experimental async iterators see https://github.com/nodejs/readable-stream/issues/403#issuecomment-479069043
-    const chunks = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chunks: any[] = []
     for await (const chunk of gzip) {
       chunks.push(chunk)
     }
