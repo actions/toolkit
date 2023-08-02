@@ -1,4 +1,4 @@
 node_modules/
 packages/*/node_modules/
 packages/*/lib/
-packages/glob/__tests__/_temp/
+packages/glob/__tests__/_temp/**/
