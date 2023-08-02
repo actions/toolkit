@@ -6,7 +6,15 @@
     "declaration": true,
     "target": "es6",
     "sourceMap": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "paths": {
+      "@actions/core": [
+        "packages/core"
+      ],
+      "@actions/http-client": [
+        "packages/http-client"
+      ],
+    }
   },
   "exclude": [
     "node_modules",
