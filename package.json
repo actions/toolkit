@@ -5,6 +5,8 @@
     "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna exec -- npm i",
     "build": "lerna run tsc",
+    "clean": "lerna clean",
+    "repair": "lerna repair",
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
     "format": "prettier --write packages/**/*.ts",
     "format-check": "prettier --check packages/**/*.ts",
@@ -28,6 +30,7 @@
     "lerna": "^7.1.4",
     "prettier": "^3.0.0",
     "ts-jest": "^27.0.5",
-    "typescript": "^3.9.9"
+    "typescript": "^3.9.9",
+    "nx": "16.6.0"
   }
 }
