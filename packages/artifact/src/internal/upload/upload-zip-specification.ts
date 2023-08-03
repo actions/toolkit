@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import {debug, info, error} from '@actions/core'
+import {info} from '@actions/core'
 import {normalize, resolve} from 'path'
 import {validateFilePath} from './path-and-artifact-name-validation'
 
@@ -19,7 +19,7 @@ export interface UploadZipSpecification {
  * Checks if a root directory exists and is valid
  * @param rootDirectory an absolute root directory path common to all input files that that will be trimmed from the final zip structure
  */
-export function validateRootDirectory(rootDirectory: string) {
+export function validateRootDirectory(rootDirectory: string): void {
   if (!fs.existsSync(rootDirectory)) {
     throw new Error(
       `The provided rootDirectory ${rootDirectory} does not exist`

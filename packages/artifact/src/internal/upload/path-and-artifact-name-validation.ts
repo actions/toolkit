@@ -29,7 +29,7 @@ const invalidArtifactNameCharacters = new Map<string, string>([
 /**
  * Validates the name of the artifact to check to make sure there are no illegal characters
  */
-export function validateArtifactName(name: string) {
+export function validateArtifactName(name: string): void {
   if (!name) {
     throw new Error(`Provided artifact name input during validation is empty`)
   }
