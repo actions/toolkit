@@ -1,5 +1,5 @@
 import { ArtifactHttpClient } from '../../artifact-http-client'
-import { ArtifactServiceClientJSON } from '../../../generated'
+import { ArtifactServiceClientJSON } from '../../../generated/results/api/v1/artifact.twirp'
 
 export async function twirpTest(){
     const artifactClient = new ArtifactHttpClient('@actions/artifact-upload')

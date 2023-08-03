@@ -4,7 +4,7 @@ import {UploadOptions} from './upload-options'
 import {UploadResponse} from './upload-response'
 import { UploadSpecification, getUploadSpecification } from './upload-specification'
 import { ArtifactHttpClient } from '../artifact-http-client'
-import { ArtifactServiceClientJSON } from 'src/generated'
+import { ArtifactServiceClientJSON } from '../../generated/results/api/v1/artifact.twirp'
 
 import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
 import { TransferProgressEvent } from '@azure/core-http';
@@ -14,7 +14,7 @@ import * as stream from 'stream'
 
 import {getBackendIds, BackendIds} from '../util' 
 
-const bufferSize = 1024 * 1024 * 8 // 8 MB 
+const bufferSize = 1024 * 1024 * 8 // 8 MB
 
 // Custom stream transformer so we can set the highWaterMark property
 // See https://github.com/nodejs/node/issues/8855
@@ -56,6 +56,11 @@ export async function uploadArtifact(
         const jsonClient = new ArtifactServiceClientJSON(artifactClient)
 
         const backendIDs: BackendIds = getBackendIds()
+
+        console.log("workflow Run Backend ID " + backendIDs.workflowRunBackendId)
+        console.log("workflow Job Run Backend ID " + backendIDs.workflowJobRunBackendId)
+
+        console.log("hello Rob!!")
 
         try {
 

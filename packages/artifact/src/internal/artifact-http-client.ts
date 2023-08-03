@@ -16,8 +16,9 @@ export class ArtifactHttpClient implements Rpc {
     private baseUrl: string
 
     constructor(userAgent: string) {
+        const token = getRuntimeToken()
         this.httpClient = new HttpClient(userAgent, [
-            new BearerCredentialHandler(getRuntimeToken())
+            new BearerCredentialHandler(token)
         ])
         this.baseUrl = getResultsServiceUrl()
     }
