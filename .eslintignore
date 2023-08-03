@@ -1,5 +1,4 @@
 node_modules/
 packages/*/node_modules/
 packages/*/lib/
-packages/glob/__tests__/_temp/**/
-packages/artifact/__tests__/crc64.test.ts
+packages/glob/__tests__/_temp
