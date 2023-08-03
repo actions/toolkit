@@ -30,8 +30,13 @@ export function getWorkSpaceDirectory(): string {
     return workspaceDirectory
 }
   
-export function getRetentionDays(): string | undefined {
-    return process.env['GITHUB_RETENTION_DAYS']
+export function getRetentionDays(): number | undefined {
+    //const retentionDays = process.env['GITHUB_RETENTION_DAYS']
+    const retentionDays = "30"
+    if (!retentionDays) {
+      return undefined
+    }
+    return parseInt(retentionDays)
 }
 
 export function getInitialRetryIntervalInMilliseconds(): number {

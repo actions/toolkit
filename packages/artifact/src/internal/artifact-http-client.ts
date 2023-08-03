@@ -56,7 +56,7 @@ export class ArtifactHttpClient implements Rpc {
 
                 isRetryable = this.isRetryableStatusCode(statusCode)
                     errorMessage = `Artifact service responded with ${statusCode}`
-            } catch (error: any) {
+            } catch (error) {
                 isRetryable = true
                 errorMessage = error.message
             }
