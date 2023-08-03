@@ -55,7 +55,7 @@ These characters are not allowed in the artifact name due to limitations with ce
 }
 
 /**
- * Validates file paths to check for any illegal characters that can cause problems with on different file systems
+ * Validates file paths to check for any illegal characters that can cause problems on different file systems
  */
 export function validateFilePath(path: string): void {
   if (!path) {
