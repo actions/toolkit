@@ -10,7 +10,7 @@
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
     "format": "prettier --write packages/**/*.ts",
     "format-check": "prettier --check packages/**/*.ts",
-    "lint": "eslint packages/**/*.ts --ignore-pattern '!packages/glob/__tests__/_temp/*' ",
+    "lint": "eslint packages/**/*.ts --ignore-pattern '!packages/artifact/__tests__/crc64.test.ts' ",
     "lint-fix": "eslint packages/**/*.ts --fix",
     "new-package": "scripts/create-package",
     "test": "jest --testTimeout 10000"
