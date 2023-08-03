@@ -3,9 +3,9 @@ import {UploadResponse} from './upload-response'
 
 export async function uploadArtifact(
   name: string,
-  files: string[],
-  rootDirectory: string,
-  options?: UploadOptions | undefined
+  files: string[], // eslint-disable-line @typescript-eslint/no-unused-vars
+  rootDirectory: string, // eslint-disable-line @typescript-eslint/no-unused-vars
+  options?: UploadOptions | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Promise<UploadResponse> {
   // TODO - Implement upload functionality
 
