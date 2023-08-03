@@ -1,6 +1,6 @@
-import { UploadOptions } from './upload/upload-options'
-import { UploadResponse } from './upload/upload-response'
-import { uploadArtifact } from './upload/upload-artifact'
+import {UploadOptions} from './upload/upload-options'
+import {UploadResponse} from './upload/upload-response'
+import {uploadArtifact} from './upload/upload-artifact'
 
 export interface ArtifactClient {
   /**
