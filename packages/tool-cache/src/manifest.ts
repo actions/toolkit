@@ -140,10 +140,7 @@ export function _getOsVersion(): string {
           (parts[0].trim() === 'VERSION_ID' ||
             parts[0].trim() === 'DISTRIB_RELEASE')
         ) {
-          version = parts[1]
-            .trim()
-            .replace(/^"/, '')
-            .replace(/"$/, '')
+          version = parts[1].trim().replace(/^"/, '').replace(/"$/, '')
           break
         }
       }
