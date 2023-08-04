@@ -102,6 +102,20 @@ export class HttpClientResponse {
       })
     })
   }
+
+  async readBodyBuffer?(): Promise<Buffer> {
+    return new Promise<Buffer>(async resolve => {
+      const chunks: Buffer[] = []
+
+      this.message.on('data', (chunk: Buffer) => {
+        chunks.push(chunk)
+      })
+
+      this.message.on('end', () => {
+        resolve(Buffer.concat(chunks))
+      })
+    })
+  }
 }
 
 export function isHttps(requestUrl: string): boolean {
