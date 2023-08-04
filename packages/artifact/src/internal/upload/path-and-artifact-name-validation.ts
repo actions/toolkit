@@ -27,11 +27,11 @@ const invalidArtifactNameCharacters = new Map<string, string>([
 ])
 
 /**
- * Scans the name of the artifact to make sure there are no illegal characters
+ * Validates the name of the artifact to check to make sure there are no illegal characters
  */
-export function checkArtifactName(name: string): void {
+export function validateArtifactName(name: string): void {
   if (!name) {
-    throw new Error(`Artifact name: ${name}, is incorrectly provided`)
+    throw new Error(`Provided artifact name input during validation is empty`)
   }
 
   for (const [
@@ -40,7 +40,7 @@ export function checkArtifactName(name: string): void {
   ] of invalidArtifactNameCharacters) {
     if (name.includes(invalidCharacterKey)) {
       throw new Error(
-        `Artifact name is not valid: ${name}. Contains the following character: ${errorMessageForCharacter}
+        `The artifact name is not valid: ${name}. Contains the following character: ${errorMessageForCharacter}
           
 Invalid characters include: ${Array.from(
           invalidArtifactNameCharacters.values()
@@ -55,11 +55,11 @@ These characters are not allowed in the artifact name due to limitations with ce
 }
 
 /**
- * Scans the name of the filePath used to make sure there are no illegal characters
+ * Validates file paths to check for any illegal characters that can cause problems on different file systems
  */
-export function checkArtifactFilePath(path: string): void {
+export function validateFilePath(path: string): void {
   if (!path) {
-    throw new Error(`Artifact path: ${path}, is incorrectly provided`)
+    throw new Error(`Provided file path input during validation is empty`)
   }
 
   for (const [
@@ -68,7 +68,7 @@ export function checkArtifactFilePath(path: string): void {
   ] of invalidArtifactFilePathCharacters) {
     if (path.includes(invalidCharacterKey)) {
       throw new Error(
-        `Artifact path is not valid: ${path}. Contains the following character: ${errorMessageForCharacter}
+        `The path for one of the files in artifact is not valid: ${path}. Contains the following character: ${errorMessageForCharacter}
           
 Invalid characters include: ${Array.from(
           invalidArtifactFilePathCharacters.values()

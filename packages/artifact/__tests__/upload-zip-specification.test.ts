@@ -2,9 +2,11 @@ import * as io from '../../io/src/io'
 import * as path from 'path'
 import {promises as fs} from 'fs'
 import * as core from '@actions/core'
-import {getUploadSpecification} from '../src/internal/upload-specification'
+import {
+  getUploadZipSpecification,
+  validateRootDirectory
+} from '../src/internal/upload/upload-zip-specification'
 
-const artifactName = 'my-artifact'
 const root = path.join(__dirname, '_temp', 'upload-specification')
 const goodItem1Path = path.join(
   root,
@@ -125,31 +127,28 @@ describe('Search', () => {
       'upload-specification-invalid'
     )
     expect(() => {
-      getUploadSpecification(
-        artifactName,
-        invalidRootDirectory,
-        artifactFilesToUpload
-      )
-    }).toThrow(`Provided rootDirectory ${invalidRootDirectory} does not exist`)
+      validateRootDirectory(invalidRootDirectory)
+    }).toThrow(
+      `The provided rootDirectory ${invalidRootDirectory} does not exist`
+    )
   })
 
   it('Upload Specification - Fail invalid rootDirectory', async () => {
     expect(() => {
-      getUploadSpecification(artifactName, goodItem1Path, artifactFilesToUpload)
+      validateRootDirectory(goodItem1Path)
     }).toThrow(
-      `Provided rootDirectory ${goodItem1Path} is not a valid directory`
+      `The provided rootDirectory ${goodItem1Path} is not a valid directory`
     )
   })
 
   it('Upload Specification - File does not exist', async () => {
     const fakeFilePath = path.join(
-      artifactName,
       'folder-a',
       'folder-b',
       'non-existent-file.txt'
     )
     expect(() => {
-      getUploadSpecification(artifactName, root, [fakeFilePath])
+      getUploadZipSpecification([fakeFilePath], root)
     }).toThrow(`File ${fakeFilePath} does not exist`)
   })
 
@@ -162,21 +161,20 @@ describe('Search', () => {
       goodItem5Path
     ]
     expect(() => {
-      getUploadSpecification(artifactName, folderADirectory, artifactFiles)
+      getUploadZipSpecification(artifactFiles, folderADirectory)
     }).toThrow(
       `The rootDirectory: ${folderADirectory} is not a parent directory of the file: ${goodItem5Path}`
     )
   })
 
   it('Upload Specification - Success', async () => {
-    const specifications = getUploadSpecification(
-      artifactName,
-      root,
-      artifactFilesToUpload
+    const specifications = getUploadZipSpecification(
+      artifactFilesToUpload,
+      root
     )
     expect(specifications.length).toEqual(7)
 
-    const absolutePaths = specifications.map(item => item.absoluteFilePath)
+    const absolutePaths = specifications.map(item => item.sourcePath)
     expect(absolutePaths).toContain(goodItem1Path)
     expect(absolutePaths).toContain(goodItem2Path)
     expect(absolutePaths).toContain(goodItem3Path)
@@ -186,45 +184,38 @@ describe('Search', () => {
     expect(absolutePaths).toContain(amazingFileInFolderHPath)
 
     for (const specification of specifications) {
-      if (specification.absoluteFilePath === goodItem1Path) {
-        expect(specification.uploadFilePath).toEqual(
+      if (specification.sourcePath === goodItem1Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-a', 'folder-b', 'folder-c', 'good-item1.txt')
+        )
+      } else if (specification.sourcePath === goodItem2Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-d', 'good-item2.txt')
+        )
+      } else if (specification.sourcePath === goodItem3Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-d', 'good-item3.txt')
+        )
+      } else if (specification.sourcePath === goodItem4Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-d', 'good-item4.txt')
+        )
+      } else if (specification.sourcePath === goodItem5Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/good-item5.txt')
+        )
+      } else if (specification.sourcePath === extraFileInFolderCPath) {
+        expect(specification.destinationPath).toEqual(
           path.join(
-            artifactName,
-            'folder-a',
-            'folder-b',
-            'folder-c',
-            'good-item1.txt'
-          )
-        )
-      } else if (specification.absoluteFilePath === goodItem2Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item2.txt')
-        )
-      } else if (specification.absoluteFilePath === goodItem3Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item3.txt')
-        )
-      } else if (specification.absoluteFilePath === goodItem4Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item4.txt')
-        )
-      } else if (specification.absoluteFilePath === goodItem5Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'good-item5.txt')
-        )
-      } else if (specification.absoluteFilePath === extraFileInFolderCPath) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(
-            artifactName,
-            'folder-a',
+            '/folder-a',
             'folder-b',
             'folder-c',
             'extra-file-in-folder-c.txt'
           )
         )
-      } else if (specification.absoluteFilePath === amazingFileInFolderHPath) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-h', 'amazing-item.txt')
+      } else if (specification.sourcePath === amazingFileInFolderHPath) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-h', 'amazing-item.txt')
         )
       } else {
         throw new Error(
@@ -236,14 +227,13 @@ describe('Search', () => {
 
   it('Upload Specification - Success with extra slash', async () => {
     const rootWithSlash = `${root}/`
-    const specifications = getUploadSpecification(
-      artifactName,
-      rootWithSlash,
-      artifactFilesToUpload
+    const specifications = getUploadZipSpecification(
+      artifactFilesToUpload,
+      rootWithSlash
     )
     expect(specifications.length).toEqual(7)
 
-    const absolutePaths = specifications.map(item => item.absoluteFilePath)
+    const absolutePaths = specifications.map(item => item.sourcePath)
     expect(absolutePaths).toContain(goodItem1Path)
     expect(absolutePaths).toContain(goodItem2Path)
     expect(absolutePaths).toContain(goodItem3Path)
@@ -253,45 +243,38 @@ describe('Search', () => {
     expect(absolutePaths).toContain(amazingFileInFolderHPath)
 
     for (const specification of specifications) {
-      if (specification.absoluteFilePath === goodItem1Path) {
-        expect(specification.uploadFilePath).toEqual(
+      if (specification.sourcePath === goodItem1Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-a', 'folder-b', 'folder-c', 'good-item1.txt')
+        )
+      } else if (specification.sourcePath === goodItem2Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-d', 'good-item2.txt')
+        )
+      } else if (specification.sourcePath === goodItem3Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-d', 'good-item3.txt')
+        )
+      } else if (specification.sourcePath === goodItem4Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-d', 'good-item4.txt')
+        )
+      } else if (specification.sourcePath === goodItem5Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/good-item5.txt')
+        )
+      } else if (specification.sourcePath === extraFileInFolderCPath) {
+        expect(specification.destinationPath).toEqual(
           path.join(
-            artifactName,
-            'folder-a',
-            'folder-b',
-            'folder-c',
-            'good-item1.txt'
-          )
-        )
-      } else if (specification.absoluteFilePath === goodItem2Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item2.txt')
-        )
-      } else if (specification.absoluteFilePath === goodItem3Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item3.txt')
-        )
-      } else if (specification.absoluteFilePath === goodItem4Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item4.txt')
-        )
-      } else if (specification.absoluteFilePath === goodItem5Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'good-item5.txt')
-        )
-      } else if (specification.absoluteFilePath === extraFileInFolderCPath) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(
-            artifactName,
-            'folder-a',
+            '/folder-a',
             'folder-b',
             'folder-c',
             'extra-file-in-folder-c.txt'
           )
         )
-      } else if (specification.absoluteFilePath === amazingFileInFolderHPath) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-h', 'amazing-item.txt')
+      } else if (specification.sourcePath === amazingFileInFolderHPath) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-h', 'amazing-item.txt')
         )
       } else {
         throw new Error(
@@ -301,47 +284,23 @@ describe('Search', () => {
     }
   })
 
-  it('Upload Specification - Directories should not be included', async () => {
+  it('Upload Specification - Empty Directories are included', async () => {
     const folderEPath = path.join(root, 'folder-a', 'folder-b', 'folder-e')
-    const filesWithDirectory = [
-      goodItem1Path,
-      goodItem4Path,
-      folderEPath,
-      badItem3Path
-    ]
-    const specifications = getUploadSpecification(
-      artifactName,
-      root,
-      filesWithDirectory
-    )
-    expect(specifications.length).toEqual(3)
-    const absolutePaths = specifications.map(item => item.absoluteFilePath)
+    const filesWithDirectory = [goodItem1Path, folderEPath]
+    const specifications = getUploadZipSpecification(filesWithDirectory, root)
+    expect(specifications.length).toEqual(2)
+    const absolutePaths = specifications.map(item => item.sourcePath)
     expect(absolutePaths).toContain(goodItem1Path)
-    expect(absolutePaths).toContain(goodItem4Path)
-    expect(absolutePaths).toContain(badItem3Path)
+    expect(absolutePaths).toContain(null)
 
     for (const specification of specifications) {
-      if (specification.absoluteFilePath === goodItem1Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(
-            artifactName,
-            'folder-a',
-            'folder-b',
-            'folder-c',
-            'good-item1.txt'
-          )
+      if (specification.sourcePath === goodItem1Path) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-a', 'folder-b', 'folder-c', 'good-item1.txt')
         )
-      } else if (specification.absoluteFilePath === goodItem2Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item2.txt')
-        )
-      } else if (specification.absoluteFilePath === goodItem4Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-d', 'good-item4.txt')
-        )
-      } else if (specification.absoluteFilePath === badItem3Path) {
-        expect(specification.uploadFilePath).toEqual(
-          path.join(artifactName, 'folder-f', 'bad-item3.txt')
+      } else if (specification.sourcePath === null) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/folder-a', 'folder-b', 'folder-e')
         )
       } else {
         throw new Error(

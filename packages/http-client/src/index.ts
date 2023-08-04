@@ -533,7 +533,7 @@ export class HttpClient {
       handleResult(new Error(`Request timeout: ${info.options.path}`))
     })
 
-    req.on('error', function(err) {
+    req.on('error', function (err) {
       // err has statusCode property
       // res should have headers
       handleResult(err)
@@ -544,7 +544,7 @@ export class HttpClient {
     }
 
     if (data && typeof data !== 'string') {
-      data.on('close', function() {
+      data.on('close', function () {
         req.end()
       })
 

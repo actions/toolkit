@@ -1,3 +1,5 @@
+# Temporarily disabled while v2.0.0 of @actions/artifact is under development
+
 name: artifact-unit-tests
 on:
   push:
