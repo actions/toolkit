@@ -1,7 +1,7 @@
 import { HttpClient, HttpClientResponse, HttpCodes } from "@actions/http-client"
 import { BearerCredentialHandler } from "@actions/http-client/lib/auth"
 import { info } from "@actions/core"
-import { ArtifactServiceClientJSON } from "src/generated"
+import { ArtifactServiceClientJSON } from "../../generated"
 import { getResultsServiceUrl, getRuntimeToken } from "./config"
 
 // The twirp http client must implement this interface
