@@ -271,11 +271,16 @@ export async function downloadCacheHttpClientConcurrent(
 
     const waitAndWrite: () => Promise<void> = async () => {
       const segment = await Promise.race(Object.values(activeDownloads))
-      await archiveDescriptor.write(segment.buffer, 0, segment.count, segment.offset);
+      await archiveDescriptor.write(
+        segment.buffer,
+        0,
+        segment.count,
+        segment.offset
+      )
       actives--
       delete activeDownloads[segment.offset]
       bytesDownloaded += segment.count
-      progressFn({ loadedBytes: bytesDownloaded })
+      progressFn({loadedBytes: bytesDownloaded})
     }
 
     while ((nextDownload = downloads.pop())) {
@@ -308,7 +313,10 @@ async function downloadSegmentRetry(
   while (true) {
     try {
       const timeout = 30000
-      const result = await promiseWithTimeout(timeout, downloadSegment(httpClient, archiveLocation, offset, count))
+      const result = await promiseWithTimeout(
+        timeout,
+        downloadSegment(httpClient, archiveLocation, offset, count)
+      )
       if (typeof result === 'string') {
         throw new Error('downloadSegmentRetry failed due to timeout')
       }
@@ -337,10 +345,15 @@ async function downloadSegment(
         Range: `bytes=${offset}-${offset + count - 1}`
       })
   )
+
+  if (!partRes.readBodyBuffer) {
+    throw new Error('Expected HttpClientResponse to implement readBodyBuffer')
+  }
+
   return {
     offset,
     count,
-    buffer: await partRes.readBodyBuffer!()
+    buffer: await partRes.readBodyBuffer()
   }
 }
 
@@ -434,7 +447,7 @@ export async function downloadCacheStorageSDK(
   }
 }
 
-const promiseWithTimeout = async<T> (
+const promiseWithTimeout = async <T>(
   timeoutMs: number,
   promise: Promise<T>
 ): Promise<T | string> => {
