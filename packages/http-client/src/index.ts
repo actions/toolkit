@@ -103,7 +103,7 @@ export class HttpClientResponse {
     })
   }
 
-  async readBodyBuffer(): Promise<Buffer> {
+  async readBodyBuffer?(): Promise<Buffer> {
     return new Promise<Buffer>(async resolve => {
       const chunks: Buffer[] = []
 
