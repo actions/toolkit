@@ -5,7 +5,8 @@ import {
   getUploadOptions
 } from '../src/options'
 
-const useAzureSdk = true
+const useAzureSdk = false
+const concurrentBlobDownloads = true
 const downloadConcurrency = 8
 const timeoutInMs = 30000
 const segmentTimeoutInMs = 600000
@@ -18,6 +19,7 @@ test('getDownloadOptions sets defaults', async () => {
 
   expect(actualOptions).toEqual({
     useAzureSdk,
+    concurrentBlobDownloads,
     downloadConcurrency,
     timeoutInMs,
     segmentTimeoutInMs,
@@ -27,7 +29,8 @@ test('getDownloadOptions sets defaults', async () => {
 
 test('getDownloadOptions overrides all settings', async () => {
   const expectedOptions: DownloadOptions = {
-    useAzureSdk: false,
+    useAzureSdk: true,
+    concurrentBlobDownloads: false,
     downloadConcurrency: 14,
     timeoutInMs: 20000,
     segmentTimeoutInMs: 3600000,

@@ -20,7 +20,7 @@ import {
   ITypedResponseWithError,
   ArtifactCacheList
 } from './contracts'
-import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
+import {downloadCacheHttpClient, downloadCacheHttpClientConcurrent, downloadCacheStorageSDK} from './downloadUtils'
 import {
   DownloadOptions,
   UploadOptions,
@@ -171,15 +171,19 @@ export async function downloadCache(
   const archiveUrl = new URL(archiveLocation)
   const downloadOptions = getDownloadOptions(options)
 
-  if (
-    downloadOptions.useAzureSdk &&
-    archiveUrl.hostname.endsWith('.blob.core.windows.net')
-  ) {
-    // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-    await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
+  if (archiveUrl.hostname.endsWith('.blob.core.windows.net')) {
+    if (downloadOptions.useAzureSdk) {
+      // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
+      await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
+    } else if (downloadOptions.concurrentBlobDownloads) {
+      // Use concurrent implementation with HttpClient to work around blob SDK issue
+      await downloadCacheHttpClientConcurrent(archiveLocation, archivePath, downloadOptions)
+    } else {
+      // Otherwise, download using the Actions http-client.
+      await downloadCacheHttpClient(archiveLocation, archivePath)
+    }
   } else {
-    // Otherwise, download using the Actions http-client.
-    await downloadCacheHttpClient(archiveLocation, archivePath)
+      await downloadCacheHttpClient(archiveLocation, archivePath)
   }
 }
 
