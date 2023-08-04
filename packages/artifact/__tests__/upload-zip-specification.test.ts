@@ -284,7 +284,7 @@ describe('Search', () => {
     }
   })
 
-  it('Upload Specification - Directories should not be included', async () => {
+  it('Upload Specification - Empty Directories are included', async () => {
     const folderEPath = path.join(root, 'folder-a', 'folder-b', 'folder-e')
     const filesWithDirectory = [goodItem1Path, folderEPath]
     const specifications = getUploadZipSpecification(filesWithDirectory, root)
