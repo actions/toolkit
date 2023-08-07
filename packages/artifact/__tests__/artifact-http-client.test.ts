@@ -11,11 +11,11 @@ describe("artifact-http-client", () => {
     jest.spyOn(core, "debug").mockImplementation(() => {})
     jest.spyOn(core, "info").mockImplementation(() => {})
     jest.spyOn(core, "warning").mockImplementation(() => {})
+    jest.spyOn(config, "getResultsServiceUrl").mockReturnValue("http://localhost:8080")
+    jest.spyOn(config, "getRuntimeToken").mockReturnValue("token")
   })
 
   it("should successfully create a client", () => {
-    jest.spyOn(config, "getResultsServiceUrl").mockReturnValue("http://localhost:8080")
-    jest.spyOn(config, "getRuntimeToken").mockReturnValue("token")
     const client = createArtifactTwirpClient("upload")
     expect(client).toBeDefined()
   })
@@ -27,7 +27,8 @@ describe("artifact-http-client", () => {
         workflowRunBackendId: "1234", 
         workflowJobRunBackendId: "5678", 
         name: "artifact", 
-        version: 4}
+        version: 4
+      }
     )
     expect(artifact).toBeDefined()
   })

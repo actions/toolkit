@@ -21,13 +21,17 @@ class ArtifactHttpClient implements Rpc {
   private baseRetryIntervalMilliseconds: number = 3000
   private retryMultiplier: number = 1.5
 
-  constructor(userAgent: string) {
+  constructor(userAgent: string, httpClient?: HttpClient) {
     const token = getRuntimeToken()
-    this.httpClient = new HttpClient(
-      userAgent,
-      [new BearerCredentialHandler(token)],
-    )
     this.baseUrl = getResultsServiceUrl()
+    if (httpClient) {
+      this.httpClient = httpClient
+    } else {
+      this.httpClient = new HttpClient(
+        userAgent,
+        [new BearerCredentialHandler(token)],
+      )
+    }
   }
 
   // This function satisfies the Rpc interface. It is compatible with the JSON
@@ -127,7 +131,7 @@ class ArtifactHttpClient implements Rpc {
   }
 }
 
-export function createArtifactTwirpClient(type: "upload" | "download"): ArtifactServiceClientJSON {
-  const client = new ArtifactHttpClient(`@actions/artifact-${type}`)
+export function createArtifactTwirpClient(type: "upload" | "download", httpClient?: HttpClient): ArtifactServiceClientJSON {
+  const client = new ArtifactHttpClient(`@actions/artifact-${type}`, httpClient)
   return new ArtifactServiceClientJSON(client)
 }
