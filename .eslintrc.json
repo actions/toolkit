@@ -22,6 +22,7 @@
       }
     ],
     "eslint-comments/no-use": "off",
+    "no-constant-condition": ["error", { "checkLoops": false }],
     "github/no-then": "off",
     "import/no-namespace": "off",
     "no-shadow": "off",

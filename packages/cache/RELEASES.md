@@ -160,3 +160,7 @@
 ### 3.2.1
 
 - Updated @azure/storage-blob to `v12.13.0`
+
+### 3.2.2
+
+- Add new default cache download method to improve performance and reduce hangs [#1484](https://github.com/actions/toolkit/pull/1484)
