@@ -6,20 +6,15 @@ import { createArtifactTwirpClient } from "../src/internal/shared/artifact-twirp
 import * as core from "@actions/core"
 
 
-const mockPost = jest.fn((statusCode: number, body: string) => {
-  const msg = new http.IncomingMessage(new net.Socket())
-  msg.statusCode = statusCode
-  return {
-    message: msg,
-    readBody: () => {return Promise.resolve(body)}
-  } 
-})
+const mockPost = jest.fn()
 jest.mock("@actions/http-client", () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      post: mockPost
-    }
-  })
+  return {
+    HttpClient: jest.fn().mockImplementation(() => {
+      return {
+        post: mockPost
+      }
+    })
+  }
 })
 
 describe("artifact-http-client", () => {
@@ -35,7 +30,7 @@ describe("artifact-http-client", () => {
 
   beforeEach(() => {
     mockPost.mockClear();
-    (HttpClient as unknown as jest.Mock).mockClear()
+
   })
 
   it("should successfully create a client", () => {
@@ -58,7 +53,16 @@ describe("artifact-http-client", () => {
       }
     })
     */
-    const client = createArtifactTwirpClient("upload", new HttpClient())
+    mockPost.mockImplementationOnce(() => {
+      const msg = new http.IncomingMessage(new net.Socket())
+      msg.statusCode = 200
+      return {
+        message: msg,
+        readBody: () => {return Promise.resolve(`{"ok": true, "signedUploadUrl": "http://localhost:8080/upload"}`)}
+      }
+    })
+
+    const client = createArtifactTwirpClient("upload")
     const artifact = await client.CreateArtifact(
       {
         workflowRunBackendId: "1234", 
@@ -68,7 +72,7 @@ describe("artifact-http-client", () => {
       }
     )
 
-    expect(mockHttpClient).toHaveBeenCalledTimes(1)
+    expect(mockPost).toHaveBeenCalledTimes(1)
     expect(artifact).toBeDefined()
     expect(artifact.ok).toBe(true)
     expect(artifact.signedUploadUrl).toBe("http://localhost:8080/upload")
@@ -92,18 +96,21 @@ describe("artifact-http-client", () => {
       } 
     })
     */
-    const msgFailed = new http.IncomingMessage(new net.Socket())
-    msgFailed.statusCode = 500
-    const msgSucceeded = new http.IncomingMessage(new net.Socket())
-    msgSucceeded.statusCode = 200
 
-    const mockPost = jest.fn()
-    mockPost.mockReturnValueOnce({
-      message: msgFailed,
-      readBody: () => {return Promise.resolve(`{"ok": false}`)}
-    }).mockReturnValue({
-      message: msgSucceeded,
-      readBody: () => {return Promise.resolve(`{"ok": true, "signedUploadUrl": "http://localhost:8080/upload"}`)}
+    mockPost.mockImplementationOnce(() => {
+      const msgFailed = new http.IncomingMessage(new net.Socket())
+      msgFailed.statusCode = 500
+      return {
+        message: msgFailed,
+        readBody: () => {return Promise.resolve(`{"ok": false}`)}
+      }
+    }).mockImplementationOnce(() => {
+      const msgSucceeded = new http.IncomingMessage(new net.Socket())
+      msgSucceeded.statusCode = 200
+      return {
+        message: msgSucceeded,
+        readBody: () => {return Promise.resolve(`{"ok": true, "signedUploadUrl": "http://localhost:8080/upload"}`)}
+      }
     })
 
     /*
@@ -124,8 +131,6 @@ describe("artifact-http-client", () => {
         readBody: () => {return Promise.resolve(`{"ok": true, "signedUploadUrl": "http://localhost:8080/lol/upload"}`)}
       }
     })
-    */
-
     jest.mock("@actions/http-client", () => {
       return jest.fn().mockImplementation(() => {
         return {
@@ -133,7 +138,6 @@ describe("artifact-http-client", () => {
         }
       })
     })
-    /*
     jest.mock("@actions/http-client", () => {
       return {
         HttpClient: jest.fn().mockImplementation(() => {
@@ -152,7 +156,7 @@ describe("artifact-http-client", () => {
     })
     */
 
-    const client = createArtifactTwirpClient("upload", new HttpClient())
+    const client = createArtifactTwirpClient("upload")
     const artifact = await client.CreateArtifact(
       {
         workflowRunBackendId: "1234", 

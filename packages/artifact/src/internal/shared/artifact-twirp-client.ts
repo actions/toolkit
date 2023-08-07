@@ -21,17 +21,13 @@ class ArtifactHttpClient implements Rpc {
   private baseRetryIntervalMilliseconds: number = 3000
   private retryMultiplier: number = 1.5
 
-  constructor(userAgent: string, httpClient?: HttpClient) {
+  constructor(userAgent: string) {
     const token = getRuntimeToken()
     this.baseUrl = getResultsServiceUrl()
-    if (httpClient) {
-      this.httpClient = httpClient
-    } else {
-      this.httpClient = new HttpClient(
-        userAgent,
-        [new BearerCredentialHandler(token)],
-      )
-    }
+    this.httpClient = new HttpClient(
+      userAgent,
+      [new BearerCredentialHandler(token)],
+    )
   }
 
   // This function satisfies the Rpc interface. It is compatible with the JSON
@@ -79,11 +75,18 @@ class ArtifactHttpClient implements Rpc {
         throw new Error(errorMessage)
       }
 
+      if (attempt + 1 === this.maxAttempts) {
+        info(`Final attempt failed with error: ${errorMessage}`)
+        break
+      }
+
+      const retryTimeMilliseconds = this.getExponentialRetryTimeMilliseconds(attempt)
+
       info(
-        `Attempt ${attempt + 1} of ${this.maxAttempts} failed with error: ${errorMessage}. Retrying request...`
+        `Attempt ${attempt + 1} of ${this.maxAttempts} failed with error: ${errorMessage}. Retrying request in ${retryTimeMilliseconds} ms...`
       )
 
-      await this.sleep(this.getExponentialRetryTimeMilliseconds(attempt))
+      await this.sleep(retryTimeMilliseconds)
       attempt++
     }
 
@@ -131,7 +134,7 @@ class ArtifactHttpClient implements Rpc {
   }
 }
 
-export function createArtifactTwirpClient(type: "upload" | "download", httpClient?: HttpClient): ArtifactServiceClientJSON {
-  const client = new ArtifactHttpClient(`@actions/artifact-${type}`, httpClient)
+export function createArtifactTwirpClient(type: "upload" | "download"): ArtifactServiceClientJSON {
+  const client = new ArtifactHttpClient(`@actions/artifact-${type}`)
   return new ArtifactServiceClientJSON(client)
 }
