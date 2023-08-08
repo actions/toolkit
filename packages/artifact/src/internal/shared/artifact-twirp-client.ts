@@ -21,9 +21,19 @@ class ArtifactHttpClient implements Rpc {
   private baseRetryIntervalMilliseconds: number = 3000
   private retryMultiplier: number = 1.5
 
-  constructor(userAgent: string) {
+  constructor(userAgent: string, maxAttempts?: number, baseRetryIntervalMilliseconds?: number, retryMultiplier?: number) {
     const token = getRuntimeToken()
     this.baseUrl = getResultsServiceUrl()
+    if (maxAttempts) {
+      this.maxAttempts = maxAttempts
+    }
+    if (baseRetryIntervalMilliseconds) {
+      this.baseRetryIntervalMilliseconds = baseRetryIntervalMilliseconds
+    }
+    if (retryMultiplier) {
+      this.retryMultiplier = retryMultiplier
+    }
+
     this.httpClient = new HttpClient(
       userAgent,
       [new BearerCredentialHandler(token)],
@@ -42,22 +52,27 @@ class ArtifactHttpClient implements Rpc {
     let headers = {
       "Content-Type": contentType,
     }
+    info(`Making request to ${url} with data: ${JSON.stringify(data)}`)
 
-    const response = await this.retryableRequest(this.httpClient.post(url, JSON.stringify(data), headers))
-    const body = await response.readBody()
-    return JSON.parse(body)
+    try {
+      const response = await this.retryableRequest(() => this.httpClient.post(url, JSON.stringify(data), headers))
+      const body = await response.readBody()
+      return JSON.parse(body)
+    } catch (error) {
+      throw new Error(error.message)
+    }
   }
 
   async retryableRequest(
-    operation: Promise<HttpClientResponse>
+    operation: () => Promise<HttpClientResponse>,
   ): Promise<HttpClientResponse> {
     let attempt = 0
+    let errorMessage = ""
     while (attempt < this.maxAttempts) {
       let isRetryable = false
-      let errorMessage = ""
 
       try {
-        const response = await operation
+        const response = await operation()
         const statusCode = response.message.statusCode
 
         if (this.isSuccessStatusCode(statusCode)) {
@@ -72,25 +87,22 @@ class ArtifactHttpClient implements Rpc {
       }
 
       if (!isRetryable) {
-        throw new Error(errorMessage)
+        throw new Error(`Received non-retryable error: ${errorMessage}`)
       }
 
       if (attempt + 1 === this.maxAttempts) {
-        info(`Final attempt failed with error: ${errorMessage}`)
-        break
+        throw new Error(`Failed to make request after ${this.maxAttempts} attempts: ${errorMessage}`)
       }
 
       const retryTimeMilliseconds = this.getExponentialRetryTimeMilliseconds(attempt)
-
       info(
         `Attempt ${attempt + 1} of ${this.maxAttempts} failed with error: ${errorMessage}. Retrying request in ${retryTimeMilliseconds} ms...`
       )
-
       await this.sleep(retryTimeMilliseconds)
       attempt++
     }
 
-    throw new Error(`Failed to make request after ${this.maxAttempts} attempts`)
+    throw new Error(`Request failed`)
   }
 
   isSuccessStatusCode(statusCode?: number): boolean {
@@ -134,7 +146,17 @@ class ArtifactHttpClient implements Rpc {
   }
 }
 
-export function createArtifactTwirpClient(type: "upload" | "download"): ArtifactServiceClientJSON {
-  const client = new ArtifactHttpClient(`@actions/artifact-${type}`)
+export function createArtifactTwirpClient(
+  type: "upload" | "download",
+  maxAttempts?: number,
+  baseRetryIntervalMilliseconds?: number,
+  retryMultiplier?: number
+): ArtifactServiceClientJSON {
+  const client = new ArtifactHttpClient(
+    `@actions/artifact-${type}`, 
+    maxAttempts, 
+    baseRetryIntervalMilliseconds, 
+    retryMultiplier
+  )
   return new ArtifactServiceClientJSON(client)
 }
