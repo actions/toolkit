@@ -1,15 +1,15 @@
-import { HttpClient, HttpClientResponse, HttpCodes } from "@actions/http-client"
-import { BearerCredentialHandler } from "@actions/http-client/lib/auth"
-import { info } from "@actions/core"
-import { ArtifactServiceClientJSON } from "../../generated"
-import { getResultsServiceUrl, getRuntimeToken } from "./config"
+import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
+import {info} from '@actions/core'
+import {ArtifactServiceClientJSON} from '../../generated'
+import {getResultsServiceUrl, getRuntimeToken} from './config'
 
 // The twirp http client must implement this interface
 interface Rpc {
   request(
     service: string,
     method: string,
-    contentType: "application/json" | "application/protobuf",
+    contentType: 'application/json' | 'application/protobuf',
     data: object | Uint8Array
   ): Promise<object | Uint8Array>
 }
@@ -21,7 +21,12 @@ class ArtifactHttpClient implements Rpc {
   private baseRetryIntervalMilliseconds: number = 3000
   private retryMultiplier: number = 1.5
 
-  constructor(userAgent: string, maxAttempts?: number, baseRetryIntervalMilliseconds?: number, retryMultiplier?: number) {
+  constructor(
+    userAgent: string,
+    maxAttempts?: number,
+    baseRetryIntervalMilliseconds?: number,
+    retryMultiplier?: number
+  ) {
     const token = getRuntimeToken()
     this.baseUrl = getResultsServiceUrl()
     if (maxAttempts) {
@@ -34,10 +39,9 @@ class ArtifactHttpClient implements Rpc {
       this.retryMultiplier = retryMultiplier
     }
 
-    this.httpClient = new HttpClient(
-      userAgent,
-      [new BearerCredentialHandler(token)],
-    )
+    this.httpClient = new HttpClient(userAgent, [
+      new BearerCredentialHandler(token)
+    ])
   }
 
   // This function satisfies the Rpc interface. It is compatible with the JSON
@@ -45,17 +49,19 @@ class ArtifactHttpClient implements Rpc {
   async request(
     service: string,
     method: string,
-    contentType: "application/json" | "application/protobuf",
+    contentType: 'application/json' | 'application/protobuf',
     data: object | Uint8Array
   ): Promise<object | Uint8Array> {
     let url = `${this.baseUrl}/twirp/${service}/${method}`
     let headers = {
-      "Content-Type": contentType,
+      'Content-Type': contentType
     }
     info(`Making request to ${url} with data: ${JSON.stringify(data)}`)
 
     try {
-      const response = await this.retryableRequest(() => this.httpClient.post(url, JSON.stringify(data), headers))
+      const response = await this.retryableRequest(() =>
+        this.httpClient.post(url, JSON.stringify(data), headers)
+      )
       const body = await response.readBody()
       return JSON.parse(body)
     } catch (error) {
@@ -64,10 +70,10 @@ class ArtifactHttpClient implements Rpc {
   }
 
   async retryableRequest(
-    operation: () => Promise<HttpClientResponse>,
+    operation: () => Promise<HttpClientResponse>
   ): Promise<HttpClientResponse> {
     let attempt = 0
-    let errorMessage = ""
+    let errorMessage = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
 
@@ -91,12 +97,17 @@ class ArtifactHttpClient implements Rpc {
       }
 
       if (attempt + 1 === this.maxAttempts) {
-        throw new Error(`Failed to make request after ${this.maxAttempts} attempts: ${errorMessage}`)
+        throw new Error(
+          `Failed to make request after ${this.maxAttempts} attempts: ${errorMessage}`
+        )
       }
 
-      const retryTimeMilliseconds = this.getExponentialRetryTimeMilliseconds(attempt)
+      const retryTimeMilliseconds =
+        this.getExponentialRetryTimeMilliseconds(attempt)
       info(
-        `Attempt ${attempt + 1} of ${this.maxAttempts} failed with error: ${errorMessage}. Retrying request in ${retryTimeMilliseconds} ms...`
+        `Attempt ${attempt + 1} of ${
+          this.maxAttempts
+        } failed with error: ${errorMessage}. Retrying request in ${retryTimeMilliseconds} ms...`
       )
       await this.sleep(retryTimeMilliseconds)
       attempt++
@@ -131,14 +142,15 @@ class ArtifactHttpClient implements Rpc {
 
   getExponentialRetryTimeMilliseconds(attempt: number): number {
     if (attempt < 0) {
-      throw new Error("attempt should be a positive integer")
+      throw new Error('attempt should be a positive integer')
     }
 
     if (attempt === 0) {
       return this.baseRetryIntervalMilliseconds
     }
 
-    const minTime = this.baseRetryIntervalMilliseconds * this.retryMultiplier ** (attempt)
+    const minTime =
+      this.baseRetryIntervalMilliseconds * this.retryMultiplier ** attempt
     const maxTime = minTime * this.retryMultiplier
 
     // returns a random number between minTime and maxTime (exclusive)
@@ -147,15 +159,15 @@ class ArtifactHttpClient implements Rpc {
 }
 
 export function createArtifactTwirpClient(
-  type: "upload" | "download",
+  type: 'upload' | 'download',
   maxAttempts?: number,
   baseRetryIntervalMilliseconds?: number,
   retryMultiplier?: number
 ): ArtifactServiceClientJSON {
   const client = new ArtifactHttpClient(
-    `@actions/artifact-${type}`, 
-    maxAttempts, 
-    baseRetryIntervalMilliseconds, 
+    `@actions/artifact-${type}`,
+    maxAttempts,
+    baseRetryIntervalMilliseconds,
     retryMultiplier
   )
   return new ArtifactServiceClientJSON(client)
