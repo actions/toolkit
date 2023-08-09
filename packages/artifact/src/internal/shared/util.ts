@@ -11,13 +11,15 @@ interface ActionsToken {
   scp: string
 }
 
+const InvalidJwtError = new Error('Failed to get backend IDs: The provided JWT token is invalid')
+
 // uses the JWT token claims to get the
 // workflow run and workflow job run backend ids
 export function getBackendIdsFromToken(): BackendIds {
   const token = getRuntimeToken()
   const decoded = jwt_decode<ActionsToken>(token)
   if (!decoded.scp) {
-    throw new Error('No scp claim in JWT token')
+    throw InvalidJwtError
   }
 
   /*
@@ -29,7 +31,7 @@ export function getBackendIdsFromToken(): BackendIds {
 
   const scpParts = decoded.scp.split(' ')
   if (scpParts.length === 0) {
-    throw new Error('No scp parts in JWT token')
+    throw InvalidJwtError
   }
   /*
    * example scpParts:
@@ -58,7 +60,7 @@ export function getBackendIdsFromToken(): BackendIds {
     }
   }
 
-  throw new Error('No valid Actions.Results scope in JWT token')
+  throw InvalidJwtError
 }
 
 export function getExpiration(retentionDays?: number): Timestamp | undefined {

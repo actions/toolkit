@@ -1,6 +1,7 @@
 import {UploadOptions} from './upload/upload-options'
 import {UploadResponse} from './upload/upload-response'
 import {uploadArtifact} from './upload/upload-artifact'
+import {warning} from '@actions/core'
 
 export interface ArtifactClient {
   /**
@@ -39,6 +40,13 @@ export class Client implements ArtifactClient {
     rootDirectory: string,
     options?: UploadOptions | undefined
   ): Promise<UploadResponse> {
-    return uploadArtifact(name, files, rootDirectory, options)
+    try {
+      return uploadArtifact(name, files, rootDirectory, options)
+    } catch (error) {
+      warning(`Failed to upload artifact: ${error}`)
+      return {
+        success: false
+      }
+    }
   }
 }

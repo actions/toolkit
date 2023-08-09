@@ -8,30 +8,17 @@ import {
   getUploadZipSpecification,
   validateRootDirectory
 } from './upload-zip-specification'
-import {BackendIds, getBackendIdsFromToken, getExpiration} from '../shared/util'
-import {
-  CreateArtifactRequest,
-  CreateArtifactResponse,
-  FinalizeArtifactResponse
-} from 'src/generated'
+import {getBackendIdsFromToken, getExpiration} from '../shared/util'
+import {CreateArtifactRequest} from 'src/generated'
 
 export async function uploadArtifact(
   name: string,
   files: string[],
   rootDirectory: string,
-  options?: UploadOptions | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+  options?: UploadOptions | undefined
 ): Promise<UploadResponse> {
-  try {
-    validateArtifactName(name)
-    validateRootDirectory(rootDirectory)
-  } catch (error) {
-    core.warning(
-      `Received error trying to validate artifact name or root directory: ${error}`
-    )
-    return {
-      success: false
-    }
-  }
+  validateArtifactName(name)
+  validateRootDirectory(rootDirectory)
 
   const zipSpecification: UploadZipSpecification[] = getUploadZipSpecification(
     files,
@@ -45,7 +32,7 @@ export async function uploadArtifact(
   }
 
   // get the IDs needed for the artifact creation
-  const backendIds = getBackendIds()
+  const backendIds = getBackendIdsFromToken()
   if (!backendIds.workflowRunBackendId || !backendIds.workflowJobRunBackendId) {
     core.warning(`Failed to get backend ids`)
     return {
@@ -69,10 +56,9 @@ export async function uploadArtifact(
   if (expiresAt) {
     createArtifactReq.expiresAt = expiresAt
   }
-  const createArtifactResp = await createArtifact(async () =>
-    artifactClient.CreateArtifact(createArtifactReq)
-  )
-  if (!createArtifactResp || !createArtifactResp.ok) {
+
+  const createArtifactResp = await artifactClient.CreateArtifact(createArtifactReq)
+  if (!createArtifactResp.ok) {
     core.warning(`Failed to create artifact`)
     return {
       success: false
@@ -82,20 +68,21 @@ export async function uploadArtifact(
   // TODO - Implement upload functionality
 
   // finalize the artifact
-  const finalizeArtifactResp = await finalizeArtifact(async () =>
-    artifactClient.FinalizeArtifact({
+  const finalizeArtifactResp = await artifactClient.FinalizeArtifact(
+    {
       workflowRunBackendId: backendIds.workflowRunBackendId,
       workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
       name,
       size: '0' // TODO - Add size
-    })
+    }
   )
-  if (!finalizeArtifactResp || !finalizeArtifactResp.ok) {
+  if (!finalizeArtifactResp.ok) {
     core.warning(`Failed to finalize artifact`)
     return {
       success: false
     }
   }
+
   const uploadResponse: UploadResponse = {
     success: true,
     size: 0,
@@ -103,38 +90,4 @@ export async function uploadArtifact(
   }
 
   return uploadResponse
-}
-
-async function createArtifact(
-  operation: () => Promise<CreateArtifactResponse>
-): Promise<CreateArtifactResponse | undefined> {
-  try {
-    return await operation()
-  } catch (error) {
-    core.warning(`Received error trying to create artifact: ${error}`)
-    return
-  }
-}
-
-async function finalizeArtifact(
-  operation: () => Promise<FinalizeArtifactResponse>
-): Promise<FinalizeArtifactResponse | undefined> {
-  try {
-    return await operation()
-  } catch (error) {
-    core.warning(`Received error trying to create artifact: ${error}`)
-    return
-  }
-}
-
-function getBackendIds(): BackendIds {
-  try {
-    return getBackendIdsFromToken()
-  } catch (error) {
-    core.warning(`Received error trying to get backend ids: ${error}`)
-    return {
-      workflowRunBackendId: '',
-      workflowJobRunBackendId: ''
-    }
-  }
 }
