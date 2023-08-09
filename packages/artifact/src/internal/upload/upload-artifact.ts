@@ -60,7 +60,7 @@ export async function uploadArtifact(
   const createArtifactReq: CreateArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name: name,
+    name,
     version: 4
   }
 
@@ -69,7 +69,7 @@ export async function uploadArtifact(
   if (expiresAt) {
     createArtifactReq.expiresAt = expiresAt
   }
-  const createArtifactResp = await createArtifact(() =>
+  const createArtifactResp = await createArtifact(async () =>
     artifactClient.CreateArtifact(createArtifactReq)
   )
   if (!createArtifactResp || !createArtifactResp.ok) {
@@ -82,11 +82,11 @@ export async function uploadArtifact(
   // TODO - Implement upload functionality
 
   // finalize the artifact
-  const finalizeArtifactResp = await finalizeArtifact(() =>
+  const finalizeArtifactResp = await finalizeArtifact(async () =>
     artifactClient.FinalizeArtifact({
       workflowRunBackendId: backendIds.workflowRunBackendId,
       workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-      name: name,
+      name,
       size: '0' // TODO - Add size
     })
   )

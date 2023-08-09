@@ -1,4 +1,4 @@
-import {getRetentionDays, getRuntimeToken} from './config'
+import {getRuntimeToken} from './config'
 import jwt_decode from 'jwt-decode'
 import {Timestamp} from 'src/generated'
 
