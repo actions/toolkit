@@ -1,6 +1,5 @@
 import {getRuntimeToken} from './config'
 import jwt_decode from 'jwt-decode'
-import {Timestamp} from '../../generated'
 
 export interface BackendIds {
   workflowRunBackendId: string
@@ -63,15 +62,4 @@ export function getBackendIdsFromToken(): BackendIds {
   }
 
   throw InvalidJwtError
-}
-
-export function getExpiration(retentionDays?: number): Timestamp | undefined {
-  if (!retentionDays) {
-    return undefined
-  }
-
-  const expirationDate = new Date()
-  expirationDate.setDate(expirationDate.getDate() + retentionDays)
-
-  return Timestamp.fromDate(expirationDate)
 }

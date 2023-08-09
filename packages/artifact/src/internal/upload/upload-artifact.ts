@@ -8,8 +8,8 @@ import {
   getUploadZipSpecification,
   validateRootDirectory
 } from './upload-zip-specification'
-import {getBackendIdsFromToken, getExpiration} from '../shared/util'
-import {CreateArtifactRequest} from 'src/generated'
+import {getBackendIdsFromToken} from '../shared/util'
+import {CreateArtifactRequest, Timestamp} from 'src/generated'
 
 export async function uploadArtifact(
   name: string,
@@ -90,4 +90,15 @@ export async function uploadArtifact(
   }
 
   return uploadResponse
+}
+
+function getExpiration(retentionDays?: number): Timestamp | undefined {
+  if (!retentionDays) {
+    return undefined
+  }
+
+  const expirationDate = new Date()
+  expirationDate.setDate(expirationDate.getDate() + retentionDays)
+
+  return Timestamp.fromDate(expirationDate)
 }
