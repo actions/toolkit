@@ -7,6 +7,8 @@ import {
   getUploadZipSpecification,
   validateRootDirectory
 } from './upload-zip-specification'
+import {uploadZipToBlobStorage} from './blob-upload'
+import {createZipUploadStream} from './zip'
 
 export async function uploadArtifact(
   name: string,
@@ -28,11 +30,14 @@ export async function uploadArtifact(
     }
   }
 
-  // TODO - Implement upload functionality
+  const zipUploadStream = await createZipUploadStream(zipSpecification)
+
+  const sasURL = '' // TODO replace with actual URL
+  const uploadResult = await uploadZipToBlobStorage(sasURL, zipUploadStream)
 
   const uploadResponse: UploadResponse = {
     success: true,
-    size: 0,
+    size: uploadResult.uploadSize,
     id: 0
   }
 

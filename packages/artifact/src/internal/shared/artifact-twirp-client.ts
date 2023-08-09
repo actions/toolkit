@@ -102,8 +102,9 @@ class ArtifactHttpClient implements Rpc {
         )
       }
 
-      const retryTimeMilliseconds =
-        this.getExponentialRetryTimeMilliseconds(attempt)
+      const retryTimeMilliseconds = this.getExponentialRetryTimeMilliseconds(
+        attempt
+      )
       info(
         `Attempt ${attempt + 1} of ${
           this.maxAttempts
