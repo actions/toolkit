@@ -14,7 +14,8 @@ export class ZipUploadStream extends stream.Transform {
     })
   }
 
-  _transform(chunk: any, enc: any, cb: any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _transform(chunk: any, enc: any, cb: any): void {
     cb(null, chunk)
   }
 }
@@ -52,10 +53,10 @@ export async function createZipUploadStream(
   const zipUploadStream = new ZipUploadStream(bufferSize)
 
   core.debug(
-    'Zip write high watermark value ' + zipUploadStream.writableHighWaterMark
+    `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
   )
   core.debug(
-    'Zip read high watermark value ' + zipUploadStream.readableHighWaterMark
+    `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
 
   zip.pipe(zipUploadStream)
@@ -64,29 +65,31 @@ export async function createZipUploadStream(
   return zipUploadStream
 }
 
-var zipErrorCallback = function(error: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const zipErrorCallback = (error: any): void => {
   core.error('An error has occurred while creating the zip file for upload')
-  console.log(error)
+  core.info(error)
 
   throw new Error('An error has occurred during zip creation for the artifact')
 }
 
-var zipWarningCallback = function(error: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const zipWarningCallback = (error: any): void => {
   if (error.code === 'ENOENT') {
     core.warning('ENOENT warning during artifact zip creation.')
-    console.log(error)
+    core.info(error)
   } else {
     core.warning(
       `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
     )
-    console.log(error)
+    core.info(error)
   }
 }
 
-var zipFinishCallback = function() {
+const zipFinishCallback = (): void => {
   core.debug('Zip stream for upload has finished.')
 }
 
-var zipEndCallback = function() {
+const zipEndCallback = (): void => {
   core.debug('Zip stream for upload has ended.')
 }

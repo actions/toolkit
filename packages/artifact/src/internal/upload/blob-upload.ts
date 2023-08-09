@@ -31,8 +31,8 @@ export async function uploadZipToBlobStorage(
     `Uploading artifact zip to blob storage with maxBuffers: ${maxBuffers}, bufferSize: ${bufferSize}`
   )
 
-  var uploadCallback = function(progress: TransferProgressEvent) {
-    core.info('Uploaded ' + progress.loadedBytes)
+  const uploadCallback = (progress: TransferProgressEvent): void => {
+    core.info(`Uploaded bytes ${progress.loadedBytes}`)
     uploadByteCount = progress.loadedBytes
   }
 
