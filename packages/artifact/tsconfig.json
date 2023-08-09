@@ -13,7 +13,6 @@
       ]
     },
     "useUnknownInCatchVariables": false,
-    "target": "es2020"
   },
   "include": [
     "./src"
