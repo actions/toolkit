@@ -57,7 +57,9 @@ export async function uploadArtifact(
     createArtifactReq.expiresAt = expiresAt
   }
 
-  const createArtifactResp = await artifactClient.CreateArtifact(createArtifactReq)
+  const createArtifactResp = await artifactClient.CreateArtifact(
+    createArtifactReq
+  )
   if (!createArtifactResp.ok) {
     core.warning(`Failed to create artifact`)
     return {
@@ -68,14 +70,12 @@ export async function uploadArtifact(
   // TODO - Implement upload functionality
 
   // finalize the artifact
-  const finalizeArtifactResp = await artifactClient.FinalizeArtifact(
-    {
-      workflowRunBackendId: backendIds.workflowRunBackendId,
-      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-      name,
-      size: '0' // TODO - Add size
-    }
-  )
+  const finalizeArtifactResp = await artifactClient.FinalizeArtifact({
+    workflowRunBackendId: backendIds.workflowRunBackendId,
+    workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+    name,
+    size: '0' // TODO - Add size
+  })
   if (!finalizeArtifactResp.ok) {
     core.warning(`Failed to finalize artifact`)
     return {
