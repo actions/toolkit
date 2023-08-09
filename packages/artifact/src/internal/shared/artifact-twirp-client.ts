@@ -17,9 +17,9 @@ interface Rpc {
 class ArtifactHttpClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
-  private maxAttempts: number = 5
-  private baseRetryIntervalMilliseconds: number = 3000
-  private retryMultiplier: number = 1.5
+  private maxAttempts = 5
+  private baseRetryIntervalMilliseconds = 3000
+  private retryMultiplier = 1.5
 
   constructor(
     userAgent: string,
@@ -52,14 +52,14 @@ class ArtifactHttpClient implements Rpc {
     contentType: 'application/json' | 'application/protobuf',
     data: object | Uint8Array
   ): Promise<object | Uint8Array> {
-    let url = `${this.baseUrl}/twirp/${service}/${method}`
-    let headers = {
+    const url = `${this.baseUrl}/twirp/${service}/${method}`
+    const headers = {
       'Content-Type': contentType
     }
     info(`Making request to ${url} with data: ${JSON.stringify(data)}`)
 
     try {
-      const response = await this.retryableRequest(() =>
+      const response = await this.retryableRequest(async () =>
         this.httpClient.post(url, JSON.stringify(data), headers)
       )
       const body = await response.readBody()

@@ -35,7 +35,7 @@ describe('artifact-http-client', () => {
       msg.statusCode = 200
       return {
         message: msg,
-        readBody: () => {
+        readBody: async () => {
           return Promise.resolve(
             `{"ok": true, "signedUploadUrl": "http://localhost:8080/upload"}`
           )
@@ -72,7 +72,7 @@ describe('artifact-http-client', () => {
         msgSucceeded.statusCode = 200
         return {
           message: msgSucceeded,
-          readBody: () => {
+          readBody: async () => {
             return Promise.resolve(
               `{"ok": true, "signedUploadUrl": "http://localhost:8080/upload"}`
             )
@@ -85,7 +85,7 @@ describe('artifact-http-client', () => {
         msgFailed.statusMessage = 'Internal Server Error'
         return {
           message: msgFailed,
-          readBody: () => {
+          readBody: async () => {
             return Promise.resolve(`{"ok": false}`)
           }
         }
@@ -125,7 +125,7 @@ describe('artifact-http-client', () => {
       msgFailed.statusMessage = 'Internal Server Error'
       return {
         message: msgFailed,
-        readBody: () => {
+        readBody: async () => {
           return Promise.resolve(`{"ok": false}`)
         }
       }
@@ -165,7 +165,7 @@ describe('artifact-http-client', () => {
       msgFailed.statusMessage = 'Unauthorized'
       return {
         message: msgFailed,
-        readBody: () => {
+        readBody: async () => {
           return Promise.resolve(`{"ok": false}`)
         }
       }
