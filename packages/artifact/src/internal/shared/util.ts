@@ -1,6 +1,6 @@
 import {getRuntimeToken} from './config'
 import jwt_decode from 'jwt-decode'
-import {Timestamp} from 'src/generated'
+import {Timestamp} from '../../generated'
 
 export interface BackendIds {
   workflowRunBackendId: string
