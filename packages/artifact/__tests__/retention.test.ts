@@ -14,11 +14,13 @@ describe('retention', () => {
     const exp = retention.getExpiration(30)
 
     expect(exp).toBeDefined()
-    const expDate = Timestamp.toDate(exp!) // we check whether exp is defined above
-    const expected = new Date()
-    expected.setDate(expected.getDate() + 30)
+    if (exp) {
+      const expDate = Timestamp.toDate(exp)
+      const expected = new Date()
+      expected.setDate(expected.getDate() + 30)
 
-    expect(expDate).toEqual(expected)
+      expect(expDate).toEqual(expected)
+    }
   })
 
   it('should return the max retention days if the inputted retention days is greater than the max retention days', () => {
@@ -30,11 +32,13 @@ describe('retention', () => {
     const exp = retention.getExpiration(120)
 
     expect(exp).toBeDefined()
-    const expDate = Timestamp.toDate(exp!) // we check whether exp is defined above
-    const expected = new Date()
-    expected.setDate(expected.getDate() + 90)
+    if (exp) {
+      const expDate = Timestamp.toDate(exp) // we check whether exp is defined above
+      const expected = new Date()
+      expected.setDate(expected.getDate() + 90)
 
-    expect(expDate).toEqual(expected)
+      expect(expDate).toEqual(expected)
+    }
   })
 
   it('should return undefined if the inputted retention days is undefined', () => {
@@ -50,10 +54,12 @@ describe('retention', () => {
     const exp = retention.getExpiration(30)
 
     expect(exp).toBeDefined()
-    const expDate = Timestamp.toDate(exp!) // we check whether exp is defined above
-    const expected = new Date()
-    expected.setDate(expected.getDate() + 30)
+    if (exp) {
+      const expDate = Timestamp.toDate(exp) // we check whether exp is defined above
+      const expected = new Date()
+      expected.setDate(expected.getDate() + 30)
 
-    expect(expDate).toEqual(expected)
+      expect(expDate).toEqual(expected)
+    }
   })
 })
