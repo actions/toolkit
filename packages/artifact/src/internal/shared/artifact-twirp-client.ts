@@ -56,8 +56,6 @@ class ArtifactHttpClient implements Rpc {
     const headers = {
       'Content-Type': contentType
     }
-    info(`Making request to ${url} with data: ${JSON.stringify(data)}`)
-
     try {
       const response = await this.retryableRequest(async () =>
         this.httpClient.post(url, JSON.stringify(data), headers)
@@ -65,7 +63,7 @@ class ArtifactHttpClient implements Rpc {
       const body = await response.readBody()
       return JSON.parse(body)
     } catch (error) {
-      throw new Error(error.message)
+      throw new Error(`Failed to ${method}: ${error.message}`)
     }
   }
 
