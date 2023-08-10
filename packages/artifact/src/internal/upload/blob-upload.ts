@@ -54,6 +54,14 @@ export async function uploadZipToBlobStorage(
       isSuccess: false
     }
   }
+
+  if (uploadByteCount === 0) {
+    core.warning(`No data was uploaded to blob storage. Reported upload byte count is 0`)
+    return {
+        isSuccess: false,
+    }
+  }
+
   core.info(
     `Successfully uploaded all artifact file content. Total reported size: ${uploadByteCount}`
   )

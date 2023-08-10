@@ -56,7 +56,7 @@ export async function uploadArtifact(
   const createArtifactReq: CreateArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name,
+    name: name,
     version: 4
   }
 
@@ -76,14 +76,20 @@ export async function uploadArtifact(
     }
   }
 
-const uploadResult = await uploadZipToBlobStorage(createArtifactResp.signedUploadUrl, zipUploadStream)
+  // Upload zip to blob storage
+  const uploadResult = await uploadZipToBlobStorage(createArtifactResp.signedUploadUrl, zipUploadStream)
+  if (uploadResult.isSuccess === false) {
+    return {
+      success: false
+    }
+  }
 
   // finalize the artifact
   const finalizeArtifactResp = await artifactClient.FinalizeArtifact({
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name,
-    size: '0' // TODO - Add size
+    name: name,
+    size: uploadResult.uploadSize!.toString()
   })
   if (!finalizeArtifactResp.ok) {
     core.warning(`Failed to finalize artifact`)
@@ -92,11 +98,9 @@ const uploadResult = await uploadZipToBlobStorage(createArtifactResp.signedUploa
     }
   }
 
-  const uploadResponse: UploadResponse = {
+  return {
     success: true,
     size: uploadResult.uploadSize,
     id: parseInt(finalizeArtifactResp.artifactId) // TODO - will this be a problem due to the id being a bigint?
   }
-
-  return uploadResponse
 }

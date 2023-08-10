@@ -76,7 +76,7 @@ const zipErrorCallback = (error: any): void => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const zipWarningCallback = (error: any): void => {
   if (error.code === 'ENOENT') {
-    core.warning('ENOENT warning during artifact zip creation.')
+    core.warning('ENOENT warning during artifact zip creation. No such file or directory')
     core.info(error)
   } else {
     core.warning(
