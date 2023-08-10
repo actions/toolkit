@@ -386,3 +386,8 @@ export {markdownSummary} from './summary'
  * Path exports
  */
 export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils'
+
+/**
+ * isGhes helper export
+ */
+export {isGhes} from './utils'

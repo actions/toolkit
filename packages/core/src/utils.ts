@@ -39,3 +39,11 @@ export function toCommandProperties(
     endColumn: annotationProperties.endColumn
   }
 }
+
+/**
+ * Returns this action runs on GitHub Enterprise Server or not.
+ */
+export function isGhes(): boolean {
+  const url = process.env['GITHUB_SERVER_URL'] || 'https://github.com'
+  return new URL(url).hostname.toUpperCase() !== 'GITHUB.COM'
+}
