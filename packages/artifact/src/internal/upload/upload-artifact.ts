@@ -11,6 +11,8 @@ import {
 } from './upload-zip-specification'
 import {getBackendIdsFromToken} from '../shared/util'
 import {CreateArtifactRequest} from 'src/generated'
+import {uploadZipToBlobStorage} from './blob-upload'
+import {createZipUploadStream} from './zip'
 
 export async function uploadArtifact(
   name: string,
@@ -32,6 +34,8 @@ export async function uploadArtifact(
     }
   }
 
+  const zipUploadStream = await createZipUploadStream(zipSpecification)
+
   // get the IDs needed for the artifact creation
   const backendIds = getBackendIdsFromToken()
   if (!backendIds.workflowRunBackendId || !backendIds.workflowJobRunBackendId) {
@@ -52,7 +56,7 @@ export async function uploadArtifact(
   const createArtifactReq: CreateArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name,
+    name: name,
     version: 4
   }
 
@@ -72,14 +76,20 @@ export async function uploadArtifact(
     }
   }
 
-  // TODO - Implement upload functionality
+  // Upload zip to blob storage
+  const uploadResult = await uploadZipToBlobStorage(createArtifactResp.signedUploadUrl, zipUploadStream)
+  if (uploadResult.isSuccess === false) {
+    return {
+      success: false
+    }
+  }
 
   // finalize the artifact
   const finalizeArtifactResp = await artifactClient.FinalizeArtifact({
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name,
-    size: '0' // TODO - Add size
+    name: name,
+    size: uploadResult.uploadSize!.toString()
   })
   if (!finalizeArtifactResp.ok) {
     core.warning(`Failed to finalize artifact`)
@@ -88,11 +98,9 @@ export async function uploadArtifact(
     }
   }
 
-  const uploadResponse: UploadResponse = {
+  return {
     success: true,
-    size: 0,
+    size: uploadResult.uploadSize,
     id: parseInt(finalizeArtifactResp.artifactId) // TODO - will this be a problem due to the id being a bigint?
   }
-
-  return uploadResponse
 }
