@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import {UploadOptions} from './upload-options'
 import {UploadResponse} from './upload-response'
+import {getExpiration} from './util'
 import {validateArtifactName} from './path-and-artifact-name-validation'
 import {createArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {
@@ -9,7 +10,7 @@ import {
   validateRootDirectory
 } from './upload-zip-specification'
 import {getBackendIdsFromToken} from '../shared/util'
-import {CreateArtifactRequest, Timestamp} from 'src/generated'
+import {CreateArtifactRequest} from 'src/generated'
 
 export async function uploadArtifact(
   name: string,
@@ -39,6 +40,10 @@ export async function uploadArtifact(
       success: false
     }
   }
+  core.debug(`Workflow Run Backend ID: ${backendIds.workflowRunBackendId}`)
+  core.debug(
+    `Workflow Job Run Backend ID: ${backendIds.workflowJobRunBackendId}`
+  )
 
   // create the artifact client
   const artifactClient = createArtifactTwirpClient('upload')
@@ -90,15 +95,4 @@ export async function uploadArtifact(
   }
 
   return uploadResponse
-}
-
-function getExpiration(retentionDays?: number): Timestamp | undefined {
-  if (!retentionDays) {
-    return undefined
-  }
-
-  const expirationDate = new Date()
-  expirationDate.setDate(expirationDate.getDate() + retentionDays)
-
-  return Timestamp.fromDate(expirationDate)
 }
