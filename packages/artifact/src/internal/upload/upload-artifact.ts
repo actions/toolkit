@@ -103,7 +103,7 @@ export async function uploadArtifact(
 
   if (uploadResult.md5Hash) {
     finalizeArtifactReq.hash = StringValue.create({
-      value: `md5: ${uploadResult.md5Hash!}`
+      value: `md5:${uploadResult.md5Hash!}`
     })
   }
 
@@ -119,7 +119,7 @@ export async function uploadArtifact(
     }
   }
 
-  const artifactId = parseInt(finalizeArtifactResp.artifactId)
+  const artifactId = BigInt(finalizeArtifactResp.artifactId)
   core.info(
     `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
   )
@@ -127,6 +127,6 @@ export async function uploadArtifact(
   return {
     success: true,
     size: uploadResult.uploadSize,
-    id: artifactId
+    id: Number(artifactId)
   }
 }
