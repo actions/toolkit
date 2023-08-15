@@ -44,7 +44,7 @@ export async function uploadArtifact(
   const backendIds = getBackendIdsFromToken()
   if (!backendIds.workflowRunBackendId || !backendIds.workflowJobRunBackendId) {
     core.warning(
-      `Failed to get the necessary backend ids which are necessary to create the artifact`
+      `Failed to get the necessary backend ids which are required to create the artifact`
     )
     return {
       success: false

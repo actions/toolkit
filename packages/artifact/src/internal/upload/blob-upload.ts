@@ -72,7 +72,7 @@ export async function uploadZipToBlobStorage(
     core.info(`MD5 hash of uploaded artifact zip is ${md5Hash}`)
 
   } catch (error) {
-    core.info(`Failed to upload artifact zip to blob storage, error: ${error}`)
+    core.warning(`Failed to upload artifact zip to blob storage, error: ${error}`)
     return {
       isSuccess: false
     }
