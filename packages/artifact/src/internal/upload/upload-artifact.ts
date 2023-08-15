@@ -10,9 +10,13 @@ import {
   validateRootDirectory
 } from './upload-zip-specification'
 import {getBackendIdsFromToken} from '../shared/util'
-import {CreateArtifactRequest} from 'src/generated'
 import {uploadZipToBlobStorage} from './blob-upload'
 import {createZipUploadStream} from './zip'
+import {
+  CreateArtifactRequest,
+  FinalizeArtifactRequest,
+  StringValue
+} from '../../../src/generated'
 
 export async function uploadArtifact(
   name: string,
@@ -39,7 +43,9 @@ export async function uploadArtifact(
   // get the IDs needed for the artifact creation
   const backendIds = getBackendIdsFromToken()
   if (!backendIds.workflowRunBackendId || !backendIds.workflowJobRunBackendId) {
-    core.warning(`Failed to get backend ids`)
+    core.warning(
+      `Failed to get the necessary backend ids which are necessary to create the artifact`
+    )
     return {
       success: false
     }
@@ -77,7 +83,10 @@ export async function uploadArtifact(
   }
 
   // Upload zip to blob storage
-  const uploadResult = await uploadZipToBlobStorage(createArtifactResp.signedUploadUrl, zipUploadStream)
+  const uploadResult = await uploadZipToBlobStorage(
+    createArtifactResp.signedUploadUrl,
+    zipUploadStream
+  )
   if (uploadResult.isSuccess === false) {
     return {
       success: false
@@ -85,12 +94,24 @@ export async function uploadArtifact(
   }
 
   // finalize the artifact
-  const finalizeArtifactResp = await artifactClient.FinalizeArtifact({
+  const finalizeArtifactReq: FinalizeArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
     name: name,
     size: uploadResult.uploadSize!.toString()
-  })
+  }
+
+  if (uploadResult.md5Hash) {
+    finalizeArtifactReq.hash = StringValue.create({
+      value: `md5: ${uploadResult.md5Hash!}`
+    })
+  }
+
+  core.info(`Finalizing artifact upload`)
+
+  const finalizeArtifactResp = await artifactClient.FinalizeArtifact(
+    finalizeArtifactReq
+  )
   if (!finalizeArtifactResp.ok) {
     core.warning(`Failed to finalize artifact`)
     return {
@@ -98,9 +119,14 @@ export async function uploadArtifact(
     }
   }
 
+  const artifactId = parseInt(finalizeArtifactResp.artifactId)
+  core.info(
+    `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}}`
+  )
+
   return {
     success: true,
     size: uploadResult.uploadSize,
-    id: parseInt(finalizeArtifactResp.artifactId) // TODO - will this be a problem due to the id being a bigint?
+    id: artifactId
   }
 }
