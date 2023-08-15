@@ -16,7 +16,7 @@ import {
   CreateArtifactRequest,
   FinalizeArtifactRequest,
   StringValue
-} from '../../../src/generated'
+} from '../../generated'
 
 export async function uploadArtifact(
   name: string,
@@ -121,7 +121,7 @@ export async function uploadArtifact(
 
   const artifactId = parseInt(finalizeArtifactResp.artifactId)
   core.info(
-    `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}}`
+    `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
   )
 
   return {
