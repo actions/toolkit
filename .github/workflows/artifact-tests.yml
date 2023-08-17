@@ -54,7 +54,7 @@ jobs:
         echo '${{ env.file1 }}' > artifact-path/first.txt
         echo '${{ env.file2 }}' > artifact-path/second.txt
 
-    - uses: actions/github-script@v6
+    - uses: Upload Artifacts using actions/github-script@v6
       with:
         script: |
             const artifact = require('./packages/artifact/lib/artifact')
@@ -100,8 +100,35 @@ jobs:
         npm run tsc
       working-directory: packages/artifact
 
-    - uses: actions/github-script@v6
+    - name: List Artifacts using actions/github-script@v6
+      uses: actions/github-script@v6
       with:
         script: |
-            console.log('we're going to call list from here')
+          const artifact = require('./packages/artifact/lib/artifact')
 
+          const workflowRunId = ${process.env.GITHUB_RUN_ID}
+          const repository = '${process.env.GITHUB_REPOSITORY}'
+          const repositoryOwner = repository.split('/')[0]
+          const repositoryName = repository.split('/')[1]
+
+          const listResult = await artifact.create().listArtifacts(workflowRunId, repositoryOwner, repositoryName, '${{ secrets.GITHUB_TOKEN }}')
+          console.log(listResult)
+
+          const artifacts = listResult.artifacts
+
+          if (artifacts.length !== 3) {
+            throw new Error('Expected 3 artifacts but only found ' + artifacts.length + ' artifacts')
+          }
+
+          const artifactNames = artifacts.map(artifact => artifact.name)
+          if (!artifactName.contains('my-artifact-ubuntu-latest')){
+            throw new Error('Expected artifact list to contain an artifact named my-artifact-ubuntu-latest but it did not find one')
+          }
+          if (!artifactName.contains('my-artifact-windows-latest')){
+            throw new Error('Expected artifact list to contain an artifact named my-artifact-windows-latest but it did not find one')
+          }
+          if (!artifactName.contains('my-artifact-macos-latest')){
+            throw new Error('Expected artifact list to contain an artifact named my-artifact-macos-latest but it did not find one')
+          }
+
+          console.log('Successfully listed artifacts that were uploaded')
