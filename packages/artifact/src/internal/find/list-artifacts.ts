@@ -72,7 +72,7 @@ export async function listArtifacts(
   // Iterate over the first page
   listArtifactResponse.artifacts.forEach(artifact => {
     artifacts.push({
-      artifactName: artifact.name,
+      name: artifact.name,
       artifactId: artifact.id,
       url: artifact.url,
       size: artifact.size_in_bytes
@@ -99,7 +99,7 @@ export async function listArtifacts(
 
     listArtifactResponse.artifacts.forEach(artifact => {
       artifacts.push({
-        artifactName: artifact.name,
+        name: artifact.name,
         artifactId: artifact.id,
         url: artifact.url,
         size: artifact.size_in_bytes

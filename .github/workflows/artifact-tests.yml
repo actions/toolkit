@@ -122,13 +122,13 @@ jobs:
           }
 
           const artifactNames = artifacts.map(artifact => artifact.name)
-          if (!artifactName.contains('my-artifact-ubuntu-latest')){
+          if (!artifactNames.contains('my-artifact-ubuntu-latest')){
             throw new Error('Expected artifact list to contain an artifact named my-artifact-ubuntu-latest but it did not find one')
           }
-          if (!artifactName.contains('my-artifact-windows-latest')){
+          if (!artifactNames.contains('my-artifact-windows-latest')){
             throw new Error('Expected artifact list to contain an artifact named my-artifact-windows-latest but it did not find one')
           }
-          if (!artifactName.contains('my-artifact-macos-latest')){
+          if (!artifactNames.contains('my-artifact-macos-latest')){
             throw new Error('Expected artifact list to contain an artifact named my-artifact-macos-latest but it did not find one')
           }
 

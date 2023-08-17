@@ -109,7 +109,7 @@ export interface Artifact {
   /**
    * The name of the artifact
    */
-  artifactName: string
+  name: string
 
   /**
    * The ID of the artifact
