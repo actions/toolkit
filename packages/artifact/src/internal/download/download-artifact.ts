@@ -1,5 +1,5 @@
 import {
-  DownloadSingleArtifactOptions,
+  DownloadArtifactOptions,
   DownloadArtifactResponse
 } from '../shared/interfaces'
 
@@ -8,7 +8,7 @@ export async function downloadArtifact(
   repositoryOwner: string,
   repositoryName: string,
   token: string,
-  options?: DownloadSingleArtifactOptions
+  options?: DownloadArtifactOptions
 ): Promise<DownloadArtifactResponse> {
   throw new Error('Not implemented')
 }
