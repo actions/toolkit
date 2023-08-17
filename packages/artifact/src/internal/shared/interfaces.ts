@@ -87,24 +87,7 @@ export interface DownloadArtifactResponse {
   artifact?: Artifact
 }
 
-export interface DownloadAllArtifactsResponse {
-  /**
-   * If the artifact download was successful
-   */
-  success: boolean
-
-  /**
-   * The cumulative size of all the artifacts that were downloaded
-   */
-  size: number
-
-  /**
-   * Metadata about the artifact that was downloaded
-   */
-  artifacts: Artifact[]
-}
-
-export interface DownloadSingleArtifactOptions {
+export interface DownloadArtifactOptions {
   /**
    * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
    */
@@ -115,13 +98,6 @@ export interface DownloadSingleArtifactOptions {
    * Zip contents are expanded into this folder. Defaults to false if not specified
    * */
   createArtifactFolder?: boolean
-}
-
-export interface DownloadAllArtifactsOptions {
-  /**
-   * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
-   */
-  path?: string
 }
 
 /*****************************************************************************

@@ -3,7 +3,7 @@ import {isGhes} from './shared/config'
 import {
   UploadOptions,
   UploadResponse,
-  DownloadSingleArtifactOptions,
+  DownloadArtifactOptions,
   GetArtifactResponse,
   ListArtifactsResponse,
   DownloadArtifactResponse
@@ -86,7 +86,7 @@ export interface ArtifactClient {
     repositoryOwner: string,
     repositoryName: string,
     token: string,
-    options?: DownloadSingleArtifactOptions
+    options?: DownloadArtifactOptions
   ): Promise<DownloadArtifactResponse>
 }
 
@@ -140,7 +140,7 @@ If the error persists, please check whether Actions is operating normally at [ht
     repositoryOwner: string,
     repositoryName: string,
     token: string,
-    options?: DownloadSingleArtifactOptions
+    options?: DownloadArtifactOptions
   ): Promise<DownloadArtifactResponse> {
     if (isGhes()) {
       warning(
