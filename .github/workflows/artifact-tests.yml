@@ -62,6 +62,13 @@ jobs:
     - uses: actions/github-script@v6
       with:
         script: |
-            const script = require('./packages/artifact/lib/artifact')
-            const uploadResult = await script.create().uploadArtifact('my-artifact-${{ matrix.runs-on }}',['artifact-path/first.txt','artifact-path/second.txt'], ${{ github.workspace }})
+            const artifact = require('./packages/artifact/lib/artifact')
+
+            const artifactName = 'my-artifact-${{ matrix.runs-on }}'
+            console.log('artifactName: ' + artifactName)
+
+            const fileContents = ['artifact-path/first.txt','artifact-path/second.txt']
+
+            const uploadResult = await artifact.create().uploadArtifact(artifactName, fileContents, '${{ github.workspace }}')
+            console.log(uploadResult)
            
