@@ -54,7 +54,8 @@ jobs:
         echo '${{ env.file1 }}' > artifact-path/first.txt
         echo '${{ env.file2 }}' > artifact-path/second.txt
 
-    - uses: Upload Artifacts using actions/github-script@v6
+    - name: Upload Artifacts using actions/github-script@v6
+      uses: actions/github-script@v6
       with:
         script: |
             const artifact = require('./packages/artifact/lib/artifact')
@@ -100,7 +101,7 @@ jobs:
         npm run tsc
       working-directory: packages/artifact
 
-    - name: List Artifacts using actions/github-script@v6
+    - name: List artifacts using actions/github-script@v6
       uses: actions/github-script@v6
       with:
         script: |
