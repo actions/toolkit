@@ -59,10 +59,9 @@ jobs:
         echo '${{ env.file1 }}' > artifact-path/first.txt
         echo '${{ env.file2 }}' > artifact-path/second.txt
 
-    # We're using node -e to call the functions directly available in the @actions/artifact package
-    - name: Upload artifacts using uploadArtifact()
-      run: |
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact').create().uploadArtifact('my-artifact-${{ matrix.runs-on }}',['artifact-path/first.txt','artifact-path/second.txt'], process.argv[1]))" "${{ github.workspace }}"
-
-
-
+    - uses: actions/github-script@v6
+      with:
+        script: |
+            const script = require('./packages/artifact/lib/artifact')
+            const uploadResult = await script.create().uploadArtifact('my-artifact-${{ matrix.runs-on }}',['artifact-path/first.txt','artifact-path/second.txt'], ${{ github.workspace }})
+           
