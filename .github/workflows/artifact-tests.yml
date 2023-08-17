@@ -107,8 +107,8 @@ jobs:
         script: |
           const artifact = require('./packages/artifact/lib/artifact')
 
-          const workflowRunId = ${process.env.GITHUB_RUN_ID}
-          const repository = '${process.env.GITHUB_REPOSITORY}'
+          const workflowRunId = ${{ process.env.GITHUB_RUN_ID }}
+          const repository = '${{ process.env.GITHUB_REPOSITORY }}'
           const repositoryOwner = repository.split('/')[0]
           const repositoryName = repository.split('/')[1]
 
