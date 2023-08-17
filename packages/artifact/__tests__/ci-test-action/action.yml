@@ -1,5 +1,0 @@
-name: 'Set env variables'
-description: 'Sets certain env variables so that e2e artifact upload, list, get and download can be tested in a shell'
-runs:
-  using: 'node16'
-  main: 'index.js'

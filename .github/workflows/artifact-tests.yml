@@ -73,5 +73,7 @@ jobs:
 
             if (!success) {
               throw new Error('Failed to upload artifact')
+            } else {
+              console.log(`Successfully uploaded artifact ${id}`)
             }
            
