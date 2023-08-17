@@ -29,7 +29,7 @@ export async function listArtifacts(
   repositoryName: string,
   token: string
 ): Promise<ListArtifactsResponse> {
-  info(`Fetching artifact list for workflow run ${workflowRunId} in repository ${repositoryOwner}\\${repositoryName}`)
+  info(`Fetching artifact list for workflow run ${workflowRunId} in repository ${repositoryOwner}/${repositoryName}`)
 
   const artifacts: Artifact[] = []
   const [retryOpts, requestOpts] = getRetryOptions(
@@ -73,7 +73,7 @@ export async function listArtifacts(
   listArtifactResponse.artifacts.forEach(artifact => {
     artifacts.push({
       name: artifact.name,
-      artifactId: artifact.id,
+      id: artifact.id,
       url: artifact.url,
       size: artifact.size_in_bytes
     })
@@ -100,7 +100,7 @@ export async function listArtifacts(
     listArtifactResponse.artifacts.forEach(artifact => {
       artifacts.push({
         name: artifact.name,
-        artifactId: artifact.id,
+        id: artifact.id,
         url: artifact.url,
         size: artifact.size_in_bytes
       })

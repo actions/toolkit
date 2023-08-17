@@ -114,7 +114,7 @@ export interface Artifact {
   /**
    * The ID of the artifact
    */
-  artifactId: number
+  id: number
 
   /**
    * The URL of the artifact
