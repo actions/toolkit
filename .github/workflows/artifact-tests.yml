@@ -31,11 +31,6 @@ jobs:
       with:
         node-version: 16.x
 
-    # In order to upload & download artifacts from a shell script, certain env variables need to be set that are only available in the
-    # node context. This runs a local action that gets and sets the necessary env variables that are needed
-    - name: Set env variables
-      uses: ./packages/artifact/__tests__/ci-test-action/
-
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
     - name: Install root npm packages
@@ -69,6 +64,14 @@ jobs:
 
             const fileContents = ['artifact-path/first.txt','artifact-path/second.txt']
 
-            const uploadResult = await artifact.create().uploadArtifact(artifactName, fileContents, '${{ github.workspace }}')
+            const uploadResult = await artifact.create().uploadArtifact(artifactName, fileContents, './')
             console.log(uploadResult)
+
+            const success = uploadResult.success
+            const size = uploadResult.size
+            const id = uploadResult.id
+
+            if (!success) {
+              throw new Error('Failed to upload artifact')
+            }
            
