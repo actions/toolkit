@@ -4,10 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const filePath = process.env[`GITHUB_ENV`]
 
-const resultsUrl = process.env['ACTIONS_RESULTS_URL']
-console.log(`resultsUrl: ${resultsUrl}`)
-
-fs.appendFileSync(filePath, `ACTIONS_RESULTS_URL=${resultsUrl}${os.EOL}`, {
+fs.appendFileSync(filePath, `ACTIONS_RESULTS_URL=${process.env.ACTIONS_RESULTS_URL}${os.EOL}`, {
     encoding: 'utf8'
 })
 fs.appendFileSync(filePath, `ACTIONS_RUNTIME_TOKEN=${process.env.ACTIONS_RUNTIME_TOKEN}${os.EOL}`, {
