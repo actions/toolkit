@@ -1,4 +1,4 @@
-import {warning} from '@actions/core'
+import {info, warning, debug} from '@actions/core'
 import {getOctokit} from '@actions/github'
 import {ListArtifactsResponse, Artifact} from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
@@ -29,6 +29,8 @@ export async function listArtifacts(
   repositoryName: string,
   token: string
 ): Promise<ListArtifactsResponse> {
+  info(`Fetching artifact list for workflow run ${workflowRunId} in repository ${repositoryOwner}\\${repositoryName}`)
+
   const artifacts: Artifact[] = []
   const [retryOpts, requestOpts] = getRetryOptions(
     maxRetryNumber,
@@ -77,12 +79,15 @@ export async function listArtifacts(
     })
   })
 
+  // Iterate over any remaining pages
   for (
     currentPageNumber;
     currentPageNumber < numberOfPages;
     currentPageNumber++
   ) {
     currentPageNumber++
+    debug(`Fetching page ${currentPageNumber} of artifact list`)
+
     const {data: listArtifactResponse} =
       await github.rest.actions.listWorkflowRunArtifacts({
         owner: repositoryOwner,
@@ -101,6 +106,8 @@ export async function listArtifacts(
       })
     })
   }
+
+  info(`Finished fetching artifact list`)
 
   return {
     artifacts: artifacts
