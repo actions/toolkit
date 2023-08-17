@@ -80,11 +80,6 @@ export interface DownloadArtifactResponse {
    * If the artifact download was successful
    */
   success: boolean
-
-  /**
-   * Metadata about the artifact that was downloaded
-   */
-  artifact?: Artifact
 }
 
 export interface DownloadArtifactOptions {
