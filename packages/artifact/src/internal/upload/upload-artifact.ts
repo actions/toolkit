@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
-import {UploadOptions} from './upload-options'
-import {UploadResponse} from './upload-response'
+import {UploadOptions, UploadResponse} from '../shared/interfaces'
 import {getExpiration} from './retention'
 import {validateArtifactName} from './path-and-artifact-name-validation'
 import {createArtifactTwirpClient} from '../shared/artifact-twirp-client'

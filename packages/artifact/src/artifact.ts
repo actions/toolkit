@@ -1,6 +1,5 @@
 import {ArtifactClient, Client} from './internal/client'
-import {UploadOptions} from './internal/upload/upload-options'
-import {UploadResponse} from './internal/upload/upload-response'
+import {UploadOptions, UploadResponse} from './internal/shared/interfaces'
 
 /**
  * Exported functionality that we want to expose for any users of @actions/artifact

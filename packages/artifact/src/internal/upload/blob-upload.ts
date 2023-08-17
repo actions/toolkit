@@ -70,18 +70,21 @@ export async function uploadZipToBlobStorage(
     hashStream.end()
     md5Hash = hashStream.read() as string
     core.info(`MD5 hash of uploaded artifact zip is ${md5Hash}`)
-
   } catch (error) {
-    core.warning(`Failed to upload artifact zip to blob storage, error: ${error}`)
+    core.warning(
+      `Failed to upload artifact zip to blob storage, error: ${error}`
+    )
     return {
       isSuccess: false
     }
   }
 
   if (uploadByteCount === 0) {
-    core.warning(`No data was uploaded to blob storage. Reported upload byte count is 0`)
+    core.warning(
+      `No data was uploaded to blob storage. Reported upload byte count is 0`
+    )
     return {
-        isSuccess: false,
+      isSuccess: false
     }
   }
 
