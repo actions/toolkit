@@ -62,7 +62,7 @@ jobs:
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
       run: |
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact').create().uploadArtifact('my-artifact-${{ matrix.node-version }}',['artifact-path/first.txt','artifact-path/second.txt'], process.argv[1]))" "${{ github.workspace }}"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact').create().uploadArtifact('my-artifact-${{ matrix.runs-on }}',['artifact-path/first.txt','artifact-path/second.txt'], process.argv[1]))" "${{ github.workspace }}"
 
 
 
