@@ -30,22 +30,11 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
-    
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
 
     # In order to upload & download artifacts from a shell script, certain env variables need to be set that are only available in the
     # node context. This runs a local action that gets and sets the necessary env variables that are needed
     - name: Set env variables
       uses: ./packages/artifact/__tests__/ci-test-action/
-
-    - name: Dump GitHub context again
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-
 
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
@@ -73,7 +62,7 @@ jobs:
     # We're using node -e to call the functions directly available in the @actions/artifact package
     - name: Upload artifacts using uploadArtifact()
       run: |
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact').create().uploadArtifact('my-artifact',['artifact-path/first.txt','artifact-path/second.txt'], process.argv[1]))" "${{ github.workspace }}"
+        node -e "Promise.resolve(require('./packages/artifact/lib/artifact').create().uploadArtifact('my-artifact$-{{ matrix.runs-on }}',['artifact-path/first.txt','artifact-path/second.txt'], process.argv[1]))" "${{ github.workspace }}"
 
 
 
