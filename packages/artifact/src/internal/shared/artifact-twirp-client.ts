@@ -1,6 +1,6 @@
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {info} from '@actions/core'
+import {info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 
@@ -53,6 +53,7 @@ class ArtifactHttpClient implements Rpc {
     data: object | Uint8Array
   ): Promise<object | Uint8Array> {
     const url = `${this.baseUrl}/twirp/${service}/${method}`
+    debug(`Requesting ${url}`)
     const headers = {
       'Content-Type': contentType
     }
