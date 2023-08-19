@@ -102,6 +102,20 @@ export class HttpClientResponse {
       })
     })
   }
+
+  async readBodyBuffer?(): Promise<Buffer> {
+    return new Promise<Buffer>(async resolve => {
+      const chunks: Buffer[] = []
+
+      this.message.on('data', (chunk: Buffer) => {
+        chunks.push(chunk)
+      })
+
+      this.message.on('end', () => {
+        resolve(Buffer.concat(chunks))
+      })
+    })
+  }
 }
 
 export function isHttps(requestUrl: string): boolean {
@@ -519,7 +533,7 @@ export class HttpClient {
       handleResult(new Error(`Request timeout: ${info.options.path}`))
     })
 
-    req.on('error', function(err) {
+    req.on('error', function (err) {
       // err has statusCode property
       // res should have headers
       handleResult(err)
@@ -530,7 +544,7 @@ export class HttpClient {
     }
 
     if (data && typeof data !== 'string') {
-      data.on('close', function() {
+      data.on('close', function () {
         req.end()
       })
 

@@ -91,6 +91,12 @@ describe('proxy', () => {
     expect(proxyUrl).toBeDefined()
   })
 
+  it('getProxyUrl returns proxyUrl if http_proxy has no protocol', () => {
+    process.env['http_proxy'] = 'myproxysvr'
+    const proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
+    expect(proxyUrl?.toString()).toBe('http://myproxysvr/')
+  })
+
   it('checkBypass returns true if host as no_proxy list', () => {
     process.env['no_proxy'] = 'myserver'
     const bypass = pm.checkBypass(new URL('https://myserver'))
@@ -192,26 +198,26 @@ describe('proxy', () => {
     process.env['http_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'http://httpbin.org/get'
+      'http://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://httpbin.org/get')
-    expect(_proxyConnects).toEqual(['httpbin.org:80'])
+    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(_proxyConnects).toEqual(['postman-echo.com:80'])
   })
 
-  it('HttoClient does basic http get request when bypass proxy', async () => {
+  it('HttpClient does basic http get request when bypass proxy', async () => {
     process.env['http_proxy'] = _proxyUrl
-    process.env['no_proxy'] = 'httpbin.org'
+    process.env['no_proxy'] = 'postman-echo.com'
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'http://httpbin.org/get'
+      'http://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://httpbin.org/get')
+    expect(obj.url).toBe('http://postman-echo.com/get')
     expect(_proxyConnects).toHaveLength(0)
   })
 
@@ -219,26 +225,26 @@ describe('proxy', () => {
     process.env['https_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'https://httpbin.org/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('https://httpbin.org/get')
-    expect(_proxyConnects).toEqual(['httpbin.org:443'])
+    expect(obj.url).toBe('https://postman-echo.com/get')
+    expect(_proxyConnects).toEqual(['postman-echo.com:443'])
   })
 
   it('HttpClient does basic https get request when bypass proxy', async () => {
     process.env['https_proxy'] = _proxyUrl
-    process.env['no_proxy'] = 'httpbin.org'
+    process.env['no_proxy'] = 'postman-echo.com'
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'https://httpbin.org/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('https://httpbin.org/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
     expect(_proxyConnects).toHaveLength(0)
   })
 

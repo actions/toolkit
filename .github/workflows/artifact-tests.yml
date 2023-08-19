@@ -1,3 +1,5 @@
+# Temporarily disabled while v2.0.0 of @actions/artifact is under development
+
 name: artifact-unit-tests
 on:
   push:
@@ -29,11 +31,6 @@ jobs:
       with:
         node-version: 16.x
 
-    # In order to upload & download artifacts from a shell script, certain env variables need to be set that are only available in the
-    # node context. This runs a local action that gets and sets the necessary env variables that are needed
-    - name: Set env variables
-      uses: ./packages/artifact/__tests__/ci-test-action/
-
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
     - name: Install root npm packages
@@ -48,48 +45,91 @@ jobs:
     - name: Set artifact file contents
       shell: bash
       run: |
-        echo "non-gzip-artifact-content=hello" >> $GITHUB_ENV
-        echo "gzip-artifact-content=Some large amount of text that has a compression ratio that is greater than 100%. If greater than 100%, gzip is used to upload the file" >> $GITHUB_ENV
-        echo "empty-artifact-content=_EMPTY_" >> $GITHUB_ENV
+        echo "file1=hello from file 1" >> $GITHUB_ENV
+        echo "file2=hello from file 2" >> $GITHUB_ENV
 
     - name: Create files that will be uploaded
       run: |
         mkdir artifact-path
-        echo '${{ env.non-gzip-artifact-content }}' > artifact-path/world.txt
-        echo '${{ env.gzip-artifact-content }}' > artifact-path/gzip.txt
-        touch artifact-path/empty.txt
+        echo '${{ env.file1 }}' > artifact-path/first.txt
+        echo '${{ env.file2 }}' > artifact-path/second.txt
 
-    # We're using node -e to call the functions directly available in the @actions/artifact package
-    - name: Upload artifacts using uploadArtifact()
-      run: |
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-1',['artifact-path/world.txt'], process.argv[1]))" "${{ github.workspace }}"
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-2',['artifact-path/gzip.txt'], process.argv[1]))" "${{ github.workspace }}"
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().uploadArtifact('my-artifact-3',['artifact-path/empty.txt'], process.argv[1]))" "${{ github.workspace }}"
+    - name: Upload Artifacts using actions/github-script@v6
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const artifact = require('./packages/artifact/lib/artifact')
 
-    - name: Download artifacts using downloadArtifact()
-      run: |
-        mkdir artifact-1-directory
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-1','artifact-1-directory'))"
-        mkdir artifact-2-directory
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-2','artifact-2-directory'))"
-        mkdir artifact-3-directory
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadArtifact('my-artifact-3','artifact-3-directory'))"
+          const artifactName = 'my-artifact-${{ matrix.runs-on }}'
+          console.log('artifactName: ' + artifactName)
 
-    - name: Verify downloadArtifact()
-      shell: bash
-      run: |
-        packages/artifact/__tests__/test-artifact-file.sh "artifact-1-directory/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
-        packages/artifact/__tests__/test-artifact-file.sh "artifact-2-directory/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"
-        packages/artifact/__tests__/test-artifact-file.sh "artifact-3-directory/artifact-path/empty.txt" "${{ env.empty-artifact-content }}"
+          const fileContents = ['artifact-path/first.txt','artifact-path/second.txt']
 
-    - name: Download artifacts using downloadAllArtifacts()
-      run: |
-        mkdir multi-artifact-directory
-        node -e "Promise.resolve(require('./packages/artifact/lib/artifact-client').create().downloadAllArtifacts('multi-artifact-directory'))"
+          const uploadResult = await artifact.create().uploadArtifact(artifactName, fileContents, './')
+          console.log(uploadResult)
 
-    - name: Verify downloadAllArtifacts()
-      shell: bash
+          const success = uploadResult.success
+          const size = uploadResult.size
+          const id = uploadResult.id
+
+          if (!success) {
+            throw new Error('Failed to upload artifact')
+          } else {
+            console.log(`Successfully uploaded artifact ${id}`)
+          }
+           
+  verify:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set Node.js 16.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+
+    # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
+    # without these to just compile the artifacts package
+    - name: Install root npm packages
+      run: npm ci
+
+    - name: Compile artifact package
       run: |
-        packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-1/artifact-path/world.txt" "${{ env.non-gzip-artifact-content }}"
-        packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-2/artifact-path/gzip.txt" "${{ env.gzip-artifact-content }}"
-        packages/artifact/__tests__/test-artifact-file.sh "multi-artifact-directory/my-artifact-3/artifact-path/empty.txt" "${{ env.empty-artifact-content }}"
+        npm ci
+        npm run tsc
+      working-directory: packages/artifact
+
+    - name: List artifacts using actions/github-script@v6
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const artifact = require('./packages/artifact/lib/artifact')
+
+          const workflowRunId = process.env.GITHUB_RUN_ID
+          const repository = process.env.GITHUB_REPOSITORY
+          const repositoryOwner = repository.split('/')[0]
+          const repositoryName = repository.split('/')[1]
+
+          const listResult = await artifact.create().listArtifacts(workflowRunId, repositoryOwner, repositoryName, '${{ secrets.GITHUB_TOKEN }}')
+          console.log(listResult)
+
+          const artifacts = listResult.artifacts
+
+          if (artifacts.length !== 3) {
+            throw new Error('Expected 3 artifacts but only found ' + artifacts.length + ' artifacts')
+          }
+
+          const artifactNames = artifacts.map(artifact => artifact.name)
+          if (!artifactNames.includes('my-artifact-ubuntu-latest')){
+            throw new Error("Expected artifact list to contain an artifact named my-artifact-ubuntu-latest but it's missing")
+          }
+          if (!artifactNames.includes('my-artifact-windows-latest')){
+            throw new Error("Expected artifact list to contain an artifact named my-artifact-windows-latest but it's missing")
+          }
+          if (!artifactNames.includes('my-artifact-macos-latest')){
+            throw new Error("Expected artifact list to contain an artifact named my-artifact-macos-latest but it's missing")
+          }
+
+          console.log('Successfully listed artifacts that were uploaded')
