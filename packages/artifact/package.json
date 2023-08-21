@@ -50,7 +50,8 @@
     "archiver": "^5.3.1",
     "crypto": "^1.0.1",
     "jwt-decode": "^3.1.2",
-    "twirp-ts": "^2.5.0"
+    "twirp-ts": "^2.5.0",
+    "unzipper": "^0.10.14"
   },
   "devDependencies": {
     "@types/archiver": "^5.3.2",
