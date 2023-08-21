@@ -1,9 +1,9 @@
 import path from 'path'
 import fs from 'fs/promises'
 import {PathLike} from 'fs'
-import github from '@actions/github'
-import core from '@actions/core'
-import httpClient from '@actions/http-client'
+import * as github from '@actions/github'
+import * as core from '@actions/core'
+import * as httpClient from '@actions/http-client'
 import unzipper from 'unzipper'
 import {
   DownloadArtifactOptions,
@@ -61,16 +61,16 @@ export async function downloadArtifact(
   }
 
   if (!(await exists(downloadPath))) {
-    core.debug(`Creating artifact folder: ${downloadPath}`)
+    core.debug(`Artifact destination folder does not exist, creating: ${downloadPath}`)
     await fs.mkdir(downloadPath, {recursive: true})
   } else {
-    core.warning(`Artifact folder already exists: ${downloadPath}`)
+    core.debug(`Artifact destination folder already exists: ${downloadPath}`)
   }
 
   const api = github.getOctokit(token)
 
   core.info(
-    `Downloading artifact ${artifactId} from ${repositoryOwner}/${repositoryName}`
+    `Downloading artifact '${artifactId}' from '${repositoryOwner}/${repositoryName}'`
   )
 
   const {headers, status} = await api.rest.actions.downloadArtifact({
@@ -104,5 +104,5 @@ export async function downloadArtifact(
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
 
-  return {success: true}
+  return {success: true, downloadPath}
 }
