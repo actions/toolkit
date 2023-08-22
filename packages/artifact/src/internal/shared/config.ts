@@ -26,3 +26,11 @@ export function isGhes(): boolean {
   )
   return ghUrl.hostname.toUpperCase() !== 'GITHUB.COM'
 }
+
+export function getGitHubWorkspaceDir(): string {
+  const ghWorkspaceDir = process.env['GITHUB_WORKSPACE']
+  if (!ghWorkspaceDir) {
+    throw new Error('Unable to get the GITHUB_WORKSPACE env variable')
+  }
+  return ghWorkspaceDir
+}

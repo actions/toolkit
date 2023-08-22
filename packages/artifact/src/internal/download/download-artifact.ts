@@ -9,6 +9,7 @@ import {
   DownloadArtifactResponse
 } from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
+import { getGitHubWorkspaceDir } from '../shared/config'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -54,7 +55,7 @@ export async function downloadArtifact(
   token: string,
   options?: DownloadArtifactOptions
 ): Promise<DownloadArtifactResponse> {
-  let downloadPath = options?.path || process.cwd() // TODO: make this align with GITHUB_WORKSPACE
+  let downloadPath = options?.path || getGitHubWorkspaceDir()
   if (options?.createArtifactFolder) {
     downloadPath = path.join(downloadPath, 'my-artifact') // TODO: need to pass artifact name
   }
