@@ -1,6 +1,5 @@
 import path from 'path'
 import fs from 'fs/promises'
-import {PathLike} from 'fs'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as httpClient from '@actions/http-client'

@@ -72,14 +72,14 @@ export async function listArtifacts(
   }
 
   // Iterate over the first page
-  listArtifactResponse.artifacts.forEach(artifact => {
+  for (const artifact of listArtifactResponse.artifacts) {
     artifacts.push({
       name: artifact.name,
       id: artifact.id,
       url: artifact.url,
       size: artifact.size_in_bytes
     })
-  })
+  }
 
   // Iterate over any remaining pages
   for (
@@ -99,19 +99,19 @@ export async function listArtifacts(
         page: currentPageNumber
       })
 
-    listArtifactResponse.artifacts.forEach(artifact => {
+    for (const artifact of listArtifactResponse.artifacts) {
       artifacts.push({
         name: artifact.name,
         id: artifact.id,
         url: artifact.url,
         size: artifact.size_in_bytes
       })
-    })
+    }
   }
 
   info(`Finished fetching artifact list`)
 
   return {
-    artifacts: artifacts
+    artifacts
   }
 }

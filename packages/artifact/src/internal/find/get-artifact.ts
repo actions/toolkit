@@ -1,4 +1,4 @@
-import {Artifact, GetArtifactResponse} from '../shared/interfaces'
+import {GetArtifactResponse} from '../shared/interfaces'
 import {getOctokit} from '@actions/github'
 import {getUserAgentString} from '../shared/user-agent'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'

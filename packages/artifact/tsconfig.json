@@ -16,5 +16,6 @@
   },
   "include": [
     "./src"
-  ]
+  ],
+  "resolveJsonModule": true
 }
