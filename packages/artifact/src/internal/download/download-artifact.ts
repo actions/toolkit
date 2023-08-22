@@ -61,7 +61,9 @@ export async function downloadArtifact(
   }
 
   if (!(await exists(downloadPath))) {
-    core.debug(`Artifact destination folder does not exist, creating: ${downloadPath}`)
+    core.debug(
+      `Artifact destination folder does not exist, creating: ${downloadPath}`
+    )
     await fs.mkdir(downloadPath, {recursive: true})
   } else {
     core.debug(`Artifact destination folder already exists: ${downloadPath}`)

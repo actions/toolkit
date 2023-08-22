@@ -2,7 +2,7 @@ import {Artifact, GetArtifactResponse} from '../shared/interfaces'
 import {getOctokit} from '@actions/github'
 import {getUserAgentString} from '../shared/user-agent'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
-import { RetryOptions, getRetryOptions } from './retry-options'
+import {RetryOptions, getRetryOptions} from './retry-options'
 import {RequestRequestOptions} from '@octokit/types'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
@@ -25,7 +25,6 @@ export async function getArtifact(
   repositoryName: string,
   token: string
 ): Promise<GetArtifactResponse> {
-
   const [retryOpts, requestOpts] = getRetryOptions(
     maxRetryNumber,
     exemptStatusCodes,
@@ -42,22 +41,25 @@ export async function getArtifact(
 
   const github = getOctokit(token, opts, retry, requestLog)
 
-  const getArtifactResp = await github.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts{?name}', {
-    owner: repositoryOwner,
-    repo: repositoryName,
-    run_id: workflowRunId,
-    name: artifactName,
-  })
+  const getArtifactResp = await github.request(
+    'GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts{?name}',
+    {
+      owner: repositoryOwner,
+      repo: repositoryName,
+      run_id: workflowRunId,
+      name: artifactName
+    }
+  )
 
   if (getArtifactResp.status !== 200) {
     return {
-      success: false,
+      success: false
     }
   }
 
   if (getArtifactResp.data.artifacts.length === 0) {
     return {
-      success: false,
+      success: false
     }
   }
 
@@ -67,7 +69,7 @@ export async function getArtifact(
       name: getArtifactResp.data.artifacts[0].name,
       id: getArtifactResp.data.artifacts[0].id,
       url: getArtifactResp.data.artifacts[0].url,
-      size: getArtifactResp.data.artifacts[0].size_in_bytes,
-    },
+      size: getArtifactResp.data.artifacts[0].size_in_bytes
+    }
   }
 }
