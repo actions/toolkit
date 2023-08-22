@@ -30,7 +30,7 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-async function streamExtract(url: string, directory: PathLike): Promise<void> {
+async function streamExtract(url: string, directory: string): Promise<void> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
 
