@@ -9,7 +9,7 @@ import {
   DownloadArtifactResponse
 } from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
-import { getGitHubWorkspaceDir } from '../shared/config'
+import {getGitHubWorkspaceDir} from '../shared/config'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
