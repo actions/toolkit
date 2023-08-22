@@ -6,6 +6,7 @@ import {RetryOptions, getRetryOptions} from './retry-options'
 import {RequestRequestOptions} from '@octokit/types'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
+import * as core from '@actions/core'
 
 type Options = {
   log?: Console
@@ -52,15 +53,21 @@ export async function getArtifact(
   )
 
   if (getArtifactResp.status !== 200) {
+    core.warning('non-200 response from GitHub API: ${getArtifactResp.status}')
     return {
       success: false
     }
   }
 
   if (getArtifactResp.data.artifacts.length === 0) {
+    core.warning('no artifacts found')
     return {
       success: false
     }
+  }
+
+  if (getArtifactResp.data.artifacts.length > 1) {
+    core.warning('more than one artifact found, returning first')
   }
 
   return {
