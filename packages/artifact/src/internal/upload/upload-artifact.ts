@@ -61,7 +61,7 @@ export async function uploadArtifact(
   const createArtifactReq: CreateArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name: name,
+    name,
     version: 4
   }
 
@@ -96,13 +96,13 @@ export async function uploadArtifact(
   const finalizeArtifactReq: FinalizeArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name: name,
-    size: uploadResult.uploadSize!.toString()
+    name,
+    size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
   }
 
   if (uploadResult.md5Hash) {
     finalizeArtifactReq.hash = StringValue.create({
-      value: `md5:${uploadResult.md5Hash!}`
+      value: `md5:${uploadResult.md5Hash}`
     })
   }
 
