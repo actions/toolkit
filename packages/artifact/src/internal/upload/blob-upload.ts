@@ -91,6 +91,6 @@ export async function uploadZipToBlobStorage(
   return {
     isSuccess: true,
     uploadSize: uploadByteCount,
-    md5Hash: md5Hash
+    md5Hash
   }
 }

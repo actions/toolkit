@@ -1,6 +1,4 @@
-import path from 'path'
 import fs from 'fs/promises'
-import {PathLike} from 'fs'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as httpClient from '@actions/http-client'
@@ -10,6 +8,7 @@ import {
   DownloadArtifactResponse
 } from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
+import {getGitHubWorkspaceDir} from '../shared/config'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -30,7 +29,7 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-async function streamExtract(url: string, directory: PathLike): Promise<void> {
+async function streamExtract(url: string, directory: string): Promise<void> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
 
@@ -55,13 +54,12 @@ export async function downloadArtifact(
   token: string,
   options?: DownloadArtifactOptions
 ): Promise<DownloadArtifactResponse> {
-  let downloadPath = options?.path || process.cwd() // TODO: make this align with GITHUB_WORKSPACE
-  if (options?.createArtifactFolder) {
-    downloadPath = path.join(downloadPath, 'my-artifact') // TODO: need to pass artifact name
-  }
+  const downloadPath = options?.path || getGitHubWorkspaceDir()
 
   if (!(await exists(downloadPath))) {
-    core.debug(`Artifact destination folder does not exist, creating: ${downloadPath}`)
+    core.debug(
+      `Artifact destination folder does not exist, creating: ${downloadPath}`
+    )
     await fs.mkdir(downloadPath, {recursive: true})
   } else {
     core.debug(`Artifact destination folder already exists: ${downloadPath}`)
