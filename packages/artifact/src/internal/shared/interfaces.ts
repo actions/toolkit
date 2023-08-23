@@ -93,10 +93,10 @@ export interface DownloadArtifactOptions {
   path?: string
 
   /**
-   * Specifies if a root folder with the artifact name is created for the artifact that is downloaded
-   * Zip contents are expanded into this folder. Defaults to false if not specified
+   * Specifies if a root folder with the given name is created for the artifact that is downloaded
+   * Zip contents are expanded into this folder. A folder will not be created if not specified.
    * */
-  createArtifactFolder?: boolean
+  createArtifactFolderName?: string
 }
 
 /*****************************************************************************
