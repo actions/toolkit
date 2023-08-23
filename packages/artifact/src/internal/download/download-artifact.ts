@@ -1,4 +1,3 @@
-import path from 'path'
 import fs from 'fs/promises'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
@@ -55,7 +54,7 @@ export async function downloadArtifact(
   token: string,
   options?: DownloadArtifactOptions
 ): Promise<DownloadArtifactResponse> {
-  let downloadPath = options?.path || getGitHubWorkspaceDir()
+  const downloadPath = options?.path || getGitHubWorkspaceDir()
 
   if (!(await exists(downloadPath))) {
     core.debug(

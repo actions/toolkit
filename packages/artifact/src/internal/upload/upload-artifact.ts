@@ -97,7 +97,7 @@ export async function uploadArtifact(
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
     name,
-    size: uploadResult.uploadSize!.toString()
+    size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
   }
 
   if (uploadResult.md5Hash) {
