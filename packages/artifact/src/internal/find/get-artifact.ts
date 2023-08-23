@@ -53,7 +53,7 @@ export async function getArtifact(
   )
 
   if (getArtifactResp.status !== 200) {
-    core.warning('non-200 response from GitHub API: ${getArtifactResp.status}')
+    core.warning(`non-200 response from GitHub API: ${getArtifactResp.status}`)
     return {
       success: false
     }
@@ -67,7 +67,9 @@ export async function getArtifact(
   }
 
   if (getArtifactResp.data.artifacts.length > 1) {
-    core.warning('more than one artifact found, returning first')
+    core.warning(
+      'more than one artifact found for a single name, returning first'
+    )
   }
 
   return {
