@@ -91,12 +91,6 @@ export interface DownloadArtifactOptions {
    * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
    */
   path?: string
-
-  /**
-   * Specifies if a root folder with the given name is created for the artifact that is downloaded
-   * Zip contents are expanded into this folder. A folder will not be created if not specified.
-   * */
-  createArtifactFolderName?: string
 }
 
 /*****************************************************************************

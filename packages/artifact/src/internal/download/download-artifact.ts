@@ -56,9 +56,6 @@ export async function downloadArtifact(
   options?: DownloadArtifactOptions
 ): Promise<DownloadArtifactResponse> {
   let downloadPath = options?.path || getGitHubWorkspaceDir()
-  if (options?.createArtifactFolderName) {
-    downloadPath = path.join(downloadPath, options?.createArtifactFolderName)
-  }
 
   if (!(await exists(downloadPath))) {
     core.debug(
