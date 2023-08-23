@@ -8,9 +8,6 @@ import {retry} from '@octokit/plugin-retry'
 import * as core from '@actions/core'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 
-const maxRetryNumber = 5
-const exemptStatusCodes = [400, 401, 403, 404, 422] // https://github.com/octokit/plugin-retry.js/blob/9a2443746c350b3beedec35cf26e197ea318a261/src/index.ts#L14
-
 export async function getArtifact(
   artifactName: string,
   workflowRunId: number,
@@ -18,11 +15,7 @@ export async function getArtifact(
   repositoryName: string,
   token: string
 ): Promise<GetArtifactResponse> {
-  const [retryOpts, requestOpts] = getRetryOptions(
-    maxRetryNumber,
-    exemptStatusCodes,
-    defaultGitHubOptions
-  )
+  const [retryOpts, requestOpts] = getRetryOptions(defaultGitHubOptions)
 
   const opts: OctokitOptions = {
     log: undefined,
