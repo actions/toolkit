@@ -3,4 +3,3 @@ packages/*/node_modules/
 packages/*/lib/
 packages/glob/__tests__/_temp
 packages/*/src/generated/*/
-packages/artifact/src/internal/shared/user-agent.ts
