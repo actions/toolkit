@@ -2,19 +2,11 @@ import {GetArtifactResponse} from '../shared/interfaces'
 import {getOctokit} from '@actions/github'
 import {getUserAgentString} from '../shared/user-agent'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
-import {RetryOptions, getRetryOptions} from './retry-options'
-import {RequestRequestOptions} from '@octokit/types'
+import {getRetryOptions} from './retry-options'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
 import * as core from '@actions/core'
-
-type Options = {
-  log?: Console
-  userAgent?: string
-  previews?: string[]
-  retry?: RetryOptions
-  request?: RequestRequestOptions
-}
+import {OctokitOptions} from '@octokit/core/dist-types/types'
 
 const maxRetryNumber = 5
 const exemptStatusCodes = [400, 401, 403, 404, 422] // https://github.com/octokit/plugin-retry.js/blob/9a2443746c350b3beedec35cf26e197ea318a261/src/index.ts#L14
@@ -32,7 +24,7 @@ export async function getArtifact(
     defaultGitHubOptions
   )
 
-  const opts: Options = {
+  const opts: OctokitOptions = {
     log: undefined,
     userAgent: getUserAgentString(),
     previews: undefined,

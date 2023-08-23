@@ -7,10 +7,14 @@ export type RetryOptions = {
   enabled?: boolean
 }
 
+// Defaults for fetching artifacts
+const defaultMaxRetryNumber = 5
+const defaultExemptStatusCodes = [400, 401, 403, 404, 422] // https://github.com/octokit/plugin-retry.js/blob/9a2443746c350b3beedec35cf26e197ea318a261/src/index.ts#L14
+
 export function getRetryOptions(
-  retries: number,
-  exemptStatusCodes: number[],
-  defaultOptions: OctokitOptions
+  defaultOptions: OctokitOptions,
+  retries: number = defaultMaxRetryNumber,
+  exemptStatusCodes: number[] = defaultExemptStatusCodes
 ): [RetryOptions, RequestRequestOptions | undefined] {
   if (retries <= 0) {
     return [{enabled: false}, defaultOptions.request]

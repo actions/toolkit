@@ -2,26 +2,16 @@ import {info, warning, debug} from '@actions/core'
 import {getOctokit} from '@actions/github'
 import {ListArtifactsResponse, Artifact} from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
-import {RetryOptions, getRetryOptions} from './retry-options'
+import {getRetryOptions} from './retry-options'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
-import {RequestRequestOptions} from '@octokit/types'
-
-type Options = {
-  log?: Console
-  userAgent?: string
-  previews?: string[]
-  retry?: RetryOptions
-  request?: RequestRequestOptions
-}
+import {OctokitOptions} from '@octokit/core/dist-types/types'
 
 // Limiting to 1000 for perf reasons
 const maximumArtifactCount = 1000
 const paginationCount = 100
 const maxNumberOfPages = maximumArtifactCount / paginationCount
-const maxRetryNumber = 5
-const exemptStatusCodes = [400, 401, 403, 404, 422] // https://github.com/octokit/plugin-retry.js/blob/9a2443746c350b3beedec35cf26e197ea318a261/src/index.ts#L14
 
 export async function listArtifacts(
   workflowRunId: number,
@@ -34,13 +24,9 @@ export async function listArtifacts(
   )
 
   const artifacts: Artifact[] = []
-  const [retryOpts, requestOpts] = getRetryOptions(
-    maxRetryNumber,
-    exemptStatusCodes,
-    defaultGitHubOptions
-  )
+  const [retryOpts, requestOpts] = getRetryOptions(defaultGitHubOptions)
 
-  const opts: Options = {
+  const opts: OctokitOptions = {
     log: undefined,
     userAgent: getUserAgentString(),
     previews: undefined,
