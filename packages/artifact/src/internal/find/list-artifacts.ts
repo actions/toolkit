@@ -29,7 +29,9 @@ export async function listArtifacts(
   repositoryName: string,
   token: string
 ): Promise<ListArtifactsResponse> {
-  info(`Fetching artifact list for workflow run ${workflowRunId} in repository ${repositoryOwner}/${repositoryName}`)
+  info(
+    `Fetching artifact list for workflow run ${workflowRunId} in repository ${repositoryOwner}/${repositoryName}`
+  )
 
   const artifacts: Artifact[] = []
   const [retryOpts, requestOpts] = getRetryOptions(

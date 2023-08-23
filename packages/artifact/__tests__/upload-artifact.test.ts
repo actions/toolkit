@@ -47,12 +47,10 @@ describe('upload-artifact', () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
       .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
-    jest
-      .spyOn(util, 'getBackendIdsFromToken')
-      .mockReturnValue({
-        workflowRunBackendId: '1234',
-        workflowJobRunBackendId: '5678'
-      })
+    jest.spyOn(util, 'getBackendIdsFromToken').mockReturnValue({
+      workflowRunBackendId: '1234',
+      workflowJobRunBackendId: '5678'
+    })
     jest
       .spyOn(retention, 'getExpiration')
       .mockReturnValue(Timestamp.fromDate(mockDate))
@@ -64,15 +62,13 @@ describe('upload-artifact', () => {
           signedUploadUrl: 'https://signed-upload-url.com'
         })
       )
-    jest
-      .spyOn(blobUpload, 'uploadZipToBlobStorage')
-      .mockReturnValue(
-        Promise.resolve({
-          isSuccess: true,
-          uploadSize: 1234,
-          md5Hash: 'test-md5-hash'
-        })
-      )
+    jest.spyOn(blobUpload, 'uploadZipToBlobStorage').mockReturnValue(
+      Promise.resolve({
+        isSuccess: true,
+        uploadSize: 1234,
+        md5Hash: 'test-md5-hash'
+      })
+    )
     jest
       .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
       .mockReturnValue(Promise.resolve({ok: true, artifactId: '1'}))
@@ -202,12 +198,10 @@ describe('upload-artifact', () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
       .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
-    jest
-      .spyOn(util, 'getBackendIdsFromToken')
-      .mockReturnValue({
-        workflowRunBackendId: '1234',
-        workflowJobRunBackendId: '5678'
-      })
+    jest.spyOn(util, 'getBackendIdsFromToken').mockReturnValue({
+      workflowRunBackendId: '1234',
+      workflowJobRunBackendId: '5678'
+    })
     jest
       .spyOn(retention, 'getExpiration')
       .mockReturnValue(Timestamp.fromDate(mockDate))
@@ -259,12 +253,10 @@ describe('upload-artifact', () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
       .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
-    jest
-      .spyOn(util, 'getBackendIdsFromToken')
-      .mockReturnValue({
-        workflowRunBackendId: '1234',
-        workflowJobRunBackendId: '5678'
-      })
+    jest.spyOn(util, 'getBackendIdsFromToken').mockReturnValue({
+      workflowRunBackendId: '1234',
+      workflowJobRunBackendId: '5678'
+    })
     jest
       .spyOn(retention, 'getExpiration')
       .mockReturnValue(Timestamp.fromDate(mockDate))
@@ -324,12 +316,10 @@ describe('upload-artifact', () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
       .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
-    jest
-      .spyOn(util, 'getBackendIdsFromToken')
-      .mockReturnValue({
-        workflowRunBackendId: '1234',
-        workflowJobRunBackendId: '5678'
-      })
+    jest.spyOn(util, 'getBackendIdsFromToken').mockReturnValue({
+      workflowRunBackendId: '1234',
+      workflowJobRunBackendId: '5678'
+    })
     jest
       .spyOn(retention, 'getExpiration')
       .mockReturnValue(Timestamp.fromDate(mockDate))
@@ -341,15 +331,13 @@ describe('upload-artifact', () => {
           signedUploadUrl: 'https://signed-upload-url.com'
         })
       )
-    jest
-      .spyOn(blobUpload, 'uploadZipToBlobStorage')
-      .mockReturnValue(
-        Promise.resolve({
-          isSuccess: true,
-          uploadSize: 1234,
-          md5Hash: 'test-md5-hash'
-        })
-      )
+    jest.spyOn(blobUpload, 'uploadZipToBlobStorage').mockReturnValue(
+      Promise.resolve({
+        isSuccess: true,
+        uploadSize: 1234,
+        md5Hash: 'test-md5-hash'
+      })
+    )
     jest
       .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
       .mockReturnValue(Promise.resolve({ok: false, artifactId: ''}))
