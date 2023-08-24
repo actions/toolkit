@@ -39,12 +39,7 @@ async function streamExtract(url: string, directory: string): Promise<void> {
     )
   }
 
-  return new Promise((resolve, reject) => {
-    response.message
-      .pipe(unzipper.Extract({path: directory}))
-      .on('finish', resolve)
-      .on('error', reject)
-  })
+  return response.message.pipe(unzipper.Extract({path: directory})).promise()
 }
 
 export async function downloadArtifact(
