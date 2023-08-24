@@ -80,6 +80,10 @@ export interface DownloadArtifactResponse {
    * If the artifact download was successful
    */
   success: boolean
+  /**
+   * The path where the artifact was downloaded to
+   */
+  downloadPath?: string
 }
 
 export interface DownloadArtifactOptions {
@@ -87,12 +91,6 @@ export interface DownloadArtifactOptions {
    * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
    */
   path?: string
-
-  /**
-   * Specifies if a root folder with the artifact name is created for the artifact that is downloaded
-   * Zip contents are expanded into this folder. Defaults to false if not specified
-   * */
-  createArtifactFolder?: boolean
 }
 
 /*****************************************************************************
