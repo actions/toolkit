@@ -35,7 +35,7 @@ const fixtures = {
   repositoryOwner: 'actions',
   repositoryName: 'toolkit',
   token: 'ghp_1234567890',
-  blobStorageUrl: 'https://blob-storage.local?signed=true',
+  blobStorageUrl: 'https://blob-storage.local?signed=true'
 }
 
 jest.mock('@actions/github', () => ({
