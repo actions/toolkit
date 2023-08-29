@@ -59,7 +59,6 @@ describe('auth', () => {
     const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests', [
       ph
     ])
-    try {
     const res: httpm.HttpClientResponse = await http.get(
       'http://postman-echo.com/get'
     )
@@ -69,9 +68,5 @@ describe('auth', () => {
     const auth: string = obj.headers.authorization
     expect(auth).toBe(`Bearer ${token}`)
     expect(obj.url).toBe('http://postman-echo.com/get')
-    }
-    finally {
-      http.dispose()
-    }
   })
 })
