@@ -40,7 +40,7 @@ jobs:
       run: npm run build
 
     - name: npm test
-      run: npm test -- --runInBand --forceExit
+      run: npm test -- --runInBand
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
