@@ -670,7 +670,12 @@ describe('oidc-client-tests', () => {
 
   it('HTTP get request to get token endpoint', async () => {
     const http = new HttpClient('actions/oidc-client')
-    const res = await http.get(getTokenEndPoint())
-    expect(res.message.statusCode).toBe(200)
+    try {
+      const res = await http.get(getTokenEndPoint())
+      expect(res.message.statusCode).toBe(200)
+    }
+    finally {
+      http.dispose()
+    }
   })
 })
