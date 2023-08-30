@@ -168,7 +168,7 @@ function isUnixExecutable(stats: fs.Stats): boolean {
   var processGid = process.getgid ? process.getgid() : -1
   return (
     (stats.mode & 1) > 0 ||
-    ((stats.mode & 8) > 0 && process != undefined && stats.gid === processGid) ||
+    ((stats.mode & 8) > 0 && stats.gid === processGid) ||
     ((stats.mode & 64) > 0 && stats.uid === processGid)
   )
 }
