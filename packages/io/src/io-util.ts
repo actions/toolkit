@@ -165,7 +165,7 @@ function normalizeSeparators(p: string): string {
 //     R   W  X  R  W X R W X
 //   256 128 64 32 16 8 4 2 1
 function isUnixExecutable(stats: fs.Stats): boolean {
-  var processGid = process.getgid ? process.getgid() : -1
+  const processGid = process.getgid ? process.getgid() : -1
   return (
     (stats.mode & 1) > 0 ||
     ((stats.mode & 8) > 0 && stats.gid === processGid) ||

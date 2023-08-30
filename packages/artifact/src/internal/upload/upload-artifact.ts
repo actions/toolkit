@@ -71,9 +71,8 @@ export async function uploadArtifact(
     createArtifactReq.expiresAt = expiresAt
   }
 
-  const createArtifactResp = await artifactClient.CreateArtifact(
-    createArtifactReq
-  )
+  const createArtifactResp =
+    await artifactClient.CreateArtifact(createArtifactReq)
   if (!createArtifactResp.ok) {
     core.warning(`Failed to create artifact`)
     return {
@@ -108,9 +107,8 @@ export async function uploadArtifact(
 
   core.info(`Finalizing artifact upload`)
 
-  const finalizeArtifactResp = await artifactClient.FinalizeArtifact(
-    finalizeArtifactReq
-  )
+  const finalizeArtifactResp =
+    await artifactClient.FinalizeArtifact(finalizeArtifactReq)
   if (!finalizeArtifactResp.ok) {
     core.warning(`Failed to finalize artifact`)
     return {
