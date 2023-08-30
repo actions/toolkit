@@ -19,7 +19,7 @@ describe('@actions/github', () => {
     proxyServer = proxy()
     await new Promise(resolve => {
       const port = Number(proxyUrl.split(':')[2])
-      proxyServer.listen(port, () => resolve())
+      proxyServer.listen(port, () => resolve(null))
     })
     proxyServer.on('connect', req => {
       proxyConnects.push(req.url ?? '')
@@ -33,7 +33,7 @@ describe('@actions/github', () => {
   afterAll(async () => {
     // Stop proxy server
     await new Promise(resolve => {
-      proxyServer.once('close', () => resolve())
+      proxyServer.once('close', () => resolve(null))
       proxyServer.close()
     })
 
