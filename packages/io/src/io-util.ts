@@ -167,8 +167,12 @@ function normalizeSeparators(p: string): string {
 function isUnixExecutable(stats: fs.Stats): boolean {
   return (
     (stats.mode & 1) > 0 ||
-    ((stats.mode & 8) > 0 && process.getgid != undefined && stats.gid === process.getgid()) ||
-    ((stats.mode & 64) > 0 && process.getuid != undefined && stats.uid === process.getuid())
+    ((stats.mode & 8) > 0 &&
+      process.getgid !== undefined &&
+      stats.gid === process.getgid()) ||
+    ((stats.mode & 64) > 0 &&
+      process.getuid !== undefined &&
+      stats.uid === process.getuid())
   )
 }
 
