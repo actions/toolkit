@@ -1456,7 +1456,7 @@ async function findsExecutableWithScopedPermissions(
   // create a executable file
   const testPath = path.join(getTestTemp(), 'which-finds-file-name')
   await io.mkdirP(testPath)
-  let fileName = 'Which-Test-File' + chmodOptions
+  const fileName = 'Which-Test-File'
   if (process.platform === 'win32') {
     return
   }
