@@ -9,6 +9,7 @@ import * as tunnel from 'tunnel'
 
 export enum HttpCodes {
   OK = 200,
+  Created = 201,
   MultipleChoices = 300,
   MovedPermanently = 301,
   ResourceMoved = 302,
