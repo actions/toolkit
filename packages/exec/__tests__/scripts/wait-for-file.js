@@ -21,7 +21,7 @@ state.checkFile = function (s) {
     try {
         fs.statSync(s.file);
     }
-    catch (err) {
+    catch (err: any) {
         if (err.code == 'ENOENT') {
             return;
         }

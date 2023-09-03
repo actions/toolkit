@@ -118,7 +118,7 @@ export class Client implements ArtifactClient {
 
     try {
       return uploadArtifact(name, files, rootDirectory, options)
-    } catch (error) {
+    } catch (error: any) {
       warning(
         `Artifact upload failed with error: ${error}.
 
@@ -159,7 +159,7 @@ If the error persists, please check whether Actions is operating normally at [ht
         token,
         options
       )
-    } catch (error) {
+    } catch (error: any) {
       warning(
         `Artifact download failed with error: ${error}.
 

@@ -147,7 +147,7 @@ describe('cp', () => {
     let thrown = false
     try {
       await io.cp(sourceFolder, targetFolder)
-    } catch (err) {
+    } catch (err: any) {
       thrown = true
     }
     expect(thrown).toBe(true)
@@ -432,7 +432,7 @@ describe('rmRF', () => {
       let errcode = ''
       try {
         await fs.lstat(symlinkFile)
-      } catch (err) {
+      } catch (err: any) {
         errcode = err.code
       }
 
@@ -595,7 +595,7 @@ describe('rmRF', () => {
     let errcode = ''
     try {
       await fs.stat(symlinkDirectory)
-    } catch (err) {
+    } catch (err: any) {
       errcode = err.code
     }
 
@@ -609,7 +609,7 @@ describe('rmRF', () => {
     errcode = ''
     try {
       await fs.lstat(symlinkDirectory)
-    } catch (err) {
+    } catch (err: any) {
       errcode = err.code
     }
 
@@ -738,7 +738,7 @@ describe('mkdirP', () => {
 
     try {
       await io.mkdirP('')
-    } catch (err) {
+    } catch (err: any) {
       expect(err.message).toEqual('a path argument must be provided')
     }
   })
@@ -763,7 +763,7 @@ describe('mkdirP', () => {
     try {
       await io.mkdirP(testPath)
       worked = true
-    } catch (err) {
+    } catch (err: any) {
       await expect(fs.stat(testPath)).rejects.toHaveProperty(
         'code',
         'ERR_INVALID_ARG_VALUE'
@@ -781,7 +781,7 @@ describe('mkdirP', () => {
     try {
       await io.mkdirP(testPath)
       worked = true
-    } catch (err) {
+    } catch (err: any) {
       worked = false
     }
 
@@ -800,7 +800,7 @@ describe('mkdirP', () => {
     try {
       await io.mkdirP(testPath)
       worked = true
-    } catch (err) {
+    } catch (err: any) {
       worked = false
     }
 
@@ -1082,7 +1082,7 @@ describe('which', () => {
     let failed = false
     try {
       await io.which(filePath, true)
-    } catch (err) {
+    } catch (err: any) {
       failed = true
     }
 
@@ -1111,7 +1111,7 @@ describe('which', () => {
     let failed = false
     try {
       await io.which(dirPath, true)
-    } catch (err) {
+    } catch (err: any) {
       failed = true
     }
 
@@ -1129,7 +1129,7 @@ describe('which', () => {
     let failed = false
     try {
       await io.which(filePath, true)
-    } catch (err) {
+    } catch (err: any) {
       failed = true
     }
 

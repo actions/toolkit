@@ -73,7 +73,7 @@ describe('retry-helper tests', () => {
       await retryHelper.execute(() => {
         throw new Error(`some error ${++attempts}`)
       })
-    } catch (err) {
+    } catch (err: any) {
       error = err
     }
     expect(error.message).toBe('some error 3')
@@ -95,7 +95,7 @@ describe('retry-helper tests', () => {
         },
         () => false
       )
-    } catch (err) {
+    } catch (err: any) {
       error = err
     }
     expect(error.message).toBe('some error 1')
@@ -113,7 +113,7 @@ describe('retry-helper tests', () => {
         },
         (e: Error) => e.message === 'some error 1'
       )
-    } catch (err) {
+    } catch (err: any) {
       error = err
     }
     expect(error.message).toBe('some error 2')

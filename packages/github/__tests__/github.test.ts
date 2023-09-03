@@ -94,7 +94,7 @@ describe('@actions/github', () => {
         repo: 'toolkit',
         branch: 'main'
       })
-    } catch (err) {
+    } catch (err: any) {
       failed = true
     }
     expect(failed).toBeTruthy()
@@ -135,7 +135,7 @@ describe('@actions/github', () => {
       await octokit.graphql(
         '{repository(owner:"actions", name:"toolkit"){name}}'
       )
-    } catch (err) {
+    } catch (err: any) {
       failed = true
     }
     expect(failed).toBeTruthy()

@@ -170,7 +170,7 @@ test('retryTypedResponse gives an error with error message', async () => {
           })
         })
     )
-  } catch (error) {
+  } catch (error: any) {
     expect(error).toHaveProperty(
       'message',
       'The cache filesize must be between 0 and 10 * 1024 * 1024 bytes'

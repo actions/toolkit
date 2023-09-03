@@ -223,7 +223,7 @@ describe('@actions/exec', () => {
     let failed = false
     await exec
       .exec(`"${nodePath}"`, [scriptPath], _testExecOptions)
-      .catch(() => {
+      .catch ((: any) => {
         failed = true
       })
 
@@ -239,7 +239,7 @@ describe('@actions/exec', () => {
     _testExecOptions.cwd = path.join(__dirname, 'nosuchdir')
 
     let failed = false
-    await exec.exec(`"${nodePath}"`, [], _testExecOptions).catch(() => {
+    await exec.exec(`"${nodePath}"`, [], _testExecOptions).catch ((: any) => {
       failed = true
     })
 
@@ -540,7 +540,7 @@ describe('@actions/exec', () => {
     try {
       process.chdir(__dirname)
       exitCode = await exec.exec(`${command} hello world`, [], execOptions)
-    } catch (err) {
+    } catch (err: any) {
       process.chdir(originalCwd)
       throw err
     }
@@ -639,7 +639,7 @@ describe('@actions/exec', () => {
     try {
       process.chdir(__dirname)
       exitCode = await exec.exec(`${command} hello world`, [], execOptions)
-    } catch (err) {
+    } catch (err: any) {
       process.chdir(originalCwd)
       throw err
     }
@@ -838,7 +838,7 @@ describe('@actions/exec', () => {
       try {
         process.chdir(__dirname)
         exitCode = await exec.exec(`${command} hello world`, [], execOptions)
-      } catch (err) {
+      } catch (err: any) {
         process.chdir(originalCwd)
         throw err
       }
@@ -1030,7 +1030,7 @@ describe('@actions/exec', () => {
           'args[0]: "<quote>my arg 1<quote>"\r\n' +
             'args[1]: "<quote>my arg 2<quote>"'
         )
-      } catch (err) {
+      } catch (err: any) {
         process.env['Path'] = originalPath
         throw err
       }
@@ -1187,7 +1187,7 @@ const compileExe = (sourceFileName: string, targetFileName: string): string => {
   try {
     fs.statSync(exePath)
     return exePath
-  } catch (err) {
+  } catch (err: any) {
     if (err.code !== 'ENOENT') {
       throw err
     }

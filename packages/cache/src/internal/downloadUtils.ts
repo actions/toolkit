@@ -322,7 +322,7 @@ async function downloadSegmentRetry(
       }
 
       return result
-    } catch (err) {
+    } catch (err: any) {
       if (failures >= retries) {
         throw err
       }

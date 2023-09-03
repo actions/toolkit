@@ -285,7 +285,7 @@ async function handleArtifactServiceCreateArtifactJSON<
   try {
     const body = JSON.parse(data.toString() || '{}')
     request = CreateArtifactRequest.fromJson(body, {ignoreUnknownFields: true})
-  } catch (e) {
+  } catch (e: any) {
     if (e instanceof Error) {
       const msg = 'the json request could not be decoded'
       throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true)
@@ -333,7 +333,7 @@ async function handleArtifactServiceFinalizeArtifactJSON<
     request = FinalizeArtifactRequest.fromJson(body, {
       ignoreUnknownFields: true
     })
-  } catch (e) {
+  } catch (e: any) {
     if (e instanceof Error) {
       const msg = 'the json request could not be decoded'
       throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true)
@@ -373,7 +373,7 @@ async function handleArtifactServiceCreateArtifactProtobuf<
 
   try {
     request = CreateArtifactRequest.fromBinary(data)
-  } catch (e) {
+  } catch (e: any) {
     if (e instanceof Error) {
       const msg = 'the protobuf request could not be decoded'
       throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true)
@@ -413,7 +413,7 @@ async function handleArtifactServiceFinalizeArtifactProtobuf<
 
   try {
     request = FinalizeArtifactRequest.fromBinary(data)
-  } catch (e) {
+  } catch (e: any) {
     if (e instanceof Error) {
       const msg = 'the protobuf request could not be decoded'
       throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true)

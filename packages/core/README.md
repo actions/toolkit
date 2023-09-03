@@ -61,7 +61,7 @@ const core = require('@actions/core');
 try {
   // Do stuff
 }
-catch (err) {
+catch (err: any) {
   // setFailed logs the message and sets a failing exit code
   core.setFailed(`Action failed with error ${err}`);
 }
@@ -95,7 +95,7 @@ try {
 
   core.notice('This is a message that will also emit an annotation')
 }
-catch (err) {
+catch (err: any) {
   core.error(`Error ${err}, action may still succeed though`);
 }
 ```
