@@ -44,6 +44,6 @@
     "@octokit/plugin-rest-endpoint-methods": "^5.13.0"
   },
   "devDependencies": {
-    "proxy": "^1.0.2"
+    "proxy": "^2.1.1"
   }
 }
