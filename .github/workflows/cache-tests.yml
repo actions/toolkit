@@ -24,10 +24,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
+    - name: Set Node.js version
       uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version-file: .nvmrc
 
     # In order to save & restore cache from a shell script, certain env variables need to be set that are only available in the
     # node context. This runs a local action that gets and sets the necessary env variables that are needed
@@ -44,7 +44,7 @@ jobs:
         npm ci
         npm run tsc
       working-directory: packages/cache
-    
+
     - name: Generate files in working directory
       shell: bash
       run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} test-cache
