@@ -77,7 +77,7 @@ export class OidcClient {
       const id_token = await OidcClient.getCall(id_token_url)
       setSecret(id_token)
       return id_token
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Error message: ${error.message}`)
     }
   }
