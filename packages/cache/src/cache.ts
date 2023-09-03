@@ -133,7 +133,7 @@ export async function restoreCache(
     core.info('Cache restored successfully')
 
     return cacheEntry.cacheKey
-  } catch (error) {
+  } catch (error: any) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
@@ -145,7 +145,7 @@ export async function restoreCache(
     // Try to delete the archive to save space
     try {
       await utils.unlinkFile(archivePath)
-    } catch (error) {
+    } catch (error: any) {
       core.debug(`Failed to delete archive: ${error}`)
     }
   }
@@ -238,7 +238,7 @@ export async function saveCache(
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
-  } catch (error) {
+  } catch (error: any) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
@@ -251,7 +251,7 @@ export async function saveCache(
     // Try to delete the archive to save space
     try {
       await utils.unlinkFile(archivePath)
-    } catch (error) {
+    } catch (error: any) {
       core.debug(`Failed to delete archive: ${error}`)
     }
   }
