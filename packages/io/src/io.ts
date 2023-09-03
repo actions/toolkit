@@ -127,7 +127,7 @@ export async function rmRF(inputPath: string): Promise<void> {
       recursive: true,
       retryDelay: 300
     })
-  } catch (err) {
+  } catch (err: any) {
     throw new Error(`File was unable to be removed ${err}`)
   }
 }
@@ -305,7 +305,7 @@ async function copyFile(
     try {
       await ioUtil.lstat(destFile)
       await ioUtil.unlink(destFile)
-    } catch (e) {
+    } catch (e: any) {
       // Try to override file permission
       if (e.code === 'EPERM') {
         await ioUtil.chmod(destFile, '0666')

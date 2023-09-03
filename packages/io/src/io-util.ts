@@ -25,7 +25,7 @@ export const READONLY = fs.constants.O_RDONLY
 export async function exists(fsPath: string): Promise<boolean> {
   try {
     await stat(fsPath)
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === 'ENOENT') {
       return false
     }
@@ -77,7 +77,7 @@ export async function tryGetExecutablePath(
   try {
     // test file exists
     stats = await stat(filePath)
-  } catch (err) {
+  } catch (err: any) {
     if (err.code !== 'ENOENT') {
       // eslint-disable-next-line no-console
       console.log(
@@ -107,7 +107,7 @@ export async function tryGetExecutablePath(
     stats = undefined
     try {
       stats = await stat(filePath)
-    } catch (err) {
+    } catch (err: any) {
       if (err.code !== 'ENOENT') {
         // eslint-disable-next-line no-console
         console.log(
@@ -128,7 +128,7 @@ export async function tryGetExecutablePath(
               break
             }
           }
-        } catch (err) {
+        } catch (err: any) {
           // eslint-disable-next-line no-console
           console.log(
             `Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`
