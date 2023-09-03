@@ -99,7 +99,7 @@ export class ToolRunner extends events.EventEmitter {
       }
 
       return s
-    } catch (err) {
+    } catch (err: any) {
       // streaming lines to console is best effort.  Don't fail a build.
       this._debug(`error processing line. Failed with error ${err}`)
 

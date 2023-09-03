@@ -754,7 +754,7 @@ export class HttpClient {
         }
 
         response.headers = res.message.headers
-      } catch (err) {
+      } catch (err: any) {
         // Invalid resource (contents not json);  leaving result obj null
       }
 
