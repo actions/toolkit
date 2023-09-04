@@ -11,6 +11,11 @@ export enum CompressionMethod {
   Zstd = 'zstd'
 }
 
+export enum ArchiveToolType {
+  GNU = 'gnu',
+  BSD = 'bsd'
+}
+
 // The default number of retry attempts.
 export const DefaultRetryAttempts = 2
 
@@ -21,3 +26,13 @@ export const DefaultRetryDelay = 5000
 // over the socket during this period, the socket is destroyed and the download
 // is aborted.
 export const SocketTimeout = 5000
+
+// The default path of GNUtar on hosted Windows runners
+export const GnuTarPathOnWindows = `${process.env['PROGRAMFILES']}\\Git\\usr\\bin\\tar.exe`
+
+// The default path of BSDtar on hosted Windows runners
+export const SystemTarPathOnWindows = `${process.env['SYSTEMDRIVE']}\\Windows\\System32\\tar.exe`
+
+export const TarFilename = 'cache.tar'
+
+export const ManifestFilename = 'manifest.txt'

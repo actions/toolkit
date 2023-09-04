@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
-import {HttpClient} from '@actions/http-client'
-import {IHttpClientResponse} from '@actions/http-client/interfaces'
+import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {BlockBlobClient} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/ms-rest-js'
 import * as buffer from 'buffer'
@@ -13,6 +12,8 @@ import {SocketTimeout} from './constants'
 import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
+import {AbortController} from '@azure/abort-controller'
+
 /**
  * Pipes the body of a HTTP response to a stream
  *
@@ -20,7 +21,7 @@ import {retryHttpClientResponse} from './requestUtils'
  * @param output the writable stream
  */
 async function pipeResponseToStream(
-  response: IHttpClientResponse,
+  response: HttpClientResponse,
   output: NodeJS.WritableStream
 ): Promise<void> {
   const pipeline = util.promisify(stream.pipeline)
@@ -203,6 +204,166 @@ export async function downloadCacheHttpClient(
 }
 
 /**
+ * Download the cache using the Actions toolkit http-client concurrently
+ *
+ * @param archiveLocation the URL for the cache
+ * @param archivePath the local path where the cache is saved
+ */
+export async function downloadCacheHttpClientConcurrent(
+  archiveLocation: string,
+  archivePath: fs.PathLike,
+  options: DownloadOptions
+): Promise<void> {
+  const archiveDescriptor = await fs.promises.open(archivePath, 'w')
+  const httpClient = new HttpClient('actions/cache', undefined, {
+    socketTimeout: options.timeoutInMs,
+    keepAlive: true
+  })
+  try {
+    const res = await retryHttpClientResponse(
+      'downloadCacheMetadata',
+      async () => await httpClient.request('HEAD', archiveLocation, null, {})
+    )
+
+    const lengthHeader = res.message.headers['content-length']
+    if (lengthHeader === undefined || lengthHeader === null) {
+      throw new Error('Content-Length not found on blob response')
+    }
+
+    const length = parseInt(lengthHeader)
+    if (Number.isNaN(length)) {
+      throw new Error(`Could not interpret Content-Length: ${length}`)
+    }
+
+    const downloads: {
+      offset: number
+      promiseGetter: () => Promise<DownloadSegment>
+    }[] = []
+    const blockSize = 4 * 1024 * 1024
+
+    for (let offset = 0; offset < length; offset += blockSize) {
+      const count = Math.min(blockSize, length - offset)
+      downloads.push({
+        offset,
+        promiseGetter: async () => {
+          return await downloadSegmentRetry(
+            httpClient,
+            archiveLocation,
+            offset,
+            count
+          )
+        }
+      })
+    }
+
+    // reverse to use .pop instead of .shift
+    downloads.reverse()
+    let actives = 0
+    let bytesDownloaded = 0
+    const progress = new DownloadProgress(length)
+    progress.startDisplayTimer()
+    const progressFn = progress.onProgress()
+
+    const activeDownloads: {[offset: number]: Promise<DownloadSegment>} = []
+    let nextDownload:
+      | {offset: number; promiseGetter: () => Promise<DownloadSegment>}
+      | undefined
+
+    const waitAndWrite: () => Promise<void> = async () => {
+      const segment = await Promise.race(Object.values(activeDownloads))
+      await archiveDescriptor.write(
+        segment.buffer,
+        0,
+        segment.count,
+        segment.offset
+      )
+      actives--
+      delete activeDownloads[segment.offset]
+      bytesDownloaded += segment.count
+      progressFn({loadedBytes: bytesDownloaded})
+    }
+
+    while ((nextDownload = downloads.pop())) {
+      activeDownloads[nextDownload.offset] = nextDownload.promiseGetter()
+      actives++
+
+      if (actives >= (options.downloadConcurrency ?? 10)) {
+        await waitAndWrite()
+      }
+    }
+
+    while (actives > 0) {
+      await waitAndWrite()
+    }
+  } finally {
+    httpClient.dispose()
+    await archiveDescriptor.close()
+  }
+}
+
+async function downloadSegmentRetry(
+  httpClient: HttpClient,
+  archiveLocation: string,
+  offset: number,
+  count: number
+): Promise<DownloadSegment> {
+  const retries = 5
+  let failures = 0
+
+  while (true) {
+    try {
+      const timeout = 30000
+      const result = await promiseWithTimeout(
+        timeout,
+        downloadSegment(httpClient, archiveLocation, offset, count)
+      )
+      if (typeof result === 'string') {
+        throw new Error('downloadSegmentRetry failed due to timeout')
+      }
+
+      return result
+    } catch (err) {
+      if (failures >= retries) {
+        throw err
+      }
+
+      failures++
+    }
+  }
+}
+
+async function downloadSegment(
+  httpClient: HttpClient,
+  archiveLocation: string,
+  offset: number,
+  count: number
+): Promise<DownloadSegment> {
+  const partRes = await retryHttpClientResponse(
+    'downloadCachePart',
+    async () =>
+      await httpClient.get(archiveLocation, {
+        Range: `bytes=${offset}-${offset + count - 1}`
+      })
+  )
+
+  if (!partRes.readBodyBuffer) {
+    throw new Error('Expected HttpClientResponse to implement readBodyBuffer')
+  }
+
+  return {
+    offset,
+    count,
+    buffer: await partRes.readBodyBuffer()
+  }
+}
+
+declare class DownloadSegment {
+  offset: number
+  count: number
+  buffer: Buffer
+}
+
+/**
  * Download the cache using the Azure Storage SDK.  Only call this method if the
  * URL points to an Azure Storage endpoint.
  *
@@ -240,14 +401,18 @@ export async function downloadCacheStorageSDK(
     //
     // If the file exceeds the buffer maximum length (~1 GB on 32-bit systems and ~2 GB
     // on 64-bit systems), split the download into multiple segments
-    const maxSegmentSize = buffer.constants.MAX_LENGTH
+    // ~2 GB = 2147483647, beyond this, we start getting out of range error. So, capping it accordingly.
+
+    // Updated segment size to 128MB = 134217728 bytes, to complete a segment faster and fail fast
+    const maxSegmentSize = Math.min(134217728, buffer.constants.MAX_LENGTH)
     const downloadProgress = new DownloadProgress(contentLength)
 
     const fd = fs.openSync(archivePath, 'w')
 
     try {
       downloadProgress.startDisplayTimer()
-
+      const controller = new AbortController()
+      const abortSignal = controller.signal
       while (!downloadProgress.isDone()) {
         const segmentStart =
           downloadProgress.segmentOffset + downloadProgress.segmentSize
@@ -258,21 +423,41 @@ export async function downloadCacheStorageSDK(
         )
 
         downloadProgress.nextSegment(segmentSize)
-
-        const result = await client.downloadToBuffer(
-          segmentStart,
-          segmentSize,
-          {
+        const result = await promiseWithTimeout(
+          options.segmentTimeoutInMs || 3600000,
+          client.downloadToBuffer(segmentStart, segmentSize, {
+            abortSignal,
             concurrency: options.downloadConcurrency,
             onProgress: downloadProgress.onProgress()
-          }
+          })
         )
-
-        fs.writeFileSync(fd, result)
+        if (result === 'timeout') {
+          controller.abort()
+          throw new Error(
+            'Aborting cache download as the download time exceeded the timeout.'
+          )
+        } else if (Buffer.isBuffer(result)) {
+          fs.writeFileSync(fd, result)
+        }
       }
     } finally {
       downloadProgress.stopDisplayTimer()
       fs.closeSync(fd)
     }
   }
+}
+
+const promiseWithTimeout = async <T>(
+  timeoutMs: number,
+  promise: Promise<T>
+): Promise<T | string> => {
+  let timeoutHandle: NodeJS.Timeout
+  const timeoutPromise = new Promise<string>(resolve => {
+    timeoutHandle = setTimeout(() => resolve('timeout'), timeoutMs)
+  })
+
+  return Promise.race([promise, timeoutPromise]).then(result => {
+    clearTimeout(timeoutHandle)
+    return result
+  })
 }

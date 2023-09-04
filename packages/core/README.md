@@ -121,7 +121,7 @@ const result = await core.group('Do something async', async () => {
 
 This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run). 
 ```js
-core.error('This is a bad error. This will also fail the build.')
+core.error('This is a bad error, action may still succeed though.')
 
 core.warning('Something went wrong, but it\'s not bad enough to fail the build.')
 
@@ -143,6 +143,11 @@ export interface AnnotationProperties {
   title?: string
 
   /**
+   * The name of the file for which the annotation should be created.
+   */
+  file?: string
+
+  /**
    * The start line for the annotation.
    */
   startLine?: number
@@ -158,7 +163,7 @@ export interface AnnotationProperties {
   startColumn?: number
 
   /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   * The end column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
    * Defaults to `startColumn` when `startColumn` is provided.
    */
   endColumn?: number
@@ -256,4 +261,75 @@ const core = require('@actions/core');
 var pid = core.getState("pidToKill");
 
 process.kill(pid);
+```
+
+#### OIDC Token
+
+You can use these methods to interact with the GitHub OIDC provider and get a JWT ID token which would help to get access token from third party cloud providers.
+
+**Method Name**: getIDToken()
+
+**Inputs**
+
+audience : optional
+
+**Outputs**
+
+A [JWT](https://jwt.io/) ID Token
+
+In action's `main.ts`:
+```js
+const core = require('@actions/core');
+async function getIDTokenAction(): Promise<void> {
+  
+   const audience = core.getInput('audience', {required: false})
+   
+   const id_token1 = await core.getIDToken()            // ID Token with default audience
+   const id_token2 = await core.getIDToken(audience)    // ID token with custom audience
+   
+   // this id_token can be used to get access token from third party cloud providers
+}
+getIDTokenAction()
+```
+
+In action's `actions.yml`:
+
+```yaml
+name: 'GetIDToken'
+description: 'Get ID token from Github OIDC provider'
+inputs:
+  audience:  
+    description: 'Audience for which the ID token is intended for'
+    required: false
+outputs:
+  id_token1: 
+    description: 'ID token obtained from OIDC provider'
+  id_token2: 
+    description: 'ID token obtained from OIDC provider'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+```
+
+#### Filesystem path helpers
+
+You can use these methods to manipulate file paths across operating systems.
+
+The `toPosixPath` function converts input paths to Posix-style (Linux) paths.
+The `toWin32Path` function converts input paths to Windows-style paths. These
+functions work independently of the underlying runner operating system.
+
+```js
+toPosixPath('\\foo\\bar') // => /foo/bar
+toWin32Path('/foo/bar') // => \foo\bar
+```
+
+The `toPlatformPath` function converts input paths to the expected value on the runner's operating system.
+
+```js
+// On a Windows runner.
+toPlatformPath('/foo/bar') // => \foo\bar
+
+// On a Linux runner.
+toPlatformPath('\\foo\\bar') // => /foo/bar
 ```

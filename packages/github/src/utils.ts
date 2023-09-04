@@ -10,7 +10,7 @@ import {paginateRest} from '@octokit/plugin-paginate-rest'
 export const context = new Context.Context()
 
 const baseUrl = Utils.getApiBaseUrl()
-const defaults = {
+export const defaults: OctokitOptions = {
   baseUrl,
   request: {
     agent: Utils.getProxyAgent(baseUrl)

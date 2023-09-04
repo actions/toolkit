@@ -5,55 +5,60 @@ on:
     inputs:
       package:
         required: true
-        description: 'core, artifact, cache, exec, github, glob, io, tool-cache'
- 
+        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache'
+
 jobs:
   test:
     runs-on: macos-latest
 
     steps:
       - name: setup repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
-        
+
+      - name: Set Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+
       - name: npm install
         run: npm install
-        
+
       - name: bootstrap
         run: npm run bootstrap
-        
+
       - name: build
         run: npm run build
-        
+
       - name: test
         run: npm run test
 
       - name: pack
         run: npm pack
         working-directory: packages/${{ github.event.inputs.package }}
-        
+
       - name: upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.inputs.package }}
           path: packages/${{ github.event.inputs.package }}/*.tgz
-        
+
   publish:
     runs-on: macos-latest
     needs: test
     environment: npm-publish
     steps:
-        
+
       - name: download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ github.event.inputs.package }}
 
       - name: setup authentication
         run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
-        env: 
+        env:
           NPM_TOKEN: ${{ secrets.TOKEN }}
 
       - name: publish
@@ -63,13 +68,13 @@ jobs:
         if: failure()
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
-        env: 
+        env:
           SLACK_WEBHOOK: ${{ secrets.SLACK }}
-        
+
       - name: notify slack on success
         if: success()
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
-        env: 
+        env:
           SLACK_WEBHOOK: ${{ secrets.SLACK }}
-        
+

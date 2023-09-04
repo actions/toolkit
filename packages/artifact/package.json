@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "0.5.2",
+  "version": "2.0.0",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -10,8 +10,8 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/artifact",
   "license": "MIT",
-  "main": "lib/artifact-client.js",
-  "types": "lib/artifact-client.d.ts",
+  "main": "lib/artifact.js",
+  "types": "lib/artifact.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -31,19 +31,32 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "bootstrap": "cd ../../ && npm run bootstrap",
+    "tsc-run": "tsc",
+    "tsc": "npm run bootstrap && npm run tsc-run"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/http-client": "^1.0.11",
-    "@types/tmp": "^0.1.0",
-    "tmp": "^0.1.0",
-    "tmp-promise": "^2.0.2"
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
+    "@actions/http-client": "^2.1.0",
+    "@azure/storage-blob": "^12.15.0",
+    "@octokit/core": "^3.5.1",
+    "@octokit/plugin-request-log": "^1.0.4",
+    "@octokit/plugin-retry": "^3.0.9",
+    "@octokit/request-error": "^5.0.0",
+    "@protobuf-ts/plugin": "^2.2.3-alpha.1",
+    "@types/unzipper": "^0.10.6",
+    "archiver": "^5.3.1",
+    "crypto": "^1.0.1",
+    "jwt-decode": "^3.1.2",
+    "twirp-ts": "^2.5.0",
+    "unzipper": "^0.10.14"
   },
   "devDependencies": {
-    "typescript": "^3.8.3"
+    "@types/archiver": "^5.3.2",
+    "typescript": "^4.3.0"
   }
 }

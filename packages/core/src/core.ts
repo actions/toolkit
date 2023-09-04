@@ -1,9 +1,11 @@
 import {issue, issueCommand} from './command'
-import {issueCommand as issueFileCommand} from './file-command'
+import {issueFileCommand, prepareKeyValueMessage} from './file-command'
 import {toCommandProperties, toCommandValue} from './utils'
 
 import * as os from 'os'
 import * as path from 'path'
+
+import {OidcClient} from './oidc-utils'
 
 /**
  * Interface for getInput options
@@ -32,7 +34,7 @@ export enum ExitCode {
 }
 
 /**
- * Optional properties that can be sent with annotatation commands (notice, error, and warning)
+ * Optional properties that can be sent with annotation commands (notice, error, and warning)
  * See: https://docs.github.com/en/rest/reference/checks#create-a-check-run for more information about annotations.
  */
 export interface AnnotationProperties {
@@ -40,6 +42,11 @@ export interface AnnotationProperties {
    * A title for the annotation.
    */
   title?: string
+
+  /**
+   * The path of the file for which the annotation should be created.
+   */
+  file?: string
 
   /**
    * The start line for the annotation.
@@ -57,7 +64,7 @@ export interface AnnotationProperties {
   startColumn?: number
 
   /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   * The end column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
    * Defaults to `startColumn` when `startColumn` is provided.
    */
   endColumn?: number
@@ -79,12 +86,10 @@ export function exportVariable(name: string, val: any): void {
 
   const filePath = process.env['GITHUB_ENV'] || ''
   if (filePath) {
-    const delimiter = '_GitHubActionsFileCommandDelimeter_'
-    const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`
-    issueFileCommand('ENV', commandValue)
-  } else {
-    issueCommand('set-env', {name}, convertedVal)
+    return issueFileCommand('ENV', prepareKeyValueMessage(name, val))
   }
+
+  issueCommand('set-env', {name}, convertedVal)
 }
 
 /**
@@ -148,7 +153,11 @@ export function getMultilineInput(
     .split('\n')
     .filter(x => x !== '')
 
-  return inputs
+  if (options && options.trimWhitespace === false) {
+    return inputs
+  }
+
+  return inputs.map(input => input.trim())
 }
 
 /**
@@ -181,8 +190,13 @@ export function getBooleanInput(name: string, options?: InputOptions): boolean {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function setOutput(name: string, value: any): void {
+  const filePath = process.env['GITHUB_OUTPUT'] || ''
+  if (filePath) {
+    return issueFileCommand('OUTPUT', prepareKeyValueMessage(name, value))
+  }
+
   process.stdout.write(os.EOL)
-  issueCommand('set-output', {name}, value)
+  issueCommand('set-output', {name}, toCommandValue(value))
 }
 
 /**
@@ -336,7 +350,12 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function saveState(name: string, value: any): void {
-  issueCommand('save-state', {name}, value)
+  const filePath = process.env['GITHUB_STATE'] || ''
+  if (filePath) {
+    return issueFileCommand('STATE', prepareKeyValueMessage(name, value))
+  }
+
+  issueCommand('save-state', {name}, toCommandValue(value))
 }
 
 /**
@@ -348,3 +367,22 @@ export function saveState(name: string, value: any): void {
 export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
 }
+
+export async function getIDToken(aud?: string): Promise<string> {
+  return await OidcClient.getIDToken(aud)
+}
+
+/**
+ * Summary exports
+ */
+export {summary} from './summary'
+
+/**
+ * @deprecated use core.summary
+ */
+export {markdownSummary} from './summary'
+
+/**
+ * Path exports
+ */
+export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils'

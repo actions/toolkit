@@ -1,0 +1,1 @@
+Docs will be added here once development of version `2.0.0` has finished

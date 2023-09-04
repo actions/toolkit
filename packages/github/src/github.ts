@@ -2,7 +2,7 @@ import * as Context from './context'
 import {GitHub, getOctokitOptions} from './utils'
 
 // octokit + plugins
-import {OctokitOptions} from '@octokit/core/dist-types/types'
+import {OctokitOptions, OctokitPlugin} from '@octokit/core/dist-types/types'
 
 export const context = new Context.Context()
 
@@ -14,7 +14,9 @@ export const context = new Context.Context()
  */
 export function getOctokit(
   token: string,
-  options?: OctokitOptions
+  options?: OctokitOptions,
+  ...additionalPlugins: OctokitPlugin[]
 ): InstanceType<typeof GitHub> {
-  return new GitHub(getOctokitOptions(token, options))
+  const GitHubWithPlugins = GitHub.plugin(...additionalPlugins)
+  return new GitHubWithPlugins(getOctokitOptions(token, options))
 }

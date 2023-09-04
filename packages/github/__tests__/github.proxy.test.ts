@@ -22,7 +22,7 @@ describe('@actions/github', () => {
       proxyServer.listen(port, () => resolve())
     })
     proxyServer.on('connect', req => {
-      proxyConnects.push(req.url)
+      proxyConnects.push(req.url ?? '')
     })
   })
 

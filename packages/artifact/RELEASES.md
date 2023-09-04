@@ -61,3 +61,36 @@
 ### 0.5.2
 
 - Add HTTP 500 as a retryable status code for artifact upload and download.
+
+### 0.6.0
+
+- Support upload from named pipes [#748](https://github.com/actions/toolkit/pull/748)
+- Fixes to percentage values being greater than 100% when downloading all artifacts [#889](https://github.com/actions/toolkit/pull/889)
+- Improved logging and output during artifact upload [#949](https://github.com/actions/toolkit/pull/949)
+- Improvements to client-side validation for certain invalid characters not allowed during upload: [#951](https://github.com/actions/toolkit/pull/951)
+- Faster upload speeds for certain types of large files by exempting gzip compression [#956](https://github.com/actions/toolkit/pull/956)
+- More detailed logging when dealing with chunked uploads [#957](https://github.com/actions/toolkit/pull/957)
+
+### 0.6.1
+
+- Fix for failing 0 byte file uploads on Windows [#962](https://github.com/actions/toolkit/pull/962)
+
+### 1.0.0
+
+- Update `lockfileVersion` to `v2` in `package-lock.json` [#1009](https://github.com/actions/toolkit/pull/1009)
+
+### 1.0.1
+
+- Update to v2.0.0 of `@actions/http-client`
+
+### 1.0.2
+
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 1.1.0
+
+- Add `x-actions-results-crc64` and `x-actions-results-md5` checksum headers on upload [#1063](https://github.com/actions/toolkit/pull/1063)
+
+### 1.1.1
+
+- Fixed a bug in Node16 where if an HTTP download finished too quickly (<1ms, e.g. when it's mocked) we attempt to delete a temp file that has not been created yet [#1278](https://github.com/actions/toolkit/pull/1278/commits/b9de68a590daf37c6747e38d3cb4f1dd2cfb791c)
