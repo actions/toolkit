@@ -26,7 +26,8 @@ import {
   getUploadChunkSize,
   getUploadFileConcurrency,
   getRetryLimit,
-  getRetentionDays
+  getRetentionDays,
+  isGhes
 } from './config-variables'
 import {promisify} from 'util'
 import {URL} from 'url'
@@ -88,7 +89,9 @@ export class UploadHttpClient {
     const customErrorMessages: Map<number, string> = new Map([
       [
         HttpCodes.Forbidden,
-        'Artifact storage quota has been hit. Unable to upload any new artifacts'
+        isGhes()
+          ? 'Please reference [Enabling GitHub Actions for GitHub Enterprise Server](https://docs.github.com/en/enterprise-server@3.8/admin/github-actions/enabling-github-actions-for-github-enterprise-server) to ensure Actions storage is configured correctly.'
+          : 'Artifact storage quota has been hit. Unable to upload any new artifacts'
       ],
       [
         HttpCodes.BadRequest,

@@ -49,3 +49,7 @@ export function getWorkFlowRunId(): string {
 export function getRetentionDays(): string | undefined {
   return '45'
 }
+
+export function isGhes(): boolean {
+  return false
+}

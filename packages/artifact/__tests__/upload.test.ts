@@ -2,6 +2,7 @@ import * as http from 'http'
 import * as io from '../../io/src/io'
 import * as net from 'net'
 import * as path from 'path'
+import * as config from '../src/internal/config-variables'
 import {mocked} from 'ts-jest/utils'
 import {exec, execSync} from 'child_process'
 import {createGunzip} from 'zlib'
@@ -130,6 +131,19 @@ describe('Upload Tests', () => {
     ).rejects.toEqual(
       new Error(
         'Create Artifact Container failed: Artifact storage quota has been hit. Unable to upload any new artifacts'
+      )
+    )
+  })
+
+  it('Create Artifact - Storage Quota Error on GHES', async () => {
+    jest.spyOn(config, 'isGhes').mockReturnValueOnce(true)
+    const artifactName = 'storage-quota-hit'
+    const uploadHttpClient = new UploadHttpClient()
+    expect(
+      uploadHttpClient.createArtifactInFileContainer(artifactName)
+    ).rejects.toEqual(
+      new Error(
+        'Create Artifact Container failed: Please reference [Enabling GitHub Actions for GitHub Enterprise Server](https://docs.github.com/en/enterprise-server@3.8/admin/github-actions/enabling-github-actions-for-github-enterprise-server) to ensure Actions storage is configured correctly.'
       )
     )
   })
