@@ -17,28 +17,31 @@ import * as tc from '../src/tool-cache'
 const IS_WINDOWS = process.platform === 'win32'
 const IS_MAC = process.platform === 'darwin'
 
-describe('@actions/tool-cache', function () {
-  beforeAll(function () {
-    nock('http://example.com').persist().get('/bytes/35').reply(200, {
-      username: 'abc',
-      password: 'def'
-    })
+describe('@actions/tool-cache', function() {
+  beforeAll(function() {
+    nock('http://example.com')
+      .persist()
+      .get('/bytes/35')
+      .reply(200, {
+        username: 'abc',
+        password: 'def'
+      })
     setGlobal('TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS', 0)
     setGlobal('TEST_DOWNLOAD_TOOL_RETRY_MAX_SECONDS', 0)
   })
 
-  beforeEach(async function () {
+  beforeEach(async function() {
     await io.rmRF(cachePath)
     await io.rmRF(tempPath)
     await io.mkdirP(cachePath)
     await io.mkdirP(tempPath)
   })
 
-  afterEach(function () {
+  afterEach(function() {
     setResponseMessageFactory(undefined)
   })
 
-  afterAll(async function () {
+  afterAll(async function() {
     await io.rmRF(tempPath)
     await io.rmRF(cachePath)
     setGlobal('TEST_DOWNLOAD_TOOL_RETRY_MIN_SECONDS', undefined)
@@ -174,10 +177,13 @@ describe('@actions/tool-cache', function () {
   })
 
   it('has status code in exception dictionary for HTTP error code responses', async () => {
-    nock('http://example.com').persist().get('/bytes/bad').reply(400, {
-      username: 'bad',
-      password: 'file'
-    })
+    nock('http://example.com')
+      .persist()
+      .get('/bytes/bad')
+      .reply(400, {
+        username: 'bad',
+        password: 'file'
+      })
 
     expect.assertions(2)
 
@@ -190,7 +196,7 @@ describe('@actions/tool-cache', function () {
     }
   })
 
-  it('works with redirect code 302', async function () {
+  it('works with redirect code 302', async function() {
     nock('http://example.com')
       .persist()
       .get('/redirect-to')
@@ -289,7 +295,7 @@ describe('@actions/tool-cache', function () {
       }
     })
 
-    it('extract 7z using custom 7z tool', async function () {
+    it('extract 7z using custom 7z tool', async function() {
       const tempDir = path.join(
         __dirname,
         'test-extract-7z-using-custom-7z-tool'
@@ -637,7 +643,7 @@ describe('@actions/tool-cache', function () {
     }
   )
 
-  it('installs a zip and extracts it to specified directory', async function () {
+  it('installs a zip and extracts it to specified directory', async function() {
     const tempDir = path.join(__dirname, 'test-install-zip')
     try {
       await io.mkdirP(tempDir)
@@ -700,7 +706,7 @@ describe('@actions/tool-cache', function () {
     }
   })
 
-  it('extract zip to a directory that does not exist', async function () {
+  it('extract zip to a directory that does not exist', async function() {
     const tempDir = path.join(__dirname, 'test-install-zip')
     try {
       await io.mkdirP(tempDir)
@@ -756,16 +762,24 @@ describe('@actions/tool-cache', function () {
     }
   })
 
-  it('works with a 502 temporary failure', async function () {
-    nock('http://example.com').get('/temp502').twice().reply(502, undefined)
-    nock('http://example.com').get('/temp502').reply(200, undefined)
+  it('works with a 502 temporary failure', async function() {
+    nock('http://example.com')
+      .get('/temp502')
+      .twice()
+      .reply(502, undefined)
+    nock('http://example.com')
+      .get('/temp502')
+      .reply(200, undefined)
 
     const statusCodeUrl = 'http://example.com/temp502'
     await tc.downloadTool(statusCodeUrl)
   })
 
-  it("doesn't retry 502s more than 3 times", async function () {
-    nock('http://example.com').get('/perm502').times(3).reply(502, undefined)
+  it("doesn't retry 502s more than 3 times", async function() {
+    nock('http://example.com')
+      .get('/perm502')
+      .times(3)
+      .reply(502, undefined)
 
     expect.assertions(1)
 
@@ -777,7 +791,7 @@ describe('@actions/tool-cache', function () {
     }
   })
 
-  it('retries 429s', async function () {
+  it('retries 429s', async function() {
     nock('http://example.com')
       .get('/too-many-requests-429')
       .times(2)
@@ -794,9 +808,13 @@ describe('@actions/tool-cache', function () {
     }
   })
 
-  it("doesn't retry 404", async function () {
-    nock('http://example.com').get('/not-found-404').reply(404, undefined)
-    nock('http://example.com').get('/not-found-404').reply(500, undefined)
+  it("doesn't retry 404", async function() {
+    nock('http://example.com')
+      .get('/not-found-404')
+      .reply(404, undefined)
+    nock('http://example.com')
+      .get('/not-found-404')
+      .reply(500, undefined)
 
     try {
       const statusCodeUrl = 'http://example.com/not-found-404'
@@ -806,7 +824,7 @@ describe('@actions/tool-cache', function () {
     }
   })
 
-  it('supports authorization headers', async function () {
+  it('supports authorization headers', async function() {
     nock('http://example.com', {
       reqheaders: {
         authorization: 'token abc123'
@@ -822,7 +840,7 @@ describe('@actions/tool-cache', function () {
     )
   })
 
-  it('supports custom headers', async function () {
+  it('supports custom headers', async function() {
     nock('http://example.com', {
       reqheaders: {
         accept: 'application/octet-stream'
@@ -841,7 +859,7 @@ describe('@actions/tool-cache', function () {
     )
   })
 
-  it('supports authorization and custom headers', async function () {
+  it('supports authorization and custom headers', async function() {
     nock('http://example.com', {
       reqheaders: {
         accept: 'application/octet-stream',

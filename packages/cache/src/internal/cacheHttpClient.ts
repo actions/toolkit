@@ -92,7 +92,10 @@ export function getCacheVersion(
   // Add salt to cache version to support breaking changes in cache entry
   components.push(versionSalt)
 
-  return crypto.createHash('sha256').update(components.join('|')).digest('hex')
+  return crypto
+    .createHash('sha256')
+    .update(components.join('|'))
+    .digest('hex')
 }
 
 export async function getCacheEntry(
@@ -227,9 +230,9 @@ async function uploadChunk(
   end: number
 ): Promise<void> {
   core.debug(
-    `Uploading chunk of size ${
-      end - start + 1
-    } bytes at offset ${start} with content range: ${getContentRange(
+    `Uploading chunk of size ${end -
+      start +
+      1} bytes at offset ${start} with content range: ${getContentRange(
       start,
       end
     )}`

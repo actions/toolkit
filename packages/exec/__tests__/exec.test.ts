@@ -357,7 +357,7 @@ describe('@actions/exec', () => {
     expect(exitCode).toBe(0)
   })
 
-  it('Handles child process holding streams open', async function () {
+  it('Handles child process holding streams open', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -403,7 +403,7 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
-  it('Handles child process holding streams open and non-zero exit code', async function () {
+  it('Handles child process holding streams open and non-zero exit code', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -457,7 +457,7 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
-  it('Handles child process holding streams open and stderr', async function () {
+  it('Handles child process holding streams open and stderr', async function() {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'

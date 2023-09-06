@@ -150,7 +150,10 @@ describe('@actions/core/src/summary', () => {
   })
 
   it('adds EOL', async () => {
-    await summary.addRaw(fixtures.text).addEOL().write()
+    await summary
+      .addRaw(fixtures.text)
+      .addEOL()
+      .write()
     await assertSummary(fixtures.text + os.EOL)
   })
 
