@@ -28,7 +28,7 @@ Note that before a PR will be accepted, you must ensure:
 
 ### Useful Scripts
 
-- `npm run bootstrap` This runs `lerna bootstrap` which will install dependencies in this repository's packages and cross-link packages where necessary.
+- `npm run bootstrap` This runs `lerna exec -- npm install` which will install dependencies in this repository's packages and cross-link packages where necessary.
 - `npm run build` This compiles TypeScript code in each package (this is especially important if one package relies on changes in another when you're running tests). This is just an alias for `lerna run tsc`.
 - `npm run format` This checks that formatting has been applied with Prettier.
 - `npm test` This runs all Jest tests in all packages in this repository.

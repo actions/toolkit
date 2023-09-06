@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "./lib",
     "rootDir": "./src",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "declaration": true,
   },
   "include": [
     "./src"

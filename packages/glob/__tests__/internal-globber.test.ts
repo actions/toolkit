@@ -255,6 +255,7 @@ describe('globber', () => {
         'file-under-a'
       )
     ])
+    await unlinkSymlinkDir(itemPaths)
   })
 
   it('detects cycle starting from symlink when followSymbolicLinks=true', async () => {
@@ -860,6 +861,14 @@ async function createHiddenFile(file: string, content: string): Promise<void> {
 
 function getTestTemp(): string {
   return path.join(__dirname, '_temp', 'glob')
+}
+/**
+ * Deletes a symlink directory
+ */
+async function unlinkSymlinkDir(links: string[]): Promise<void> {
+  for (const link of links) {
+    await fs.rm(link, {recursive: true, force: true})
+  }
 }
 
 /**
