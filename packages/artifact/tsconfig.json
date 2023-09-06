@@ -3,7 +3,16 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./lib",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "paths": {
+      "@actions/core": [
+        "../core"
+      ],
+      "@actions/http-client": [
+        "../http-client"
+      ]
+    },
+    "useUnknownInCatchVariables": false
   },
   "include": [
     "./src"

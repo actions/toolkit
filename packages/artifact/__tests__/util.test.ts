@@ -29,9 +29,8 @@ describe('Utils', () => {
     expect(retryWaitTime0).toEqual(getInitialRetryIntervalInMilliseconds())
 
     const testMinMaxRange = (retryCount: number): void => {
-      const retryWaitTime = utils.getExponentialRetryTimeInMilliseconds(
-        retryCount
-      )
+      const retryWaitTime =
+        utils.getExponentialRetryTimeInMilliseconds(retryCount)
       const minRange =
         getInitialRetryIntervalInMilliseconds() *
         getRetryMultiplier() *

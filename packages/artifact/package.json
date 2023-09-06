@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -31,7 +31,9 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "bootstrap": "cd ../../ && npm run bootstrap",
+    "tsc-run": "tsc",
+    "tsc": "npm run bootstrap && npm run tsc-run"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -44,6 +46,6 @@
   },
   "devDependencies": {
     "@types/tmp": "^0.2.1",
-    "typescript": "^3.8.3"
+    "typescript": "^4.3.0"
   }
 }
