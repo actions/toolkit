@@ -94,3 +94,8 @@
 ### 1.1.1
 
 - Fixed a bug in Node16 where if an HTTP download finished too quickly (<1ms, e.g. when it's mocked) we attempt to delete a temp file that has not been created yet [#1278](https://github.com/actions/toolkit/pull/1278/commits/b9de68a590daf37c6747e38d3cb4f1dd2cfb791c)
+
+### 1.1.2
+
+- Update vulnerable dependencies [#1480](https://github.com/actions/toolkit/pull/1480)
+- Update error message matching for 403s on GHES to reflect an error in reaching out to external blob storage [#1522](https://github.com/actions/toolkit/pull/1522)
