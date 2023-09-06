@@ -92,7 +92,7 @@ export class DefaultGlobber implements Globber {
         // Intentionally using lstat. Detection for broken symlink
         // will be performed later (if following symlinks).
         await fs.promises.lstat(searchPath)
-      } catch (err) {
+      } catch (err: any) {
         if (err.code === 'ENOENT') {
           continue
         }
@@ -197,7 +197,7 @@ export class DefaultGlobber implements Globber {
       try {
         // Use `stat` (following symlinks)
         stats = await fs.promises.stat(item.path)
-      } catch (err) {
+      } catch (err: any) {
         if (err.code === 'ENOENT') {
           if (options.omitBrokenSymbolicLinks) {
             core.debug(`Broken symlink '${item.path}'`)
