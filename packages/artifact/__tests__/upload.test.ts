@@ -480,7 +480,7 @@ describe('Upload Tests', () => {
             }`
           }
           const returnData: string = JSON.stringify(response, null, 2)
-          mockReadBody = async function(): Promise<string> {
+          mockReadBody = async function (): Promise<string> {
             return new Promise(resolve => {
               resolve(returnData)
             })
@@ -548,7 +548,7 @@ describe('Upload Tests', () => {
             uploadUrl: `${getRuntimeUrl()}_apis/resources/Containers/13`
           }
           const returnData: string = JSON.stringify(response, null, 2)
-          mockReadBody = async function(): Promise<string> {
+          mockReadBody = async function (): Promise<string> {
             return new Promise(resolve => {
               resolve(returnData)
             })

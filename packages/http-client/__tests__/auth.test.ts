@@ -31,9 +31,8 @@ describe('auth', () => {
 
   it('does basic http get request with pat token auth', async () => {
     const token = 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs'
-    const ph: am.PersonalAccessTokenCredentialHandler = new am.PersonalAccessTokenCredentialHandler(
-      token
-    )
+    const ph: am.PersonalAccessTokenCredentialHandler =
+      new am.PersonalAccessTokenCredentialHandler(token)
 
     const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests', [
       ph
