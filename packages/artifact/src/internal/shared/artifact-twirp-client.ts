@@ -63,7 +63,7 @@ class ArtifactHttpClient implements Rpc {
       )
       const body = await response.readBody()
       return JSON.parse(body)
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Failed to ${method}: ${error.message}`)
     }
   }
@@ -86,7 +86,7 @@ class ArtifactHttpClient implements Rpc {
 
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
-      } catch (error: any) {
+      } catch (error) {
         isRetryable = true
         errorMessage = error.message
       }

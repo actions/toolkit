@@ -252,7 +252,7 @@ async function execCommands(commands: string[], cwd?: string): Promise<void> {
         cwd,
         env: {...(process.env as object), MSYS: 'winsymlinks:nativestrict'}
       })
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(
         `${command.split(' ')[0]} failed with error: ${error?.message}`
       )

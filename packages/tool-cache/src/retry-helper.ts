@@ -30,7 +30,7 @@ export class RetryHelper {
       // Try
       try {
         return await action()
-      } catch (err: any) {
+      } catch (err) {
         if (isRetryable && !isRetryable(err)) {
           throw err
         }

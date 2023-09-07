@@ -129,7 +129,7 @@ async function downloadToolAttempt(
       core.debug('download failed')
       try {
         await io.rmRF(dest)
-      } catch (err: any) {
+      } catch (err) {
         core.debug(`Failed to delete '${dest}'. ${err.message}`)
       }
     }

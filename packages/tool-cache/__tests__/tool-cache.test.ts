@@ -130,7 +130,7 @@ describe('@actions/tool-cache', function () {
       await tc.downloadTool(
         'http://example.com/error-from-response-message-stream'
       )
-    } catch (err: any) {
+    } catch (err) {
       error = err
     }
 
@@ -184,7 +184,7 @@ describe('@actions/tool-cache', function () {
     try {
       const errorCodeUrl = 'http://example.com/bytes/bad'
       await tc.downloadTool(errorCodeUrl)
-    } catch (err: any) {
+    } catch (err) {
       expect(err.toString()).toContain('Unexpected HTTP response: 400')
       expect(err['httpStatusCode']).toBe(400)
     }
@@ -772,7 +772,7 @@ describe('@actions/tool-cache', function () {
     try {
       const statusCodeUrl = 'http://example.com/perm502'
       await tc.downloadTool(statusCodeUrl)
-    } catch (err: any) {
+    } catch (err) {
       expect(err.toString()).toContain('502')
     }
   })
@@ -789,7 +789,7 @@ describe('@actions/tool-cache', function () {
     try {
       const statusCodeUrl = 'http://example.com/too-many-requests-429'
       await tc.downloadTool(statusCodeUrl)
-    } catch (err: any) {
+    } catch (err) {
       expect(err.toString()).toContain('500')
     }
   })
@@ -801,7 +801,7 @@ describe('@actions/tool-cache', function () {
     try {
       const statusCodeUrl = 'http://example.com/not-found-404'
       await tc.downloadTool(statusCodeUrl)
-    } catch (err: any) {
+    } catch (err) {
       expect(err.toString()).toContain('404')
     }
   })

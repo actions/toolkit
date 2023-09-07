@@ -432,7 +432,7 @@ describe('rmRF', () => {
       let errcode = ''
       try {
         await fs.lstat(symlinkFile)
-      } catch (err: any) {
+      } catch (err) {
         errcode = err.code
       }
 
@@ -595,7 +595,7 @@ describe('rmRF', () => {
     let errcode = ''
     try {
       await fs.stat(symlinkDirectory)
-    } catch (err: any) {
+    } catch (err) {
       errcode = err.code
     }
 
@@ -609,7 +609,7 @@ describe('rmRF', () => {
     errcode = ''
     try {
       await fs.lstat(symlinkDirectory)
-    } catch (err: any) {
+    } catch (err) {
       errcode = err.code
     }
 
@@ -738,7 +738,7 @@ describe('mkdirP', () => {
 
     try {
       await io.mkdirP('')
-    } catch (err: any) {
+    } catch (err) {
       expect(err.message).toEqual('a path argument must be provided')
     }
   })

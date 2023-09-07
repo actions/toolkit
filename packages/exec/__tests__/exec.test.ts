@@ -1187,7 +1187,7 @@ const compileExe = (sourceFileName: string, targetFileName: string): string => {
   try {
     fs.statSync(exePath)
     return exePath
-  } catch (err: any) {
+  } catch (err) {
     if (err.code !== 'ENOENT') {
       throw err
     }

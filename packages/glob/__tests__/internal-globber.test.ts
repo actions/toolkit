@@ -440,7 +440,7 @@ describe('globber', () => {
     try {
       await glob(`${root}/*Dir*/*nested*/*`, options)
       throw new Error('should not reach here')
-    } catch (err: any) {
+    } catch (err) {
       expect(err.message).toMatch(/broken symbolic link/i)
     }
 
@@ -476,7 +476,7 @@ describe('globber', () => {
     try {
       await glob(`${root}/*`, options)
       throw new Error('should not reach here')
-    } catch (err: any) {
+    } catch (err) {
       expect(err.message).toMatch(/broken symbolic link/i)
     }
 
@@ -484,7 +484,7 @@ describe('globber', () => {
     try {
       await glob(`${root}/*/*`, options)
       throw new Error('should not reach here')
-    } catch (err: any) {
+    } catch (err) {
       expect(err.message).toMatch(/broken symbolic link/i)
     }
 
@@ -793,7 +793,7 @@ describe('globber', () => {
         omitBrokenSymbolicLinks: false
       })
       throw new Error('Expected tl.find to throw')
-    } catch (err: any) {
+    } catch (err) {
       expect(err.message).toMatch(/broken symbolic link/)
     }
   })
@@ -817,7 +817,7 @@ describe('globber', () => {
         omitBrokenSymbolicLinks: false
       })
       throw new Error('Expected tl.find to throw')
-    } catch (err: any) {
+    } catch (err) {
       expect(err.message).toMatch(/broken symbolic link/)
     }
   })

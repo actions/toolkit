@@ -55,7 +55,7 @@ export async function retry<T>(
 
     try {
       response = await method()
-    } catch (error: any) {
+    } catch (error) {
       if (onError) {
         response = onError(error)
       }

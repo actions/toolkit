@@ -20,7 +20,7 @@ async function exists(path: string): Promise<boolean> {
   try {
     await fs.access(path)
     return true
-  } catch (error: any) {
+  } catch (error) {
     if (error.code === 'ENOENT') {
       return false
     } else {
@@ -93,7 +93,7 @@ export async function downloadArtifact(
     core.info(`Starting download of artifact to: ${downloadPath}`)
     await streamExtract(location, downloadPath)
     core.info(`Artifact download completed successfully.`)
-  } catch (error: any) {
+  } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
 
