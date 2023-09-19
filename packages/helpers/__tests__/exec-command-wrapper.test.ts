@@ -77,7 +77,7 @@ describe('Command', () => {
       const result = await command.execute()
       expect(result.stdout).toBe('')
     } catch (err) {
-      expect(err.message).toContain('Command produced empty output.')
+      expect(err.message).toContain('The command produced an empty output.')
     }
   })
 })

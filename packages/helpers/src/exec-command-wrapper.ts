@@ -35,7 +35,7 @@ export default class CommandHelper {
       }
 
       if (this.config.throwOnEmptyOutput && output.stdout.trim() === '') {
-        this.onError('Command produced empty output.').throw()
+        this.onError(`The command produced an empty output.`).throw()
       }
 
       if (this.config.failOnError && output.stderr) {
@@ -43,7 +43,7 @@ export default class CommandHelper {
       }
 
       if (this.config.failOnEmptyOutput && output.stdout.trim() === '') {
-        this.onError('Command produced empty output.').fail()
+        this.onError(`The command produced an empty output.`).fail()
       }
 
       return output
@@ -56,8 +56,6 @@ export default class CommandHelper {
     throw: () => never
     fail: () => void
   } {
-    core.error(`Error occurred: ${errorMessage}`)
-
     return {
       throw: () => {
         throw new Error(errorMessage)
