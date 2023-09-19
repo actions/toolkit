@@ -1,123 +1,79 @@
-import * as core from '@actions/core'
 import * as exec from '@actions/exec'
+import * as core from '@actions/core'
 
-export class Command {
-  private readonly commandText: string
-  private readonly args: string[]
-  private readonly options: exec.ExecOptions | undefined
+export default class CommandHelper {
+  private commandText: string
+  private args: string[]
+  private options: exec.ExecOptions | undefined
 
-  private failOnError = false
-  private throwOnError = false
-
-  private failOnEmptyOutput = false
-  private throwOnEmptyOutput = false
+  private throwOnError: boolean
+  private throwOnEmptyOutput: boolean
+  private failOnError: boolean
+  private failOnEmptyOutput: boolean
 
   constructor(
     commandText: string,
-    args: string[],
-    options: exec.ExecOptions | undefined = undefined
+    args: string[] = [],
+    options: exec.ExecOptions | undefined = {},
+    config: {
+      throwOnError?: boolean
+      throwOnEmptyOutput?: boolean
+      failOnError?: boolean
+      failOnEmptyOutput?: boolean
+    } = {}
   ) {
     this.commandText = commandText
     this.args = args
     this.options = options
+    this.throwOnError = config.throwOnError ?? false
+    this.throwOnEmptyOutput = config.throwOnEmptyOutput ?? false
+    this.failOnError = config.failOnError ?? false
+    this.failOnEmptyOutput = config.failOnEmptyOutput ?? false
   }
 
-  get failOn(): {error: () => Command; empty: () => Command} {
-    return {
-      error: this.setFailOnError,
-      empty: this.setFailOnEmptyOutput
-    }
-  }
-
-  get throwOn(): {error: () => Command; empty: () => Command} {
-    return {
-      error: this.setThrowOnError,
-      empty: this.setThrowOnEmptyOutput
-    }
-  }
-
-  private setFailOnError = (): Command => {
-    this.failOnError = true
-    return this
-  }
-
-  private setThrowOnError = (): Command => {
-    this.throwOnError = true
-    return this
-  }
-
-  private setFailOnEmptyOutput = (): Command => {
-    this.failOnEmptyOutput = true
-    return this
-  }
-
-  private setThrowOnEmptyOutput = (): Command => {
-    this.throwOnEmptyOutput = true
-    return this
-  }
-
-  private setFailedOnNonZeroExitCode(
-    command: string,
-    exitCode: number,
-    error: string
-  ): void {
-    if (exitCode !== 0) {
-      error = !error.trim()
-        ? `The '${command}' command failed with exit code: ${exitCode}`
-        : error
-      core.setFailed(error)
-    }
-    return
-  }
-
-  private throwErrorOnNonZeroExitCode(
-    command: string,
-    exitCode: number,
-    error: string
-  ): void {
-    if (exitCode !== 0) {
-      error = !error.trim()
-        ? `The '${command}' command failed with exit code: ${exitCode}`
-        : error
-      throw new Error(error)
-    }
-    return
-  }
-
-  async execute(): Promise<string> {
-    const {stdout, stderr, exitCode} = await exec.getExecOutput(
-      this.commandText,
-      this.args,
-      this.options
-    )
-
-    if (this.failOnError) {
-      this.setFailedOnNonZeroExitCode(this.commandText, exitCode, stderr)
-      return stdout.trim()
-    }
-
-    if (this.throwOnError) {
-      this.throwErrorOnNonZeroExitCode(this.commandText, exitCode, stderr)
-      return stdout.trim()
-    }
-
-    if (this.failOnEmptyOutput && !stdout.trim()) {
-      core.setFailed(
-        `The '${this.commandText}' command failed with empty output`
+  async execute(): Promise<exec.ExecOutput> {
+    try {
+      const output = await exec.getExecOutput(
+        this.commandText,
+        this.args,
+        this.options
       )
-      return stdout.trim()
-    }
 
-    if (this.throwOnEmptyOutput && !stdout.trim()) {
-      throw new Error(
-        `The '${this.commandText}' command failed with empty output`
-      )
-    }
+      if (this.throwOnError && output.stderr) {
+        this.onError(output.stderr).throw()
+      }
 
-    return stdout.trim()
+      if (this.throwOnEmptyOutput && output.stdout.trim() === '') {
+        this.onError('Command produced empty output.').throw()
+      }
+
+      if (this.failOnError && output.stderr) {
+        this.onError(output.stderr).fail()
+      }
+
+      if (this.failOnEmptyOutput && output.stdout.trim() === '') {
+        this.onError('Command produced empty output.').fail()
+      }
+
+      return output
+    } catch (error) {
+      throw new Error((error as Error).message)
+    }
+  }
+
+  private onError(errorMessage: string): {
+    throw: () => never
+    fail: () => void
+  } {
+    core.error(`Error occurred: ${errorMessage}`)
+
+    return {
+      throw: () => {
+        throw new Error(errorMessage)
+      },
+      fail: () => {
+        core.setFailed(errorMessage)
+      }
+    }
   }
 }
-
-// new Command('echo', ['hello', 'world'])
-//   .failOn.error()
-//   .execute()

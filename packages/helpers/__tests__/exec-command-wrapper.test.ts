@@ -1,53 +1,83 @@
-import {Command} from '../src/exec-command-wrapper'
+import CommandHelper from '../src/exec-command-wrapper'
 import * as io from '@actions/io'
 
-const IS_LINUX = process.platform === 'linux'
+const IS_WINDOWS = process.platform === 'win32'
 
 describe('Command', () => {
   it('creates a command object', async () => {
-    if (IS_LINUX) {
-      const toolpath = await io.which('echo', true)
-      const command = new Command(`"${toolpath}"`, ['hello'])
-      expect(command).toBeDefined()
-      expect(command).toBeInstanceOf(Command)
+    let toolpath: string
+    let args: string[]
+    if (IS_WINDOWS) {
+      toolpath = await io.which('cmd', true)
+      args = ['/c', 'echo', 'hello']
+    } else {
+      toolpath = await io.which('echo', true)
+      args = ['hello']
     }
+    const command = new CommandHelper(`"${toolpath}"`, args)
+    expect(command).toBeDefined()
+    expect(command).toBeInstanceOf(CommandHelper)
   })
 
   it('runs a command with non-zero exit code', async () => {
-    if (IS_LINUX) {
-      const nonExistentDir = 'non-existent-dir'
-      const toolpath = await io.which('ls', true)
-      const args = ['-l', nonExistentDir]
-      const command = new Command(`"${toolpath}"`, args)
-
-      let failed = false
-
-      await command.execute().catch(err => {
-        failed = true
-        expect(err.message).toContain(
-          `The process '${toolpath}' failed with exit code `
-        )
-      })
-
-      expect(failed).toBe(true)
+    let toolpath: string
+    let args: string[]
+    if (IS_WINDOWS) {
+      toolpath = await io.which('cmd', true)
+      args = ['/c', 'dir', 'non-existent-dir']
+    } else {
+      toolpath = await io.which('ls', true)
+      args = ['-l', 'non-existent-dir']
+    }
+    const command = new CommandHelper(`"${toolpath}"`, args, undefined, {
+      throwOnEmptyOutput: true
+    })
+    try {
+      const result = await command.execute()
+      expect(result.exitCode).not.toEqual(0)
+    } catch (err) {
+      expect(err.message).toContain(
+        `The process '${toolpath}' failed with exit code `
+      )
     }
   })
 
   it('runs a command with zero exit code', async () => {
-    if (IS_LINUX) {
-      const toolpath = await io.which('echo', true)
-      const command = new Command(`"${toolpath}"`, ['hello'])
-      const result = await command.execute()
-      expect(result).toEqual('hello')
+    let toolpath: string
+    let args: string[]
+    if (IS_WINDOWS) {
+      toolpath = await io.which('cmd', true)
+      args = ['/c', 'echo', 'hello']
+    } else {
+      toolpath = await io.which('echo', true)
+      args = ['hello']
     }
+    const command = new CommandHelper(`"${toolpath}"`, args)
+    const result = await command.execute()
+
+    expect(result.stdout).toContain('hello')
+    expect(result.exitCode).toEqual(0)
   })
 
   it('runs a command with empty output', async () => {
-    if (IS_LINUX) {
-      const toolpath = await io.which('echo', true)
-      const command = new Command(`"${toolpath}"`, [''])
+    let toolpath: string
+    let args: string[]
+    if (IS_WINDOWS) {
+      toolpath = await io.which('cmd', true)
+      args = ['/c', 'echo.']
+    } else {
+      toolpath = await io.which('echo', true)
+      args = ['']
+    }
+
+    const command = new CommandHelper(`"${toolpath}"`, args, undefined, {
+      throwOnEmptyOutput: true
+    })
+    try {
       const result = await command.execute()
-      expect(result).toEqual('')
+      expect(result.stdout).toBe('')
+    } catch (err) {
+      expect(err.message).toContain('Command produced empty output.')
     }
   })
 })
