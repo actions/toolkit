@@ -2,20 +2,11 @@ import * as exec from '@actions/exec'
 import * as core from '@actions/core'
 
 export default class CommandHelper {
-  private commandText: string
-  private args: string[]
-  private options: exec.ExecOptions | undefined
-
-  private throwOnError: boolean
-  private throwOnEmptyOutput: boolean
-  private failOnError: boolean
-  private failOnEmptyOutput: boolean
-
   constructor(
-    commandText: string,
-    args: string[] = [],
-    options: exec.ExecOptions | undefined = {},
-    config: {
+    private commandText: string,
+    private args: string[] = [],
+    private options: exec.ExecOptions | undefined = {},
+    private config: {
       throwOnError?: boolean
       throwOnEmptyOutput?: boolean
       failOnError?: boolean
@@ -25,10 +16,10 @@ export default class CommandHelper {
     this.commandText = commandText
     this.args = args
     this.options = options
-    this.throwOnError = config.throwOnError ?? false
-    this.throwOnEmptyOutput = config.throwOnEmptyOutput ?? false
-    this.failOnError = config.failOnError ?? false
-    this.failOnEmptyOutput = config.failOnEmptyOutput ?? false
+    this.config.throwOnError = config.throwOnError ?? false
+    this.config.throwOnEmptyOutput = config.throwOnEmptyOutput ?? false
+    this.config.failOnError = config.failOnError ?? false
+    this.config.failOnEmptyOutput = config.failOnEmptyOutput ?? false
   }
 
   async execute(): Promise<exec.ExecOutput> {
@@ -39,19 +30,19 @@ export default class CommandHelper {
         this.options
       )
 
-      if (this.throwOnError && output.stderr) {
+      if (this.config.throwOnError && output.stderr) {
         this.onError(output.stderr).throw()
       }
 
-      if (this.throwOnEmptyOutput && output.stdout.trim() === '') {
+      if (this.config.throwOnEmptyOutput && output.stdout.trim() === '') {
         this.onError('Command produced empty output.').throw()
       }
 
-      if (this.failOnError && output.stderr) {
+      if (this.config.failOnError && output.stderr) {
         this.onError(output.stderr).fail()
       }
 
-      if (this.failOnEmptyOutput && output.stdout.trim() === '') {
+      if (this.config.failOnEmptyOutput && output.stdout.trim() === '') {
         this.onError('Command produced empty output.').fail()
       }
 
