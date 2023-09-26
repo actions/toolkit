@@ -1,13 +1,13 @@
 import * as http from 'http'
 import * as https from 'https'
-import { createProxy } from 'proxy'
+import proxy from 'proxy'
 
 // Default values are set when the module is imported, so we need to set proxy first.
 const proxyUrl = 'http://127.0.0.1:8081'
 const originalProxyUrl = process.env['https_proxy']
 process.env['https_proxy'] = proxyUrl
 // eslint-disable-next-line import/first
-import { getOctokit } from '../src/github'
+import {getOctokit} from '../src/github'
 
 describe('@actions/github', () => {
   let proxyConnects: string[]
@@ -16,13 +16,12 @@ describe('@actions/github', () => {
 
   beforeAll(async () => {
     // Start proxy server
-    proxyServer = createProxy()
-    await new Promise<void>(resolve => {
+    proxyServer = proxy()
+    await new Promise(resolve => {
       const port = Number(proxyUrl.split(':')[2])
       proxyServer.listen(port, () => resolve())
     })
     proxyServer.on('connect', req => {
-      console.log('connect', req.url)
       proxyConnects.push(req.url ?? '')
     })
   })
@@ -33,7 +32,7 @@ describe('@actions/github', () => {
 
   afterAll(async () => {
     // Stop proxy server
-    await new Promise<void>(resolve => {
+    await new Promise(resolve => {
       proxyServer.once('close', () => resolve())
       proxyServer.close()
     })
@@ -70,7 +69,7 @@ describe('@actions/github', () => {
     const repository = await octokit.graphql(
       '{repository(owner:"actions", name:"toolkit"){name}}'
     )
-    expect(repository).toEqual({ repository: { name: 'toolkit' } })
+    expect(repository).toEqual({repository: {name: 'toolkit'}})
     expect(proxyConnects).toEqual(['api.github.com:443'])
   })
 
