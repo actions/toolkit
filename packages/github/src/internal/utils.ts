@@ -1,6 +1,8 @@
 import * as http from 'http'
 import * as httpClient from '@actions/http-client'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
+import { ProxyServer, createProxy } from "proxy";
+import { ProxyAgent, fetch as undiciFetch } from "undici";
 
 export function getAuthString(
   token: string,
@@ -18,6 +20,20 @@ export function getAuthString(
 export function getProxyAgent(destinationUrl: string): http.Agent {
   const hc = new httpClient.HttpClient()
   return hc.getAgent(destinationUrl)
+}
+
+export function getProxyFetchAgent(destinationUrl): any {
+  const myFetch: typeof undiciFetch = (url, opts) => {
+    return undiciFetch(url, {
+      ...opts,
+      dispatcher: new ProxyAgent({
+        uri: destinationUrl,
+        keepAliveTimeout: 10,
+        keepAliveMaxTimeout: 10,
+      }),
+    });
+  };
+  return myFetch;
 }
 
 export function getApiBaseUrl(): string {

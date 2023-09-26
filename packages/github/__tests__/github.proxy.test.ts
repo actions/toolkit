@@ -1,6 +1,7 @@
 import * as http from 'http'
 import * as https from 'https'
-import { createProxy } from 'proxy'
+import { ProxyServer, createProxy } from "proxy";
+import { ProxyAgent, fetch as undiciFetch } from "undici";
 
 // Default values are set when the module is imported, so we need to set proxy first.
 const proxyUrl = 'http://127.0.0.1:8081'
@@ -22,7 +23,7 @@ describe('@actions/github', () => {
       proxyServer.listen(port, () => resolve())
     })
     proxyServer.on('connect', req => {
-      console.log('connect', req.url)
+      console.log("Connect to proxy server")
       proxyConnects.push(req.url ?? '')
     })
   })
@@ -49,7 +50,23 @@ describe('@actions/github', () => {
       return
     }
 
-    const octokit = getOctokit(token)
+    const myFetch: typeof undiciFetch = (url, opts) => {
+      return undiciFetch(url, {
+        ...opts,
+        dispatcher: new ProxyAgent({
+          uri: proxyUrl,
+          keepAliveTimeout: 10,
+          keepAliveMaxTimeout: 10,
+        }),
+      });
+    };
+
+    const octokit = getOctokit(token, {
+      request: {
+        fetch: myFetch
+      }
+    })
+
     const branch = await octokit.rest.repos.getBranch({
       owner: 'actions',
       repo: 'toolkit',
@@ -65,7 +82,22 @@ describe('@actions/github', () => {
       return
     }
     process.env['https_proxy'] = proxyUrl
-    const octokit = getOctokit(token)
+    const myFetch: typeof undiciFetch = (url, opts) => {
+      return undiciFetch(url, {
+        ...opts,
+        dispatcher: new ProxyAgent({
+          uri: proxyUrl,
+          keepAliveTimeout: 10,
+          keepAliveMaxTimeout: 10,
+        }),
+      });
+    };
+
+    const octokit = getOctokit(token, {
+      request: {
+        fetch: myFetch
+      }
+    })
 
     const repository = await octokit.graphql(
       '{repository(owner:"actions", name:"toolkit"){name}}'
