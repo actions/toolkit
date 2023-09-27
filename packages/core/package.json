@@ -1,6 +1,6 @@
 {
   "name": "@actions/core",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Actions core lib",
   "keywords": [
     "github",
@@ -30,7 +30,7 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "tsc": "tsc -p tsconfig.json"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"

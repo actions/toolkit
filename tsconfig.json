@@ -5,7 +5,18 @@
     "strict": true,
     "declaration": true,
     "target": "es6",
-    "sourceMap": true
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "baseUrl": "./",
+    "paths": {
+      "@actions/core": [
+        "packages/core"
+      ],
+      "@actions/http-client": [
+        "packages/http-client"
+      ],
+    },
+    "useUnknownInCatchVariables": false
   },
   "exclude": [
     "node_modules",
