@@ -1,5 +1,6 @@
 import * as http from 'http'
 import * as https from 'https'
+import proxy from 'proxy'
 import { ProxyServer, createProxy } from "proxy";
 import { ProxyAgent, fetch as undiciFetch } from "undici";
 
@@ -8,7 +9,7 @@ const proxyUrl = 'http://127.0.0.1:8081'
 const originalProxyUrl = process.env['https_proxy']
 process.env['https_proxy'] = proxyUrl
 // eslint-disable-next-line import/first
-import { getOctokit } from '../src/github'
+import {getOctokit} from '../src/github'
 
 describe('@actions/github', () => {
   let proxyConnects: string[]
@@ -17,13 +18,12 @@ describe('@actions/github', () => {
 
   beforeAll(async () => {
     // Start proxy server
-    proxyServer = createProxy()
+    proxyServer = proxy()
     await new Promise<void>(resolve => {
       const port = Number(proxyUrl.split(':')[2])
       proxyServer.listen(port, () => resolve())
     })
     proxyServer.on('connect', req => {
-      console.log("Connect to proxy server")
       proxyConnects.push(req.url ?? '')
     })
   })
@@ -102,7 +102,7 @@ describe('@actions/github', () => {
     const repository = await octokit.graphql(
       '{repository(owner:"actions", name:"toolkit"){name}}'
     )
-    expect(repository).toEqual({ repository: { name: 'toolkit' } })
+    expect(repository).toEqual({repository: {name: 'toolkit'}})
     expect(proxyConnects).toEqual(['api.github.com:443'])
   })
 

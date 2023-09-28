@@ -52,7 +52,7 @@ export class OidcClient {
         throw new Error(
           `Failed to get ID Token. \n 
         Error Code : ${error.statusCode}\n 
-        Error Message: ${error.result.message}`
+        Error Message: ${error.message}`
         )
       })
 
