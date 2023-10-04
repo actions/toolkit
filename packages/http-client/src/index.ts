@@ -138,6 +138,8 @@ export class HttpClient {
   private _maxRetries = 1
   private _agent: any
   private _proxyAgent: any
+  private _agentDispatcher: any
+  private _proxyAgentDispatcher: any
   private _keepAlive = false
   private _disposed = false
 
@@ -565,6 +567,18 @@ export class HttpClient {
     return this._getAgent(parsedUrl)
   }
 
+  getAgentDispatcher(serverUrl: string): ProxyAgent | Agent {
+    const parsedUrl = new URL(serverUrl)
+    const proxyUrl = pm.getProxyUrl(parsedUrl)
+    const useProxy = proxyUrl && proxyUrl.hostname
+    if (useProxy) {
+      return this._getProxyAgentDispatcher(parsedUrl, proxyUrl)
+    }
+    else {
+      return this._getAgentDispatcher(parsedUrl)
+    }
+  }
+
   private _prepareRequest(
     method: string,
     requestUrl: URL,
@@ -695,6 +709,93 @@ export class HttpClient {
       // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
       // we have to cast it to any and change it directly
       agent.options = Object.assign(agent.options || {}, {
+        rejectUnauthorized: false
+      })
+    }
+
+    return agent
+  }
+
+  private _getProxyAgentDispatcher(parsedUrl: URL, proxyUrl: URL): ProxyAgent {
+    let proxyAgent
+    const useProxy = proxyUrl && proxyUrl.hostname
+
+    if (this._keepAlive && useProxy) {
+      proxyAgent = this._proxyAgentDispatcher
+    }
+
+    if (this._keepAlive && !useProxy) {
+      proxyAgent = this._agentDispatcher
+    }
+
+    // if agent is already assigned use that agent.
+    if (proxyAgent) {
+      return proxyAgent
+    }
+
+    const usingSsl = parsedUrl.protocol === 'https:'
+    let maxSockets = 100
+    if (this.requestOptions) {
+      maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+    }
+
+    // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
+    if (proxyUrl && proxyUrl.hostname) {
+      proxyAgent = new ProxyAgent({
+        uri: proxyUrl.href,
+        pipelining: (!this._keepAlive ? 0 : 1),
+        ...((proxyUrl.username || proxyUrl.password) && {
+          token: `${proxyUrl.username}:${proxyUrl.password}`
+        }),
+      })
+      this._proxyAgentDispatcher = proxyAgent
+    }
+
+    if (usingSsl && this._ignoreSslError) {
+      // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
+      // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
+      // we have to cast it to any and change it directly
+      proxyAgent.options = Object.assign(proxyAgent.options.requestTls || {}, {
+        rejectUnauthorized: false
+      })
+    }
+
+    return proxyAgent
+  }
+
+  private _getAgentDispatcher(parsedUrl: URL): Agent {
+    let agent;
+
+    if (this._keepAlive) {
+      agent = this._agentDispatcher
+    }
+
+    // if agent is already assigned use that agent.
+    if (agent) {
+      return agent
+    }
+
+    const usingSsl = parsedUrl.protocol === 'https:'
+    let maxSockets = 100
+    if (this.requestOptions) {
+      maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+    }
+
+    // if reusing agent across request and tunneling agent isn't assigned create a new agent
+    if (!agent) {
+      agent = new Agent(
+        {
+          pipelining: (!this._keepAlive ? 0 : 1),
+        }
+      )
+      this._agentDispatcher = agent
+    }
+
+    if (usingSsl && this._ignoreSslError) {
+      // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
+      // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
+      // we have to cast it to any and change it directly
+      agent.options = Object.assign(agent.options.connect || {}, {
         rejectUnauthorized: false
       })
     }

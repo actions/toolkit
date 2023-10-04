@@ -3,6 +3,7 @@
 import * as http from 'http'
 import * as httpm from '../lib/'
 import * as pm from '../lib/proxy'
+import { ProxyAgent, Agent, fetch as undiciFetch } from "undici";
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const proxy = require('proxy')
 
@@ -293,6 +294,23 @@ describe('proxy', () => {
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
     expect(agent.proxyOptions.proxyAuth).toBe('user:password')
+  })
+
+  it('proxy settings return ProxyAgent', async () => {
+    process.env['https_proxy'] = 'http://127.0.0.1:8080'
+    const httpClient = new httpm.HttpClient()
+    const agent: Agent | ProxyAgent = httpClient.getAgentDispatcher('https://some-url')
+    // eslint-disable-next-line no-console
+    console.log(agent)
+    expect(agent instanceof ProxyAgent).toBe(true)
+  })
+
+  it('proxyAuth is set in tunnel agent when authentication is provided', async () => {
+    const httpClient = new httpm.HttpClient()
+    const agent: Agent | ProxyAgent = httpClient.getAgentDispatcher('https://some-url')
+    // eslint-disable-next-line no-console
+    console.log(agent)
+    expect(agent instanceof Agent).toBe(true)
   })
 })
 
