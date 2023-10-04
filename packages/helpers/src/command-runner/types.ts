@@ -36,9 +36,19 @@ export type CommandRunnerMiddleware<S = unknown> = (
 export type CommandRunnerActionType = 'throw' | 'fail' | 'log'
 
 /* Command runner event types as used internally passed to middleware for the user */
-export type CommandRunnerEventType = 'execerr' | 'stderr' | 'no-stdout' | 'ok'
+export type CommandRunnerEventType =
+  | 'execerr'
+  | 'stderr'
+  | 'stdout'
+  | 'exitcode'
+  | 'ok'
 
 /* Command runner event types as used by the user for filtering results */
 export type CommandRunnerEventTypeExtended =
   | CommandRunnerEventType
   | `!${CommandRunnerEventType}`
+
+export type CommandRunnerOptions = Omit<
+  exec.ExecOptions,
+  'failOnStdErr' | 'ignoreReturnCode'
+>

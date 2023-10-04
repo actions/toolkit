@@ -20,12 +20,16 @@ const getEventTypesFromContext = (
     eventTypes.add('execerr')
   }
 
-  if (ctx.stderr || ctx.exitCode !== 0) {
+  if (ctx.stderr) {
     eventTypes.add('stderr')
   }
 
-  if (ctx.stdout !== null && !ctx.stdout.trim()) {
-    eventTypes.add('no-stdout')
+  if (ctx.exitCode) {
+    eventTypes.add('exitcode')
+  }
+
+  if (ctx.stdout) {
+    eventTypes.add('stdout')
   }
 
   if (!ctx.stderr && !ctx.execerr && ctx.stdout !== null && !ctx.exitCode) {
@@ -72,7 +76,7 @@ export const failAction: CommandRunnerAction = message => async ctx => {
     return
   }
 
-  if (events.includes('no-stdout')) {
+  if (!events.includes('stdout')) {
     core.setFailed(
       `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced an empty output.`
     )
@@ -109,7 +113,7 @@ export const throwError: CommandRunnerAction = message => async ctx => {
     )
   }
 
-  if (events.includes('no-stdout')) {
+  if (!events.includes('stdout')) {
     throw new Error(
       `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced an empty output.`
     )
@@ -143,7 +147,7 @@ export const produceLog: CommandRunnerAction = message => async (ctx, next) => {
       return
     }
 
-    if (events.includes('no-stdout')) {
+    if (!events.includes('stdout')) {
       core.warning(messageText)
       next()
       return
@@ -176,7 +180,7 @@ export const produceLog: CommandRunnerAction = message => async (ctx, next) => {
     return
   }
 
-  if (events.includes('no-stdout')) {
+  if (!events.includes('stdout')) {
     core.warning(
       `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced an empty output.`
     )

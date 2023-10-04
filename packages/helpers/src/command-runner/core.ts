@@ -1,8 +1,10 @@
 import * as exec from '@actions/exec'
+import {StringDecoder} from 'string_decoder'
 import {
   CommandRunnerContext,
   CommandRunnerMiddleware,
-  CommandRunnerMiddlewarePromisified
+  CommandRunnerMiddlewarePromisified,
+  CommandRunnerOptions
 } from './types'
 
 export const promisifyCommandRunnerMiddleware =
@@ -36,40 +38,13 @@ export const composeCommandRunnerMiddleware =
 
 export class CommandRunnerBase<S = unknown> {
   private middleware: CommandRunnerMiddlewarePromisified[] = []
-  private tmpArgs: string[] = []
 
   constructor(
     private commandLine: string,
     private args: string[] = [],
-    private options: exec.ExecOptions = {},
-    private executor: typeof exec.getExecOutput = exec.getExecOutput
+    private options: CommandRunnerOptions,
+    private executor: typeof exec.exec = exec.exec
   ) {}
-
-  /**
-   * Adds additional arguments to the command
-   * for the one time execution.
-   */
-  addArgs(...args: string[]): this {
-    this.tmpArgs = [...this.args, ...args]
-    return this
-  }
-
-  /** Overrides command arguments for one time execution */
-  withArgs(...args: string[]): this {
-    this.tmpArgs = args
-    return this
-  }
-
-  /** Retrieves args for one-time execution and clears them afterwards */
-  private getTmpArgs(): string[] | null {
-    if (this.tmpArgs.length === 0) return null
-
-    const args = this.tmpArgs
-
-    this.tmpArgs = []
-
-    return args
-  }
 
   use(middleware: CommandRunnerMiddleware<S>): this {
     this.middleware.push(
@@ -88,14 +63,17 @@ export class CommandRunnerBase<S = unknown> {
     args?: string[],
 
     /* overrides options for this specific execution if not undefined */
-    options?: exec.ExecOptions
+    options?: CommandRunnerOptions
   ): Promise<CommandRunnerContext<S>> {
-    const tmpArgs = this.getTmpArgs()
+    const requiredOptions: exec.ExecOptions = {
+      ignoreReturnCode: true,
+      failOnStdErr: false
+    }
 
     const context: CommandRunnerContext<S> = {
       commandLine: commandLine ?? this.commandLine,
-      args: args ?? tmpArgs ?? this.args,
-      options: options ?? this.options,
+      args: args ?? this.args,
+      options: {...(options ?? this.options), ...requiredOptions},
       stdout: null,
       stderr: null,
       execerr: null,
@@ -104,15 +82,30 @@ export class CommandRunnerBase<S = unknown> {
     }
 
     try {
-      const {stdout, stderr, exitCode} = await this.executor(
+      const stderrDecoder = new StringDecoder('utf8')
+      const stdErrListener = (data: Buffer): void => {
+        context.stderr = (context.stderr ?? '') + stderrDecoder.write(data)
+        options?.listeners?.stderr?.(data)
+      }
+
+      const stdoutDecoder = new StringDecoder('utf8')
+      const stdOutListener = (data: Buffer): void => {
+        context.stdout = (context.stdout ?? '') + stdoutDecoder.write(data)
+        options?.listeners?.stdout?.(data)
+      }
+
+      context.exitCode = await this.executor(
         context.commandLine,
         context.args,
-        context.options
+        {
+          ...context.options,
+          listeners: {
+            ...options?.listeners,
+            stdout: stdOutListener,
+            stderr: stdErrListener
+          }
+        }
       )
-
-      context.stdout = stdout
-      context.stderr = stderr
-      context.exitCode = exitCode
     } catch (error) {
       context.execerr = error as Error
     }

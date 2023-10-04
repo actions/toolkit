@@ -1,1 +1,1 @@
-export {commandPipeline, CommandRunner} from './command-runner'
+export {createCommandRunner, CommandRunner} from './command-runner'

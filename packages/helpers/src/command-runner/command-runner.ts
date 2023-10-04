@@ -15,7 +15,8 @@ import {
 import {
   CommandRunnerActionType,
   CommandRunnerEventTypeExtended,
-  CommandRunnerMiddleware
+  CommandRunnerMiddleware,
+  CommandRunnerOptions
 } from './types'
 
 const commandRunnerActions = {
@@ -36,7 +37,6 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
         : [action]
 
     this.use(matchEvent(event, middleware as CommandRunnerMiddleware[]))
-
     return this
   }
 
@@ -44,8 +44,7 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
     action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
     message?: string
   ): this {
-    this.on('no-stdout', action, message)
-
+    this.onOutput(stdout => stdout?.trim() === '', action, message)
     return this
   }
 
@@ -149,9 +148,8 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
   }
 }
 
-export const commandPipeline = <S = unknown>(
+export const createCommandRunner = <S = unknown>(
   commandLine: string,
   args: string[] = [],
-  options: Record<string, unknown> = {}
-): CommandRunner<S> =>
-  new CommandRunner(commandLine, args, options, exec.getExecOutput)
+  options: CommandRunnerOptions = {}
+): CommandRunner<S> => new CommandRunner(commandLine, args, options, exec.exec)
