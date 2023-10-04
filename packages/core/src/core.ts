@@ -373,6 +373,14 @@ export async function getIDToken(aud?: string): Promise<string> {
 }
 
 /**
+ * Returns whether action runs on GitHub Enterprise Server or not.
+ */
+export function isGhes(): boolean {
+  const url = process.env['GITHUB_SERVER_URL'] || 'https://github.com'
+  return new URL(url).hostname.toUpperCase() !== 'GITHUB.COM'
+}
+
+/**
  * Summary exports
  */
 export {summary} from './summary'
@@ -386,8 +394,3 @@ export {markdownSummary} from './summary'
  * Path exports
  */
 export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils'
-
-/**
- * isGhes helper export
- */
-export {isGhes} from './utils'
