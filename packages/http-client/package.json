@@ -39,11 +39,11 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "devDependencies": {
-    "@types/node": "^20.7.1",
-    "@types/proxy": "^1.0.2",
+    "@types/node": "20.7.1",
     "@types/tunnel": "0.0.3",
     "proxy": "^2.1.1",
-    "undici": "^5.25.4"
+    "undici": "^5.25.4",
+    "@types/proxy": "^1.0.1"
   },
   "dependencies": {
     "tunnel": "^0.0.6"

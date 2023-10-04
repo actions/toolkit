@@ -13,7 +13,7 @@ const _proxyUrl = 'http://127.0.0.1:8080'
 describe('proxy', () => {
   beforeAll(async () => {
     // Start proxy server
-    _proxyServer = proxy()
+    _proxyServer = proxy.createProxy()
     await new Promise<void>(resolve => {
       const port = Number(_proxyUrl.split(':')[2])
       _proxyServer.listen(port, () => resolve())

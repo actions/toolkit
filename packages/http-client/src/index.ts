@@ -6,6 +6,7 @@ import * as ifm from './interfaces'
 import * as net from 'net'
 import * as pm from './proxy'
 import * as tunnel from 'tunnel'
+import { ProxyAgent, Agent, fetch as undiciFetch } from "undici";
 
 export enum HttpCodes {
   OK = 200,
