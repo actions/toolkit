@@ -342,5 +342,3 @@ toPlatformPath('/foo/bar') // => \foo\bar
 // On a Linux runner.
 toPlatformPath('\\foo\\bar') // => /foo/bar
 ```
-
-
