@@ -6,6 +6,7 @@ import * as ifm from './interfaces'
 import * as net from 'net'
 import * as pm from './proxy'
 import * as tunnel from 'tunnel'
+import { ProxyAgent, Agent, fetch as undiciFetch } from "undici";
 
 export enum HttpCodes {
   OK = 200,
@@ -136,7 +137,9 @@ export class HttpClient {
   private _allowRetries = false
   private _maxRetries = 1
   private _agent: any
+  private _newAgent: any
   private _proxyAgent: any
+  private _newProxyAgent: any
   private _keepAlive = false
   private _disposed = false
 
@@ -564,6 +567,18 @@ export class HttpClient {
     return this._getAgent(parsedUrl)
   }
 
+  getNewAgent(serverUrl: string): ProxyAgent | Agent {
+    const parsedUrl = new URL(serverUrl)
+    const proxyUrl = pm.getProxyUrl(parsedUrl)
+    const useProxy = proxyUrl && proxyUrl.hostname
+    if (useProxy) {
+      return this._getProxyAgent(parsedUrl)
+    }
+    else {
+      return this._getNewAgent(parsedUrl)
+    }
+  }
+
   private _prepareRequest(
     method: string,
     requestUrl: URL,
@@ -679,7 +694,7 @@ export class HttpClient {
 
     // if reusing agent across request and tunneling agent isn't assigned create a new agent
     if (this._keepAlive && !agent) {
-      const options = {keepAlive: this._keepAlive, maxSockets}
+      const options = { keepAlive: this._keepAlive, maxSockets }
       agent = usingSsl ? new https.Agent(options) : new http.Agent(options)
       this._agent = agent
     }
@@ -694,6 +709,94 @@ export class HttpClient {
       // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
       // we have to cast it to any and change it directly
       agent.options = Object.assign(agent.options || {}, {
+        rejectUnauthorized: false
+      })
+    }
+
+    return agent
+  }
+
+  private _getProxyAgent(parsedUrl: URL): ProxyAgent {
+    let proxyAgent
+    const proxyUrl = pm.getProxyUrl(parsedUrl)
+    const useProxy = proxyUrl && proxyUrl.hostname
+
+    if (this._keepAlive && useProxy) {
+      proxyAgent = this._newProxyAgent
+    }
+
+    if (this._keepAlive && !useProxy) {
+      proxyAgent = this._newAgent
+    }
+
+    // if agent is already assigned use that agent.
+    if (proxyAgent) {
+      return proxyAgent
+    }
+
+    const usingSsl = parsedUrl.protocol === 'https:'
+    let maxSockets = 100
+    if (this.requestOptions) {
+      maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+    }
+
+    // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
+    if (proxyUrl && proxyUrl.hostname) {
+      proxyAgent = new ProxyAgent({
+        uri: proxyUrl.href,
+        pipelining: (!this._keepAlive ? 0 : 1),
+        ...((proxyUrl.username || proxyUrl.password) && {
+          token: `${proxyUrl.username}:${proxyUrl.password}`
+        }),
+      })
+      this._newProxyAgent = proxyAgent
+    }
+
+    if (usingSsl && this._ignoreSslError) {
+      // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
+      // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
+      // we have to cast it to any and change it directly
+      proxyAgent.options = Object.assign(proxyAgent.options.requestTls || {}, {
+        rejectUnauthorized: false
+      })
+    }
+
+    return proxyAgent
+  }
+
+  private _getNewAgent(parsedUrl: URL): Agent {
+    let agent;
+
+    if (this._keepAlive) {
+      agent = this._newAgent
+    }
+
+    // if agent is already assigned use that agent.
+    if (agent) {
+      return agent
+    }
+
+    const usingSsl = parsedUrl.protocol === 'https:'
+    let maxSockets = 100
+    if (this.requestOptions) {
+      maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+    }
+
+    // if reusing agent across request and tunneling agent isn't assigned create a new agent
+    if (this._keepAlive && !agent) {
+      agent = new Agent(
+        {
+          pipelining: (!this._keepAlive ? 0 : 1),
+        }
+      )
+      this._newAgent = agent
+    }
+
+    if (usingSsl && this._ignoreSslError) {
+      // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
+      // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
+      // we have to cast it to any and change it directly
+      agent.options = Object.assign(agent.options.connect || {}, {
         rejectUnauthorized: false
       })
     }
@@ -783,5 +886,5 @@ export class HttpClient {
   }
 }
 
-const lowercaseKeys = (obj: {[index: string]: any}): any =>
+const lowercaseKeys = (obj: { [index: string]: any }): any =>
   Object.keys(obj).reduce((c: any, k) => ((c[k.toLowerCase()] = obj[k]), c), {})

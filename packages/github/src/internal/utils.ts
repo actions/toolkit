@@ -2,7 +2,7 @@ import * as http from 'http'
 import * as httpClient from '@actions/http-client'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 import { ProxyServer, createProxy } from "proxy";
-import { ProxyAgent, fetch as undiciFetch } from "undici";
+import { ProxyAgent, Agent, fetch as undiciFetch } from "undici";
 
 export function getAuthString(
   token: string,
@@ -22,15 +22,17 @@ export function getProxyAgent(destinationUrl: string): http.Agent {
   return hc.getAgent(destinationUrl)
 }
 
+export function getNewProxyAgent(destinationUrl: string): ProxyAgent | Agent {
+  const hc = new httpClient.HttpClient()
+  return hc.getNewAgent(destinationUrl)
+}
+
 export function getProxyFetchAgent(destinationUrl): any {
+  const httpAgent = getNewProxyAgent(destinationUrl)
   const myFetch: typeof undiciFetch = (url, opts) => {
     return undiciFetch(url, {
       ...opts,
-      dispatcher: new ProxyAgent({
-        uri: destinationUrl,
-        keepAliveTimeout: 10,
-        keepAliveMaxTimeout: 10,
-      }),
+      dispatcher: httpAgent,
     });
   };
   return myFetch;

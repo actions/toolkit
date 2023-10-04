@@ -1,6 +1,5 @@
 import * as http from 'http'
 import * as https from 'https'
-import proxy from 'proxy'
 import { ProxyServer, createProxy } from "proxy";
 import { ProxyAgent, fetch as undiciFetch } from "undici";
 
@@ -18,7 +17,7 @@ describe('@actions/github', () => {
 
   beforeAll(async () => {
     // Start proxy server
-    proxyServer = proxy()
+    proxyServer = createProxy()
     await new Promise<void>(resolve => {
       const port = Number(proxyUrl.split(':')[2])
       proxyServer.listen(port, () => resolve())
@@ -50,22 +49,7 @@ describe('@actions/github', () => {
       return
     }
 
-    const myFetch: typeof undiciFetch = (url, opts) => {
-      return undiciFetch(url, {
-        ...opts,
-        dispatcher: new ProxyAgent({
-          uri: proxyUrl,
-          keepAliveTimeout: 10,
-          keepAliveMaxTimeout: 10,
-        }),
-      });
-    };
-
-    const octokit = getOctokit(token, {
-      request: {
-        fetch: myFetch
-      }
-    })
+    const octokit = getOctokit(token)
 
     const branch = await octokit.rest.repos.getBranch({
       owner: 'actions',
@@ -82,22 +66,18 @@ describe('@actions/github', () => {
       return
     }
     process.env['https_proxy'] = proxyUrl
-    const myFetch: typeof undiciFetch = (url, opts) => {
-      return undiciFetch(url, {
-        ...opts,
-        dispatcher: new ProxyAgent({
-          uri: proxyUrl,
-          keepAliveTimeout: 10,
-          keepAliveMaxTimeout: 10,
-        }),
-      });
-    };
+    // const myFetch: typeof undiciFetch = (url, opts) => {
+    //   return undiciFetch(url, {
+    //     ...opts,
+    //     dispatcher: new ProxyAgent({
+    //       uri: proxyUrl,
+    //       keepAliveTimeout: 10,
+    //       keepAliveMaxTimeout: 10,
+    //     }),
+    //   });
+    // };
 
-    const octokit = getOctokit(token, {
-      request: {
-        fetch: myFetch
-      }
-    })
+    const octokit = getOctokit(token)
 
     const repository = await octokit.graphql(
       '{repository(owner:"actions", name:"toolkit"){name}}'

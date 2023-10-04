@@ -38,12 +38,14 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/http-client": "^2.0.1",
-    "@octokit/core": "^3.6.0",
-    "@octokit/plugin-paginate-rest": "^2.17.0",
-    "@octokit/plugin-rest-endpoint-methods": "^5.13.0"
+    "@actions/http-client": "file:../http-client/actions-http-client-3.0.0.tgz",
+    "@octokit/core": "^4.2.4",
+    "@octokit/plugin-paginate-rest": "^6.1.2",
+    "@octokit/plugin-rest-endpoint-methods": "^7.2.3"
   },
   "devDependencies": {
-    "proxy": "^1.0.2"
+    "@types/proxy": "^1.0.1",
+    "proxy": "^2.1.1",
+    "undici": "^5.25.2"
   }
 }
