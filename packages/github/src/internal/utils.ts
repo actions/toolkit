@@ -21,7 +21,7 @@ export function getProxyAgent(destinationUrl: string): http.Agent {
   return hc.getAgent(destinationUrl)
 }
 
-export function getProxyAgentDispatcher(destinationUrl: string): ProxyAgent | Agent {
+export function getProxyAgentDispatcher(destinationUrl: string): ProxyAgent | undefined {
   const hc = new httpClient.HttpClient()
   return hc.getAgentDispatcher(destinationUrl)
 }

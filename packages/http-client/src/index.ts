@@ -567,7 +567,7 @@ export class HttpClient {
     return this._getAgent(parsedUrl)
   }
 
-  getAgentDispatcher(serverUrl: string): ProxyAgent | Agent {
+  getAgentDispatcher(serverUrl: string): ProxyAgent | undefined {
     const parsedUrl = new URL(serverUrl)
     const proxyUrl = pm.getProxyUrl(parsedUrl)
     const useProxy = proxyUrl && proxyUrl.hostname
@@ -575,7 +575,7 @@ export class HttpClient {
       return this._getProxyAgentDispatcher(parsedUrl, proxyUrl)
     }
     else {
-      return this._getAgentDispatcher(parsedUrl)
+      return;
     }
   }
 
