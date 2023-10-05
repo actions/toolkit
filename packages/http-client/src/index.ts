@@ -6,7 +6,7 @@ import * as ifm from './interfaces'
 import * as net from 'net'
 import * as pm from './proxy'
 import * as tunnel from 'tunnel'
-import { ProxyAgent } from "undici";
+import {ProxyAgent} from 'undici'
 
 export enum HttpCodes {
   OK = 200,
@@ -571,7 +571,7 @@ export class HttpClient {
     const proxyUrl = pm.getProxyUrl(parsedUrl)
     const useProxy = proxyUrl && proxyUrl.hostname
     if (!useProxy) {
-      return;
+      return
     }
 
     return this._getProxyAgentDispatcher(parsedUrl, proxyUrl)
@@ -715,7 +715,7 @@ export class HttpClient {
   }
 
   private _getProxyAgentDispatcher(parsedUrl: URL, proxyUrl: URL): ProxyAgent {
-    let proxyAgent;
+    let proxyAgent
 
     if (this._keepAlive) {
       proxyAgent = this._proxyAgentDispatcher
@@ -727,19 +727,15 @@ export class HttpClient {
     }
 
     const usingSsl = parsedUrl.protocol === 'https:'
-    let maxSockets = 100
-    if (this.requestOptions) {
-      maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
-    }
 
     // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
     if (proxyUrl && proxyUrl.hostname) {
       proxyAgent = new ProxyAgent({
         uri: proxyUrl.href,
-        pipelining: (!this._keepAlive ? 0 : 1),
+        pipelining: !this._keepAlive ? 0 : 1,
         ...((proxyUrl.username || proxyUrl.password) && {
           token: `${proxyUrl.username}:${proxyUrl.password}`
-        }),
+        })
       })
       this._proxyAgentDispatcher = proxyAgent
     }
