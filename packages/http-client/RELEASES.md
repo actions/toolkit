@@ -1,5 +1,8 @@
 ## Releases
 
+## 2.2.0
+- Add function to return proxy agent dispatcher for compatibility with latest octokit packages [#1547](https://github.com/actions/toolkit/pull/1547)
+
 ## 2.1.1
 - Add `HttpClientResponse.readBodyBuffer` method to read from a response stream and return a buffer [#1475](https://github.com/actions/toolkit/pull/1475)
 
