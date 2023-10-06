@@ -727,18 +727,14 @@ export class HttpClient {
     }
 
     const usingSsl = parsedUrl.protocol === 'https:'
-
-    // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
-    if (proxyUrl && proxyUrl.hostname) {
-      proxyAgent = new ProxyAgent({
-        uri: proxyUrl.href,
-        pipelining: !this._keepAlive ? 0 : 1,
-        ...((proxyUrl.username || proxyUrl.password) && {
-          token: `${proxyUrl.username}:${proxyUrl.password}`
-        })
+    proxyAgent = new ProxyAgent({
+      uri: proxyUrl.href,
+      pipelining: !this._keepAlive ? 0 : 1,
+      ...((proxyUrl.username || proxyUrl.password) && {
+        token: `${proxyUrl.username}:${proxyUrl.password}`
       })
-      this._proxyAgentDispatcher = proxyAgent
-    }
+    })
+    this._proxyAgentDispatcher = proxyAgent
 
     if (usingSsl && this._ignoreSslError) {
       // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
