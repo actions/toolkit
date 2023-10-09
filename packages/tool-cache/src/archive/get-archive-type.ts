@@ -77,7 +77,9 @@ export const getArchiveType = async (filePath: string): Promise<ArchiveType> =>
 
       const closeEverythingAndReject = (error?: Error): void => {
         readStream.close()
-        fs.close(fd, () => reject(error ?? Error('Unable to read file')))
+        fs.close(fd, () =>
+          reject(error ?? Error('Unable to determine archive type'))
+        )
         readStream.push(null)
       }
 
