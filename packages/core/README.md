@@ -333,3 +333,22 @@ toPlatformPath('/foo/bar') // => \foo\bar
 // On a Linux runner.
 toPlatformPath('\\foo\\bar') // => /foo/bar
 ```
+
+#### Platform helper
+
+Provides shorthands for getting information about platform action is running on.
+
+```js
+import { platform } from '@actions/core'
+
+platform.platform // 'win32'
+platform.arch // 'x64'
+platform.isWindows // true
+platform.isMacOS // false
+platform.isLinux // false
+
+const {
+  name, // Microsoft Windows 11 Enterprise
+  version, // 10.0.22621
+} = await platform.getInfo()
+```
