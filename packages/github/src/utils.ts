@@ -13,7 +13,8 @@ const baseUrl = Utils.getApiBaseUrl()
 export const defaults: OctokitOptions = {
   baseUrl,
   request: {
-    agent: Utils.getProxyAgent(baseUrl)
+    agent: Utils.getProxyAgent(baseUrl),
+    fetch: Utils.getProxyFetch(baseUrl)
   }
 }
 
