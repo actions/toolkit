@@ -70,20 +70,14 @@ export const getArchiveType = async (filePath: string): Promise<ArchiveType> =>
       const readStream = readStreamFromDescriptor(fd)
 
       const closeEverythingAndResolve = (result: ArchiveType): void => {
-        readStream.close(() => {
-          fs.close(fd, () => resolve(result as '7z' | 'zip' | 'xar' | 'tar'))
-        })
+        readStream.close()
+        fs.close(fd, () => resolve(result as '7z' | 'zip' | 'xar' | 'tar'))
         readStream.push(null)
       }
 
       const closeEverythingAndReject = (error?: Error): void => {
-        readStream.close(() => {
-          fs.close(fd, () =>
-            reject(
-              error ?? Error(`Unable to determine archive type of ${filePath}`)
-            )
-          )
-        })
+        readStream.close()
+        fs.close(fd, () => reject(error ?? Error('Unable to read file')))
         readStream.push(null)
       }
 
