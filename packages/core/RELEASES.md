@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.10.1
+- Fix error message reference in oidc utils [#1511](https://github.com/actions/toolkit/pull/1511)
+
 ### 1.10.0
 - `saveState` and `setOutput` now use environment files if available [#1178](https://github.com/actions/toolkit/pull/1178)
 - `getMultilineInput` now correctly trims whitespace by default [#1185](https://github.com/actions/toolkit/pull/1185)
