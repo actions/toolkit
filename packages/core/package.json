@@ -36,6 +36,7 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
+    "@actions/exec": "^1.1.1",
     "@actions/http-client": "^2.0.1",
     "uuid": "^8.3.2"
   },
