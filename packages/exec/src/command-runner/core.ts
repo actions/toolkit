@@ -1,4 +1,4 @@
-import * as exec from '@actions/exec'
+import * as exec from '../exec'
 import {StringDecoder} from 'string_decoder'
 import {
   CommandRunnerContext,

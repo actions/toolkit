@@ -1,4 +1,4 @@
-import * as exec from '@actions/exec'
+import * as exec from '../exec'
 import {CommandRunnerBase} from './core'
 import {
   failAction,

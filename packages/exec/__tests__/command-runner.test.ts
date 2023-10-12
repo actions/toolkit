@@ -1,7 +1,7 @@
-import * as exec from '@actions/exec'
+import * as exec from '../src/exec'
 import * as core from '@actions/core'
 import * as io from '@actions/io'
-import {CommandRunner, createCommandRunner} from '../src/helpers'
+import {CommandRunner, createCommandRunner} from '../src/command-runner'
 
 describe('command-runner', () => {
   describe('createCommandRunner', () => {
