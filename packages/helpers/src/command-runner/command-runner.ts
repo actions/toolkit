@@ -1,9 +1,6 @@
 import * as exec from '@actions/exec'
 import {CommandRunnerBase} from './core'
 import {
-  ErrorMatcher,
-  ExitCodeMatcher,
-  OutputMatcher,
   failAction,
   matchEvent,
   matchExitCode,
@@ -16,7 +13,10 @@ import {
   CommandRunnerActionType,
   CommandRunnerEventTypeExtended,
   CommandRunnerMiddleware,
-  CommandRunnerOptions
+  CommandRunnerOptions,
+  ErrorMatcher,
+  ExitCodeMatcher,
+  OutputMatcher
 } from './types'
 
 const commandRunnerActions = {

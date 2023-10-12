@@ -1,4 +1,5 @@
 import * as exec from '@actions/exec'
+import {PromisifiedFn} from './utils'
 
 /* CommandRunner core */
 
@@ -15,19 +16,21 @@ export interface CommandRunnerContext {
   exitCode: number | null
 }
 
-/* Middlewares as used internally in CommandRunner */
-export type CommandRunnerMiddlewarePromisified = (
-  ctx: CommandRunnerContext,
-  next: () => Promise<void>
-) => Promise<void>
-
 /* Middlewares as used by the user */
-export type CommandRunnerMiddleware = (
+type _CommandRunnerMiddleware = (
   ctx: CommandRunnerContext,
   next: () => Promise<void>
 ) => void | Promise<void>
 
+export type CommandRunnerMiddleware = PromisifiedFn<_CommandRunnerMiddleware>
+
 /* Command runner events handling and command runner actions */
+
+export type CommandRunnerAction = (
+  message?:
+    | string
+    | ((ctx: CommandRunnerContext, events: CommandRunnerEventType[]) => string)
+) => PromisifiedFn<CommandRunnerMiddleware>
 
 /* Command runner default actions types on which preset middleware exists */
 export type CommandRunnerActionType = 'throw' | 'fail' | 'log'
@@ -49,3 +52,18 @@ export type CommandRunnerOptions = Omit<
   exec.ExecOptions,
   'failOnStdErr' | 'ignoreReturnCode'
 >
+
+/* Matchers */
+
+export type OutputMatcher = RegExp | string | ((output: string) => boolean)
+
+export type ExitCodeMatcher = string | number
+
+export type ErrorMatcher =
+  | RegExp
+  | string
+  | ((error: {
+      type: 'stderr' | 'execerr'
+      error: Error | null
+      message: string
+    }) => boolean)

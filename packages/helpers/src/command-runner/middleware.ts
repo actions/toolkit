@@ -1,15 +1,16 @@
 import * as core from '@actions/core'
 import {
+  CommandRunnerAction,
   CommandRunnerContext,
   CommandRunnerEventType,
   CommandRunnerEventTypeExtended,
   CommandRunnerMiddleware,
-  CommandRunnerMiddlewarePromisified
+  ErrorMatcher,
+  ExitCodeMatcher,
+  OutputMatcher
 } from './types'
-import {
-  composeCommandRunnerMiddleware,
-  promisifyCommandRunnerMiddleware
-} from './core'
+import {composeMiddleware} from './core'
+import {gte, gt, lte, lt, eq, PromisifiedFn} from './utils'
 
 const getEventTypesFromContext = (
   ctx: CommandRunnerContext
@@ -39,15 +40,14 @@ const getEventTypesFromContext = (
   return [...eventTypes]
 }
 
-type CommandRunnerAction = (
-  message?:
-    | string
-    | ((ctx: CommandRunnerContext, events: CommandRunnerEventType[]) => string)
-) => CommandRunnerMiddlewarePromisified
-
 /**
  * Basic middleware
  */
+
+/** Calls next middleware */
+export const passThrough: () => PromisifiedFn<CommandRunnerMiddleware> =
+  () => async (_, next) =>
+    next()
 
 /**
  * Fails Github Action with the given message or with a default one depending on execution conditions.
@@ -203,44 +203,15 @@ export const produceLog: CommandRunnerAction = message => async (ctx, next) => {
 }
 
 /**
- * Filtering middleware
- */
-
-/** Calls next middleware */
-export const passThrough: () => CommandRunnerMiddlewarePromisified =
-  () => async (_, next) =>
-    next()
-
-/**
- * Either calls next middleware or not depending on the result of the given condition.
- */
-export const filter: (
-  shouldPass:
-    | boolean
-    | ((ctx: CommandRunnerContext) => boolean | Promise<boolean>)
-) => CommandRunnerMiddlewarePromisified = shouldPass => async (ctx, next) => {
-  if (typeof shouldPass === 'function') {
-    if (await shouldPass(ctx)) {
-      next()
-      return
-    }
-  }
-}
-
-/**
  * Will call passed middleware if matching event has occured.
  * Will call the next middleware otherwise.
  */
 export const matchEvent = (
   eventType: CommandRunnerEventTypeExtended | CommandRunnerEventTypeExtended[],
   middleware?: CommandRunnerMiddleware[]
-): CommandRunnerMiddlewarePromisified => {
-  if (!middleware?.length) {
-    middleware = [passThrough()]
-  }
-
-  const composedMiddleware = composeCommandRunnerMiddleware(
-    middleware.map(mw => promisifyCommandRunnerMiddleware(mw))
+): PromisifiedFn<CommandRunnerMiddleware> => {
+  const composedMiddleware = composeMiddleware(
+    !middleware?.length ? [passThrough()] : middleware
   )
 
   const expectedEventsPositiveArray = (
@@ -283,8 +254,6 @@ export const matchEvent = (
   }
 }
 
-export type OutputMatcher = RegExp | string | ((output: string) => boolean)
-
 /**
  * Will call passed middleware if matching event has occured.
  * Will call the next middleware otherwise.
@@ -292,13 +261,9 @@ export type OutputMatcher = RegExp | string | ((output: string) => boolean)
 export const matchOutput = (
   matcher: OutputMatcher,
   middleware?: CommandRunnerMiddleware[]
-): CommandRunnerMiddlewarePromisified => {
-  if (!middleware?.length) {
-    middleware = [passThrough()]
-  }
-
-  const composedMiddleware = composeCommandRunnerMiddleware(
-    middleware.map(mw => promisifyCommandRunnerMiddleware(mw))
+): PromisifiedFn<CommandRunnerMiddleware> => {
+  const composedMiddleware = composeMiddleware(
+    !middleware?.length ? [passThrough()] : middleware
   )
 
   return async (ctx, next) => {
@@ -328,30 +293,9 @@ export const matchOutput = (
   }
 }
 
-export type ExitCodeMatcher = string | number
+const removeWhitespaces = (str: string): string => str.replace(/\s/g, '')
 
-const lte =
-  (a: number) =>
-  (b: number): boolean =>
-    b <= a
-const gte =
-  (a: number) =>
-  (b: number): boolean =>
-    b >= a
-const lt =
-  (a: number) =>
-  (b: number): boolean =>
-    b < a
-const gt =
-  (a: number) =>
-  (b: number): boolean =>
-    b > a
-const eq =
-  (a: number) =>
-  (b: number): boolean =>
-    b === a
-
-const matchers = {
+const MATCHERS = {
   '>=': gte,
   '>': gt,
   '<=': lte,
@@ -359,11 +303,9 @@ const matchers = {
   '=': eq
 } as const
 
-const removeWhitespaces = (str: string): string => str.replace(/\s/g, '')
-
 const parseExitCodeMatcher = (
   code: ExitCodeMatcher
-): [keyof typeof matchers, number] => {
+): [keyof typeof MATCHERS, number] => {
   if (typeof code === 'number') {
     return ['=', code]
   }
@@ -382,14 +324,7 @@ const parseExitCodeMatcher = (
   }
 
   const [, operator, number] = match
-  return [operator as keyof typeof matchers, parseInt(number)]
-}
-
-const matcherToMatcherFn = (
-  matcher: ExitCodeMatcher
-): ((exitCode: number) => boolean) => {
-  const [operator, number] = parseExitCodeMatcher(matcher)
-  return matchers[operator](number)
+  return [operator as keyof typeof MATCHERS, parseInt(number)]
 }
 
 /**
@@ -399,20 +334,17 @@ const matcherToMatcherFn = (
 export const matchExitCode = (
   code: ExitCodeMatcher,
   middleware?: CommandRunnerMiddleware[]
-): CommandRunnerMiddlewarePromisified => {
-  const matcher = matcherToMatcherFn(code)
+): PromisifiedFn<CommandRunnerMiddleware> => {
+  const [operator, number] = parseExitCodeMatcher(code)
+  const matcherFn = MATCHERS[operator](number)
 
-  if (!middleware?.length) {
-    middleware = [passThrough()]
-  }
-
-  const composedMiddleware = composeCommandRunnerMiddleware(
-    middleware.map(mw => promisifyCommandRunnerMiddleware(mw))
+  const composedMiddleware = composeMiddleware(
+    !middleware?.length ? [passThrough()] : middleware
   )
 
   return async (ctx, next) => {
     // if exit code is undefined, NaN will not match anything
-    if (matcher(ctx.exitCode ?? NaN)) {
+    if (matcherFn(ctx.exitCode ?? NaN)) {
       composedMiddleware(ctx, next)
       return
     }
@@ -421,25 +353,14 @@ export const matchExitCode = (
   }
 }
 
-export type ErrorMatcher =
-  | RegExp
-  | string
-  | ((error: {
-      type: 'stderr' | 'execerr'
-      error: Error | null
-      message: string
-    }) => boolean)
-
 export const matchSpecificError = (
   matcher: ErrorMatcher,
-  middleware?: CommandRunnerMiddleware[]
-): CommandRunnerMiddlewarePromisified => {
-  if (!middleware?.length) {
-    middleware = [passThrough()]
-  }
-
-  const composedMiddleware = composeCommandRunnerMiddleware(
-    middleware.map(mw => promisifyCommandRunnerMiddleware(mw))
+  middleware?:
+    | CommandRunnerMiddleware[]
+    | PromisifiedFn<CommandRunnerMiddleware>[]
+): PromisifiedFn<CommandRunnerMiddleware> => {
+  const composedMiddleware = composeMiddleware(
+    !middleware?.length ? [passThrough()] : middleware
   )
 
   return async (ctx, next) => {

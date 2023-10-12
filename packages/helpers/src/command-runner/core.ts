@@ -3,39 +3,12 @@ import {StringDecoder} from 'string_decoder'
 import {
   CommandRunnerContext,
   CommandRunnerMiddleware,
-  CommandRunnerMiddlewarePromisified,
   CommandRunnerOptions
 } from './types'
-
-export const promisifyCommandRunnerMiddleware =
-  (middleware: CommandRunnerMiddleware): CommandRunnerMiddlewarePromisified =>
-  async (ctx, next) => {
-    return Promise.resolve(middleware(ctx, next))
-  }
-
-export const composeCommandRunnerMiddleware =
-  (middleware: CommandRunnerMiddlewarePromisified[]) =>
-  async (context: CommandRunnerContext, nextGlobal: () => Promise<void>) => {
-    let index = 0
-
-    const nextLocal = async (): Promise<void> => {
-      if (index < middleware.length) {
-        const currentMiddleware = middleware[index++]
-        if (middleware === undefined) {
-          return
-        }
-
-        await currentMiddleware(context, nextLocal)
-      }
-
-      await nextGlobal()
-    }
-
-    await nextLocal()
-  }
+import {PromisifiedFn, promisifyFn} from './utils'
 
 export class CommandRunnerBase {
-  private middleware: CommandRunnerMiddlewarePromisified[] = []
+  private middleware: PromisifiedFn<CommandRunnerMiddleware>[] = []
 
   constructor(
     private commandLine: string,
@@ -45,7 +18,7 @@ export class CommandRunnerBase {
   ) {}
 
   use(middleware: CommandRunnerMiddleware): this {
-    this.middleware.push(promisifyCommandRunnerMiddleware(middleware))
+    this.middleware.push(promisifyFn(middleware))
     return this
   }
 
@@ -104,8 +77,36 @@ export class CommandRunnerBase {
     }
 
     const next = async (): Promise<void> => Promise.resolve()
-    await composeCommandRunnerMiddleware(this.middleware)(context, next)
+    await composeMiddleware(this.middleware)(context, next)
 
     return context
+  }
+}
+
+export function composeMiddleware(
+  middleware: PromisifiedFn<CommandRunnerMiddleware>[]
+): PromisifiedFn<CommandRunnerMiddleware> {
+  middleware = middleware.map(mw => promisifyFn(mw))
+
+  return async (
+    context: CommandRunnerContext,
+    nextGlobal: () => Promise<void>
+  ) => {
+    let index = 0
+
+    const nextLocal = async (): Promise<void> => {
+      if (index < middleware.length) {
+        const currentMiddleware = middleware[index++]
+        if (middleware === undefined) {
+          return
+        }
+
+        await currentMiddleware(context, nextLocal)
+      }
+
+      await nextGlobal()
+    }
+
+    await nextLocal()
   }
 }
