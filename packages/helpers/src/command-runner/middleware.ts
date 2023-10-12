@@ -92,36 +92,38 @@ export const failAction: CommandRunnerAction = message => async ctx => {
 /**
  * Throws an error with the given message or with a default one depending on execution conditions.
  */
-export const throwError: CommandRunnerAction = message => async ctx => {
-  const events = getEventTypesFromContext(ctx)
+export const throwError: CommandRunnerAction = message => {
+  return async ctx => {
+    const events = getEventTypesFromContext(ctx)
 
-  if (message !== undefined) {
+    if (message !== undefined) {
+      throw new Error(
+        typeof message === 'string' ? message : message(ctx, events)
+      )
+    }
+
+    if (events.includes('execerr')) {
+      throw new Error(
+        `The command "${ctx.commandLine}" failed to run: ${ctx.execerr?.message}`
+      )
+    }
+
+    if (events.includes('stderr')) {
+      throw new Error(
+        `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced an error: ${ctx.stderr}`
+      )
+    }
+
+    if (!events.includes('stdout')) {
+      throw new Error(
+        `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced an empty output.`
+      )
+    }
+
     throw new Error(
-      typeof message === 'string' ? message : message(ctx, events)
+      `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced the following output: ${ctx.stdout}`
     )
   }
-
-  if (events.includes('execerr')) {
-    throw new Error(
-      `The command "${ctx.commandLine}" failed to run: ${ctx.execerr?.message}`
-    )
-  }
-
-  if (events.includes('stderr')) {
-    throw new Error(
-      `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced an error: ${ctx.stderr}`
-    )
-  }
-
-  if (!events.includes('stdout')) {
-    throw new Error(
-      `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced an empty output.`
-    )
-  }
-
-  throw new Error(
-    `The command "${ctx.commandLine}" finished with exit code ${ctx.exitCode} and produced the following output: ${ctx.stdout}`
-  )
 }
 
 /**
@@ -345,7 +347,7 @@ export const matchExitCode = (
   return async (ctx, next) => {
     // if exit code is undefined, NaN will not match anything
     if (matcherFn(ctx.exitCode ?? NaN)) {
-      composedMiddleware(ctx, next)
+      await composedMiddleware(ctx, next)
       return
     }
 
