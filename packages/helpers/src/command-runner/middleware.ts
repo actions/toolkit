@@ -248,7 +248,7 @@ export const matchEvent = (
     }
 
     if (shouldRun) {
-      composedMiddleware(ctx, next)
+      await composedMiddleware(ctx, next)
       return
     }
 
@@ -291,7 +291,7 @@ export const matchOutput = (
       return
     }
 
-    composedMiddleware(ctx, next)
+    await composedMiddleware(ctx, next)
   }
 }
 
@@ -396,6 +396,6 @@ export const matchSpecificError = (
       return
     }
 
-    composedMiddleware(ctx, next)
+    await composedMiddleware(ctx, next)
   }
 }

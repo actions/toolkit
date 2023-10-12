@@ -103,6 +103,9 @@ export class CommandRunnerBase {
           }
         }
       )
+
+      context.stdout = (context.stdout ?? '') + stdoutDecoder.end()
+      context.stderr = (context.stderr ?? '') + stderrDecoder.end()
     } catch (error) {
       context.execerr = error as Error
     }

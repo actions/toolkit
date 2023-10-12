@@ -1,5 +1,6 @@
 import * as exec from '@actions/exec'
 import * as core from '@actions/core'
+import * as io from '@actions/io'
 import {CommandRunner, createCommandRunner} from '../src/helpers'
 
 describe('command-runner', () => {
@@ -423,6 +424,84 @@ describe('command-runner', () => {
         expect(middleware).toHaveBeenCalledTimes(1)
         expect(notCalledMiddleware).not.toHaveBeenCalled()
       })
+    })
+  })
+
+  const IS_WINDOWS = process.platform === 'win32'
+
+  describe('no-mock testing', () => {
+    beforeEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('creates a command object', async () => {
+      let toolpath: string
+      let args: string[]
+      if (IS_WINDOWS) {
+        toolpath = await io.which('cmd', true)
+        args = ['/c', 'echo', 'hello']
+      } else {
+        toolpath = await io.which('echo', true)
+        args = ['hello']
+      }
+      const command = createCommandRunner(`"${toolpath}"`, args)
+      expect(command).toBeDefined()
+      expect(command).toBeInstanceOf(CommandRunner)
+    })
+
+    it('runs a command with non-zero exit code', async () => {
+      const runner = createCommandRunner()
+
+      runner.setOptions({
+        silent: true
+      })
+
+      if (IS_WINDOWS) {
+        runner.setCommand(await io.which('cmd', true))
+        runner.setArgs(['/c', 'dir'])
+      } else {
+        runner.setCommand(await io.which('ls', true))
+        runner.setArgs(['-l'])
+      }
+
+      runner.setArgs((args: string[]) => [...args, 'non-existent-dir'])
+
+      const cmdPromise = runner.onError('throw').run()
+
+      await expect(cmdPromise).rejects.toThrow()
+    })
+
+    it('runs a command with zero exit code', async () => {
+      const runner = createCommandRunner()
+
+      if (IS_WINDOWS) {
+        runner.setCommand(await io.which('cmd', true))
+        runner.setArgs(['/c', 'echo'])
+      } else {
+        runner.setCommand(await io.which('echo', true))
+      }
+
+      runner.setArgs((args: string[]) => [...args, 'hello'])
+
+      const result = await runner.run()
+
+      expect(result.stdout).toContain('hello')
+      expect(result.exitCode).toEqual(0)
+    })
+
+    it('runs a command with empty output', async () => {
+      const runner = createCommandRunner()
+
+      if (IS_WINDOWS) {
+        runner.setCommand(await io.which('cmd', true))
+        runner.setArgs(['/c', 'echo.'])
+      } else {
+        runner.setCommand(await io.which('echo', true))
+      }
+
+      const cmdPromise = runner.onEmptyOutput('throw').run()
+
+      await expect(cmdPromise).rejects.toThrow()
     })
   })
 })
