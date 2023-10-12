@@ -25,10 +25,10 @@ const commandRunnerActions = {
   log: produceLog
 } as const
 
-export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
+export class CommandRunner extends CommandRunnerBase {
   on(
     event: CommandRunnerEventTypeExtended | CommandRunnerEventTypeExtended[],
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     const middleware =
@@ -36,12 +36,12 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
         ? [commandRunnerActions[action](message)]
         : [action]
 
-    this.use(matchEvent(event, middleware as CommandRunnerMiddleware[]))
+    this.use(matchEvent(event, middleware))
     return this
   }
 
   onEmptyOutput(
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     this.onOutput(stdout => stdout?.trim() === '', action, message)
@@ -49,7 +49,7 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
   }
 
   onExecutionError(
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     const middleware =
@@ -57,18 +57,13 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
         ? [commandRunnerActions[action](message)]
         : [action]
 
-    this.use(
-      matchSpecificError(
-        ({type}) => type === 'execerr',
-        middleware as CommandRunnerMiddleware[]
-      )
-    )
+    this.use(matchSpecificError(({type}) => type === 'execerr', middleware))
 
     return this
   }
 
   onStdError(
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     const middleware =
@@ -76,18 +71,13 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
         ? [commandRunnerActions[action](message)]
         : [action]
 
-    this.use(
-      matchSpecificError(
-        ({type}) => type === 'stderr',
-        middleware as CommandRunnerMiddleware[]
-      )
-    )
+    this.use(matchSpecificError(({type}) => type === 'stderr', middleware))
 
     return this
   }
 
   onError(
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     return this.on(['execerr', 'stderr'], action, message)
@@ -95,7 +85,7 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
 
   onSpecificError(
     matcher: ErrorMatcher,
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     const middleware =
@@ -103,15 +93,13 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
         ? [commandRunnerActions[action](message)]
         : [action]
 
-    this.use(
-      matchSpecificError(matcher, middleware as CommandRunnerMiddleware[])
-    )
+    this.use(matchSpecificError(matcher, middleware))
 
     return this
   }
 
   onSuccess(
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     return this.on('ok', action, message)
@@ -119,7 +107,7 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
 
   onExitCode(
     matcher: ExitCodeMatcher,
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     const middleware =
@@ -127,14 +115,14 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
         ? [commandRunnerActions[action](message)]
         : [action]
 
-    this.use(matchExitCode(matcher, middleware as CommandRunnerMiddleware[]))
+    this.use(matchExitCode(matcher, middleware))
 
     return this
   }
 
   onOutput(
     matcher: OutputMatcher,
-    action: CommandRunnerActionType | CommandRunnerMiddleware<S>,
+    action: CommandRunnerActionType | CommandRunnerMiddleware,
     message?: string
   ): this {
     const middleware =
@@ -142,14 +130,14 @@ export class CommandRunner<S = unknown> extends CommandRunnerBase<S> {
         ? [commandRunnerActions[action](message)]
         : [action]
 
-    this.use(matchOutput(matcher, middleware as CommandRunnerMiddleware[]))
+    this.use(matchOutput(matcher, middleware))
 
     return this
   }
 }
 
-export const createCommandRunner = <S = unknown>(
+export const createCommandRunner = (
   commandLine: string,
   args: string[] = [],
   options: CommandRunnerOptions = {}
-): CommandRunner<S> => new CommandRunner(commandLine, args, options, exec.exec)
+): CommandRunner => new CommandRunner(commandLine, args, options, exec.exec)

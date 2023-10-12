@@ -2,7 +2,7 @@ import * as exec from '@actions/exec'
 
 /* CommandRunner core */
 
-export interface CommandRunnerContext<S = unknown> {
+export interface CommandRunnerContext {
   /* Inputs with which command was executed */
   commandLine: string
   args: string[]
@@ -13,9 +13,6 @@ export interface CommandRunnerContext<S = unknown> {
   stderr: string | null
   stdout: string | null
   exitCode: number | null
-
-  /* Arbitrary state that can be change during middleware execution if needed */
-  state: S | null
 }
 
 /* Middlewares as used internally in CommandRunner */
@@ -25,8 +22,8 @@ export type CommandRunnerMiddlewarePromisified = (
 ) => Promise<void>
 
 /* Middlewares as used by the user */
-export type CommandRunnerMiddleware<S = unknown> = (
-  ctx: CommandRunnerContext<S>,
+export type CommandRunnerMiddleware = (
+  ctx: CommandRunnerContext,
   next: () => Promise<void>
 ) => void | Promise<void>
 

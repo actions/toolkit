@@ -74,16 +74,13 @@ describe('command-runner', () => {
 
       expect(middleware).toHaveBeenCalledWith(
         expect.objectContaining({
-          commandLine: 'echo',
           args: ['hello', 'world'],
-          options: expect.objectContaining({
-            silent: true
-          }),
-          stdout: 'hello',
-          stderr: '',
-          exitCode: 0,
+          commandLine: 'echo',
           execerr: null,
-          state: null
+          exitCode: 0,
+          options: {failOnStdErr: false, ignoreReturnCode: true, silent: true},
+          stderr: '',
+          stdout: 'hello'
         }),
         expect.any(Function)
       )

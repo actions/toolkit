@@ -8,9 +8,7 @@ import {
 } from './types'
 
 export const promisifyCommandRunnerMiddleware =
-  (
-    middleware: CommandRunnerMiddleware<unknown>
-  ): CommandRunnerMiddlewarePromisified =>
+  (middleware: CommandRunnerMiddleware): CommandRunnerMiddlewarePromisified =>
   async (ctx, next) => {
     return Promise.resolve(middleware(ctx, next))
   }
@@ -36,7 +34,7 @@ export const composeCommandRunnerMiddleware =
     await nextLocal()
   }
 
-export class CommandRunnerBase<S = unknown> {
+export class CommandRunnerBase {
   private middleware: CommandRunnerMiddlewarePromisified[] = []
 
   constructor(
@@ -46,12 +44,8 @@ export class CommandRunnerBase<S = unknown> {
     private executor: typeof exec.exec = exec.exec
   ) {}
 
-  use(middleware: CommandRunnerMiddleware<S>): this {
-    this.middleware.push(
-      promisifyCommandRunnerMiddleware(
-        middleware as CommandRunnerMiddleware<unknown>
-      )
-    )
+  use(middleware: CommandRunnerMiddleware): this {
+    this.middleware.push(promisifyCommandRunnerMiddleware(middleware))
     return this
   }
 
@@ -64,21 +58,20 @@ export class CommandRunnerBase<S = unknown> {
 
     /* overrides options for this specific execution if not undefined */
     options?: CommandRunnerOptions
-  ): Promise<CommandRunnerContext<S>> {
+  ): Promise<CommandRunnerContext> {
     const requiredOptions: exec.ExecOptions = {
       ignoreReturnCode: true,
       failOnStdErr: false
     }
 
-    const context: CommandRunnerContext<S> = {
+    const context: CommandRunnerContext = {
       commandLine: commandLine ?? this.commandLine,
       args: args ?? this.args,
       options: {...(options ?? this.options), ...requiredOptions},
       stdout: null,
       stderr: null,
       execerr: null,
-      exitCode: null,
-      state: null
+      exitCode: null
     }
 
     try {
