@@ -11,11 +11,38 @@ export class CommandRunnerBase {
   private middleware: PromisifiedFn<CommandRunnerMiddleware>[] = []
 
   constructor(
-    private commandLine: string,
+    private commandLine = '',
     private args: string[] = [],
     private options: CommandRunnerOptions,
     private executor: typeof exec.exec = exec.exec
   ) {}
+
+  setCommand(commandLine: string | ((commandLine: string) => string)): this {
+    this.commandLine =
+      typeof commandLine === 'function'
+        ? commandLine(this.commandLine)
+        : commandLine
+
+    return this
+  }
+
+  setArgs(args: string[] | ((args: string[]) => string[])): this {
+    this.args =
+      typeof args === 'function' ? args(this.args) : [...this.args, ...args]
+
+    return this
+  }
+
+  setOptions(
+    options:
+      | CommandRunnerOptions
+      | ((options: CommandRunnerOptions) => CommandRunnerOptions)
+  ): this {
+    this.options =
+      typeof options === 'function' ? options(this.options) : options
+
+    return this
+  }
 
   use(middleware: CommandRunnerMiddleware): this {
     this.middleware.push(promisifyFn(middleware))
@@ -45,6 +72,10 @@ export class CommandRunnerBase {
       stderr: null,
       execerr: null,
       exitCode: null
+    }
+
+    if (!context.commandLine) {
+      throw new Error('Command was not specified')
     }
 
     try {
@@ -84,7 +115,7 @@ export class CommandRunnerBase {
 }
 
 export function composeMiddleware(
-  middleware: PromisifiedFn<CommandRunnerMiddleware>[]
+  middleware: CommandRunnerMiddleware[]
 ): PromisifiedFn<CommandRunnerMiddleware> {
   middleware = middleware.map(mw => promisifyFn(mw))
 

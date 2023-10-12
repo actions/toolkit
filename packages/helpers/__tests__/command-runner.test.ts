@@ -36,6 +36,66 @@ describe('command-runner', () => {
       )
     })
 
+    it('throws error if command is not specified', async () => {
+      const command = createCommandRunner()
+      await expect(command.run()).rejects.toThrow('Command was not specified')
+    })
+
+    it('will have exec error if it occured', async () => {
+      execSpy.mockImplementation(async () => {
+        throw new Error('test')
+      })
+
+      const command = createCommandRunner('echo', ['hello', 'world'], {
+        silent: true
+      })
+      const context = await command.run()
+
+      expect(context.execerr).toBeDefined()
+      expect(context.execerr?.message).toBe('test')
+    })
+
+    it('allows to set command, args and options', async () => {
+      execSpy.mockImplementation(async () => 0)
+
+      createCommandRunner()
+        .setCommand('echo')
+        .setArgs(['hello', 'world'])
+        .setOptions({silent: true})
+        .run()
+
+      expect(execSpy).toHaveBeenCalledTimes(1)
+      expect(execSpy).toHaveBeenCalledWith(
+        'echo',
+        ['hello', 'world'],
+        expect.objectContaining({
+          silent: true,
+          ignoreReturnCode: true
+        })
+      )
+    })
+
+    it('allows to modify command, args and options', async () => {
+      execSpy.mockImplementation(async () => 0)
+
+      createCommandRunner('echo', ['hello', 'world'], {silent: true})
+        .setCommand(commandLine => `${commandLine} hello world`)
+        .setArgs(() => [])
+        .setOptions(options => ({...options, env: {test: 'test'}}))
+        .run()
+
+      expect(execSpy).toHaveBeenCalledTimes(1)
+      expect(execSpy).toHaveBeenCalledWith(
+        'echo hello world',
+        [],
+        expect.objectContaining({
+          silent: true,
+          ignoreReturnCode: true,
+          env: {test: 'test'}
+        })
+      )
+    })
+
     const createExecMock = (output: {
       stdout: string
       stderr: string
@@ -138,37 +198,6 @@ describe('command-runner', () => {
           .run()
 
         expect(middleware).toHaveBeenCalledTimes(1)
-      })
-
-      it('runs a middleware on multiple events', async () => {
-        execSpy.mockImplementation(
-          createExecMock({stdout: 'foo', stderr: '', exitCode: 1})
-        )
-        /* execSpy.mockImplementation(
-          createExecMock({stdout: '', stderr: '', exitCode: 1})
-        )
-
-        const middleware = jest.fn()
-        const command = createCommandRunner('echo', ['hello', 'world'], {
-          silent: true
-        }).on(['!no-stdout', 'ok'], middleware)
-
-        await command.run()
-
-        expect(middleware).toHaveBeenCalledTimes(1)
-
-        execSpy.mockImplementation(async () => {
-          return {
-            stdout: '',
-            stderr: '',
-            exitCode: 1
-          }
-        })
-
-        await command.run()
-
-        expect(middleware).toHaveBeenCalledTimes(1)
-        */
       })
     })
   })

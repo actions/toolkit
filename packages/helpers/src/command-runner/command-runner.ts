@@ -137,7 +137,7 @@ export class CommandRunner extends CommandRunnerBase {
 }
 
 export const createCommandRunner = (
-  commandLine: string,
+  commandLine = '',
   args: string[] = [],
   options: CommandRunnerOptions = {}
 ): CommandRunner => new CommandRunner(commandLine, args, options, exec.exec)
