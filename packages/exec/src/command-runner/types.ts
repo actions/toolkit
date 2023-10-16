@@ -1,41 +1,64 @@
 import * as exec from '../exec'
 import {PromisifiedFn} from './utils'
 
-/* CommandRunner core */
-
+/**
+ * CommandRunner.prototype.run() outpout and context
+ * that is passed to each middleware
+ */
 export interface CommandRunnerContext {
-  /* Inputs with which command was executed */
+  /** Command that was executed */
   commandLine: string
+
+  /** Arguments with which command was executed */
   args: string[]
+
+  /** Command options with which command executor was ran */
   options: exec.ExecOptions
 
-  /* Results of the execution */
+  /** Error that was thrown when attempting to execute command */
   execerr: Error | null
+
+  /** Command's output that was passed to stderr if command did run, null otherwise */
   stderr: string | null
+
+  /** Command's output that was passed to stdout if command did run, null otherwise */
   stdout: string | null
+
+  /** Command's exit code if command did run, null otherwise */
   exitCode: number | null
 }
 
-/* Middlewares as used by the user */
+/**
+ * Base middleware shape
+ */
 type _CommandRunnerMiddleware = (
   ctx: CommandRunnerContext,
   next: () => Promise<void>
 ) => void | Promise<void>
 
+/**
+ * Normalized middleware shape that is always promisified
+ */
 export type CommandRunnerMiddleware = PromisifiedFn<_CommandRunnerMiddleware>
 
-/* Command runner events handling and command runner actions */
-
+/**
+ * Shape for the command runner default middleware creators
+ */
 export type CommandRunnerAction = (
   message?:
     | string
     | ((ctx: CommandRunnerContext, events: CommandRunnerEventType[]) => string)
 ) => PromisifiedFn<CommandRunnerMiddleware>
 
-/* Command runner default actions types on which preset middleware exists */
+/**
+ * Default middleware identifires that can be uset to set respective action
+ * in copmposing middleware
+ */
 export type CommandRunnerActionType = 'throw' | 'fail' | 'log'
 
-/* Command runner event types as used internally passed to middleware for the user */
+/**
+ * Command runner event types on which middleware can be set
+ */
 export type CommandRunnerEventType =
   | 'execerr'
   | 'stderr'
@@ -43,27 +66,19 @@ export type CommandRunnerEventType =
   | 'exitcode'
   | 'ok'
 
-/* Command runner event types as used by the user for filtering results */
+/**
+ * Extended event type that can be used to set middleware on event not happening
+ */
 export type CommandRunnerEventTypeExtended =
   | CommandRunnerEventType
   | `!${CommandRunnerEventType}`
 
+/**
+ * options that would be passed to the command executor (exec.exec by default)
+ * failOnStdErr and ignoreReturnCode are excluded as they are
+ * handled by the CommandRunner itself
+ */
 export type CommandRunnerOptions = Omit<
   exec.ExecOptions,
   'failOnStdErr' | 'ignoreReturnCode'
 >
-
-/* Matchers */
-
-export type OutputMatcher = RegExp | string | ((output: string) => boolean)
-
-export type ExitCodeMatcher = string | number
-
-export type ErrorMatcher =
-  | RegExp
-  | string
-  | ((error: {
-      type: 'stderr' | 'execerr'
-      error: Error | null
-      message: string
-    }) => boolean)

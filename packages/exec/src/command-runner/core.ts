@@ -17,6 +17,10 @@ export class CommandRunnerBase {
     private executor: typeof exec.exec = exec.exec
   ) {}
 
+  /**
+   * Sets command to be executed, passing a callback
+   * allows to modify command based on currently set command
+   */
   setCommand(commandLine: string | ((commandLine: string) => string)): this {
     this.commandLine =
       typeof commandLine === 'function'
@@ -26,6 +30,10 @@ export class CommandRunnerBase {
     return this
   }
 
+  /**
+   * Sets command arguments, passing a callback
+   * allows to modify arguments based on currently set arguments
+   */
   setArgs(args: string[] | ((args: string[]) => string[])): this {
     this.args =
       typeof args === 'function' ? args(this.args) : [...this.args, ...args]
@@ -33,6 +41,10 @@ export class CommandRunnerBase {
     return this
   }
 
+  /**
+   * Sets options for command executor (exec.exec by default), passing a callback
+   * allows to modify options based on currently set options
+   */
   setOptions(
     options:
       | CommandRunnerOptions
@@ -44,11 +56,37 @@ export class CommandRunnerBase {
     return this
   }
 
+  /**
+   * Sets arbitrary middleware to be executed on command runner run
+   * middleware is executed in the order it was added
+   * @param middleware middleware to be executed
+   * @example
+   * ```ts
+   * const runner = new CommandRunner()
+   * runner.use(async (ctx, next) => {
+   *  console.log('before')
+   *  const {
+   *    exitCode // exit code of the command
+   *    stdout // stdout of the command
+   *    stderr // stderr of the command
+   *    execerr // error thrown by the command executor
+   *    commandLine // command line that was executed
+   *    args // arguments that were passed to the command
+   *    options // options that were passed to the command
+   *  } = ctx
+   *  await next()
+   *  console.log('after')
+   * })
+   * ```
+   */
   use(middleware: CommandRunnerMiddleware): this {
     this.middleware.push(promisifyFn(middleware))
     return this
   }
 
+  /**
+   * Runs command with currently set options and arguments
+   */
   async run(
     /* overrides command for this specific execution if not undefined */
     commandLine?: string,
@@ -117,9 +155,21 @@ export class CommandRunnerBase {
   }
 }
 
+/**
+ * Composes multiple middleware into a single middleware
+ * implements a chain of responsibility pattern
+ * with next function passed to each middleware
+ * and each middleware being able to call next() to pass control to the next middleware
+ * or not call next() to stop the chain,
+ * it is also possible to run code after the next was called by using async/await
+ * for a cleanup or other purposes.
+ * This behavior is mostly implemented to be similar to express, koa or other middleware based frameworks
+ * in order to avoid confusion. Executing code after next() usually would not be needed.
+ */
 export function composeMiddleware(
   middleware: CommandRunnerMiddleware[]
 ): PromisifiedFn<CommandRunnerMiddleware> {
+  // promisify all passed middleware
   middleware = middleware.map(mw => promisifyFn(mw))
 
   return async (
@@ -128,6 +178,12 @@ export function composeMiddleware(
   ) => {
     let index = 0
 
+    /**
+     * Picks the first not-yet-executed middleware from the list and
+     * runs it, passing itself as next function for
+     * that middleware to call, therefore would be called
+     * by each middleware in the chain
+     */
     const nextLocal = async (): Promise<void> => {
       if (index < middleware.length) {
         const currentMiddleware = middleware[index++]
@@ -138,9 +194,18 @@ export function composeMiddleware(
         await currentMiddleware(context, nextLocal)
       }
 
+      /**
+       * If no middlware left to be executed
+       * will call the next funtion passed to the
+       * composed middleware
+       */
       await nextGlobal()
     }
 
+    /**
+     * Starts the chain of middleware execution by
+     * calling nextLocal directly
+     */
     await nextLocal()
   }
 }

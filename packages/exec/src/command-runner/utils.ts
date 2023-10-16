@@ -1,7 +1,6 @@
 /**
- * Promises
+ * Promisifies a a function type
  */
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PromisifiedFn<T extends (...args: any[]) => any> = (
   ...args: Parameters<T>
@@ -9,6 +8,9 @@ export type PromisifiedFn<T extends (...args: any[]) => any> = (
   ? ReturnType<T>
   : Promise<ReturnType<T>>
 
+/**
+ * Promisifies a function
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const promisifyFn = <T extends (...args: any[]) => any>(
   fn: T
@@ -27,26 +29,6 @@ export const promisifyFn = <T extends (...args: any[]) => any>(
 }
 
 /**
- * Comparators
+ * Removes all whitespaces from a string
  */
-
-export const lte =
-  (a: number) =>
-  (b: number): boolean =>
-    b <= a
-export const gte =
-  (a: number) =>
-  (b: number): boolean =>
-    b >= a
-export const lt =
-  (a: number) =>
-  (b: number): boolean =>
-    b < a
-export const gt =
-  (a: number) =>
-  (b: number): boolean =>
-    b > a
-export const eq =
-  (a: number) =>
-  (b: number): boolean =>
-    b === a
+export const removeWhitespaces = (str: string): string => str.replace(/\s/g, '')
