@@ -18,9 +18,9 @@ export interface BlobUploadResponse {
   uploadSize?: number
 
   /**
-   * The MD5 hash of the uploaded file. Empty if the upload failed
+   * The SHA256 hash of the uploaded file. Empty if the upload failed
    */
-  md5Hash?: string
+  sha256Hash?: string
 }
 
 export async function uploadZipToBlobStorage(
@@ -48,9 +48,9 @@ export async function uploadZipToBlobStorage(
     onProgress: uploadCallback
   }
 
-  let md5Hash: string | undefined = undefined
+  let sha256Hash: string | undefined = undefined
   const uploadStream = new stream.PassThrough()
-  const hashStream = crypto.createHash('md5')
+  const hashStream = crypto.createHash('sha256')
 
   zipUploadStream.pipe(uploadStream) // This stream is used for the upload
   zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
@@ -68,8 +68,8 @@ export async function uploadZipToBlobStorage(
     core.info('Finished uploading artifact content to blob storage!')
 
     hashStream.end()
-    md5Hash = hashStream.read() as string
-    core.info(`MD5 hash of uploaded artifact zip is ${md5Hash}`)
+    sha256Hash = hashStream.read() as string
+    core.info(`SHA256 hash of uploaded artifact zip is ${sha256Hash}`)
   } catch (error) {
     core.warning(
       `Failed to upload artifact zip to blob storage, error: ${error}`
@@ -91,6 +91,6 @@ export async function uploadZipToBlobStorage(
   return {
     isSuccess: true,
     uploadSize: uploadByteCount,
-    md5Hash
+    sha256Hash
   }
 }

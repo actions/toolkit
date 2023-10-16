@@ -99,9 +99,9 @@ export async function uploadArtifact(
     size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
   }
 
-  if (uploadResult.md5Hash) {
+  if (uploadResult.sha256Hash) {
     finalizeArtifactReq.hash = StringValue.create({
-      value: `md5:${uploadResult.md5Hash}`
+      value: `sha256:${uploadResult.sha256Hash}`
     })
   }
 
