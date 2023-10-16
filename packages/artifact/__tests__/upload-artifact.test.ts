@@ -65,7 +65,7 @@ describe('upload-artifact', () => {
       Promise.resolve({
         isSuccess: true,
         uploadSize: 1234,
-        md5Hash: 'test-md5-hash'
+        sha256Hash: 'test-sha256-hash'
       })
     )
     jest
@@ -334,7 +334,7 @@ describe('upload-artifact', () => {
       Promise.resolve({
         isSuccess: true,
         uploadSize: 1234,
-        md5Hash: 'test-md5-hash'
+        sha256Hash: 'test-sha256-hash'
       })
     )
     jest
