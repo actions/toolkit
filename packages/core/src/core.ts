@@ -153,6 +153,21 @@ export function getMultilineInput(
     .split('\n')
     .filter(x => x !== '')
 
+  return inputs
+}
+
+/**
+ * Gets the values of a comma separated input. Each value is also trimmed.
+ */
+export function getCommaSeparatedInput(
+  name: string,
+  options?: InputOptions
+): string[] {
+  const inputs: string[] = getInput(name, options)
+    .split(/[[\]\n,]+/)
+    .map(s => s.trim())
+    .filter(x => x !== '')
+
   if (options && options.trimWhitespace === false) {
     return inputs
   }
