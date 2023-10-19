@@ -35,6 +35,11 @@ const testEnvVars = {
   INPUT_WITH_TRAILING_WHITESPACE: '  some val  ',
   INPUT_MY_INPUT_LIST: 'val1\nval2\nval3',
   INPUT_LIST_WITH_TRAILING_WHITESPACE: '  val1  \n  val2  \n  ',
+  INPUT_COMMA_SEPARATED_LIST: 'val1,val2,val3',
+  INPUT_COMMA_SEPARATED_LIST2: '[val1,val2,val3]',
+  INPUT_COMMA_SEPARATED_LIST_WITH_TRAILING_WHITESPACE: '  val1  ,  val2  ,  ',
+  INPUT_COMMA_SEPARATED_LIST_WITH_TRAILING_WHITESPACE2:
+    '[  val1  ,  val2  ,  ]',
 
   // Save inputs
   STATE_TEST_1: 'state_val',
@@ -286,6 +291,66 @@ describe('@actions/core', () => {
       core.getMultilineInput('list with trailing whitespace', {
         trimWhitespace: false
       })
+    ).toEqual(['  val1  ', '  val2  ', '  '])
+  })
+
+  it('getCommaSeparatedInput works', () => {
+    expect(core.getCommaSeparatedInput('comma separated list')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
+
+    expect(core.getCommaSeparatedInput('comma separated list2')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
+  })
+
+  it('getCommaSeparatedInput trims whitespace by default', () => {
+    expect(
+      core.getCommaSeparatedInput(
+        'comma separated list with trailing whitespace'
+      )
+    ).toEqual(['val1', 'val2'])
+
+    expect(
+      core.getCommaSeparatedInput(
+        'comma separated list with trailing whitespace2'
+      )
+    ).toEqual(['val1', 'val2', ''])
+  })
+
+  it('getCommaSeparatedInput trims whitespace when option is explicitly true', () => {
+    expect(
+      core.getCommaSeparatedInput(
+        'comma separated list with trailing whitespace',
+        {trimWhitespace: true}
+      )
+    ).toEqual(['val1', 'val2'])
+
+    expect(
+      core.getCommaSeparatedInput(
+        'comma separated list with trailing whitespace2',
+        {trimWhitespace: true}
+      )
+    ).toEqual(['val1', 'val2', ''])
+  })
+
+  it('getCommaSeparatedInput does not trim whitespace when option is false', () => {
+    expect(
+      core.getCommaSeparatedInput(
+        'comma separated list with trailing whitespace',
+        {trimWhitespace: false}
+      )
+    ).toEqual(['  val1  ', '  val2  ', '  '])
+
+    expect(
+      core.getCommaSeparatedInput(
+        'comma separated list with trailing whitespace2',
+        {trimWhitespace: false}
+      )
     ).toEqual(['  val1  ', '  val2  ', '  '])
   })
 
