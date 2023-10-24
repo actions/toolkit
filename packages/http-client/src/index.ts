@@ -63,7 +63,7 @@ const HttpRedirectCodes: number[] = [
   HttpCodes.TemporaryRedirect,
   HttpCodes.PermanentRedirect
 ]
-const HttpResponseRetryCodes: number[] = [
+const DefaultHttpResponseRetryCodes: number[] = [
   HttpCodes.BadGateway,
   HttpCodes.ServiceUnavailable,
   HttpCodes.GatewayTimeout
@@ -90,6 +90,8 @@ export class HttpClientResponse {
   }
 
   message: http.IncomingMessage
+  retryCount: number | undefined
+
   async readBody(): Promise<string> {
     return new Promise<string>(async resolve => {
       let output = Buffer.alloc(0)
@@ -141,6 +143,8 @@ export class HttpClient {
   private _proxyAgentDispatcher: any
   private _keepAlive = false
   private _disposed = false
+  private _retryOnCodes: number[] = []
+  private _noRetryOnCodes: number[] = []
 
   constructor(
     userAgent?: string,
@@ -179,6 +183,14 @@ export class HttpClient {
 
       if (requestOptions.maxRetries != null) {
         this._maxRetries = requestOptions.maxRetries
+      }
+
+      if (requestOptions.retryCodes != null) {
+        this._retryOnCodes = requestOptions.retryCodes
+      }
+
+      if (requestOptions.noRetryCodes != null) {
+        this._noRetryOnCodes = requestOptions.noRetryCodes
       }
     }
   }
@@ -435,9 +447,10 @@ export class HttpClient {
 
       if (
         !response.message.statusCode ||
-        !HttpResponseRetryCodes.includes(response.message.statusCode)
+        !this._shouldRetryOnCode(response.message.statusCode)
       ) {
         // If not a retry code, return immediately instead of retrying
+        response.retryCount = numTries - 1
         return response
       }
 
@@ -449,6 +462,7 @@ export class HttpClient {
       }
     } while (numTries < maxTries)
 
+    response.retryCount = numTries - 1
     return response
   }
 
@@ -827,6 +841,19 @@ export class HttpClient {
         resolve(response)
       }
     })
+  }
+
+  private _shouldRetryOnCode(statusCode: number): boolean {
+    if (this._retryOnCodes.includes(statusCode)) {
+      return true
+    } else if (
+      DefaultHttpResponseRetryCodes.includes(statusCode) &&
+      !this._noRetryOnCodes.includes(statusCode)
+    ) {
+      return true
+    } else {
+      return false
+    }
   }
 }
 

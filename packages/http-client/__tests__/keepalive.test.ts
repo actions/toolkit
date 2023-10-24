@@ -1,4 +1,4 @@
-import * as httpm from '../lib'
+import * as httpm from '../src/index'
 
 describe('basics', () => {
   let _http: httpm.HttpClient
