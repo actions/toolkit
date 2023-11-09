@@ -168,6 +168,15 @@ describe('@actions/core', () => {
     ])
   })
 
+  it('setSecret produces the correct command 2', () => {
+    core.setSecret('%xxx')
+    core.setSecret('%25')
+    assertWriteCalls([
+      `::add-mask::%25xxx`,
+      `::add-mask::%2525`
+    ])
+  })
+
   it('prependPath produces the correct commands and sets the env', () => {
     const command = 'PATH'
     createFileCommandFile(command)
