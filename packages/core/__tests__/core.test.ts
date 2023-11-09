@@ -169,11 +169,20 @@ describe('@actions/core', () => {
   })
 
   it('setSecret produces the correct command 2', () => {
-    core.setSecret('%xxx')
-    core.setSecret('%25')
+    core.setSecret('secret val %')
+    core.setSecret('multi\nline\r\nsecret')
     assertWriteCalls([
-      `::add-mask::%25xxx`,
-      `::add-mask::%2525`
+      `::add-mask::secret val %25${os.EOL}`,
+      `::add-mask::multi%0Aline%0D%0Asecret${os.EOL}`
+    ])
+  })
+
+  it('setSecret produces the correct command 3', () => {
+    core.setSecret('secret val %25')
+    core.setSecret('multi\nline\r\nsecret')
+    assertWriteCalls([
+      `::add-mask::secret val %2525${os.EOL}`,
+      `::add-mask::multi%0Aline%0D%0Asecret${os.EOL}`
     ])
   })
 
