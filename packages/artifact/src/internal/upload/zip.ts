@@ -5,6 +5,8 @@ import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
 
+export const DEFAULT_COMPRESSION_LEVEL = 6
+
 // Custom stream transformer so we can set the highWaterMark property
 // See https://github.com/nodejs/node/issues/8855
 export class ZipUploadStream extends stream.Transform {
@@ -21,14 +23,12 @@ export class ZipUploadStream extends stream.Transform {
 }
 
 export async function createZipUploadStream(
-  uploadSpecification: UploadZipSpecification[]
+  uploadSpecification: UploadZipSpecification[],
+  compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
 ): Promise<ZipUploadStream> {
   const zip = archiver.create('zip', {
-    zlib: {level: 9} // Sets the compression level.
-    // Available options are 0-9
-    // 0 => no compression
-    // 1 => fastest with low compression
-    // 9 => highest compression ratio but the slowest
+    highWaterMark: getUploadChunkSize(),
+    zlib: {level: compressionLevel}
   })
 
   // register callbacks for various events during the zip lifecycle

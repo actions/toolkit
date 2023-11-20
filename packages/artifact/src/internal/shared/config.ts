@@ -1,3 +1,5 @@
+import os from 'os'
+
 // Used for controlling the highWaterMark value of the zip that is being streamed
 // The same value is used as the chunk size that is use during upload to blob storage
 export function getUploadChunkSize(): number {
@@ -33,4 +35,18 @@ export function getGitHubWorkspaceDir(): string {
     throw new Error('Unable to get the GITHUB_WORKSPACE env variable')
   }
   return ghWorkspaceDir
+}
+
+// Mimics behavior of azcopy: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-optimize
+// If your machine has fewer than 5 CPUs, then the value of this variable is set to 32.
+// Otherwise, the default value is equal to 16 multiplied by the number of CPUs. The maximum value of this variable is 300.
+export function getConcurrency() {
+  const numCPUs = os.cpus().length
+
+  if (numCPUs <= 4) {
+    return 32
+  }
+
+  const concurrency = 16 * numCPUs
+  return concurrency > 300 ? 300 : concurrency
 }
