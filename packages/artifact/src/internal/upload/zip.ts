@@ -26,6 +26,10 @@ export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
 ): Promise<ZipUploadStream> {
+  core.debug(
+    `Creating Artifact archive with compressionLevel: ${compressionLevel}`
+  )
+
   const zip = archiver.create('zip', {
     highWaterMark: getUploadChunkSize(),
     zlib: {level: compressionLevel}
