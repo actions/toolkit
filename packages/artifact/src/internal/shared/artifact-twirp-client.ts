@@ -52,8 +52,8 @@ class ArtifactHttpClient implements Rpc {
     contentType: 'application/json' | 'application/protobuf',
     data: object | Uint8Array
   ): Promise<object | Uint8Array> {
-    const url = `${this.baseUrl}/twirp/${service}/${method}`
-    debug(`Requesting ${url}`)
+    const url = new URL(`/twirp/${service}/${method}`, this.baseUrl).href
+    debug(`Requesting: ${url}`)
     const headers = {
       'Content-Type': contentType
     }
