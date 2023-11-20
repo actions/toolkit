@@ -37,7 +37,10 @@ export async function uploadArtifact(
     }
   }
 
-  const zipUploadStream = await createZipUploadStream(zipSpecification, options?.compressionLevel)
+  const zipUploadStream = await createZipUploadStream(
+    zipSpecification,
+    options?.compressionLevel
+  )
 
   // get the IDs needed for the artifact creation
   const backendIds = getBackendIdsFromToken()

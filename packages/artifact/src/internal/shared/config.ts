@@ -40,7 +40,7 @@ export function getGitHubWorkspaceDir(): string {
 // Mimics behavior of azcopy: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-optimize
 // If your machine has fewer than 5 CPUs, then the value of this variable is set to 32.
 // Otherwise, the default value is equal to 16 multiplied by the number of CPUs. The maximum value of this variable is 300.
-export function getConcurrency() {
+export function getConcurrency(): number {
   const numCPUs = os.cpus().length
 
   if (numCPUs <= 4) {
