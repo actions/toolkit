@@ -19,7 +19,8 @@ export function getResultsServiceUrl(): string {
   if (!resultsUrl) {
     throw new Error('Unable to get the ACTIONS_RESULTS_URL env variable')
   }
-  return resultsUrl
+
+  return new URL(resultsUrl).origin
 }
 
 export function isGhes(): boolean {
