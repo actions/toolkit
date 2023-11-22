@@ -137,3 +137,12 @@ export function isGhes(): boolean {
   )
   return ghUrl.hostname.toUpperCase() !== 'GITHUB.COM'
 }
+
+export function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  return new Promise<Buffer>((resolve, reject) => {
+    const buffer: Buffer[] = []
+    stream.on('data', (chunk: Buffer) => buffer.push(chunk))
+    stream.on('error', reject)
+    stream.on('end', () => resolve(Buffer.concat(buffer)))
+  })
+}

@@ -7,11 +7,9 @@ export interface ITypedResponseWithError<T> extends TypedResponse<T> {
 }
 
 export interface ArtifactCacheEntry {
-  cacheKey?: string
-  scope?: string
-  cacheVersion?: string
-  creationTime?: string
-  archiveLocation?: string
+  cache_key?: string
+  pre_signed_url?: string
+  cache_version?: string
 }
 
 export interface ArtifactCacheList {
@@ -20,17 +18,30 @@ export interface ArtifactCacheList {
 }
 
 export interface CommitCacheRequest {
-  size: number
+  cache_key: string
+  cache_version: string
+  upload_key: string
+  upload_id: string
+  parts: InternalS3CompletedPart[]
+  os: string
+  vcs_type: string
+}
+
+export interface CommitCacheResponse {
+  cache_key: string
+  cache_version: string
 }
 
 export interface ReserveCacheRequest {
-  key: string
-  version?: string
-  cacheSize?: number
+  cache_key: string
+  content_type: string
+  number_of_chunks: number
 }
 
 export interface ReserveCacheResponse {
-  cacheId: number
+  pre_signed_urls: string[]
+  upload_key: string
+  upload_id: string
 }
 
 export interface InternalCacheOptions {
@@ -42,4 +53,9 @@ export interface InternalCacheOptions {
 export interface ArchiveTool {
   path: string
   type: string
+}
+
+export interface InternalS3CompletedPart {
+  ETag: string
+  PartNumber: number
 }

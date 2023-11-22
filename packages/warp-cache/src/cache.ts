@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
-import {DownloadOptions, UploadOptions} from './options'
+import {DownloadOptions, getUploadOptions} from './options'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -95,14 +95,14 @@ export async function restoreCache(
       compressionMethod,
       enableCrossOsArchive
     })
-    if (!cacheEntry?.archiveLocation) {
+    if (!cacheEntry?.pre_signed_url) {
       // Cache not found
       return undefined
     }
 
     if (options?.lookupOnly) {
       core.info('Lookup only - skipping download')
-      return cacheEntry.cacheKey
+      return cacheEntry.cache_key
     }
 
     archivePath = path.join(
@@ -112,11 +112,7 @@ export async function restoreCache(
     core.debug(`Archive Path: ${archivePath}`)
 
     // Download the cache from the cache entry
-    await cacheHttpClient.downloadCache(
-      cacheEntry.archiveLocation,
-      archivePath,
-      options
-    )
+    await cacheHttpClient.downloadCache(cacheEntry.pre_signed_url, archivePath)
 
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
@@ -132,7 +128,7 @@ export async function restoreCache(
     await extractTar(archivePath, compressionMethod)
     core.info('Cache restored successfully')
 
-    return cacheEntry.cacheKey
+    return cacheEntry.cache_key
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -165,16 +161,15 @@ export async function restoreCache(
 export async function saveCache(
   paths: string[],
   key: string,
-  options?: UploadOptions,
   enableCrossOsArchive = false
-): Promise<number> {
+): Promise<string> {
   checkPaths(paths)
   checkKey(key)
 
   const compressionMethod = await utils.getCompressionMethod()
-  let cacheId = -1
 
   const cachePaths = await utils.resolvePaths(paths)
+  let cacheKey = ''
   core.debug('Cache Paths:')
   core.debug(`${JSON.stringify(cachePaths)}`)
 
@@ -197,7 +192,7 @@ export async function saveCache(
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
-    const fileSizeLimit = 10 * 1024 * 1024 * 1024 // 10GB per repo limit
+    const fileSizeLimit = 20 * 1024 * 1024 * 1024 // 20GB per repo limit
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
 
@@ -211,9 +206,13 @@ export async function saveCache(
     }
 
     core.debug('Reserving Cache')
+    // Calculate number of chunks required
+    const uploadOptions = getUploadOptions()
+    const maxChunkSize = uploadOptions?.uploadChunkSize ?? 32 * 1024 * 1024 // Default 32MB
+    const numberOfChunks = Math.floor(archiveFileSize / maxChunkSize)
     const reserveCacheResponse = await cacheHttpClient.reserveCache(
       key,
-      paths,
+      numberOfChunks,
       {
         compressionMethod,
         enableCrossOsArchive,
@@ -221,23 +220,29 @@ export async function saveCache(
       }
     )
 
-    if (reserveCacheResponse?.result?.cacheId) {
-      cacheId = reserveCacheResponse?.result?.cacheId
-    } else if (reserveCacheResponse?.statusCode === 400) {
+    if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
           `Cache size of ~${Math.round(
             archiveFileSize / (1024 * 1024)
           )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
-    } else {
-      throw new ReserveCacheError(
-        `Unable to reserve cache with key ${key}, another job may be creating this cache. More details: ${reserveCacheResponse?.error?.message}`
-      )
     }
 
-    core.debug(`Saving Cache (ID: ${cacheId})`)
-    await cacheHttpClient.saveCache(cacheId, archivePath, options)
+    core.debug(`Saving Cache`)
+    cacheKey = await cacheHttpClient.saveCache(
+      key,
+      cacheHttpClient.getCacheVersion(
+        paths,
+        compressionMethod,
+        enableCrossOsArchive
+      ),
+      reserveCacheResponse?.result?.upload_id ?? '',
+      reserveCacheResponse?.result?.upload_key ?? '',
+      numberOfChunks,
+      reserveCacheResponse?.result?.pre_signed_urls ?? [],
+      archivePath
+    )
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -256,5 +261,24 @@ export async function saveCache(
     }
   }
 
-  return cacheId
+  return cacheKey
+}
+
+/**
+ * Deletes an entire cache by cache key.
+ * @param keys The cache keys
+ */
+export async function deleteCache(keys: string[]): Promise<void> {
+  for (const key of keys) {
+    checkKey(key)
+  }
+
+  core.debug('Deleting Cache')
+  core.debug(`Cache Keys: ${keys}`)
+
+  try {
+    await cacheHttpClient.deleteCache(keys)
+  } catch (error) {
+    core.warning(`Failed to delete cache: ${error}`)
+  }
 }

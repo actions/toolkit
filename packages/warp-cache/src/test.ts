@@ -1,6 +1,20 @@
-import {restoreCache} from './cache'
+import {deleteCache, restoreCache, saveCache} from './cache'
 
-restoreCache(['/home/runner/work/_temp'], 'cache-key', [
-  'cache-key-1',
-  'cache-key-2'
-])
+process.env['RUNNER_TEMP'] = '/Users/prajjwal/Repos/warpbuild/playground/tmp_fs'
+process.env['NODE_DEBUG'] = 'http'
+
+// saveCache(
+//   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
+//   'test-fs-local-key',
+//   true
+// )
+
+// restoreCache(
+//   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
+//   'test-fs-local-key',
+//   [],
+//   {},
+//   true
+// )
+
+// deleteCache(['test-fs-local-key'])
