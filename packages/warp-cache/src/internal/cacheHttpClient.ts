@@ -22,14 +22,14 @@ import {
   CommitCacheResponse
 } from './contracts'
 import {downloadCacheMultiConnection} from './downloadUtils'
-import {isSuccessStatusCode, retry, retryTypedResponse} from './requestUtils'
+import {isSuccessStatusCode, retryTypedResponse} from './requestUtils'
 import axios, {AxiosError} from 'axios'
 
 const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string =
-    process.env['ACTIONS_CACHE_URL'] ?? 'http://127.0.0.1:8002'
+    process.env['ACTIONS_CACHE_URL'] ?? 'https://cache.warpbuild.com'
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
@@ -54,7 +54,7 @@ function getRequestOptions(): RequestOptions {
 }
 
 function createHttpClient(): HttpClient {
-  const token = process.env['WARP_ACTION_TOKEN'] ?? ''
+  const token = process.env['WARP_RUNNER_VERIFICATION_TOKEN'] ?? ''
   const bearerCredentialHandler = new BearerCredentialHandler(token)
 
   return new HttpClient(
