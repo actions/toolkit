@@ -29,7 +29,7 @@ const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string =
-    process.env['ACTIONS_CACHE_URL'] ?? 'https://cache.warpbuild.com'
+    process.env['WARP_CACHE_URL'] ?? 'https://cache.warpbuild.com'
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
