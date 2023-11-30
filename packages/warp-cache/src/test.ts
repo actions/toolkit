@@ -1,6 +1,6 @@
 import {deleteCache, restoreCache, saveCache} from './cache'
 
-process.env['ACTIONS_CACHE_URL'] = 'http://localhost:8002'
+process.env['WARP_CACHE_URL'] = 'http://localhost:8002'
 process.env['RUNNER_TEMP'] = '/Users/prajjwal/Repos/warpbuild/playground/tmp_fs'
 process.env['NODE_DEBUG'] = 'http'
 
