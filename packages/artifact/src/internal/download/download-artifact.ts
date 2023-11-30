@@ -107,9 +107,7 @@ export async function downloadArtifactInternal(
 
   const listReq: ListArtifactsRequest = {
     workflowRunBackendId,
-    workflowJobRunBackendId,
-    nameFilter: '',
-    idFilter: '0' // TODO(robherley): zero values are awkward, use pb wrappers
+    workflowJobRunBackendId
   }
 
   const {artifacts} = await artifactClient.ListArtifacts(listReq)

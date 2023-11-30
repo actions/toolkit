@@ -111,9 +111,7 @@ export async function listArtifactsInternal(): Promise<ListArtifactsResponse> {
 
   const req: ListArtifactsRequest = {
     workflowRunBackendId,
-    workflowJobRunBackendId,
-    nameFilter: '',
-    idFilter: '0' // TODO(robherley): zero values are awkward, use pb wrappers
+    workflowJobRunBackendId
   }
 
   const res = await artifactClient.ListArtifacts(req)

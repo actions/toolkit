@@ -12,6 +12,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Int64Value } from "../../../google/protobuf/wrappers";
 import { StringValue } from "../../../google/protobuf/wrappers";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
@@ -107,17 +108,17 @@ export interface ListArtifactsRequest {
      */
     workflowJobRunBackendId: string;
     /**
-     * (optional) Name of the artifact to filter on
+     * Name of the artifact to filter on
      *
-     * @generated from protobuf field: string name_filter = 3;
+     * @generated from protobuf field: google.protobuf.StringValue name_filter = 3;
      */
-    nameFilter: string;
+    nameFilter?: StringValue; // optional
     /**
-     * (optional) Monolith Database ID of the artifact to filter on
+     * Monolith Database ID of the artifact to filter on
      *
-     * @generated from protobuf field: int64 id_filter = 4;
+     * @generated from protobuf field: google.protobuf.Int64Value id_filter = 4;
      */
-    idFilter: string;
+    idFilter?: Int64Value; // optional
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.ListArtifactsResponse
@@ -453,12 +454,12 @@ class ListArtifactsRequest$Type extends MessageType<ListArtifactsRequest> {
         super("github.actions.results.api.v1.ListArtifactsRequest", [
             { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "name_filter", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "id_filter", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+            { no: 3, name: "name_filter", kind: "message", T: () => StringValue },
+            { no: 4, name: "id_filter", kind: "message", T: () => Int64Value }
         ]);
     }
     create(value?: PartialMessage<ListArtifactsRequest>): ListArtifactsRequest {
-        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", nameFilter: "", idFilter: "0" };
+        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListArtifactsRequest>(this, message, value);
@@ -475,11 +476,11 @@ class ListArtifactsRequest$Type extends MessageType<ListArtifactsRequest> {
                 case /* string workflow_job_run_backend_id */ 2:
                     message.workflowJobRunBackendId = reader.string();
                     break;
-                case /* string name_filter */ 3:
-                    message.nameFilter = reader.string();
+                case /* google.protobuf.StringValue name_filter */ 3:
+                    message.nameFilter = StringValue.internalBinaryRead(reader, reader.uint32(), options, message.nameFilter);
                     break;
-                case /* int64 id_filter */ 4:
-                    message.idFilter = reader.int64().toString();
+                case /* google.protobuf.Int64Value id_filter */ 4:
+                    message.idFilter = Int64Value.internalBinaryRead(reader, reader.uint32(), options, message.idFilter);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -499,12 +500,12 @@ class ListArtifactsRequest$Type extends MessageType<ListArtifactsRequest> {
         /* string workflow_job_run_backend_id = 2; */
         if (message.workflowJobRunBackendId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
-        /* string name_filter = 3; */
-        if (message.nameFilter !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.nameFilter);
-        /* int64 id_filter = 4; */
-        if (message.idFilter !== "0")
-            writer.tag(4, WireType.Varint).int64(message.idFilter);
+        /* google.protobuf.StringValue name_filter = 3; */
+        if (message.nameFilter)
+            StringValue.internalBinaryWrite(message.nameFilter, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Int64Value id_filter = 4; */
+        if (message.idFilter)
+            Int64Value.internalBinaryWrite(message.idFilter, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

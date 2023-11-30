@@ -9,7 +9,7 @@ import {GetArtifactResponse} from '../shared/interfaces'
 import {getBackendIdsFromToken} from '../shared/util'
 import {getUserAgentString} from '../shared/user-agent'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
-import {ListArtifactsRequest} from '../../generated'
+import {ListArtifactsRequest, StringValue} from '../../generated'
 
 export async function getArtifactPublic(
   artifactName: string,
@@ -81,8 +81,7 @@ export async function getArtifactInternal(
   const req: ListArtifactsRequest = {
     workflowRunBackendId,
     workflowJobRunBackendId,
-    nameFilter: artifactName,
-    idFilter: '0' // TODO(robherley): int64 zero value, change this to be optional
+    nameFilter: StringValue.create({value: artifactName})
   }
 
   const res = await artifactClient.ListArtifacts(req)
