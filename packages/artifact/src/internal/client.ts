@@ -6,12 +6,16 @@ import {
   DownloadArtifactOptions,
   GetArtifactResponse,
   ListArtifactsResponse,
-  DownloadArtifactResponse
+  DownloadArtifactResponse,
+  LookupOptions
 } from './shared/interfaces'
 import {uploadArtifact} from './upload/upload-artifact'
-import {downloadArtifact} from './download/download-artifact'
-import {getArtifact} from './find/get-artifact'
-import {listArtifacts} from './find/list-artifacts'
+import {
+  downloadArtifactPublic,
+  downloadArtifactInternal
+} from './download/download-artifact'
+import {getArtifactPublic, getArtifactInternal} from './find/get-artifact'
+import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts'
 
 export interface ArtifactClient {
   /**
@@ -31,62 +35,46 @@ export interface ArtifactClient {
   ): Promise<UploadResponse>
 
   /**
-   * Lists all artifacts that are part of a workflow run.
+   * Lists all artifacts that are part of the current workflow run.
+   * This function will return at most 1000 artifacts per workflow run.
    *
-   * This calls the public List-Artifacts API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
-   * Due to paginated responses from the public API. This function will return at most 1000 artifacts per workflow run (100 per page * maximum 10 calls)
+   * If options.token is specified, this will call the public List-Artifacts API which can list from other runs.
+   * https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
    *
-   * @param workflowRunId The workflow run id that the artifact belongs to
-   * @param repositoryOwner The owner of the repository that the artifact belongs to
-   * @param repositoryName The name of the repository that the artifact belongs to
-   * @param token A token with the appropriate permission to the repository to list artifacts
+   * @param options Extra options that allow for the customization of the list behavior
    * @returns ListArtifactResponse object
    */
-  listArtifacts(
-    workflowRunId: number,
-    repositoryOwner: string,
-    repositoryName: string,
-    token: string
-  ): Promise<ListArtifactsResponse>
+  listArtifacts(options?: LookupOptions): Promise<ListArtifactsResponse>
 
   /**
-   * Finds an artifact by name given a repository and workflow run id.
+   * Finds an artifact by name.
    *
-   * This calls the public List-Artifacts API with a name filter https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
+   * If options.token is specified, this will use the public List Artifacts API with a name filter which can get artifacts from other runs.
+   * https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
    * @actions/artifact > 2.0.0 does not allow for creating multiple artifacts with the same name in the same workflow run.
-   * It is possible to have multiple artifacts with the same name in the same workflow run by using old versions of upload-artifact (v1,v2 and v3) or @actions/artifact < v2.0.0
+   * It is possible to have multiple artifacts with the same name in the same workflow run by using old versions of upload-artifact (v1,v2 and v3), @actions/artifact < v2.0.0 or it is a rerun.
    * If there are multiple artifacts with the same name in the same workflow run this function will return the first artifact that matches the name.
    *
    * @param artifactName The name of the artifact to find
-   * @param workflowRunId The workflow run id that the artifact belongs to
-   * @param repositoryOwner The owner of the repository that the artifact belongs to
-   * @param repositoryName The name of the repository that the artifact belongs to
-   * @param token A token with the appropriate permission to the repository to find the artifact
+   * @param options Extra options that allow for the customization of the get behavior
    */
   getArtifact(
     artifactName: string,
-    workflowRunId: number,
-    repositoryOwner: string,
-    repositoryName: string,
-    token: string
+    options?: LookupOptions
   ): Promise<GetArtifactResponse>
 
   /**
-   * Downloads an artifact and unzips the content
+   * Downloads an artifact and unzips the content.
+   *
+   * If options.token is specified, this will use the public Download Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#download-an-artifact
    *
    * @param artifactId The name of the artifact to download
-   * @param repositoryOwner The owner of the repository that the artifact belongs to
-   * @param repositoryName The name of the repository that the artifact belongs to
-   * @param token A token with the appropriate permission to the repository to download the artifact
    * @param options Extra options that allow for the customization of the download behavior
    * @returns single DownloadArtifactResponse object
    */
   downloadArtifact(
     artifactId: number,
-    repositoryOwner: string,
-    repositoryName: string,
-    token: string,
-    options?: DownloadArtifactOptions
+    options?: DownloadArtifactOptions & LookupOptions
   ): Promise<DownloadArtifactResponse>
 }
 
@@ -137,10 +125,7 @@ If the error persists, please check whether Actions is operating normally at [ht
    */
   async downloadArtifact(
     artifactId: number,
-    repositoryOwner: string,
-    repositoryName: string,
-    token: string,
-    options?: DownloadArtifactOptions
+    options?: DownloadArtifactOptions & LookupOptions
   ): Promise<DownloadArtifactResponse> {
     if (isGhes()) {
       warning(
@@ -152,13 +137,19 @@ If the error persists, please check whether Actions is operating normally at [ht
     }
 
     try {
-      return downloadArtifact(
-        artifactId,
-        repositoryOwner,
-        repositoryName,
-        token,
-        options
-      )
+      if (options?.token) {
+        const {repositoryOwner, repositoryName, token, ...downloadOptions} =
+          options
+        return downloadArtifactPublic(
+          artifactId,
+          repositoryOwner,
+          repositoryName,
+          token,
+          downloadOptions
+        )
+      }
+
+      return downloadArtifactInternal(artifactId)
     } catch (error) {
       warning(
         `Artifact download failed with error: ${error}.
@@ -177,12 +168,7 @@ If the error persists, please check whether Actions and API requests are operati
   /**
    * List Artifacts
    */
-  async listArtifacts(
-    workflowRunId: number,
-    repositoryOwner: string,
-    repositoryName: string,
-    token: string
-  ): Promise<ListArtifactsResponse> {
+  async listArtifacts(options?: LookupOptions): Promise<ListArtifactsResponse> {
     if (isGhes()) {
       warning(
         `@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.`
@@ -193,12 +179,16 @@ If the error persists, please check whether Actions and API requests are operati
     }
 
     try {
-      return listArtifacts(
-        workflowRunId,
-        repositoryOwner,
-        repositoryName,
-        token
-      )
+      if (options?.token) {
+        return listArtifactsPublic(
+          options.workflowRunId,
+          options.repositoryOwner,
+          options.repositoryName,
+          options.token
+        )
+      }
+
+      return listArtifactsInternal()
     } catch (error: unknown) {
       warning(
         `Listing Artifacts failed with error: ${error}.
@@ -219,10 +209,7 @@ If the error persists, please check whether Actions and API requests are operati
    */
   async getArtifact(
     artifactName: string,
-    workflowRunId: number,
-    repositoryOwner: string,
-    repositoryName: string,
-    token: string
+    options?: LookupOptions
   ): Promise<GetArtifactResponse> {
     if (isGhes()) {
       warning(
@@ -234,13 +221,17 @@ If the error persists, please check whether Actions and API requests are operati
     }
 
     try {
-      return getArtifact(
-        artifactName,
-        workflowRunId,
-        repositoryOwner,
-        repositoryName,
-        token
-      )
+      if (options?.token) {
+        return getArtifactPublic(
+          artifactName,
+          options.workflowRunId,
+          options.repositoryOwner,
+          options.repositoryName,
+          options.token
+        )
+      }
+
+      return getArtifactInternal(artifactName)
     } catch (error: unknown) {
       warning(
         `Fetching Artifact failed with error: ${error}.

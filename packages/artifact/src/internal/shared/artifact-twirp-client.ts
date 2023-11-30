@@ -3,6 +3,7 @@ import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
+import {getUserAgentString} from './user-agent'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -157,17 +158,16 @@ class ArtifactHttpClient implements Rpc {
   }
 }
 
-export function createArtifactTwirpClient(
-  type: 'upload' | 'download',
-  maxAttempts?: number,
-  baseRetryIntervalMilliseconds?: number,
+export function internalArtifactTwirpClient(options?: {
+  maxAttempts?: number
+  baseRetryIntervalMilliseconds?: number
   retryMultiplier?: number
-): ArtifactServiceClientJSON {
+}): ArtifactServiceClientJSON {
   const client = new ArtifactHttpClient(
-    `@actions/artifact-${type}`,
-    maxAttempts,
-    baseRetryIntervalMilliseconds,
-    retryMultiplier
+    getUserAgentString(),
+    options?.maxAttempts,
+    options?.baseRetryIntervalMilliseconds,
+    options?.retryMultiplier
   )
   return new ArtifactServiceClientJSON(client)
 }

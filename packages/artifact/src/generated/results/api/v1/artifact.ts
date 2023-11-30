@@ -90,6 +90,105 @@ export interface FinalizeArtifactResponse {
      */
     artifactId: string;
 }
+/**
+ * @generated from protobuf message github.actions.results.api.v1.ListArtifactsRequest
+ */
+export interface ListArtifactsRequest {
+    /**
+     * The backend plan ID
+     *
+     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     */
+    workflowRunBackendId: string;
+    /**
+     * The backend job ID
+     *
+     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
+     */
+    workflowJobRunBackendId: string;
+    /**
+     * (optional) Name of the artifact to filter on
+     *
+     * @generated from protobuf field: string name_filter = 3;
+     */
+    nameFilter: string;
+    /**
+     * (optional) Monolith Database ID of the artifact to filter on
+     *
+     * @generated from protobuf field: int64 id_filter = 4;
+     */
+    idFilter: string;
+}
+/**
+ * @generated from protobuf message github.actions.results.api.v1.ListArtifactsResponse
+ */
+export interface ListArtifactsResponse {
+    /**
+     * @generated from protobuf field: repeated github.actions.results.api.v1.ListArtifactsResponse.MonolithArtifact artifacts = 1;
+     */
+    artifacts: ListArtifactsResponse_MonolithArtifact[];
+}
+/**
+ * @generated from protobuf message github.actions.results.api.v1.ListArtifactsResponse.MonolithArtifact
+ */
+export interface ListArtifactsResponse_MonolithArtifact {
+    /**
+     * The backend plan ID
+     *
+     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     */
+    workflowRunBackendId: string;
+    /**
+     * The backend job ID
+     *
+     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
+     */
+    workflowJobRunBackendId: string;
+    /**
+     * Monolith database ID of the artifact
+     *
+     * @generated from protobuf field: int64 database_id = 3;
+     */
+    databaseId: string;
+    /**
+     * Name of the artifact
+     *
+     * @generated from protobuf field: string name = 4;
+     */
+    name: string;
+    /**
+     * Size of the artifact in bytes
+     *
+     * @generated from protobuf field: int64 size = 5;
+     */
+    size: string;
+}
+/**
+ * @generated from protobuf message github.actions.results.api.v1.GetSignedArtifactURLRequest
+ */
+export interface GetSignedArtifactURLRequest {
+    /**
+     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     */
+    workflowRunBackendId: string;
+    /**
+     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
+     */
+    workflowJobRunBackendId: string;
+    /**
+     * @generated from protobuf field: string name = 3;
+     */
+    name: string;
+}
+/**
+ * @generated from protobuf message github.actions.results.api.v1.GetSignedArtifactURLResponse
+ */
+export interface GetSignedArtifactURLResponse {
+    /**
+     * @generated from protobuf field: string signed_url = 1;
+     */
+    signedUrl: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateArtifactRequest$Type extends MessageType<CreateArtifactRequest> {
     constructor() {
@@ -348,10 +447,310 @@ class FinalizeArtifactResponse$Type extends MessageType<FinalizeArtifactResponse
  * @generated MessageType for protobuf message github.actions.results.api.v1.FinalizeArtifactResponse
  */
 export const FinalizeArtifactResponse = new FinalizeArtifactResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListArtifactsRequest$Type extends MessageType<ListArtifactsRequest> {
+    constructor() {
+        super("github.actions.results.api.v1.ListArtifactsRequest", [
+            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name_filter", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "id_filter", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListArtifactsRequest>): ListArtifactsRequest {
+        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", nameFilter: "", idFilter: "0" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListArtifactsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListArtifactsRequest): ListArtifactsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string workflow_run_backend_id */ 1:
+                    message.workflowRunBackendId = reader.string();
+                    break;
+                case /* string workflow_job_run_backend_id */ 2:
+                    message.workflowJobRunBackendId = reader.string();
+                    break;
+                case /* string name_filter */ 3:
+                    message.nameFilter = reader.string();
+                    break;
+                case /* int64 id_filter */ 4:
+                    message.idFilter = reader.int64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListArtifactsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string workflow_run_backend_id = 1; */
+        if (message.workflowRunBackendId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
+        /* string workflow_job_run_backend_id = 2; */
+        if (message.workflowJobRunBackendId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
+        /* string name_filter = 3; */
+        if (message.nameFilter !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.nameFilter);
+        /* int64 id_filter = 4; */
+        if (message.idFilter !== "0")
+            writer.tag(4, WireType.Varint).int64(message.idFilter);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message github.actions.results.api.v1.ListArtifactsRequest
+ */
+export const ListArtifactsRequest = new ListArtifactsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListArtifactsResponse$Type extends MessageType<ListArtifactsResponse> {
+    constructor() {
+        super("github.actions.results.api.v1.ListArtifactsResponse", [
+            { no: 1, name: "artifacts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ListArtifactsResponse_MonolithArtifact }
+        ]);
+    }
+    create(value?: PartialMessage<ListArtifactsResponse>): ListArtifactsResponse {
+        const message = { artifacts: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListArtifactsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListArtifactsResponse): ListArtifactsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated github.actions.results.api.v1.ListArtifactsResponse.MonolithArtifact artifacts */ 1:
+                    message.artifacts.push(ListArtifactsResponse_MonolithArtifact.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListArtifactsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated github.actions.results.api.v1.ListArtifactsResponse.MonolithArtifact artifacts = 1; */
+        for (let i = 0; i < message.artifacts.length; i++)
+            ListArtifactsResponse_MonolithArtifact.internalBinaryWrite(message.artifacts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message github.actions.results.api.v1.ListArtifactsResponse
+ */
+export const ListArtifactsResponse = new ListArtifactsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListArtifactsResponse_MonolithArtifact$Type extends MessageType<ListArtifactsResponse_MonolithArtifact> {
+    constructor() {
+        super("github.actions.results.api.v1.ListArtifactsResponse.MonolithArtifact", [
+            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "database_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 4, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "size", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListArtifactsResponse_MonolithArtifact>): ListArtifactsResponse_MonolithArtifact {
+        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", databaseId: "0", name: "", size: "0" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListArtifactsResponse_MonolithArtifact>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListArtifactsResponse_MonolithArtifact): ListArtifactsResponse_MonolithArtifact {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string workflow_run_backend_id */ 1:
+                    message.workflowRunBackendId = reader.string();
+                    break;
+                case /* string workflow_job_run_backend_id */ 2:
+                    message.workflowJobRunBackendId = reader.string();
+                    break;
+                case /* int64 database_id */ 3:
+                    message.databaseId = reader.int64().toString();
+                    break;
+                case /* string name */ 4:
+                    message.name = reader.string();
+                    break;
+                case /* int64 size */ 5:
+                    message.size = reader.int64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListArtifactsResponse_MonolithArtifact, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string workflow_run_backend_id = 1; */
+        if (message.workflowRunBackendId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
+        /* string workflow_job_run_backend_id = 2; */
+        if (message.workflowJobRunBackendId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
+        /* int64 database_id = 3; */
+        if (message.databaseId !== "0")
+            writer.tag(3, WireType.Varint).int64(message.databaseId);
+        /* string name = 4; */
+        if (message.name !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.name);
+        /* int64 size = 5; */
+        if (message.size !== "0")
+            writer.tag(5, WireType.Varint).int64(message.size);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message github.actions.results.api.v1.ListArtifactsResponse.MonolithArtifact
+ */
+export const ListArtifactsResponse_MonolithArtifact = new ListArtifactsResponse_MonolithArtifact$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetSignedArtifactURLRequest$Type extends MessageType<GetSignedArtifactURLRequest> {
+    constructor() {
+        super("github.actions.results.api.v1.GetSignedArtifactURLRequest", [
+            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetSignedArtifactURLRequest>): GetSignedArtifactURLRequest {
+        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", name: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetSignedArtifactURLRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetSignedArtifactURLRequest): GetSignedArtifactURLRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string workflow_run_backend_id */ 1:
+                    message.workflowRunBackendId = reader.string();
+                    break;
+                case /* string workflow_job_run_backend_id */ 2:
+                    message.workflowJobRunBackendId = reader.string();
+                    break;
+                case /* string name */ 3:
+                    message.name = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetSignedArtifactURLRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string workflow_run_backend_id = 1; */
+        if (message.workflowRunBackendId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
+        /* string workflow_job_run_backend_id = 2; */
+        if (message.workflowJobRunBackendId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
+        /* string name = 3; */
+        if (message.name !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.name);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message github.actions.results.api.v1.GetSignedArtifactURLRequest
+ */
+export const GetSignedArtifactURLRequest = new GetSignedArtifactURLRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetSignedArtifactURLResponse$Type extends MessageType<GetSignedArtifactURLResponse> {
+    constructor() {
+        super("github.actions.results.api.v1.GetSignedArtifactURLResponse", [
+            { no: 1, name: "signed_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetSignedArtifactURLResponse>): GetSignedArtifactURLResponse {
+        const message = { signedUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetSignedArtifactURLResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetSignedArtifactURLResponse): GetSignedArtifactURLResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string signed_url */ 1:
+                    message.signedUrl = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetSignedArtifactURLResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string signed_url = 1; */
+        if (message.signedUrl !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.signedUrl);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message github.actions.results.api.v1.GetSignedArtifactURLResponse
+ */
+export const GetSignedArtifactURLResponse = new GetSignedArtifactURLResponse$Type();
 /**
  * @generated ServiceType for protobuf service github.actions.results.api.v1.ArtifactService
  */
 export const ArtifactService = new ServiceType("github.actions.results.api.v1.ArtifactService", [
     { name: "CreateArtifact", options: {}, I: CreateArtifactRequest, O: CreateArtifactResponse },
-    { name: "FinalizeArtifact", options: {}, I: FinalizeArtifactRequest, O: FinalizeArtifactResponse }
+    { name: "FinalizeArtifact", options: {}, I: FinalizeArtifactRequest, O: FinalizeArtifactResponse },
+    { name: "ListArtifacts", options: {}, I: ListArtifactsRequest, O: ListArtifactsResponse },
+    { name: "GetSignedArtifactURL", options: {}, I: GetSignedArtifactURLRequest, O: GetSignedArtifactURLResponse }
 ]);
