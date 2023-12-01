@@ -125,7 +125,7 @@ If the error persists, please check whether Actions is operating normally at [ht
    */
   async downloadArtifact(
     artifactId: number,
-    options?: Partial<DownloadArtifactOptions & FindOptions>
+    options?: DownloadArtifactOptions & FindOptions
   ): Promise<DownloadArtifactResponse> {
     if (isGhes()) {
       warning(
@@ -152,7 +152,7 @@ If the error persists, please check whether Actions is operating normally at [ht
         )
       }
 
-      return downloadArtifactInternal(artifactId)
+      return downloadArtifactInternal(artifactId, options)
     } catch (error) {
       warning(
         `Artifact download failed with error: ${error}.

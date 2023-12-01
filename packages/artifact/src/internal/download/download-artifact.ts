@@ -12,6 +12,7 @@ import {getGitHubWorkspaceDir} from '../shared/config'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {
   GetSignedArtifactURLRequest,
+  Int64Value,
   ListArtifactsRequest
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
@@ -110,7 +111,8 @@ export async function downloadArtifactInternal(
 
   const listReq: ListArtifactsRequest = {
     workflowRunBackendId,
-    workflowJobRunBackendId
+    workflowJobRunBackendId,
+    idFilter: Int64Value.create({value: artifactId.toString()})
   }
 
   const {artifacts} = await artifactClient.ListArtifacts(listReq)
