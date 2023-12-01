@@ -6,7 +6,7 @@ import * as config from '../src/internal/shared/config'
 import {Timestamp, ArtifactServiceClientJSON} from '../src/generated'
 import * as blobUpload from '../src/internal/upload/blob-upload'
 import {uploadArtifact} from '../src/internal/upload/upload-artifact'
-import {noopLogs} from './common.test'
+import {noopLogs} from './common'
 
 describe('upload-artifact', () => {
   beforeEach(() => {
@@ -127,7 +127,7 @@ describe('upload-artifact', () => {
     expect(uploadResp).resolves.toEqual({success: false})
   })
 
-  it('should return false if no backend IDs are found', () => {
+  it('should reject if no backend IDs are found', () => {
     jest
       .spyOn(uploadZipSpecification, 'validateRootDirectory')
       .mockReturnValue()
@@ -151,9 +151,6 @@ describe('upload-artifact', () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
       .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
-    jest
-      .spyOn(util, 'getBackendIdsFromToken')
-      .mockReturnValue({workflowRunBackendId: '', workflowJobRunBackendId: ''})
 
     const uploadResp = uploadArtifact(
       'test-artifact',
@@ -165,7 +162,7 @@ describe('upload-artifact', () => {
       '/home/user/files/plz-upload'
     )
 
-    expect(uploadResp).resolves.toEqual({success: false})
+    expect(uploadResp).rejects.toThrow()
   })
 
   it('should return false if the creation request fails', () => {

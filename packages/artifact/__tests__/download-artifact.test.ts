@@ -7,9 +7,15 @@ import {HttpClient} from '@actions/http-client'
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
 import archiver from 'archiver'
 
-import {downloadArtifactPublic} from '../src/internal/download/download-artifact'
+import {
+  downloadArtifactInternal,
+  downloadArtifactPublic
+} from '../src/internal/download/download-artifact'
 import {getUserAgentString} from '../src/internal/shared/user-agent'
-import {noopLogs} from './common.test'
+import {noopLogs} from './common'
+import * as config from '../src/internal/shared/config'
+import {ArtifactServiceClientJSON} from '../src/generated'
+import * as util from '../src/internal/shared/util'
 
 type MockedDownloadArtifact = jest.MockedFunction<
   RestEndpointMethods['actions']['downloadArtifact']
@@ -32,10 +38,16 @@ const fixtures = {
     ]
   },
   artifactID: 1234,
+  artifactName: 'my-artifact',
+  artifactSize: 123456,
   repositoryOwner: 'actions',
   repositoryName: 'toolkit',
   token: 'ghp_1234567890',
-  blobStorageUrl: 'https://blob-storage.local?signed=true'
+  blobStorageUrl: 'https://blob-storage.local?signed=true',
+  backendIds: {
+    workflowRunBackendId: 'c4d7c21f-ba3f-4ddc-a8c8-6f2f626f8422',
+    workflowJobRunBackendId: '760803a1-f890-4d25-9a6e-a3fc01a0c7cf'
+  }
 }
 
 jest.mock('@actions/github', () => ({
@@ -88,6 +100,24 @@ const cleanup = async (): Promise<void> => {
   delete process.env['GITHUB_WORKSPACE']
 }
 
+const mockGetArtifactSuccess = jest.fn(() => {
+  const message = new http.IncomingMessage(new net.Socket())
+  message.statusCode = 200
+  message.push(fs.readFileSync(fixtures.exampleArtifact.path))
+  return {
+    message
+  }
+})
+
+const mockGetArtifactFailure = jest.fn(() => {
+  const message = new http.IncomingMessage(new net.Socket())
+  message.statusCode = 500
+  message.push('Internal Server Error')
+  return {
+    message
+  }
+})
+
 describe('download-artifact', () => {
   describe('public', () => {
     beforeEach(setup)
@@ -105,18 +135,10 @@ describe('download-artifact', () => {
         data: Buffer.from('')
       })
 
-      const getMock = jest.fn(() => {
-        const message = new http.IncomingMessage(new net.Socket())
-        message.statusCode = 200
-        message.push(fs.readFileSync(fixtures.exampleArtifact.path))
-        return {
-          message
-        }
-      })
-      const httpClientMock = (HttpClient as jest.Mock).mockImplementation(
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: getMock
+            get: mockGetArtifactSuccess
           }
         }
       )
@@ -137,11 +159,11 @@ describe('download-artifact', () => {
           redirect: 'manual'
         }
       })
-      expect(httpClientMock).toHaveBeenCalledWith(getUserAgentString())
-      expect(getMock).toHaveBeenCalledWith(fixtures.blobStorageUrl)
-
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockGetArtifactSuccess).toHaveBeenCalledWith(
+        fixtures.blobStorageUrl
+      )
       expectExtractedArchive(fixtures.workspaceDir)
-
       expect(response.success).toBe(true)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
@@ -160,18 +182,10 @@ describe('download-artifact', () => {
         data: Buffer.from('')
       })
 
-      const getMock = jest.fn(() => {
-        const message = new http.IncomingMessage(new net.Socket())
-        message.statusCode = 200
-        message.push(fs.readFileSync(fixtures.exampleArtifact.path))
-        return {
-          message
-        }
-      })
-      const httpClientMock = (HttpClient as jest.Mock).mockImplementation(
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: getMock
+            get: mockGetArtifactSuccess
           }
         }
       )
@@ -195,11 +209,11 @@ describe('download-artifact', () => {
           redirect: 'manual'
         }
       })
-      expect(httpClientMock).toHaveBeenCalledWith(getUserAgentString())
-      expect(getMock).toHaveBeenCalledWith(fixtures.blobStorageUrl)
-
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockGetArtifactSuccess).toHaveBeenCalledWith(
+        fixtures.blobStorageUrl
+      )
       expectExtractedArchive(customPath)
-
       expect(response.success).toBe(true)
       expect(response.downloadPath).toBe(customPath)
     })
@@ -246,18 +260,10 @@ describe('download-artifact', () => {
         data: Buffer.from('')
       })
 
-      const getMock = jest.fn(() => {
-        const message = new http.IncomingMessage(new net.Socket())
-        message.statusCode = 500
-        message.push('Internal Server Error')
-        return {
-          message
-        }
-      })
-      const httpClientMock = (HttpClient as jest.Mock).mockImplementation(
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: getMock
+            get: mockGetArtifactFailure
           }
         }
       )
@@ -280,8 +286,176 @@ describe('download-artifact', () => {
           redirect: 'manual'
         }
       })
-      expect(httpClientMock).toHaveBeenCalledWith(getUserAgentString())
-      expect(getMock).toHaveBeenCalledWith(fixtures.blobStorageUrl)
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockGetArtifactFailure).toHaveBeenCalledWith(
+        fixtures.blobStorageUrl
+      )
+    })
+  })
+
+  describe('internal', () => {
+    beforeEach(async () => {
+      await setup()
+
+      jest.spyOn(config, 'getRuntimeToken').mockReturnValue('test-token')
+
+      jest
+        .spyOn(util, 'getBackendIdsFromToken')
+        .mockReturnValue(fixtures.backendIds)
+
+      jest
+        .spyOn(config, 'getResultsServiceUrl')
+        .mockReturnValue('https://results.local')
+    })
+    afterEach(async () => {
+      await cleanup()
+    })
+
+    it('should successfully download an artifact to $GITHUB_WORKSPACE', async () => {
+      const mockListArtifacts = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: [
+            {
+              ...fixtures.backendIds,
+              databaseId: fixtures.artifactID.toString(),
+              name: fixtures.artifactName,
+              size: fixtures.artifactSize.toString()
+            }
+          ]
+        })
+
+      const mockGetSignedArtifactURL = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'GetSignedArtifactURL')
+        .mockReturnValue(
+          Promise.resolve({
+            signedUrl: fixtures.blobStorageUrl
+          })
+        )
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactSuccess
+          }
+        }
+      )
+
+      const response = await downloadArtifactInternal(fixtures.artifactID)
+
+      expectExtractedArchive(fixtures.workspaceDir)
+      expect(response.success).toBe(true)
+      expect(response.downloadPath).toBe(fixtures.workspaceDir)
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockListArtifacts).toHaveBeenCalledWith({
+        ...fixtures.backendIds
+      })
+      expect(mockGetSignedArtifactURL).toHaveBeenCalledWith({
+        ...fixtures.backendIds,
+        name: fixtures.artifactName
+      })
+    })
+
+    it('should successfully download an artifact to user defined path', async () => {
+      const customPath = path.join(testDir, 'custom')
+
+      const mockListArtifacts = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: [
+            {
+              ...fixtures.backendIds,
+              databaseId: fixtures.artifactID.toString(),
+              name: fixtures.artifactName,
+              size: fixtures.artifactSize.toString()
+            }
+          ]
+        })
+
+      const mockGetSignedArtifactURL = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'GetSignedArtifactURL')
+        .mockReturnValue(
+          Promise.resolve({
+            signedUrl: fixtures.blobStorageUrl
+          })
+        )
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactSuccess
+          }
+        }
+      )
+
+      const response = await downloadArtifactInternal(fixtures.artifactID, {
+        path: customPath
+      })
+
+      expectExtractedArchive(customPath)
+      expect(response.success).toBe(true)
+      expect(response.downloadPath).toBe(customPath)
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockListArtifacts).toHaveBeenCalledWith({
+        ...fixtures.backendIds
+      })
+      expect(mockGetSignedArtifactURL).toHaveBeenCalledWith({
+        ...fixtures.backendIds,
+        name: fixtures.artifactName
+      })
+    })
+
+    it('should fail if download artifact API does not respond with location', async () => {
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockRejectedValue(new Error('boom'))
+
+      await expect(
+        downloadArtifactInternal(fixtures.artifactID)
+      ).rejects.toBeInstanceOf(Error)
+    })
+
+    it('should fail if blob storage response is non-200', async () => {
+      const mockListArtifacts = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: [
+            {
+              ...fixtures.backendIds,
+              databaseId: fixtures.artifactID.toString(),
+              name: fixtures.artifactName,
+              size: fixtures.artifactSize.toString()
+            }
+          ]
+        })
+
+      const mockGetSignedArtifactURL = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'GetSignedArtifactURL')
+        .mockReturnValue(
+          Promise.resolve({
+            signedUrl: fixtures.blobStorageUrl
+          })
+        )
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactFailure
+          }
+        }
+      )
+
+      await expect(
+        downloadArtifactInternal(fixtures.artifactID)
+      ).rejects.toBeInstanceOf(Error)
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockListArtifacts).toHaveBeenCalledWith({
+        ...fixtures.backendIds
+      })
+      expect(mockGetSignedArtifactURL).toHaveBeenCalledWith({
+        ...fixtures.backendIds,
+        name: fixtures.artifactName
+      })
     })
   })
 })

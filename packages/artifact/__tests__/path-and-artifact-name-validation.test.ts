@@ -3,7 +3,7 @@ import {
   validateFilePath
 } from '../src/internal/upload/path-and-artifact-name-validation'
 
-import {noopLogs} from './common.test'
+import {noopLogs} from './common'
 
 describe('Path and artifact name validation', () => {
   beforeAll(() => {

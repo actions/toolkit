@@ -5,7 +5,7 @@ import {
   getUploadZipSpecification,
   validateRootDirectory
 } from '../src/internal/upload/upload-zip-specification'
-import {noopLogs} from './common.test'
+import {noopLogs} from './common'
 
 const root = path.join(__dirname, '_temp', 'upload-specification')
 const goodItem1Path = path.join(

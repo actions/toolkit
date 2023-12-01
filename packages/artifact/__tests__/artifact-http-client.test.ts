@@ -3,7 +3,7 @@ import * as net from 'net'
 import {HttpClient} from '@actions/http-client'
 import * as config from '../src/internal/shared/config'
 import {internalArtifactTwirpClient} from '../src/internal/shared/artifact-twirp-client'
-import {noopLogs} from './common.test'
+import {noopLogs} from './common'
 
 jest.mock('@actions/http-client')
 
