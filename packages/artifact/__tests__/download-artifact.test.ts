@@ -348,6 +348,9 @@ describe('download-artifact', () => {
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
+        idFilter: {
+          value: fixtures.artifactID.toString()
+        },
         ...fixtures.backendIds
       })
       expect(mockGetSignedArtifactURL).toHaveBeenCalledWith({
@@ -397,6 +400,9 @@ describe('download-artifact', () => {
       expect(response.downloadPath).toBe(customPath)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
+        idFilter: {
+          value: fixtures.artifactID.toString()
+        },
         ...fixtures.backendIds
       })
       expect(mockGetSignedArtifactURL).toHaveBeenCalledWith({
@@ -450,6 +456,9 @@ describe('download-artifact', () => {
       ).rejects.toBeInstanceOf(Error)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
+        idFilter: {
+          value: fixtures.artifactID.toString()
+        },
         ...fixtures.backendIds
       })
       expect(mockGetSignedArtifactURL).toHaveBeenCalledWith({
