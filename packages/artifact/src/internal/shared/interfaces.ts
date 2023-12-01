@@ -126,15 +126,17 @@ export interface Artifact {
   size: number
 }
 
-// LookupOptions are for fetching Artifact(s) out of the scope of the current run.
+// FindOptions are for fetching Artifact(s) out of the scope of the current run.
 // Must specify a PAT with actions:read scope for cross run/repo lookup otherwise these will be ignored.
-export interface LookupOptions {
-  // Token with actions:read permissions
-  token: string
-  // WorkflowRun of the artifact(s) to lookup
-  workflowRunId: number
-  // Repository owner
-  repositoryOwner: string
-  // Repository name
-  repositoryName: string
+export interface FindOptions {
+  findBy?: {
+    // Token with actions:read permissions
+    token: string
+    // WorkflowRun of the artifact(s) to lookup
+    workflowRunId: number
+    // Repository owner
+    repositoryOwner: string
+    // Repository name
+    repositoryName: string
+  }
 }

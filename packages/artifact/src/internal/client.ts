@@ -7,7 +7,7 @@ import {
   GetArtifactResponse,
   ListArtifactsResponse,
   DownloadArtifactResponse,
-  LookupOptions
+  FindOptions
 } from './shared/interfaces'
 import {uploadArtifact} from './upload/upload-artifact'
 import {
@@ -38,18 +38,18 @@ export interface ArtifactClient {
    * Lists all artifacts that are part of the current workflow run.
    * This function will return at most 1000 artifacts per workflow run.
    *
-   * If options.token is specified, this will call the public List-Artifacts API which can list from other runs.
+   * If options.findBy is specified, this will call the public List-Artifacts API which can list from other runs.
    * https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
    *
    * @param options Extra options that allow for the customization of the list behavior
    * @returns ListArtifactResponse object
    */
-  listArtifacts(options?: LookupOptions): Promise<ListArtifactsResponse>
+  listArtifacts(options?: FindOptions): Promise<ListArtifactsResponse>
 
   /**
    * Finds an artifact by name.
    *
-   * If options.token is specified, this will use the public List Artifacts API with a name filter which can get artifacts from other runs.
+   * If options.findBy is specified, this will use the public List Artifacts API with a name filter which can get artifacts from other runs.
    * https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
    * @actions/artifact > 2.0.0 does not allow for creating multiple artifacts with the same name in the same workflow run.
    * It is possible to have multiple artifacts with the same name in the same workflow run by using old versions of upload-artifact (v1,v2 and v3), @actions/artifact < v2.0.0 or it is a rerun.
@@ -60,13 +60,13 @@ export interface ArtifactClient {
    */
   getArtifact(
     artifactName: string,
-    options?: LookupOptions
+    options?: FindOptions
   ): Promise<GetArtifactResponse>
 
   /**
    * Downloads an artifact and unzips the content.
    *
-   * If options.token is specified, this will use the public Download Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#download-an-artifact
+   * If options.findBy is specified, this will use the public Download Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#download-an-artifact
    *
    * @param artifactId The name of the artifact to download
    * @param options Extra options that allow for the customization of the download behavior
@@ -74,7 +74,7 @@ export interface ArtifactClient {
    */
   downloadArtifact(
     artifactId: number,
-    options?: DownloadArtifactOptions & LookupOptions
+    options?: DownloadArtifactOptions & FindOptions
   ): Promise<DownloadArtifactResponse>
 }
 
@@ -93,7 +93,7 @@ export class Client implements ArtifactClient {
     name: string,
     files: string[],
     rootDirectory: string,
-    options?: UploadOptions | undefined
+    options?: UploadOptions
   ): Promise<UploadResponse> {
     if (isGhes()) {
       warning(
@@ -125,7 +125,7 @@ If the error persists, please check whether Actions is operating normally at [ht
    */
   async downloadArtifact(
     artifactId: number,
-    options?: DownloadArtifactOptions & LookupOptions
+    options?: Partial<DownloadArtifactOptions & FindOptions>
   ): Promise<DownloadArtifactResponse> {
     if (isGhes()) {
       warning(
@@ -137,9 +137,12 @@ If the error persists, please check whether Actions is operating normally at [ht
     }
 
     try {
-      if (options?.token) {
-        const {repositoryOwner, repositoryName, token, ...downloadOptions} =
-          options
+      if (options?.findBy) {
+        const {
+          findBy: {repositoryOwner, repositoryName, token},
+          ...downloadOptions
+        } = options
+
         return downloadArtifactPublic(
           artifactId,
           repositoryOwner,
@@ -168,7 +171,7 @@ If the error persists, please check whether Actions and API requests are operati
   /**
    * List Artifacts
    */
-  async listArtifacts(options?: LookupOptions): Promise<ListArtifactsResponse> {
+  async listArtifacts(options?: FindOptions): Promise<ListArtifactsResponse> {
     if (isGhes()) {
       warning(
         `@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.`
@@ -179,12 +182,16 @@ If the error persists, please check whether Actions and API requests are operati
     }
 
     try {
-      if (options?.token) {
+      if (options?.findBy) {
+        const {
+          findBy: {workflowRunId, repositoryOwner, repositoryName, token}
+        } = options
+
         return listArtifactsPublic(
-          options.workflowRunId,
-          options.repositoryOwner,
-          options.repositoryName,
-          options.token
+          workflowRunId,
+          repositoryOwner,
+          repositoryName,
+          token
         )
       }
 
@@ -209,7 +216,7 @@ If the error persists, please check whether Actions and API requests are operati
    */
   async getArtifact(
     artifactName: string,
-    options?: LookupOptions
+    options?: FindOptions
   ): Promise<GetArtifactResponse> {
     if (isGhes()) {
       warning(
@@ -221,13 +228,17 @@ If the error persists, please check whether Actions and API requests are operati
     }
 
     try {
-      if (options?.token) {
+      if (options?.findBy) {
+        const {
+          findBy: {workflowRunId, repositoryOwner, repositoryName, token}
+        } = options
+
         return getArtifactPublic(
           artifactName,
-          options.workflowRunId,
-          options.repositoryOwner,
-          options.repositoryName,
-          options.token
+          workflowRunId,
+          repositoryOwner,
+          repositoryName,
+          token
         )
       }
 
