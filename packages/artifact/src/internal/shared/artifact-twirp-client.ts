@@ -54,7 +54,7 @@ class ArtifactHttpClient implements Rpc {
     data: object | Uint8Array
   ): Promise<object | Uint8Array> {
     const url = new URL(`/twirp/${service}/${method}`, this.baseUrl).href
-    debug(`Requesting: ${url}`)
+    debug(`[Request] ${method} ${url}`)
     const headers = {
       'Content-Type': contentType
     }
@@ -80,6 +80,8 @@ class ArtifactHttpClient implements Rpc {
       try {
         const response = await operation()
         const statusCode = response.message.statusCode
+        debug(`[Response] ${response.message.statusCode}`)
+        debug(JSON.stringify(response.message.headers, null, 2))
 
         if (this.isSuccessStatusCode(statusCode)) {
           return response
