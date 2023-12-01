@@ -10,7 +10,10 @@ import {
 import {getUserAgentString} from '../shared/user-agent'
 import {getGitHubWorkspaceDir} from '../shared/config'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
-import {GetSignedArtifactURLRequest, ListArtifactsRequest} from 'src/generated'
+import {
+  GetSignedArtifactURLRequest,
+  ListArtifactsRequest
+} from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 
 const scrubQueryParameters = (url: string): string => {

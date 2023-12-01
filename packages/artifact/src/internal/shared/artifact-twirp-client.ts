@@ -160,13 +160,13 @@ class ArtifactHttpClient implements Rpc {
 
 export function internalArtifactTwirpClient(options?: {
   maxAttempts?: number
-  baseRetryIntervalMilliseconds?: number
+  retryIntervalMs?: number
   retryMultiplier?: number
 }): ArtifactServiceClientJSON {
   const client = new ArtifactHttpClient(
     getUserAgentString(),
     options?.maxAttempts,
-    options?.baseRetryIntervalMilliseconds,
+    options?.retryIntervalMs,
     options?.retryMultiplier
   )
   return new ArtifactServiceClientJSON(client)

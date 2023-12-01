@@ -1,4 +1,3 @@
-import * as core from '@actions/core'
 import * as uploadZipSpecification from '../src/internal/upload/upload-zip-specification'
 import * as zip from '../src/internal/upload/zip'
 import * as util from '../src/internal/shared/util'
@@ -7,14 +6,11 @@ import * as config from '../src/internal/shared/config'
 import {Timestamp, ArtifactServiceClientJSON} from '../src/generated'
 import * as blobUpload from '../src/internal/upload/blob-upload'
 import {uploadArtifact} from '../src/internal/upload/upload-artifact'
+import {noopLogs} from './common.test'
 
 describe('upload-artifact', () => {
   beforeEach(() => {
-    // mock all output so that there is less noise when running tests
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
+    noopLogs()
   })
 
   afterEach(() => {

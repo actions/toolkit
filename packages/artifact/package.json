@@ -30,7 +30,7 @@
   },
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
-    "test": "echo \"Error: run tests from root\" && exit 1",
+    "test": "cd ../../ && npm run test ./packages/artifact",
     "bootstrap": "cd ../../ && npm run bootstrap",
     "tsc-run": "tsc",
     "tsc": "npm run bootstrap && npm run tsc-run"

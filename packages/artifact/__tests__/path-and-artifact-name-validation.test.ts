@@ -3,15 +3,11 @@ import {
   validateFilePath
 } from '../src/internal/upload/path-and-artifact-name-validation'
 
-import * as core from '@actions/core'
+import {noopLogs} from './common.test'
 
 describe('Path and artifact name validation', () => {
   beforeAll(() => {
-    // mock all output so that there is less noise when running tests
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
+    noopLogs()
   })
 
   it('Check Artifact Name for any invalid characters', () => {
