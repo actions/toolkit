@@ -7,13 +7,16 @@ import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
+import {getBackendIdsFromToken} from '../shared/util'
+import {ListArtifactsRequest} from 'src/generated'
 
 // Limiting to 1000 for perf reasons
 const maximumArtifactCount = 1000
 const paginationCount = 100
 const maxNumberOfPages = maximumArtifactCount / paginationCount
 
-export async function listArtifacts(
+export async function listArtifactsPublic(
   workflowRunId: number,
   repositoryOwner: string,
   repositoryName: string,
@@ -62,7 +65,6 @@ export async function listArtifacts(
     artifacts.push({
       name: artifact.name,
       id: artifact.id,
-      url: artifact.url,
       size: artifact.size_in_bytes
     })
   }
@@ -89,13 +91,37 @@ export async function listArtifacts(
       artifacts.push({
         name: artifact.name,
         id: artifact.id,
-        url: artifact.url,
         size: artifact.size_in_bytes
       })
     }
   }
 
-  info(`Finished fetching artifact list`)
+  info(`Found ${artifacts.length} artifact(s)`)
+
+  return {
+    artifacts
+  }
+}
+
+export async function listArtifactsInternal(): Promise<ListArtifactsResponse> {
+  const artifactClient = internalArtifactTwirpClient()
+
+  const {workflowRunBackendId, workflowJobRunBackendId} =
+    getBackendIdsFromToken()
+
+  const req: ListArtifactsRequest = {
+    workflowRunBackendId,
+    workflowJobRunBackendId
+  }
+
+  const res = await artifactClient.ListArtifacts(req)
+  const artifacts = res.artifacts.map(artifact => ({
+    name: artifact.name,
+    id: Number(artifact.databaseId),
+    size: Number(artifact.size)
+  }))
+
+  info(`Found ${artifacts.length} artifact(s)`)
 
   return {
     artifacts

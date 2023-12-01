@@ -2,18 +2,14 @@ import * as http from 'http'
 import * as net from 'net'
 import {HttpClient} from '@actions/http-client'
 import * as config from '../src/internal/shared/config'
-import {createArtifactTwirpClient} from '../src/internal/shared/artifact-twirp-client'
-import * as core from '@actions/core'
+import {internalArtifactTwirpClient} from '../src/internal/shared/artifact-twirp-client'
+import {noopLogs} from './common'
 
 jest.mock('@actions/http-client')
 
 describe('artifact-http-client', () => {
   beforeAll(() => {
-    // mock all output so that there is less noise when running tests
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
+    noopLogs()
     jest
       .spyOn(config, 'getResultsServiceUrl')
       .mockReturnValue('http://localhost:8080')
@@ -25,7 +21,7 @@ describe('artifact-http-client', () => {
   })
 
   it('should successfully create a client', () => {
-    const client = createArtifactTwirpClient('upload')
+    const client = internalArtifactTwirpClient()
     expect(client).toBeDefined()
   })
 
@@ -50,7 +46,7 @@ describe('artifact-http-client', () => {
       }
     })
 
-    const client = createArtifactTwirpClient('upload')
+    const client = internalArtifactTwirpClient()
     const artifact = await client.CreateArtifact({
       workflowRunBackendId: '1234',
       workflowJobRunBackendId: '5678',
@@ -98,12 +94,11 @@ describe('artifact-http-client', () => {
       }
     })
 
-    const client = createArtifactTwirpClient(
-      'upload',
-      5, // retry 5 times
-      1, // wait 1 ms
-      1.5 // backoff factor
-    )
+    const client = internalArtifactTwirpClient({
+      maxAttempts: 5,
+      retryIntervalMs: 1,
+      retryMultiplier: 1.5
+    })
     const artifact = await client.CreateArtifact({
       workflowRunBackendId: '1234',
       workflowJobRunBackendId: '5678',
@@ -138,12 +133,11 @@ describe('artifact-http-client', () => {
         post: mockPost
       }
     })
-    const client = createArtifactTwirpClient(
-      'upload',
-      5, // retry 5 times
-      1, // wait 1 ms
-      1.5 // backoff factor
-    )
+    const client = internalArtifactTwirpClient({
+      maxAttempts: 5,
+      retryIntervalMs: 1,
+      retryMultiplier: 1.5
+    })
     await expect(async () => {
       await client.CreateArtifact({
         workflowRunBackendId: '1234',
@@ -178,12 +172,11 @@ describe('artifact-http-client', () => {
         post: mockPost
       }
     })
-    const client = createArtifactTwirpClient(
-      'upload',
-      5, // retry 5 times
-      1, // wait 1 ms
-      1.5 // backoff factor
-    )
+    const client = internalArtifactTwirpClient({
+      maxAttempts: 5,
+      retryIntervalMs: 1,
+      retryMultiplier: 1.5
+    })
     await expect(async () => {
       await client.CreateArtifact({
         workflowRunBackendId: '1234',

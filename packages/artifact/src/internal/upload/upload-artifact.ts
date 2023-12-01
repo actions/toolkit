@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import {UploadOptions, UploadResponse} from '../shared/interfaces'
 import {getExpiration} from './retention'
 import {validateArtifactName} from './path-and-artifact-name-validation'
-import {createArtifactTwirpClient} from '../shared/artifact-twirp-client'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {
   UploadZipSpecification,
   getUploadZipSpecification,
@@ -44,21 +44,9 @@ export async function uploadArtifact(
 
   // get the IDs needed for the artifact creation
   const backendIds = getBackendIdsFromToken()
-  if (!backendIds.workflowRunBackendId || !backendIds.workflowJobRunBackendId) {
-    core.warning(
-      `Failed to get the necessary backend ids which are required to create the artifact`
-    )
-    return {
-      success: false
-    }
-  }
-  core.debug(`Workflow Run Backend ID: ${backendIds.workflowRunBackendId}`)
-  core.debug(
-    `Workflow Job Run Backend ID: ${backendIds.workflowJobRunBackendId}`
-  )
 
   // create the artifact client
-  const artifactClient = createArtifactTwirpClient('upload')
+  const artifactClient = internalArtifactTwirpClient()
 
   // create the artifact
   const createArtifactReq: CreateArtifactRequest = {

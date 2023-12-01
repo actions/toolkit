@@ -121,12 +121,22 @@ export interface Artifact {
   id: number
 
   /**
-   * The URL of the artifact
-   */
-  url: string
-
-  /**
    * The size of the artifact in bytes
    */
   size: number
+}
+
+// FindOptions are for fetching Artifact(s) out of the scope of the current run.
+// Must specify a PAT with actions:read scope for cross run/repo lookup otherwise these will be ignored.
+export interface FindOptions {
+  findBy?: {
+    // Token with actions:read permissions
+    token: string
+    // WorkflowRun of the artifact(s) to lookup
+    workflowRunId: number
+    // Repository owner
+    repositoryOwner: string
+    // Repository name
+    repositoryName: string
+  }
 }
