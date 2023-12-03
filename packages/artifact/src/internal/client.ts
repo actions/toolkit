@@ -5,6 +5,7 @@ import {
   UploadResponse,
   DownloadArtifactOptions,
   GetArtifactResponse,
+  ListArtifactsOptions,
   ListArtifactsResponse,
   DownloadArtifactResponse,
   FindOptions
@@ -44,7 +45,9 @@ export interface ArtifactClient {
    * @param options Extra options that allow for the customization of the list behavior
    * @returns ListArtifactResponse object
    */
-  listArtifacts(options?: FindOptions): Promise<ListArtifactsResponse>
+  listArtifacts(
+    options?: ListArtifactsOptions & FindOptions
+  ): Promise<ListArtifactsResponse>
 
   /**
    * Finds an artifact by name.
@@ -171,7 +174,9 @@ If the error persists, please check whether Actions and API requests are operati
   /**
    * List Artifacts
    */
-  async listArtifacts(options?: FindOptions): Promise<ListArtifactsResponse> {
+  async listArtifacts(
+    options?: ListArtifactsOptions & FindOptions
+  ): Promise<ListArtifactsResponse> {
     if (isGhes()) {
       warning(
         `@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.`
@@ -191,11 +196,12 @@ If the error persists, please check whether Actions and API requests are operati
           workflowRunId,
           repositoryOwner,
           repositoryName,
-          token
+          token,
+          options?.latest
         )
       }
 
-      return listArtifactsInternal()
+      return listArtifactsInternal(options?.latest)
     } catch (error: unknown) {
       warning(
         `Listing Artifacts failed with error: ${error}.

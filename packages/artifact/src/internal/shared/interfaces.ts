@@ -74,6 +74,15 @@ export interface GetArtifactResponse {
  *                             ListArtifact                                  *
  *                                                                           *
  *****************************************************************************/
+
+export interface ListArtifactsOptions {
+  /**
+   * Filter the workflow run's artifacts to the latest by name
+   * In the case of reruns, this can be useful to avoid duplicates
+   */
+  latest?: boolean
+}
+
 export interface ListArtifactsResponse {
   /**
    * A list of artifacts that were found

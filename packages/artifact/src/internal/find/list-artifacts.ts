@@ -20,13 +20,14 @@ export async function listArtifactsPublic(
   workflowRunId: number,
   repositoryOwner: string,
   repositoryName: string,
-  token: string
+  token: string,
+  latest = false
 ): Promise<ListArtifactsResponse> {
   info(
     `Fetching artifact list for workflow run ${workflowRunId} in repository ${repositoryOwner}/${repositoryName}`
   )
 
-  const artifacts: Artifact[] = []
+  let artifacts: Artifact[] = []
   const [retryOpts, requestOpts] = getRetryOptions(defaultGitHubOptions)
 
   const opts: OctokitOptions = {
@@ -100,6 +101,10 @@ export async function listArtifactsPublic(
     }
   }
 
+  if (latest) {
+    artifacts = filterLatest(artifacts)
+  }
+
   info(`Found ${artifacts.length} artifact(s)`)
 
   return {
@@ -107,7 +112,9 @@ export async function listArtifactsPublic(
   }
 }
 
-export async function listArtifactsInternal(): Promise<ListArtifactsResponse> {
+export async function listArtifactsInternal(
+  latest = false
+): Promise<ListArtifactsResponse> {
   const artifactClient = internalArtifactTwirpClient()
 
   const {workflowRunBackendId, workflowJobRunBackendId} =
@@ -119,7 +126,7 @@ export async function listArtifactsInternal(): Promise<ListArtifactsResponse> {
   }
 
   const res = await artifactClient.ListArtifacts(req)
-  const artifacts = res.artifacts.map(artifact => ({
+  let artifacts: Artifact[] = res.artifacts.map(artifact => ({
     name: artifact.name,
     id: Number(artifact.databaseId),
     size: Number(artifact.size),
@@ -128,9 +135,44 @@ export async function listArtifactsInternal(): Promise<ListArtifactsResponse> {
       : undefined
   }))
 
+  if (latest) {
+    artifacts = filterLatest(artifacts)
+  }
+
   info(`Found ${artifacts.length} artifact(s)`)
 
   return {
     artifacts
   }
+}
+
+/**
+ * Filters a list of artifacts to only include the latest artifact for each name
+ * @param artifacts The artifacts to filter
+ * @returns The filtered list of artifacts
+ */
+function filterLatest(artifacts: Artifact[]): Artifact[] {
+  artifacts.sort((a, b) => {
+    if (!a.createdAt && !b.createdAt) {
+      return 0
+    }
+    if (!a.createdAt) {
+      return -1
+    }
+    if (!b.createdAt) {
+      return 1
+    }
+    return b.createdAt.getTime() - a.createdAt.getTime()
+  })
+
+  const latestArtifacts: Artifact[] = []
+  const seenArtifactNames = new Set<string>()
+  for (const artifact of artifacts) {
+    if (!seenArtifactNames.has(artifact.name)) {
+      latestArtifacts.push(artifact)
+      seenArtifactNames.add(artifact.name)
+    }
+  }
+
+  return latestArtifacts
 }
