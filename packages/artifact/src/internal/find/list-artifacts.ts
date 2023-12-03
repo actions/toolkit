@@ -9,7 +9,7 @@ import {retry} from '@octokit/plugin-retry'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {getBackendIdsFromToken} from '../shared/util'
-import {ListArtifactsRequest, Timestamp} from 'src/generated'
+import {ListArtifactsRequest, Timestamp} from '../../generated'
 
 // Limiting to 1000 for perf reasons
 const maximumArtifactCount = 1000
