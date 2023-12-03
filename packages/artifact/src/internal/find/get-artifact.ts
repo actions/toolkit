@@ -9,7 +9,7 @@ import {GetArtifactResponse} from '../shared/interfaces'
 import {getBackendIdsFromToken} from '../shared/util'
 import {getUserAgentString} from '../shared/user-agent'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
-import {ListArtifactsRequest, StringValue} from '../../generated'
+import {ListArtifactsRequest, StringValue, Timestamp} from '../../generated'
 
 export async function getArtifactPublic(
   artifactName: string,
@@ -54,18 +54,24 @@ export async function getArtifactPublic(
     }
   }
 
+  let artifact = getArtifactResp.data.artifacts[0]
   if (getArtifactResp.data.artifacts.length > 1) {
-    core.warning(
-      'more than one artifact found for a single name, returning first'
+    artifact = getArtifactResp.data.artifacts.reduce((prev, current) => {
+      new Date(prev.created_at) > new Date(current.created_at) ? prev : current
+    })
+
+    core.debug(
+      `more than one artifact found for a single name, returning newest (id: ${artifact.id})`
     )
   }
 
   return {
     success: true,
     artifact: {
-      name: getArtifactResp.data.artifacts[0].name,
-      id: getArtifactResp.data.artifacts[0].id,
-      size: getArtifactResp.data.artifacts[0].size_in_bytes
+      name: artifact.name,
+      id: artifact.id,
+      size: artifact.size_in_bytes,
+      createdAt: artifact.created_at ? new Date(artifact.created_at) : undefined
     }
   }
 }
@@ -93,26 +99,28 @@ export async function getArtifactInternal(
     }
   }
 
+  let artifact = res.artifacts[0]
   if (res.artifacts.length > 1) {
-    core.warning(
-      'more than one artifact found for a single name, returning first'
+    artifact = res.artifacts.reduce((prev, current) => {
+      const prevDate = Timestamp.toDate(prev.createdAt || Timestamp.now())
+      const currentDate = Timestamp.toDate(current.createdAt || Timestamp.now())
+      return prevDate > currentDate ? prev : current
+    })
+
+    core.debug(
+      `more than one artifact found for a single name, returning newest (id: ${artifact.databaseId})`
     )
   }
-
-  // In the case of reruns, we may have artifacts with the same name scoped under the same workflow run.
-  // Let's prefer the artifact closest scoped to this run.
-  // If it doesn't exist (e.g. partial rerun) we'll use the first match.
-  const artifact =
-    res.artifacts.find(
-      artifact => artifact.workflowRunBackendId === workflowRunBackendId
-    ) || res.artifacts[0]
 
   return {
     success: true,
     artifact: {
       name: artifact.name,
       id: Number(artifact.databaseId),
-      size: Number(artifact.size)
+      size: Number(artifact.size),
+      createdAt: artifact.createdAt
+        ? Timestamp.toDate(artifact.createdAt)
+        : undefined
     }
   }
 }

@@ -9,7 +9,7 @@ import {retry} from '@octokit/plugin-retry'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {getBackendIdsFromToken} from '../shared/util'
-import {ListArtifactsRequest} from 'src/generated'
+import {ListArtifactsRequest, Timestamp} from 'src/generated'
 
 // Limiting to 1000 for perf reasons
 const maximumArtifactCount = 1000
@@ -65,7 +65,8 @@ export async function listArtifactsPublic(
     artifacts.push({
       name: artifact.name,
       id: artifact.id,
-      size: artifact.size_in_bytes
+      size: artifact.size_in_bytes,
+      createdAt: artifact.created_at ? new Date(artifact.created_at) : undefined
     })
   }
 
@@ -91,7 +92,10 @@ export async function listArtifactsPublic(
       artifacts.push({
         name: artifact.name,
         id: artifact.id,
-        size: artifact.size_in_bytes
+        size: artifact.size_in_bytes,
+        createdAt: artifact.created_at
+          ? new Date(artifact.created_at)
+          : undefined
       })
     }
   }
@@ -118,7 +122,10 @@ export async function listArtifactsInternal(): Promise<ListArtifactsResponse> {
   const artifacts = res.artifacts.map(artifact => ({
     name: artifact.name,
     id: Number(artifact.databaseId),
-    size: Number(artifact.size)
+    size: Number(artifact.size),
+    createdAt: artifact.createdAt
+      ? Timestamp.toDate(artifact.createdAt)
+      : undefined
   }))
 
   info(`Found ${artifacts.length} artifact(s)`)

@@ -163,6 +163,12 @@ export interface ListArtifactsResponse_MonolithArtifact {
      * @generated from protobuf field: int64 size = 5;
      */
     size: string;
+    /**
+     * When the artifact was created in the monolith
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
+     */
+    createdAt?: Timestamp;
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.GetSignedArtifactURLRequest
@@ -571,7 +577,8 @@ class ListArtifactsResponse_MonolithArtifact$Type extends MessageType<ListArtifa
             { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "database_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
             { no: 4, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "size", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+            { no: 5, name: "size", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 6, name: "created_at", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<ListArtifactsResponse_MonolithArtifact>): ListArtifactsResponse_MonolithArtifact {
@@ -601,6 +608,9 @@ class ListArtifactsResponse_MonolithArtifact$Type extends MessageType<ListArtifa
                 case /* int64 size */ 5:
                     message.size = reader.int64().toString();
                     break;
+                case /* google.protobuf.Timestamp created_at */ 6:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -628,6 +638,9 @@ class ListArtifactsResponse_MonolithArtifact$Type extends MessageType<ListArtifa
         /* int64 size = 5; */
         if (message.size !== "0")
             writer.tag(5, WireType.Varint).int64(message.size);
+        /* google.protobuf.Timestamp created_at = 6; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -124,6 +124,11 @@ export interface Artifact {
    * The size of the artifact in bytes
    */
   size: number
+
+  /**
+   * The time when the artifact was created
+   */
+  createdAt?: Date
 }
 
 // FindOptions are for fetching Artifact(s) out of the scope of the current run.
