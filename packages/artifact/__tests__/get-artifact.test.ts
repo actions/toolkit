@@ -5,7 +5,7 @@ import {
   getArtifactPublic
 } from '../src/internal/find/get-artifact'
 import * as config from '../src/internal/shared/config'
-import {ArtifactServiceClientJSON} from '../src/generated'
+import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
 import * as util from '../src/internal/shared/util'
 import {noopLogs} from './common'
 
@@ -183,7 +183,8 @@ describe('get-artifact', () => {
               ...fixtures.backendIds,
               databaseId: fixtures.artifacts[0].id.toString(),
               name: fixtures.artifacts[0].name,
-              size: fixtures.artifacts[0].size.toString()
+              size: fixtures.artifacts[0].size.toString(),
+              createdAt: Timestamp.fromDate(fixtures.artifacts[0].createdAt)
             }
           ]
         })
@@ -196,10 +197,49 @@ describe('get-artifact', () => {
       })
     })
 
-    it('should return the latest artifact if multiple are found', async () => {})
+    it('should return the latest artifact if multiple are found', async () => {
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: fixtures.artifacts.map(artifact => ({
+            ...fixtures.backendIds,
+            databaseId: artifact.id.toString(),
+            name: artifact.name,
+            size: artifact.size.toString(),
+            createdAt: Timestamp.fromDate(artifact.createdAt)
+          }))
+        })
 
-    it('should fail if no artifacts are found', async () => {})
+      const response = await getArtifactInternal(fixtures.artifacts[0].name)
 
-    it('should fail if non-200 response', async () => {})
+      expect(response).toEqual({
+        success: true,
+        artifact: fixtures.artifacts[1]
+      })
+    })
+
+    it('should fail if no artifacts are found', async () => {
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: []
+        })
+
+      const response = await getArtifactInternal(fixtures.artifacts[0].name)
+
+      expect(response).toEqual({
+        success: false
+      })
+    })
+
+    it('should fail if non-200 response', async () => {
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockRejectedValue(new Error('test error'))
+
+      await expect(
+        getArtifactInternal(fixtures.artifacts[0].name)
+      ).rejects.toThrow('test error')
+    })
   })
 })
