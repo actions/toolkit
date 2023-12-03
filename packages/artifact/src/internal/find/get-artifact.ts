@@ -56,12 +56,9 @@ export async function getArtifactPublic(
 
   let artifact = getArtifactResp.data.artifacts[0]
   if (getArtifactResp.data.artifacts.length > 1) {
-    artifact = getArtifactResp.data.artifacts.reduce((prev, current) => {
-      new Date(prev.created_at) > new Date(current.created_at) ? prev : current
-    })
-
+    artifact = getArtifactResp.data.artifacts.sort((a, b) => b.id - a.id)[0]
     core.debug(
-      `more than one artifact found for a single name, returning newest (id: ${artifact.id})`
+      `More than one artifact found for a single name, returning newest (id: ${artifact.id})`
     )
   }
 
@@ -101,11 +98,9 @@ export async function getArtifactInternal(
 
   let artifact = res.artifacts[0]
   if (res.artifacts.length > 1) {
-    artifact = res.artifacts.reduce((prev, current) => {
-      const prevDate = Timestamp.toDate(prev.createdAt || Timestamp.now())
-      const currentDate = Timestamp.toDate(current.createdAt || Timestamp.now())
-      return prevDate > currentDate ? prev : current
-    })
+    artifact = res.artifacts.sort(
+      (a, b) => Number(b.databaseId) - Number(a.databaseId)
+    )[0]
 
     core.debug(
       `more than one artifact found for a single name, returning newest (id: ${artifact.databaseId})`

@@ -152,19 +152,7 @@ export async function listArtifactsInternal(
  * @returns The filtered list of artifacts
  */
 function filterLatest(artifacts: Artifact[]): Artifact[] {
-  artifacts.sort((a, b) => {
-    if (!a.createdAt && !b.createdAt) {
-      return 0
-    }
-    if (!a.createdAt) {
-      return -1
-    }
-    if (!b.createdAt) {
-      return 1
-    }
-    return b.createdAt.getTime() - a.createdAt.getTime()
-  })
-
+  artifacts.sort((a, b) => b.id - a.id)
   const latestArtifacts: Artifact[] = []
   const seenArtifactNames = new Set<string>()
   for (const artifact of artifacts) {
@@ -173,6 +161,5 @@ function filterLatest(artifacts: Artifact[]): Artifact[] {
       seenArtifactNames.add(artifact.name)
     }
   }
-
   return latestArtifacts
 }

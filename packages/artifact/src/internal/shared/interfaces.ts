@@ -3,7 +3,7 @@
  *                            UploadArtifact                                 *
  *                                                                           *
  *****************************************************************************/
-export interface UploadResponse {
+export interface UploadArtifactResponse {
   /**
    * Denotes if an artifact was successfully uploaded
    */
@@ -21,7 +21,7 @@ export interface UploadResponse {
   id?: number
 }
 
-export interface UploadOptions {
+export interface UploadArtifactOptions {
   /**
    * Duration after which artifact will expire in days.
    *

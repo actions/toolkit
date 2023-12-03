@@ -1,8 +1,8 @@
 import {warning} from '@actions/core'
 import {isGhes} from './shared/config'
 import {
-  UploadOptions,
-  UploadResponse,
+  UploadArtifactOptions,
+  UploadArtifactResponse,
   DownloadArtifactOptions,
   GetArtifactResponse,
   ListArtifactsOptions,
@@ -26,14 +26,14 @@ export interface ArtifactClient {
    * @param files A list of absolute or relative paths that denote what files should be uploaded
    * @param rootDirectory An absolute or relative file path that denotes the root parent directory of the files being uploaded
    * @param options Extra options for customizing the upload behavior
-   * @returns single UploadResponse object
+   * @returns single UploadArtifactResponse object
    */
   uploadArtifact(
     name: string,
     files: string[],
     rootDirectory: string,
-    options?: UploadOptions
-  ): Promise<UploadResponse>
+    options?: UploadArtifactOptions
+  ): Promise<UploadArtifactResponse>
 
   /**
    * Lists all artifacts that are part of the current workflow run.
@@ -96,8 +96,8 @@ export class Client implements ArtifactClient {
     name: string,
     files: string[],
     rootDirectory: string,
-    options?: UploadOptions
-  ): Promise<UploadResponse> {
+    options?: UploadArtifactOptions
+  ): Promise<UploadArtifactResponse> {
     if (isGhes()) {
       warning(
         `@actions/artifact v2.0.0+ and upload-artifact@v4+ are not currently supported on GHES.`
