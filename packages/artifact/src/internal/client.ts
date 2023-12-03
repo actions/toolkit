@@ -51,6 +51,7 @@ export interface ArtifactClient {
 
   /**
    * Finds an artifact by name.
+   * If there are multiple artifacts with the same name in the same workflow run, this will return the latest.
    *
    * If options.findBy is specified, this will use the public List Artifacts API with a name filter which can get artifacts from other runs.
    * https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
