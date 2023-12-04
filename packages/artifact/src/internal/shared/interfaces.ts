@@ -3,7 +3,7 @@
  *                            UploadArtifact                                 *
  *                                                                           *
  *****************************************************************************/
-export interface UploadResponse {
+export interface UploadArtifactResponse {
   /**
    * Denotes if an artifact was successfully uploaded
    */
@@ -21,7 +21,7 @@ export interface UploadResponse {
   id?: number
 }
 
-export interface UploadOptions {
+export interface UploadArtifactOptions {
   /**
    * Duration after which artifact will expire in days.
    *
@@ -74,6 +74,15 @@ export interface GetArtifactResponse {
  *                             ListArtifact                                  *
  *                                                                           *
  *****************************************************************************/
+
+export interface ListArtifactsOptions {
+  /**
+   * Filter the workflow run's artifacts to the latest by name
+   * In the case of reruns, this can be useful to avoid duplicates
+   */
+  latest?: boolean
+}
+
 export interface ListArtifactsResponse {
   /**
    * A list of artifacts that were found
@@ -124,6 +133,11 @@ export interface Artifact {
    * The size of the artifact in bytes
    */
   size: number
+
+  /**
+   * The time when the artifact was created
+   */
+  createdAt?: Date
 }
 
 // FindOptions are for fetching Artifact(s) out of the scope of the current run.

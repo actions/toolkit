@@ -1,5 +1,8 @@
 import * as core from '@actions/core'
-import {UploadOptions, UploadResponse} from '../shared/interfaces'
+import {
+  UploadArtifactOptions,
+  UploadArtifactResponse
+} from '../shared/interfaces'
 import {getExpiration} from './retention'
 import {validateArtifactName} from './path-and-artifact-name-validation'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
@@ -21,8 +24,8 @@ export async function uploadArtifact(
   name: string,
   files: string[],
   rootDirectory: string,
-  options?: UploadOptions | undefined
-): Promise<UploadResponse> {
+  options?: UploadArtifactOptions | undefined
+): Promise<UploadArtifactResponse> {
   validateArtifactName(name)
   validateRootDirectory(rootDirectory)
 

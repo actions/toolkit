@@ -1,10 +1,11 @@
 import {warning} from '@actions/core'
 import {isGhes} from './shared/config'
 import {
-  UploadOptions,
-  UploadResponse,
+  UploadArtifactOptions,
+  UploadArtifactResponse,
   DownloadArtifactOptions,
   GetArtifactResponse,
+  ListArtifactsOptions,
   ListArtifactsResponse,
   DownloadArtifactResponse,
   FindOptions
@@ -25,14 +26,14 @@ export interface ArtifactClient {
    * @param files A list of absolute or relative paths that denote what files should be uploaded
    * @param rootDirectory An absolute or relative file path that denotes the root parent directory of the files being uploaded
    * @param options Extra options for customizing the upload behavior
-   * @returns single UploadResponse object
+   * @returns single UploadArtifactResponse object
    */
   uploadArtifact(
     name: string,
     files: string[],
     rootDirectory: string,
-    options?: UploadOptions
-  ): Promise<UploadResponse>
+    options?: UploadArtifactOptions
+  ): Promise<UploadArtifactResponse>
 
   /**
    * Lists all artifacts that are part of the current workflow run.
@@ -44,10 +45,13 @@ export interface ArtifactClient {
    * @param options Extra options that allow for the customization of the list behavior
    * @returns ListArtifactResponse object
    */
-  listArtifacts(options?: FindOptions): Promise<ListArtifactsResponse>
+  listArtifacts(
+    options?: ListArtifactsOptions & FindOptions
+  ): Promise<ListArtifactsResponse>
 
   /**
    * Finds an artifact by name.
+   * If there are multiple artifacts with the same name in the same workflow run, this will return the latest.
    *
    * If options.findBy is specified, this will use the public List Artifacts API with a name filter which can get artifacts from other runs.
    * https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
@@ -93,8 +97,8 @@ export class Client implements ArtifactClient {
     name: string,
     files: string[],
     rootDirectory: string,
-    options?: UploadOptions
-  ): Promise<UploadResponse> {
+    options?: UploadArtifactOptions
+  ): Promise<UploadArtifactResponse> {
     if (isGhes()) {
       warning(
         `@actions/artifact v2.0.0+ and upload-artifact@v4+ are not currently supported on GHES.`
@@ -171,7 +175,9 @@ If the error persists, please check whether Actions and API requests are operati
   /**
    * List Artifacts
    */
-  async listArtifacts(options?: FindOptions): Promise<ListArtifactsResponse> {
+  async listArtifacts(
+    options?: ListArtifactsOptions & FindOptions
+  ): Promise<ListArtifactsResponse> {
     if (isGhes()) {
       warning(
         `@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.`
@@ -191,11 +197,12 @@ If the error persists, please check whether Actions and API requests are operati
           workflowRunId,
           repositoryOwner,
           repositoryName,
-          token
+          token,
+          options?.latest
         )
       }
 
-      return listArtifactsInternal()
+      return listArtifactsInternal(options?.latest)
     } catch (error: unknown) {
       warning(
         `Listing Artifacts failed with error: ${error}.
