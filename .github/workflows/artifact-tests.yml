@@ -24,10 +24,10 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set Node.js 20.x
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
 
@@ -54,8 +54,8 @@ jobs:
         echo '${{ env.file1 }}' > artifact-path/first.txt
         echo '${{ env.file2 }}' > artifact-path/second.txt
 
-    - name: Upload Artifacts using actions/github-script@v6
-      uses: actions/github-script@v6
+    - name: Upload Artifacts using actions/github-script@v7
+      uses: actions/github-script@v7
       with:
         script: |
           const artifact = require('./packages/artifact/lib/artifact')
@@ -78,10 +78,10 @@ jobs:
     needs: [build]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set Node.js 20.x
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
 
@@ -96,8 +96,8 @@ jobs:
         npm run tsc
       working-directory: packages/artifact
 
-    - name: List artifacts using actions/github-script@v6
-      uses: actions/github-script@v6
+    - name: List artifacts using actions/github-script@v7
+      uses: actions/github-script@v7
       with:
         script: |
           const artifact = require('./packages/artifact/lib/artifact')
