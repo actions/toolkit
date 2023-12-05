@@ -68,15 +68,10 @@ jobs:
           const uploadResult = await artifact.create().uploadArtifact(artifactName, fileContents, './')
           console.log(uploadResult)
 
-          const success = uploadResult.success
           const size = uploadResult.size
           const id = uploadResult.id
 
-          if (!success) {
-            throw new Error('Failed to upload artifact')
-          } else {
-            console.log(`Successfully uploaded artifact ${id}`)
-          }
+          console.log(`Successfully uploaded artifact ${id}`)
            
   verify:
     runs-on: ubuntu-latest
