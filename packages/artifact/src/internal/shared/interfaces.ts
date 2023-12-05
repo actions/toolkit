@@ -54,11 +54,6 @@ export interface UploadArtifactOptions {
 
 export interface GetArtifactResponse {
   /**
-   * If an artifact was found
-   */
-  success: boolean
-
-  /**
    * Metadata about the artifact that was found
    */
   artifact?: Artifact

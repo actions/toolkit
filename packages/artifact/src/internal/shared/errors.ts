@@ -19,3 +19,11 @@ export class InvalidResponseError extends Error {
     this.name = 'InvalidResponseError'
   }
 }
+
+export class ArtifactNotFoundError extends Error {
+  constructor(name: string) {
+    const message = `No artifact found for name: ${name}`
+    super(message)
+    this.name = 'ArtifactNotFoundError'
+  }
+}

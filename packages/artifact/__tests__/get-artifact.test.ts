@@ -8,6 +8,10 @@ import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
 import * as util from '../src/internal/shared/util'
 import {noopLogs} from './common'
+import {
+  ArtifactNotFoundError,
+  InvalidResponseError
+} from '../src/internal/shared/errors'
 
 type MockedRequest = jest.MockedFunction<RequestInterface<object>>
 
@@ -76,7 +80,6 @@ describe('get-artifact', () => {
       )
 
       expect(response).toEqual({
-        success: true,
         artifact: fixtures.artifacts[0]
       })
     })
@@ -107,7 +110,6 @@ describe('get-artifact', () => {
       )
 
       expect(response).toEqual({
-        success: true,
         artifact: fixtures.artifacts[1]
       })
     })
@@ -124,7 +126,7 @@ describe('get-artifact', () => {
         }
       })
 
-      const response = await getArtifactPublic(
+      const response = getArtifactPublic(
         fixtures.artifacts[0].name,
         fixtures.runId,
         fixtures.owner,
@@ -132,9 +134,7 @@ describe('get-artifact', () => {
         fixtures.token
       )
 
-      expect(response).toEqual({
-        success: false
-      })
+      expect(response).rejects.toThrowError(ArtifactNotFoundError)
     })
 
     it('should fail if non-200 response', async () => {
@@ -147,7 +147,7 @@ describe('get-artifact', () => {
         data: {}
       })
 
-      const response = await getArtifactPublic(
+      const response = getArtifactPublic(
         fixtures.artifacts[0].name,
         fixtures.runId,
         fixtures.owner,
@@ -155,9 +155,7 @@ describe('get-artifact', () => {
         fixtures.token
       )
 
-      expect(response).toEqual({
-        success: false
-      })
+      expect(response).rejects.toThrowError(InvalidResponseError)
     })
   })
 
@@ -192,7 +190,6 @@ describe('get-artifact', () => {
       const response = await getArtifactInternal(fixtures.artifacts[0].name)
 
       expect(response).toEqual({
-        success: true,
         artifact: fixtures.artifacts[0]
       })
     })
@@ -213,7 +210,6 @@ describe('get-artifact', () => {
       const response = await getArtifactInternal(fixtures.artifacts[0].name)
 
       expect(response).toEqual({
-        success: true,
         artifact: fixtures.artifacts[1]
       })
     })
@@ -225,21 +221,19 @@ describe('get-artifact', () => {
           artifacts: []
         })
 
-      const response = await getArtifactInternal(fixtures.artifacts[0].name)
+      const response = getArtifactInternal(fixtures.artifacts[0].name)
 
-      expect(response).toEqual({
-        success: false
-      })
+      expect(response).rejects.toThrowError(ArtifactNotFoundError)
     })
 
     it('should fail if non-200 response', async () => {
       jest
         .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
-        .mockRejectedValue(new Error('test error'))
+        .mockRejectedValue(new Error('boom'))
 
-      await expect(
-        getArtifactInternal(fixtures.artifacts[0].name)
-      ).rejects.toThrow('test error')
+      const response = getArtifactInternal(fixtures.artifacts[0].name)
+
+      expect(response).rejects.toThrow()
     })
   })
 })

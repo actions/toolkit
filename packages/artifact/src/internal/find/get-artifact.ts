@@ -10,6 +10,7 @@ import {getBackendIdsFromToken} from '../shared/util'
 import {getUserAgentString} from '../shared/user-agent'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {ListArtifactsRequest, StringValue, Timestamp} from '../../generated'
+import {ArtifactNotFoundError, InvalidResponseError} from '../shared/errors'
 
 export async function getArtifactPublic(
   artifactName: string,
@@ -41,17 +42,13 @@ export async function getArtifactPublic(
   )
 
   if (getArtifactResp.status !== 200) {
-    core.warning(`non-200 response from GitHub API: ${getArtifactResp.status}`)
-    return {
-      success: false
-    }
+    throw new InvalidResponseError(
+      `Invalid response from GitHub API: ${getArtifactResp.status} (${getArtifactResp?.headers?.['x-github-request-id']})`
+    )
   }
 
   if (getArtifactResp.data.artifacts.length === 0) {
-    core.warning('no artifacts found')
-    return {
-      success: false
-    }
+    throw new ArtifactNotFoundError(artifactName)
   }
 
   let artifact = getArtifactResp.data.artifacts[0]
@@ -63,7 +60,6 @@ export async function getArtifactPublic(
   }
 
   return {
-    success: true,
     artifact: {
       name: artifact.name,
       id: artifact.id,
@@ -90,10 +86,7 @@ export async function getArtifactInternal(
   const res = await artifactClient.ListArtifacts(req)
 
   if (res.artifacts.length === 0) {
-    core.warning('no artifacts found')
-    return {
-      success: false
-    }
+    throw new ArtifactNotFoundError(artifactName)
   }
 
   let artifact = res.artifacts[0]
@@ -103,12 +96,11 @@ export async function getArtifactInternal(
     )[0]
 
     core.debug(
-      `more than one artifact found for a single name, returning newest (id: ${artifact.databaseId})`
+      `More than one artifact found for a single name, returning newest (id: ${artifact.databaseId})`
     )
   }
 
   return {
-    success: true,
     artifact: {
       name: artifact.name,
       id: Number(artifact.databaseId),
