@@ -26,3 +26,12 @@ export class ArtifactNotFoundError extends Error {
     this.name = 'ArtifactNotFoundError'
   }
 }
+
+export class GHESNotSupportError extends Error {
+  constructor(
+    message = '@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.'
+  ) {
+    super(message)
+    this.name = 'NotSupportedGHESError'
+  }
+}

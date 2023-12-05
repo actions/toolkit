@@ -56,7 +56,7 @@ export interface GetArtifactResponse {
   /**
    * Metadata about the artifact that was found
    */
-  artifact?: Artifact
+  artifact: Artifact
 }
 
 /*****************************************************************************
