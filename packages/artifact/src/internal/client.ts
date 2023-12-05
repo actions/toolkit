@@ -17,7 +17,7 @@ import {
 } from './download/download-artifact'
 import {getArtifactPublic, getArtifactInternal} from './find/get-artifact'
 import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts'
-import {GHESNotSupportError} from './shared/errors'
+import {GHESNotSupportedError} from './shared/errors'
 
 export interface ArtifactClient {
   /**
@@ -103,7 +103,7 @@ export class Client implements ArtifactClient {
   ): Promise<UploadArtifactResponse> {
     try {
       if (isGhes()) {
-        throw new GHESNotSupportError()
+        throw new GHESNotSupportedError()
       }
 
       return uploadArtifact(name, files, rootDirectory, options)
@@ -129,7 +129,7 @@ If the error persists, please check whether Actions is operating normally at [ht
   ): Promise<DownloadArtifactResponse> {
     try {
       if (isGhes()) {
-        throw new GHESNotSupportError()
+        throw new GHESNotSupportedError()
       }
 
       if (options?.findBy) {
@@ -169,7 +169,7 @@ If the error persists, please check whether Actions and API requests are operati
   ): Promise<ListArtifactsResponse> {
     try {
       if (isGhes()) {
-        throw new GHESNotSupportError()
+        throw new GHESNotSupportedError()
       }
 
       if (options?.findBy) {
@@ -209,7 +209,7 @@ If the error persists, please check whether Actions and API requests are operati
   ): Promise<GetArtifactResponse> {
     try {
       if (isGhes()) {
-        throw new GHESNotSupportError()
+        throw new GHESNotSupportedError()
       }
 
       if (options?.findBy) {
