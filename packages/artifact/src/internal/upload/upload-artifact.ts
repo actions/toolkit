@@ -19,6 +19,7 @@ import {
   FinalizeArtifactRequest,
   StringValue
 } from '../../generated'
+import {FilesNotFoundError, InvalidResponseError} from '../shared/errors'
 
 export async function uploadArtifact(
   name: string,
@@ -34,10 +35,9 @@ export async function uploadArtifact(
     rootDirectory
   )
   if (zipSpecification.length === 0) {
-    core.warning(`No files were found to upload`)
-    return {
-      success: false
-    }
+    throw new FilesNotFoundError(
+      zipSpecification.flatMap(s => (s.sourcePath ? [s.sourcePath] : []))
+    )
   }
 
   const zipUploadStream = await createZipUploadStream(
@@ -68,10 +68,9 @@ export async function uploadArtifact(
   const createArtifactResp =
     await artifactClient.CreateArtifact(createArtifactReq)
   if (!createArtifactResp.ok) {
-    core.warning(`Failed to create artifact`)
-    return {
-      success: false
-    }
+    throw new InvalidResponseError(
+      'CreateArtifact: response from backend was not ok'
+    )
   }
 
   // Upload zip to blob storage
@@ -79,11 +78,6 @@ export async function uploadArtifact(
     createArtifactResp.signedUploadUrl,
     zipUploadStream
   )
-  if (uploadResult.isSuccess === false) {
-    return {
-      success: false
-    }
-  }
 
   // finalize the artifact
   const finalizeArtifactReq: FinalizeArtifactRequest = {
@@ -104,10 +98,9 @@ export async function uploadArtifact(
   const finalizeArtifactResp =
     await artifactClient.FinalizeArtifact(finalizeArtifactReq)
   if (!finalizeArtifactResp.ok) {
-    core.warning(`Failed to finalize artifact`)
-    return {
-      success: false
-    }
+    throw new InvalidResponseError(
+      'FinalizeArtifact: response from backend was not ok'
+    )
   }
 
   const artifactId = BigInt(finalizeArtifactResp.artifactId)
@@ -116,7 +109,6 @@ export async function uploadArtifact(
   )
 
   return {
-    success: true,
     size: uploadResult.uploadSize,
     id: Number(artifactId)
   }

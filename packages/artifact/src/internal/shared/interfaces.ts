@@ -5,11 +5,6 @@
  *****************************************************************************/
 export interface UploadArtifactResponse {
   /**
-   * Denotes if an artifact was successfully uploaded
-   */
-  success: boolean
-
-  /**
    * Total size of the artifact in bytes. Not provided if no artifact was uploaded
    */
   size?: number

@@ -7,6 +7,7 @@ import {Timestamp, ArtifactServiceClientJSON} from '../src/generated'
 import * as blobUpload from '../src/internal/upload/blob-upload'
 import {uploadArtifact} from '../src/internal/upload/upload-artifact'
 import {noopLogs} from './common'
+import {FilesNotFoundError} from '../src/internal/shared/errors'
 
 describe('upload-artifact', () => {
   beforeEach(() => {
@@ -59,7 +60,6 @@ describe('upload-artifact', () => {
       )
     jest.spyOn(blobUpload, 'uploadZipToBlobStorage').mockReturnValue(
       Promise.resolve({
-        isSuccess: true,
         uploadSize: 1234,
         sha256Hash: 'test-sha256-hash'
       })
@@ -84,7 +84,7 @@ describe('upload-artifact', () => {
       '/home/user/files/plz-upload'
     )
 
-    expect(uploadResp).resolves.toEqual({success: true, size: 1234, id: 1})
+    expect(uploadResp).resolves.toEqual({size: 1234, id: 1})
   })
 
   it('should throw an error if the root directory is invalid', () => {
@@ -107,7 +107,7 @@ describe('upload-artifact', () => {
     expect(uploadResp).rejects.toThrow('Invalid root directory')
   })
 
-  it('should return false if there are no files to upload', () => {
+  it('should reject if there are no files to upload', () => {
     jest
       .spyOn(uploadZipSpecification, 'validateRootDirectory')
       .mockReturnValue()
@@ -124,7 +124,7 @@ describe('upload-artifact', () => {
       ],
       '/home/user/files/plz-upload'
     )
-    expect(uploadResp).resolves.toEqual({success: false})
+    expect(uploadResp).rejects.toThrowError(FilesNotFoundError)
   })
 
   it('should reject if no backend IDs are found', () => {
@@ -217,7 +217,7 @@ describe('upload-artifact', () => {
       '/home/user/files/plz-upload'
     )
 
-    expect(uploadResp).resolves.toEqual({success: false})
+    expect(uploadResp).rejects.toThrow()
   })
 
   it('should return false if blob storage upload is unsuccessful', () => {
@@ -262,7 +262,7 @@ describe('upload-artifact', () => {
       )
     jest
       .spyOn(blobUpload, 'uploadZipToBlobStorage')
-      .mockReturnValue(Promise.resolve({isSuccess: false}))
+      .mockReturnValue(Promise.reject(new Error('boom')))
 
     // ArtifactHttpClient mocks
     jest.spyOn(config, 'getRuntimeToken').mockReturnValue('test-token')
@@ -280,10 +280,10 @@ describe('upload-artifact', () => {
       '/home/user/files/plz-upload'
     )
 
-    expect(uploadResp).resolves.toEqual({success: false})
+    expect(uploadResp).rejects.toThrow()
   })
 
-  it('should return false if finalize artifact fails', () => {
+  it('should reject if finalize artifact fails', () => {
     const mockDate = new Date('2020-01-01')
     jest
       .spyOn(uploadZipSpecification, 'validateRootDirectory')
@@ -325,7 +325,6 @@ describe('upload-artifact', () => {
       )
     jest.spyOn(blobUpload, 'uploadZipToBlobStorage').mockReturnValue(
       Promise.resolve({
-        isSuccess: true,
         uploadSize: 1234,
         sha256Hash: 'test-sha256-hash'
       })
@@ -350,6 +349,6 @@ describe('upload-artifact', () => {
       '/home/user/files/plz-upload'
     )
 
-    expect(uploadResp).resolves.toEqual({success: false})
+    expect(uploadResp).rejects.toThrow()
   })
 })
