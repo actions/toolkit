@@ -16,6 +16,7 @@ import {
   ListArtifactsRequest
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
+import {ArtifactNotFoundError} from '../shared/errors'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -95,7 +96,7 @@ export async function downloadArtifactPublic(
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
 
-  return {success: true, downloadPath}
+  return {downloadPath}
 }
 
 export async function downloadArtifactInternal(
@@ -118,10 +119,9 @@ export async function downloadArtifactInternal(
   const {artifacts} = await artifactClient.ListArtifacts(listReq)
 
   if (artifacts.length === 0) {
-    core.warning(
+    throw new ArtifactNotFoundError(
       `No artifacts found for ID: ${artifactId}\nAre you trying to download from a different run? Try specifying a github-token with \`actions:read\` scope.`
     )
-    return {success: false}
   }
 
   if (artifacts.length > 1) {
@@ -148,7 +148,7 @@ export async function downloadArtifactInternal(
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
 
-  return {success: true, downloadPath}
+  return {downloadPath}
 }
 
 async function resolveOrCreateDirectory(

@@ -48,7 +48,9 @@ export async function getArtifactPublic(
   }
 
   if (getArtifactResp.data.artifacts.length === 0) {
-    throw new ArtifactNotFoundError(artifactName)
+    throw new ArtifactNotFoundError(
+      `Artifact not found for name: ${artifactName}`
+    )
   }
 
   let artifact = getArtifactResp.data.artifacts[0]
@@ -86,7 +88,9 @@ export async function getArtifactInternal(
   const res = await artifactClient.ListArtifacts(req)
 
   if (res.artifacts.length === 0) {
-    throw new ArtifactNotFoundError(artifactName)
+    throw new ArtifactNotFoundError(
+      `Artifact not found for name: ${artifactName}`
+    )
   }
 
   let artifact = res.artifacts[0]

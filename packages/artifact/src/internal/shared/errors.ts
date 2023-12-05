@@ -21,8 +21,7 @@ export class InvalidResponseError extends Error {
 }
 
 export class ArtifactNotFoundError extends Error {
-  constructor(name: string) {
-    const message = `No artifact found for name: ${name}`
+  constructor(message = 'Artifact not found') {
     super(message)
     this.name = 'ArtifactNotFoundError'
   }

@@ -87,10 +87,6 @@ export interface ListArtifactsResponse {
  *****************************************************************************/
 export interface DownloadArtifactResponse {
   /**
-   * If the artifact download was successful
-   */
-  success: boolean
-  /**
    * The path where the artifact was downloaded to
    */
   downloadPath?: string
