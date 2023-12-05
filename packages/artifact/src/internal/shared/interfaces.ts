@@ -5,11 +5,6 @@
  *****************************************************************************/
 export interface UploadArtifactResponse {
   /**
-   * Denotes if an artifact was successfully uploaded
-   */
-  success: boolean
-
-  /**
    * Total size of the artifact in bytes. Not provided if no artifact was uploaded
    */
   size?: number
@@ -59,14 +54,9 @@ export interface UploadArtifactOptions {
 
 export interface GetArtifactResponse {
   /**
-   * If an artifact was found
-   */
-  success: boolean
-
-  /**
    * Metadata about the artifact that was found
    */
-  artifact?: Artifact
+  artifact: Artifact
 }
 
 /*****************************************************************************
@@ -96,10 +86,6 @@ export interface ListArtifactsResponse {
  *                                                                           *
  *****************************************************************************/
 export interface DownloadArtifactResponse {
-  /**
-   * If the artifact download was successful
-   */
-  success: boolean
   /**
    * The path where the artifact was downloaded to
    */

@@ -8,11 +8,6 @@ import * as stream from 'stream'
 
 export interface BlobUploadResponse {
   /**
-   * If the upload was successful or not
-   */
-  isSuccess: boolean
-
-  /**
    * The total reported upload size in bytes. Empty if the upload failed
    */
   uploadSize?: number
@@ -55,41 +50,28 @@ export async function uploadZipToBlobStorage(
   zipUploadStream.pipe(uploadStream) // This stream is used for the upload
   zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
 
-  try {
-    core.info('Beginning upload of artifact content to blob storage')
+  core.info('Beginning upload of artifact content to blob storage')
 
-    await blockBlobClient.uploadStream(
-      uploadStream,
-      bufferSize,
-      maxConcurrency,
-      options
-    )
+  await blockBlobClient.uploadStream(
+    uploadStream,
+    bufferSize,
+    maxConcurrency,
+    options
+  )
 
-    core.info('Finished uploading artifact content to blob storage!')
+  core.info('Finished uploading artifact content to blob storage!')
 
-    hashStream.end()
-    sha256Hash = hashStream.read() as string
-    core.info(`SHA256 hash of uploaded artifact zip is ${sha256Hash}`)
-  } catch (error) {
-    core.warning(
-      `Failed to upload artifact zip to blob storage, error: ${error}`
-    )
-    return {
-      isSuccess: false
-    }
-  }
+  hashStream.end()
+  sha256Hash = hashStream.read() as string
+  core.info(`SHA256 hash of uploaded artifact zip is ${sha256Hash}`)
 
   if (uploadByteCount === 0) {
     core.warning(
-      `No data was uploaded to blob storage. Reported upload byte count is 0`
+      `No data was uploaded to blob storage. Reported upload byte count is 0.`
     )
-    return {
-      isSuccess: false
-    }
   }
 
   return {
-    isSuccess: true,
     uploadSize: uploadByteCount,
     sha256Hash
   }

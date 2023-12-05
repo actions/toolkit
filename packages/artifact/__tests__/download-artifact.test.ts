@@ -164,7 +164,6 @@ describe('download-artifact', () => {
         fixtures.blobStorageUrl
       )
       expectExtractedArchive(fixtures.workspaceDir)
-      expect(response.success).toBe(true)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
 
@@ -214,7 +213,6 @@ describe('download-artifact', () => {
         fixtures.blobStorageUrl
       )
       expectExtractedArchive(customPath)
-      expect(response.success).toBe(true)
       expect(response.downloadPath).toBe(customPath)
     })
 
@@ -344,7 +342,6 @@ describe('download-artifact', () => {
       const response = await downloadArtifactInternal(fixtures.artifactID)
 
       expectExtractedArchive(fixtures.workspaceDir)
-      expect(response.success).toBe(true)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
@@ -396,7 +393,6 @@ describe('download-artifact', () => {
       })
 
       expectExtractedArchive(customPath)
-      expect(response.success).toBe(true)
       expect(response.downloadPath).toBe(customPath)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({

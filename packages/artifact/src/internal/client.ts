@@ -17,6 +17,7 @@ import {
 } from './download/download-artifact'
 import {getArtifactPublic, getArtifactInternal} from './find/get-artifact'
 import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts'
+import {GHESNotSupportedError} from './shared/errors'
 
 export interface ArtifactClient {
   /**
@@ -52,6 +53,7 @@ export interface ArtifactClient {
   /**
    * Finds an artifact by name.
    * If there are multiple artifacts with the same name in the same workflow run, this will return the latest.
+   * If the artifact is not found, it will throw.
    *
    * If options.findBy is specified, this will use the public List Artifacts API with a name filter which can get artifacts from other runs.
    * https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#list-workflow-run-artifacts
@@ -99,16 +101,11 @@ export class Client implements ArtifactClient {
     rootDirectory: string,
     options?: UploadArtifactOptions
   ): Promise<UploadArtifactResponse> {
-    if (isGhes()) {
-      warning(
-        `@actions/artifact v2.0.0+ and upload-artifact@v4+ are not currently supported on GHES.`
-      )
-      return {
-        success: false
-      }
-    }
-
     try {
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
+
       return uploadArtifact(name, files, rootDirectory, options)
     } catch (error) {
       warning(
@@ -118,9 +115,8 @@ Errors can be temporary, so please try again and optionally run the action with 
 
 If the error persists, please check whether Actions is operating normally at [https://githubstatus.com](https://www.githubstatus.com).`
       )
-      return {
-        success: false
-      }
+
+      throw error
     }
   }
 
@@ -131,16 +127,11 @@ If the error persists, please check whether Actions is operating normally at [ht
     artifactId: number,
     options?: DownloadArtifactOptions & FindOptions
   ): Promise<DownloadArtifactResponse> {
-    if (isGhes()) {
-      warning(
-        `@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.`
-      )
-      return {
-        success: false
-      }
-    }
-
     try {
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
+
       if (options?.findBy) {
         const {
           findBy: {repositoryOwner, repositoryName, token},
@@ -159,16 +150,14 @@ If the error persists, please check whether Actions is operating normally at [ht
       return downloadArtifactInternal(artifactId, options)
     } catch (error) {
       warning(
-        `Artifact download failed with error: ${error}.
+        `Download Artifact failed with error: ${error}.
 
 Errors can be temporary, so please try again and optionally run the action with debug mode enabled for more information.
 
 If the error persists, please check whether Actions and API requests are operating normally at [https://githubstatus.com](https://www.githubstatus.com).`
       )
 
-      return {
-        success: false
-      }
+      throw error
     }
   }
 
@@ -178,16 +167,11 @@ If the error persists, please check whether Actions and API requests are operati
   async listArtifacts(
     options?: ListArtifactsOptions & FindOptions
   ): Promise<ListArtifactsResponse> {
-    if (isGhes()) {
-      warning(
-        `@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.`
-      )
-      return {
-        artifacts: []
-      }
-    }
-
     try {
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
+
       if (options?.findBy) {
         const {
           findBy: {workflowRunId, repositoryOwner, repositoryName, token}
@@ -212,9 +196,7 @@ Errors can be temporary, so please try again and optionally run the action with 
 If the error persists, please check whether Actions and API requests are operating normally at [https://githubstatus.com](https://www.githubstatus.com).`
       )
 
-      return {
-        artifacts: []
-      }
+      throw error
     }
   }
 
@@ -225,16 +207,11 @@ If the error persists, please check whether Actions and API requests are operati
     artifactName: string,
     options?: FindOptions
   ): Promise<GetArtifactResponse> {
-    if (isGhes()) {
-      warning(
-        `@actions/artifact v2.0.0+ and download-artifact@v4+ are not currently supported on GHES.`
-      )
-      return {
-        success: false
-      }
-    }
-
     try {
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
+
       if (options?.findBy) {
         const {
           findBy: {workflowRunId, repositoryOwner, repositoryName, token}
@@ -252,15 +229,13 @@ If the error persists, please check whether Actions and API requests are operati
       return getArtifactInternal(artifactName)
     } catch (error: unknown) {
       warning(
-        `Fetching Artifact failed with error: ${error}.
+        `Get Artifact failed with error: ${error}.
 
 Errors can be temporary, so please try again and optionally run the action with debug mode enabled for more information.
 
 If the error persists, please check whether Actions and API requests are operating normally at [https://githubstatus.com](https://www.githubstatus.com).`
       )
-      return {
-        success: false
-      }
+      throw error
     }
   }
 }
