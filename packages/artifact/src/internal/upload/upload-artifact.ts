@@ -40,11 +40,6 @@ export async function uploadArtifact(
     )
   }
 
-  const zipUploadStream = await createZipUploadStream(
-    zipSpecification,
-    options?.compressionLevel
-  )
-
   // get the IDs needed for the artifact creation
   const backendIds = getBackendIdsFromToken()
 
@@ -72,6 +67,11 @@ export async function uploadArtifact(
       'CreateArtifact: response from backend was not ok'
     )
   }
+
+  const zipUploadStream = await createZipUploadStream(
+    zipSpecification,
+    options?.compressionLevel
+  )
 
   // Upload zip to blob storage
   const uploadResult = await uploadZipToBlobStorage(
