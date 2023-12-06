@@ -62,7 +62,7 @@ class ArtifactHttpClient implements Rpc {
       const {body} = await this.retryableRequest(async () =>
         this.httpClient.post(url, JSON.stringify(data), headers)
       )
-      
+
       return JSON.parse(body)
     } catch (error) {
       throw new Error(`Failed to ${method}: ${error.message}`)
@@ -71,7 +71,7 @@ class ArtifactHttpClient implements Rpc {
 
   async retryableRequest(
     operation: () => Promise<HttpClientResponse>
-  ): Promise<{response: HttpClientResponse, body: string}> {
+  ): Promise<{response: HttpClientResponse; body: string}> {
     let attempt = 0
     let errorMessage = ''
     while (attempt < this.maxAttempts) {
