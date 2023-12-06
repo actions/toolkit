@@ -6,17 +6,16 @@ This is the core library that powers the [`@actions/upload-artifact`](https://gi
 
 
 - [`@actions/artifact`](#actionsartifact)
-  - [v2 - Major Performance and Behavioral Improvements](#v2---major-performance-and-behavioral-improvements)
+  - [v2 - What's New](#v2---whats-new)
     - [Improvements](#improvements)
     - [Breaking changes](#breaking-changes)
-  - [Example scenarios](#example-scenarios)
-    - [Basic Upload and Download](#basic-upload-and-download)
-    - [Using `actions/github-script`](#using-actionsgithub-script)
-    - [Downloading from other runs or repos](#downloading-from-other-runs-or-repos)
+  - [Quick Start](#quick-start)
+  - [Examples](#examples)
+    - [Upload and Download](#upload-and-download)
+    - [Downloading from other workflow runs or repos](#downloading-from-other-workflow-runs-or-repos)
     - [Speeding up large uploads](#speeding-up-large-uploads)
 
-
-## v2 - Major Performance and Behavioral Improvements
+## v2 - What's New
 
 > [!IMPORTANT]
 > @actions/artifact v2+, download-artifact@v4+ download-artifact@v4+ are not currently supported on GHES yet. The previous version of this package can be found at [this tag](https://github.com/actions/toolkit/tree/@actions/artifact@1.1.2/packages/artifact) and [on npm](https://www.npmjs.com/package/@actions/artifact/v/1.1.2).
@@ -25,8 +24,8 @@ The release of `@actions/artifact@v2` (including `download-artifact@v4` and `dow
 
 ### Improvements
 
-1. All upload and download operations are exponentially faster, up to 80% faster download times and 96% faster upload times in worst case scenarios.
-2. Once uploaded, Artifacts becoming immediately available in the UI and [REST API](https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28). Previously, you would have to wait for the run to be completed.
+1. All upload and download operations are much quicker, up to 80% faster download times and 96% faster upload times in worst case scenarios.
+2. Once uploaded, Artifacts becoming immediately available in the UI and [REST API](https://docs.github.com/en/rest/actions/artifacts). Previously, you would have to wait for the run to be completed.
 3. Artifacts are _immutable_ once they are uploaded. They cannot be altered by subsequent jobs. (Digest/integrity hash coming soon in API!)
 4. This library (and `actions/download-artifact`) now support downloading Artifacts from _other_ repositories and runs if a `GITHUB_TOKEN` with sufficient `actions:read` permissions are provided.
 
@@ -46,12 +45,94 @@ The release of `@actions/artifact@v2` (including `download-artifact@v4` and `dow
 
     Due to the behavior of how Artifacts are created in this new version, it is no longer possible to upload to the same named Artifact multiple times. You must either split the uploads into multiple names Artifacts, or only upload once.
 
-## Example scenarios
+## Quick Start
 
-### Basic Upload and Download
+Install the package:
 
-### Using `actions/github-script`
+```
+npm i @actions/artifact
+```
 
-### Downloading from other runs or repos
+Import the module:
+
+```js
+// ES6 module
+import artifact from '@actions/artifact'
+
+// CommonJS
+const {default: artifact} = require('@actions/artifact')
+```
+
+ℹ️ For a comprehensive list of classes, interfaces, functions and more, see the [generated documentation](./docs/generated/README.md).
+
+## Examples
+
+### Upload and Download
+
+This is the most basic scenario, uploading one or more files to an Artifact, then downloading it. Downloads are based on the Artifact ID, which can be obtained in the response of `uploadArtifact`, `getArtifact`, `listArtifacts` or via the [REST API](https://docs.github.com/en/rest/actions/artifacts).
+
+```js
+const {id, size} = await artifact.uploadArtifact(
+  // name of the artifact
+  'my-artifact',
+  // files to include (supports absolute and relative paths)
+  ['/absolute/path/file1.txt', './relative/file2.txt'],
+  {
+    // optional: how long to retain the artifact
+    // if unspecified, defaults to repository/org retention settings (the limit of this value)
+    retentionDays: 10
+  }
+)
+
+console.log(`Created artifact with id: ${id} (bytes: ${size}`)
+
+const {downloadPath} = await artifact.downloadArtifact(id, {
+  // optional: download destination path. otherwise defaults to $GITHUB_WORKSPACE
+  path: '/tmp/dst/path',
+})
+
+console.log(`Downloaded artifact ${id} to: ${downloadPath}`)
+```
+
+### Downloading from other workflow runs or repos
+
+It may be useful to download Artifacts from other workflow runs, or even other repositories. By default, the permissions are scoped so they can only download Artifacts within the current workflow run. To elevate permissions for this scenario, you must specify `options.findBy` to `downloadArtifact`.
+
+```ts
+const findBy = {
+  // must have actions:read permission on target repository
+  token: process.env['GITHUB_TOKEN'],
+  workflowRunId: 123,
+  repositoryOwner: 'actions',
+  repositoryName: 'toolkit'
+}
+
+await artifact.downloadArtifact(1337, {
+  findBy
+})
+
+// can also be used in other methods
+
+await artifact.getArtifact('my-artifact', {
+  findBy
+})
+
+await artifact.listArtifacts({
+  findBy
+})
+```
 
 ### Speeding up large uploads
+
+If you have large files that need to be uploaded (or file types that don't compress well), you may benefit from changing the compression level of the Artifact archive. NOTE: This is a tradeoff between artifact upload time and stored data size.
+
+```ts
+await artifact.uploadArtifact('my-massive-artifact', ['big_file.bin'], {
+  // The level of compression for Zlib to be applied to the artifact archive.
+  // - 0: No compression
+  // - 1: Best speed
+  // - 6: Default compression (same as GNU Gzip)
+  // - 9: Best compression
+  compressionLevel: 0
+})
+```
