@@ -19,9 +19,9 @@ This is the core library that powers the [`@actions/upload-artifact`](https://gi
 ## v2 - What's New
 
 > [!IMPORTANT]
-> @actions/artifact v2+, download-artifact@v4+ download-artifact@v4+ are not currently supported on GHES yet. The previous version of this package can be found at [this tag](https://github.com/actions/toolkit/tree/@actions/artifact@1.1.2/packages/artifact) and [on npm](https://www.npmjs.com/package/@actions/artifact/v/1.1.2).
+> @actions/artifact v2+, upload-artifact@v4+ download-artifact@v4+ are not currently supported on GHES yet. The previous version of this package can be found at [this tag](https://github.com/actions/toolkit/tree/@actions/artifact@1.1.2/packages/artifact) and [on npm](https://www.npmjs.com/package/@actions/artifact/v/1.1.2).
 
-The release of `@actions/artifact@v2` (including `download-artifact@v4` and `download-artifact@v4`) are major changes to the backend architecture of Artifacts. They have numerous performance and behavioral improvements.
+The release of `@actions/artifact@v2` (including `upload-artifact@v4` and `download-artifact@v4`) are major changes to the backend architecture of Artifacts. They have numerous performance and behavioral improvements.
 
 ### Improvements
 
