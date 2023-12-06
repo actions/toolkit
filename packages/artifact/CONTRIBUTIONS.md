@@ -6,7 +6,7 @@ Any issues or feature requests that are related to the artifact actions should b
 
 A limited range of unit tests run as part of each PR when making changes to the artifact packages. For small contributions and fixes, they should be sufficient.
 
-If making large changes, there are a few scenarios that should be tested.
+If making large changes, there are a few scenarios that should be tested:
 
 - Uploading very large artifacts
 - Uploading artifacts with lots of small files
