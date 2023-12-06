@@ -58,21 +58,21 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const artifact = require('./packages/artifact/lib/artifact')
+          const {default: artifact} = require('./packages/artifact/lib/artifact')
 
           const artifactName = 'my-artifact-${{ matrix.runs-on }}'
           console.log('artifactName: ' + artifactName)
 
           const fileContents = ['artifact-path/first.txt','artifact-path/second.txt']
 
-          const uploadResult = await artifact.create().uploadArtifact(artifactName, fileContents, './')
+          const uploadResult = await artifact.uploadArtifact(artifactName, fileContents, './')
           console.log(uploadResult)
 
           const size = uploadResult.size
           const id = uploadResult.id
 
           console.log(`Successfully uploaded artifact ${id}`)
-           
+
   verify:
     runs-on: ubuntu-latest
     needs: [build]
@@ -100,14 +100,14 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const artifact = require('./packages/artifact/lib/artifact')
+          const {default: artifact} = require('./packages/artifact/lib/artifact')
 
           const workflowRunId = process.env.GITHUB_RUN_ID
           const repository = process.env.GITHUB_REPOSITORY
           const repositoryOwner = repository.split('/')[0]
           const repositoryName = repository.split('/')[1]
 
-          const listResult = await artifact.create().listArtifacts(workflowRunId, repositoryOwner, repositoryName, '${{ secrets.GITHUB_TOKEN }}')
+          const listResult = await artifact.listArtifacts(workflowRunId, repositoryOwner, repositoryName, '${{ secrets.GITHUB_TOKEN }}')
           console.log(listResult)
 
           const artifacts = listResult.artifacts

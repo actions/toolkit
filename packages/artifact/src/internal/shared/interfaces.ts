@@ -127,7 +127,7 @@ export interface Artifact {
 }
 
 // FindOptions are for fetching Artifact(s) out of the scope of the current run.
-// Must specify a PAT with actions:read scope for cross run/repo lookup otherwise these will be ignored.
+// Must specify a token with actions:read scope for cross run/repo lookup otherwise these will be ignored.
 export interface FindOptions {
   findBy?: {
     // Token with actions:read permissions

@@ -94,3 +94,10 @@
 ### 1.1.1
 
 - Fixed a bug in Node16 where if an HTTP download finished too quickly (<1ms, e.g. when it's mocked) we attempt to delete a temp file that has not been created yet [#1278](https://github.com/actions/toolkit/pull/1278/commits/b9de68a590daf37c6747e38d3cb4f1dd2cfb791c)
+
+### 2.0.0
+
+Major release. Supports new Artifact backend for improved speed, reliability and behavior.
+Numerous API changes, [some breaking](./README.md#breaking-changes).
+
+Blog post with more info: TBD
