@@ -98,4 +98,4 @@
 ### 2.0.0
 
 Major release. Supports new Artifact backend for improved speed, reliability and behavior.
-Numerous API changes, some breaking.
+Numerous API changes, [some breaking](./README.md#breaking-changes).
