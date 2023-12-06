@@ -14,6 +14,7 @@ This is the core library that powers the [`@actions/upload-artifact`](https://gi
     - [Upload and Download](#upload-and-download)
     - [Downloading from other workflow runs or repos](#downloading-from-other-workflow-runs-or-repos)
     - [Speeding up large uploads](#speeding-up-large-uploads)
+  - [Additional Resources](#additional-resources)
 
 ## v2 - What's New
 
@@ -136,3 +137,9 @@ await artifact.uploadArtifact('my-massive-artifact', ['big_file.bin'], {
   compressionLevel: 0
 })
 ```
+
+## Additional Resources
+
+- [Releases](./RELEASES.md)
+- [Contribution Guide](./CONTRIBUTIONS.md)
+- [Frequently Asked Questions](./docs/faq.md)
