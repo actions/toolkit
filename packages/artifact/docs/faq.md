@@ -6,7 +6,7 @@
 
 ## Supported Characters
 
-When uploading an artifact, the inputted `name` parameter along with the files specified in `files` cannot contain any of the following characters. They will be rejected by the server if attempted to be sent over and the upload will fail. These characters are not allowed due to limitations and restrictions with certain file systems such as NTFS. To maintain platform-agnostic behavior, all characters that are not supported by an individual filesystem/platform will not be supported on all filesystems/platforms.
+When uploading an artifact, the inputted `name` parameter along with the files specified in `files` cannot contain any of the following characters. If they are present in `name` or `files`,  the Artifact will be rejected by the server and the upload will fail. These characters are not allowed due to limitations and restrictions with certain file systems such as NTFS. To maintain platform-agnostic behavior, characters that are not supported by an individual filesystem/platform will not be supported on all filesystems/platforms.
 
 - "
 - :
