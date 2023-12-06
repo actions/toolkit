@@ -1,8 +1,6 @@
-/*****************************************************************************
- *                                                                           *
- *                            UploadArtifact                                 *
- *                                                                           *
- *****************************************************************************/
+/**
+ * Response from the server when an artifact is uploaded
+ */
 export interface UploadArtifactResponse {
   /**
    * Total size of the artifact in bytes. Not provided if no artifact was uploaded
@@ -16,6 +14,9 @@ export interface UploadArtifactResponse {
   id?: number
 }
 
+/**
+ * Options for uploading an artifact
+ */
 export interface UploadArtifactOptions {
   /**
    * Duration after which artifact will expire in days.
@@ -46,12 +47,9 @@ export interface UploadArtifactOptions {
   compressionLevel?: number
 }
 
-/*****************************************************************************
- *                                                                           *
- *                              GetArtifact                                  *
- *                                                                           *
- *****************************************************************************/
-
+/**
+ * Response from the server when getting an artifact
+ */
 export interface GetArtifactResponse {
   /**
    * Metadata about the artifact that was found
@@ -59,12 +57,9 @@ export interface GetArtifactResponse {
   artifact: Artifact
 }
 
-/*****************************************************************************
- *                                                                           *
- *                             ListArtifact                                  *
- *                                                                           *
- *****************************************************************************/
-
+/**
+ * Options for listing artifacts
+ */
 export interface ListArtifactsOptions {
   /**
    * Filter the workflow run's artifacts to the latest by name
@@ -73,6 +68,9 @@ export interface ListArtifactsOptions {
   latest?: boolean
 }
 
+/**
+ * Response from the server when listing artifacts
+ */
 export interface ListArtifactsResponse {
   /**
    * A list of artifacts that were found
@@ -80,11 +78,9 @@ export interface ListArtifactsResponse {
   artifacts: Artifact[]
 }
 
-/*****************************************************************************
- *                                                                           *
- *                           DownloadArtifact                                *
- *                                                                           *
- *****************************************************************************/
+/**
+ * Response from the server when downloading an artifact
+ */
 export interface DownloadArtifactResponse {
   /**
    * The path where the artifact was downloaded to
@@ -92,6 +88,9 @@ export interface DownloadArtifactResponse {
   downloadPath?: string
 }
 
+/**
+ * Options for downloading an artifact
+ */
 export interface DownloadArtifactOptions {
   /**
    * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
@@ -99,11 +98,9 @@ export interface DownloadArtifactOptions {
   path?: string
 }
 
-/*****************************************************************************
- *                                                                           *
- *                                 Shared                                    *
- *                                                                           *
- *****************************************************************************/
+/**
+ * An Actions Artifact
+ */
 export interface Artifact {
   /**
    * The name of the artifact
@@ -127,16 +124,18 @@ export interface Artifact {
 }
 
 // FindOptions are for fetching Artifact(s) out of the scope of the current run.
-// Must specify a token with actions:read scope for cross run/repo lookup otherwise these will be ignored.
 export interface FindOptions {
-  findBy?: {
-    // Token with actions:read permissions
-    token: string
-    // WorkflowRun of the artifact(s) to lookup
-    workflowRunId: number
-    // Repository owner
-    repositoryOwner: string
-    // Repository name
-    repositoryName: string
-  }
+  findBy?: FindBy
+}
+
+// FindBy are the criteria for finding Artifact(s) out of the scope of the current run.
+export interface FindBy {
+  // Token with actions:read permissions
+  token: string
+  // WorkflowRun of the artifact(s) to lookup
+  workflowRunId: number
+  // Repository owner
+  repositoryOwner: string
+  // Repository name
+  repositoryName: string
 }
