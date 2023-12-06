@@ -39,7 +39,7 @@ The release of `@actions/artifact@v2` (including `upload-artifact@v4` and `downl
 
     e.g.
 
-    ```
+    ```bash
     curl https://api.github.com/meta | jq .domains.actions
     ```
 
