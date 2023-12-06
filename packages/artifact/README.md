@@ -27,7 +27,7 @@ The release of `@actions/artifact@v2` (including `download-artifact@v4` and `dow
 
 1. All upload and download operations are much quicker, up to 80% faster download times and 96% faster upload times in worst case scenarios.
 2. Once uploaded, Artifacts are immediately available in the UI and [REST API](https://docs.github.com/en/rest/actions/artifacts). Previously, you would have to wait for the run to be completed.
-3. Artifacts are _immutable_ once they are uploaded. They cannot be altered by subsequent jobs. (Digest/integrity hash coming soon in API!)
+3. Artifacts are _immutable_ once they are uploaded. They cannot be altered by subsequent jobs. (Digest/integrity hash coming soon in the API!)
 4. This library (and `actions/download-artifact`) now support downloading Artifacts from _other_ repositories and runs if a `GITHUB_TOKEN` with sufficient `actions:read` permissions are provided.
 
 ### Breaking changes
