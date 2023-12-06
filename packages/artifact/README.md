@@ -47,6 +47,10 @@ The release of `@actions/artifact@v2` (including `upload-artifact@v4` and `downl
 
     Due to how Artifacts are created in this new version, it is no longer possible to upload to the same named Artifact multiple times. You must either split the uploads into multiple Artifacts with different names, or only upload once.
 
+3. Limit of Artifacts for an individual job.
+
+    Each job in a workflow run now has a limit of 10 artifacts.
+
 ## Quick Start
 
 Install the package:
