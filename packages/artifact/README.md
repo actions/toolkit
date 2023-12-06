@@ -70,7 +70,7 @@ const {default: artifact} = require('@actions/artifact')
 
 ### Upload and Download
 
-This is the most basic scenario, uploading one or more files to an Artifact, then downloading it. Downloads are based on the Artifact ID, which can be obtained in the response of `uploadArtifact`, `getArtifact`, `listArtifacts` or via the [REST API](https://docs.github.com/en/rest/actions/artifacts).
+The most basic scenario is uploading one or more files to an Artifact, then downloading that Artifact. Downloads are based on the Artifact ID, which can be obtained in the response of `uploadArtifact`, `getArtifact`, `listArtifacts` or via the [REST API](https://docs.github.com/en/rest/actions/artifacts).
 
 ```js
 const {id, size} = await artifact.uploadArtifact(
