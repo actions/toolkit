@@ -12,8 +12,19 @@
 
 ### findBy
 
-• `Optional` **findBy**: [`FindBy`](FindBy.md)
+• `Optional` **findBy**: `Object`
+
+The criteria for finding Artifact(s) out of the scope of the current run.
+
+#### Type declaration
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `repositoryName` | `string` | Repository owner (eg. 'toolkit') |
+| `repositoryOwner` | `string` | Repository owner (eg. 'actions') |
+| `token` | `string` | Token with actions:read permissions |
+| `workflowRunId` | `number` | WorkflowRun of the artifact(s) to lookup |
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:128](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/shared/interfaces.ts#L128)
+[src/internal/shared/interfaces.ts:131](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/interfaces.ts#L131)

@@ -18,7 +18,6 @@
 - [ArtifactClient](interfaces/ArtifactClient.md)
 - [DownloadArtifactOptions](interfaces/DownloadArtifactOptions.md)
 - [DownloadArtifactResponse](interfaces/DownloadArtifactResponse.md)
-- [FindBy](interfaces/FindBy.md)
 - [FindOptions](interfaces/FindOptions.md)
 - [GetArtifactResponse](interfaces/GetArtifactResponse.md)
 - [ListArtifactsOptions](interfaces/ListArtifactsOptions.md)
@@ -38,4 +37,4 @@
 
 #### Defined in
 
-[src/artifact.ts:7](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/artifact.ts#L7)
+[src/artifact.ts:7](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/artifact.ts#L7)

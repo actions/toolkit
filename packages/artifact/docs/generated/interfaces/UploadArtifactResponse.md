@@ -22,7 +22,7 @@ This ID can be used as input to other APIs to download, delete or get more infor
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:14](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/shared/interfaces.ts#L14)
+[src/internal/shared/interfaces.ts:14](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/interfaces.ts#L14)
 
 ___
 
@@ -34,4 +34,4 @@ Total size of the artifact in bytes. Not provided if no artifact was uploaded
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:8](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/shared/interfaces.ts#L8)
+[src/internal/shared/interfaces.ts:8](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/interfaces.ts#L8)

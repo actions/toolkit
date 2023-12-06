@@ -60,7 +60,7 @@ single DownloadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:119](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/client.ts#L119)
+[src/internal/client.ts:119](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L119)
 
 ___
 
@@ -95,7 +95,7 @@ If there are multiple artifacts with the same name in the same workflow run this
 
 #### Defined in
 
-[src/internal/client.ts:193](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/client.ts#L193)
+[src/internal/client.ts:193](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L193)
 
 ___
 
@@ -127,7 +127,7 @@ ListArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:157](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/client.ts#L157)
+[src/internal/client.ts:157](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L157)
 
 ___
 
@@ -158,4 +158,4 @@ single UploadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:94](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/client.ts#L94)
+[src/internal/client.ts:94](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L94)

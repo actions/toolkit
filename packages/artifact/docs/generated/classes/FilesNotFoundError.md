@@ -49,7 +49,7 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:4](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/shared/errors.ts#L4)
+[src/internal/shared/errors.ts:4](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/errors.ts#L4)
 
 ## Properties
 
@@ -59,7 +59,7 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:2](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/shared/errors.ts#L2)
+[src/internal/shared/errors.ts:2](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/errors.ts#L2)
 
 ___
 

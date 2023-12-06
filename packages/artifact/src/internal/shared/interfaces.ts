@@ -125,17 +125,25 @@ export interface Artifact {
 
 // FindOptions are for fetching Artifact(s) out of the scope of the current run.
 export interface FindOptions {
-  findBy?: FindBy
-}
-
-// FindBy are the criteria for finding Artifact(s) out of the scope of the current run.
-export interface FindBy {
-  // Token with actions:read permissions
-  token: string
-  // WorkflowRun of the artifact(s) to lookup
-  workflowRunId: number
-  // Repository owner
-  repositoryOwner: string
-  // Repository name
-  repositoryName: string
+  /**
+   * The criteria for finding Artifact(s) out of the scope of the current run.
+   */
+  findBy?: {
+    /**
+     * Token with actions:read permissions
+     */
+    token: string
+    /**
+     * WorkflowRun of the artifact(s) to lookup
+     */
+    workflowRunId: number
+    /**
+     * Repository owner (eg. 'actions')
+     */
+    repositoryOwner: string
+    /**
+     * Repository owner (eg. 'toolkit')
+     */
+    repositoryName: string
+  }
 }

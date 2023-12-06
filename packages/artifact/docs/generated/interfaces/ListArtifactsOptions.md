@@ -21,4 +21,4 @@ In the case of reruns, this can be useful to avoid duplicates
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:68](https://github.com/actions/toolkit/blob/207747e/packages/artifact/src/internal/shared/interfaces.ts#L68)
+[src/internal/shared/interfaces.ts:68](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/interfaces.ts#L68)
