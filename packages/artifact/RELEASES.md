@@ -99,3 +99,5 @@
 
 Major release. Supports new Artifact backend for improved speed, reliability and behavior.
 Numerous API changes, [some breaking](./README.md#breaking-changes).
+
+Blog post with more info: TBD

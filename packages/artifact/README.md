@@ -27,8 +27,9 @@ The release of `@actions/artifact@v2` (including `upload-artifact@v4` and `downl
 
 1. All upload and download operations are much quicker, up to 80% faster download times and 96% faster upload times in worst case scenarios.
 2. Once uploaded, an Artifact ID is returned and Artifacts are immediately available in the UI and [REST API](https://docs.github.com/en/rest/actions/artifacts). Previously, you would have to wait for the run to be completed before an ID was available or any APIs could be utilized.
-3. Artifacts are _immutable_ once they are uploaded. They cannot be altered by subsequent jobs. (Digest/integrity hash coming soon in the API!)
-4. This library (and `actions/download-artifact`) now support downloading Artifacts from _other_ repositories and runs if a `GITHUB_TOKEN` with sufficient `actions:read` permissions are provided.
+3. Artifacts can now be downloaded and deleted from the UI _before_ the entire workflow run finishes.
+4. The contents of an Artifact are uploaded together into an _immutable_ archive. They cannot be altered by subsequent jobs. Both of these factors help reduce the possibility of accidentally corrupting Artifact files. (Digest/integrity hash coming soon in the API!)
+5. This library (and `actions/download-artifact`) now support downloading Artifacts from _other_ repositories and runs if a `GITHUB_TOKEN` with sufficient `actions:read` permissions are provided.
 
 ### Breaking changes
 
