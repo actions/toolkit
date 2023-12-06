@@ -55,7 +55,7 @@ The release of `@actions/artifact@v2` (including `upload-artifact@v4` and `downl
 
 Install the package:
 
-```
+```bash
 npm i @actions/artifact
 ```
 
