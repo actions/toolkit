@@ -44,7 +44,7 @@ The release of `@actions/artifact@v2` (including `download-artifact@v4` and `dow
 
 2. Uploading to the same named Artifact multiple times.
 
-    Due to the behavior of how Artifacts are created in this new version, it is no longer possible to upload to the same named Artifact multiple times. You must either split the uploads into multiple names Artifacts, or only upload once.
+    Due to how Artifacts are created in this new version, it is no longer possible to upload to the same named Artifact multiple times. You must either split the uploads into multiple Artifacts with different names, or only upload once.
 
 ## Quick Start
 
