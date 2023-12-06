@@ -80,11 +80,10 @@ class ArtifactHttpClient implements Rpc {
       try {
         const response = await operation()
         const statusCode = response.message.statusCode
-        const raw = await response.readBody()
-        const body = JSON.parse(raw)
+        const body = await response.readBody()
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
-        debug(`Body: ${JSON.stringify(body, null, 2)}`)
+        debug(`Body: ${body}`)
 
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
