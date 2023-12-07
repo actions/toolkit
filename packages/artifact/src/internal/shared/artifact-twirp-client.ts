@@ -59,10 +59,10 @@ class ArtifactHttpClient implements Rpc {
       'Content-Type': contentType
     }
     try {
-      const response = await this.retryableRequest(async () =>
+      const {body} = await this.retryableRequest(async () =>
         this.httpClient.post(url, JSON.stringify(data), headers)
       )
-      const body = await response.readBody()
+
       return JSON.parse(body)
     } catch (error) {
       throw new Error(`Failed to ${method}: ${error.message}`)
@@ -71,7 +71,7 @@ class ArtifactHttpClient implements Rpc {
 
   async retryableRequest(
     operation: () => Promise<HttpClientResponse>
-  ): Promise<HttpClientResponse> {
+  ): Promise<{response: HttpClientResponse; body: string}> {
     let attempt = 0
     let errorMessage = ''
     while (attempt < this.maxAttempts) {
@@ -80,11 +80,13 @@ class ArtifactHttpClient implements Rpc {
       try {
         const response = await operation()
         const statusCode = response.message.statusCode
-        debug(`[Response] ${response.message.statusCode}`)
-        debug(JSON.stringify(response.message.headers, null, 2))
+        const body = await response.readBody()
+        debug(`[Response] - ${response.message.statusCode}`)
+        debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
+        debug(`Body: ${body}`)
 
         if (this.isSuccessStatusCode(statusCode)) {
-          return response
+          return {response, body}
         }
 
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
