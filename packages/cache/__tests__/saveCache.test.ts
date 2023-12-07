@@ -186,7 +186,7 @@ test('save with reserve cache failure should fail', async () => {
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
       const response: TypedResponse<ReserveCacheResponse> = {
-        statusCode: 500,
+        statusCode: 501,
         result: null,
         headers: {}
       }
@@ -228,7 +228,7 @@ test('save with server error should fail', async () => {
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
       const response: TypedResponse<ReserveCacheResponse> = {
-        statusCode: 500,
+        statusCode: 501,
         result: {cacheId},
         headers: {}
       }
@@ -282,7 +282,7 @@ test('save with valid inputs uploads a cache', async () => {
     .spyOn(cacheHttpClient, 'reserveCache')
     .mockImplementation(async () => {
       const response: TypedResponse<ReserveCacheResponse> = {
-        statusCode: 500,
+        statusCode: 501,
         result: {cacheId},
         headers: {}
       }
