@@ -132,9 +132,7 @@ class ArtifactHttpClient implements Rpc {
       HttpCodes.BadGateway,
       HttpCodes.GatewayTimeout,
       HttpCodes.InternalServerError,
-      HttpCodes.ServiceUnavailable,
-      HttpCodes.TooManyRequests,
-      413 // Payload Too Large
+      HttpCodes.ServiceUnavailable
     ]
 
     return retryableStatusCodes.includes(statusCode)
