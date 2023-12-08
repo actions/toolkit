@@ -2,7 +2,7 @@ import fs from 'fs/promises'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as httpClient from '@actions/http-client'
-import unzipper from 'unzipper'
+import unzipper from 'unzip-stream'
 import {
   DownloadArtifactOptions,
   DownloadArtifactResponse
