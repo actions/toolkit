@@ -76,6 +76,9 @@ class ArtifactHttpClient implements Rpc {
     let errorMessage = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
+      let isDuplicateArtifactName = false
+      let isTooManyArtifacts = false
+      const maxArtifacts = 10
 
       try {
         const response = await operation()
@@ -89,6 +92,8 @@ class ArtifactHttpClient implements Rpc {
           return {response, body}
         }
 
+        isDuplicateArtifactName = this.isAlreadyExistsStatusCode(statusCode)
+        isTooManyArtifacts = this.isTooManyArtifacts(statusCode)
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
       } catch (error) {
@@ -96,6 +101,14 @@ class ArtifactHttpClient implements Rpc {
         errorMessage = error.message
       }
 
+      if (isDuplicateArtifactName) {
+        throw new Error(`Artifact name already exists`)
+      }
+      if (isTooManyArtifacts) {
+        throw new Error(
+          `Reached artifact upload limit for job; limit is ${maxArtifacts}`
+        )
+      }
       if (!isRetryable) {
         throw new Error(`Received non-retryable error: ${errorMessage}`)
       }
@@ -118,6 +131,16 @@ class ArtifactHttpClient implements Rpc {
     }
 
     throw new Error(`Request failed`)
+  }
+
+  isAlreadyExistsStatusCode(statusCode?: number): boolean {
+    if (!statusCode) return false
+    return statusCode === HttpCodes.Conflict
+  }
+
+  isTooManyArtifacts(statusCode?: number): boolean {
+    if (!statusCode) return false
+    return statusCode === HttpCodes.BadRequest
   }
 
   isSuccessStatusCode(statusCode?: number): boolean {
