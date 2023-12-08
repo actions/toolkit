@@ -74,11 +74,9 @@ class ArtifactHttpClient implements Rpc {
   ): Promise<{response: HttpClientResponse; body: string}> {
     let attempt = 0
     let errorMessage = ''
+    let errorResponse = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
-      let isDuplicateArtifactName = false
-      let isTooManyArtifacts = false
-      const maxArtifacts = 10
 
       try {
         const response = await operation()
@@ -87,13 +85,10 @@ class ArtifactHttpClient implements Rpc {
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
         debug(`Body: ${body}`)
-
+        errorResponse = body
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
         }
-
-        isDuplicateArtifactName = this.isAlreadyExistsStatusCode(statusCode)
-        isTooManyArtifacts = this.isTooManyArtifacts(statusCode)
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
       } catch (error) {
@@ -101,16 +96,8 @@ class ArtifactHttpClient implements Rpc {
         errorMessage = error.message
       }
 
-      if (isDuplicateArtifactName) {
-        throw new Error(`Artifact name already exists`)
-      }
-      if (isTooManyArtifacts) {
-        throw new Error(
-          `Reached artifact upload limit for job; limit is ${maxArtifacts}`
-        )
-      }
       if (!isRetryable) {
-        throw new Error(`Received non-retryable error: ${errorMessage}`)
+        throw new Error(`Received non-retryable error: ${errorResponse}`)
       }
 
       if (attempt + 1 === this.maxAttempts) {
@@ -131,16 +118,6 @@ class ArtifactHttpClient implements Rpc {
     }
 
     throw new Error(`Request failed`)
-  }
-
-  isAlreadyExistsStatusCode(statusCode?: number): boolean {
-    if (!statusCode) return false
-    return statusCode === HttpCodes.Conflict
-  }
-
-  isTooManyArtifacts(statusCode?: number): boolean {
-    if (!statusCode) return false
-    return statusCode === HttpCodes.BadRequest
   }
 
   isSuccessStatusCode(statusCode?: number): boolean {
