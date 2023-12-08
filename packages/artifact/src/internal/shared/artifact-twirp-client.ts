@@ -85,10 +85,11 @@ class ArtifactHttpClient implements Rpc {
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
         debug(`Body: ${body}`)
-        errorResponse = body
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
         }
+        // only parse the JSON if status is non-successful
+        errorResponse = JSON.parse(body).msg
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
       } catch (error) {
@@ -97,7 +98,11 @@ class ArtifactHttpClient implements Rpc {
       }
 
       if (!isRetryable) {
-        throw new Error(`Received non-retryable error: ${errorResponse}`)
+        if (!errorMessage) {
+          throw new Error(`Received non-retryable error: ${errorResponse}`)
+        }
+
+        throw new Error(`Received non-retryable error: ${errorMessage}`)
       }
 
       if (attempt + 1 === this.maxAttempts) {
