@@ -74,7 +74,6 @@ class ArtifactHttpClient implements Rpc {
   ): Promise<{response: HttpClientResponse; body: string}> {
     let attempt = 0
     let errorMessage = ''
-    const errorResponse = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
 
