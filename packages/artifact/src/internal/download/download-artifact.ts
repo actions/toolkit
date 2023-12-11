@@ -2,7 +2,7 @@ import fs from 'fs/promises'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as httpClient from '@actions/http-client'
-import unzipper from 'unzipper'
+import unzip from 'unzip-stream'
 import {
   DownloadArtifactOptions,
   DownloadArtifactResponse
@@ -47,7 +47,12 @@ async function streamExtract(url: string, directory: string): Promise<void> {
     )
   }
 
-  return response.message.pipe(unzipper.Extract({path: directory})).promise()
+  return new Promise((resolve, reject) => {
+    response.message
+      .pipe(unzip.Extract({path: directory}))
+      .on('close', resolve)
+      .on('error', reject)
+  })
 }
 
 export async function downloadArtifactPublic(
