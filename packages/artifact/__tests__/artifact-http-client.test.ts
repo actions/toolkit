@@ -196,12 +196,13 @@ describe('artifact-http-client', () => {
     const mockPost = jest.fn(() => {
       const msgFailed = new http.IncomingMessage(new net.Socket())
       msgFailed.statusCode = 409
-      msgFailed.statusMessage =
-        'Conflict: an artifact with this name already exists on the workflow run'
+      msgFailed.statusMessage = 'Conflict'
       return {
         message: msgFailed,
         readBody: async () => {
-          return Promise.resolve(`{"ok": false}`)
+          return Promise.resolve(
+            `{"msg": "an artifact with this name already exists on the workflow run"}`
+          )
         }
       }
     })
