@@ -4,6 +4,7 @@ import {info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 import {getUserAgentString} from './user-agent'
+import {NetworkError} from './errors'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -96,6 +97,9 @@ class ArtifactHttpClient implements Rpc {
       } catch (error) {
         isRetryable = true
         errorMessage = error.message
+        if (NetworkError.isNetworkErrorCode(error?.code)) {
+          throw new NetworkError(error?.code)
+        }
       }
 
       if (!isRetryable) {
