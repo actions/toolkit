@@ -1,11 +1,18 @@
-import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
+import {
+  AnonymousCredential,
+  BlobClient,
+  BlockBlobUploadStreamOptions,
+  StoragePipelineOptions
+} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/core-http'
 import {ZipUploadStream} from './zip'
 import {getUploadChunkSize, getConcurrency} from '../shared/config'
+import {getProxyUrl} from '@actions/http-client'
 import * as core from '@actions/core'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
 import {NetworkError} from '../shared/errors'
+import {getUserAgentString} from '../shared/user-agent'
 
 export interface BlobUploadResponse {
   /**
@@ -27,7 +34,12 @@ export async function uploadZipToBlobStorage(
 
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
-  const blobClient = new BlobClient(authenticatedUploadURL)
+
+  const blobClient = new BlobClient(
+    authenticatedUploadURL,
+    new AnonymousCredential(),
+    getBlobClientOptions(authenticatedUploadURL)
+  )
   const blockBlobClient = blobClient.getBlockBlobClient()
 
   core.debug(
@@ -84,4 +96,38 @@ export async function uploadZipToBlobStorage(
     uploadSize: uploadByteCount,
     sha256Hash
   }
+}
+
+export function getBlobClientOptions(sasURL: string): StoragePipelineOptions {
+  const options: StoragePipelineOptions = {
+    userAgentOptions: {
+      userAgentPrefix: getUserAgentString()
+    }
+  }
+
+  const proxyUrl = getProxyUrl(sasURL)
+  if (proxyUrl !== '') {
+    const {
+      port: portString,
+      hostname: host,
+      username,
+      password,
+      protocol
+    } = new URL(proxyUrl)
+    core.debug(`Using proxy server for blob storage upload, host: ${host}`)
+
+    let port = protocol === 'https:' ? 443 : 80
+    if (portString !== '') {
+      port = parseInt(portString)
+    }
+
+    options.proxyOptions = {
+      host,
+      port,
+      username,
+      password
+    }
+  }
+
+  return options
 }

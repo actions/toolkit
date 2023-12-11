@@ -352,3 +352,46 @@ describe('upload-artifact', () => {
     expect(uploadResp).rejects.toThrow()
   })
 })
+
+describe('getBlobClientOptions', () => {
+  afterEach(() => {
+    delete process.env['HTTPS_PROXY']
+    delete process.env['HTTP_PROXY']
+    delete process.env['NO_PROXY']
+    jest.restoreAllMocks()
+  })
+
+  it('should not use proxy settings if not specified', () => {
+    const opts = blobUpload.getBlobClientOptions('https://blob-storage.local')
+    expect(opts.proxyOptions).toBeUndefined()
+  })
+
+  it('should use https proxy settings from environment', () => {
+    process.env['HTTPS_PROXY'] = 'https://foo:bar@my-proxy.local'
+    const opts = blobUpload.getBlobClientOptions('https://blob-storage.local')
+    expect(opts.proxyOptions).toEqual({
+      host: 'my-proxy.local',
+      port: 443,
+      username: 'foo',
+      password: 'bar'
+    })
+  })
+
+  it('should use http proxy settings from environment', () => {
+    process.env['HTTP_PROXY'] = 'http://foo:bar@my-proxy.local:1234'
+    const opts = blobUpload.getBlobClientOptions('http://blob-storage.local')
+    expect(opts.proxyOptions).toEqual({
+      host: 'my-proxy.local',
+      port: 1234,
+      username: 'foo',
+      password: 'bar'
+    })
+  })
+
+  it('should respect NO_PROXY', () => {
+    process.env['HTTPS_PROXY'] = 'https://foo:bar@my-proxy.local'
+    process.env['NO_PROXY'] = 'no-proxy-me.local'
+    const opts = blobUpload.getBlobClientOptions('https://no-proxy-me.local')
+    expect(opts.proxyOptions).toBeUndefined()
+  })
+})
