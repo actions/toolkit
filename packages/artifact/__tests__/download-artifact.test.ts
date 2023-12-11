@@ -104,6 +104,7 @@ const mockGetArtifactSuccess = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 200
   message.push(fs.readFileSync(fixtures.exampleArtifact.path))
+  message.push(null)
   return {
     message
   }
@@ -113,6 +114,7 @@ const mockGetArtifactFailure = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 500
   message.push('Internal Server Error')
+  message.push(null)
   return {
     message
   }
