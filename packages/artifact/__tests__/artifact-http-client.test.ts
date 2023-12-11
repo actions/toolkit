@@ -190,4 +190,52 @@ describe('artifact-http-client', () => {
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
     expect(mockPost).toHaveBeenCalledTimes(1)
   })
+
+  it('should fail with a descriptive error', async () => {
+    // 409 duplicate error
+    const mockPost = jest.fn(() => {
+      const msgFailed = new http.IncomingMessage(new net.Socket())
+      msgFailed.statusCode = 409
+      msgFailed.statusMessage = 'Conflict'
+      return {
+        message: msgFailed,
+        readBody: async () => {
+          return Promise.resolve(
+            `{"msg": "an artifact with this name already exists on the workflow run"}`
+          )
+        }
+      }
+    })
+
+    const mockHttpClient = (
+      HttpClient as unknown as jest.Mock
+    ).mockImplementation(() => {
+      return {
+        post: mockPost
+      }
+    })
+    const client = internalArtifactTwirpClient({
+      maxAttempts: 5,
+      retryIntervalMs: 1,
+      retryMultiplier: 1.5
+    })
+    await expect(async () => {
+      await client.CreateArtifact({
+        workflowRunBackendId: '1234',
+        workflowJobRunBackendId: '5678',
+        name: 'artifact',
+        version: 4
+      })
+      await client.CreateArtifact({
+        workflowRunBackendId: '1234',
+        workflowJobRunBackendId: '5678',
+        name: 'artifact',
+        version: 4
+      })
+    }).rejects.toThrowError(
+      'Failed to CreateArtifact: Received non-retryable error: Failed request: (409) Conflict: an artifact with this name already exists on the workflow run'
+    )
+    expect(mockHttpClient).toHaveBeenCalledTimes(1)
+    expect(mockPost).toHaveBeenCalledTimes(1)
+  })
 })

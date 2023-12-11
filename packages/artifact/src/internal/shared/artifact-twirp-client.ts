@@ -84,13 +84,15 @@ class ArtifactHttpClient implements Rpc {
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
         debug(`Body: ${body}`)
-
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
         }
-
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
+        const responseMessage = JSON.parse(body).msg
+        if (responseMessage) {
+          errorMessage = `${errorMessage}: ${responseMessage}`
+        }
       } catch (error) {
         isRetryable = true
         errorMessage = error.message
