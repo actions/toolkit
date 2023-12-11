@@ -74,7 +74,7 @@ class ArtifactHttpClient implements Rpc {
   ): Promise<{response: HttpClientResponse; body: string}> {
     let attempt = 0
     let errorMessage = ''
-    let errorResponse = ''
+    const errorResponse = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
 
@@ -88,20 +88,18 @@ class ArtifactHttpClient implements Rpc {
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
         }
-        // only parse the JSON if status is non-successful
-        errorResponse = JSON.parse(body).msg
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
+        const responseMessage = JSON.parse(body).msg
+        if (responseMessage) {
+          errorMessage = `${errorMessage}: ${responseMessage}`
+        }
       } catch (error) {
         isRetryable = true
         errorMessage = error.message
       }
 
       if (!isRetryable) {
-        if (!errorMessage) {
-          throw new Error(`Received non-retryable error: ${errorResponse}`)
-        }
-
         throw new Error(`Received non-retryable error: ${errorMessage}`)
       }
 
