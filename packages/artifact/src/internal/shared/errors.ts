@@ -35,3 +35,25 @@ export class GHESNotSupportedError extends Error {
     this.name = 'GHESNotSupportedError'
   }
 }
+
+export class NetworkError extends Error {
+  code: string
+
+  constructor(code: string) {
+    const message = `Unable to make request: ${code}\nIf you are using self-hosted runners, please make sure your runner has access to all GitHub endpoints: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners#communication-between-self-hosted-runners-and-github`
+    super(message)
+    this.code = code
+    this.name = 'NetworkError'
+  }
+
+  static isNetworkErrorCode = (code?: string): boolean => {
+    if (!code) return false
+    return [
+      'ECONNRESET',
+      'ENOTFOUND',
+      'ETIMEDOUT',
+      'ECONNREFUSED',
+      'EHOSTUNREACH'
+    ].includes(code)
+  }
+}

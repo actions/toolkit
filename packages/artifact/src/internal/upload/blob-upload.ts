@@ -5,6 +5,7 @@ import {getUploadChunkSize, getConcurrency} from '../shared/config'
 import * as core from '@actions/core'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
+import {NetworkError} from '../shared/errors'
 
 export interface BlobUploadResponse {
   /**
@@ -52,12 +53,20 @@ export async function uploadZipToBlobStorage(
 
   core.info('Beginning upload of artifact content to blob storage')
 
-  await blockBlobClient.uploadStream(
-    uploadStream,
-    bufferSize,
-    maxConcurrency,
-    options
-  )
+  try {
+    await blockBlobClient.uploadStream(
+      uploadStream,
+      bufferSize,
+      maxConcurrency,
+      options
+    )
+  } catch (error) {
+    if (NetworkError.isNetworkErrorCode(error?.code)) {
+      throw new NetworkError(error?.code)
+    }
+
+    throw error
+  }
 
   core.info('Finished uploading artifact content to blob storage!')
 

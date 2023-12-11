@@ -7,6 +7,12 @@ import {noopLogs} from './common'
 
 jest.mock('@actions/http-client')
 
+const clientOptions = {
+  maxAttempts: 5,
+  retryIntervalMs: 1,
+  retryMultiplier: 1.5
+}
+
 describe('artifact-http-client', () => {
   beforeAll(() => {
     noopLogs()
@@ -94,11 +100,7 @@ describe('artifact-http-client', () => {
       }
     })
 
-    const client = internalArtifactTwirpClient({
-      maxAttempts: 5,
-      retryIntervalMs: 1,
-      retryMultiplier: 1.5
-    })
+    const client = internalArtifactTwirpClient(clientOptions)
     const artifact = await client.CreateArtifact({
       workflowRunBackendId: '1234',
       workflowJobRunBackendId: '5678',
@@ -133,11 +135,7 @@ describe('artifact-http-client', () => {
         post: mockPost
       }
     })
-    const client = internalArtifactTwirpClient({
-      maxAttempts: 5,
-      retryIntervalMs: 1,
-      retryMultiplier: 1.5
-    })
+    const client = internalArtifactTwirpClient(clientOptions)
     await expect(async () => {
       await client.CreateArtifact({
         workflowRunBackendId: '1234',
@@ -172,11 +170,7 @@ describe('artifact-http-client', () => {
         post: mockPost
       }
     })
-    const client = internalArtifactTwirpClient({
-      maxAttempts: 5,
-      retryIntervalMs: 1,
-      retryMultiplier: 1.5
-    })
+    const client = internalArtifactTwirpClient(clientOptions)
     await expect(async () => {
       await client.CreateArtifact({
         workflowRunBackendId: '1234',
@@ -214,11 +208,7 @@ describe('artifact-http-client', () => {
         post: mockPost
       }
     })
-    const client = internalArtifactTwirpClient({
-      maxAttempts: 5,
-      retryIntervalMs: 1,
-      retryMultiplier: 1.5
-    })
+    const client = internalArtifactTwirpClient(clientOptions)
     await expect(async () => {
       await client.CreateArtifact({
         workflowRunBackendId: '1234',
@@ -234,6 +224,41 @@ describe('artifact-http-client', () => {
       })
     }).rejects.toThrowError(
       'Failed to CreateArtifact: Received non-retryable error: Failed request: (409) Conflict: an artifact with this name already exists on the workflow run'
+    )
+    expect(mockHttpClient).toHaveBeenCalledTimes(1)
+    expect(mockPost).toHaveBeenCalledTimes(1)
+  })
+
+  it('should properly describe a network failure', async () => {
+    class FakeNodeError extends Error {
+      code: string
+      constructor(code: string) {
+        super()
+        this.code = code
+      }
+    }
+
+    const mockPost = jest.fn(() => {
+      throw new FakeNodeError('ENOTFOUND')
+    })
+
+    const mockHttpClient = (
+      HttpClient as unknown as jest.Mock
+    ).mockImplementation(() => {
+      return {
+        post: mockPost
+      }
+    })
+    const client = internalArtifactTwirpClient()
+    await expect(async () => {
+      await client.CreateArtifact({
+        workflowRunBackendId: '1234',
+        workflowJobRunBackendId: '5678',
+        name: 'artifact',
+        version: 4
+      })
+    }).rejects.toThrowError(
+      'Failed to CreateArtifact: Unable to make request: ENOTFOUND\nIf you are using self-hosted runners, please make sure your runner has access to all GitHub endpoints: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners#communication-between-self-hosted-runners-and-github'
     )
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
     expect(mockPost).toHaveBeenCalledTimes(1)
