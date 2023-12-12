@@ -57,3 +57,16 @@ export class NetworkError extends Error {
     ].includes(code)
   }
 }
+
+export class UsageError extends Error {
+  constructor() {
+    const message = `Artifact storage quota has been hit. Unable to upload any new artifacts. Usage is recalculated every 6-12 hours.\nMore info on storage limits: https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#calculating-minute-and-storage-spending`
+    super(message)
+    this.name = 'UsageError'
+  }
+
+  static isUsageErrorMessage = (msg?: string): boolean => {
+    if (!msg) return false
+    return msg.includes('insufficient usage')
+  }
+}

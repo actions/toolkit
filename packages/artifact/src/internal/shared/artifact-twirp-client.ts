@@ -4,7 +4,7 @@ import {info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 import {getUserAgentString} from './user-agent'
-import {NetworkError} from './errors'
+import {NetworkError, UsageError} from './errors'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -64,7 +64,7 @@ class ArtifactHttpClient implements Rpc {
         this.httpClient.post(url, JSON.stringify(data), headers)
       )
 
-      return JSON.parse(body)
+      return body
     } catch (error) {
       throw new Error(`Failed to ${method}: ${error.message}`)
     }
@@ -72,34 +72,49 @@ class ArtifactHttpClient implements Rpc {
 
   async retryableRequest(
     operation: () => Promise<HttpClientResponse>
-  ): Promise<{response: HttpClientResponse; body: string}> {
+  ): Promise<{response: HttpClientResponse; body: object}> {
     let attempt = 0
     let errorMessage = ''
+    let rawBody = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
 
       try {
         const response = await operation()
         const statusCode = response.message.statusCode
-        const body = await response.readBody()
+        rawBody = await response.readBody()
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
-        debug(`Body: ${body}`)
+        const body = JSON.parse(rawBody)
+        debug(`Body: ${JSON.stringify(body, null, 2)}`)
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
         }
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
-        const responseMessage = JSON.parse(body).msg
-        if (responseMessage) {
-          errorMessage = `${errorMessage}: ${responseMessage}`
+        if (body.msg) {
+          if (UsageError.isUsageErrorMessage(body.msg)) {
+            throw new UsageError()
+          }
+
+          errorMessage = `${errorMessage}: ${body.msg}`
         }
       } catch (error) {
-        isRetryable = true
-        errorMessage = error.message
+        if (error instanceof SyntaxError) {
+          debug(`Raw Body: ${rawBody}`)
+          throw error
+        }
+
+        if (error instanceof UsageError) {
+          throw error
+        }
+
         if (NetworkError.isNetworkErrorCode(error?.code)) {
           throw new NetworkError(error?.code)
         }
+
+        isRetryable = true
+        errorMessage = error.message
       }
 
       if (!isRetryable) {
