@@ -4,6 +4,7 @@ import {HttpClient} from '@actions/http-client'
 import * as config from '../src/internal/shared/config'
 import {internalArtifactTwirpClient} from '../src/internal/shared/artifact-twirp-client'
 import {noopLogs} from './common'
+import {NetworkError, UsageError} from '../src/internal/shared/errors'
 
 jest.mock('@actions/http-client')
 
@@ -257,9 +258,42 @@ describe('artifact-http-client', () => {
         name: 'artifact',
         version: 4
       })
-    }).rejects.toThrowError(
-      'Failed to CreateArtifact: Unable to make request: ENOTFOUND\nIf you are using self-hosted runners, please make sure your runner has access to all GitHub endpoints: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners#communication-between-self-hosted-runners-and-github'
-    )
+    }).rejects.toThrowError(new NetworkError('ENOTFOUND').message)
+    expect(mockHttpClient).toHaveBeenCalledTimes(1)
+    expect(mockPost).toHaveBeenCalledTimes(1)
+  })
+
+  it('should properly describe a usage error', async () => {
+    const mockPost = jest.fn(() => {
+      const msgFailed = new http.IncomingMessage(new net.Socket())
+      msgFailed.statusCode = 403
+      msgFailed.statusMessage = 'Forbidden'
+      return {
+        message: msgFailed,
+        readBody: async () => {
+          return Promise.resolve(
+            `{"msg": "insufficient usage to create artifact"}`
+          )
+        }
+      }
+    })
+
+    const mockHttpClient = (
+      HttpClient as unknown as jest.Mock
+    ).mockImplementation(() => {
+      return {
+        post: mockPost
+      }
+    })
+    const client = internalArtifactTwirpClient()
+    await expect(async () => {
+      await client.CreateArtifact({
+        workflowRunBackendId: '1234',
+        workflowJobRunBackendId: '5678',
+        name: 'artifact',
+        version: 4
+      })
+    }).rejects.toThrowError(new UsageError().message)
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
     expect(mockPost).toHaveBeenCalledTimes(1)
   })
