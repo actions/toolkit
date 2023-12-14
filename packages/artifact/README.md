@@ -63,10 +63,16 @@ Import the module:
 
 ```js
 // ES6 module
-import artifact from '@actions/artifact'
+import {DefaultArtifactClient} from '@actions/artifact'
 
 // CommonJS
-const {default: artifact} = require('@actions/artifact')
+const {DefaultArtifactClient} = require('@actions/artifact')
+```
+
+Then instantiate:
+
+```js
+const artifact = new DefaultArtifactClient()
 ```
 
 ℹ️ For a comprehensive list of classes, interfaces, functions and more, see the [generated documentation](./docs/generated/README.md).
