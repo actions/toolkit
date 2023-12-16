@@ -3,6 +3,7 @@
 import * as http from 'http'
 import * as httpm from '../lib/'
 import * as pm from '../lib/proxy'
+import {ProxyAgent} from 'undici'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const proxy = require('proxy')
 
@@ -13,7 +14,7 @@ const _proxyUrl = 'http://127.0.0.1:8080'
 describe('proxy', () => {
   beforeAll(async () => {
     // Start proxy server
-    _proxyServer = proxy()
+    _proxyServer = proxy.createProxy()
     await new Promise<void>(resolve => {
       const port = Number(_proxyUrl.split(':')[2])
       _proxyServer.listen(port, () => resolve())
@@ -89,6 +90,12 @@ describe('proxy', () => {
     process.env['no_proxy'] = 'otherserver,myserver,anotherserver:8080'
     const proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
     expect(proxyUrl).toBeDefined()
+  })
+
+  it('getProxyUrl returns proxyUrl if http_proxy has no protocol', () => {
+    process.env['http_proxy'] = 'myproxysvr'
+    const proxyUrl = pm.getProxyUrl(new URL('http://github.com'))
+    expect(proxyUrl?.toString()).toBe('http://myproxysvr/')
   })
 
   it('checkBypass returns true if host as no_proxy list', () => {
@@ -287,6 +294,15 @@ describe('proxy', () => {
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
     expect(agent.proxyOptions.proxyAuth).toBe('user:password')
+  })
+
+  it('ProxyAgent is returned when proxy setting are provided', async () => {
+    process.env['https_proxy'] = 'http://127.0.0.1:8080'
+    const httpClient = new httpm.HttpClient()
+    const agent = httpClient.getAgentDispatcher('https://some-url')
+    // eslint-disable-next-line no-console
+    console.log(agent)
+    expect(agent instanceof ProxyAgent).toBe(true)
   })
 })
 

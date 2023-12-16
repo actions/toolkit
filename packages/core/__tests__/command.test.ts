@@ -17,7 +17,7 @@ describe('@actions/core/src/command', () => {
   afterEach(() => {})
 
   afterAll(() => {
-    process.stdout.write = (originalWriteFunction as unknown) as (
+    process.stdout.write = originalWriteFunction as unknown as (
       str: string
     ) => boolean
   })
@@ -51,8 +51,7 @@ describe('@actions/core/src/command', () => {
     command.issueCommand(
       'some-command',
       {
-        name:
-          'percent % percent % cr \r cr \r lf \n lf \n colon : colon : comma , comma ,'
+        name: 'percent % percent % cr \r cr \r lf \n lf \n colon : colon : comma , comma ,'
       },
       ''
     )
@@ -117,11 +116,11 @@ describe('@actions/core/src/command', () => {
     command.issueCommand(
       'some-command',
       {
-        prop1: ({test: 'object'} as unknown) as string,
-        prop2: (123 as unknown) as string,
-        prop3: (true as unknown) as string
+        prop1: {test: 'object'} as unknown as string,
+        prop2: 123 as unknown as string,
+        prop3: true as unknown as string
       },
-      ({test: 'object'} as unknown) as string
+      {test: 'object'} as unknown as string
     )
     assertWriteCalls([
       `::some-command prop1={"test"%3A"object"},prop2=123,prop3=true::{"test":"object"}${os.EOL}`

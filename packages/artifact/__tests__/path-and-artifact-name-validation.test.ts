@@ -1,16 +1,13 @@
 import {
-  checkArtifactName,
-  checkArtifactFilePath
-} from '../src/internal/path-and-artifact-name-validation'
-import * as core from '@actions/core'
+  validateArtifactName,
+  validateFilePath
+} from '../src/internal/upload/path-and-artifact-name-validation'
+
+import {noopLogs} from './common'
 
 describe('Path and artifact name validation', () => {
   beforeAll(() => {
-    // mock all output so that there is less noise when running tests
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
+    noopLogs()
   })
 
   it('Check Artifact Name for any invalid characters', () => {
@@ -28,7 +25,7 @@ describe('Path and artifact name validation', () => {
     ]
     for (const invalidName of invalidNames) {
       expect(() => {
-        checkArtifactName(invalidName)
+        validateArtifactName(invalidName)
       }).toThrow()
     }
 
@@ -39,7 +36,7 @@ describe('Path and artifact name validation', () => {
     ]
     for (const validName of validNames) {
       expect(() => {
-        checkArtifactName(validName)
+        validateArtifactName(validName)
       }).not.toThrow()
     }
   })
@@ -60,7 +57,7 @@ describe('Path and artifact name validation', () => {
     ]
     for (const invalidName of invalidNames) {
       expect(() => {
-        checkArtifactFilePath(invalidName)
+        validateFilePath(invalidName)
       }).toThrow()
     }
 
@@ -71,7 +68,7 @@ describe('Path and artifact name validation', () => {
     ]
     for (const validName of validNames) {
       expect(() => {
-        checkArtifactFilePath(validName)
+        validateFilePath(validName)
       }).not.toThrow()
     }
   })

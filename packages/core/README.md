@@ -333,3 +333,28 @@ toPlatformPath('/foo/bar') // => \foo\bar
 // On a Linux runner.
 toPlatformPath('\\foo\\bar') // => /foo/bar
 ```
+
+#### Platform helper
+
+Provides shorthands for getting information about platform action is running on.
+
+```js
+import { platform } from '@actions/core'
+
+/* equals to a call of os.platform() */
+platform.platform // 'win32' | 'darwin' | 'linux' | 'freebsd' | 'openbsd' | 'android' | 'cygwin' | 'sunos'
+
+/* equals to a call of os.arch() */
+platform.arch // 'x64' | 'arm' | 'arm64' | 'ia32' | 'mips' | 'mipsel' | 'ppc' | 'ppc64' | 'riscv64' | 's390' | 's390x'
+
+/* common shorthands for platform-specific logic */
+platform.isWindows // true
+platform.isMacOS // false
+platform.isLinux // false
+
+/* run platform-specific script to get more details about the exact platform, works on Windows, MacOS and Linux */
+const {
+  name, // Microsoft Windows 11 Enterprise
+  version, // 10.0.22621
+} = await platform.getDetails()
+```
