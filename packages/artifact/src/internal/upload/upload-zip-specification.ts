@@ -5,14 +5,19 @@ import {validateFilePath} from './path-and-artifact-name-validation'
 
 export interface UploadZipSpecification {
   /**
-   * An absolute source path that points to a file that will be added to a zip. Null if creating a new directory
+   * An absolute source path that points to a file that will be added to a zip.
    */
-  sourcePath: string | null
+  sourcePath: string
 
   /**
    * The destination path in a zip for a file
    */
   destinationPath: string
+
+  /**
+   * Information about the file on disk
+   */
+  stats: fs.Stats
 }
 
 /**
@@ -75,37 +80,26 @@ export function getUploadZipSpecification(
           - file3.txt
   */
   for (let file of filesToZip) {
-    if (!fs.existsSync(file)) {
-      throw new Error(`File ${file} does not exist`)
+    const stats = fs.statSync(file, {throwIfNoEntry: false})
+    if (!stats) throw new Error(`File ${file} does not exist`)
+    // Normalize and resolve, this allows for either absolute or relative paths to be used
+    file = normalize(file)
+    file = resolve(file)
+    if (!file.startsWith(rootDirectory)) {
+      throw new Error(
+        `The rootDirectory: ${rootDirectory} is not a parent directory of the file: ${file}`
+      )
     }
-    if (!fs.statSync(file).isDirectory()) {
-      // Normalize and resolve, this allows for either absolute or relative paths to be used
-      file = normalize(file)
-      file = resolve(file)
-      if (!file.startsWith(rootDirectory)) {
-        throw new Error(
-          `The rootDirectory: ${rootDirectory} is not a parent directory of the file: ${file}`
-        )
-      }
 
-      // Check for forbidden characters in file paths that may cause ambiguous behavior if downloaded on different file systems
-      const uploadPath = file.replace(rootDirectory, '')
-      validateFilePath(uploadPath)
+    // Check for forbidden characters in file paths that may cause ambiguous behavior if downloaded on different file systems
+    const destinationPath = file.replace(rootDirectory, '')
+    validateFilePath(destinationPath)
 
-      specification.push({
-        sourcePath: file,
-        destinationPath: uploadPath
-      })
-    } else {
-      // Empty directory
-      const directoryPath = file.replace(rootDirectory, '')
-      validateFilePath(directoryPath)
-
-      specification.push({
-        sourcePath: null,
-        destinationPath: directoryPath
-      })
-    }
+    specification.push({
+      sourcePath: file,
+      destinationPath,
+      stats
+    })
   }
   return specification
 }
