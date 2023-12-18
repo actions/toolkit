@@ -17,7 +17,7 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
-import {BlobClient, } from '@azure/storage-blob'
+import {BlobClient} from '@azure/storage-blob'
 
 
 const scrubQueryParameters = (url: string): string => {
