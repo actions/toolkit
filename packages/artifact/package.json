@@ -53,7 +53,8 @@
     "crypto": "^1.0.1",
     "jwt-decode": "^3.1.2",
     "twirp-ts": "^2.5.0",
-    "unzip-stream": "^0.3.1"
+    "unzip-stream": "^0.3.1",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@types/archiver": "^5.3.2",

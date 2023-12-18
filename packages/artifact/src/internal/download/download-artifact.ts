@@ -1,13 +1,14 @@
 import fs from 'fs/promises'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
-import * as httpClient from '@actions/http-client'
+// import * as httpClient from '@actions/http-client'
+import * as util from 'util'
 import unzip from 'unzip-stream'
 import {
   DownloadArtifactOptions,
   DownloadArtifactResponse
 } from '../shared/interfaces'
-import {getUserAgentString} from '../shared/user-agent'
+// import {getUserAgentString} from '../shared/user-agent'
 import {getGitHubWorkspaceDir} from '../shared/config'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {
@@ -18,7 +19,6 @@ import {
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
 import {BlobClient} from '@azure/storage-blob'
-
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -42,9 +42,11 @@ async function exists(path: string): Promise<boolean> {
 async function streamExtract(url: string, directory: string): Promise<void> {
   const blobClient = new BlobClient(url)
   const response = await blobClient.download()
-  
+  core.info(util.inspect(blobClient))
+  core.info(util.inspect(response))
   return new Promise((resolve, reject) => {
-    response.readableStreamBody?.pipe(unzip.Extract({path: directory}))
+    response.readableStreamBody
+      ?.pipe(unzip.Extract({path: directory}))
       .on('close', resolve)
       .on('error', reject)
   })
