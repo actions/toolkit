@@ -17,6 +17,8 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
+import {once} from 'events'
+import {sign} from 'crypto'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -40,16 +42,23 @@ async function exists(path: string): Promise<boolean> {
 async function streamExtract(url: string, directory: string): Promise<void> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
-
+  const ac = new AbortController()
+  const signal = ac.signal
   if (response.message.statusCode !== 200) {
     throw new Error(
       `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
     )
   }
-
   return new Promise((resolve, reject) => {
     response.message
       .pipe(unzip.Extract({path: directory}))
+      .once('abort', () => {
+        signal.addEventListener('abort', () => {
+          throw new Error(
+            `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${signal.reason}`
+          )
+        })
+      })
       .on('close', resolve)
       .on('error', reject)
   })
