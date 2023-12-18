@@ -17,6 +17,8 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
+import {BlobClient, } from '@azure/storage-blob'
+
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -38,18 +40,11 @@ async function exists(path: string): Promise<boolean> {
 }
 
 async function streamExtract(url: string, directory: string): Promise<void> {
-  const client = new httpClient.HttpClient(getUserAgentString())
-  const response = await client.get(url)
-
-  if (response.message.statusCode !== 200) {
-    throw new Error(
-      `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
-    )
-  }
-
+  const blobClient = new BlobClient(url)
+  const response = await blobClient.download()
+  
   return new Promise((resolve, reject) => {
-    response.message
-      .pipe(unzip.Extract({path: directory}))
+    response.readableStreamBody?.pipe(unzip.Extract({path: directory}))
       .on('close', resolve)
       .on('error', reject)
   })
