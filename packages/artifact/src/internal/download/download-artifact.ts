@@ -42,12 +42,11 @@ async function exists(path: string): Promise<boolean> {
 async function streamExtract(url: string, directory: string): Promise<void> {
   const blobClient = new BlobClient(url)
   const options: BlobDownloadOptions = {
-    maxRetryRequests: 3,
-    abortSignal: undefined,
-    onProgress: (progress) => core.debug(`Download progress: ${progress.loadedBytes}`)
+    maxRetryRequests: 5,
+    onProgress: (progress) => core.info(`Download bytes ${progress.loadedBytes}`)
   }
 
-  const response = await blobClient.download(0, 0, options)
+  const response = await blobClient.download(0, undefined, options)
 
   return new Promise((resolve, reject) => {
     response.readableStreamBody
