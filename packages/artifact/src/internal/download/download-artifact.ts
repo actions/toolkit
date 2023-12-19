@@ -50,10 +50,11 @@ async function streamExtract(url: string, directory: string): Promise<void> {
 
   return new Promise((resolve, reject) => {
     response.readableStreamBody
-      ?.pipe(unzip.Extract({path: directory}))
-      .on('close', resolve)
-      .on('error', reject)
+      ?.on('error', reject)
       .on('aborted', reject)
+      .pipe(unzip.Extract({path: directory}))
+      .on('error', reject)
+      .on('close', resolve)
   })
 }
 
