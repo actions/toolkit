@@ -52,6 +52,7 @@
     "archiver": "^5.3.1",
     "crypto": "^1.0.1",
     "jwt-decode": "^3.1.2",
+    "nock": "^13.4.0",
     "twirp-ts": "^2.5.0",
     "unzip-stream": "^0.3.1"
   },

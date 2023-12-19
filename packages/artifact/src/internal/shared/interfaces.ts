@@ -45,6 +45,21 @@ export interface UploadArtifactOptions {
    * For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
    */
   compressionLevel?: number
+  /**
+   * The simulated network error we'll temporarily use to test the azure blob
+   * client behavior.
+   * The value can range from 0 to 6
+   * 0 - fetchError
+   * 1 - abortError
+   * 2 - networkError
+   * 3 - securityError
+   * 4 - notAllowedError
+   * 5 - quotaExceededError
+   * 6 - random
+   * 7 - none
+   *
+   */
+  simulateError?: number
 }
 
 /**

@@ -5,8 +5,17 @@ import {getUploadChunkSize, getConcurrency} from '../shared/config'
 import * as core from '@actions/core'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
+import nock from 'nock'
 import {NetworkError} from '../shared/errors'
 
+export const DEFAULT_ERROR_NUMBER = 7
+export const ERROR_TYPES = [
+  'fetchError',
+  'abortError',
+  'securityError',
+  'notAllowedError',
+  'quotaExceededError'
+]
 export interface BlobUploadResponse {
   /**
    * The total reported upload size in bytes. Empty if the upload failed
@@ -18,10 +27,58 @@ export interface BlobUploadResponse {
    */
   sha256Hash?: string
 }
-
+export async function sendSimulatedError(
+  simulatedError: number,
+  authenticatedUploadURL: string
+): Promise<void> {
+  switch (simulatedError) {
+    case 0: {
+      nock(authenticatedUploadURL).get('/').replyWithError({
+        code: 'ECONNRESET',
+        message: 'socket hang up'
+      })
+      break
+    }
+    case 1: {
+      const controller = new AbortController()
+      controller.abort()
+      break
+    }
+    case 2: {
+      nock(authenticatedUploadURL).get('/').replyWithError({
+        code: 'ETIMEDOUT'
+      })
+      break
+    }
+    case 3: {
+      nock(authenticatedUploadURL).get('/').reply(403)
+      break
+    }
+    case 4: {
+      nock(authenticatedUploadURL).get('/').reply(405)
+      break
+    }
+    case 5: {
+      nock(authenticatedUploadURL).get('/').reply(429)
+      break
+    }
+    case 6: {
+      const rand = Math.floor(Math.random() * ERROR_TYPES.length)
+      sendSimulatedError(rand, authenticatedUploadURL)
+      break
+    }
+    case 7: {
+      core.info('no error selected')
+      break
+    }
+    default:
+      core.error('something went wrong')
+  }
+}
 export async function uploadZipToBlobStorage(
   authenticatedUploadURL: string,
-  zipUploadStream: ZipUploadStream
+  zipUploadStream: ZipUploadStream,
+  simulatedError: number = DEFAULT_ERROR_NUMBER
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
 
@@ -36,6 +93,9 @@ export async function uploadZipToBlobStorage(
 
   const uploadCallback = (progress: TransferProgressEvent): void => {
     core.info(`Uploaded bytes ${progress.loadedBytes}`)
+    if (progress.loadedBytes > 1) {
+      sendSimulatedError(simulatedError, authenticatedUploadURL)
+    }
     uploadByteCount = progress.loadedBytes
   }
 
