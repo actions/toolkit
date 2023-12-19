@@ -18,7 +18,7 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
-import {BlobClient} from '@azure/storage-blob'
+import {BlobClient, BlobDownloadOptions} from '@azure/storage-blob'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -41,14 +41,20 @@ async function exists(path: string): Promise<boolean> {
 
 async function streamExtract(url: string, directory: string): Promise<void> {
   const blobClient = new BlobClient(url)
-  const response = await blobClient.download()
-  core.info(util.inspect(blobClient))
-  core.info(util.inspect(response))
+  const options: BlobDownloadOptions = {
+    maxRetryRequests: 3,
+    abortSignal: undefined,
+    onProgress: (progress) => core.debug(`Download progress: ${progress.loadedBytes}`)
+  }
+
+  const response = await blobClient.download(0, 0, options)
+
   return new Promise((resolve, reject) => {
     response.readableStreamBody
       ?.pipe(unzip.Extract({path: directory}))
       .on('close', resolve)
       .on('error', reject)
+      .on('aborted', reject)
   })
 }
 
