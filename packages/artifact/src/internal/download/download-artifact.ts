@@ -67,11 +67,30 @@ async function streamExtractInternal(
 
   return new Promise((resolve, reject) => {
     const zipStream = unzip.Extract({path: directory})
+
+    const timeout = 30 * 1000
+    const timerFn = (): void => {
+      throw new Error(`Blob storage chunk did not respond in ${timeout}ms `)
+    }
+    let timer = setTimeout(timerFn, timeout)
+
     try {
-      response.message.pipe(zipStream).on('close', resolve).on('error', reject)
+      response.message
+        .on('data', () => {
+          clearTimeout(timer)
+          timer = setTimeout(timerFn, timeout)
+        })
+        .pipe(zipStream)
+        .on('close', () => {
+          clearTimeout(timer)
+          resolve()
+        })
+        .on('error', reject)
     } catch (error) {
       zipStream.end()
       reject(error)
+    } finally {
+      clearTimeout(timer)
     }
   })
 }
