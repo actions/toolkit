@@ -16,6 +16,7 @@ export class Context {
   action: string
   actor: string
   job: string
+  runAttempt: number
   runNumber: number
   runId: number
   apiUrl: string
@@ -44,6 +45,7 @@ export class Context {
     this.action = process.env.GITHUB_ACTION as string
     this.actor = process.env.GITHUB_ACTOR as string
     this.job = process.env.GITHUB_JOB as string
+    this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT as string, 10)
     this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER as string, 10)
     this.runId = parseInt(process.env.GITHUB_RUN_ID as string, 10)
     this.apiUrl = process.env.GITHUB_API_URL ?? `https://api.github.com`

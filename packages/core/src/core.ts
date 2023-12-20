@@ -386,3 +386,8 @@ export {markdownSummary} from './summary'
  * Path exports
  */
 export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils'
+
+/**
+ * Platform utilities exports
+ */
+export * as platform from './platform'

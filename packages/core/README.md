@@ -334,6 +334,31 @@ toPlatformPath('/foo/bar') // => \foo\bar
 toPlatformPath('\\foo\\bar') // => /foo/bar
 ```
 
+#### Platform helper
+
+Provides shorthands for getting information about platform action is running on.
+
+```js
+import { platform } from '@actions/core'
+
+/* equals to a call of os.platform() */
+platform.platform // 'win32' | 'darwin' | 'linux' | 'freebsd' | 'openbsd' | 'android' | 'cygwin' | 'sunos'
+
+/* equals to a call of os.arch() */
+platform.arch // 'x64' | 'arm' | 'arm64' | 'ia32' | 'mips' | 'mipsel' | 'ppc' | 'ppc64' | 'riscv64' | 's390' | 's390x'
+
+/* common shorthands for platform-specific logic */
+platform.isWindows // true
+platform.isMacOS // false
+platform.isLinux // false
+
+/* run platform-specific script to get more details about the exact platform, works on Windows, MacOS and Linux */
+const {
+  name, // Microsoft Windows 11 Enterprise
+  version, // 10.0.22621
+} = await platform.getDetails()
+```
+
 #### Populating job summary
 
 These methods can be used to populate a [job summary](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary). A job summary is a buffer that can be added to throughout your job via `core.summary` methods.
@@ -458,5 +483,4 @@ core.summary.emptyBuffer()
 
 // Writes text in the buffer to the summary buffer file and empties the buffer, optionally overwriting all existing content in the summary file with buffer contents. Defaults to false.
 core.summary.write({overwrite: true})
-
 ```

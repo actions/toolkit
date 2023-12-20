@@ -2,13 +2,21 @@ import fs from 'fs/promises'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as httpClient from '@actions/http-client'
-import unzipper from 'unzipper'
+import unzip from 'unzip-stream'
 import {
   DownloadArtifactOptions,
   DownloadArtifactResponse
 } from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
 import {getGitHubWorkspaceDir} from '../shared/config'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
+import {
+  GetSignedArtifactURLRequest,
+  Int64Value,
+  ListArtifactsRequest
+} from '../../generated'
+import {getBackendIdsFromToken} from '../shared/util'
+import {ArtifactNotFoundError} from '../shared/errors'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -39,26 +47,22 @@ async function streamExtract(url: string, directory: string): Promise<void> {
     )
   }
 
-  return response.message.pipe(unzipper.Extract({path: directory})).promise()
+  return new Promise((resolve, reject) => {
+    response.message
+      .pipe(unzip.Extract({path: directory}))
+      .on('close', resolve)
+      .on('error', reject)
+  })
 }
 
-export async function downloadArtifact(
+export async function downloadArtifactPublic(
   artifactId: number,
   repositoryOwner: string,
   repositoryName: string,
   token: string,
   options?: DownloadArtifactOptions
 ): Promise<DownloadArtifactResponse> {
-  const downloadPath = options?.path || getGitHubWorkspaceDir()
-
-  if (!(await exists(downloadPath))) {
-    core.debug(
-      `Artifact destination folder does not exist, creating: ${downloadPath}`
-    )
-    await fs.mkdir(downloadPath, {recursive: true})
-  } else {
-    core.debug(`Artifact destination folder already exists: ${downloadPath}`)
-  }
+  const downloadPath = await resolveOrCreateDirectory(options?.path)
 
   const api = github.getOctokit(token)
 
@@ -97,5 +101,72 @@ export async function downloadArtifact(
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
 
-  return {success: true, downloadPath}
+  return {downloadPath}
+}
+
+export async function downloadArtifactInternal(
+  artifactId: number,
+  options?: DownloadArtifactOptions
+): Promise<DownloadArtifactResponse> {
+  const downloadPath = await resolveOrCreateDirectory(options?.path)
+
+  const artifactClient = internalArtifactTwirpClient()
+
+  const {workflowRunBackendId, workflowJobRunBackendId} =
+    getBackendIdsFromToken()
+
+  const listReq: ListArtifactsRequest = {
+    workflowRunBackendId,
+    workflowJobRunBackendId,
+    idFilter: Int64Value.create({value: artifactId.toString()})
+  }
+
+  const {artifacts} = await artifactClient.ListArtifacts(listReq)
+
+  if (artifacts.length === 0) {
+    throw new ArtifactNotFoundError(
+      `No artifacts found for ID: ${artifactId}\nAre you trying to download from a different run? Try specifying a github-token with \`actions:read\` scope.`
+    )
+  }
+
+  if (artifacts.length > 1) {
+    core.warning('Multiple artifacts found, defaulting to first.')
+  }
+
+  const signedReq: GetSignedArtifactURLRequest = {
+    workflowRunBackendId: artifacts[0].workflowRunBackendId,
+    workflowJobRunBackendId: artifacts[0].workflowJobRunBackendId,
+    name: artifacts[0].name
+  }
+
+  const {signedUrl} = await artifactClient.GetSignedArtifactURL(signedReq)
+
+  core.info(
+    `Redirecting to blob download url: ${scrubQueryParameters(signedUrl)}`
+  )
+
+  try {
+    core.info(`Starting download of artifact to: ${downloadPath}`)
+    await streamExtract(signedUrl, downloadPath)
+    core.info(`Artifact download completed successfully.`)
+  } catch (error) {
+    throw new Error(`Unable to download and extract artifact: ${error.message}`)
+  }
+
+  return {downloadPath}
+}
+
+async function resolveOrCreateDirectory(
+  downloadPath = getGitHubWorkspaceDir()
+): Promise<string> {
+  if (!(await exists(downloadPath))) {
+    core.debug(
+      `Artifact destination folder does not exist, creating: ${downloadPath}`
+    )
+    await fs.mkdir(downloadPath, {recursive: true})
+  } else {
+    core.debug(`Artifact destination folder already exists: ${downloadPath}`)
+  }
+
+  return downloadPath
 }

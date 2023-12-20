@@ -1,5 +1,3 @@
-# Temporarily disabled while v2.0.0 of @actions/artifact is under development
-
 name: artifact-unit-tests
 on:
   push:
@@ -12,8 +10,8 @@ on:
       - '**.md'
 
 jobs:
-  build:
-    name: Build
+  upload:
+    name: Upload
 
     strategy:
       matrix:
@@ -24,10 +22,10 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set Node.js 20.x
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
 
@@ -42,51 +40,47 @@ jobs:
         npm run tsc
       working-directory: packages/artifact
 
-    - name: Set artifact file contents
-      shell: bash
-      run: |
-        echo "file1=hello from file 1" >> $GITHUB_ENV
-        echo "file2=hello from file 2" >> $GITHUB_ENV
-
     - name: Create files that will be uploaded
       run: |
         mkdir artifact-path
-        echo '${{ env.file1 }}' > artifact-path/first.txt
-        echo '${{ env.file2 }}' > artifact-path/second.txt
+        echo -n 'hello from file 1' > artifact-path/first.txt
+        echo -n 'hello from file 2' > artifact-path/second.txt
 
-    - name: Upload Artifacts using actions/github-script@v6
-      uses: actions/github-script@v6
+    - name: Upload Artifacts
+      uses: actions/github-script@v7
       with:
         script: |
-          const artifact = require('./packages/artifact/lib/artifact')
+          const {default: artifact} = require('./packages/artifact/lib/artifact')
 
           const artifactName = 'my-artifact-${{ matrix.runs-on }}'
           console.log('artifactName: ' + artifactName)
 
           const fileContents = ['artifact-path/first.txt','artifact-path/second.txt']
 
-          const uploadResult = await artifact.create().uploadArtifact(artifactName, fileContents, './')
+          const uploadResult = await artifact.uploadArtifact(artifactName, fileContents, './')
           console.log(uploadResult)
 
-          const success = uploadResult.success
           const size = uploadResult.size
           const id = uploadResult.id
 
-          if (!success) {
-            throw new Error('Failed to upload artifact')
-          } else {
-            console.log(`Successfully uploaded artifact ${id}`)
+          console.log(`Successfully uploaded artifact ${id}`)
+
+          try {
+            await artifact.uploadArtifact(artifactName, fileContents, './')
+            throw new Error('should have failed second upload')
+          } catch (err) {
+            console.log('Successfully blocked second artifact upload')
           }
-           
   verify:
+    name: Verify
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [upload]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set Node.js 20.x
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
 
@@ -101,35 +95,72 @@ jobs:
         npm run tsc
       working-directory: packages/artifact
 
-    - name: List artifacts using actions/github-script@v6
-      uses: actions/github-script@v6
+    - name: List and Download Artifacts
+      uses: actions/github-script@v7
       with:
         script: |
-          const artifact = require('./packages/artifact/lib/artifact')
+          const {default: artifactClient} = require('./packages/artifact/lib/artifact')
 
-          const workflowRunId = process.env.GITHUB_RUN_ID
-          const repository = process.env.GITHUB_REPOSITORY
-          const repositoryOwner = repository.split('/')[0]
-          const repositoryName = repository.split('/')[1]
+          const {readFile} = require('fs/promises')
+          const path = require('path')
 
-          const listResult = await artifact.create().listArtifacts(workflowRunId, repositoryOwner, repositoryName, '${{ secrets.GITHUB_TOKEN }}')
+          const findBy = {
+            repositoryOwner: process.env.GITHUB_REPOSITORY.split('/')[0],
+            repositoryName: process.env.GITHUB_REPOSITORY.split('/')[1],
+            token: '${{ secrets.GITHUB_TOKEN }}',
+            workflowRunId: process.env.GITHUB_RUN_ID
+          }
+
+          const listResult = await artifactClient.listArtifacts({latest: true, findBy})
           console.log(listResult)
 
           const artifacts = listResult.artifacts
+          const expected = [
+            'my-artifact-ubuntu-latest',
+            'my-artifact-windows-latest',
+            'my-artifact-macos-latest'
+          ]
 
-          if (artifacts.length !== 3) {
-            throw new Error('Expected 3 artifacts but only found ' + artifacts.length + ' artifacts')
-          }
+          const foundArtifacts = artifacts.filter(artifact =>
+            expected.includes(artifact.name)
+          )
 
-          const artifactNames = artifacts.map(artifact => artifact.name)
-          if (!artifactNames.includes('my-artifact-ubuntu-latest')){
-            throw new Error("Expected artifact list to contain an artifact named my-artifact-ubuntu-latest but it's missing")
-          }
-          if (!artifactNames.includes('my-artifact-windows-latest')){
-            throw new Error("Expected artifact list to contain an artifact named my-artifact-windows-latest but it's missing")
-          }
-          if (!artifactNames.includes('my-artifact-macos-latest')){
-            throw new Error("Expected artifact list to contain an artifact named my-artifact-macos-latest but it's missing")
+          if (foundArtifacts.length !== 3) {
+            console.log('Unexpected length of found artifacts', foundArtifacts)
+            throw new Error(
+              `Expected 3 artifacts but found ${foundArtifacts.length} artifacts.`
+            )
           }
 
           console.log('Successfully listed artifacts that were uploaded')
+
+          const files = [
+            {name: 'artifact-path/first.txt', content: 'hello from file 1'},
+            {name: 'artifact-path/second.txt', content: 'hello from file 2'}
+          ]
+
+          for (const artifact of foundArtifacts) {
+            const {downloadPath} = await artifactClient.downloadArtifact(artifact.id, {
+              path: artifact.name,
+              findBy
+            })
+
+            console.log('Downloaded artifact to:', downloadPath)
+
+            for (const file of files) {
+              const filepath = path.join(
+                process.env.GITHUB_WORKSPACE,
+                downloadPath,
+                file.name
+              )
+
+              console.log('Checking file:', filepath)
+
+              const content = await readFile(filepath, 'utf8')
+              if (content.trim() !== file.content.trim()) {
+                throw new Error(
+                  `Expected file '${file.name}' to contain '${file.content}' but found '${content}'`
+                )
+              }
+            }
+          }
