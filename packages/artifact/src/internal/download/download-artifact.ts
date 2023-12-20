@@ -17,6 +17,7 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
+import { clear } from 'console'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -41,11 +42,12 @@ async function streamExtract(url: string, directory: string): Promise<void> {
   let retryCount = 0
   while (retryCount < 5) {
     try {
-      await streamExtractInternal(url, directory)
-      return
+       await streamExtractInternal(url, directory)
+       core.info(`Artifact downloaded successfully after ${retryCount} retries.`)
+       return
     } catch (error) {
       retryCount++
-      core.warning(`Failed to download artifact. Retrying in 5 seconds...`)
+      core.warning(`Failed to download artifact after ${retryCount} retries due to ${error.message}. Retrying in 5 seconds...`)
       // wait 5 seconds before retrying
       await new Promise(resolve => setTimeout(resolve, 5000))
     }
@@ -54,10 +56,7 @@ async function streamExtract(url: string, directory: string): Promise<void> {
   throw new Error(`Artifact download failed after ${retryCount} retries.`)
 }
 
-async function streamExtractInternal(
-  url: string,
-  directory: string
-): Promise<void> {
+async function streamExtractInternal(url: string,directory: string): Promise<void> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
 
@@ -67,35 +66,35 @@ async function streamExtractInternal(
     )
   }
 
-  return new Promise((resolve, reject) => {
-    const zipStream = unzip.Extract({path: directory})
+  const timeout = 30 * 1000 // 30 seconds
 
-    const timeout = 30 * 1000
+  return new Promise((resolve, reject) => {
     const timerFn = (): void => {
-      zipStream.end()
-      reject(new Error(`Blob storage chunk did not respond in ${timeout}ms `))
+      // close response stream
+      core.warning("timerFn: closing response stream")
+      response.message.destroy(new Error(`Blob storage chunk did not respond in ${timeout}ms`))
     }
     let timer = setTimeout(timerFn, timeout)
 
-    try {
-      response.message
-        .on('data', () => {
-          clearTimeout(timer)
-          timer = setTimeout(timerFn, timeout)
-        })
-        .pipe(zipStream)
-        .on('close', () => {
-          core.debug(`zip stream: Artifact downloaded to: ${directory}`)
-          clearTimeout(timer)
-          resolve()
-        })
-        .on('error', reject)
-    } catch (error) {
-      zipStream.end()
-      reject(error)
-    } finally {
-      clearTimeout(timer)
-    }
+    response.message
+      .on('data', () => {
+        timer.refresh()
+      })
+      .on('error', (error: Error) => {
+        core.warning(`response.message: Artifact download failed: ${error.message}`)
+        clearTimeout(timer)
+        reject(error)
+      })
+      .pipe(unzip.Extract({path: directory}))
+      .on('close', () => {
+        core.info(`zip stream: Artifact downloaded to: ${directory}`)
+        clearTimeout(timer)
+        resolve()
+      })
+      .on('error', (error: Error) => {
+        core.warning(`zip stream: Artifact download failed: ${error.message}`)
+        reject(error)
+      })
   })
 }
 
@@ -193,6 +192,7 @@ export async function downloadArtifactInternal(
     core.info(`Starting download of artifact to: ${downloadPath}`)
     await streamExtract(signedUrl, downloadPath)
     core.info(`Artifact download completed successfully.`)
+    process.exit(0)
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
