@@ -1,14 +1,13 @@
 import fs from 'fs/promises'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
-// import * as httpClient from '@actions/http-client'
-import * as util from 'util'
+import * as httpClient from '@actions/http-client'
 import unzip from 'unzip-stream'
 import {
   DownloadArtifactOptions,
   DownloadArtifactResponse
 } from '../shared/interfaces'
-// import {getUserAgentString} from '../shared/user-agent'
+import {getUserAgentString} from '../shared/user-agent'
 import {getGitHubWorkspaceDir} from '../shared/config'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {
@@ -18,7 +17,6 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
-import {BlobClient, BlobDownloadOptions} from '@azure/storage-blob'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -40,21 +38,41 @@ async function exists(path: string): Promise<boolean> {
 }
 
 async function streamExtract(url: string, directory: string): Promise<void> {
-  const blobClient = new BlobClient(url)
-  const options: BlobDownloadOptions = {
-    maxRetryRequests: 5,
-    onProgress: (progress) => core.info(`Download bytes ${progress.loadedBytes}`)
+  let retryCount = 0
+  while (retryCount < 3) {
+    try {
+      await streamExtractInternal(url, directory)
+      return
+    } catch (error) {
+      retryCount++
+      core.warning(`Failed to download artifact. Retrying...`)
+    }
   }
 
-  const response = await blobClient.download(0, undefined, options)
+  throw new Error(`Artifact download failed after ${retryCount} retries.`)
+}
+
+async function streamExtractInternal(
+  url: string,
+  directory: string
+): Promise<void> {
+  const client = new httpClient.HttpClient(getUserAgentString())
+  const response = await client.get(url)
+
+  if (response.message.statusCode !== 200) {
+    throw new Error(
+      `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
+    )
+  }
 
   return new Promise((resolve, reject) => {
-    response.readableStreamBody
-      ?.on('error', reject)
-      .on('aborted', reject)
-      .pipe(unzip.Extract({path: directory}))
-      .on('error', reject)
-      .on('close', resolve)
+    const zipStream = unzip.Extract({path: directory})
+    try {
+      response.message.pipe(zipStream).on('close', resolve).on('error', reject)
+    } catch (error) {
+      zipStream.end()
+      reject(error)
+    }
   })
 }
 
