@@ -70,7 +70,7 @@ async function streamExtractInternal(
 
     const timeout = 30 * 1000
     const timerFn = (): void => {
-      throw new Error(`Blob storage chunk did not respond in ${timeout}ms `)
+      reject(new Error(`Blob storage chunk did not respond in ${timeout}ms `))
     }
     let timer = setTimeout(timerFn, timeout)
 
