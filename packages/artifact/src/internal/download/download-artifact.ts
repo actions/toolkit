@@ -192,7 +192,6 @@ export async function downloadArtifactInternal(
     core.info(`Starting download of artifact to: ${downloadPath}`)
     await streamExtract(signedUrl, downloadPath)
     core.info(`Artifact download completed successfully.`)
-    process.exit(0)
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
