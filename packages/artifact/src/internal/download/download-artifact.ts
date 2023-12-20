@@ -39,13 +39,15 @@ async function exists(path: string): Promise<boolean> {
 
 async function streamExtract(url: string, directory: string): Promise<void> {
   let retryCount = 0
-  while (retryCount < 3) {
+  while (retryCount < 5) {
     try {
       await streamExtractInternal(url, directory)
       return
     } catch (error) {
       retryCount++
-      core.warning(`Failed to download artifact. Retrying...`)
+      core.warning(`Failed to download artifact. Retrying in 5 seconds...`)
+      // wait 5 seconds before retrying
+      await new Promise(resolve => setTimeout(resolve, 5000))
     }
   }
 
@@ -70,6 +72,7 @@ async function streamExtractInternal(
 
     const timeout = 30 * 1000
     const timerFn = (): void => {
+      zipStream.end()
       reject(new Error(`Blob storage chunk did not respond in ${timeout}ms `))
     }
     let timer = setTimeout(timerFn, timeout)
@@ -82,6 +85,7 @@ async function streamExtractInternal(
         })
         .pipe(zipStream)
         .on('close', () => {
+          core.debug(`zip stream: Artifact downloaded to: ${directory}`)
           clearTimeout(timer)
           resolve()
         })
