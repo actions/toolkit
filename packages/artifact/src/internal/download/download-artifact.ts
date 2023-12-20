@@ -39,19 +39,29 @@ async function exists(path: string): Promise<boolean> {
 
 async function streamExtract(url: string, directory: string): Promise<void> {
   let retryCount = 0
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const promises: Promise<any>[] = []
   while (retryCount < 5) {
-    try {
-      await streamExtractInternal(url, directory)
-      return
-    } catch (error) {
-      retryCount++
-      core.warning(`Failed to download artifact. Retrying in 5 seconds...`)
-      // wait 5 seconds before retrying
-      await new Promise(resolve => setTimeout(resolve, 5000))
-    }
+    const promise = new Promise(async () => {
+      try {
+        await streamExtractInternal(url, directory)
+      } catch (err) {
+        retryCount++
+        core.warning(`Failed to download artifact. Retrying in 5 seconds...`)
+        await new Promise(resolve => setTimeout(resolve, 5000))
+      }
+    })
+    promises.push(promise)
   }
 
-  throw new Error(`Artifact download failed after ${retryCount} retries.`)
+  try {
+    await Promise.all(promises)
+    core.info('All Promises Returned')
+  } catch (error) {
+    throw new Error(`Artifact download failed after ${retryCount} retries.`)
+  }
+
+  // throw new Error(`Artifact download failed after ${retryCount} retries.`)
 }
 
 async function streamExtractInternal(
