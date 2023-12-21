@@ -12,7 +12,7 @@ import {
   downloadArtifactPublic
 } from '../src/internal/download/download-artifact'
 import {getUserAgentString} from '../src/internal/shared/user-agent'
-import {noopLogs} from './common'
+//import {noopLogs} from './common'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON} from '../src/generated'
 import * as util from '../src/internal/shared/util'
@@ -87,7 +87,7 @@ const expectExtractedArchive = async (dir: string): Promise<void> => {
 }
 
 const setup = async (): Promise<void> => {
-  noopLogs()
+  //noopLogs()
   await fs.promises.mkdir(testDir, {recursive: true})
   await createTestArchive()
 
@@ -115,6 +115,32 @@ const mockGetArtifactFailure = jest.fn(() => {
   message.statusCode = 500
   message.push('Internal Server Error')
   message.push(null)
+  return {
+    message
+  }
+})
+
+const mockDelayBlobResponse = jest.fn(async () => {
+  // await new Promise(r => setTimeout(r, 31000))
+  const timeout = 31000
+  const message = new http.IncomingMessage(new net.Socket())
+  setTimeout(() => {
+    message.emit('data', 'test response')
+    setTimeout(() => {
+      message.statusCode = 200
+      message.push('OK')
+      message.push(null)
+    }, timeout)
+  }, timeout)
+  // message
+  //   .on('data', async () => {
+  //     await new Promise(r => setTimeout(r, 31000))
+  //   })
+  //   .on('done', () => {
+  //     message.statusCode = 200
+  //     message.push('OK')
+  //     message.push(null)
+  //   })
   return {
     message
   }
@@ -248,7 +274,56 @@ describe('download-artifact', () => {
       })
     })
 
-    it('should fail if blob storage response is non-200', async () => {
+    it('should fail if blob storage storage chunk does not respond within 30s', async () => {
+      // jest.useFakeTimers()
+
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {
+          location: fixtures.blobStorageUrl
+        },
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockDelayBlobResponse
+          }
+        }
+      )
+
+      await downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token
+      )
+
+      // jest.runAllTimers()
+
+      expect(downloadArtifactMock).toHaveBeenCalledWith({
+        owner: fixtures.repositoryOwner,
+        repo: fixtures.repositoryName,
+        artifact_id: fixtures.artifactID,
+        archive_format: 'zip',
+        request: {
+          redirect: 'manual'
+        }
+      })
+      // expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      await expect(
+        downloadArtifactPublic(
+          fixtures.artifactID,
+          fixtures.repositoryOwner,
+          fixtures.repositoryName,
+          fixtures.token
+        )
+      ).rejects.toBeInstanceOf(Error)
+    }, 40000)
+    it('should fail if blob storage response is non-200 after 5 retries', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
         .actions.downloadArtifact as MockedDownloadArtifact
       downloadArtifactMock.mockResolvedValueOnce({
@@ -290,6 +365,59 @@ describe('download-artifact', () => {
       expect(mockGetArtifactFailure).toHaveBeenCalledWith(
         fixtures.blobStorageUrl
       )
+      expect(mockGetArtifactFailure).toHaveBeenCalledTimes(5)
+    }, 28000)
+
+    it('should retry if blob storage response is non-200 and then succeed with a 200', async () => {
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {
+          location: fixtures.blobStorageUrl
+        },
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+
+      const mockGetArtifact = jest
+        .fn(mockGetArtifactSuccess)
+        .mockImplementationOnce(mockGetArtifactFailure)
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifact
+          }
+        }
+      )
+
+      const response = await downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token
+      )
+
+      expect(downloadArtifactMock).toHaveBeenCalledWith({
+        owner: fixtures.repositoryOwner,
+        repo: fixtures.repositoryName,
+        artifact_id: fixtures.artifactID,
+        archive_format: 'zip',
+        request: {
+          redirect: 'manual'
+        }
+      })
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockGetArtifactFailure).toHaveBeenCalledWith(
+        fixtures.blobStorageUrl
+      )
+      expect(mockGetArtifactFailure).toHaveBeenCalledTimes(1)
+      expect(mockGetArtifactSuccess).toHaveBeenCalledWith(
+        fixtures.blobStorageUrl
+      )
+      expect(mockGetArtifactSuccess).toHaveBeenCalledTimes(1)
+      expect(response.downloadPath).toBe(fixtures.workspaceDir)
     }, 28000)
   })
 
