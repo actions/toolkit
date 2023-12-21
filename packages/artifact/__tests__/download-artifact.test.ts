@@ -295,13 +295,14 @@ describe('download-artifact', () => {
         }
       )
 
-      await downloadArtifactPublic(
-        fixtures.artifactID,
-        fixtures.repositoryOwner,
-        fixtures.repositoryName,
-        fixtures.token
-      )
-
+      await expect(
+        downloadArtifactPublic(
+          fixtures.artifactID,
+          fixtures.repositoryOwner,
+          fixtures.repositoryName,
+          fixtures.token
+        )
+      ).rejects.toBeInstanceOf(Error)
       // jest.runAllTimers()
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
@@ -313,15 +314,6 @@ describe('download-artifact', () => {
           redirect: 'manual'
         }
       })
-      // expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
-      await expect(
-        downloadArtifactPublic(
-          fixtures.artifactID,
-          fixtures.repositoryOwner,
-          fixtures.repositoryName,
-          fixtures.token
-        )
-      ).rejects.toBeInstanceOf(Error)
     }, 40000)
     it('should fail if blob storage response is non-200 after 5 retries', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
