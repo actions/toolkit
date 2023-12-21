@@ -17,7 +17,6 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
-import { clear } from 'console'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -42,12 +41,14 @@ async function streamExtract(url: string, directory: string): Promise<void> {
   let retryCount = 0
   while (retryCount < 5) {
     try {
-       await streamExtractInternal(url, directory)
-       core.info(`Artifact downloaded successfully after ${retryCount} retries.`)
-       return
+      await streamExtractInternal(url, directory)
+      core.info(`Artifact downloaded successfully after ${retryCount} retries.`)
+      return
     } catch (error) {
       retryCount++
-      core.warning(`Failed to download artifact after ${retryCount} retries due to ${error.message}. Retrying in 5 seconds...`)
+      core.warning(
+        `Failed to download artifact after ${retryCount} retries due to ${error.message}. Retrying in 5 seconds...`
+      )
       // wait 5 seconds before retrying
       await new Promise(resolve => setTimeout(resolve, 5000))
     }
@@ -56,7 +57,10 @@ async function streamExtract(url: string, directory: string): Promise<void> {
   throw new Error(`Artifact download failed after ${retryCount} retries.`)
 }
 
-async function streamExtractInternal(url: string,directory: string): Promise<void> {
+async function streamExtractInternal(
+  url: string,
+  directory: string
+): Promise<void> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
 
@@ -71,17 +75,21 @@ async function streamExtractInternal(url: string,directory: string): Promise<voi
   return new Promise((resolve, reject) => {
     const timerFn = (): void => {
       // close response stream
-      core.warning("timerFn: closing response stream")
-      response.message.destroy(new Error(`Blob storage chunk did not respond in ${timeout}ms`))
+      core.warning('timerFn: closing response stream')
+      response.message.destroy(
+        new Error(`Blob storage chunk did not respond in ${timeout}ms`)
+      )
     }
-    let timer = setTimeout(timerFn, timeout)
+    const timer = setTimeout(timerFn, timeout)
 
     response.message
       .on('data', () => {
         timer.refresh()
       })
       .on('error', (error: Error) => {
-        core.warning(`response.message: Artifact download failed: ${error.message}`)
+        core.warning(
+          `response.message: Artifact download failed: ${error.message}`
+        )
         clearTimeout(timer)
         reject(error)
       })
