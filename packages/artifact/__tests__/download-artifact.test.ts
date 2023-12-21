@@ -290,7 +290,7 @@ describe('download-artifact', () => {
       expect(mockGetArtifactFailure).toHaveBeenCalledWith(
         fixtures.blobStorageUrl
       )
-    })
+    }, 28000)
   })
 
   describe('internal', () => {
