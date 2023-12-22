@@ -38,6 +38,7 @@ async function exists(path: string): Promise<boolean> {
 }
 
 async function streamExtract(url: string, directory: string): Promise<void> {
+  core.info(`Stream extract started`)
   let retryCount = 0
   while (retryCount < 5) {
     try {
@@ -61,8 +62,11 @@ async function streamExtractInternal(
   url: string,
   directory: string
 ): Promise<void> {
+  core.info(`Stream extract internal started`)
+
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
+  core.info(`Stream extract internal get called`)
 
   if (response.message.statusCode !== 200) {
     throw new Error(
