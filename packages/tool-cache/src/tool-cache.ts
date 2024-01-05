@@ -456,7 +456,7 @@ export async function cacheDir(
  * @param tool               tool name
  * @param version            version of the tool.  semver format
  * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
- # @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
+ * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
  */
 export async function cacheFile(
   sourceFile: string,
