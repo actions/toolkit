@@ -409,19 +409,22 @@ async function extractZipNix(file: string, dest: string): Promise<void> {
 /**
  * Caches a directory and installs it into the tool cacheDir
  *
- * @param sourceDir    the directory to cache into tools
- * @param tool          tool name
- * @param version       version of the tool.  semver format
- * @param arch          architecture of the tool.  Optional.  Defaults to machine architecture
+ * @param sourceDir          the directory to cache into tools
+ * @param tool               tool name
+ * @param version            version of the tool.  semver format
+ * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
+ # @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
  */
 export async function cacheDir(
   sourceDir: string,
   tool: string,
   version: string,
-  arch?: string
+  arch?: string,
+  preserveTimestamps?: boolean
 ): Promise<string> {
   version = semver.clean(version) || version
   arch = arch || os.arch()
+  preserveTimestamps = preserveTimestamps || true
   core.debug(`Caching tool ${tool} ${version} ${arch}`)
 
   core.debug(`source dir: ${sourceDir}`)
@@ -435,7 +438,6 @@ export async function cacheDir(
   // due to anti-virus software having an open handle on a file.
   for (const itemName of fs.readdirSync(sourceDir)) {
     const s = path.join(sourceDir, itemName)
-    const preserveTimestamps = true # TODO: read this as a parameter
     await io.cp(s, destPath, {recursive: true, preserveTimestamps: preserveTimestamps})
   }
 
