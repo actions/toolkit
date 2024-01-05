@@ -12,7 +12,7 @@ export interface CopyOptions {
   force?: boolean
   /** Optional. Whether to copy the source directory along with all the files. Only takes effect when recursive=true and copying a directory. Default is true*/
   copySourceDirectory?: boolean
-  /** Optional. Whether to preserve timestamps when copying. Default is false*/
+  /** Optional. Whether to preserve timestamps when copying. Default is false */
   preserveTimestamps?: boolean
 }
 
@@ -333,7 +333,7 @@ async function copyFile(
     if (preserveTimestamps) {
       // `fsPromises.copyFile()` does not support the `preserveTimestamps`
       // option. So we have to use `fsPromises.cp()` instead.
-      await ioUtil.cp(srcFile, destFile, {preserveTimestamps: true})
+      await ioUtil.fs_cp(srcFile, destFile, {preserveTimestamps: true})
     } else {
       await ioUtil.copyFile(srcFile, destFile)
     }

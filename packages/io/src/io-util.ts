@@ -4,7 +4,6 @@ import * as path from 'path'
 export const {
   chmod,
   copyFile,
-  cp,
   lstat,
   mkdir,
   open,
@@ -18,6 +17,12 @@ export const {
   unlink
 } = fs.promises
 // export const {open} = 'fs'
+
+// We can't import `fs.promises.cp` as `cp`, because that will clash with our
+// own `cp`. So, instead, we import it as `fs_cp`.
+export const fs_cp = fs.promises.cp
+
+
 export const IS_WINDOWS = process.platform === 'win32'
 // See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
 export const UV_FS_O_EXLOCK = 0x10000000
