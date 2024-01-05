@@ -413,7 +413,7 @@ async function extractZipNix(file: string, dest: string): Promise<void> {
  * @param tool               tool name
  * @param version            version of the tool.  semver format
  * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
- # @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
+ * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
  */
 export async function cacheDir(
   sourceDir: string,
