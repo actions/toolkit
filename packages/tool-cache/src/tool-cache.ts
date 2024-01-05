@@ -437,8 +437,8 @@ export async function cacheDir(
   // due to anti-virus software having an open handle on a file.
   for (const itemName of fs.readdirSync(sourceDir)) {
     const s = path.join(sourceDir, itemName)
-    // await io.cp(s, destPath, {recursive: true, preserveTimestamps}) // TODO
-    await io.cp(s, destPath, {recursive: true}) // TODO
+    await io.cp(s, destPath, {recursive: true, preserveTimestamps}) // TODO
+    // await io.cp(s, destPath, {recursive: true}) // TODO
   }
 
   // write .complete
@@ -483,8 +483,8 @@ export async function cacheFile(
   // anti-virus software having an open handle on a file.
   const destPath: string = path.join(destFolder, targetFile)
   core.debug(`destination file ${destPath}`)
-  // await io.cp(sourceFile, destPath, {preserveTimestamps}) // TODO
-  await io.cp(sourceFile, destPath) // TODO
+  await io.cp(sourceFile, destPath, {preserveTimestamps}) // TODO
+  // await io.cp(sourceFile, destPath) // TODO
 
   // write .complete
   _completeToolPath(tool, version, arch)
