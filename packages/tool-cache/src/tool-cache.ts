@@ -451,21 +451,24 @@ export async function cacheDir(
  * Caches a downloaded file (GUID) and installs it
  * into the tool cache with a given targetName
  *
- * @param sourceFile    the file to cache into tools.  Typically a result of downloadTool which is a guid.
- * @param targetFile    the name of the file name in the tools directory
- * @param tool          tool name
- * @param version       version of the tool.  semver format
- * @param arch          architecture of the tool.  Optional.  Defaults to machine architecture
+ * @param sourceFile         the file to cache into tools.  Typically a result of downloadTool which is a guid.
+ * @param targetFile         the name of the file name in the tools directory
+ * @param tool               tool name
+ * @param version            version of the tool.  semver format
+ * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
+ # @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
  */
 export async function cacheFile(
   sourceFile: string,
   targetFile: string,
   tool: string,
   version: string,
-  arch?: string
+  arch?: string,
+  preserveTimestamps?: boolean
 ): Promise<string> {
   version = semver.clean(version) || version
   arch = arch || os.arch()
+  preserveTimestamps = preserveTimestamps || true
   core.debug(`Caching tool ${tool} ${version} ${arch}`)
 
   core.debug(`source file: ${sourceFile}`)
@@ -480,7 +483,7 @@ export async function cacheFile(
   // anti-virus software having an open handle on a file.
   const destPath: string = path.join(destFolder, targetFile)
   core.debug(`destination file ${destPath}`)
-  await io.cp(sourceFile, destPath)
+  await io.cp(sourceFile, destPath, {preserveTimestamps: preserveTimestamps})
 
   // write .complete
   _completeToolPath(tool, version, arch)
