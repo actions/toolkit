@@ -42,7 +42,7 @@ export interface InputOptions {
 
 /**
  * Gets the value of an input.  The value is also trimmed.
- *
+ * 
  * @param     name     name of the input to get
  * @param     options  optional. See InputOptions.
  * @returns   string
@@ -51,13 +51,13 @@ export function getInput(name: string, options?: InputOptions): string | undefin
 
 /**
  * sets the status of the action to neutral
- * @param message
+ * @param message 
  */
 export function setNeutral(message: string): void
 
 /**
  * sets the status of the action to failed
- * @param message
+ * @param message 
  */
 export function setFailed(message: string): void
 ```
@@ -75,15 +75,11 @@ export interface CopyOptions {
     recursive?: boolean;
     /** Optional. Whether to overwrite existing files in the destination. Defaults to true */
     force?: boolean;
-    /** Optional. Whether to copy the source directory along with all the files. Only takes effect when recursive=true and copying a directory. Default is true*/
-    copySourceDirectory?: boolean
-    /** Optional. Whether to preserve timestamps when copying. Default is false */
-    preserveTimestamps?: boolean
 }
 
 /**
  * Copies a file or folder.
- *
+ * 
  * @param     source    source path
  * @param     dest      destination path
  * @param     options   optional. See CopyOptions.
@@ -92,14 +88,14 @@ export function cp(source: string, dest: string, options?: CopyOptions): Promise
 
 /**
  * Remove a path recursively with force
- *
+ * 
  * @param     path     path to remove
  */
 export function rmRF(path: string): Promise<void>
 
 /**
  * Make a directory.  Creates the full path with folders in between
- *
+ * 
  * @param     p       path to create
  * @returns   Promise<void>
  */
@@ -124,7 +120,7 @@ export interface WhichOptions {
 
 /**
  * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- *
+ * 
  * @param     tool              name of the tool
  * @param     options           optional. See WhichOptions.
  * @returns   Promise<string>   path to tool
@@ -146,13 +142,13 @@ export interface IExecOptions
 * Exec a command.
 * Output will be streamed to the live console.
 * Returns promise with return code
-*
+* 
 * @param     commandLine        command to execute
 * @param     args               optional additional arguments
 * @param     options            optional exec options.  See IExecOptions
 * @returns   Promise<number>    return code
 */
-export function exec(commandLine: string, args?: string[], options?: IExecOptions): Promise<number>
+export function exec(commandLine: string, args?: string[], options?: IExecOptions): Promise<number> 
 ```
 
 ### Tool-Cache spec:
@@ -205,3 +201,4 @@ export async function cacheDir(sourceDir: string, tool: string, version: string,
  */
 export function find(toolName: string, versionSpec: string, arch?: string): string
 ```
+
