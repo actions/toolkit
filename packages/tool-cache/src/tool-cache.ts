@@ -483,7 +483,7 @@ export async function cacheFile(
   // anti-virus software having an open handle on a file.
   const destPath: string = path.join(destFolder, targetFile)
   core.debug(`destination file ${destPath}`)
-  await io.cp(sourceFile, destPath, {preserveTimestamps: preserveTimestamps})
+  await io.cp(sourceFile, destPath, {preserveTimestamps})
 
   // write .complete
   _completeToolPath(tool, version, arch)
