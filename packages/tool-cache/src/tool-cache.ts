@@ -438,7 +438,7 @@ export async function cacheDir(
   // due to anti-virus software having an open handle on a file.
   for (const itemName of fs.readdirSync(sourceDir)) {
     const s = path.join(sourceDir, itemName)
-    await io.cp(s, destPath, {recursive: true, preserveTimestamps: preserveTimestamps})
+    await io.cp(s, destPath, {recursive: true, preserveTimestamps})
   }
 
   // write .complete
