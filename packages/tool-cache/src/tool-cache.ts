@@ -413,7 +413,11 @@ async function extractZipNix(file: string, dest: string): Promise<void> {
  * @param tool               tool name
  * @param version            version of the tool.  semver format
  * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
- * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
+<<<<<<< Updated upstream
+ * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to false
+=======
+ # @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to false
+>>>>>>> Stashed changes
  */
 export async function cacheDir(
   sourceDir: string,
@@ -424,7 +428,7 @@ export async function cacheDir(
 ): Promise<string> {
   version = semver.clean(version) || version
   arch = arch || os.arch()
-  preserveTimestamps = preserveTimestamps || true
+  preserveTimestamps = preserveTimestamps || false
   core.debug(`Caching tool ${tool} ${version} ${arch}`)
 
   core.debug(`source dir: ${sourceDir}`)
@@ -456,7 +460,11 @@ export async function cacheDir(
  * @param tool               tool name
  * @param version            version of the tool.  semver format
  * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
- * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to true
+<<<<<<< Updated upstream
+ * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to false
+=======
+ # @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to false
+>>>>>>> Stashed changes
  */
 export async function cacheFile(
   sourceFile: string,
@@ -468,7 +476,7 @@ export async function cacheFile(
 ): Promise<string> {
   version = semver.clean(version) || version
   arch = arch || os.arch()
-  preserveTimestamps = preserveTimestamps || true
+  preserveTimestamps = preserveTimestamps || false
   core.debug(`Caching tool ${tool} ${version} ${arch}`)
 
   core.debug(`source file: ${sourceFile}`)

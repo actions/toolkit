@@ -4,6 +4,7 @@ import * as path from 'path'
 export const {
   chmod,
   copyFile,
+  cp,
   lstat,
   mkdir,
   open,

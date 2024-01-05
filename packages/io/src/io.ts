@@ -12,6 +12,8 @@ export interface CopyOptions {
   force?: boolean
   /** Optional. Whether to copy the source directory along with all the files. Only takes effect when recursive=true and copying a directory. Default is true*/
   copySourceDirectory?: boolean
+  /** Optional. Whether to preserve timestamps when copying. Default is false*/
+  preserveTimestamps?: boolean
 }
 
 /**
@@ -35,7 +37,7 @@ export async function cp(
   dest: string,
   options: CopyOptions = {}
 ): Promise<void> {
-  const {force, recursive, copySourceDirectory} = readCopyOptions(options)
+  const {force, recursive, copySourceDirectory, preserveTimestamps} = readCopyOptions(options)
 
   const destStat = (await ioUtil.exists(dest)) ? await ioUtil.stat(dest) : null
   // Dest is an existing file, but not forcing
@@ -60,7 +62,7 @@ export async function cp(
         `Failed to copy. ${source} is a directory, but tried to copy without recursive flag.`
       )
     } else {
-      await cpDirRecursive(source, newDest, 0, force)
+      await cpDirRecursive(source, newDest, 0, force, preserveTimestamps)
     }
   } else {
     if (path.relative(source, newDest) === '') {
@@ -68,7 +70,7 @@ export async function cp(
       throw new Error(`'${newDest}' and '${source}' are the same file`)
     }
 
-    await copyFile(source, newDest, force)
+    await copyFile(source, newDest, force, preserveTimestamps)
   }
 }
 
@@ -260,14 +262,19 @@ function readCopyOptions(options: CopyOptions): Required<CopyOptions> {
     options.copySourceDirectory == null
       ? true
       : Boolean(options.copySourceDirectory)
-  return {force, recursive, copySourceDirectory}
+  const preserveTimestamps =
+    options.preserveTimestamps == null
+      ? false // preserveTimestamps defaults to false
+      : Boolean(options.preserveTimestamps)
+  return {force, recursive, copySourceDirectory, preserveTimestamps}
 }
 
 async function cpDirRecursive(
   sourceDir: string,
   destDir: string,
   currentDepth: number,
-  force: boolean
+  force: boolean,
+  preserveTimestamps: boolean
 ): Promise<void> {
   // Ensure there is not a run away recursive copy
   if (currentDepth >= 255) return
@@ -284,9 +291,9 @@ async function cpDirRecursive(
 
     if (srcFileStat.isDirectory()) {
       // Recurse
-      await cpDirRecursive(srcFile, destFile, currentDepth, force)
+      await cpDirRecursive(srcFile, destFile, currentDepth, force, preserveTimestamps)
     } else {
-      await copyFile(srcFile, destFile, force)
+      await copyFile(srcFile, destFile, force, preserveTimestamps)
     }
   }
 
@@ -298,7 +305,8 @@ async function cpDirRecursive(
 async function copyFile(
   srcFile: string,
   destFile: string,
-  force: boolean
+  force: boolean,
+  preserveTimestamps: boolean,
 ): Promise<void> {
   if ((await ioUtil.lstat(srcFile)).isSymbolicLink()) {
     // unlink/re-link it
@@ -322,6 +330,12 @@ async function copyFile(
       ioUtil.IS_WINDOWS ? 'junction' : null
     )
   } else if (!(await ioUtil.exists(destFile)) || force) {
-    await ioUtil.copyFile(srcFile, destFile)
+    if (preserveTimestamps) {
+      // `fsPromises.copyFile()` does not support the `preserveTimestamps`
+      // option. So we have to use `fsPromises.cp()` instead.
+      await ioUtil.cp(srcFile, destFile, {preserveTimestamps: true})
+    } else {
+      await ioUtil.copyFile(srcFile, destFile)
+    }
   }
 }
