@@ -1,0 +1,49 @@
+// javascript
+const core = require('@actions/core');
+
+// typescript
+import * as core from '@actions/core';
+
+const myInput = core.getInput('inputName', { required: true });
+const myBooleanInput = core.getBooleanInput('booleanInputName', { required: true });
+const myMultilineInput = core.getMultilineInput('multilineInputName', { required: true });
+core.setOutput('outputKey', 'outputVal');
+
+core.exportVariable('envVar', 'Val');
+
+core.setSecret('myPassword');
+
+const core = require('@actions/core');
+
+try {
+  // Do stuff
+}
+catch (err) {
+  // setFailed logs the message and sets a failing exit code
+  core.setFailed(`Action failed with error ${err}`);
+}
+
+const core = require('@actions/core');
+
+const myInput = core.getInput('input');
+try {
+  core.debug('Inside try block');
+  
+  if (!myInput) {
+    core.warning('myInput was not set');
+  }
+  
+  if (core.isDebug()) {
+    // curl -v https://github.com
+  } else {
+    // curl https://github.com
+  }
+
+  // Do stuff
+  core.info('Output to the actions build log')
+
+  core.notice('This is a message that will also emit an annotation')
+}
+catch (err) {
+  core.error(`Error ${err}, action may still succeed though`);
+}

@@ -1,0 +1,23 @@
+name: 'Wrapper action sample'
+inputs:
+  name:
+    default: 'GitHub'
+runs:
+  using: 'node12'
+  main: 'main.js'
+  post: 'cleanup.js'
+
+name: 'GetIDToken'
+description: 'Get ID token from Github OIDC provider'
+inputs:
+  audience:  
+    description: 'Audience for which the ID token is intended for'
+    required: false
+outputs:
+  id_token1: 
+    description: 'ID token obtained from OIDC provider'
+  id_token2: 
+    description: 'ID token obtained from OIDC provider'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
