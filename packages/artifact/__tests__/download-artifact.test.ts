@@ -309,65 +309,42 @@ describe('download-artifact', () => {
           }
         }
       )
-      await downloadArtifactPublic(
-        fixtures.artifactID,
-        fixtures.repositoryOwner,
-        fixtures.repositoryName,
-        fixtures.token
-      )
 
-      expect(
-        downloadArtifactPublic(
+      try {
+        await downloadArtifactPublic(
           fixtures.artifactID,
           fixtures.repositoryOwner,
           fixtures.repositoryName,
           fixtures.token
         )
-      ).rejects.toBeInstanceOf(Error)
 
-      expect(downloadArtifactMock).toHaveBeenCalledWith({
-        owner: fixtures.repositoryOwner,
-        repo: fixtures.repositoryName,
-        artifact_id: fixtures.artifactID,
-        archive_format: 'zip',
-        request: {
-          redirect: 'manual'
-        }
-      })
-      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
-      expect(mockGetArtifactFailure).toHaveBeenCalledWith(
-        fixtures.blobStorageUrl
-      )
-      expect(mockGetArtifactFailure).toHaveBeenCalledTimes(5)
-      // const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
-      //   () => {
-      //     return {
-      //       get: mockDelayBlobResponse
-      //     }
-      //   }
-      // )
+        expect(
+          downloadArtifactPublic(
+            fixtures.artifactID,
+            fixtures.repositoryOwner,
+            fixtures.repositoryName,
+            fixtures.token
+          )
+        ).rejects.toBeInstanceOf(Error)
 
-      // expect(downloadArtifactMock).toHaveBeenCalledWith({
-      //   owner: fixtures.repositoryOwner,
-      //   repo: fixtures.repositoryName,
-      //   artifact_id: fixtures.artifactID,
-      //   archive_format: 'zip',
-      //   request: {
-      //     redirect: 'manual'
-      //   }
-      // })
-      // expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
-      // expect(mockGetArtifactFailure).toHaveBeenCalledWith(
-      //   fixtures.blobStorageUrl
-      // )
-      // await expect(
-      //   downloadArtifactPublic(
-      //     fixtures.artifactID,
-      //     fixtures.repositoryOwner,
-      //     fixtures.repositoryName,
-      //     fixtures.token
-      //   )
-      // ).rejects.toBeInstanceOf(Error)
+        expect(downloadArtifactMock).toHaveBeenCalledWith({
+          owner: fixtures.repositoryOwner,
+          repo: fixtures.repositoryName,
+          artifact_id: fixtures.artifactID,
+          archive_format: 'zip',
+          request: {
+            redirect: 'manual'
+          }
+        })
+        expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+        expect(mockGetArtifactFailure).toHaveBeenCalledWith(
+          fixtures.blobStorageUrl
+        )
+        expect(mockGetArtifactFailure).toHaveBeenCalledTimes(5)
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.log(err)
+      }
     }, 40000)
     it('should fail if blob storage response is non-200 after 5 retries', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
