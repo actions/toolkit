@@ -91,12 +91,10 @@ export async function streamExtractExternal(
       })
       .pipe(unzip.Extract({path: directory}))
       .on('close', () => {
-        core.info(`zip stream: Artifact downloaded to: ${directory}`)
         clearTimeout(timer)
         resolve()
       })
       .on('error', (error: Error) => {
-        core.warning(`zip stream: Artifact download failed: ${error.message}`)
         reject(error)
       })
   })
