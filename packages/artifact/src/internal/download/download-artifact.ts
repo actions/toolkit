@@ -42,11 +42,10 @@ async function streamExtract(url: string, directory: string): Promise<void> {
   while (retryCount < 5) {
     try {
       await streamExtractExternal(url, directory)
-      core.info(`Artifact downloaded successfully after ${retryCount} retries.`)
       return
     } catch (error) {
       retryCount++
-      core.warning(
+      core.debug(
         `Failed to download artifact after ${retryCount} retries due to ${error.message}. Retrying in 5 seconds...`
       )
       // wait 5 seconds before retrying
@@ -61,11 +60,8 @@ export async function streamExtractExternal(
   url: string,
   directory: string
 ): Promise<void> {
-  core.info(`Stream extract internal started`)
-
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
-
   if (response.message.statusCode !== 200) {
     throw new Error(
       `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
