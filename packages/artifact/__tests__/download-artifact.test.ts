@@ -9,7 +9,8 @@ import archiver from 'archiver'
 
 import {
   downloadArtifactInternal,
-  downloadArtifactPublic
+  downloadArtifactPublic,
+  streamExtractExternal
 } from '../src/internal/download/download-artifact'
 import {getUserAgentString} from '../src/internal/shared/user-agent'
 //import {noopLogs} from './common'
@@ -115,47 +116,6 @@ const mockGetArtifactFailure = jest.fn(() => {
   message.statusCode = 500
   message.push('Internal Server Error')
   message.push(null)
-  return {
-    message
-  }
-})
-
-const mockDelayWritableResponse = jest.fn(async () => {
-  //const message = new stream.PassThrough()
-  const message = new http.IncomingMessage(new net.Socket())
-  message.statusCode = 200
-  message.push('Internal Server Error')
-  message.push(null)
-
-  setTimeout(() => {
-    message.emit('error', () => {})
-  }, 31000)
-  return {
-    message
-  }
-})
-const mockDelayBlobResponse = jest.fn(async () => {
-  const message = new http.IncomingMessage(new net.Socket())
-  message.on('data', () => {
-    setTimeout(() => {
-      message.statusCode = 200
-      message.push('OK')
-      message.push(null)
-    }, 31000)
-  })
-  // setTimeout(() => {
-  //   setTimeout(() => {
-  //     message.statusCode = 200
-  //     message.push('OK')
-  //     message.push(null)
-  //   }, 31000)
-  //   message.emit('data')
-  // }, 31000)
-  // message.on('done', () => {
-  //   message.statusCode = 200
-  //   message.push('OK')
-  //   message.push(null)
-  // })
   return {
     message
   }
@@ -290,62 +250,43 @@ describe('download-artifact', () => {
     })
 
     it('should fail if blob storage storage chunk does not respond within 30s', async () => {
-      // jest.useFakeTimers()
+      // mock http client to delay response data by 30s
+      //
+      const msg = new http.IncomingMessage(new net.Socket())
+      msg.statusCode = 200
 
-      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
-        .actions.downloadArtifact as MockedDownloadArtifact
-      downloadArtifactMock.mockResolvedValueOnce({
-        headers: {
-          location: fixtures.blobStorageUrl
-        },
-        status: 302,
-        url: '',
-        data: Buffer.from('')
+      const mockGet = jest.fn(async () => {
+        return new Promise((resolve, reject) => {
+          // Resolve with a 200 status code immediately
+          resolve({
+            message: msg,
+            readBody: async () => {
+              return Promise.resolve(`{"ok": true}`)
+            }
+          })
+
+          // Reject with an error after 31 seconds
+          setTimeout(() => {
+            reject(new Error('Request timeout'))
+          }, 31000) // Timeout after 31 seconds
+        })
       })
+
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockDelayWritableResponse
+            get: mockGet
           }
         }
       )
 
-      try {
-        await downloadArtifactPublic(
-          fixtures.artifactID,
-          fixtures.repositoryOwner,
-          fixtures.repositoryName,
-          fixtures.token
-        )
+      await expect(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir)
+      ).rejects.toBeInstanceOf(Error)
 
-        expect(
-          downloadArtifactPublic(
-            fixtures.artifactID,
-            fixtures.repositoryOwner,
-            fixtures.repositoryName,
-            fixtures.token
-          )
-        ).rejects.toBeInstanceOf(Error)
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+    }, 35000)
 
-        expect(downloadArtifactMock).toHaveBeenCalledWith({
-          owner: fixtures.repositoryOwner,
-          repo: fixtures.repositoryName,
-          artifact_id: fixtures.artifactID,
-          archive_format: 'zip',
-          request: {
-            redirect: 'manual'
-          }
-        })
-        expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
-        expect(mockGetArtifactFailure).toHaveBeenCalledWith(
-          fixtures.blobStorageUrl
-        )
-        expect(mockGetArtifactFailure).toHaveBeenCalledTimes(5)
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.log(err)
-      }
-    }, 40000)
     it('should fail if blob storage response is non-200 after 5 retries', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
         .actions.downloadArtifact as MockedDownloadArtifact

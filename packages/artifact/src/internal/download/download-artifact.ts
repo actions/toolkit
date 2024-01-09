@@ -42,7 +42,7 @@ async function streamExtract(url: string, directory: string): Promise<void> {
   let retryCount = 0
   while (retryCount < 5) {
     try {
-      await streamExtractInternal(url, directory)
+      await streamExtractExternal(url, directory)
       core.info(`Artifact downloaded successfully after ${retryCount} retries.`)
       return
     } catch (error) {
@@ -58,7 +58,7 @@ async function streamExtract(url: string, directory: string): Promise<void> {
   throw new Error(`Artifact download failed after ${retryCount} retries.`)
 }
 
-async function streamExtractInternal(
+export async function streamExtractExternal(
   url: string,
   directory: string
 ): Promise<void> {
