@@ -9,4 +9,3 @@ module.exports = {
   },
   verbose: true
 }
-// adding extra line for linter
