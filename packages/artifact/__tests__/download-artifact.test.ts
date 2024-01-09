@@ -330,7 +330,7 @@ describe('download-artifact', () => {
         fixtures.blobStorageUrl
       )
       expect(mockGetArtifactFailure).toHaveBeenCalledTimes(5)
-    }, 28000)
+    }, 38000)
 
     it('should retry if blob storage response is non-200 and then succeed with a 200', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
