@@ -38,7 +38,6 @@ async function exists(path: string): Promise<boolean> {
 }
 
 async function streamExtract(url: string, directory: string): Promise<void> {
-  core.info(`Stream extract started`)
   let retryCount = 0
   while (retryCount < 5) {
     try {
@@ -66,7 +65,6 @@ export async function streamExtractExternal(
 
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
-  core.info(`Stream extract internal get called`)
 
   if (response.message.statusCode !== 200) {
     throw new Error(
@@ -78,8 +76,6 @@ export async function streamExtractExternal(
 
   return new Promise((resolve, reject) => {
     const timerFn = (): void => {
-      // close response stream
-      core.warning('timerFn: closing response stream')
       response.message.destroy(
         new Error(`Blob storage chunk did not respond in ${timeout}ms`)
       )
@@ -91,7 +87,7 @@ export async function streamExtractExternal(
         timer.refresh()
       })
       .on('error', (error: Error) => {
-        core.warning(
+        core.debug(
           `response.message: Artifact download failed: ${error.message}`
         )
         clearTimeout(timer)

@@ -13,7 +13,7 @@ import {
   streamExtractExternal
 } from '../src/internal/download/download-artifact'
 import {getUserAgentString} from '../src/internal/shared/user-agent'
-//import {noopLogs} from './common'
+import {noopLogs} from './common'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON} from '../src/generated'
 import * as util from '../src/internal/shared/util'
@@ -88,7 +88,7 @@ const expectExtractedArchive = async (dir: string): Promise<void> => {
 }
 
 const setup = async (): Promise<void> => {
-  //noopLogs()
+  noopLogs()
   await fs.promises.mkdir(testDir, {recursive: true})
   await createTestArchive()
 
@@ -251,7 +251,6 @@ describe('download-artifact', () => {
 
     it('should fail if blob storage storage chunk does not respond within 30s', async () => {
       // mock http client to delay response data by 30s
-      //
       const msg = new http.IncomingMessage(new net.Socket())
       msg.statusCode = 200
 
@@ -285,7 +284,7 @@ describe('download-artifact', () => {
       ).rejects.toBeInstanceOf(Error)
 
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
-    }, 35000)
+    }, 35000) // add longer timeout to allow for timer to run out
 
     it('should fail if blob storage response is non-200 after 5 retries', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
