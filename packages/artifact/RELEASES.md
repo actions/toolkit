@@ -97,7 +97,11 @@
 
 ### 2.0.0
 
-Major release. Supports new Artifact backend for improved speed, reliability and behavior.
-Numerous API changes, [some breaking](./README.md#breaking-changes).
+- Major release. Supports new Artifact backend for improved speed, reliability and behavior.
+- Numerous API changes, [some breaking](./README.md#breaking-changes).
 
-Blog post with more info: TBD
+- Blog post with more info: TBD
+
+### 2.0.1
+
+- Patch to fix transient request timeouts https://github.com/actions/download-artifact/issues/249
