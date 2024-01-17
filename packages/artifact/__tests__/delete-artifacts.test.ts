@@ -6,7 +6,7 @@ import {
   deleteArtifactPublic
 } from '../src/internal/delete/delete-artifact'
 import * as config from '../src/internal/shared/config'
-import {ArtifactServiceClientJSON} from '../src/generated'
+import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
 import * as util from '../src/internal/shared/util'
 import {noopLogs} from './common'
 
@@ -145,7 +145,18 @@ describe('delete-artifact', () => {
         .mockReturnValue('https://results.local')
     })
 
-    it('should return a list of artifacts', async () => {
+    it('should delete an artifact', async () => {
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: fixtures.artifacts.map(artifact => ({
+            ...fixtures.backendIds,
+            databaseId: artifact.id.toString(),
+            name: artifact.name,
+            size: artifact.size.toString(),
+            createdAt: Timestamp.fromDate(artifact.createdAt)
+          }))
+        })
       jest
         .spyOn(ArtifactServiceClientJSON.prototype, 'DeleteArtifact')
         .mockResolvedValue({
@@ -159,6 +170,17 @@ describe('delete-artifact', () => {
     })
 
     it('should fail if non-200 response', async () => {
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: fixtures.artifacts.map(artifact => ({
+            ...fixtures.backendIds,
+            databaseId: artifact.id.toString(),
+            name: artifact.name,
+            size: artifact.size.toString(),
+            createdAt: Timestamp.fromDate(artifact.createdAt)
+          }))
+        })
       jest
         .spyOn(ArtifactServiceClientJSON.prototype, 'DeleteArtifact')
         .mockRejectedValue(new Error('boom'))

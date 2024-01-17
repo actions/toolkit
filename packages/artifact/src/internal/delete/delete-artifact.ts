@@ -1,4 +1,4 @@
-import {info} from '@actions/core'
+import {info, debug} from '@actions/core'
 import {getOctokit} from '@actions/github'
 import {DeleteArtifactResponse} from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
@@ -9,9 +9,13 @@ import {retry} from '@octokit/plugin-retry'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {getBackendIdsFromToken} from '../shared/util'
-import {DeleteArtifactRequest} from '../../generated'
+import {
+  DeleteArtifactRequest,
+  ListArtifactsRequest,
+  StringValue
+} from '../../generated'
 import {getArtifactPublic} from '../find/get-artifact'
-import {InvalidResponseError} from '../shared/errors'
+import {ArtifactNotFoundError, InvalidResponseError} from '../shared/errors'
 
 export async function deleteArtifactPublic(
   artifactName: string,
@@ -65,10 +69,35 @@ export async function deleteArtifactInternal(
   const {workflowRunBackendId, workflowJobRunBackendId} =
     getBackendIdsFromToken()
 
-  const req: DeleteArtifactRequest = {
+  const listReq: ListArtifactsRequest = {
     workflowRunBackendId,
     workflowJobRunBackendId,
-    name: artifactName
+    nameFilter: StringValue.create({value: artifactName})
+  }
+
+  const listRes = await artifactClient.ListArtifacts(listReq)
+
+  if (listRes.artifacts.length === 0) {
+    throw new ArtifactNotFoundError(
+      `Artifact not found for name: ${artifactName}`
+    )
+  }
+
+  let artifact = listRes.artifacts[0]
+  if (listRes.artifacts.length > 1) {
+    artifact = listRes.artifacts.sort(
+      (a, b) => Number(b.databaseId) - Number(a.databaseId)
+    )[0]
+
+    debug(
+      `More than one artifact found for a single name, returning newest (id: ${artifact.databaseId})`
+    )
+  }
+
+  const req: DeleteArtifactRequest = {
+    workflowRunBackendId: artifact.workflowRunBackendId,
+    workflowJobRunBackendId: artifact.workflowJobRunBackendId,
+    name: artifact.name
   }
 
   const res = await artifactClient.DeleteArtifact(req)
