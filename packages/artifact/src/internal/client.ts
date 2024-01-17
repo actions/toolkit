@@ -94,7 +94,7 @@ export interface ArtifactClient {
   /**
    * Delete an Artifact
    *
-   * If `options.findBy` is specified, this will use the public Download Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#delete-an-artifact
+   * If `options.findBy` is specified, this will use the public Delete Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#delete-an-artifact
    *
    * @param artifactName The name of the artifact to delete
    * @param options Extra options that allow for the customization of the delete behavior
