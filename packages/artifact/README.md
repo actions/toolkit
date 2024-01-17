@@ -12,6 +12,7 @@ This is the core library that powers the [`@actions/upload-artifact`](https://gi
   - [Quick Start](#quick-start)
   - [Examples](#examples)
     - [Upload and Download](#upload-and-download)
+    - [Delete an Artifact](#delete-an-artifact)
     - [Downloading from other workflow runs or repos](#downloading-from-other-workflow-runs-or-repos)
     - [Speeding up large uploads](#speeding-up-large-uploads)
   - [Additional Resources](#additional-resources)
@@ -104,6 +105,19 @@ const {downloadPath} = await artifact.downloadArtifact(id, {
 })
 
 console.log(`Downloaded artifact ${id} to: ${downloadPath}`)
+```
+
+### Delete an Artifact
+
+To delete an artifact, all you need is the name. Also supports options to delete from other repos/runs given a token with proper permissions is supplied.
+
+```js
+const {id} = await artifact.deleteArtifact(
+  // name of the artifact
+  'my-artifact'
+)
+
+console.log(`Deleted Artifact ID: ${id}`)
 ```
 
 ### Downloading from other workflow runs or repos
