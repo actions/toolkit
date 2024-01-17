@@ -17,6 +17,8 @@ import {
   ListArtifactsResponse,
   GetSignedArtifactURLRequest,
   GetSignedArtifactURLResponse,
+  DeleteArtifactRequest,
+  DeleteArtifactResponse,
 } from "./artifact";
 
 //==================================//
@@ -43,6 +45,9 @@ export interface ArtifactServiceClient {
   GetSignedArtifactURL(
     request: GetSignedArtifactURLRequest
   ): Promise<GetSignedArtifactURLResponse>;
+  DeleteArtifact(
+    request: DeleteArtifactRequest
+  ): Promise<DeleteArtifactResponse>;
 }
 
 export class ArtifactServiceClientJSON implements ArtifactServiceClient {
@@ -53,6 +58,7 @@ export class ArtifactServiceClientJSON implements ArtifactServiceClient {
     this.FinalizeArtifact.bind(this);
     this.ListArtifacts.bind(this);
     this.GetSignedArtifactURL.bind(this);
+    this.DeleteArtifact.bind(this);
   }
   CreateArtifact(
     request: CreateArtifactRequest
@@ -129,6 +135,26 @@ export class ArtifactServiceClientJSON implements ArtifactServiceClient {
       })
     );
   }
+
+  DeleteArtifact(
+    request: DeleteArtifactRequest
+  ): Promise<DeleteArtifactResponse> {
+    const data = DeleteArtifactRequest.toJson(request, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    });
+    const promise = this.rpc.request(
+      "github.actions.results.api.v1.ArtifactService",
+      "DeleteArtifact",
+      "application/json",
+      data as object
+    );
+    return promise.then((data) =>
+      DeleteArtifactResponse.fromJson(data as any, {
+        ignoreUnknownFields: true,
+      })
+    );
+  }
 }
 
 export class ArtifactServiceClientProtobuf implements ArtifactServiceClient {
@@ -139,6 +165,7 @@ export class ArtifactServiceClientProtobuf implements ArtifactServiceClient {
     this.FinalizeArtifact.bind(this);
     this.ListArtifacts.bind(this);
     this.GetSignedArtifactURL.bind(this);
+    this.DeleteArtifact.bind(this);
   }
   CreateArtifact(
     request: CreateArtifactRequest
@@ -197,6 +224,21 @@ export class ArtifactServiceClientProtobuf implements ArtifactServiceClient {
       GetSignedArtifactURLResponse.fromBinary(data as Uint8Array)
     );
   }
+
+  DeleteArtifact(
+    request: DeleteArtifactRequest
+  ): Promise<DeleteArtifactResponse> {
+    const data = DeleteArtifactRequest.toBinary(request);
+    const promise = this.rpc.request(
+      "github.actions.results.api.v1.ArtifactService",
+      "DeleteArtifact",
+      "application/protobuf",
+      data
+    );
+    return promise.then((data) =>
+      DeleteArtifactResponse.fromBinary(data as Uint8Array)
+    );
+  }
 }
 
 //==================================//
@@ -220,6 +262,10 @@ export interface ArtifactServiceTwirp<T extends TwirpContext = TwirpContext> {
     ctx: T,
     request: GetSignedArtifactURLRequest
   ): Promise<GetSignedArtifactURLResponse>;
+  DeleteArtifact(
+    ctx: T,
+    request: DeleteArtifactRequest
+  ): Promise<DeleteArtifactResponse>;
 }
 
 export enum ArtifactServiceMethod {
@@ -227,6 +273,7 @@ export enum ArtifactServiceMethod {
   FinalizeArtifact = "FinalizeArtifact",
   ListArtifacts = "ListArtifacts",
   GetSignedArtifactURL = "GetSignedArtifactURL",
+  DeleteArtifact = "DeleteArtifact",
 }
 
 export const ArtifactServiceMethodList = [
@@ -234,6 +281,7 @@ export const ArtifactServiceMethodList = [
   ArtifactServiceMethod.FinalizeArtifact,
   ArtifactServiceMethod.ListArtifacts,
   ArtifactServiceMethod.GetSignedArtifactURL,
+  ArtifactServiceMethod.DeleteArtifact,
 ];
 
 export function createArtifactServiceServer<
@@ -327,6 +375,26 @@ function matchArtifactServiceRoute<T extends TwirpContext = TwirpContext>(
         ctx = { ...ctx, methodName: "GetSignedArtifactURL" };
         await events.onMatch(ctx);
         return handleArtifactServiceGetSignedArtifactURLRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
+      };
+    case "DeleteArtifact":
+      return async (
+        ctx: T,
+        service: ArtifactServiceTwirp,
+        data: Buffer,
+        interceptors?: Interceptor<
+          T,
+          DeleteArtifactRequest,
+          DeleteArtifactResponse
+        >[]
+      ) => {
+        ctx = { ...ctx, methodName: "DeleteArtifact" };
+        await events.onMatch(ctx);
+        return handleArtifactServiceDeleteArtifactRequest(
           ctx,
           service,
           data,
@@ -453,6 +521,35 @@ function handleArtifactServiceGetSignedArtifactURLRequest<
       );
     case TwirpContentType.Protobuf:
       return handleArtifactServiceGetSignedArtifactURLProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    default:
+      const msg = "unexpected Content-Type";
+      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
+  }
+}
+
+function handleArtifactServiceDeleteArtifactRequest<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: ArtifactServiceTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, DeleteArtifactRequest, DeleteArtifactResponse>[]
+): Promise<string | Uint8Array> {
+  switch (ctx.contentType) {
+    case TwirpContentType.JSON:
+      return handleArtifactServiceDeleteArtifactJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    case TwirpContentType.Protobuf:
+      return handleArtifactServiceDeleteArtifactProtobuf<T>(
         ctx,
         service,
         data,
@@ -646,6 +743,50 @@ async function handleArtifactServiceGetSignedArtifactURLJSON<
     }) as string
   );
 }
+
+async function handleArtifactServiceDeleteArtifactJSON<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: ArtifactServiceTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, DeleteArtifactRequest, DeleteArtifactResponse>[]
+) {
+  let request: DeleteArtifactRequest;
+  let response: DeleteArtifactResponse;
+
+  try {
+    const body = JSON.parse(data.toString() || "{}");
+    request = DeleteArtifactRequest.fromJson(body, {
+      ignoreUnknownFields: true,
+    });
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      DeleteArtifactRequest,
+      DeleteArtifactResponse
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.DeleteArtifact(ctx, inputReq);
+    });
+  } else {
+    response = await service.DeleteArtifact(ctx, request!);
+  }
+
+  return JSON.stringify(
+    DeleteArtifactResponse.toJson(response, {
+      useProtoFieldName: true,
+      emitDefaultValues: false,
+    }) as string
+  );
+}
 async function handleArtifactServiceCreateArtifactProtobuf<
   T extends TwirpContext = TwirpContext
 >(
@@ -796,4 +937,40 @@ async function handleArtifactServiceGetSignedArtifactURLProtobuf<
   }
 
   return Buffer.from(GetSignedArtifactURLResponse.toBinary(response));
+}
+
+async function handleArtifactServiceDeleteArtifactProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: ArtifactServiceTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, DeleteArtifactRequest, DeleteArtifactResponse>[]
+) {
+  let request: DeleteArtifactRequest;
+  let response: DeleteArtifactResponse;
+
+  try {
+    request = DeleteArtifactRequest.fromBinary(data);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      DeleteArtifactRequest,
+      DeleteArtifactResponse
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.DeleteArtifact(ctx, inputReq);
+    });
+  } else {
+    response = await service.DeleteArtifact(ctx, request!);
+  }
+
+  return Buffer.from(DeleteArtifactResponse.toBinary(response));
 }
