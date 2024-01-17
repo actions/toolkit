@@ -109,7 +109,7 @@ console.log(`Downloaded artifact ${id} to: ${downloadPath}`)
 
 ### Delete an Artifact
 
-To delete an artifact, all you need is the name. Also supports options to delete from other repos/runs given a token with proper permissions is supplied.
+To delete an artifact, all you need is the name.
 
 ```js
 const {id} = await artifact.deleteArtifact(
@@ -117,7 +117,29 @@ const {id} = await artifact.deleteArtifact(
   'my-artifact'
 )
 
-console.log(`Deleted Artifact ID: ${id}`)
+console.log(`Deleted Artifact ID '${id}'`)
+```
+
+It also supports options to delete from other repos/runs given a github token with `actions:write` permissions on the target repository is supplied.
+
+```js
+const findBy = {
+  // must have actions:write permission on target repository
+  token: process.env['GITHUB_TOKEN'],
+  workflowRunId: 123,
+  repositoryOwner: 'actions',
+  repositoryName: 'toolkit'
+}
+
+
+const {id} = await artifact.deleteArtifact(
+  // name of the artifact
+  'my-artifact',
+  // options to find by other repo/owner
+  { findBy }
+)
+
+console.log(`Deleted Artifact ID '${id}' from ${findBy.repositoryOwner}/ ${findBy.repositoryName}`)
 ```
 
 ### Downloading from other workflow runs or repos
