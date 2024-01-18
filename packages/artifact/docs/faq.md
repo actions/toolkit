@@ -60,4 +60,4 @@ For large files that are not easily compressed, a value of 0 is recommended for 
    - Check the release notes for each repository to see if there are any specific notes about compatibility or changes in behavior.
 
 ## How long will my artifact be available?
-The default retention period is 90 days. For more information, visit: https://github.com/actions/upload-artifact?tab=readme-ov-file#retention-period 
+The default retention period is **90 days**. For more information, visit: https://github.com/actions/upload-artifact?tab=readme-ov-file#retention-period 
