@@ -48,7 +48,7 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:24](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/errors.ts#L24)
+[src/internal/shared/errors.ts:24](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L24)
 
 ## Properties
 

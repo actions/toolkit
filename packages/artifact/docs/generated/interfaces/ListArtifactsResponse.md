@@ -20,4 +20,4 @@ A list of artifacts that were found
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:78](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/shared/interfaces.ts#L78)
+[src/internal/shared/interfaces.ts:78](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L78)

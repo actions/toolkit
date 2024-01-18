@@ -105,3 +105,7 @@
 ### 2.0.1
 
 - Patch to fix transient request timeouts https://github.com/actions/download-artifact/issues/249
+
+### 2.1.0
+
+- Added `ArtifactClient#deleteArtifact` to delete artifacts by name [#1626](https://github.com/actions/toolkit/pull/1626)

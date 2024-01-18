@@ -1,46 +1,48 @@
-[@actions/artifact](../README.md) / GHESNotSupportedError
+[@actions/artifact](../README.md) / NetworkError
 
-# Class: GHESNotSupportedError
+# Class: NetworkError
 
 ## Hierarchy
 
 - `Error`
 
-  ↳ **`GHESNotSupportedError`**
+  ↳ **`NetworkError`**
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](GHESNotSupportedError.md#constructor)
+- [constructor](NetworkError.md#constructor)
 
 ### Properties
 
-- [message](GHESNotSupportedError.md#message)
-- [name](GHESNotSupportedError.md#name)
-- [stack](GHESNotSupportedError.md#stack)
-- [prepareStackTrace](GHESNotSupportedError.md#preparestacktrace)
-- [stackTraceLimit](GHESNotSupportedError.md#stacktracelimit)
+- [code](NetworkError.md#code)
+- [message](NetworkError.md#message)
+- [name](NetworkError.md#name)
+- [stack](NetworkError.md#stack)
+- [prepareStackTrace](NetworkError.md#preparestacktrace)
+- [stackTraceLimit](NetworkError.md#stacktracelimit)
 
 ### Methods
 
-- [captureStackTrace](GHESNotSupportedError.md#capturestacktrace)
+- [captureStackTrace](NetworkError.md#capturestacktrace)
+- [isNetworkErrorCode](NetworkError.md#isnetworkerrorcode)
 
 ## Constructors
 
 ### constructor
 
-• **new GHESNotSupportedError**(`message?`): [`GHESNotSupportedError`](GHESNotSupportedError.md)
+• **new NetworkError**(`code`): [`NetworkError`](NetworkError.md)
 
 #### Parameters
 
-| Name | Type | Default value |
-| :------ | :------ | :------ |
-| `message` | `string` | `'@actions/artifact v2.0.0+, upload-artifact@v4+ and download-artifact@v4+ are not currently supported on GHES.'` |
+| Name | Type |
+| :------ | :------ |
+| `code` | `string` |
 
 #### Returns
 
-[`GHESNotSupportedError`](GHESNotSupportedError.md)
+[`NetworkError`](NetworkError.md)
 
 #### Overrides
 
@@ -48,9 +50,19 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:31](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L31)
+[src/internal/shared/errors.ts:42](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L42)
 
 ## Properties
+
+### code
+
+• **code**: `string`
+
+#### Defined in
+
+[src/internal/shared/errors.ts:40](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L40)
+
+___
 
 ### message
 
@@ -167,3 +179,23 @@ Error.captureStackTrace
 #### Defined in
 
 node_modules/@types/node/globals.d.ts:4
+
+___
+
+### isNetworkErrorCode
+
+▸ **isNetworkErrorCode**(`code?`): `boolean`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `code?` | `string` |
+
+#### Returns
+
+`boolean`
+
+#### Defined in
+
+[src/internal/shared/errors.ts:49](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L49)

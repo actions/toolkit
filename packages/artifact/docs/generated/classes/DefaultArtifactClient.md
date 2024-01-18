@@ -16,6 +16,7 @@ The default artifact client that is used by the artifact action(s).
 
 ### Methods
 
+- [deleteArtifact](DefaultArtifactClient.md#deleteartifact)
 - [downloadArtifact](DefaultArtifactClient.md#downloadartifact)
 - [getArtifact](DefaultArtifactClient.md#getartifact)
 - [listArtifacts](DefaultArtifactClient.md#listartifacts)
@@ -33,6 +34,37 @@ The default artifact client that is used by the artifact action(s).
 
 ## Methods
 
+### deleteArtifact
+
+▸ **deleteArtifact**(`artifactName`, `options?`): `Promise`\<[`DeleteArtifactResponse`](../interfaces/DeleteArtifactResponse.md)\>
+
+Delete an Artifact
+
+If `options.findBy` is specified, this will use the public Delete Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#delete-an-artifact
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `artifactName` | `string` | The name of the artifact to delete |
+| `options?` | [`FindOptions`](../interfaces/FindOptions.md) | Extra options that allow for the customization of the delete behavior |
+
+#### Returns
+
+`Promise`\<[`DeleteArtifactResponse`](../interfaces/DeleteArtifactResponse.md)\>
+
+single DeleteArtifactResponse object
+
+#### Implementation of
+
+[ArtifactClient](../interfaces/ArtifactClient.md).[deleteArtifact](../interfaces/ArtifactClient.md#deleteartifact)
+
+#### Defined in
+
+[src/internal/client.ts:248](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L248)
+
+___
+
 ### downloadArtifact
 
 ▸ **downloadArtifact**(`artifactId`, `options?`): `Promise`\<[`DownloadArtifactResponse`](../interfaces/DownloadArtifactResponse.md)\>
@@ -45,7 +77,7 @@ If `options.findBy` is specified, this will use the public Download Artifact API
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `artifactId` | `number` | The name of the artifact to download |
+| `artifactId` | `number` | The id of the artifact to download |
 | `options?` | [`DownloadArtifactOptions`](../interfaces/DownloadArtifactOptions.md) & [`FindOptions`](../interfaces/FindOptions.md) | Extra options that allow for the customization of the download behavior |
 
 #### Returns
@@ -60,7 +92,7 @@ single DownloadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:119](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L119)
+[src/internal/client.ts:138](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L138)
 
 ___
 
@@ -95,7 +127,7 @@ If there are multiple artifacts with the same name in the same workflow run this
 
 #### Defined in
 
-[src/internal/client.ts:193](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L193)
+[src/internal/client.ts:212](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L212)
 
 ___
 
@@ -127,7 +159,7 @@ ListArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:157](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L157)
+[src/internal/client.ts:176](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L176)
 
 ___
 
@@ -158,4 +190,4 @@ single UploadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:94](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L94)
+[src/internal/client.ts:113](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L113)

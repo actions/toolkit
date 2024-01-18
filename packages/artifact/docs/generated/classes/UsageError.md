@@ -1,46 +1,41 @@
-[@actions/artifact](../README.md) / GHESNotSupportedError
+[@actions/artifact](../README.md) / UsageError
 
-# Class: GHESNotSupportedError
+# Class: UsageError
 
 ## Hierarchy
 
 - `Error`
 
-  ↳ **`GHESNotSupportedError`**
+  ↳ **`UsageError`**
 
 ## Table of contents
 
 ### Constructors
 
-- [constructor](GHESNotSupportedError.md#constructor)
+- [constructor](UsageError.md#constructor)
 
 ### Properties
 
-- [message](GHESNotSupportedError.md#message)
-- [name](GHESNotSupportedError.md#name)
-- [stack](GHESNotSupportedError.md#stack)
-- [prepareStackTrace](GHESNotSupportedError.md#preparestacktrace)
-- [stackTraceLimit](GHESNotSupportedError.md#stacktracelimit)
+- [message](UsageError.md#message)
+- [name](UsageError.md#name)
+- [stack](UsageError.md#stack)
+- [prepareStackTrace](UsageError.md#preparestacktrace)
+- [stackTraceLimit](UsageError.md#stacktracelimit)
 
 ### Methods
 
-- [captureStackTrace](GHESNotSupportedError.md#capturestacktrace)
+- [captureStackTrace](UsageError.md#capturestacktrace)
+- [isUsageErrorMessage](UsageError.md#isusageerrormessage)
 
 ## Constructors
 
 ### constructor
 
-• **new GHESNotSupportedError**(`message?`): [`GHESNotSupportedError`](GHESNotSupportedError.md)
-
-#### Parameters
-
-| Name | Type | Default value |
-| :------ | :------ | :------ |
-| `message` | `string` | `'@actions/artifact v2.0.0+, upload-artifact@v4+ and download-artifact@v4+ are not currently supported on GHES.'` |
+• **new UsageError**(): [`UsageError`](UsageError.md)
 
 #### Returns
 
-[`GHESNotSupportedError`](GHESNotSupportedError.md)
+[`UsageError`](UsageError.md)
 
 #### Overrides
 
@@ -48,7 +43,7 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:31](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L31)
+[src/internal/shared/errors.ts:62](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L62)
 
 ## Properties
 
@@ -167,3 +162,23 @@ Error.captureStackTrace
 #### Defined in
 
 node_modules/@types/node/globals.d.ts:4
+
+___
+
+### isUsageErrorMessage
+
+▸ **isUsageErrorMessage**(`msg?`): `boolean`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `msg?` | `string` |
+
+#### Returns
+
+`boolean`
+
+#### Defined in
+
+[src/internal/shared/errors.ts:68](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L68)
