@@ -8,13 +8,18 @@ import {
   ListArtifactsOptions,
   ListArtifactsResponse,
   DownloadArtifactResponse,
-  FindOptions
+  FindOptions,
+  DeleteArtifactResponse
 } from './shared/interfaces'
 import {uploadArtifact} from './upload/upload-artifact'
 import {
   downloadArtifactPublic,
   downloadArtifactInternal
 } from './download/download-artifact'
+import {
+  deleteArtifactPublic,
+  deleteArtifactInternal
+} from './delete/delete-artifact'
 import {getArtifactPublic, getArtifactInternal} from './find/get-artifact'
 import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts'
 import {GHESNotSupportedError} from './shared/errors'
@@ -77,7 +82,7 @@ export interface ArtifactClient {
    *
    * If `options.findBy` is specified, this will use the public Download Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#download-an-artifact
    *
-   * @param artifactId The name of the artifact to download
+   * @param artifactId The id of the artifact to download
    * @param options Extra options that allow for the customization of the download behavior
    * @returns single DownloadArtifactResponse object
    */
@@ -85,6 +90,20 @@ export interface ArtifactClient {
     artifactId: number,
     options?: DownloadArtifactOptions & FindOptions
   ): Promise<DownloadArtifactResponse>
+
+  /**
+   * Delete an Artifact
+   *
+   * If `options.findBy` is specified, this will use the public Delete Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#delete-an-artifact
+   *
+   * @param artifactName The name of the artifact to delete
+   * @param options Extra options that allow for the customization of the delete behavior
+   * @returns single DeleteArtifactResponse object
+   */
+  deleteArtifact(
+    artifactName: string,
+    options?: FindOptions
+  ): Promise<DeleteArtifactResponse>
 }
 
 /**
@@ -222,6 +241,43 @@ Errors can be temporary, so please try again and optionally run the action with 
 
 If the error persists, please check whether Actions and API requests are operating normally at [https://githubstatus.com](https://www.githubstatus.com).`
       )
+      throw error
+    }
+  }
+
+  async deleteArtifact(
+    artifactName: string,
+    options?: FindOptions
+  ): Promise<DeleteArtifactResponse> {
+    try {
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
+
+      if (options?.findBy) {
+        const {
+          findBy: {repositoryOwner, repositoryName, workflowRunId, token}
+        } = options
+
+        return deleteArtifactPublic(
+          artifactName,
+          workflowRunId,
+          repositoryOwner,
+          repositoryName,
+          token
+        )
+      }
+
+      return deleteArtifactInternal(artifactName)
+    } catch (error) {
+      warning(
+        `Delete Artifact failed with error: ${error}.
+
+Errors can be temporary, so please try again and optionally run the action with debug mode enabled for more information.
+
+If the error persists, please check whether Actions and API requests are operating normally at [https://githubstatus.com](https://www.githubstatus.com).`
+      )
+
       throw error
     }
   }

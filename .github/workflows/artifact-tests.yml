@@ -72,7 +72,7 @@ jobs:
             console.log('Successfully blocked second artifact upload')
           }
   verify:
-    name: Verify
+    name: Verify and Delete
     runs-on: ubuntu-latest
     needs: [upload]
     steps:
@@ -164,3 +164,31 @@ jobs:
               }
             }
           }
+    - name: Delete Artifacts
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {default: artifactClient} = require('./packages/artifact/lib/artifact')
+
+          const artifactsToDelete = [
+            'my-artifact-ubuntu-latest',
+            'my-artifact-windows-latest',
+            'my-artifact-macos-latest'
+          ]
+
+          for (const artifactName of artifactsToDelete) {
+            const {id} = await artifactClient.deleteArtifact(artifactName)
+          }
+
+          const {artifacts} = await artifactClient.listArtifacts({latest: true})
+          const foundArtifacts = artifacts.filter(artifact =>
+            artifactsToDelete.includes(artifact.name)
+          )
+
+          if (foundArtifacts.length !== 0) {
+            console.log('Unexpected length of found artifacts:', foundArtifacts)
+            throw new Error(
+              `Expected 0 artifacts but found ${foundArtifacts.length} artifacts.`
+            )
+          }
+

@@ -147,3 +147,13 @@ export interface FindOptions {
     repositoryName: string
   }
 }
+
+/**
+ * Response from the server when deleting an artifact
+ */
+export interface DeleteArtifactResponse {
+  /**
+   * The id of the artifact that was deleted
+   */
+  id: number
+}
