@@ -44,11 +44,9 @@ For large files that are not easily compressed, a value of 0 is recommended for 
 | v4 | v4 | v2 |
 | <v3 | <v3 | < v1 |
 
-1. **Matching Versions:**
-	- Use matching versions of `actions/upload-artifact` and `actions/download-artifact` to ensure compatibility.
+ Use matching versions of `actions/upload-artifact` and `actions/download-artifact` to ensure compatibility.
 
-2. **Workflow YAML File:**
-   - In your GitHub Actions workflow YAML file, you specify the version of the actions you want to use. For example:
+In your GitHub Actions workflow YAML file, you specify the version of the actions you want to use. For example:
      ```yaml
      uses: actions/upload-artifact@v4
      # ...
@@ -56,8 +54,8 @@ For large files that are not easily compressed, a value of 0 is recommended for 
      # ...
      ```
 
-3. **Release Notes:**
-   - Check the release notes for each repository to see if there are any specific notes about compatibility or changes in behavior.
+**Release Notes:**
+Check the release notes for each repository to see if there are any specific notes about compatibility or changes in behavior.
 
 ## How long will my artifact be available?
 The default retention period is **90 days**. For more information, visit: https://github.com/actions/upload-artifact?tab=readme-ov-file#retention-period 
