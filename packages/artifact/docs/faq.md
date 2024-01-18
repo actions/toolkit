@@ -37,7 +37,12 @@ Higher levels will result in better compression, but will take longer to complet
 For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
 
 ## Which versions of the artifacts packages are compatible?
-[actions/upload-artifact](https://github.com/actions/upload-artifact) and [actions/download-artifact](https://github.com/actions/download-artifact), are part of the [GitHub Actions toolkit](https://github.com/actions/toolkit) and are typically used together to upload and download artifacts in your workflows.
+[actions/upload-artifact](https://github.com/actions/upload-artifact) and [actions/download-artifact](https://github.com/actions/download-artifact), leverage [GitHub Actions toolkit](https://github.com/actions/toolkit) and are typically used together to upload and download artifacts in your workflows.
+
+| upload-artifact | download-artifact | toolkit |
+|---|---|---|
+| v4 | v4 | v2 |
+| <v3 | <v3 | < v1 |
 
 1. **Matching Versions:**
 	- Use matching versions of `actions/upload-artifact` and `actions/download-artifact` to ensure compatibility.
