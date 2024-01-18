@@ -109,3 +109,4 @@
 ### 2.1.0
 
 - Added `ArtifactClient#deleteArtifact` to delete artifacts by name [#1626](https://github.com/actions/toolkit/pull/1626)
+- Update error messaging to be more useful [#1628](https://github.com/actions/toolkit/pull/1628)
