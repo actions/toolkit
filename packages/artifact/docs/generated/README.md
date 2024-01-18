@@ -11,11 +11,14 @@
 - [FilesNotFoundError](classes/FilesNotFoundError.md)
 - [GHESNotSupportedError](classes/GHESNotSupportedError.md)
 - [InvalidResponseError](classes/InvalidResponseError.md)
+- [NetworkError](classes/NetworkError.md)
+- [UsageError](classes/UsageError.md)
 
 ### Interfaces
 
 - [Artifact](interfaces/Artifact.md)
 - [ArtifactClient](interfaces/ArtifactClient.md)
+- [DeleteArtifactResponse](interfaces/DeleteArtifactResponse.md)
 - [DownloadArtifactOptions](interfaces/DownloadArtifactOptions.md)
 - [DownloadArtifactResponse](interfaces/DownloadArtifactResponse.md)
 - [FindOptions](interfaces/FindOptions.md)
@@ -37,4 +40,4 @@
 
 #### Defined in
 
-[src/artifact.ts:7](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/artifact.ts#L7)
+[src/artifact.ts:7](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/artifact.ts#L7)

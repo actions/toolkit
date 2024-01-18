@@ -12,12 +12,40 @@ Generic interface for the artifact client.
 
 ### Methods
 
+- [deleteArtifact](ArtifactClient.md#deleteartifact)
 - [downloadArtifact](ArtifactClient.md#downloadartifact)
 - [getArtifact](ArtifactClient.md#getartifact)
 - [listArtifacts](ArtifactClient.md#listartifacts)
 - [uploadArtifact](ArtifactClient.md#uploadartifact)
 
 ## Methods
+
+### deleteArtifact
+
+▸ **deleteArtifact**(`artifactName`, `options?`): `Promise`\<[`DeleteArtifactResponse`](DeleteArtifactResponse.md)\>
+
+Delete an Artifact
+
+If `options.findBy` is specified, this will use the public Delete Artifact API https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#delete-an-artifact
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `artifactName` | `string` | The name of the artifact to delete |
+| `options?` | [`FindOptions`](FindOptions.md) | Extra options that allow for the customization of the delete behavior |
+
+#### Returns
+
+`Promise`\<[`DeleteArtifactResponse`](DeleteArtifactResponse.md)\>
+
+single DeleteArtifactResponse object
+
+#### Defined in
+
+[src/internal/client.ts:103](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L103)
+
+___
 
 ### downloadArtifact
 
@@ -31,7 +59,7 @@ If `options.findBy` is specified, this will use the public Download Artifact API
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `artifactId` | `number` | The name of the artifact to download |
+| `artifactId` | `number` | The id of the artifact to download |
 | `options?` | [`DownloadArtifactOptions`](DownloadArtifactOptions.md) & [`FindOptions`](FindOptions.md) | Extra options that allow for the customization of the download behavior |
 
 #### Returns
@@ -42,7 +70,7 @@ single DownloadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:84](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L84)
+[src/internal/client.ts:89](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L89)
 
 ___
 
@@ -73,7 +101,7 @@ If there are multiple artifacts with the same name in the same workflow run this
 
 #### Defined in
 
-[src/internal/client.ts:70](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L70)
+[src/internal/client.ts:75](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L75)
 
 ___
 
@@ -101,7 +129,7 @@ ListArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:52](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L52)
+[src/internal/client.ts:57](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L57)
 
 ___
 
@@ -128,4 +156,4 @@ single UploadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:35](https://github.com/actions/toolkit/blob/e3764a5/packages/artifact/src/internal/client.ts#L35)
+[src/internal/client.ts:40](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L40)
