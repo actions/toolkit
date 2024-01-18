@@ -3,6 +3,8 @@
 - [Frequently Asked Questions](#frequently-asked-questions)
   - [Supported Characters](#supported-characters)
   - [Compression? ZIP? How is my artifact stored?](#compression-zip-how-is-my-artifact-stored)
+  - [Which versions of the artifacts packages are compatible?](#which-versions-of-the-artifacts-packages-are-compatible)
+  - [How long will my artifact be available?](#how-long-will-my-artifact-be-available)
 
 ## Supported Characters
 
