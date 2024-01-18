@@ -44,15 +44,16 @@ For large files that are not easily compressed, a value of 0 is recommended for 
 | v4 | v4 | v2 |
 | <v3 | <v3 | < v1 |
 
- Use matching versions of `actions/upload-artifact` and `actions/download-artifact` to ensure compatibility.
+Use matching versions of `actions/upload-artifact` and `actions/download-artifact` to ensure compatibility.
 
 In your GitHub Actions workflow YAML file, you specify the version of the actions you want to use. For example:
-     ```yaml
-     uses: actions/upload-artifact@v4
-     # ...
-     uses: actions/download-artifact@v4
-     # ...
-     ```
+
+```yaml
+  uses: actions/upload-artifact@v4
+  # ...
+  uses: actions/download-artifact@v4
+  # ...
+```
 
 **Release Notes:**
 Check the release notes for each repository to see if there are any specific notes about compatibility or changes in behavior.
