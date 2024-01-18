@@ -91,7 +91,9 @@ export async function getArtifactInternal(
 
   if (res.artifacts.length === 0) {
     throw new ArtifactNotFoundError(
-      `Artifact not found for name: ${artifactName}`
+      `Artifact not found for name: ${artifactName}\n
+        Please ensure that your artifact is not expired and the artifact was uploaded using a compatible version of toolkit/upload-artifact.\n
+        For more information, visit the Github Artifacts FAQ: https://github.com/actions/toolkit/blob/main/packages/artifact/docs/faq.md`
     )
   }
 
