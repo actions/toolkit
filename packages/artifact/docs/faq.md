@@ -42,7 +42,7 @@ For large files that are not easily compressed, a value of 0 is recommended for 
 | upload-artifact | download-artifact | toolkit |
 |---|---|---|
 | v4 | v4 | v2 |
-| <v3 | <v3 | < v1 |
+| < v3 | < v3 | < v1 |
 
 Use matching versions of `actions/upload-artifact` and `actions/download-artifact` to ensure compatibility.
 
