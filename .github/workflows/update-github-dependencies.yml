@@ -1,4 +1,4 @@
-name: update-github
+name: Update GitHub Dependencies
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: cache-tests
+name: Cache Package Tests
 
 on:
   push:
