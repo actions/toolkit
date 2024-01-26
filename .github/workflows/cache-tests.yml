@@ -1,4 +1,5 @@
-name: cache-unit-tests
+name: cache-tests
+
 on:
   push:
     branches:
@@ -10,82 +11,101 @@ on:
       - '**.md'
 
 jobs:
-  build:
-    name: Build
+  test:
+    name: Test
+    runs-on: ${{ matrix.runs-on }}
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest, windows-latest, macOS-latest]
+        runs-on:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
       fail-fast: false
 
-    runs-on: ${{ matrix.runs-on }}
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20.x
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
 
-    # In order to save & restore cache from a shell script, certain env variables need to be set that are only available in the
-    # node context. This runs a local action that gets and sets the necessary env variables that are needed
-    - name: Set env variables
-      uses: ./packages/cache/__tests__/__fixtures__/
+      # In order to save & restore cache from a shell script, certain env
+      # variables need to be set that are only available in the node context.
+      # This runs a local action that gets and sets the necessary env variables.
+      - name: Set env Variables
+        id: set-env-variables
+        uses: ./packages/cache/__tests__/__fixtures__/
 
-    # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
-    # without these to just compile the cache package
-    - name: Install root npm packages
-      run: npm ci
+      # Need root node_modules because certain npm packages like jest are
+      # configured for the entire repository and it won't be possible without
+      # these to just compile the cache package.
+      - name: Install Packages
+        id: install
+        run: npm ci
 
-    - name: Compile cache package
-      run: |
-        npm ci
-        npm run tsc
-      working-directory: packages/cache
-    
-    - name: Generate files in working directory
-      shell: bash
-      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} test-cache
+      - name: Compile Package
+        id: compile
+        run: |
+          npm ci
+          npm run tsc
+        working-directory: packages/cache
 
-    - name: Generate files outside working directory
-      shell: bash
-      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
+      - name: Generate Files in Working Directory
+        id: generate-files-in-cwd
+        shell: bash
+        run: ./packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} test-cache
 
-    # We're using node -e to call the functions directly available in the @actions/cache package
-    - name: Save cache using saveCache()
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+      - name: Generate Files Outside Working Directory
+        id: generate-files-out-cwd
+        shell: bash
+        run: ./packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
 
-    - name: Delete cache folders before restoring
-      shell: bash
-      run: |
-        rm -rf test-cache
-        rm -rf ~/test-cache
+      # We're using node -e to call the functions directly available in the
+      # @actions/cache package.
+      - name: Save Cache with saveCache()
+        id: save-cache
+        run: |
+          node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
 
-    - name: Restore cache using restoreCache() with http-client
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}))"
+      - name: Delete Cache Folders
+        id: delete-folders-1
+        shell: bash
+        run: |
+          rm -rf test-cache
+          rm -rf ~/test-cache
 
-    - name: Verify cache restored with http-client
-      shell: bash
-      run: |
-        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
-        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache
+      - name: Restore Cache (restoreCache() with http-client)
+        id: restore-http
+        run: |
+          node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}))"
 
-    - name: Delete cache folders before restoring
-      shell: bash
-      run: |
-        rm -rf test-cache
-        rm -rf ~/test-cache
+      - name: Verify Cache (http-client)
+        id: verify-http
+        shell: bash
+        run: |
+          ./packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+          ./packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache
 
-    - name: Restore cache using restoreCache() with Azure SDK
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+      - name: Delete Cache Folders
+        id: delete-cache-2
+        shell: bash
+        run: |
+          rm -rf test-cache
+          rm -rf ~/test-cache
 
-    - name: Verify cache restored with Azure SDK
-      shell: bash
-      run: |
-        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
-        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache
+      - name: Restore Cache (restoreCache() with Azure SDK)
+        id: restore-azure
+        run: |
+          node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+
+      - name: Verify Cache (Azure SDK)
+        id: verify-azure
+        shell: bash
+        run: |
+          ./packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+          ./packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache

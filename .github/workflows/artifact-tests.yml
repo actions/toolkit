@@ -1,4 +1,5 @@
 name: artifact-unit-tests
+
 on:
   push:
     branches:
@@ -12,183 +13,198 @@ on:
 jobs:
   upload:
     name: Upload
+    runs-on: ${{ matrix.runs-on }}
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        runs-on:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
       fail-fast: false
 
-    runs-on: ${{ matrix.runs-on }}
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
 
-    # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
-    # without these to just compile the artifacts package
-    - name: Install root npm packages
-      run: npm ci
+      # Need root node_modules because certain npm packages like jest are
+      # configured for the entire repository and it won't be possible without
+      # these to just compile the artifacts package.
+      - name: Install Packages
+        id: install
+        run: npm ci
 
-    - name: Compile artifact package
-      run: |
-        npm ci
-        npm run tsc
-      working-directory: packages/artifact
+      - name: Compile Package
+        id: compile
+        run: |
+          npm ci
+          npm run tsc
+        working-directory: packages/artifact
 
-    - name: Create files that will be uploaded
-      run: |
-        mkdir artifact-path
-        echo -n 'hello from file 1' > artifact-path/first.txt
-        echo -n 'hello from file 2' > artifact-path/second.txt
+      - name: Create Files to Upload
+        id: create
+        run: |
+          mkdir artifact-path
+          echo -n 'hello from file 1' > artifact-path/first.txt
+          echo -n 'hello from file 2' > artifact-path/second.txt
 
-    - name: Upload Artifacts
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const {default: artifact} = require('./packages/artifact/lib/artifact')
+      - name: Upload Artifacts
+        id: upload
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {default: artifact} = require('./packages/artifact/lib/artifact')
 
-          const artifactName = 'my-artifact-${{ matrix.runs-on }}'
-          console.log('artifactName: ' + artifactName)
+            const artifactName = 'my-artifact-${{ matrix.runs-on }}'
+            console.log(`artifactName: ${artifactName}`)
 
-          const fileContents = ['artifact-path/first.txt','artifact-path/second.txt']
+            const fileContents = ['artifact-path/first.txt','artifact-path/second.txt']
+            const uploadResult = await artifact.uploadArtifact(artifactName, fileContents, './')
+            console.log(uploadResult)
 
-          const uploadResult = await artifact.uploadArtifact(artifactName, fileContents, './')
-          console.log(uploadResult)
+            const size = uploadResult.size
+            const id = uploadResult.id
+            console.log(`Successfully uploaded artifact ${id}`)
 
-          const size = uploadResult.size
-          const id = uploadResult.id
+            try {
+              await artifact.uploadArtifact(artifactName, fileContents, './')
+              throw new Error('Should have failed second upload')
+            } catch (err) {
+              console.log('Successfully blocked second artifact upload')
+            }
 
-          console.log(`Successfully uploaded artifact ${id}`)
-
-          try {
-            await artifact.uploadArtifact(artifactName, fileContents, './')
-            throw new Error('should have failed second upload')
-          } catch (err) {
-            console.log('Successfully blocked second artifact upload')
-          }
   verify:
     name: Verify and Delete
     runs-on: ubuntu-latest
-    needs: [upload]
+
+    needs:
+      - upload
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
 
-    # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
-    # without these to just compile the artifacts package
-    - name: Install root npm packages
-      run: npm ci
+      # Need root node_modules because certain npm packages like jest are
+      # configured for the entire repository and it won't be possible without
+      # these to just compile the artifacts package
+      - name: Install Root npm Packages
+        id: install
+        run: npm ci
 
-    - name: Compile artifact package
-      run: |
-        npm ci
-        npm run tsc
-      working-directory: packages/artifact
+      - name: Compile artifact Package
+        id: compile
+        run: |
+          npm ci
+          npm run tsc
+        working-directory: packages/artifact
 
-    - name: List and Download Artifacts
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const {default: artifactClient} = require('./packages/artifact/lib/artifact')
+      - name: List and Download Artifacts
+        id: list-download
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {default: artifactClient} = require('./packages/artifact/lib/artifact')
+            const {readFile} = require('fs/promises')
+            const path = require('path')
 
-          const {readFile} = require('fs/promises')
-          const path = require('path')
+            const findBy = {
+              repositoryOwner: process.env.GITHUB_REPOSITORY.split('/')[0],
+              repositoryName: process.env.GITHUB_REPOSITORY.split('/')[1],
+              token: '${{ secrets.GITHUB_TOKEN }}',
+              workflowRunId: process.env.GITHUB_RUN_ID
+            }
 
-          const findBy = {
-            repositoryOwner: process.env.GITHUB_REPOSITORY.split('/')[0],
-            repositoryName: process.env.GITHUB_REPOSITORY.split('/')[1],
-            token: '${{ secrets.GITHUB_TOKEN }}',
-            workflowRunId: process.env.GITHUB_RUN_ID
-          }
+            const listResult = await artifactClient.listArtifacts({latest: true, findBy})
+            console.log(listResult)
 
-          const listResult = await artifactClient.listArtifacts({latest: true, findBy})
-          console.log(listResult)
+            const artifacts = listResult.artifacts
+            const expected = [
+              'my-artifact-ubuntu-latest',
+              'my-artifact-windows-latest',
+              'my-artifact-macos-latest'
+            ]
 
-          const artifacts = listResult.artifacts
-          const expected = [
-            'my-artifact-ubuntu-latest',
-            'my-artifact-windows-latest',
-            'my-artifact-macos-latest'
-          ]
-
-          const foundArtifacts = artifacts.filter(artifact =>
-            expected.includes(artifact.name)
-          )
-
-          if (foundArtifacts.length !== 3) {
-            console.log('Unexpected length of found artifacts', foundArtifacts)
-            throw new Error(
-              `Expected 3 artifacts but found ${foundArtifacts.length} artifacts.`
+            const foundArtifacts = artifacts.filter(artifact =>
+              expected.includes(artifact.name)
             )
-          }
 
-          console.log('Successfully listed artifacts that were uploaded')
+            if (foundArtifacts.length !== 3) {
+              console.log('Unexpected length of found artifacts', foundArtifacts)
+              throw new Error(`Expected 3 artifacts but found ${foundArtifacts.length}`)
+            }
 
-          const files = [
-            {name: 'artifact-path/first.txt', content: 'hello from file 1'},
-            {name: 'artifact-path/second.txt', content: 'hello from file 2'}
-          ]
+            console.log('Successfully listed artifacts that were uploaded')
 
-          for (const artifact of foundArtifacts) {
-            const {downloadPath} = await artifactClient.downloadArtifact(artifact.id, {
-              path: artifact.name,
-              findBy
-            })
+            const files = [
+              {name: 'artifact-path/first.txt', content: 'hello from file 1'},
+              {name: 'artifact-path/second.txt', content: 'hello from file 2'}
+            ]
 
-            console.log('Downloaded artifact to:', downloadPath)
+            for (const artifact of foundArtifacts) {
+              const {downloadPath} = await artifactClient.downloadArtifact(artifact.id, {
+                path: artifact.name,
+                findBy
+              })
 
-            for (const file of files) {
-              const filepath = path.join(
-                process.env.GITHUB_WORKSPACE,
-                downloadPath,
-                file.name
-              )
+              console.log(`Downloaded artifact to: ${downloadPath}`)
 
-              console.log('Checking file:', filepath)
-
-              const content = await readFile(filepath, 'utf8')
-              if (content.trim() !== file.content.trim()) {
-                throw new Error(
-                  `Expected file '${file.name}' to contain '${file.content}' but found '${content}'`
+              for (const file of files) {
+                const filepath = path.join(
+                  process.env.GITHUB_WORKSPACE,
+                  downloadPath,
+                  file.name
                 )
+
+                console.log(`Checking file: ${filepath}`)
+
+                const content = await readFile(filepath, 'utf8')
+                if (content.trim() !== file.content.trim()) {
+                  throw new Error(
+                    `Expected file '${file.name}' to contain '${file.content}' but found '${content}'`
+                  )
+                }
               }
             }
-          }
-    - name: Delete Artifacts
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const {default: artifactClient} = require('./packages/artifact/lib/artifact')
 
-          const artifactsToDelete = [
-            'my-artifact-ubuntu-latest',
-            'my-artifact-windows-latest',
-            'my-artifact-macos-latest'
-          ]
+      - name: Delete Artifacts
+        id: delete
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {default: artifactClient} = require('./packages/artifact/lib/artifact')
 
-          for (const artifactName of artifactsToDelete) {
-            const {id} = await artifactClient.deleteArtifact(artifactName)
-          }
+            const artifactsToDelete = [
+              'my-artifact-ubuntu-latest',
+              'my-artifact-windows-latest',
+              'my-artifact-macos-latest'
+            ]
 
-          const {artifacts} = await artifactClient.listArtifacts({latest: true})
-          const foundArtifacts = artifacts.filter(artifact =>
-            artifactsToDelete.includes(artifact.name)
-          )
+            for (const artifactName of artifactsToDelete) {
+              const {id} = await artifactClient.deleteArtifact(artifactName)
+            }
 
-          if (foundArtifacts.length !== 0) {
-            console.log('Unexpected length of found artifacts:', foundArtifacts)
-            throw new Error(
-              `Expected 0 artifacts but found ${foundArtifacts.length} artifacts.`
+            const {artifacts} = await artifactClient.listArtifacts({latest: true})
+            const foundArtifacts = artifacts.filter(artifact =>
+              artifactsToDelete.includes(artifact.name)
             )
-          }
 
+            if (foundArtifacts.length !== 0) {
+              console.log('Unexpected length of found artifacts', foundArtifacts)
+              throw new Error(
+                `Expected 0 artifacts but found ${foundArtifacts.length} artifacts.`
+              )
+            }
