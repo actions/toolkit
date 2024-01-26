@@ -1,4 +1,4 @@
-name: artifact-unit-tests
+name: Artifact Package Tests
 
 on:
   push:

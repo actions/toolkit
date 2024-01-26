@@ -1,4 +1,4 @@
-name: audit-toolkit
+name: Audit Packages
 
 on:
   push:

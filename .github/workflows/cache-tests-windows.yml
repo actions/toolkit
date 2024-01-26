@@ -1,4 +1,4 @@
-name: cache-windows-tests
+name: Cache Package Tests (Windows)
 
 on:
   push:
