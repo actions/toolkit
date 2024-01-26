@@ -7,6 +7,5 @@
   "trailingComma": "none",
   "bracketSpacing": false,
   "arrowParens": "avoid",
-  "parser": "typescript",
   "endOfLine": "auto"
 }
