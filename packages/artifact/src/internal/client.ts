@@ -11,7 +11,7 @@ import {
   FindOptions,
   DeleteArtifactResponse
 } from './shared/interfaces'
-import {uploadArtifact} from './upload/upload-artifact'
+import {uploadArtifact, uploadSingleArtifact} from './upload/upload-artifact'
 import {
   downloadArtifactPublic,
   downloadArtifactInternal
@@ -119,6 +119,10 @@ export class DefaultArtifactClient implements ArtifactClient {
     try {
       if (isGhes()) {
         throw new GHESNotSupportedError()
+      }
+
+      if (Array.isArray(files) && files?.length === 1) {
+        return uploadSingleArtifact(name, files.at(0) as string, rootDirectory, options)
       }
 
       return uploadArtifact(name, files, rootDirectory, options)
