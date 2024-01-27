@@ -2,17 +2,17 @@
 
 In order to support using actions to interact with GitHub, I propose adding a `github` package to the toolkit.
 
-Its main purpose will be to provide a hydrated GitHub context/Octokit client with some convenience functions. It is largely pulled from the GitHub utilities provided in https://github.com/JasonEtco/actions-toolkit, though it has been condensed.
+Its main purpose will be to provide a hydrated GitHub context/Octokit client with some convenience functions. It is largely pulled from the GitHub utilities provided in [`JasonEtco/actions-toolkit`](https://github.com/JasonEtco/actions-toolkit), though it has been condensed.
 
-### Spec
+## Spec
 
-##### interfaces.ts
+### `interfaces.ts`
 
 ```ts
 /*
  * Interfaces
  */
- 
+
 export interface PayloadRepository {
   [key: string]: any
   full_name?: string
@@ -52,13 +52,13 @@ export interface WebhookPayloadWithRepository {
 }
 ```
 
-##### context.ts
+### `context.ts`
 
 Contains a GitHub context
 
 ```ts
 export class Context {
-   /**
+  /**
    * Webhook payload object that triggered the workflow
    */
   public payload: WebhookPayloadWithRepository
@@ -72,29 +72,31 @@ export class Context {
   public workflow: string
   public action: string
   public actor: string
-  
+
   /**
    * Hydrate the context from the environment
    */
-  constructor ()
-  
-  public get issue ()
-  
-  public get repo ()
-}
+  constructor()
 
+  public get issue()
+
+  public get repo()
+}
 ```
 
-##### github.ts
+### `github.ts`
 
 Contains a hydrated Octokit client
 
 ```ts
 export class GithubClient extends Octokit {
- // For making GraphQL requests
- public graphql: (query: string, variables?: Variables) => Promise<GraphQlQueryResponse>
- 
- // Calls super and initializes graphql
- constructor (token: string)
+  // For making GraphQL requests
+  public graphql: (
+    query: string,
+    variables?: Variables
+  ) => Promise<GraphQlQueryResponse>
+
+  // Calls super and initializes graphql
+  constructor(token: string)
 }
 ```
