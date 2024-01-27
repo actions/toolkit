@@ -131,7 +131,7 @@ jobs:
           path: |
             **/*.tar.gz
             **/*.pkg
-          follow-symbolic-links: false    # opt out, should default to true
+          follow-symbolic-links: false # opt out, should default to true
 ```
 
 ### HashFiles function
@@ -162,6 +162,7 @@ With the following behaviors:
 - Directory separator `/` and `\` both supported on Windows
 
 Note:
+
 - Refer [here](https://www.gnu.org/software/bash/manual/html_node/Pattern-Matching.html#Pattern-Matching) for more information about Bash glob patterns.
 - Refer [here](https://www.gnu.org/software/bash/manual/html_node/The-Shopt-Builtin.html) for more information about Bash glob options.
 
@@ -170,10 +171,12 @@ Note:
 Support basic tilde expansion, for current user HOME replacement only.
 
 For example, on macOS:
+
 - `~` may expand to `/Users/johndoe`
 - `~/foo` may expand to `/Users/johndoe/foo`
 
 Note:
+
 - Refer [here](https://www.gnu.org/software/bash/manual/html_node/Tilde-Expansion.html) for more information about Bash tilde expansion.
 - All other forms of tilde expansion are not supported.
 - Use `os.homedir()` to resolve the HOME path
@@ -183,12 +186,14 @@ Note:
 An unrooted pattern will be rooted using the current working directory, prior to searching. Additionally the search path will be normalized prior to searching (relative pathing removed, slashes normalized on Windows, extra slashes removed).
 
 The two side effects are:
+
 1. Rooted and normalized paths are always returned
 2. The pattern `**` will include the working directory in the results
 
 These side effects diverge from Bash behavior. Whereas Bash is designed to be a shell, we are designing an API. This decision is intended to improve predictability of the API results.
 
 Note:
+
 - In Bash, the results are not rooted when the pattern is relative.
 - In Bash, the results are not normalized. For example, the results from `./*` may look like: `./foo ./bar`
 - In Bash, the results from the pattern `**` does not include the working directory. However the results from `/foo/**` would include the directory `/foo`. Also the results from `foo/**` would include the directory `foo`.
@@ -202,6 +207,7 @@ Patterns that begin with `#` are treated as comments.
 Leading `!` changes the meaning of an include pattern to exclude.
 
 Note:
+
 - Multiple leading `!` flips the meaning.
 
 ## Escaping
