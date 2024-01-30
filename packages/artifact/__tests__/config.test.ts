@@ -13,12 +13,12 @@ describe('isGhes', () => {
     })
 
     it('should return false when the request domain ends with ghe.com', () => {
-        process.env.GITHUB_SERVER_URL = 'https://my.domain.ghe.com'
+        process.env.GITHUB_SERVER_URL = 'https://github.ghe.com'
         expect(config.isGhes()).toBe(false)
     })
 
     it('should return false when the request domain ends with ghe.localhost', () => {
-        process.env.GITHUB_SERVER_URL = 'https://my.domain.ghe.localhost'
+        process.env.GITHUB_SERVER_URL = 'https://github.ghe.localhost'
         expect(config.isGhes()).toBe(false)
     })
 

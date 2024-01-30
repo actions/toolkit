@@ -49,7 +49,7 @@ test('isGhes returns false for github.com', async () => {
 })
 
 test('isGhes returns false for ghe.com', async () => {
-  process.env.GITHUB_SERVER_URL = 'https://somedomain.ghe.com'
+  process.env.GITHUB_SERVER_URL = 'https://github.ghe.com'
   expect(cacheUtils.isGhes()).toBe(false)
 })
 
@@ -59,6 +59,6 @@ test('isGhes returns true for enterprise URL', async () => {
 })
 
 test('isGhes returns false for ghe.localhost', () => {
-  process.env.GITHUB_SERVER_URL = 'https://my.domain.ghe.localhost'
+  process.env.GITHUB_SERVER_URL = 'https://github.ghe.localhost'
   expect(cacheUtils.isGhes()).toBe(false)
 })

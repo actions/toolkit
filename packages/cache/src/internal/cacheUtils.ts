@@ -136,9 +136,13 @@ export function isGhes(): boolean {
     process.env['GITHUB_SERVER_URL'] || 'https://github.com'
   )
 
-  const hostname = ghUrl.hostname.trimEnd().toUpperCase()
-  const isGitHubHost = (hostname == 'GITHUB.COM')
-  const isProximaHost = (hostname.endsWith('GHE.COM') || hostname.endsWith('GHE.LOCALHOST'))
+  let githubHosts = [
+    'GITHUB.COM',
+    'GITHUB.GHE.COM',
+    'GITHUB.GHE.LOCALHOST'
+];
 
-  return !isGitHubHost && !isProximaHost
+  const hostname = ghUrl.hostname.trimEnd().toUpperCase()
+
+  return !githubHosts.includes(hostname)
 }
