@@ -164,3 +164,7 @@
 ### 3.2.2
 
 - Add new default cache download method to improve performance and reduce hangs [#1484](https://github.com/actions/toolkit/pull/1484)
+
+### 3.2.3
+
+- Fixed a bug that mutated path arguments to `getCacheVersion` [#1378](https://github.com/actions/toolkit/pull/1378)

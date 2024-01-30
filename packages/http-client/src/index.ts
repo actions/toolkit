@@ -6,6 +6,7 @@ import * as ifm from './interfaces'
 import * as net from 'net'
 import * as pm from './proxy'
 import * as tunnel from 'tunnel'
+import {ProxyAgent} from 'undici'
 
 export enum HttpCodes {
   OK = 200,
@@ -137,6 +138,7 @@ export class HttpClient {
   private _maxRetries = 1
   private _agent: any
   private _proxyAgent: any
+  private _proxyAgentDispatcher: any
   private _keepAlive = false
   private _disposed = false
 
@@ -564,6 +566,17 @@ export class HttpClient {
     return this._getAgent(parsedUrl)
   }
 
+  getAgentDispatcher(serverUrl: string): ProxyAgent | undefined {
+    const parsedUrl = new URL(serverUrl)
+    const proxyUrl = pm.getProxyUrl(parsedUrl)
+    const useProxy = proxyUrl && proxyUrl.hostname
+    if (!useProxy) {
+      return
+    }
+
+    return this._getProxyAgentDispatcher(parsedUrl, proxyUrl)
+  }
+
   private _prepareRequest(
     method: string,
     requestUrl: URL,
@@ -699,6 +712,40 @@ export class HttpClient {
     }
 
     return agent
+  }
+
+  private _getProxyAgentDispatcher(parsedUrl: URL, proxyUrl: URL): ProxyAgent {
+    let proxyAgent
+
+    if (this._keepAlive) {
+      proxyAgent = this._proxyAgentDispatcher
+    }
+
+    // if agent is already assigned use that agent.
+    if (proxyAgent) {
+      return proxyAgent
+    }
+
+    const usingSsl = parsedUrl.protocol === 'https:'
+    proxyAgent = new ProxyAgent({
+      uri: proxyUrl.href,
+      pipelining: !this._keepAlive ? 0 : 1,
+      ...((proxyUrl.username || proxyUrl.password) && {
+        token: `${proxyUrl.username}:${proxyUrl.password}`
+      })
+    })
+    this._proxyAgentDispatcher = proxyAgent
+
+    if (usingSsl && this._ignoreSslError) {
+      // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
+      // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
+      // we have to cast it to any and change it directly
+      proxyAgent.options = Object.assign(proxyAgent.options.requestTls || {}, {
+        rejectUnauthorized: false
+      })
+    }
+
+    return proxyAgent
   }
 
   private async _performExponentialBackoff(retryNumber: number): Promise<void> {

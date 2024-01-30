@@ -1,14 +1,7 @@
-/*****************************************************************************
- *                                                                           *
- *                            UploadArtifact                                 *
- *                                                                           *
- *****************************************************************************/
-export interface UploadResponse {
-  /**
-   * Denotes if an artifact was successfully uploaded
-   */
-  success: boolean
-
+/**
+ * Response from the server when an artifact is uploaded
+ */
+export interface UploadArtifactResponse {
   /**
    * Total size of the artifact in bytes. Not provided if no artifact was uploaded
    */
@@ -21,7 +14,10 @@ export interface UploadResponse {
   id?: number
 }
 
-export interface UploadOptions {
+/**
+ * Options for uploading an artifact
+ */
+export interface UploadArtifactOptions {
   /**
    * Duration after which artifact will expire in days.
    *
@@ -38,31 +34,43 @@ export interface UploadOptions {
    * input of 0 assumes default retention setting.
    */
   retentionDays?: number
+  /**
+   * The level of compression for Zlib to be applied to the artifact archive.
+   * The value can range from 0 to 9:
+   * - 0: No compression
+   * - 1: Best speed
+   * - 6: Default compression (same as GNU Gzip)
+   * - 9: Best compression
+   * Higher levels will result in better compression, but will take longer to complete.
+   * For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
+   */
+  compressionLevel?: number
 }
 
-/*****************************************************************************
- *                                                                           *
- *                              GetArtifact                                  *
- *                                                                           *
- *****************************************************************************/
-
+/**
+ * Response from the server when getting an artifact
+ */
 export interface GetArtifactResponse {
-  /**
-   * If an artifact was found
-   */
-  success: boolean
-
   /**
    * Metadata about the artifact that was found
    */
-  artifact?: Artifact
+  artifact: Artifact
 }
 
-/*****************************************************************************
- *                                                                           *
- *                             ListArtifact                                  *
- *                                                                           *
- *****************************************************************************/
+/**
+ * Options for listing artifacts
+ */
+export interface ListArtifactsOptions {
+  /**
+   * Filter the workflow run's artifacts to the latest by name
+   * In the case of reruns, this can be useful to avoid duplicates
+   */
+  latest?: boolean
+}
+
+/**
+ * Response from the server when listing artifacts
+ */
 export interface ListArtifactsResponse {
   /**
    * A list of artifacts that were found
@@ -70,22 +78,19 @@ export interface ListArtifactsResponse {
   artifacts: Artifact[]
 }
 
-/*****************************************************************************
- *                                                                           *
- *                           DownloadArtifact                                *
- *                                                                           *
- *****************************************************************************/
+/**
+ * Response from the server when downloading an artifact
+ */
 export interface DownloadArtifactResponse {
-  /**
-   * If the artifact download was successful
-   */
-  success: boolean
   /**
    * The path where the artifact was downloaded to
    */
   downloadPath?: string
 }
 
+/**
+ * Options for downloading an artifact
+ */
 export interface DownloadArtifactOptions {
   /**
    * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
@@ -93,11 +98,9 @@ export interface DownloadArtifactOptions {
   path?: string
 }
 
-/*****************************************************************************
- *                                                                           *
- *                                 Shared                                    *
- *                                                                           *
- *****************************************************************************/
+/**
+ * An Actions Artifact
+ */
 export interface Artifact {
   /**
    * The name of the artifact
@@ -110,12 +113,47 @@ export interface Artifact {
   id: number
 
   /**
-   * The URL of the artifact
-   */
-  url: string
-
-  /**
    * The size of the artifact in bytes
    */
   size: number
+
+  /**
+   * The time when the artifact was created
+   */
+  createdAt?: Date
+}
+
+// FindOptions are for fetching Artifact(s) out of the scope of the current run.
+export interface FindOptions {
+  /**
+   * The criteria for finding Artifact(s) out of the scope of the current run.
+   */
+  findBy?: {
+    /**
+     * Token with actions:read permissions
+     */
+    token: string
+    /**
+     * WorkflowRun of the artifact(s) to lookup
+     */
+    workflowRunId: number
+    /**
+     * Repository owner (eg. 'actions')
+     */
+    repositoryOwner: string
+    /**
+     * Repository owner (eg. 'toolkit')
+     */
+    repositoryName: string
+  }
+}
+
+/**
+ * Response from the server when deleting an artifact
+ */
+export interface DeleteArtifactResponse {
+  /**
+   * The id of the artifact that was deleted
+   */
+  id: number
 }
