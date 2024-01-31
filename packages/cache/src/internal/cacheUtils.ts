@@ -137,8 +137,9 @@ export function isGhes(): boolean {
   )
 
   const hostname = ghUrl.hostname.trimEnd().toUpperCase()
-  const isGitHubHost = (hostname == 'GITHUB.COM')
-  const isGheHost = (hostname.endsWith('.GHE.COM') || hostname.endsWith('.GHE.LOCALHOST'))
+  const isGitHubHost = hostname === 'GITHUB.COM'
+  const isGheHost =
+    hostname.endsWith('.GHE.COM') || hostname.endsWith('.GHE.LOCALHOST')
 
   return !isGitHubHost && !isGheHost
 }
