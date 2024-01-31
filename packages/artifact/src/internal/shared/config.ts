@@ -27,10 +27,11 @@ export function isGhes(): boolean {
   const ghUrl = new URL(
     process.env['GITHUB_SERVER_URL'] || 'https://github.com'
   )
- 
-  const isGitHubHost = (ghUrl.hostname.trimEnd().toUpperCase() === 'GITHUB.COM')
-  const isResultsServiceRequest =  process.env['ACTIONS_RESULTS_URL'] != undefined
-  
+
+  const isGitHubHost = ghUrl.hostname.trimEnd().toUpperCase() === 'GITHUB.COM'
+  const isResultsServiceRequest =
+    process.env['ACTIONS_RESULTS_URL'] != undefined
+
   return !isGitHubHost && !isResultsServiceRequest
 }
 

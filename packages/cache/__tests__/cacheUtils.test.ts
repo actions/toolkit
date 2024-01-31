@@ -3,8 +3,8 @@ import * as path from 'path'
 import * as cacheUtils from '../src/internal/cacheUtils'
 
 beforeEach(() => {
-  jest.resetModules() 
-});
+  jest.resetModules()
+})
 
 test('getArchiveFileSizeInBytes returns file size', () => {
   const filePath = path.join(__dirname, '__fixtures__', 'helloWorld.txt')
