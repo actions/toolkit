@@ -27,16 +27,11 @@ export function isGhes(): boolean {
   const ghUrl = new URL(
     process.env['GITHUB_SERVER_URL'] || 'https://github.com'
   )
-
-  let githubHosts = [
-    'GITHUB.COM',
-    'GITHUB.GHE.COM',
-    'GITHUB.GHE.LOCALHOST'
-];
-
-  const hostname = ghUrl.hostname.trimEnd().toUpperCase()
-
-  return !githubHosts.includes(hostname)
+ 
+  const isGitHubHost = (ghUrl.hostname.trimEnd().toUpperCase() === 'GITHUB.COM')
+  const isResultsServiceRequest =  process.env['ACTIONS_RESULTS_URL'] != undefined
+  
+  return !isGitHubHost && !isResultsServiceRequest
 }
 
 export function getGitHubWorkspaceDir(): string {
