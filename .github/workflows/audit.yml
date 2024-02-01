@@ -1,4 +1,5 @@
-name: toolkit-audit
+name: Audit Packages
+
 on:
   push:
     branches:
@@ -10,29 +11,33 @@ on:
       - '**.md'
 
 jobs:
-
-  build:
+  audit:
     name: Audit
-
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20.x
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
 
-    - name: npm install
-      run: npm install
+      - name: npm install
+        id: install
+        run: npm install
 
-    - name: Bootstrap
-      run: npm run bootstrap
+      - name: Bootstrap
+        id: bootstrap
+        run: npm run bootstrap
 
-    - name: audit tools (without allow-list)
-      run: npm audit --audit-level=moderate
+      - name: Audit Tools (no allowlist)
+        id: audit-tools
+        run: npm audit --audit-level=moderate
 
-    - name: audit packages
-      run: npm run audit-all
+      - name: Audit Packages
+        id: audit-packages
+        run: npm run audit-all

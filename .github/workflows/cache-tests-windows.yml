@@ -1,4 +1,4 @@
-name: Cache Package Tests
+name: Cache Package Tests (Windows)
 
 on:
   push:
@@ -13,20 +13,18 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: ${{ matrix.runs-on }}
-
-    strategy:
-      matrix:
-        runs-on:
-          - ubuntu-latest
-          - windows-latest
-          - macos-latest
-      fail-fast: false
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
+
+      - name: Remove tar.exe
+        id: remove-tar
+        shell: bash
+        run: |
+          rm "C:\Program Files\Git\usr\bin\tar.exe"
 
       - name: Setup Node.js
         id: setup-node

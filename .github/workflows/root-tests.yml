@@ -1,0 +1,61 @@
+name: Root Repository Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.runs-on }}
+
+    strategy:
+      matrix:
+        runs-on:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Dependencies
+        id: install
+        run: npm install
+
+      - name: Bootstrap
+        id: bootstrap
+        run: npm run bootstrap
+
+      - name: Build
+        id: build
+        run: npm run build
+
+      - name: Test
+        id: test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm test -- --runInBand --forceExit
+
+      - name: Lint
+        id: lint
+        run: npm run lint
+
+      - name: Format
+        id: format
+        run: npm run format-check

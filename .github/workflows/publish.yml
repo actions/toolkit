@@ -1,0 +1,102 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: The package to publish
+        required: true
+        type: choice
+        options:
+          - core
+          - artifact
+          - cache
+          - exec
+          - github
+          - glob
+          - http-client
+          - io
+          - tool-cache
+
+jobs:
+  package:
+    name: Package Artifact
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install Dependencies
+        id: install
+        run: npm install
+
+      - name: Bootstrap
+        id: bootstrap
+        run: npm run bootstrap
+
+      - name: Build
+        id: build
+        run: npm run build
+
+      - name: Test
+        id: test
+        run: npm run test
+
+      - name: Pack
+        id: pack
+        run: npm pack
+        working-directory: packages/${{ github.event.inputs.package }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.package }}
+          path: packages/${{ github.event.inputs.package }}/*.tgz
+
+  publish:
+    name: Publish Artifact
+    runs-on: macos-latest
+
+    needs:
+      - package
+
+    environment: npm-publish
+
+    steps:
+      - name: Download Artifact
+        id: download
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.inputs.package }}
+
+      - name: Configure Authentication
+        id: configure-auth
+        env:
+          NPM_TOKEN: ${{ secrets.TOKEN }}
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
+
+      - name: Publish to npm
+        id: publish
+        run: npm publish *.tgz
+
+      - if: failure()
+        name: (Failure) Notify Slack
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
+
+      - if: success()
+        name: (Success) Notify Slack
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
