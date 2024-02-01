@@ -32,7 +32,7 @@ jobs:
         os: [ubuntu-16.04, windows-2019]
     runs-on: ${{matrix.os}}
     actions:
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         version: ${{matrix.node}}
     - run: | 
