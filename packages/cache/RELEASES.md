@@ -168,3 +168,7 @@
 ### 3.2.3
 
 - Fixed a bug that mutated path arguments to `getCacheVersion` [#1378](https://github.com/actions/toolkit/pull/1378)
+
+### 3.2.4
+
+- Updated `isGhes` check to include `.ghe.com` and `.ghe.localhost` as accepted hosts
