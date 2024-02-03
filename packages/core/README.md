@@ -132,7 +132,7 @@ These will surface to the UI in the Actions page and on Pull Requests. They look
 
 ![Annotations Image](../../docs/assets/annotations.png)
 
-These annotations can also be attached to particular lines and columns of your source files to show exactly where a problem is occuring. 
+These annotations can also be attached to particular lines and columns of your source files to show exactly where a problem is occurring. 
 
 These options are: 
 ```typescript

@@ -12,7 +12,7 @@ This package is used by the v2+ versions of our first party cache action. You ca
 
 #### Save Cache
 
-Saves a cache containing the files in `paths` using the `key` provided. The files would be compressed using zstandard compression algorithm if zstd is installed, otherwise gzip is used. Function returns the cache id if the cache was saved succesfully and throws an error if cache upload fails.
+Saves a cache containing the files in `paths` using the `key` provided. The files would be compressed using zstandard compression algorithm if zstd is installed, otherwise gzip is used. Function returns the cache id if the cache was saved successfully and throws an error if cache upload fails.
 
 ```js
 const cache = require('@actions/cache');
