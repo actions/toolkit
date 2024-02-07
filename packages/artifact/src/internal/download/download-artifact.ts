@@ -140,7 +140,7 @@ export async function downloadArtifactPublic(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    await streamExtract(location, downloadPath)
+    await streamExtract(location, downloadPath, options.maxAttempts)
     core.info(`Artifact download completed successfully.`)
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
@@ -192,7 +192,7 @@ export async function downloadArtifactInternal(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    await streamExtract(signedUrl, downloadPath)
+    await streamExtract(signedUrl, downloadPath, options.maxAttempts)
     core.info(`Artifact download completed successfully.`)
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
