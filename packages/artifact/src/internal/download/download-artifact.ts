@@ -37,9 +37,9 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-async function streamExtract(url: string, directory: string): Promise<void> {
+async function streamExtract(url: string, directory: string, maxAttempts: int): Promise<void> {
   let retryCount = 0
-  while (retryCount < 5) {
+  while (retryCount < maxAttempts) {
     try {
       await streamExtractExternal(url, directory)
       return
