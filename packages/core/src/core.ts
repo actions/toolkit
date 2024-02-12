@@ -87,8 +87,15 @@ export function addPath(inputPath: string): void {
  * @returns   string
  */
 export function getInput(name: string, options?: InputOptions): string {
-  const val: string =
-    process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
+  let val: string = ''
+
+  for (let possibleEnvVarValue of [process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`], process.env[`INPUT_${name.replace(/-/g, '_').replace(/ /g, '_').toUpperCase()}`]]) {
+    if (possibleEnvVarValue) {
+      val = possibleEnvVarValue
+      break
+    }
+  }
+
   if (options && options.required && !val) {
     throw new Error(`Input required and not supplied: ${name}`)
   }
