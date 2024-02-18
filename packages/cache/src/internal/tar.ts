@@ -111,6 +111,7 @@ async function getTarArgs(
 
   // Platform specific args
   if (tarPath.type === ArchiveToolType.GNU) {
+    if (type === 'extract') args.push('--warning=no-timestamp')
     switch (process.platform) {
       case 'win32':
         args.push('--force-local')
