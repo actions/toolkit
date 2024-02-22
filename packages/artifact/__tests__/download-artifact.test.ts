@@ -13,7 +13,7 @@ import {
   streamExtractExternal
 } from '../src/internal/download/download-artifact'
 import {getUserAgentString} from '../src/internal/shared/user-agent'
-import {noopLogs} from './common'
+//import {noopLogs} from './common'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON} from '../src/generated'
 import * as util from '../src/internal/shared/util'
@@ -83,12 +83,13 @@ const createTestArchive = async (): Promise<void> => {
 const expectExtractedArchive = async (dir: string): Promise<void> => {
   for (const file of fixtures.exampleArtifact.files) {
     const filePath = path.join(dir, file.path)
+    console.log('Checking file:', filePath)
     expect(fs.readFileSync(filePath, 'utf8')).toEqual(file.content)
   }
 }
 
 const setup = async (): Promise<void> => {
-  noopLogs()
+  //noopLogs()
   await fs.promises.mkdir(testDir, {recursive: true})
   await createTestArchive()
 

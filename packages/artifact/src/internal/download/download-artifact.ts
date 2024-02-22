@@ -1,4 +1,6 @@
 import fs from 'fs/promises'
+import {createWriteStream} from 'fs'
+import * as path from 'path'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as httpClient from '@actions/http-client'
@@ -89,7 +91,12 @@ export async function streamExtractExternal(
         clearTimeout(timer)
         reject(error)
       })
-      .pipe(unzip.Extract({path: directory}))
+      .pipe(unzip.Parse())
+      .on('entry', (entry: unzip.Entry) => {
+        const fullPath = path.normalize(path.join(directory, entry.path))
+        core.debug(`Extracting artifact entry: ${fullPath}`)
+        entry.pipe(createWriteStream(fullPath))
+      })
       .on('close', () => {
         clearTimeout(timer)
         resolve()
