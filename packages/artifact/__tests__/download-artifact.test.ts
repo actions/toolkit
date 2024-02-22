@@ -83,7 +83,6 @@ const createTestArchive = async (): Promise<void> => {
 const expectExtractedArchive = async (dir: string): Promise<void> => {
   for (const file of fixtures.exampleArtifact.files) {
     const filePath = path.join(dir, file.path)
-    console.log('Checking file:', filePath)
     expect(fs.readFileSync(filePath, 'utf8')).toEqual(file.content)
   }
 }
