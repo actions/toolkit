@@ -97,7 +97,7 @@ export async function streamExtractExternal(
         core.debug(`Extracting artifact entry: ${fullPath}`)
         entry.pipe(createWriteStream(fullPath))
       })
-      .on('close', () => {
+      .on('end', () => {
         clearTimeout(timer)
         resolve()
       })
