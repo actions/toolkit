@@ -72,7 +72,7 @@ export async function streamExtractExternal(
 
   const timeout = 30 * 1000 // 30 seconds
 
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const timerFn = (): void => {
       response.message.destroy(
         new Error(`Blob storage chunk did not respond in ${timeout}ms`)
@@ -93,23 +93,17 @@ export async function streamExtractExternal(
         reject(error)
       })
       .pipe(unzip.Parse())
-      .on('entry', async (entry: unzip.Entry) => {
+      .on('entry', (entry: unzip.Entry) => {
         const fullPath = path.normalize(path.join(directory, entry.path))
         core.debug(`Extracting artifact entry: ${fullPath}`)
         if (entry.type === 'Directory') {
-          if (!(await exists(fullPath))) {
-            await fs.mkdir(fullPath, {recursive: true})
-          }
+          promises.push(fs.mkdir(fullPath, {recursive: true}).then(() => {}))
           entry.autodrain()
         } else {
-          if (!(await exists(path.dirname(fullPath)))) {
-            await fs.mkdir(path.dirname(fullPath), {recursive: true})
-          }
           const writeStream = createWriteStream(fullPath)
           promises.push(
             new Promise((resolve, reject) => {
               writeStream.on('finish', () => {
-                console.log(`Finished writing ${fullPath}`)
                 resolve()
               })
               writeStream.on('error', reject)
@@ -119,12 +113,9 @@ export async function streamExtractExternal(
         }
       })
       .on('end', async () => {
-        console.log('All entries have been extracted')
         clearTimeout(timer)
         try {
-          console.log('Waiting for all write streams to finish')
           await Promise.all(promises)
-          console.log('All write streams have finished')
           resolve()
         } catch (error) {
           reject(error)
