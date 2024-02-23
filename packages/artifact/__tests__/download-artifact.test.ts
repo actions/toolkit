@@ -124,7 +124,7 @@ const mockGetArtifactFailure = jest.fn(() => {
 const mockGetArtifactMalicious = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 200
-  message.push(fs.readFileSync(path.join(__dirname, 'fixtures', 'evil.zip')))
+  message.push(fs.readFileSync(path.join(__dirname, 'fixtures', 'evil.zip'))) // evil.zip contains files that are formatted x/../../etc/hosts
   message.push(null)
   return {
     message
