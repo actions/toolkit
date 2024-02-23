@@ -1,4 +1,5 @@
 import fs from 'fs/promises'
+import * as stream from 'stream'
 import {createWriteStream} from 'fs'
 import * as path from 'path'
 import * as github from '@actions/github'
@@ -85,8 +86,8 @@ export async function streamExtractExternal(
     }
     const timer = setTimeout(timerFn, timeout)
 
-    const promises: Promise<void>[] = []
     const createdDirectories = new Set<string>()
+    createdDirectories.add(directory)
     response.message
       .on('data', () => {
         timer.refresh()
@@ -99,46 +100,52 @@ export async function streamExtractExternal(
         reject(error)
       })
       .pipe(unzip.Parse())
-      .on('entry', (entry: unzip.Entry) => {
-        const fullPath = path.normalize(path.join(directory, entry.path))
-        if (!fullPath.startsWith(directory)) {
-          reject(new Error(`Malformed extraction path: ${fullPath}`))
-        }
+      .pipe(
+        new stream.Transform({
+          objectMode: true,
+          transform: async (entry, _, callback) => {
+            const fullPath = path.normalize(path.join(directory, entry.path))
+            if (!directory.endsWith(path.sep)) {
+              directory += path.sep
+            }
+            if (!fullPath.startsWith(directory)) {
+              reject(new Error(`Malformed extraction path: ${fullPath}`))
+            }
 
-        core.debug(`Extracting artifact entry: ${fullPath}`)
-        if (entry.type === 'Directory') {
-          if (!createdDirectories.has(fullPath)) {
-            promises.push(resolveOrCreateDirectory(fullPath).then(() => {}))
-            createdDirectories.add(fullPath)
-          }
-          entry.autodrain()
-        } else {
-          if (!createdDirectories.has(path.dirname(fullPath))) {
-            promises.push(
-              resolveOrCreateDirectory(path.dirname(fullPath)).then(() => {})
-            )
-            createdDirectories.add(path.dirname(fullPath))
-          }
-          const writeStream = createWriteStream(fullPath)
-          promises.push(
-            new Promise((resolve, reject) => {
-              writeStream.on('finish', () => {
-                resolve()
-              })
+            core.debug(`Extracting artifact entry: ${fullPath}`)
+            if (entry.type === 'Directory') {
+              if (!createdDirectories.has(fullPath)) {
+                createdDirectories.add(fullPath)
+                await resolveOrCreateDirectory(fullPath).then(() => {
+                  entry.autodrain()
+                  callback()
+                })
+              } else {
+                entry.autodrain()
+                callback()
+              }
+            } else {
+              if (!createdDirectories.has(path.dirname(fullPath))) {
+                createdDirectories.add(path.dirname(fullPath))
+                await resolveOrCreateDirectory(path.dirname(fullPath)).then(
+                  () => {
+                    entry.autodrain()
+                    callback()
+                  }
+                )
+              }
+
+              const writeStream = createWriteStream(fullPath)
+              writeStream.on('finish', callback)
               writeStream.on('error', reject)
-            })
-          )
-          entry.pipe(writeStream)
-        }
-      })
-      .on('end', async () => {
+              entry.pipe(writeStream)
+            }
+          }
+        })
+      )
+      .on('finish', async () => {
         clearTimeout(timer)
-        try {
-          await Promise.all(promises)
-          resolve()
-        } catch (error) {
-          reject(error)
-        }
+        resolve()
       })
       .on('error', (error: Error) => {
         reject(error)
