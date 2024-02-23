@@ -121,6 +121,16 @@ const mockGetArtifactFailure = jest.fn(() => {
   }
 })
 
+const mockGetArtifactMalicious = jest.fn(() => {
+  const message = new http.IncomingMessage(new net.Socket())
+  message.statusCode = 200
+  message.push(fs.readFileSync(path.join(__dirname, 'fixtures', 'evil.zip'))) // evil.zip contains files that are formatted x/../../etc/hosts
+  message.push(null)
+  return {
+    message
+  }
+})
+
 describe('download-artifact', () => {
   describe('public', () => {
     beforeEach(setup)
@@ -168,6 +178,51 @@ describe('download-artifact', () => {
       )
       expectExtractedArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
+    })
+
+    it('should not allow path traversal from malicious artifacts', async () => {
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {
+          location: fixtures.blobStorageUrl
+        },
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactMalicious
+          }
+        }
+      )
+
+      await expect(
+        downloadArtifactPublic(
+          fixtures.artifactID,
+          fixtures.repositoryOwner,
+          fixtures.repositoryName,
+          fixtures.token
+        )
+      ).rejects.toBeInstanceOf(Error)
+
+      expect(downloadArtifactMock).toHaveBeenCalledWith({
+        owner: fixtures.repositoryOwner,
+        repo: fixtures.repositoryName,
+        artifact_id: fixtures.artifactID,
+        archive_format: 'zip',
+        request: {
+          redirect: 'manual'
+        }
+      })
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockGetArtifactMalicious).toHaveBeenCalledWith(
+        fixtures.blobStorageUrl
+      )
     })
 
     it('should successfully download an artifact to user defined path', async () => {

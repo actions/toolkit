@@ -114,3 +114,7 @@
 ### 2.1.1
  
 - Updated `isGhes` check to include `.ghe.com` and `.ghe.localhost` as accepted hosts
+
+### 2.1.2
+
+- Updated the stream extract functionality to use `unzip.Parse()` instead of `unzip.Extract()` for greater control of unzipping artifacts
