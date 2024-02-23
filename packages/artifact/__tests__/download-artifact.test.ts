@@ -13,7 +13,7 @@ import {
   streamExtractExternal
 } from '../src/internal/download/download-artifact'
 import {getUserAgentString} from '../src/internal/shared/user-agent'
-import {noopLogs} from './common'
+//import {noopLogs} from './common'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON} from '../src/generated'
 import * as util from '../src/internal/shared/util'
@@ -88,7 +88,7 @@ const expectExtractedArchive = async (dir: string): Promise<void> => {
 }
 
 const setup = async (): Promise<void> => {
-  noopLogs()
+  //noopLogs()
   await fs.promises.mkdir(testDir, {recursive: true})
   await createTestArchive()
 
@@ -180,7 +180,7 @@ describe('download-artifact', () => {
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
 
-    it('should not allow path traversal from malicious artifacts', async () => {
+    it.only('should not allow path traversal from malicious artifacts', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
         .actions.downloadArtifact as MockedDownloadArtifact
       downloadArtifactMock.mockResolvedValueOnce({

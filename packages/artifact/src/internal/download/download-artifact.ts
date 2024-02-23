@@ -94,10 +94,12 @@ export async function streamExtractExternal(
       })
       .pipe(unzip.Parse())
       .on('entry', (entry: unzip.Entry) => {
-        const entryPath = path
-          .normalize(entry.path)
-          .replace(/^(\.\.(\/|\\|$))+/, '')
-        const fullPath = path.join(directory, entryPath)
+        console.log(`entryPath: ${entry.path}`)
+        const fullPath = path.normalize(path.join(directory, entry.path))
+        console.log(`fullPath: ${fullPath}`)
+        if (fullPath.indexOf(directory) != 0) {
+          reject(new Error(`Invalid file path: ${fullPath}`))
+        }
         core.debug(`Extracting artifact entry: ${fullPath}`)
         if (entry.type === 'Directory') {
           promises.push(resolveOrCreateDirectory(fullPath).then(() => {}))
