@@ -97,9 +97,12 @@ export async function streamExtractExternal(
         const fullPath = path.normalize(path.join(directory, entry.path))
         core.debug(`Extracting artifact entry: ${fullPath}`)
         if (entry.type === 'Directory') {
-          promises.push(fs.mkdir(fullPath, {recursive: true}).then(() => {}))
+          promises.push(resolveOrCreateDirectory(fullPath).then(() => {}))
           entry.autodrain()
         } else {
+          promises.push(
+            resolveOrCreateDirectory(path.dirname(fullPath)).then(() => {})
+          )
           const writeStream = createWriteStream(fullPath)
           promises.push(
             new Promise((resolve, reject) => {
