@@ -46,6 +46,9 @@ async function streamExtract(url: string, directory: string): Promise<void> {
       await streamExtractExternal(url, directory)
       return
     } catch (error) {
+      if (error.message.includes('Malformed extraction path')) {
+        throw new Error(`Artifact download failed with unretryable error: ${error.message}`)
+      }
       retryCount++
       core.debug(
         `Failed to download artifact after ${retryCount} retries due to ${error.message}. Retrying in 5 seconds...`
@@ -81,6 +84,7 @@ export async function streamExtractExternal(
     const timer = setTimeout(timerFn, timeout)
 
     const promises: Promise<void>[] = []
+    const createdDirectories = new Set<string>()
     response.message
       .on('data', () => {
         timer.refresh()
@@ -94,20 +98,25 @@ export async function streamExtractExternal(
       })
       .pipe(unzip.Parse())
       .on('entry', (entry: unzip.Entry) => {
-        console.log(`entryPath: ${entry.path}`)
         const fullPath = path.normalize(path.join(directory, entry.path))
-        console.log(`fullPath: ${fullPath}`)
-        if (fullPath.indexOf(directory) != 0) {
-          reject(new Error(`Invalid file path: ${fullPath}`))
+        if (fullPath.indexOf(directory) !== 0) {
+          reject(new Error(`Malformed extraction path: ${fullPath}`))
         }
+
         core.debug(`Extracting artifact entry: ${fullPath}`)
         if (entry.type === 'Directory') {
-          promises.push(resolveOrCreateDirectory(fullPath).then(() => {}))
+          if (!createdDirectories.has(fullPath)) {
+            promises.push(resolveOrCreateDirectory(fullPath).then(() => {}))
+            createdDirectories.add(fullPath)
+          }
           entry.autodrain()
         } else {
-          promises.push(
-            resolveOrCreateDirectory(path.dirname(fullPath)).then(() => {})
-          )
+          if (!createdDirectories.has(path.dirname(fullPath))) {
+            promises.push(
+              resolveOrCreateDirectory(path.dirname(fullPath)).then(() => {})
+            )
+            createdDirectories.add(path.dirname(fullPath))
+          }
           const writeStream = createWriteStream(fullPath)
           promises.push(
             new Promise((resolve, reject) => {

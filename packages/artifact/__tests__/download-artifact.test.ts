@@ -180,7 +180,7 @@ describe('download-artifact', () => {
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
 
-    it.only('should not allow path traversal from malicious artifacts', async () => {
+    it('should not allow path traversal from malicious artifacts', async () => {
       const downloadArtifactMock = github.getOctokit(fixtures.token).rest
         .actions.downloadArtifact as MockedDownloadArtifact
       downloadArtifactMock.mockResolvedValueOnce({
@@ -200,12 +200,12 @@ describe('download-artifact', () => {
         }
       )
 
-      const response = await downloadArtifactPublic(
+      await expect(downloadArtifactPublic(
         fixtures.artifactID,
         fixtures.repositoryOwner,
         fixtures.repositoryName,
         fixtures.token
-      )
+      )).rejects.toBeInstanceOf(Error)
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
         owner: fixtures.repositoryOwner,
@@ -221,10 +221,6 @@ describe('download-artifact', () => {
       expect(mockGetArtifactMalicious).toHaveBeenCalledWith(
         fixtures.blobStorageUrl
       )
-      expect(
-        fs.readFileSync(path.join(fixtures.workspaceDir, 'etc/hosts'), 'utf8')
-      ).toEqual('foo')
-      expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
 
     it('should successfully download an artifact to user defined path', async () => {
