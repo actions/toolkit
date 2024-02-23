@@ -104,7 +104,7 @@ export async function streamExtractExternal(
         new stream.Transform({
           objectMode: true,
           transform: async (entry, _, callback) => {
-            const fullPath = path.resolve(path.join(directory, entry.path))
+            const fullPath = path.resolve(directory, entry.path)
             if (!directory.endsWith(path.sep)) {
               directory += path.sep
             }
