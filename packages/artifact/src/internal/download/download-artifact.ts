@@ -47,7 +47,9 @@ async function streamExtract(url: string, directory: string): Promise<void> {
       return
     } catch (error) {
       if (error.message.includes('Malformed extraction path')) {
-        throw new Error(`Artifact download failed with unretryable error: ${error.message}`)
+        throw new Error(
+          `Artifact download failed with unretryable error: ${error.message}`
+        )
       }
       retryCount++
       core.debug(
@@ -99,7 +101,7 @@ export async function streamExtractExternal(
       .pipe(unzip.Parse())
       .on('entry', (entry: unzip.Entry) => {
         const fullPath = path.normalize(path.join(directory, entry.path))
-        if (fullPath.indexOf(directory) !== 0) {
+        if (!fullPath.startsWith(directory)) {
           reject(new Error(`Malformed extraction path: ${fullPath}`))
         }
 
