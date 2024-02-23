@@ -80,6 +80,7 @@ export async function streamExtractExternal(
     }
     const timer = setTimeout(timerFn, timeout)
 
+    const promises: Promise<void>[] = []
     response.message
       .on('data', () => {
         timer.refresh()
@@ -95,11 +96,18 @@ export async function streamExtractExternal(
       .on('entry', (entry: unzip.Entry) => {
         const fullPath = path.normalize(path.join(directory, entry.path))
         core.debug(`Extracting artifact entry: ${fullPath}`)
-        entry.pipe(createWriteStream(fullPath))
+        const writeStream = createWriteStream(fullPath)
+        promises.push(new Promise((resolve, reject) => {
+          writeStream.on('finish', () => resolve())
+          writeStream.on('error', reject)
+        }))
+        entry.pipe(writeStream)
       })
       .on('end', () => {
         clearTimeout(timer)
-        resolve()
+        Promise.all(promises)
+          .then(() => resolve())
+          .catch(error => reject(error))
       })
       .on('error', (error: Error) => {
         reject(error)
