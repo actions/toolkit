@@ -97,10 +97,12 @@ export async function streamExtractExternal(
         const fullPath = path.normalize(path.join(directory, entry.path))
         core.debug(`Extracting artifact entry: ${fullPath}`)
         const writeStream = createWriteStream(fullPath)
-        promises.push(new Promise((resolve, reject) => {
-          writeStream.on('finish', () => resolve())
-          writeStream.on('error', reject)
-        }))
+        promises.push(
+          new Promise((resolve, reject) => {
+            writeStream.on('finish', () => resolve())
+            writeStream.on('error', reject)
+          })
+        )
         entry.pipe(writeStream)
       })
       .on('end', () => {
