@@ -94,7 +94,8 @@ export async function streamExtractExternal(
       })
       .pipe(unzip.Parse())
       .on('entry', (entry: unzip.Entry) => {
-        const fullPath = path.normalize(path.join(directory, entry.path))
+        const entryPath = path.normalize(entry.path).replace(/^(\.\.(\/|\\|$))+/, '')
+        const fullPath = path.join(directory, entryPath)
         core.debug(`Extracting artifact entry: ${fullPath}`)
         if (entry.type === 'Directory') {
           promises.push(resolveOrCreateDirectory(fullPath).then(() => {}))
