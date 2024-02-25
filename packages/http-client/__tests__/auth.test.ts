@@ -52,7 +52,7 @@ describe('auth', () => {
     expect(obj.url).toBe('http://postman-echo.com/get')
   })
 
-  it('does basic http get request with pat token auth', async () => {
+  it('does basic http get request with bearer token auth', async () => {
     const token = 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs'
     const ph: am.BearerCredentialHandler = new am.BearerCredentialHandler(token)
 
