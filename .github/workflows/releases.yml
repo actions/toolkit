@@ -5,7 +5,7 @@ on:
     inputs:
       package:
         required: true
-        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache'
+        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache, pull'
 
 jobs:
   test:
