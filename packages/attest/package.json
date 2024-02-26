@@ -1,6 +1,6 @@
 {
   "name": "@actions/attest",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Actions attestation lib",
   "keywords": [
     "github",
