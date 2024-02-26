@@ -128,10 +128,7 @@ export async function streamExtractExternal(
               if (!createdDirectories.has(path.dirname(fullPath))) {
                 createdDirectories.add(path.dirname(fullPath))
                 await resolveOrCreateDirectory(path.dirname(fullPath)).then(
-                  () => {
-                    entry.autodrain()
-                    callback()
-                  }
+                  () => {}
                 )
               }
 
