@@ -5,7 +5,7 @@ on:
     inputs:
       package:
         required: true
-        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache'
+        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache, attest'
 
 jobs:
   test:
@@ -49,6 +49,9 @@ jobs:
     runs-on: macos-latest
     needs: test
     environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
     steps:
 
       - name: download artifact
