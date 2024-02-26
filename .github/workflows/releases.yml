@@ -62,7 +62,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.TOKEN }}
 
       - name: publish
-        run: npm publish *.tgz
+        run: npm publish --provenance *.tgz
 
       - name: notify slack on failure
         if: failure()
