@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`buildIntotoStatement returns a provenance hydrated from env vars 1`] = `
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "key": "value",
+  },
+  "predicateType": "predicatey",
+  "subject": [
+    {
+      "digest": {
+        "sha256": "7d070f6b64d9bcc530fe99cc21eaaa4b3c364e0b2d367d7735671fa202a03b32",
+      },
+      "name": "subjecty",
+    },
+  ],
+}
+`;

@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`buildSLSAProvenancePredicate returns a provenance hydrated from env vars 1`] = `
+{
+  "params": {
+    "buildDefinition": {
+      "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+      "externalParameters": {
+        "workflow": {
+          "path": ".github/workflows/main.yml",
+          "ref": "main",
+          "repository": "https://github.com/owner/repo",
+        },
+      },
+      "internalParameters": {
+        "github": {
+          "event_name": "push",
+          "repository_id": "repo-id",
+          "repository_owner_id": "owner-id",
+        },
+      },
+      "resolvedDependencies": [
+        {
+          "digest": {
+            "gitCommit": "babca52ab0c93ae16539e5923cb0d7403b9a093b",
+          },
+          "uri": "git+https://github.com/owner/repo@refs/heads/main",
+        },
+      ],
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/actions/runner/github-hosted",
+      },
+      "metadata": {
+        "invocationId": "https://github.com/owner/repo/actions/runs/run-id/attempts/run-attempt",
+      },
+    },
+  },
+  "type": "https://slsa.dev/provenance/v1",
+}
+`;

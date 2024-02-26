@@ -2,3 +2,4 @@
 
 /packages/artifact/   @actions/artifacts-actions
 /packages/cache/      @actions/actions-cache
+/package/attest/      @actions/package-security
