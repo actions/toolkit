@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.1.3
+
+- Fixes a bug in the extract logic updated in 2.1.2
+
 ### 2.1.2
 
 - Updated the stream extract functionality to use `unzip.Parse()` instead of `unzip.Extract()` for greater control of unzipping artifacts
