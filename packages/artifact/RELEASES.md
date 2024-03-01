@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.1.4
+
+- Adds info-level logging for zip extraction
+
 ### 2.1.3
 
 - Fixes a bug in the extract logic updated in 2.1.2
