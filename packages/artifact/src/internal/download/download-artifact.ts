@@ -112,7 +112,6 @@ export async function streamExtractExternal(
               reject(new Error(`Malformed extraction path: ${fullPath}`))
             }
 
-            core.debug(`Extracting artifact entry: ${fullPath}`)
             if (entry.type === 'Directory') {
               if (!createdDirectories.has(fullPath)) {
                 createdDirectories.add(fullPath)
@@ -125,6 +124,7 @@ export async function streamExtractExternal(
                 callback()
               }
             } else {
+              core.info(`Extracting artifact entry: ${fullPath}`)
               if (!createdDirectories.has(path.dirname(fullPath))) {
                 createdDirectories.add(path.dirname(fullPath))
                 await resolveOrCreateDirectory(path.dirname(fullPath))
