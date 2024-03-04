@@ -49,3 +49,5 @@ jobs:
 
     - name: Format
       run: npm run format-check
+    Control+Shift+m
+    Control+Space
