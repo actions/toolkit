@@ -5,6 +5,12 @@ import {DownloadOptions, getDownloadOptions} from '../src/options'
 
 jest.mock('../src/internal/downloadUtils')
 
+test('getCacheVersion does not mutate arguments', async () => {
+  const paths = ['node_modules']
+  getCacheVersion(paths, undefined, true)
+  expect(paths).toEqual(['node_modules'])
+})
+
 test('getCacheVersion with one path returns version', async () => {
   const paths = ['node_modules']
   const result = getCacheVersion(paths, undefined, true)
