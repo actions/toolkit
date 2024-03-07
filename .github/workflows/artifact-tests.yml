@@ -24,10 +24,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
+    - name: Set Node.js version
       uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version-file: .nvmrc
 
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
@@ -79,10 +79,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
+    - name: Set Node.js version
       uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version-file: .nvmrc
 
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
