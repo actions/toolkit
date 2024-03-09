@@ -114,6 +114,30 @@ describe('globber', () => {
     ])
   })
 
+  it('skip permission denied directory', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/file
+    //   <root>/folder-a <- EACCESS
+    //   <root>/folder-a/file
+    //   <root>/folder-b
+    //   <root>/folder-b/file
+    const root = path.join(getTestTemp(), 'skip-permission-denied-directory')
+    await fs.mkdir(path.join(root, 'folder-a'), {recursive: true})
+    await fs.writeFile(path.join(root, 'folder-a', 'file'), 'test file content')
+    await fs.chmod(path.join(root, 'folder-a'), '000')
+    await fs.mkdir(path.join(root, 'folder-b'), {recursive: true})
+    await fs.writeFile(path.join(root, 'folder-b', 'file'), 'test file content')
+    await fs.writeFile(path.join(root, 'file'), 'test file content')
+
+    const itemPaths = await glob(`${root}/**/file`, {})
+    await fs.chmod(path.join(root, 'folder-a'), '777')
+    expect(itemPaths).toEqual([
+      path.join(root, 'file'),
+      path.join(root, 'folder-b', 'file')
+    ])
+  })
+
   it('does not match file with trailing slash when implicitDescendants=true', async () => {
     // Create the following layout:
     //   <root>
