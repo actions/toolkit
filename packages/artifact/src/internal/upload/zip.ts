@@ -42,14 +42,18 @@ export async function createZipUploadStream(
   zip.on('end', zipEndCallback)
 
   for (const file of uploadSpecification) {
-    if (file.sourcePath !== null) {
+    if (!file.stats.isDirectory()) {
       // Add a normal file to the zip
       zip.append(createReadStream(file.sourcePath), {
-        name: file.destinationPath
+        name: file.destinationPath,
+        stats: file.stats
       })
     } else {
       // Add a directory to the zip
-      zip.append('', {name: file.destinationPath})
+      zip.append('', {
+        name: file.destinationPath,
+        stats: file.stats
+      })
     }
   }
 
