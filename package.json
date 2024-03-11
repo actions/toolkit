@@ -1,6 +1,7 @@
 {
   "name": "root",
   "private": true,
+  "workspaces": ["./packages/*"],
   "scripts": {
     "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna exec -- npm install",

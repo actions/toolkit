@@ -409,16 +409,18 @@ async function extractZipNix(file: string, dest: string): Promise<void> {
 /**
  * Caches a directory and installs it into the tool cacheDir
  *
- * @param sourceDir    the directory to cache into tools
- * @param tool          tool name
- * @param version       version of the tool.  semver format
- * @param arch          architecture of the tool.  Optional.  Defaults to machine architecture
+ * @param sourceDir          the directory to cache into tools
+ * @param tool               tool name
+ * @param version            version of the tool.  semver format
+ * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
+ * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to false
  */
 export async function cacheDir(
   sourceDir: string,
   tool: string,
   version: string,
-  arch?: string
+  arch?: string,
+  preserveTimestamps?: boolean
 ): Promise<string> {
   version = semver.clean(version) || version
   arch = arch || os.arch()
@@ -435,7 +437,8 @@ export async function cacheDir(
   // due to anti-virus software having an open handle on a file.
   for (const itemName of fs.readdirSync(sourceDir)) {
     const s = path.join(sourceDir, itemName)
-    await io.cp(s, destPath, {recursive: true})
+    await io.cp(s, destPath, {recursive: true, preserveTimestamps}) // TODO
+    // await io.cp(s, destPath, {recursive: true}) // TODO
   }
 
   // write .complete
@@ -448,21 +451,24 @@ export async function cacheDir(
  * Caches a downloaded file (GUID) and installs it
  * into the tool cache with a given targetName
  *
- * @param sourceFile    the file to cache into tools.  Typically a result of downloadTool which is a guid.
- * @param targetFile    the name of the file name in the tools directory
- * @param tool          tool name
- * @param version       version of the tool.  semver format
- * @param arch          architecture of the tool.  Optional.  Defaults to machine architecture
+ * @param sourceFile         the file to cache into tools.  Typically a result of downloadTool which is a guid.
+ * @param targetFile         the name of the file name in the tools directory
+ * @param tool               tool name
+ * @param version            version of the tool.  semver format
+ * @param arch               architecture of the tool.  Optional.  Defaults to machine architecture
+ * @param preserveTimestamps whether to preserve timestamps when copying.  Optional.  Defaults to false
  */
 export async function cacheFile(
   sourceFile: string,
   targetFile: string,
   tool: string,
   version: string,
-  arch?: string
+  arch?: string,
+  preserveTimestamps?: boolean
 ): Promise<string> {
   version = semver.clean(version) || version
   arch = arch || os.arch()
+  preserveTimestamps = preserveTimestamps || false
   core.debug(`Caching tool ${tool} ${version} ${arch}`)
 
   core.debug(`source file: ${sourceFile}`)
@@ -477,7 +483,8 @@ export async function cacheFile(
   // anti-virus software having an open handle on a file.
   const destPath: string = path.join(destFolder, targetFile)
   core.debug(`destination file ${destPath}`)
-  await io.cp(sourceFile, destPath)
+  await io.cp(sourceFile, destPath, {preserveTimestamps}) // TODO
+  // await io.cp(sourceFile, destPath) // TODO
 
   // write .complete
   _completeToolPath(tool, version, arch)
