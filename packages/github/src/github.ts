@@ -3,6 +3,7 @@ import {GitHub, getOctokitOptions} from './utils'
 
 // octokit + plugins
 import {OctokitOptions, OctokitPlugin} from '@octokit/core/dist-types/types'
+export {RequestError} from '@octokit/request-error';
 
 export const context = new Context.Context()
 
