@@ -42,7 +42,7 @@
     "@octokit/core": "^5.0.1",
     "@octokit/plugin-paginate-rest": "^9.0.0",
     "@octokit/plugin-rest-endpoint-methods": "^10.0.0",
-    "@octokit/request-error": "^5.0.1"
+    "@octokit/request-error": "^5.0.0"
   },
   "devDependencies": {
     "proxy": "^2.1.1"
