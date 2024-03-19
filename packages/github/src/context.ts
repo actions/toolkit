@@ -15,6 +15,7 @@ export class Context {
   workflow: string
   action: string
   actor: string
+  triggeringActor: string
   job: string
   runAttempt: number
   runNumber: number
@@ -44,6 +45,7 @@ export class Context {
     this.workflow = process.env.GITHUB_WORKFLOW as string
     this.action = process.env.GITHUB_ACTION as string
     this.actor = process.env.GITHUB_ACTOR as string
+    this.triggeringActor = process.env.GITHUB_TRIGGERING_ACTOR as string
     this.job = process.env.GITHUB_JOB as string
     this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT as string, 10)
     this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER as string, 10)
