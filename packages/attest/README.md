@@ -112,6 +112,10 @@ export type AttestProvenanceOptions = {
   sigstore?: 'public-good' | 'github'
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
+  // Issuer URL responsible for minting the OIDC token from which the
+  // provenance data is read. Defaults to
+  // 'https://token.actions.githubusercontent.com".
+  issuer?: string
 }
 ```
 

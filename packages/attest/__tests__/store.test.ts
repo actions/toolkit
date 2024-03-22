@@ -38,7 +38,7 @@ describe('writeAttestation', () => {
         .reply(500, 'oops')
     })
 
-    it('persists the attestation', async () => {
+    it('throws an error', async () => {
       await expect(writeAttestation(attestation, token)).rejects.toThrow(/oops/)
     })
   })
