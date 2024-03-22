@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`buildSLSAProvenancePredicate returns a provenance hydrated from env vars 1`] = `
+exports[`provenance functions buildSLSAProvenancePredicate returns a provenance hydrated from an OIDC token 1`] = `
 {
   "params": {
     "buildDefinition": {
