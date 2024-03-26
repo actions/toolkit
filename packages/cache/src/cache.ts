@@ -50,7 +50,7 @@ function checkKey(key: string): void {
  */
 
 export function isFeatureAvailable(): boolean {
-  return !!process.env['ACTIONS_CACHE_URL']
+  return !!process.env['CUSTOM_ACTIONS_CACHE_URL'] || !!process.env['ACTIONS_CACHE_URL']
 }
 
 /**
