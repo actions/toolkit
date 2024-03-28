@@ -60,6 +60,8 @@ export async function uploadZipToBlobStorage(
   core.info(`is the upload stream readable? ${uploadStream.readable}`)
   core.info(`is the upload stream writable? ${uploadStream.writable}`)
   core.info(`are we exceeding the max concurrency? ${maxConcurrency}`)
+  // is the blob client ready?
+  core.info(`blob client props: ${blockBlobClient.url}`)
   try {
     core.info(
       '1 Even more beginning upload of artifact content to blob storage'

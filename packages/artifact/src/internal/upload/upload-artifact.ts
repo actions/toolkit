@@ -70,6 +70,8 @@ export async function uploadArtifact(
 
   return createZipUploadStream(zipSpecification, options?.compressionLevel)
     .then(async zipUploadStream => {
+      core.info(`starting upload to blob here`)
+      core.info(`zipuploadstream looks like this: ${zipUploadStream}`)
       return uploadZipToBlobStorage(
         createArtifactResp.signedUploadUrl,
         zipUploadStream
