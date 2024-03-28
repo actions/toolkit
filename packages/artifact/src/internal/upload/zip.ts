@@ -1,5 +1,5 @@
 import * as stream from 'stream'
-import {ZipStream} from 'zip-stream'
+import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
 import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
@@ -32,7 +32,7 @@ export async function createZipUploadStream(
   const zlibOptions = {
     zlib: {level: compressionLevel, bufferSize: getUploadChunkSize()}
   }
-  const zip = new ZipStream(zlibOptions)
+  const zip = new ZipStream.default(zlibOptions)
   // register callbacks for various events during the zip lifecycle
   zip.on('error', err => {
     core.error('An error has occurred while creating the zip file for upload')
