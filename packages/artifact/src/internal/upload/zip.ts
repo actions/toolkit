@@ -53,6 +53,7 @@ export async function createZipUploadStream(
           }
         )
       } else {
+        // add directory to zip
         zip.entry(null, {name: file.destinationPath}, function (err, entry) {
           core.debug(`Entry is: ${entry}`)
           if (err) reject(err)
