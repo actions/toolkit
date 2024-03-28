@@ -52,22 +52,14 @@ export async function uploadZipToBlobStorage(
   zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
 
   core.info('Beginning upload of artifact content to blob storage')
+
   try {
-    await new Promise((resolve, reject) => {
-      uploadStream.on('readable', async () => {
-        try {
-          await blockBlobClient.uploadStream(
-            uploadStream,
-            bufferSize,
-            maxConcurrency,
-            options
-          )
-          resolve('success')
-        } catch (error) {
-          reject(error)
-        }
-      })
-    })
+    await blockBlobClient.uploadStream(
+      uploadStream,
+      bufferSize,
+      maxConcurrency,
+      options
+    )
   } catch (error) {
     if (NetworkError.isNetworkErrorCode(error?.code)) {
       throw new NetworkError(error?.code)
@@ -75,20 +67,6 @@ export async function uploadZipToBlobStorage(
 
     throw error
   }
-  // try {
-  //   await blockBlobClient.uploadStream(
-  //     uploadStream,
-  //     bufferSize,
-  //     maxConcurrency,
-  //     options
-  //   )
-  // } catch (error) {
-  //   if (NetworkError.isNetworkErrorCode(error?.code)) {
-  //     throw new NetworkError(error?.code)
-  //   }
-
-  //   throw error
-  // }
 
   core.info('Finished uploading artifact content to blob storage!')
 

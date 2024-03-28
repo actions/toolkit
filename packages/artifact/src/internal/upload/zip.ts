@@ -63,7 +63,7 @@ export async function createZipUploadStream(
     })
   }
 
-  zip.finalize()
+  // zip.finalize()
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
   core.debug(
