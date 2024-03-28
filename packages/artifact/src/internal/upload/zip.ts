@@ -1,7 +1,6 @@
 import * as stream from 'stream'
 import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
-import * as zlib from 'zlib'
 import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
