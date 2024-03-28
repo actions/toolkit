@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`buildIntotoStatement returns a provenance hydrated from env vars 1`] = `
+exports[`buildIntotoStatement returns an intoto statement 1`] = `
 {
   "_type": "https://in-toto.io/Statement/v1",
   "predicate": {

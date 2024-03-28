@@ -1,4 +1,5 @@
 import {attest, AttestOptions} from './attest'
+import {getIDTokenClaims} from './oidc'
 import type {Attestation, Predicate} from './shared.types'
 
 const SLSA_PREDICATE_V1_TYPE = 'https://slsa.dev/provenance/v1'
@@ -7,30 +8,35 @@ const GITHUB_BUILDER_ID_PREFIX = 'https://github.com/actions/runner'
 const GITHUB_BUILD_TYPE =
   'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'
 
+const DEFAULT_ISSUER = 'https://token.actions.githubusercontent.com'
+
 export type AttestProvenanceOptions = Omit<
   AttestOptions,
   'predicate' | 'predicateType'
->
+> & {
+  issuer?: string
+}
 
 /**
  * Builds an SLSA (Supply Chain Levels for Software Artifacts) provenance
  * predicate using the GitHub Actions Workflow build type.
  * https://slsa.dev/spec/v1.0/provenance
  * https://github.com/slsa-framework/github-actions-buildtypes/tree/main/workflow/v1
- * @param env - The Node.js process environment variables. Defaults to
- * `process.env`.
+ * @param issuer - URL for the OIDC issuer. Defaults to the GitHub Actions token
+ * issuer.
  * @returns The SLSA provenance predicate.
  */
-export const buildSLSAProvenancePredicate = (
-  env: NodeJS.ProcessEnv = process.env
-): Predicate => {
-  const workflow = env.GITHUB_WORKFLOW_REF || ''
+export const buildSLSAProvenancePredicate = async (
+  issuer: string = DEFAULT_ISSUER
+): Promise<Predicate> => {
+  const serverURL = process.env.GITHUB_SERVER_URL
+  const claims = await getIDTokenClaims(issuer)
 
   // Split just the path and ref from the workflow string.
   // owner/repo/.github/workflows/main.yml@main =>
   //   .github/workflows/main.yml, main
-  const [workflowPath, workflowRef] = workflow
-    .replace(`${env.GITHUB_REPOSITORY}/`, '')
+  const [workflowPath, workflowRef] = claims.workflow_ref
+    .replace(`${claims.repository}/`, '')
     .split('@')
 
   return {
@@ -41,32 +47,32 @@ export const buildSLSAProvenancePredicate = (
         externalParameters: {
           workflow: {
             ref: workflowRef,
-            repository: `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}`,
+            repository: `${serverURL}/${claims.repository}`,
             path: workflowPath
           }
         },
         internalParameters: {
           github: {
-            event_name: env.GITHUB_EVENT_NAME,
-            repository_id: env.GITHUB_REPOSITORY_ID,
-            repository_owner_id: env.GITHUB_REPOSITORY_OWNER_ID
+            event_name: claims.event_name,
+            repository_id: claims.repository_id,
+            repository_owner_id: claims.repository_owner_id
           }
         },
         resolvedDependencies: [
           {
-            uri: `git+${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}@${env.GITHUB_REF}`,
+            uri: `git+${serverURL}/${claims.repository}@${claims.ref}`,
             digest: {
-              gitCommit: env.GITHUB_SHA
+              gitCommit: claims.sha
             }
           }
         ]
       },
       runDetails: {
         builder: {
-          id: `${GITHUB_BUILDER_ID_PREFIX}/${env.RUNNER_ENVIRONMENT}`
+          id: `${GITHUB_BUILDER_ID_PREFIX}/${claims.runner_environment}`
         },
         metadata: {
-          invocationId: `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}/attempts/${env.GITHUB_RUN_ATTEMPT}`
+          invocationId: `${serverURL}/${claims.repository}/actions/runs/${claims.run_id}/attempts/${claims.run_attempt}`
         }
       }
     }
@@ -84,7 +90,7 @@ export const buildSLSAProvenancePredicate = (
 export async function attestProvenance(
   options: AttestProvenanceOptions
 ): Promise<Attestation> {
-  const predicate = buildSLSAProvenancePredicate(process.env)
+  const predicate = await buildSLSAProvenancePredicate(options.issuer)
   return attest({
     ...options,
     predicateType: predicate.type,
