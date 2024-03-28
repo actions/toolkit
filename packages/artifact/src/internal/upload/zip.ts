@@ -64,33 +64,36 @@ export async function createZipUploadStream(
   })
 
   for (const file of uploadSpecification) {
-    if (file.sourcePath !== null) {
-      // Add a normal file to the zip
-      zip.entry(
-        createReadStream(file.sourcePath),
-        {name: file.destinationPath},
-        function (err, entry) {
+    await new Promise((resolve, reject) => {
+      if (file.sourcePath !== null) {
+        // Add a normal file to the zip
+        zip.entry(
+          createReadStream(file.sourcePath),
+          {name: file.destinationPath},
+          function (err, entry) {
+            core.debug(`Entry is: ${entry}`)
+            if (err) reject(err)
+            else resolve(entry)
+          }
+        )
+      } else {
+        zip.entry(null, {name: file.destinationPath}, function (err, entry) {
           core.debug(`Entry is: ${entry}`)
-          if (err) throw err
-        }
-      )
-    } else {
-      zip.entry(null, {name: file.destinationPath}, function (err, entry) {
-        core.debug(`Entry is: ${entry}`)
-        if (err) throw err
-      })
-    }
+          if (err) reject(err)
+          resolve(entry)
+        })
+      }
+    })
   }
 
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
-
-  // core.debug(
-  //   `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
-  // )
-  // core.debug(
-  //   `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
-  // )
+  core.debug(
+    `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
+  )
+  core.debug(
+    `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
+  )
 
   // zip.pipe(zipUploadStream)
   zip.finalize()
