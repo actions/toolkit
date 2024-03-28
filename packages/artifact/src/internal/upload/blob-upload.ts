@@ -59,16 +59,16 @@ export async function uploadZipToBlobStorage(
   core.info(`is the upload stream closed? ${uploadStream.closed}`)
   core.info(`is the upload stream readable? ${uploadStream.readable}`)
   core.info(`is the upload stream writable? ${uploadStream.writable}`)
+  core.info(`are we exceeding the max concurrency? ${maxConcurrency}`)
   try {
     core.info(
       '1 Even more beginning upload of artifact content to blob storage'
     )
-    await blockBlobClient.uploadStream(
-      uploadStream,
-      bufferSize,
-      maxConcurrency,
-      options
-    )
+    await blockBlobClient
+      .uploadStream(uploadStream, bufferSize, maxConcurrency, options)
+      .then(response => {
+        core.info(`Upload stream response: ${response}`)
+      })
     core.info(
       '2 Even more beginning upload of artifact content to blob storage'
     )

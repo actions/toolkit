@@ -47,18 +47,22 @@ export async function createZipUploadStream(
           createReadStream(file.sourcePath),
           {name: file.destinationPath},
           function (err, entry) {
-            core.debug(`Entry is: ${entry}`)
+            core.info(`Entry is: ${entry}`)
             if (err) reject(err)
             else resolve(entry)
           }
         )
       } else {
         // add directory to zip
-        zip.entry(null, {name: file.destinationPath}, function (err, entry) {
-          core.debug(`Entry is: ${entry}`)
-          if (err) reject(err)
-          else resolve(entry)
-        })
+        zip.entry(
+          null,
+          {name: `${file.destinationPath}/`},
+          function (err, entry) {
+            core.info(`Entry is: ${entry}`)
+            if (err) reject(err)
+            else resolve(entry)
+          }
+        )
       }
     })
   }
