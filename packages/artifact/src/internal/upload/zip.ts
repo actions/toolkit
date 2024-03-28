@@ -48,10 +48,37 @@ export async function createZipUploadStream(
   //   })
   // })
   // register callbacks for various events during the zip lifecycle
-  zip.on('error', zipErrorCallback)
-  zip.on('warning', zipWarningCallback)
-  zip.on('finish', zipFinishCallback)
-  zip.on('end', zipEndCallback)
+  zip.on('error', err => {
+    core.error('An error has occurred while creating the zip file for upload')
+    core.info(err)
+
+    throw new Error(
+      'An error has occurred during zip creation for the artifact'
+    )
+  })
+  zip.on('warning', err => {
+    if (err.code === 'ENOENT') {
+      core.warning(
+        'ENOENT warning during artifact zip creation. No such file or directory'
+      )
+      core.info(err)
+    } else {
+      core.warning(
+        `A non-blocking warning has occurred during artifact zip creation: ${err.code}`
+      )
+      core.info(err)
+    }
+  })
+
+  // zip.on('error', zipErrorCallback)
+  // zip.on('warning', zipWarningCallback)
+  zip.on('finish', () => {
+    core.debug('Zip stream for upload has finished.')
+  })
+  zip.on('end', () => {
+    core.debug('Zip stream for upload has ended.')
+  })
+  // zip.on('end', zipEndCallback)
 
   for (const file of uploadSpecification) {
     if (file.sourcePath !== null) {
@@ -65,18 +92,18 @@ export async function createZipUploadStream(
         function (err, entry) {
           core.debug(`Entry is: ${entry}`)
           if (err) throw err
+          // zip.finish()
         }
       )
     } else {
       zip.entry(null, {name: file.destinationPath}, function (err, entry) {
         core.debug(`Entry is: ${entry}`)
         if (err) throw err
+        // zip.finish()
       })
       // Add a directory to the zip
       // zip.append('', {name: file.destinationPath})
     }
-
-    zip.finish()
   }
 
   const bufferSize = getUploadChunkSize()
@@ -90,38 +117,37 @@ export async function createZipUploadStream(
   )
 
   zip.pipe(zipUploadStream)
+  // zip.finalize()
   zip.finalize()
-
   return zipUploadStream
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipErrorCallback = (error: any): void => {
-  core.error('An error has occurred while creating the zip file for upload')
-  core.info(error)
+// const zipErrorCallback = (error: any): void => {
+//   core.error('An error has occurred while creating the zip file for upload')
+//   core.info(error)
 
-  throw new Error('An error has occurred during zip creation for the artifact')
-}
+//   throw new Error('An error has occurred during zip creation for the artifact')
+// }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipWarningCallback = (error: any): void => {
-  if (error.code === 'ENOENT') {
-    core.warning(
-      'ENOENT warning during artifact zip creation. No such file or directory'
-    )
-    core.info(error)
-  } else {
-    core.warning(
-      `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
-    )
-    core.info(error)
-  }
-}
+// // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// const zipWarningCallback = (error: any): void => {
+//   if (error.code === 'ENOENT') {
+//     core.warning(
+//       'ENOENT warning during artifact zip creation. No such file or directory'
+//     )
+//     core.info(error)
+//   } else {
+//     core.warning(
+//       `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
+//     )
+//     core.info(error)
+//   }
+// }
 
-const zipFinishCallback = (): void => {
-  core.debug('Zip stream for upload has finished.')
-}
+// const zipFinishCallback = (): void => {
+//   core.debug('Zip stream for upload has finished.')
+// }
 
-const zipEndCallback = (): void => {
-  core.debug('Zip stream for upload has ended.')
-}
+// const zipEndCallback = (): void => {
+//   core.debug('Zip stream for upload has ended.')
+// }
