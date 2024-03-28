@@ -39,41 +39,39 @@ export async function createZipUploadStream(
 
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-  const uploadFilePromises = uploadSpecification.map(async file => {
-    return new Promise((resolve, reject) => {
+  for (const file of uploadSpecification) {
+    await new Promise((resolve, reject) => {
       if (file.sourcePath !== null) {
+        // Add a normal file to the zip
         zip.entry(
           createReadStream(file.sourcePath),
           {name: file.destinationPath},
-          (err, entry) => {
+          function (err, entry) {
+            core.debug(`Entry is: ${entry}`)
             if (err) reject(err)
-            resolve(entry)
+            else resolve(entry)
           }
         )
       } else {
-        zip.entry(null, {name: file.destinationPath}, (err, entry) => {
+        zip.entry(null, {name: file.destinationPath}, function (err, entry) {
+          core.debug(`Entry is: ${entry}`)
           if (err) reject(err)
-          resolve(entry)
+          else resolve(entry)
         })
       }
     })
-  })
+  }
 
-  await Promise.all(uploadFilePromises).then(result => {
-    core.debug(`Zip result is ${result}`)
-    zip.finalize()
-    const bufferSize = getUploadChunkSize()
-    const zipUploadStream = new ZipUploadStream(bufferSize)
-    core.debug(
-      `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
-    )
-    core.debug(
-      `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
-    )
-    return zipUploadStream
-  })
-  throw new Error('An error has occurred during zip creation for the artifact')
-  // zip.pipe(zipUploadStream)
+  zip.finalize()
+  const bufferSize = getUploadChunkSize()
+  const zipUploadStream = new ZipUploadStream(bufferSize)
+  core.debug(
+    `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
+  )
+  core.debug(
+    `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
+  )
+  return zipUploadStream
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
