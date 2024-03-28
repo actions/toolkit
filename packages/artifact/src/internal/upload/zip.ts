@@ -1,5 +1,4 @@
 import * as stream from 'stream'
-import * as archiver from 'archiver'
 import * as packer from 'zip-stream'
 
 import * as core from '@actions/core'
@@ -31,22 +30,10 @@ export async function createZipUploadStream(
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
-  // const zip2 = archiver.create('zip', {
-  //   highWaterMark: getUploadChunkSize(),
-  //   zlib: {level: compressionLevel}
-  // })
-
   const zlibOptions = {
     zlib: {level: compressionLevel, bufferSize: getUploadChunkSize()}
   }
   const zip = new packer(zlibOptions)
-  // zip.entry('string contents', {name: 'string.txt'}, function (err, entry) {
-  //   if (err) throw err
-  //   zip.entry(null, {name: 'directory/'}, function (err, entry) {
-  //     if (err) throw err
-  //     zip.finish()
-  //   })
-  // })
   // register callbacks for various events during the zip lifecycle
   zip.on('error', err => {
     core.error('An error has occurred while creating the zip file for upload')
@@ -70,39 +57,29 @@ export async function createZipUploadStream(
     }
   })
 
-  // zip.on('error', zipErrorCallback)
-  // zip.on('warning', zipWarningCallback)
   zip.on('finish', () => {
     core.debug('Zip stream for upload has finished.')
   })
   zip.on('end', () => {
     core.debug('Zip stream for upload has ended.')
   })
-  // zip.on('end', zipEndCallback)
 
   for (const file of uploadSpecification) {
     if (file.sourcePath !== null) {
       // Add a normal file to the zip
-      // zip.append(createReadStream(file.sourcePath), {
-      //   name: file.destinationPath
-      // })
       zip.entry(
         createReadStream(file.sourcePath),
         {name: file.destinationPath},
         function (err, entry) {
           core.debug(`Entry is: ${entry}`)
           if (err) throw err
-          // zip.finish()
         }
       )
     } else {
       zip.entry(null, {name: file.destinationPath}, function (err, entry) {
         core.debug(`Entry is: ${entry}`)
         if (err) throw err
-        // zip.finish()
       })
-      // Add a directory to the zip
-      // zip.append('', {name: file.destinationPath})
     }
   }
 
@@ -117,7 +94,6 @@ export async function createZipUploadStream(
   )
 
   zip.pipe(zipUploadStream)
-  // zip.finalize()
   zip.finalize()
   return zipUploadStream
 }

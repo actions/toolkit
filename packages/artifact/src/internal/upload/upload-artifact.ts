@@ -1,4 +1,3 @@
-import whyIsNodeRunning from 'why-is-node-running'
 import * as core from '@actions/core'
 import {
   UploadArtifactOptions,
