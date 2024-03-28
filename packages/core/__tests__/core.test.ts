@@ -49,6 +49,18 @@ const testEnvVars = {
 const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 const DELIMITER = `ghadelimiter_${UUID}`
 
+function extractErrorMetadata(error: Error) {
+  const stackLines = error.stack?.split(os.EOL) || []
+  const firstTraceLine = stackLines[1]
+  const match = firstTraceLine.match(/at (?:.*) \((.*):(\d+):(\d+)\)/) || []
+  const [, file, line, column] = match
+  return {
+    file,
+    line,
+    column
+  }
+}
+
 describe('@actions/core', () => {
   beforeAll(() => {
     const filePath = path.join(__dirname, `test`)
@@ -379,9 +391,14 @@ describe('@actions/core', () => {
 
   it('setFailed handles Error', () => {
     const message = 'this is my error message'
-    core.setFailed(new Error(message))
+    const error = new Error(message)
+
+    core.setFailed(error)
     expect(process.exitCode).toBe(core.ExitCode.Failure)
-    assertWriteCalls([`::error::Error: ${message}${os.EOL}`])
+    const {file, line, column} = extractErrorMetadata(error)
+    assertWriteCalls([
+      `::error title=Error,file=${file},line=${line},col=${column}::Error: ${message}${os.EOL}`
+    ])
   })
 
   it('error sets the correct error message', () => {
@@ -396,11 +413,15 @@ describe('@actions/core', () => {
 
   it('error handles an error object', () => {
     const message = 'this is my error message'
-    core.error(new Error(message))
-    assertWriteCalls([`::error::Error: ${message}${os.EOL}`])
+    const error = new Error(message)
+    core.error(error)
+    const {file, line, column} = extractErrorMetadata(error)
+    assertWriteCalls([
+      `::error title=Error,file=${file},line=${line},col=${column}::Error: ${message}${os.EOL}`
+    ])
   })
 
-  it('error handles parameters correctly', () => {
+  it('error handles custom properties correctly', () => {
     const message = 'this is my error message'
     core.error(new Error(message), {
       title: 'A title',
@@ -427,11 +448,15 @@ describe('@actions/core', () => {
 
   it('warning handles an error object', () => {
     const message = 'this is my error message'
-    core.warning(new Error(message))
-    assertWriteCalls([`::warning::Error: ${message}${os.EOL}`])
+    const error = new Error(message)
+    core.warning(error)
+    const {file, line, column} = extractErrorMetadata(error)
+    assertWriteCalls([
+      `::warning title=Error,file=${file},line=${line},col=${column}::Error: ${message}${os.EOL}`
+    ])
   })
 
-  it('warning handles parameters correctly', () => {
+  it('warning handles custom properties correctly', () => {
     const message = 'this is my error message'
     core.warning(new Error(message), {
       title: 'A title',
@@ -458,11 +483,15 @@ describe('@actions/core', () => {
 
   it('notice handles an error object', () => {
     const message = 'this is my error message'
-    core.notice(new Error(message))
-    assertWriteCalls([`::notice::Error: ${message}${os.EOL}`])
+    const error = new Error(message)
+    core.notice(error)
+    const {file, line, column} = extractErrorMetadata(error)
+    assertWriteCalls([
+      `::notice title=Error,file=${file},line=${line},col=${column}::Error: ${message}${os.EOL}`
+    ])
   })
 
-  it('notice handles parameters correctly', () => {
+  it('notice handles custom properties correctly', () => {
     const message = 'this is my error message'
     core.notice(new Error(message), {
       title: 'A title',

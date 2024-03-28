@@ -1,7 +1,10 @@
 import {issue, issueCommand} from './command'
 import {issueFileCommand, prepareKeyValueMessage} from './file-command'
-import {toCommandProperties, toCommandValue} from './utils'
-
+import {
+  toAnnotationProperties,
+  toCommandProperties,
+  toCommandValue
+} from './utils'
 import * as os from 'os'
 import * as path from 'path'
 
@@ -251,6 +254,12 @@ export function error(
   message: string | Error,
   properties: AnnotationProperties = {}
 ): void {
+  // If no properties are provided, try to extract them from the Error instance
+  properties =
+    Object.keys(properties).length === 0 && message instanceof Error
+      ? toAnnotationProperties(message)
+      : properties
+
   issueCommand(
     'error',
     toCommandProperties(properties),
@@ -267,6 +276,12 @@ export function warning(
   message: string | Error,
   properties: AnnotationProperties = {}
 ): void {
+  // If no properties are provided, try to extract them from the Error instance
+  properties =
+    Object.keys(properties).length === 0 && message instanceof Error
+      ? toAnnotationProperties(message)
+      : properties
+
   issueCommand(
     'warning',
     toCommandProperties(properties),
@@ -283,6 +298,12 @@ export function notice(
   message: string | Error,
   properties: AnnotationProperties = {}
 ): void {
+  // If no properties are provided, try to extract them from the Error instance
+  properties =
+    Object.keys(properties).length === 0 && message instanceof Error
+      ? toAnnotationProperties(message)
+      : properties
+
   issueCommand(
     'notice',
     toCommandProperties(properties),
