@@ -68,6 +68,9 @@ export async function uploadZipToBlobStorage(
     )
     await blockBlobClient
       .uploadStream(uploadStream, bufferSize, maxConcurrency, options)
+      .catch(error => {
+        core.info(`Upload stream error: ${error}`)
+      })
       .then(response => {
         core.info(`Upload stream response: ${response}`)
       })
