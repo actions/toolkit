@@ -34,22 +34,11 @@ export async function createZipUploadStream(
   }
   const zip = new ZipStream.default(zlibOptions)
   // register callbacks for various events during the zip lifecycle
-  zip.on('error', err => {
-    core.error('An error has occurred while creating the zip file for upload')
-    core.info(err)
-
-    throw new Error(
-      'An error has occurred during zip creation for the artifact'
-    )
-  })
+  zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)
 
-  zip.on('finish', () => {
-    core.debug('Zip stream for upload has finished.')
-  })
-  zip.on('end', () => {
-    core.debug('Zip stream for upload has ended.')
-  })
+  zip.on('finish', zipFinishCallback)
+  zip.on('end', zipEndCallback)
 
   for (const file of uploadSpecification) {
     await new Promise((resolve, reject) => {
@@ -82,18 +71,18 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
-
-  // zip.pipe(zipUploadStream)
   zip.finalize()
   return zipUploadStream
 }
 
-// const zipErrorCallback = (error: any): void => {
-//   core.error('An error has occurred while creating the zip file for upload')
-//   core.info(error)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const zipErrorCallback = (error: any): void => {
+  core.error('An error has occurred while creating the zip file for upload')
+  core.info(error)
 
-//   throw new Error('An error has occurred during zip creation for the artifact')
-// }
+  throw new Error('An error has occurred during zip creation for the artifact')
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const zipWarningCallback = (err: any): void => {
   if (err.code === 'ENOENT') {
     core.warning(
@@ -108,10 +97,10 @@ const zipWarningCallback = (err: any): void => {
   }
 }
 
-// const zipFinishCallback = (): void => {
-//   core.debug('Zip stream for upload has finished.')
-// }
+const zipFinishCallback = (): void => {
+  core.debug('Zip stream for upload has finished.')
+}
 
-// const zipEndCallback = (): void => {
-//   core.debug('Zip stream for upload has ended.')
-// }
+const zipEndCallback = (): void => {
+  core.debug('Zip stream for upload has ended.')
+}
