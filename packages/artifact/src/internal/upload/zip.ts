@@ -92,7 +92,7 @@ export async function createZipUploadStream(
   //   `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   // )
 
-  zip.pipe(zipUploadStream)
+  // zip.pipe(zipUploadStream)
   zip.finalize()
   return zipUploadStream
 }
