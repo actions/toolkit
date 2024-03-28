@@ -51,35 +51,12 @@ export async function uploadZipToBlobStorage(
   zipUploadStream.pipe(uploadStream) // This stream is used for the upload
   zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
 
-  core.info('Beginning upload of artifact content to blob storage')
-  core.info(`Is the zipUploadStream readable? ${zipUploadStream.readable}`) // it is readable, that's good
-  core.info(`Is the zipUploadStream writable now? ${zipUploadStream.writable}`) // it is readable, that's good
-  core.info(`Is the zipUploadStream closed? ${zipUploadStream.closed}`) // it is not closed, that's good
-  core.info(`Is the buffer size appropriate? ${bufferSize}`) // it is not closed, that's good
-  core.info(`is the upload stream closed? ${uploadStream.closed}`)
-  core.info(`is the upload stream readable? ${uploadStream.readable}`)
-  core.info(`is the upload stream writable? ${uploadStream.writable}`)
-  core.info(`are we exceeding the max concurrency? ${maxConcurrency}`)
-
-  zipUploadStream.on('error', error => {
-    core.info(`Error in zipUploadStream: ${error}`)
-  })
-
-  uploadStream.on('error', error => {
-    core.info(`Error in uploadStream:', ${error}`)
-  })
   try {
-    core.info(
-      '1 Even more beginning upload of artifact content to blob storage'
-    )
     await blockBlobClient.uploadStream(
       uploadStream,
       bufferSize,
       maxConcurrency,
       options
-    )
-    core.info(
-      '2 Even more beginning upload of artifact content to blob storage'
     )
   } catch (error) {
     if (NetworkError.isNetworkErrorCode(error?.code)) {
