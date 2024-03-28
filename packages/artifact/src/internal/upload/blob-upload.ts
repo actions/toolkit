@@ -63,6 +63,7 @@ export async function uploadZipToBlobStorage(
       maxConcurrency,
       options
     )
+    core.info('Even more beginning upload of artifact content to blob storage')
   } catch (error) {
     if (NetworkError.isNetworkErrorCode(error?.code)) {
       throw new NetworkError(error?.code)
