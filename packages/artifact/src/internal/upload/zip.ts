@@ -1,4 +1,5 @@
 import * as stream from 'stream'
+import * as async from 'async'
 import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
 import {createReadStream} from 'fs'
@@ -39,29 +40,22 @@ export async function createZipUploadStream(
 
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-
-  // for (const file of uploadSpecification) {
-  const fileUploadPromesses = uploadSpecification.map(async file => {
-    return new Promise((resolve, reject) => {
-      if (file.sourcePath !== null) {
-        // Add a normal file to the zip
-        zip.entry(
-          createReadStream(file.sourcePath),
-          {name: file.destinationPath},
-          function (err, entry) {
-            core.debug(`Entry is: ${entry}`)
-            if (err) reject(err)
-            else resolve(entry)
-          }
-        )
-      } else {
-        zip.entry(null, {name: file.destinationPath}, function (err, entry) {
+  async.forEachOf(uploadSpecification, async file => {
+    if (file.sourcePath !== null) {
+      zip.entry(
+        createReadStream(file.sourcePath),
+        {name: file.destinationPath},
+        function (err, entry) {
           core.debug(`Entry is: ${entry}`)
-          if (err) reject(err)
-          resolve(entry)
-        })
-      }
-    })
+          if (err) throw err
+        }
+      )
+    } else {
+      zip.entry(null, {name: file.destinationPath}, function (err, entry) {
+        core.debug(`Entry is: ${entry}`)
+        if (err) throw err
+      })
+    }
   })
 
   const bufferSize = getUploadChunkSize()
@@ -72,9 +66,9 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
-  await Promise.all(fileUploadPromesses)
-  zip.finalize()
 
+  // zip.pipe(zipUploadStream)
+  zip.finalize()
   return zipUploadStream
 }
 
