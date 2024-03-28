@@ -52,12 +52,11 @@ export async function uploadZipToBlobStorage(
   zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
 
   core.info('Beginning upload of artifact content to blob storage')
-  const isItReadable = zipUploadStream.readable
-  core.info(`Is the zipUploadStream readable? ${isItReadable}`) // it is readable, that's good
-  const isItClosed = zipUploadStream.closed
-  core.info(`Is the zipUploadStream closed? ${isItClosed}`) // it is not closed, that's good
+  core.info(`Is the zipUploadStream readable? ${zipUploadStream.readable}`) // it is readable, that's good
+  core.info(`Is the zipUploadStream closed? ${zipUploadStream.closed}`) // it is not closed, that's good
   core.info(`Is the buffer size appropriate? ${bufferSize}`) // it is not closed, that's good
-  core.info(`is the upload stream open? ${uploadStream.closed}`)
+  core.info(`is the upload stream closed? ${uploadStream.closed}`)
+  core.info(`is the upload stream readable? ${uploadStream.readable}`)
   try {
     core.info(
       '1 Even more beginning upload of artifact content to blob storage'
