@@ -26,9 +26,9 @@ export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
 ): Promise<ZipUploadStream> {
-  core.debug(
-    `Creating Artifact archive with compressionLevel: ${compressionLevel}`
-  )
+  // core.debug(
+  //   `Creating Artifact archive with compressionLevel: ${compressionLevel}`
+  // )
   const zlibOptions = {
     zlib: {level: compressionLevel, bufferSize: getUploadChunkSize()}
   }
@@ -85,12 +85,12 @@ export async function createZipUploadStream(
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
 
-  core.debug(
-    `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
-  )
-  core.debug(
-    `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
-  )
+  // core.debug(
+  //   `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
+  // )
+  // core.debug(
+  //   `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
+  // )
 
   zip.pipe(zipUploadStream)
   zip.finalize()
