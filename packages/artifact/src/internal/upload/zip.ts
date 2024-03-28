@@ -7,7 +7,7 @@ import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
 
 export const DEFAULT_COMPRESSION_LEVEL = 6
-export var isRunning = false
+let isRunning = false
 
 // Custom stream transformer so we can set the highWaterMark property
 // See https://github.com/nodejs/node/issues/8855
