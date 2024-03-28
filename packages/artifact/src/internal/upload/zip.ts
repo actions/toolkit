@@ -42,9 +42,11 @@ export async function createZipUploadStream(
 
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
+  core.debug(`Number of files to upload: ${uploadSpecification.length}`)
   for (const file of uploadSpecification) {
     await new Promise((resolve, reject) => {
       if (file.sourcePath !== null) {
+        core.debug(`Creating file entry: ${file.sourcePath}`)
         // Add a normal file to the zip
         zip.entry(
           createReadStream(file.sourcePath),
@@ -56,6 +58,7 @@ export async function createZipUploadStream(
         )
       } else {
         // add directory to zip
+        core.debug(`Creating directory entry: ${file.destinationPath}`)
         zip.entry(
           null,
           {name: `${file.destinationPath}/`},
@@ -69,6 +72,7 @@ export async function createZipUploadStream(
   }
 
   zip.finalize()
+  core.debug(`Finalizing entries`)
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
   zip.pipe(zipUploadStream) // Pipe the zip stream into zipUploadStream
