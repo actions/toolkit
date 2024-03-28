@@ -30,7 +30,7 @@ export async function createZipUploadStream(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
   const zlibOptions = {
-    zlib: {level: compressionLevel, bufferSize: getUploadChunkSize()}
+    zlib: {level: DEFAULT_COMPRESSION_LEVEL, bufferSize: getUploadChunkSize()}
   }
   const zip = new ZipStream.default(zlibOptions)
   // register callbacks for various events during the zip lifecycle

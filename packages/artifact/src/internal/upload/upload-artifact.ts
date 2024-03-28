@@ -75,7 +75,10 @@ export async function uploadArtifact(
       return uploadZipToBlobStorage(
         createArtifactResp.signedUploadUrl,
         zipUploadStream
-      )
+      ).catch(err => {
+        core.error(`Error uploading artifact: ${err}`)
+        throw err
+      })
     })
     .then(async uploadResult => {
       const finalizeArtifactReq: FinalizeArtifactRequest = {
