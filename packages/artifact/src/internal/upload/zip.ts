@@ -72,12 +72,10 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
-  await Promise.all(fileUploadPromesses).then(() => {
-    zip.finalize()
+  await Promise.all(fileUploadPromesses)
+  zip.finalize()
 
-    return zipUploadStream
-  })
-  return Promise.reject(zipUploadStream)
+  return zipUploadStream
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
