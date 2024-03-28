@@ -1,5 +1,7 @@
 import * as stream from 'stream'
 import * as archiver from 'archiver'
+import * as packer from 'zip-stream'
+
 import * as core from '@actions/core'
 import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
@@ -29,12 +31,22 @@ export async function createZipUploadStream(
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
-  
-  const zip = archiver.create('zip', {
-    highWaterMark: getUploadChunkSize(),
-    zlib: {level: compressionLevel}
-  })
+  // const zip2 = archiver.create('zip', {
+  //   highWaterMark: getUploadChunkSize(),
+  //   zlib: {level: compressionLevel}
+  // })
 
+  const zlibOptions = {
+    zlib: {level: compressionLevel, bufferSize: getUploadChunkSize()}
+  }
+  const zip = new packer(zlibOptions)
+  // zip.entry('string contents', {name: 'string.txt'}, function (err, entry) {
+  //   if (err) throw err
+  //   zip.entry(null, {name: 'directory/'}, function (err, entry) {
+  //     if (err) throw err
+  //     zip.finish()
+  //   })
+  // })
   // register callbacks for various events during the zip lifecycle
   zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)

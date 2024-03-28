@@ -109,10 +109,10 @@ export async function uploadArtifact(
     `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
   )
   // if (core.isDebug()) {
-    setTimeout(function () {
-      core.debug('Processes keeping upload stream running:')
-      whyIsNodeRunning()
-    }, 500)
+  setTimeout(function () {
+    core.debug('Processes keeping upload stream running:')
+    whyIsNodeRunning()
+  }, 500)
   // }
   //
 
