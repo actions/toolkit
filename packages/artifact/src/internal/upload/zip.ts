@@ -40,8 +40,9 @@ export async function createZipUploadStream(
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
 
-  for (const file of uploadSpecification) {
-    await new Promise((resolve, reject) => {
+  // for (const file of uploadSpecification) {
+  const fileUploadPromesses = uploadSpecification.map(async file => {
+    return new Promise((resolve, reject) => {
       if (file.sourcePath !== null) {
         // Add a normal file to the zip
         zip.entry(
@@ -61,7 +62,7 @@ export async function createZipUploadStream(
         })
       }
     })
-  }
+  })
 
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
@@ -71,8 +72,12 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
-  zip.finalize()
-  return zipUploadStream
+  await Promise.all(fileUploadPromesses).then(() => {
+    zip.finalize()
+
+    return zipUploadStream
+  })
+  return Promise.reject(zipUploadStream)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
