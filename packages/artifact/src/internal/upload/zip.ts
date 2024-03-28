@@ -1,5 +1,4 @@
 import * as stream from 'stream'
-import * as async from 'async'
 import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
 import {createReadStream} from 'fs'
@@ -60,18 +59,21 @@ export async function createZipUploadStream(
     })
   })
 
-  const bufferSize = getUploadChunkSize()
-  const zipUploadStream = new ZipUploadStream(bufferSize)
-  core.debug(
-    `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
-  )
-  core.debug(
-    `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
-  )
-  await Promise.all(uploadFilePromises)
+  await Promise.all(uploadFilePromises).then(result => {
+    core.debug(`Zip result is ${result}`)
+    zip.finalize()
+    const bufferSize = getUploadChunkSize()
+    const zipUploadStream = new ZipUploadStream(bufferSize)
+    core.debug(
+      `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
+    )
+    core.debug(
+      `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
+    )
+    return zipUploadStream
+  })
+  throw new Error('An error has occurred during zip creation for the artifact')
   // zip.pipe(zipUploadStream)
-  zip.finalize()
-  return zipUploadStream
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,6 +83,7 @@ const zipErrorCallback = (error: any): void => {
 
   throw new Error('An error has occurred during zip creation for the artifact')
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const zipWarningCallback = (err: any): void => {
   if (err.code === 'ENOENT') {
     core.warning(
