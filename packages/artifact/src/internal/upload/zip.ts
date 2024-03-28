@@ -32,7 +32,7 @@ export async function createZipUploadStream(
   )
   const zlibOptions = {
     zlib: {
-      level: zlib.constants.Z_DEFAULT_COMPRESSION,
+      level: compressionLevel,
       bufferSize: getUploadChunkSize()
     }
   }
