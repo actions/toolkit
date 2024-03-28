@@ -53,10 +53,12 @@ export async function uploadZipToBlobStorage(
 
   core.info('Beginning upload of artifact content to blob storage')
   core.info(`Is the zipUploadStream readable? ${zipUploadStream.readable}`) // it is readable, that's good
+  core.info(`Is the zipUploadStream writable now? ${zipUploadStream.writable}`) // it is readable, that's good
   core.info(`Is the zipUploadStream closed? ${zipUploadStream.closed}`) // it is not closed, that's good
   core.info(`Is the buffer size appropriate? ${bufferSize}`) // it is not closed, that's good
   core.info(`is the upload stream closed? ${uploadStream.closed}`)
   core.info(`is the upload stream readable? ${uploadStream.readable}`)
+  core.info(`is the upload stream writable? ${uploadStream.writable}`)
   try {
     core.info(
       '1 Even more beginning upload of artifact content to blob storage'
