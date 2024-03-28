@@ -26,9 +26,9 @@ export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
 ): Promise<ZipUploadStream> {
-  // core.debug(
-  //   `Creating Artifact archive with compressionLevel: ${compressionLevel}`
-  // )
+  core.debug(
+    `Creating Artifact archive with compressionLevel: ${compressionLevel}`
+  )
   const zlibOptions = {
     zlib: {level: compressionLevel, bufferSize: getUploadChunkSize()}
   }
@@ -42,19 +42,7 @@ export async function createZipUploadStream(
       'An error has occurred during zip creation for the artifact'
     )
   })
-  zip.on('warning', err => {
-    if (err.code === 'ENOENT') {
-      core.warning(
-        'ENOENT warning during artifact zip creation. No such file or directory'
-      )
-      core.info(err)
-    } else {
-      core.warning(
-        `A non-blocking warning has occurred during artifact zip creation: ${err.code}`
-      )
-      core.info(err)
-    }
-  })
+  zip.on('warning', zipWarningCallback)
 
   zip.on('finish', () => {
     core.debug('Zip stream for upload has finished.')
@@ -106,21 +94,19 @@ export async function createZipUploadStream(
 
 //   throw new Error('An error has occurred during zip creation for the artifact')
 // }
-
-// // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// const zipWarningCallback = (error: any): void => {
-//   if (error.code === 'ENOENT') {
-//     core.warning(
-//       'ENOENT warning during artifact zip creation. No such file or directory'
-//     )
-//     core.info(error)
-//   } else {
-//     core.warning(
-//       `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
-//     )
-//     core.info(error)
-//   }
-// }
+const zipWarningCallback = (err: any): void => {
+  if (err.code === 'ENOENT') {
+    core.warning(
+      'ENOENT warning during artifact zip creation. No such file or directory'
+    )
+    core.info(err)
+  } else {
+    core.warning(
+      `A non-blocking warning has occurred during artifact zip creation: ${err.code}`
+    )
+    core.info(err)
+  }
+}
 
 // const zipFinishCallback = (): void => {
 //   core.debug('Zip stream for upload has finished.')
