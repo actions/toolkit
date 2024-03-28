@@ -57,6 +57,7 @@ export async function uploadZipToBlobStorage(
   const isItClosed = zipUploadStream.closed
   core.info(`Is the zipUploadStream closed? ${isItClosed}`) // it is not closed, that's good
   core.info(`Is the buffer size appropriate? ${bufferSize}`) // it is not closed, that's good
+  core.info(`is the upload stream open? ${uploadStream.closed}`)
   try {
     core.info(
       '1 Even more beginning upload of artifact content to blob storage'
