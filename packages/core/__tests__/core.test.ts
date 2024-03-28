@@ -49,7 +49,11 @@ const testEnvVars = {
 const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 const DELIMITER = `ghadelimiter_${UUID}`
 
-function extractErrorMetadata(error: Error) {
+function extractErrorMetadata(error: Error): {
+  file: string | undefined
+  line: string | undefined
+  column: string | undefined
+} {
   const stackLines = error.stack?.split(os.EOL) || []
   const firstTraceLine = stackLines[1]
   const match = firstTraceLine.match(/at (?:.*) \((.*):(\d+):(\d+)\)/) || []
