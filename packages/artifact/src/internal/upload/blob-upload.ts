@@ -53,7 +53,9 @@ export async function uploadZipToBlobStorage(
 
   core.info('Beginning upload of artifact content to blob storage')
   const isItReadable = zipUploadStream.readable
-  core.info(`Is the zipUploadStream readable? ${isItReadable}`)
+  core.info(`Is the zipUploadStream readable? ${isItReadable}`) // it is readable, that's good
+  const isItClosed = zipUploadStream.closed
+  core.info(`Is the zipUploadStream closed? ${isItClosed}`) // it is not closed, that's good
   try {
     await blockBlobClient.uploadStream(
       uploadStream,
