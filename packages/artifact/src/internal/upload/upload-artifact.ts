@@ -76,7 +76,11 @@ export async function uploadArtifact(
   const uploadResult = await uploadZipToBlobStorage(
     createArtifactResp.signedUploadUrl,
     zipUploadStream
-  )
+  ).catch(err => {
+    throw new InvalidResponseError(
+      `uploadZipToBlobStorage: response blob was not ok: ${err}`
+    )
+  })
   // finalize the artifact
   const finalizeArtifactReq: FinalizeArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
