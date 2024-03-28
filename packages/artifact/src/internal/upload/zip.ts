@@ -56,13 +56,27 @@ export async function createZipUploadStream(
   for (const file of uploadSpecification) {
     if (file.sourcePath !== null) {
       // Add a normal file to the zip
-      zip.append(createReadStream(file.sourcePath), {
-        name: file.destinationPath
-      })
+      // zip.append(createReadStream(file.sourcePath), {
+      //   name: file.destinationPath
+      // })
+      zip.entry(
+        createReadStream(file.sourcePath),
+        {name: file.destinationPath},
+        function (err, entry) {
+          core.debug(`Entry is: ${entry}`)
+          if (err) throw err
+        }
+      )
     } else {
+      zip.entry(null, {name: file.destinationPath}, function (err, entry) {
+        core.debug(`Entry is: ${entry}`)
+        if (err) throw err
+      })
       // Add a directory to the zip
-      zip.append('', {name: file.destinationPath})
+      // zip.append('', {name: file.destinationPath})
     }
+
+    zip.finish()
   }
 
   const bufferSize = getUploadChunkSize()
