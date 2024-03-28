@@ -57,13 +57,18 @@ export async function uploadZipToBlobStorage(
   const isItClosed = zipUploadStream.closed
   core.info(`Is the zipUploadStream closed? ${isItClosed}`) // it is not closed, that's good
   try {
+    core.info(
+      '1 Even more beginning upload of artifact content to blob storage'
+    )
     await blockBlobClient.uploadStream(
       uploadStream,
       bufferSize,
       maxConcurrency,
       options
     )
-    core.info('Even more beginning upload of artifact content to blob storage')
+    core.info(
+      '2 Even more beginning upload of artifact content to blob storage'
+    )
   } catch (error) {
     if (NetworkError.isNetworkErrorCode(error?.code)) {
       throw new NetworkError(error?.code)
