@@ -67,94 +67,43 @@ export async function uploadArtifact(
       'CreateArtifact: response from backend was not ok'
     )
   }
-
-  return createZipUploadStream(zipSpecification, options?.compressionLevel)
-    .then(async zipUploadStream => {
-      core.info(`starting upload to blob here`)
-      core.info(`zipuploadstream looks like this: ${zipUploadStream}`)
-      return uploadZipToBlobStorage(
-        createArtifactResp.signedUploadUrl,
-        zipUploadStream
-      ).catch(err => {
-        core.error(`Error uploading artifact: ${err}`)
-        throw err
-      })
-    })
-    .then(async uploadResult => {
-      const finalizeArtifactReq: FinalizeArtifactRequest = {
-        workflowRunBackendId: backendIds.workflowRunBackendId,
-        workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-        name,
-        size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
-      }
-      if (uploadResult.sha256Hash) {
-        finalizeArtifactReq.hash = StringValue.create({
-          value: `sha256:${uploadResult.sha256Hash}`
-        })
-      }
-      core.info(`Finalizing artifact upload`)
-      const finalizeArtifactResp =
-        await artifactClient.FinalizeArtifact(finalizeArtifactReq)
-
-      return {finalizeArtifactResp, uploadResult}
-    })
-    .then(({finalizeArtifactResp, uploadResult}) => {
-      if (!finalizeArtifactResp.ok) {
-        throw new InvalidResponseError(
-          'FinalizeArtifact: response from backend was not ok'
-        )
-      }
-      const artifactId = BigInt(finalizeArtifactResp.artifactId)
-      core.info(
-        `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
-      )
-      return {
-        size: uploadResult.uploadSize,
-        id: Number(artifactId)
-      }
-    })
-
-  // // Upload zip to blob storage
-  // const uploadResult = await uploadZipToBlobStorage(
-  //   createArtifactResp.signedUploadUrl,
-  //   zipUploadStream
-  // )
-
+  const zipUploadStream = await createZipUploadStream(
+    zipSpecification,
+    options?.compressionLevel
+  )
+  // Upload zip to blob storage
+  const uploadResult = await uploadZipToBlobStorage(
+    createArtifactResp.signedUploadUrl,
+    zipUploadStream
+  )
   // finalize the artifact
-  // const finalizeArtifactReq: FinalizeArtifactRequest = {
-  //   workflowRunBackendId: backendIds.workflowRunBackendId,
-  //   workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-  //   name,
-  //   size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
-  // }
+  const finalizeArtifactReq: FinalizeArtifactRequest = {
+    workflowRunBackendId: backendIds.workflowRunBackendId,
+    workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+    name,
+    size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
+  }
+  if (uploadResult.sha256Hash) {
+    finalizeArtifactReq.hash = StringValue.create({
+      value: `sha256:${uploadResult.sha256Hash}`
+    })
+  }
+  core.info(`Finalizing artifact upload`)
+  const finalizeArtifactResp =
+    await artifactClient.FinalizeArtifact(finalizeArtifactReq)
+  if (!finalizeArtifactResp.ok) {
+    throw new InvalidResponseError(
+      'FinalizeArtifact: response from backend was not ok'
+    )
+  }
 
-  // if (uploadResult.sha256Hash) {
-  //   finalizeArtifactReq.hash = StringValue.create({
-  //     value: `sha256:${uploadResult.sha256Hash}`
-  //   })
-  // }
-  //
-  // core.info(`Finalizing artifact upload`)
+  const artifactId = BigInt(finalizeArtifactResp.artifactId)
+  core.info(
+    `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
+  )
 
-  // const finalizeArtifactResp =
-  //   await artifactClient.FinalizeArtifact(finalizeArtifactReq)
-  // if (!finalizeArtifactResp.ok) {
-  //   throw new InvalidResponseError(
-  //     'FinalizeArtifact: response from backend was not ok'
-  //   )
-  // }
-
-  // const artifactId = BigInt(finalizeArtifactResp.artifactId)
-  // core.info(
-  //   `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
-  // )
-  // if (core.isDebug()) {
-  // setTimeout(function () {
-  //   core.debug('Processes keeping upload stream running:')
-  //   whyIsNodeRunning()
-  // }, 500)
-  // }
-  //
-
-  // )
+  return {
+    size: uploadResult.uploadSize,
+    id: Number(artifactId)
+  }
 }
