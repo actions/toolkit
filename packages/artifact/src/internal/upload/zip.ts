@@ -7,6 +7,7 @@ import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
 
 export const DEFAULT_COMPRESSION_LEVEL = 6
+export var isRunning = false
 
 // Custom stream transformer so we can set the highWaterMark property
 // See https://github.com/nodejs/node/issues/8855
@@ -27,6 +28,10 @@ export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
 ): Promise<ZipUploadStream> {
+  if (isRunning) {
+    throw new Error('The function is already running')
+  }
+  isRunning = true
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
@@ -40,23 +45,27 @@ export async function createZipUploadStream(
 
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-  async.forEachOf(uploadSpecification, async file => {
-    if (file.sourcePath !== null) {
-      zip.entry(
-        createReadStream(file.sourcePath),
-        {name: file.destinationPath},
-        function (err, entry) {
+  try {
+    await async.forEachOf(uploadSpecification, async file => {
+      if (file.sourcePath !== null) {
+        zip.entry(
+          createReadStream(file.sourcePath),
+          {name: file.destinationPath},
+          function (err, entry) {
+            core.debug(`Entry is: ${entry}`)
+            if (err) throw err
+          }
+        )
+      } else {
+        zip.entry(null, {name: file.destinationPath}, function (err, entry) {
           core.debug(`Entry is: ${entry}`)
           if (err) throw err
-        }
-      )
-    } else {
-      zip.entry(null, {name: file.destinationPath}, function (err, entry) {
-        core.debug(`Entry is: ${entry}`)
-        if (err) throw err
-      })
-    }
-  })
+        })
+      }
+    })
+  } finally {
+    isRunning = false
+  }
 
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
