@@ -1,5 +1,5 @@
 import * as stream from 'stream'
-import * as archiver from 'archiver'
+import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
 import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
@@ -29,43 +29,49 @@ export async function createZipUploadStream(
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
-
-  const zip = archiver.create('zip', {
-    highWaterMark: getUploadChunkSize(),
-    zlib: {level: compressionLevel}
-  })
-
+  const zlibOptions = {
+    zlib: {level: compressionLevel, bufferSize: getUploadChunkSize()}
+  }
+  const zip = new ZipStream.default(zlibOptions)
   // register callbacks for various events during the zip lifecycle
   zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)
+
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
 
   for (const file of uploadSpecification) {
-    if (file.sourcePath !== null) {
-      // Add a normal file to the zip
-      zip.append(createReadStream(file.sourcePath), {
-        name: file.destinationPath
-      })
-    } else {
-      // Add a directory to the zip
-      zip.append('', {name: file.destinationPath})
-    }
+    await new Promise((resolve, reject) => {
+      if (file.sourcePath !== null) {
+        // Add a normal file to the zip
+        zip.entry(
+          createReadStream(file.sourcePath),
+          {name: file.destinationPath},
+          function (err, entry) {
+            core.debug(`Entry is: ${entry}`)
+            if (err) reject(err)
+            else resolve(entry)
+          }
+        )
+      } else {
+        zip.entry(null, {name: file.destinationPath}, function (err, entry) {
+          core.debug(`Entry is: ${entry}`)
+          if (err) reject(err)
+          resolve(entry)
+        })
+      }
+    })
   }
 
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
-
   core.debug(
     `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
   )
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
-
-  zip.pipe(zipUploadStream)
   zip.finalize()
-
   return zipUploadStream
 }
 
@@ -76,19 +82,18 @@ const zipErrorCallback = (error: any): void => {
 
   throw new Error('An error has occurred during zip creation for the artifact')
 }
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipWarningCallback = (error: any): void => {
-  if (error.code === 'ENOENT') {
+const zipWarningCallback = (err: any): void => {
+  if (err.code === 'ENOENT') {
     core.warning(
       'ENOENT warning during artifact zip creation. No such file or directory'
     )
-    core.info(error)
+    core.info(err)
   } else {
     core.warning(
-      `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
+      `A non-blocking warning has occurred during artifact zip creation: ${err.code}`
     )
-    core.info(error)
+    core.info(err)
   }
 }
 

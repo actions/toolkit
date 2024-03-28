@@ -107,6 +107,13 @@ export async function uploadArtifact(
   core.info(
     `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
   )
+  // if (core.isDebug()) {
+  // setTimeout(function () {
+  //   core.debug('Processes keeping upload stream running:')
+  //   whyIsNodeRunning()
+  // }, 500)
+  // }
+  //
 
   return {
     size: uploadResult.uploadSize,
