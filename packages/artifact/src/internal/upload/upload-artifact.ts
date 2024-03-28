@@ -67,6 +67,7 @@ export async function uploadArtifact(
       'CreateArtifact: response from backend was not ok'
     )
   }
+  // Create the zipupload stream for use in blob upload
   const zipUploadStream = await createZipUploadStream(
     zipSpecification,
     options?.compressionLevel
