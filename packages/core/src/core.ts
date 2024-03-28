@@ -245,6 +245,21 @@ export function debug(message: string): void {
   issueCommand('debug', {}, message)
 }
 
+function defaultAnnotationPropertes(
+  message: string | Error,
+  properties: AnnotationProperties | undefined = undefined
+): AnnotationProperties {
+  // If no properties are provided, try to extract them from the Error instance
+  if (properties === undefined) {
+    if (message instanceof Error) {
+      properties = toAnnotationProperties(message)
+    } else {
+      properties = {}
+    }
+  }
+  return properties
+}
+
 /**
  * Adds an error issue
  * @param message error issue message. Errors will be converted to string via toString()
@@ -252,13 +267,9 @@ export function debug(message: string): void {
  */
 export function error(
   message: string | Error,
-  properties: AnnotationProperties = {}
+  properties: AnnotationProperties | undefined = undefined
 ): void {
-  // If no properties are provided, try to extract them from the Error instance
-  properties =
-    Object.keys(properties).length === 0 && message instanceof Error
-      ? toAnnotationProperties(message)
-      : properties
+  properties = defaultAnnotationPropertes(message, properties)
 
   issueCommand(
     'error',
@@ -274,13 +285,9 @@ export function error(
  */
 export function warning(
   message: string | Error,
-  properties: AnnotationProperties = {}
+  properties: AnnotationProperties | undefined = undefined
 ): void {
-  // If no properties are provided, try to extract them from the Error instance
-  properties =
-    Object.keys(properties).length === 0 && message instanceof Error
-      ? toAnnotationProperties(message)
-      : properties
+  properties = defaultAnnotationPropertes(message, properties)
 
   issueCommand(
     'warning',
@@ -296,13 +303,9 @@ export function warning(
  */
 export function notice(
   message: string | Error,
-  properties: AnnotationProperties = {}
+  properties: AnnotationProperties | undefined = undefined
 ): void {
-  // If no properties are provided, try to extract them from the Error instance
-  properties =
-    Object.keys(properties).length === 0 && message instanceof Error
-      ? toAnnotationProperties(message)
-      : properties
+  properties = defaultAnnotationPropertes(message, properties)
 
   issueCommand(
     'notice',

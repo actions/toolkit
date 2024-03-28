@@ -421,6 +421,12 @@ describe('@actions/core', () => {
     ])
   })
 
+  it('error handles an error object and an empty properties', () => {
+    const message = 'this is my error message'
+    core.error(new Error(message), {})
+    assertWriteCalls([`::error::Error: ${message}${os.EOL}`])
+  })
+
   it('error handles custom properties correctly', () => {
     const message = 'this is my error message'
     core.error(new Error(message), {
@@ -456,6 +462,12 @@ describe('@actions/core', () => {
     ])
   })
 
+  it('warning handles an error object and an empty properties', () => {
+    const message = 'this is my error message'
+    core.warning(new Error(message), {})
+    assertWriteCalls([`::warning::Error: ${message}${os.EOL}`])
+  })
+
   it('warning handles custom properties correctly', () => {
     const message = 'this is my error message'
     core.warning(new Error(message), {
@@ -489,6 +501,12 @@ describe('@actions/core', () => {
     assertWriteCalls([
       `::notice title=Error,file=${file},line=${line},col=${column}::Error: ${message}${os.EOL}`
     ])
+  })
+
+  it('notice handles an error object and an empty properties', () => {
+    const message = 'this is my error message'
+    core.notice(new Error(message), {})
+    assertWriteCalls([`::notice::Error: ${message}${os.EOL}`])
   })
 
   it('notice handles custom properties correctly', () => {
