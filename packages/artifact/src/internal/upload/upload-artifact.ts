@@ -68,45 +68,81 @@ export async function uploadArtifact(
     )
   }
 
-  const zipUploadStream = await createZipUploadStream(
-    zipSpecification,
-    options?.compressionLevel
-  )
+  return createZipUploadStream(zipSpecification, options?.compressionLevel)
+    .then(async zipUploadStream => {
+      return uploadZipToBlobStorage(
+        createArtifactResp.signedUploadUrl,
+        zipUploadStream
+      )
+    })
+    .then(async uploadResult => {
+      const finalizeArtifactReq: FinalizeArtifactRequest = {
+        workflowRunBackendId: backendIds.workflowRunBackendId,
+        workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+        name,
+        size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
+      }
+      if (uploadResult.sha256Hash) {
+        finalizeArtifactReq.hash = StringValue.create({
+          value: `sha256:${uploadResult.sha256Hash}`
+        })
+      }
+      core.info(`Finalizing artifact upload`)
+      const finalizeArtifactResp =
+        await artifactClient.FinalizeArtifact(finalizeArtifactReq)
 
-  // Upload zip to blob storage
-  const uploadResult = await uploadZipToBlobStorage(
-    createArtifactResp.signedUploadUrl,
-    zipUploadStream
-  )
+      return {finalizeArtifactResp, uploadResult}
+    })
+    .then(({finalizeArtifactResp, uploadResult}) => {
+      if (!finalizeArtifactResp.ok) {
+        throw new InvalidResponseError(
+          'FinalizeArtifact: response from backend was not ok'
+        )
+      }
+      const artifactId = BigInt(finalizeArtifactResp.artifactId)
+      core.info(
+        `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
+      )
+      return {
+        size: uploadResult.uploadSize,
+        id: Number(artifactId)
+      }
+    })
+
+  // // Upload zip to blob storage
+  // const uploadResult = await uploadZipToBlobStorage(
+  //   createArtifactResp.signedUploadUrl,
+  //   zipUploadStream
+  // )
 
   // finalize the artifact
-  const finalizeArtifactReq: FinalizeArtifactRequest = {
-    workflowRunBackendId: backendIds.workflowRunBackendId,
-    workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name,
-    size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
-  }
+  // const finalizeArtifactReq: FinalizeArtifactRequest = {
+  //   workflowRunBackendId: backendIds.workflowRunBackendId,
+  //   workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+  //   name,
+  //   size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
+  // }
 
-  if (uploadResult.sha256Hash) {
-    finalizeArtifactReq.hash = StringValue.create({
-      value: `sha256:${uploadResult.sha256Hash}`
-    })
-  }
+  // if (uploadResult.sha256Hash) {
+  //   finalizeArtifactReq.hash = StringValue.create({
+  //     value: `sha256:${uploadResult.sha256Hash}`
+  //   })
+  // }
+  //
+  // core.info(`Finalizing artifact upload`)
 
-  core.info(`Finalizing artifact upload`)
+  // const finalizeArtifactResp =
+  //   await artifactClient.FinalizeArtifact(finalizeArtifactReq)
+  // if (!finalizeArtifactResp.ok) {
+  //   throw new InvalidResponseError(
+  //     'FinalizeArtifact: response from backend was not ok'
+  //   )
+  // }
 
-  const finalizeArtifactResp =
-    await artifactClient.FinalizeArtifact(finalizeArtifactReq)
-  if (!finalizeArtifactResp.ok) {
-    throw new InvalidResponseError(
-      'FinalizeArtifact: response from backend was not ok'
-    )
-  }
-
-  const artifactId = BigInt(finalizeArtifactResp.artifactId)
-  core.info(
-    `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
-  )
+  // const artifactId = BigInt(finalizeArtifactResp.artifactId)
+  // core.info(
+  //   `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
+  // )
   // if (core.isDebug()) {
   // setTimeout(function () {
   //   core.debug('Processes keeping upload stream running:')
@@ -115,8 +151,5 @@ export async function uploadArtifact(
   // }
   //
 
-  return {
-    size: uploadResult.uploadSize,
-    id: Number(artifactId)
-  }
+  // )
 }
