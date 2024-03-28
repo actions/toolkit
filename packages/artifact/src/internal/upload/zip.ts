@@ -7,7 +7,6 @@ import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
 
 export const DEFAULT_COMPRESSION_LEVEL = 6
-let isRunning = false
 
 // Custom stream transformer so we can set the highWaterMark property
 // See https://github.com/nodejs/node/issues/8855
@@ -28,10 +27,6 @@ export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
 ): Promise<ZipUploadStream> {
-  if (isRunning) {
-    throw new Error('The function is already running')
-  }
-  isRunning = true
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
@@ -45,27 +40,25 @@ export async function createZipUploadStream(
 
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-  try {
-    await async.forEachOf(uploadSpecification, async file => {
+  const uploadFilePromises = uploadSpecification.map(async file => {
+    return new Promise((resolve, reject) => {
       if (file.sourcePath !== null) {
         zip.entry(
           createReadStream(file.sourcePath),
           {name: file.destinationPath},
-          function (err, entry) {
-            core.debug(`Entry is: ${entry}`)
-            if (err) throw err
+          (err, entry) => {
+            if (err) reject(err)
+            resolve(entry)
           }
         )
       } else {
-        zip.entry(null, {name: file.destinationPath}, function (err, entry) {
-          core.debug(`Entry is: ${entry}`)
-          if (err) throw err
+        zip.entry(null, {name: file.destinationPath}, (err, entry) => {
+          if (err) reject(err)
+          resolve(entry)
         })
       }
     })
-  } finally {
-    isRunning = false
-  }
+  })
 
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
@@ -75,7 +68,7 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
-
+  await Promise.all(uploadFilePromises)
   // zip.pipe(zipUploadStream)
   zip.finalize()
   return zipUploadStream
@@ -88,7 +81,6 @@ const zipErrorCallback = (error: any): void => {
 
   throw new Error('An error has occurred during zip creation for the artifact')
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const zipWarningCallback = (err: any): void => {
   if (err.code === 'ENOENT') {
     core.warning(
