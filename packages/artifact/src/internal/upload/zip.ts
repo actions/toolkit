@@ -71,9 +71,11 @@ export async function createZipUploadStream(
     })
   }
 
-  // zip.finalize()
+  zip.finalize()
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
+  zip.pipe(zipUploadStream) // Pipe the zip stream into zipUploadStream
+
   core.debug(
     `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
   )
