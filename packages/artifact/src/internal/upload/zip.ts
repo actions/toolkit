@@ -39,9 +39,9 @@ export async function createZipUploadStream(
   // register callbacks for various events during the zip lifecycle
   zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)
-
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
+
   for (const file of uploadSpecification) {
     await new Promise((resolve, reject) => {
       if (file.sourcePath !== null) {
@@ -91,17 +91,17 @@ const zipErrorCallback = (error: any): void => {
   throw new Error('An error has occurred during zip creation for the artifact')
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipWarningCallback = (err: any): void => {
-  if (err.code === 'ENOENT') {
+const zipWarningCallback = (error: any): void => {
+  if (error.code === 'ENOENT') {
     core.warning(
       'ENOENT warning during artifact zip creation. No such file or directory'
     )
-    core.info(err)
+    core.info(error)
   } else {
     core.warning(
-      `A non-blocking warning has occurred during artifact zip creation: ${err.code}`
+      `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
     )
-    core.info(err)
+    core.info(error)
   }
 }
 

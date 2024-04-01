@@ -52,6 +52,7 @@ export async function uploadZipToBlobStorage(
   zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
 
   core.info('Beginning upload of artifact content to blob storage')
+
   try {
     await blockBlobClient.uploadStream(
       uploadStream,

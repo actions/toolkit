@@ -50,7 +50,6 @@
     "@octokit/request-error": "^5.0.0",
     "@protobuf-ts/plugin": "^2.2.3-alpha.1",
     "archiver": "^5.3.1",
-    "async": "^3.2.5",
     "crypto": "^1.0.1",
     "jwt-decode": "^3.1.2",
     "twirp-ts": "^2.5.0",
