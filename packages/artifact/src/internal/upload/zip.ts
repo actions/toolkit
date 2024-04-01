@@ -50,6 +50,7 @@ export async function createZipUploadStream(
           createReadStream(file.sourcePath),
           {name: file.destinationPath},
           function (err, entry) {
+            core.debug(`${err}`)
             if (err) reject(err)
             else resolve(entry)
           }
@@ -60,6 +61,7 @@ export async function createZipUploadStream(
           null,
           {name: `${file.destinationPath}/`},
           function (err, entry) {
+            core.debug(`${err}`)
             if (err) reject(err)
             else resolve(entry)
           }
