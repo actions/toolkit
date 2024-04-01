@@ -84,7 +84,7 @@ export async function createZipUploadStream(
   //   })
   // }
   const fileUploadQueue = async.queue(function (task, callback) {
-    core.info(`hello ${task.name}`)
+    core.debug(`adding file to upload queue ${task}`)
     callback()
   }, 1)
 
@@ -126,9 +126,6 @@ export async function createZipUploadStream(
 
   core.debug(`Starting the finalizing of all entries`)
 
-  for (const item of fileUploadQueue) {
-    core.debug(`Starting the finalizing ${item}`)
-  }
   fileUploadQueue.drain(() => {
     core.debug('all items have been processed')
   })
