@@ -42,47 +42,6 @@ export async function createZipUploadStream(
   zip.on('warning', zipWarningCallback)
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-
-  // for (const file of uploadSpecification) {
-  //   await new Promise((resolve, reject) => {
-  //     if (file.sourcePath !== null) {
-  //       core.debug(`createReadStream with: ${file.sourcePath}`)
-  //       // Add a normal file to the zip
-  //       const readStream = createReadStream(file.sourcePath)
-  //       readStream.on('data', chunk => {
-  //         core.debug(`Received ${chunk.length} bytes of data.`)
-  //       })
-  //       readStream.on('end', () => {
-  //         core.debug('There will be no more data.')
-  //       })
-  //       readStream.on('error', reject) // Catch any errors from createReadStream
-
-  //       core.debug(`readsstream errors: ${readStream.errored}`)
-  //       const entry = zip.entry(
-  //         readStream,
-  //         {name: file.destinationPath},
-  //         function (err) {
-  //           core.debug(`Is stream paused: ${readStream.isPaused()}`)
-  //           if (err) {
-  //             core.error('An error occurred:', err)
-  //             reject(err)
-  //           }
-  //           core.debug(`Is stream paused: ${readStream.isPaused()}`)
-  //           resolve('resolved artifact')
-  //         }
-  //       )
-  //       readStream.pipe(entry)
-  //     } else {
-  //       zip.entry(null, {name: `${file.destinationPath}/`}, function (err) {
-  //         if (err) {
-  //           core.error('An error occurred:', err)
-  //           reject(err)
-  //         }
-  //         resolve('resolved artifact')
-  //       })
-  //     }
-  //   })
-  // }
   // see https://caolan.github.io/async/v3/docs.html#queue for options
   const fileUploadQueue = async.queue(function (task, callback) {
     core.debug(`adding file to upload queue ${task}`)
@@ -96,22 +55,17 @@ export async function createZipUploadStream(
   for (const file of uploadSpecification) {
     if (file.sourcePath !== null) {
       const readStream = createReadStream(file.sourcePath)
-      readStream.on('data', chunk => {
-        core.debug(`Received ${chunk.length} bytes of data.`)
-      })
       readStream.on('end', () => {
-        core.debug('There will be no more data.')
+        core.debug('The upload read stream is ending')
       })
       readStream.on('error', function (err) {
         core.debug(`${err}`)
       }) // Catch any errors from createReadStream
       fileUploadQueue.push(
         zip.entry(readStream, {name: file.destinationPath}, function (err) {
-          core.debug(`Is stream paused: ${readStream.isPaused()}`)
           if (err) {
             core.error('An error occurred:', err)
           }
-          core.debug(`Is stream paused: ${readStream.isPaused()}`)
         })
       )
     } else {
