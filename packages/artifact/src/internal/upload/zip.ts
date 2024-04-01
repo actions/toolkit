@@ -45,9 +45,13 @@ export async function createZipUploadStream(
   for (const file of uploadSpecification) {
     await new Promise((resolve, reject) => {
       if (file.sourcePath !== null) {
+        core.debug(`createReadStream with: ${file.sourcePath}`)
         // Add a normal file to the zip
+        const readsstream = createReadStream(file.sourcePath)
+        readsstream.on('error', reject)
+
         zip.entry(
-          createReadStream(file.sourcePath),
+          readsstream,
           {name: file.destinationPath},
           function (err, entry) {
             core.debug(`${err}`)
@@ -57,6 +61,7 @@ export async function createZipUploadStream(
         )
       } else {
         // add directory to zip
+        core.debug(`add directory with: ${file.destinationPath}`)
         zip.entry(
           null,
           {name: `${file.destinationPath}/`},
