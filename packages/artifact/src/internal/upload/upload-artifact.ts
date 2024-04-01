@@ -71,7 +71,11 @@ export async function uploadArtifact(
   const zipUploadStream = await createZipUploadStream(
     zipSpecification,
     options?.compressionLevel
-  )
+  ).catch(err => {
+    throw new InvalidResponseError(
+      `createZipUploadStream: response from backend was not ok: ${err}`
+    )
+  })
 
   // Upload zip to blob storage
   const uploadResult = await uploadZipToBlobStorage(

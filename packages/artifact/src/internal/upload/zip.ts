@@ -1,6 +1,7 @@
 import * as stream from 'stream'
 import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
+import async from 'async'
 import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
@@ -42,39 +43,95 @@ export async function createZipUploadStream(
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
 
-  for (const file of uploadSpecification) {
-    await new Promise((resolve, reject) => {
-      if (file.sourcePath !== null) {
-        core.debug(`createReadStream with: ${file.sourcePath}`)
-        // Add a normal file to the zip
-        const readsstream = createReadStream(file.sourcePath)
-        readsstream.on('error', reject)
+  // for (const file of uploadSpecification) {
+  //   await new Promise((resolve, reject) => {
+  //     if (file.sourcePath !== null) {
+  //       core.debug(`createReadStream with: ${file.sourcePath}`)
+  //       // Add a normal file to the zip
+  //       const readStream = createReadStream(file.sourcePath)
+  //       readStream.on('data', chunk => {
+  //         core.debug(`Received ${chunk.length} bytes of data.`)
+  //       })
+  //       readStream.on('end', () => {
+  //         core.debug('There will be no more data.')
+  //       })
+  //       readStream.on('error', reject) // Catch any errors from createReadStream
 
-        zip.entry(
-          readsstream,
-          {name: file.destinationPath},
-          function (err, entry) {
-            core.debug(`${err}`)
-            if (err) reject(err)
-            else resolve(entry)
+  //       core.debug(`readsstream errors: ${readStream.errored}`)
+  //       const entry = zip.entry(
+  //         readStream,
+  //         {name: file.destinationPath},
+  //         function (err) {
+  //           core.debug(`Is stream paused: ${readStream.isPaused()}`)
+  //           if (err) {
+  //             core.error('An error occurred:', err)
+  //             reject(err)
+  //           }
+  //           core.debug(`Is stream paused: ${readStream.isPaused()}`)
+  //           resolve('resolved artifact')
+  //         }
+  //       )
+  //       readStream.pipe(entry)
+  //     } else {
+  //       zip.entry(null, {name: `${file.destinationPath}/`}, function (err) {
+  //         if (err) {
+  //           core.error('An error occurred:', err)
+  //           reject(err)
+  //         }
+  //         resolve('resolved artifact')
+  //       })
+  //     }
+  //   })
+  // }
+  const fileUploadQueue = async.queue(function (task, callback) {
+    core.info(`hello ${task.name}`)
+    callback()
+  }, 1)
+
+  fileUploadQueue.error(function (err, task) {
+    core.error(`task experienced an error: ${task} ${err}`)
+  })
+
+  for (const file of uploadSpecification) {
+    if (file.sourcePath !== null) {
+      const readStream = createReadStream(file.sourcePath)
+      readStream.on('data', chunk => {
+        core.debug(`Received ${chunk.length} bytes of data.`)
+      })
+      readStream.on('end', () => {
+        core.debug('There will be no more data.')
+      })
+      readStream.on('error', function (err) {
+        core.debug(`${err}`)
+      }) // Catch any errors from createReadStream
+      fileUploadQueue.push(
+        zip.entry(readStream, {name: file.destinationPath}, function (err) {
+          core.debug(`Is stream paused: ${readStream.isPaused()}`)
+          if (err) {
+            core.error('An error occurred:', err)
           }
-        )
-      } else {
-        // add directory to zip
-        core.debug(`add directory with: ${file.destinationPath}`)
-        zip.entry(
-          null,
-          {name: `${file.destinationPath}/`},
-          function (err, entry) {
-            core.debug(`${err}`)
-            if (err) reject(err)
-            else resolve(entry)
+          core.debug(`Is stream paused: ${readStream.isPaused()}`)
+        })
+      )
+    } else {
+      fileUploadQueue.push(
+        zip.entry(null, {name: `${file.destinationPath}/`}, function (err) {
+          if (err) {
+            core.error('An error occurred:', err)
           }
-        )
-      }
-    })
+        })
+      )
+    }
   }
 
+  core.debug(`Starting the finalizing of all entries`)
+
+  for (const item of fileUploadQueue) {
+    core.debug(`Starting the finalizing ${item}`)
+  }
+  fileUploadQueue.drain(() => {
+    core.debug('all items have been processed')
+  })
   zip.finalize()
   core.debug(`Finalizing entries`)
   const bufferSize = getUploadChunkSize()
