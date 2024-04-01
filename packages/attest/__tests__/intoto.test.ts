@@ -16,7 +16,7 @@ describe('buildIntotoStatement', () => {
     }
   }
 
-  it('returns a provenance hydrated from env vars', () => {
+  it('returns an intoto statement', () => {
     const statement = buildIntotoStatement(subject, predicate)
     expect(statement).toMatchSnapshot()
   })
