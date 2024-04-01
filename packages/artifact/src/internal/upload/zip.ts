@@ -43,9 +43,14 @@ export async function createZipUploadStream(
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
   // see https://caolan.github.io/async/v3/docs.html#queue for options
-  const fileUploadQueue = async.queue(function (task, callback) {
-    core.debug(`adding file to upload queue ${task}`)
-    callback()
+  const fileUploadQueue = async.queue(function (fileItem, callback) {
+    try {
+      core.debug(`adding ${fileItem} to the file queue`)
+      callback()
+    } catch (err) {
+      core.error(`task experienced an error: ${fileItem} ${err}`)
+      callback(err)
+    }
   }) // concurrency for uploads automatically set to 1
 
   fileUploadQueue.error(function (err, task) {
