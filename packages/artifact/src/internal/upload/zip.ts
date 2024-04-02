@@ -69,7 +69,7 @@ export async function createZipUploadStream(
       fileUploadQueue.push(
         zip.entry(readStream, {name: file.destinationPath}, function (err) {
           if (err) {
-            core.error('An error occurred:', err)
+            core.error('A file entry error occurred:', err)
           }
         })
       )
@@ -77,7 +77,7 @@ export async function createZipUploadStream(
       fileUploadQueue.push(
         zip.entry(null, {name: `${file.destinationPath}/`}, function (err) {
           if (err) {
-            core.error('An error occurred:', err)
+            core.error('A directory entry error occurred:', err)
           }
         })
       )
