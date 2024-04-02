@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
-import {DownloadOptions, UploadOptions} from './options'
+import {DownloadOptions, ExtraTarOptions, UploadOptions} from './options'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -68,7 +68,8 @@ export async function restoreCache(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  extraTarOptions: ExtraTarOptions = []
 ): Promise<string | undefined> {
   checkPaths(paths)
 
@@ -129,7 +130,7 @@ export async function restoreCache(
       )} MB (${archiveFileSize} B)`
     )
 
-    await extractTar(archivePath, compressionMethod)
+    await extractTar(archivePath, compressionMethod, extraTarOptions)
     core.info('Cache restored successfully')
 
     return cacheEntry.cacheKey
@@ -166,7 +167,8 @@ export async function saveCache(
   paths: string[],
   key: string,
   options?: UploadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  extraTarOptions: ExtraTarOptions = []
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
@@ -193,7 +195,12 @@ export async function saveCache(
   core.debug(`Archive Path: ${archivePath}`)
 
   try {
-    await createTar(archiveFolder, cachePaths, compressionMethod)
+    await createTar(
+      archiveFolder,
+      cachePaths,
+      compressionMethod,
+      extraTarOptions
+    )
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
