@@ -66,20 +66,30 @@ export async function createZipUploadStream(
       readStream.on('error', function (err) {
         core.debug(`${err}`)
       }) // Catch any errors from createReadStream
-      fileUploadQueue.push(
-        zip.entry(readStream, {name: file.destinationPath}, function (err) {
+      const fileEntry = zip.entry(
+        readStream,
+        {name: file.destinationPath},
+        function (err, entry) {
           if (err) {
             core.error('A file entry error occurred:', err)
           }
-        })
+          core.debug(`File entry was succesfull: ${entry}`)
+        }
       )
+
+      fileUploadQueue.push(fileEntry)
     } else {
       fileUploadQueue.push(
-        zip.entry(null, {name: `${file.destinationPath}/`}, function (err) {
-          if (err) {
-            core.error('A directory entry error occurred:', err)
+        zip.entry(
+          null,
+          {name: `${file.destinationPath}/`},
+          function (err, entry) {
+            if (err) {
+              core.error('A directory entry error occurred:', err)
+            }
+            core.debug(`File entry was succesfull: ${entry}`)
           }
-        })
+        )
       )
     }
   }
