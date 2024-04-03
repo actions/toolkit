@@ -71,10 +71,11 @@ export async function createZipUploadStream(
         {name: file.destinationPath},
         function (err, entry) {
           if (err) {
-            core.error('A file entry error occurred:', err)
+            core.error('A file entry error occurred')
+            core.info(err)
             throw new Error('An error occurred during file entry')
           }
-          core.debug(`File entry was succesful: ${entry}`)
+          core.debug(`File entry was succesful: ${entry.data.name}`)
         }
       )
 
@@ -86,10 +87,11 @@ export async function createZipUploadStream(
           {name: `${file.destinationPath}/`},
           function (err, entry) {
             if (err) {
-              core.error('A directory entry error occurred:', err)
+              core.error('A directory entry error occurred')
+              core.info(err)
               throw new Error('An error occurred during directory entry')
             }
-            core.debug(`File entry was succesful: ${entry}`)
+            core.debug(`File entry was succesful: ${entry.data.name}`)
           }
         )
       )
