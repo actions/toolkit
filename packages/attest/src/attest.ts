@@ -1,10 +1,11 @@
-import {Bundle, bundleToJSON} from '@sigstore/bundle'
+import {bundleToJSON} from '@sigstore/bundle'
 import {X509Certificate} from 'crypto'
 import {SigstoreInstance, signingEndpoints} from './endpoints'
 import {buildIntotoStatement} from './intoto'
 import {Payload, signPayload} from './sign'
 import {writeAttestation} from './store'
 
+import type {Bundle} from '@sigstore/sign'
 import type {Attestation, Predicate, Subject} from './shared.types'
 
 const INTOTO_PAYLOAD_TYPE = 'application/vnd.in-toto+json'
