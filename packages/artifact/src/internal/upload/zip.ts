@@ -30,6 +30,7 @@ export async function createZipUploadStream(
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
+
   const zlibOptions = {
     zlib: {
       level: compressionLevel,
@@ -37,77 +38,43 @@ export async function createZipUploadStream(
     }
   }
   const zip = new ZipStream.default(zlibOptions)
+
+  const bufferSize = getUploadChunkSize()
+  const zipUploadStream = new ZipUploadStream(bufferSize)
+  zip.pipe(zipUploadStream)
   // register callbacks for various events during the zip lifecycle
   zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-  // see https://caolan.github.io/async/v3/docs.html#queue for options
-  const fileUploadQueue = async.queue(function (fileItem, callback) {
-    try {
-      core.debug(`adding ${fileItem} to the file queue`)
-      callback()
-    } catch (err) {
-      core.error(`task experienced an error: ${fileItem} ${err}`)
-      callback(err)
-    }
-  }) // concurrency for uploads automatically set to 1
-
-  fileUploadQueue.error(function (err, task) {
-    core.error(`task experienced an error: ${task} ${err}`)
-  })
-
-  for (const file of uploadSpecification) {
+  const addFileToZip = (file: UploadZipSpecification, callback: (error?: Error) => void) => {
     if (file.sourcePath !== null) {
-      const readStream = createReadStream(file.sourcePath)
-      readStream.on('end', () => {
-        core.debug('The upload read stream is ending')
-      })
-      readStream.on('error', function (err) {
-        core.debug(`${err}`)
-      }) // Catch any errors from createReadStream
-      const fileEntry = zip.entry(
-        readStream,
-        {name: file.destinationPath},
-        function (err, entry) {
-          if (err) {
-            core.error('A file entry error occurred')
-            core.info(err)
-            throw new Error('An error occurred during file entry')
-          }
-          core.debug(`File entry was succesful: ${entry.data.name}`)
+      zip.entry(createReadStream(file.sourcePath), { name: file.destinationPath }, (error: any) => {
+        if (error) {
+          callback(error)
+          return
         }
-      )
-
-      fileUploadQueue.push(fileEntry)
+        callback()
+      })
     } else {
-      fileUploadQueue.push(
-        zip.entry(
-          null,
-          {name: `${file.destinationPath}/`},
-          function (err, entry) {
-            if (err) {
-              core.error('A directory entry error occurred')
-              core.info(err)
-              throw new Error('An error occurred during directory entry')
-            }
-            core.debug(`File entry was succesful: ${entry.data.name}`)
-          }
-        )
-      )
+      zip.entry('', { name: file.destinationPath }, (error: any) => {
+        if (error) {
+          callback(error)
+          return
+        }
+        callback()
+      })
     }
   }
 
-  core.debug(`Starting the finalizing of all entries`)
-
-  fileUploadQueue.drain(() => {
-    core.debug('all items have been processed')
+  async.eachSeries(uploadSpecification, addFileToZip, (error: any) => {
+    if (error) {
+      core.error('Failed to add a file to the zip:')
+      core.info(error)
+      return
+    }
+    zip.finalize() // Finalize the archive once all files have been added
   })
-  zip.finalize()
-  core.debug(`Finalizing entries`)
-  const bufferSize = getUploadChunkSize()
-  const zipUploadStream = new ZipUploadStream(bufferSize)
-  zip.pipe(zipUploadStream) // Pipe the zip stream into zipUploadStream
 
   core.debug(
     `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
@@ -115,6 +82,7 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
+
   return zipUploadStream
 }
 
