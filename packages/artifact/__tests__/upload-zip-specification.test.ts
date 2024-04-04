@@ -287,14 +287,14 @@ describe('Search', () => {
     expect(specifications.length).toEqual(2)
     const absolutePaths = specifications.map(item => item.sourcePath)
     expect(absolutePaths).toContain(goodItem1Path)
-    expect(absolutePaths).toContain(null)
+    expect(absolutePaths).toContain(folderEPath)
 
     for (const specification of specifications) {
       if (specification.sourcePath === goodItem1Path) {
         expect(specification.destinationPath).toEqual(
           path.join('/folder-a', 'folder-b', 'folder-c', 'good-item1.txt')
         )
-      } else if (specification.sourcePath === null) {
+      } else if (specification.sourcePath === folderEPath) {
         expect(specification.destinationPath).toEqual(
           path.join('/folder-a', 'folder-b', 'folder-e')
         )
