@@ -43,11 +43,10 @@ export async function createZipUploadStream(
   const zipUploadStream = new ZipUploadStream(bufferSize)
   zip.pipe(zipUploadStream)
   // register callbacks for various events during the zip lifecycle
-  zip.on('warning', zipWarningCallback)
   zip.on('error', zipErrorCallback)
+  zip.on('warning', zipWarningCallback)
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-
   const addFileToZip = (
     file: UploadZipSpecification,
     callback: (error?: Error) => void
@@ -75,24 +74,23 @@ export async function createZipUploadStream(
     }
   }
 
-  return new Promise((resolve, reject) => {
-    async.eachSeries(uploadSpecification, addFileToZip, (error: unknown) => {
-      if (error) {
-        core.error('Failed to add a file to the zip:')
-        core.info(error.toString()) // Convert error to string
-        reject(error)
-        return
-      }
-      zip.finalize() // Finalize the archive once all files have been added
-      core.debug(
-        `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
-      )
-      core.debug(
-        `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
-      )
-      resolve(zipUploadStream)
-    })
+  async.eachSeries(uploadSpecification, addFileToZip, (error: unknown) => {
+    if (error) {
+      core.error('Failed to add a file to the zip:')
+      core.info(error.toString()) // Convert error to string
+      return
+    }
+    zip.finalize() // Finalize the archive once all files have been added
   })
+
+  core.debug(
+    `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
+  )
+  core.debug(
+    `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
+  )
+
+  return zipUploadStream
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
