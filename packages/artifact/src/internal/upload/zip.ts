@@ -22,9 +22,7 @@ export class ZipUploadStream extends stream.Transform {
     cb(null, chunk)
   }
 }
-interface NodeJSError extends Error {
-  code?: string
-}
+
 export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
@@ -32,6 +30,7 @@ export async function createZipUploadStream(
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
+
   const zlibOptions = {
     zlib: {
       level: compressionLevel,
@@ -39,14 +38,16 @@ export async function createZipUploadStream(
     }
   }
   const zip = new ZipStream.default(zlibOptions)
+
   const bufferSize = getUploadChunkSize()
   const zipUploadStream = new ZipUploadStream(bufferSize)
-
+  zip.pipe(zipUploadStream)
   // register callbacks for various events during the zip lifecycle
   zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
+
   const addFileToZip = (
     file: UploadZipSpecification,
     callback: (error?: Error) => void
@@ -55,18 +56,18 @@ export async function createZipUploadStream(
       zip.entry(
         createReadStream(file.sourcePath),
         {name: file.destinationPath},
-        (error: NodeJSError) => {
+        (error: unknown) => {
           if (error) {
-            callback(error)
+            callback(error as Error) // Cast the error object to the Error type
             return
           }
           callback()
         }
       )
     } else {
-      zip.entry('', {name: file.destinationPath}, (error: NodeJSError) => {
+      zip.entry('', {name: file.destinationPath}, (error: unknown) => {
         if (error) {
-          callback(error)
+          callback(error as Error)
           return
         }
         callback()
@@ -74,10 +75,10 @@ export async function createZipUploadStream(
     }
   }
 
-  async.eachSeries(uploadSpecification, addFileToZip, (error: NodeJSError) => {
+  async.eachSeries(uploadSpecification, addFileToZip, (error: unknown) => {
     if (error) {
       core.error('Failed to add a file to the zip:')
-      core.info(error.toString())
+      core.info(error.toString()) // Convert error to string
       return
     }
     zip.finalize() // Finalize the archive once all files have been added
@@ -93,23 +94,25 @@ export async function createZipUploadStream(
   return zipUploadStream
 }
 
-const zipErrorCallback = (error: Error): void => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const zipErrorCallback = (error: any): void => {
   core.error('An error has occurred while creating the zip file for upload')
-  core.info(error.message)
+  core.info(error)
 
   throw new Error('An error has occurred during zip creation for the artifact')
 }
-const zipWarningCallback = (error: NodeJSError): void => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const zipWarningCallback = (error: any): void => {
   if (error.code === 'ENOENT') {
     core.warning(
       'ENOENT warning during artifact zip creation. No such file or directory'
     )
-    core.info(error.toString()) // Convert error object to string
+    core.info(error)
   } else {
     core.warning(
       `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
     )
-    core.info(error.toString()) // Convert error object to string
+    core.info(error)
   }
 }
 
