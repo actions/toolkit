@@ -22,7 +22,9 @@ export class ZipUploadStream extends stream.Transform {
     cb(null, chunk)
   }
 }
-
+interface NodeJSError extends Error {
+  code?: string
+}
 export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
@@ -37,73 +39,49 @@ export async function createZipUploadStream(
     }
   }
   const zip = new ZipStream.default(zlibOptions)
+  const bufferSize = getUploadChunkSize()
+  const zipUploadStream = new ZipUploadStream(bufferSize)
+
   // register callbacks for various events during the zip lifecycle
   zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-  // see https://caolan.github.io/async/v3/docs.html#queue for options
-  const fileUploadQueue = async.queue(function (fileItem, callback) {
-    try {
-      core.debug(`adding ${fileItem} to the file queue`)
-      callback()
-    } catch (err) {
-      core.error(`task experienced an error: ${fileItem} ${err}`)
-      callback(err)
-    }
-  }) // concurrency for uploads automatically set to 1
-
-  fileUploadQueue.error(function (err, task) {
-    core.error(`task experienced an error: ${task} ${err}`)
-  })
-
-  for (const file of uploadSpecification) {
+  const addFileToZip = (
+    file: UploadZipSpecification,
+    callback: (error?: Error) => void
+  ): void => {
     if (file.sourcePath !== null) {
-      const readStream = createReadStream(file.sourcePath)
-      readStream.on('end', () => {
-        core.debug('The upload read stream is ending')
-      })
-      readStream.on('error', function (err) {
-        core.debug(`${err}`)
-      }) // Catch any errors from createReadStream
-      const fileEntry = zip.entry(
-        readStream,
+      zip.entry(
+        createReadStream(file.sourcePath),
         {name: file.destinationPath},
-        function (err, entry) {
-          if (err) {
-            core.error('A file entry error occurred:', err)
+        (error: NodeJSError) => {
+          if (error) {
+            callback(error)
+            return
           }
-          core.debug(`File entry was succesfull: ${entry}`)
+          callback()
         }
       )
-
-      fileUploadQueue.push(fileEntry)
     } else {
-      fileUploadQueue.push(
-        zip.entry(
-          null,
-          {name: `${file.destinationPath}/`},
-          function (err, entry) {
-            if (err) {
-              core.error('A directory entry error occurred:', err)
-            }
-            core.debug(`File entry was succesfull: ${entry}`)
-          }
-        )
-      )
+      zip.entry('', {name: file.destinationPath}, (error: NodeJSError) => {
+        if (error) {
+          callback(error)
+          return
+        }
+        callback()
+      })
     }
   }
 
-  core.debug(`Starting the finalizing of all entries`)
-
-  fileUploadQueue.drain(() => {
-    core.debug('all items have been processed')
+  async.eachSeries(uploadSpecification, addFileToZip, (error: NodeJSError) => {
+    if (error) {
+      core.error('Failed to add a file to the zip:')
+      core.info(error.toString())
+      return
+    }
+    zip.finalize() // Finalize the archive once all files have been added
   })
-  zip.finalize()
-  core.debug(`Finalizing entries`)
-  const bufferSize = getUploadChunkSize()
-  const zipUploadStream = new ZipUploadStream(bufferSize)
-  zip.pipe(zipUploadStream) // Pipe the zip stream into zipUploadStream
 
   core.debug(
     `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
@@ -111,28 +89,27 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
+
   return zipUploadStream
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipErrorCallback = (error: any): void => {
+const zipErrorCallback = (error: Error): void => {
   core.error('An error has occurred while creating the zip file for upload')
-  core.info(error)
+  core.info(error.message)
 
   throw new Error('An error has occurred during zip creation for the artifact')
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipWarningCallback = (error: any): void => {
+const zipWarningCallback = (error: NodeJSError): void => {
   if (error.code === 'ENOENT') {
     core.warning(
       'ENOENT warning during artifact zip creation. No such file or directory'
     )
-    core.info(error)
+    core.info(error.toString()) // Convert error object to string
   } else {
     core.warning(
       `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
     )
-    core.info(error)
+    core.info(error.toString()) // Convert error object to string
   }
 }
 
