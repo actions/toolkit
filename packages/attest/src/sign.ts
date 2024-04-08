@@ -1,5 +1,5 @@
-import {Bundle} from '@sigstore/bundle'
 import {
+  Bundle,
   BundleBuilder,
   CIContextProvider,
   DSSEBundleBuilder,
@@ -103,5 +103,7 @@ const initBundleBuilder = (opts: SignOptions): BundleBuilder => {
     )
   }
 
-  return new DSSEBundleBuilder({signer, witnesses})
+  // Build the bundle with the singleCertificate option which will
+  // trigger the creation of v0.3 DSSE bundles
+  return new DSSEBundleBuilder({signer, witnesses, singleCertificate: true})
 }
