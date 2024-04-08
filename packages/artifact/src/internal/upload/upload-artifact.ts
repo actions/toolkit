@@ -1,124 +1,119 @@
-import * as stream from 'stream'
-import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
-import async from 'async'
-import {createReadStream} from 'fs'
-import {UploadZipSpecification} from './upload-zip-specification'
-import {getUploadChunkSize} from '../shared/config'
+import {
+  UploadArtifactOptions,
+  UploadArtifactResponse
+} from '../shared/interfaces'
+import {getExpiration} from './retention'
+import {validateArtifactName} from './path-and-artifact-name-validation'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
+import {
+  UploadZipSpecification,
+  getUploadZipSpecification,
+  validateRootDirectory
+} from './upload-zip-specification'
+import {getBackendIdsFromToken} from '../shared/util'
+import {uploadZipToBlobStorage} from './blob-upload'
+import {createZipUploadStream} from './zip'
+import {
+  CreateArtifactRequest,
+  FinalizeArtifactRequest,
+  StringValue
+} from '../../generated'
+import {FilesNotFoundError, InvalidResponseError} from '../shared/errors'
 
-export const DEFAULT_COMPRESSION_LEVEL = 6
+export async function uploadArtifact(
+  name: string,
+  files: string[],
+  rootDirectory: string,
+  options?: UploadArtifactOptions | undefined
+): Promise<UploadArtifactResponse> {
+  validateArtifactName(name)
+  validateRootDirectory(rootDirectory)
 
-// Custom stream transformer so we can set the highWaterMark property
-// See https://github.com/nodejs/node/issues/8855
-export class ZipUploadStream extends stream.Transform {
-  constructor(bufferSize: number) {
-    super({
-      highWaterMark: bufferSize
-    })
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _transform(chunk: any, enc: any, cb: any): void {
-    cb(null, chunk)
-  }
-}
-
-export async function createZipUploadStream(
-  uploadSpecification: UploadZipSpecification[],
-  compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
-): Promise<ZipUploadStream> {
-  core.debug(
-    `Creating Artifact archive with compressionLevel: ${compressionLevel}`
+  const zipSpecification: UploadZipSpecification[] = getUploadZipSpecification(
+    files,
+    rootDirectory
   )
-
-  const zlibOptions = {
-    zlib: {
-      level: compressionLevel,
-      bufferSize: getUploadChunkSize()
-    }
-  }
-  const zip = new ZipStream.default(zlibOptions)
-
-  const bufferSize = getUploadChunkSize()
-  const zipUploadStream = new ZipUploadStream(bufferSize)
-  zip.pipe(zipUploadStream)
-  // register callbacks for various events during the zip lifecycle
-  zip.on('error', zipErrorCallback)
-  zip.on('warning', zipWarningCallback)
-  zip.on('finish', zipFinishCallback)
-  zip.on('end', zipEndCallback)
-  const addFileToZip = (
-    file: UploadZipSpecification,
-    callback: (error?: Error) => void
-  ) => {
-    if (file.sourcePath !== null) {
-      zip.entry(
-        createReadStream(file.sourcePath),
-        {name: file.destinationPath},
-        (error: any) => {
-          if (error) {
-            callback(error)
-            return
-          }
-          callback()
-        }
-      )
-    } else {
-      zip.entry('', {name: file.destinationPath}, (error: any) => {
-        if (error) {
-          callback(error)
-          return
-        }
-        callback()
-      })
-    }
+  if (zipSpecification.length === 0) {
+    throw new FilesNotFoundError(
+      zipSpecification.flatMap(s => (s.sourcePath ? [s.sourcePath] : []))
+    )
   }
 
-  async.eachSeries(uploadSpecification, addFileToZip, (error: any) => {
-    if (error) {
-      core.error('Failed to add a file to the zip:')
-      core.info(error)
-      return
-    }
-    zip.finalize() // Finalize the archive once all files have been added
+  // get the IDs needed for the artifact creation
+  const backendIds = getBackendIdsFromToken()
+
+  // create the artifact client
+  const artifactClient = internalArtifactTwirpClient()
+
+  // create the artifact
+  const createArtifactReq: CreateArtifactRequest = {
+    workflowRunBackendId: backendIds.workflowRunBackendId,
+    workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+    name,
+    version: 4
+  }
+
+  // if there is a retention period, add it to the request
+  const expiresAt = getExpiration(options?.retentionDays)
+  if (expiresAt) {
+    createArtifactReq.expiresAt = expiresAt
+  }
+
+  const createArtifactResp =
+    await artifactClient.CreateArtifact(createArtifactReq)
+  if (!createArtifactResp.ok) {
+    throw new InvalidResponseError(
+      'CreateArtifact: response from backend was not ok'
+    )
+  }
+  // Create the zipupload stream for use in blob upload
+  const zipUploadStream = await createZipUploadStream(
+    zipSpecification,
+    options?.compressionLevel
+  ).catch(err => {
+    throw new InvalidResponseError(
+      `createZipUploadStream: response from backend was not ok: ${err}`
+    )
   })
 
-  core.debug(
-    `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
-  )
-  core.debug(
-    `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
-  )
-
-  return zipUploadStream
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipErrorCallback = (error: any): void => {
-  core.error('An error has occurred while creating the zip file for upload')
-  core.info(error)
-
-  throw new Error('An error has occurred during zip creation for the artifact')
-}
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const zipWarningCallback = (error: any): void => {
-  if (error.code === 'ENOENT') {
-    core.warning(
-      'ENOENT warning during artifact zip creation. No such file or directory'
+  // Upload zip to blob storage
+  const uploadResult = await uploadZipToBlobStorage(
+    createArtifactResp.signedUploadUrl,
+    zipUploadStream
+  ).catch(err => {
+    throw new InvalidResponseError(
+      `uploadZipToBlobStorage: response blob was not ok: ${err}`
     )
-    core.info(error)
-  } else {
-    core.warning(
-      `A non-blocking warning has occurred during artifact zip creation: ${error.code}`
-    )
-    core.info(error)
+  })
+  // finalize the artifact
+  const finalizeArtifactReq: FinalizeArtifactRequest = {
+    workflowRunBackendId: backendIds.workflowRunBackendId,
+    workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+    name,
+    size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
   }
-}
+  if (uploadResult.sha256Hash) {
+    finalizeArtifactReq.hash = StringValue.create({
+      value: `sha256:${uploadResult.sha256Hash}`
+    })
+  }
+  core.info(`Finalizing artifact upload`)
+  const finalizeArtifactResp =
+    await artifactClient.FinalizeArtifact(finalizeArtifactReq)
+  if (!finalizeArtifactResp.ok) {
+    throw new InvalidResponseError(
+      'FinalizeArtifact: response from backend was not ok'
+    )
+  }
 
-const zipFinishCallback = (): void => {
-  core.debug('Zip stream for upload has finished.')
-}
+  const artifactId = BigInt(finalizeArtifactResp.artifactId)
+  core.info(
+    `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
+  )
 
-const zipEndCallback = (): void => {
-  core.debug('Zip stream for upload has ended.')
+  return {
+    size: uploadResult.uploadSize,
+    id: Number(artifactId)
+  }
 }
