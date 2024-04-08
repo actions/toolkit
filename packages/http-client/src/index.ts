@@ -649,7 +649,7 @@ export class HttpClient {
       agent = this._proxyAgent
     }
 
-    if (this._keepAlive && !useProxy) {
+    if (!useProxy) {
       agent = this._agent
     }
 
@@ -690,16 +690,11 @@ export class HttpClient {
       this._proxyAgent = agent
     }
 
-    // if reusing agent across request and tunneling agent isn't assigned create a new agent
-    if (this._keepAlive && !agent) {
+    // if tunneling agent isn't assigned create a new agent
+    if (!agent) {
       const options = {keepAlive: this._keepAlive, maxSockets}
       agent = usingSsl ? new https.Agent(options) : new http.Agent(options)
       this._agent = agent
-    }
-
-    // if not using private agent and tunnel agent isn't setup then use global agent
-    if (!agent) {
-      agent = usingSsl ? https.globalAgent : http.globalAgent
     }
 
     if (usingSsl && this._ignoreSslError) {

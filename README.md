@@ -102,6 +102,15 @@ $ npm install @actions/cache
 ```
 <br/>
 
+:lock_with_ink_pen: [@actions/attest](packages/attest)
+
+Provides functions to write attestations for workflow artifacts. Read more [here](packages/attest)
+
+```bash
+$ npm install @actions/attest
+```
+<br/>
+
 ## Creating an Action with the Toolkit
 
 :question: [Choosing an action type](docs/action-types.md)

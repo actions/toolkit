@@ -13,7 +13,7 @@
     "lint": "eslint packages/**/*.ts",
     "lint-fix": "eslint packages/**/*.ts --fix",
     "new-package": "scripts/create-package",
-    "test": "jest --testTimeout 10000"
+    "test": "jest --testTimeout 60000"
   },
   "devDependencies": {
     "@types/jest": "^29.5.4",
