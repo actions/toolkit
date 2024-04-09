@@ -8,6 +8,7 @@ import * as blobUpload from '../src/internal/upload/blob-upload'
 import {uploadArtifact} from '../src/internal/upload/upload-artifact'
 import {noopLogs} from './common'
 import {FilesNotFoundError} from '../src/internal/shared/errors'
+import {BlockBlobClient} from '@azure/storage-blob'
 
 describe('upload-artifact', () => {
   beforeEach(() => {
@@ -350,5 +351,84 @@ describe('upload-artifact', () => {
     )
 
     expect(uploadResp).rejects.toThrow()
+  })
+
+  it('should throw an error uploading blob chunks get delayed', async () => {
+    const mockDate = new Date('2020-01-01')
+    jest
+      .spyOn(uploadZipSpecification, 'validateRootDirectory')
+      .mockReturnValue()
+    jest
+      .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
+      .mockReturnValue([
+        {
+          sourcePath: '/home/user/files/plz-upload/file1.txt',
+          destinationPath: 'file1.txt'
+        },
+        {
+          sourcePath: '/home/user/files/plz-upload/file2.txt',
+          destinationPath: 'file2.txt'
+        },
+        {
+          sourcePath: '/home/user/files/plz-upload/dir/file3.txt',
+          destinationPath: 'dir/file3.txt'
+        }
+      ])
+
+    jest.spyOn(util, 'getBackendIdsFromToken').mockReturnValue({
+      workflowRunBackendId: '1234',
+      workflowJobRunBackendId: '5678'
+    })
+    jest
+      .spyOn(retention, 'getExpiration')
+      .mockReturnValue(Timestamp.fromDate(mockDate))
+    jest
+      .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+      .mockReturnValue(
+        Promise.resolve({
+          ok: true,
+          signedUploadUrl: 'https://signed-upload-url.com'
+        })
+      )
+    jest
+      .spyOn(blobUpload, 'uploadZipToBlobStorage')
+      .mockReturnValue(Promise.reject(new Error('Upload progress stalled.')))
+
+    // ArtifactHttpClient mocks
+    jest.spyOn(config, 'getRuntimeToken').mockReturnValue('test-token')
+    jest
+      .spyOn(config, 'getResultsServiceUrl')
+      .mockReturnValue('https://test-url.com')
+
+    BlockBlobClient.prototype.uploadStream = jest
+      .fn()
+      .mockImplementation(
+        async (stream, bufferSize, maxConcurrency, options) => {
+          return new Promise<void>(resolve => {
+            // Call the onProgress callback with a progress event
+            options.onProgress({loadedBytes: 0})
+
+            // Wait for 31 seconds before resolving the promise
+            setTimeout(() => {
+              // Call the onProgress callback again to simulate progress
+              options.onProgress({loadedBytes: 100})
+
+              resolve()
+            }, 31000) // Delay longer than your timeout
+          })
+        }
+      )
+
+    const uploadResp = uploadArtifact(
+      'test-artifact',
+      [
+        '/home/user/files/plz-upload/file1.txt',
+        '/home/user/files/plz-upload/file2.txt',
+        '/home/user/files/plz-upload/dir/file3.txt'
+      ],
+      '/home/user/files/plz-upload'
+    )
+
+    expect(uploadResp).rejects.toThrow('Upload progress stalled.')
   })
 })
