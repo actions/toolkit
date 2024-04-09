@@ -25,6 +25,15 @@ export async function uploadZipToBlobStorage(
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
   let lastProgressTime = Date.now()
+  const chunkTimer = (timeout: number): NodeJS.Timeout =>
+    setTimeout(() => {
+      const now = Date.now()
+      // if there's been more than 30 seconds since the
+      // last progress event, then we'll consider the upload stalled
+      if (now - lastProgressTime > timeout) {
+        throw new Error('Upload progress stalled.')
+      }
+    }, timeout)
 
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
@@ -39,21 +48,12 @@ export async function uploadZipToBlobStorage(
   const uploadCallback = (progress: TransferProgressEvent): void => {
     core.info(`Uploaded bytes ${progress.loadedBytes}`)
     uploadByteCount = progress.loadedBytes
-    progressTimeout(timeoutDuration)
+    chunkTimer(timeoutDuration)
+    lastProgressTime = Date.now()
   }
 
-  // Timeout if the upload stalls
-  const progressTimeout = (timeout: number): NodeJS.Timeout =>
-    setTimeout(() => {
-      const now = Date.now()
-      // if there's been more than 30 seconds since the
-      // last progress event, then we'll consider the upload stalled
-      if (now - lastProgressTime > timeout) {
-        throw new Error('Upload progress stalled.')
-      }
-    }, timeout)
-
-  lastProgressTime = Date.now()
+  // // Timeout if the upload stalls
+  // const progressTimeout
   const options: BlockBlobUploadStreamOptions = {
     blobHTTPHeaders: {blobContentType: 'zip'},
     onProgress: uploadCallback
@@ -96,7 +96,7 @@ export async function uploadZipToBlobStorage(
   }
 
   // clear the progress timeout when upload completes
-  clearTimeout(progressTimeout(timeoutDuration))
+  clearTimeout(chunkTimer(timeoutDuration))
   return {
     uploadSize: uploadByteCount,
     sha256Hash
