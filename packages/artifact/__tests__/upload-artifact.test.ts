@@ -9,7 +9,7 @@ import {uploadArtifact} from '../src/internal/upload/upload-artifact'
 import {noopLogs} from './common'
 import {FilesNotFoundError} from '../src/internal/shared/errors'
 import {BlockBlobClient} from '@azure/storage-blob'
-
+import mockFs from 'mock-fs'
 describe('upload-artifact', () => {
   beforeEach(() => {
     noopLogs()
@@ -374,6 +374,15 @@ describe('upload-artifact', () => {
           destinationPath: 'dir/file3.txt'
         }
       ])
+    mockFs({
+      '/home/user/files/plz-upload': {
+        'file1.txt': 'file1 content',
+        'file2.txt': 'file2 content',
+        dir: {
+          'file3.txt': 'file3 content'
+        }
+      }
+    })
 
     jest.spyOn(util, 'getBackendIdsFromToken').mockReturnValue({
       workflowRunBackendId: '1234',
