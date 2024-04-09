@@ -24,7 +24,7 @@ export async function uploadZipToBlobStorage(
   zipUploadStream: ZipUploadStream
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
-  const lastProgressTime = Date.now()
+  let lastProgressTime = Date.now()
 
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
@@ -52,6 +52,8 @@ export async function uploadZipToBlobStorage(
         throw new Error('Upload progress stalled.')
       }
     }, timeout)
+
+  lastProgressTime = Date.now()
   const options: BlockBlobUploadStreamOptions = {
     blobHTTPHeaders: {blobContentType: 'zip'},
     onProgress: uploadCallback
