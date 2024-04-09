@@ -81,6 +81,9 @@ export async function uploadZipToBlobStorage(
     }
 
     throw error
+  } finally {
+    // clear the progress timeout when upload completes
+    clearTimeout(chunkTimer(timeoutDuration))
   }
 
   core.info('Finished uploading artifact content to blob storage!')
