@@ -357,7 +357,6 @@ describe('upload-artifact', () => {
 
   it('should throw an error uploading blob chunks get delayed', async () => {
     const mockDate = new Date('2020-01-01')
-    jest.mock('fs')
 
     // Mock fs.createReadStream to return a mock stream
     fs.createReadStream = jest.fn().mockImplementation(() => {
@@ -431,6 +430,7 @@ describe('upload-artifact', () => {
         }
       )
 
+    jest.mock('fs')
     const uploadResp = uploadArtifact(
       'test-artifact',
       [

@@ -52,7 +52,6 @@
     "archiver": "^7.0.1",
     "crypto": "^1.0.1",
     "jwt-decode": "^3.1.2",
-    "mock-fs": "^5.2.0",
     "twirp-ts": "^2.5.0",
     "unzip-stream": "^0.3.1"
   },
@@ -61,6 +60,7 @@
     "@types/unzip-stream": "^0.3.4",
     "typedoc": "^0.25.4",
     "typedoc-plugin-markdown": "^3.17.1",
+    "mock-fs": "^5.2.0",
     "typescript": "^5.2.2"
   }
 }
