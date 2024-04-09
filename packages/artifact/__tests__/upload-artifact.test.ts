@@ -9,7 +9,9 @@ import {uploadArtifact} from '../src/internal/upload/upload-artifact'
 import {noopLogs} from './common'
 import {FilesNotFoundError} from '../src/internal/shared/errors'
 import {BlockBlobClient} from '@azure/storage-blob'
-import mockFs from 'mock-fs'
+import fs from 'fs'
+import {Readable} from 'stream'
+
 describe('upload-artifact', () => {
   beforeEach(() => {
     noopLogs()
@@ -355,6 +357,16 @@ describe('upload-artifact', () => {
 
   it('should throw an error uploading blob chunks get delayed', async () => {
     const mockDate = new Date('2020-01-01')
+    jest.mock('fs')
+
+    // Mock fs.createReadStream to return a mock stream
+    fs.createReadStream = jest.fn().mockImplementation(() => {
+      const mockStream = new Readable()
+      mockStream.push('file content')
+      mockStream.push(null)
+      return mockStream
+    })
+
     jest
       .spyOn(uploadZipSpecification, 'validateRootDirectory')
       .mockReturnValue()
@@ -374,15 +386,6 @@ describe('upload-artifact', () => {
           destinationPath: 'dir/file3.txt'
         }
       ])
-    mockFs({
-      '/home/user/files/plz-upload': {
-        'file1.txt': 'file1 content',
-        'file2.txt': 'file2 content',
-        dir: {
-          'file3.txt': 'file3 content'
-        }
-      }
-    })
 
     jest.spyOn(util, 'getBackendIdsFromToken').mockReturnValue({
       workflowRunBackendId: '1234',
