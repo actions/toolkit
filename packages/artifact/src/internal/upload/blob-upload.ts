@@ -25,6 +25,8 @@ export async function uploadZipToBlobStorage(
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
   let lastProgressTime = Date.now()
+  let timeoutId: NodeJS.Timeout | undefined
+
   const chunkTimer = (timeout: number): NodeJS.Timeout =>
     setTimeout(() => {
       const now = Date.now()
@@ -34,7 +36,6 @@ export async function uploadZipToBlobStorage(
         throw new Error('Upload progress stalled.')
       }
     }, timeout)
-
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
   const blobClient = new BlobClient(authenticatedUploadURL)
@@ -69,6 +70,8 @@ export async function uploadZipToBlobStorage(
   core.info('Beginning upload of artifact content to blob storage')
 
   try {
+    // Start the chunk timer
+    timeoutId = chunkTimer(timeoutDuration)
     await blockBlobClient.uploadStream(
       uploadStream,
       bufferSize,
@@ -79,11 +82,12 @@ export async function uploadZipToBlobStorage(
     if (NetworkError.isNetworkErrorCode(error?.code)) {
       throw new NetworkError(error?.code)
     }
-
     throw error
   } finally {
-    // clear the progress timeout when upload completes
-    clearTimeout(chunkTimer(timeoutDuration))
+    // clear the timeout whether or not the upload completes
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
   }
 
   core.info('Finished uploading artifact content to blob storage!')
