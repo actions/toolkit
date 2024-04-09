@@ -30,7 +30,7 @@ export async function uploadZipToBlobStorage(
   const bufferSize = getUploadChunkSize()
   const blobClient = new BlobClient(authenticatedUploadURL)
   const blockBlobClient = blobClient.getBlockBlobClient()
-  const timeoutDuration = 300000 // 30 seconds
+  const timeoutDuration = 600000 // 30 seconds
 
   core.debug(
     `Uploading artifact zip to blob storage with maxConcurrency: ${maxConcurrency}, bufferSize: ${bufferSize}`

@@ -425,7 +425,7 @@ describe('upload-artifact', () => {
               options.onProgress({loadedBytes: 100})
 
               resolve()
-            }, 31000) // Delay longer than your timeout
+            }, 61000) // Delay longer than your timeout
           })
         }
       )
