@@ -27,8 +27,13 @@ export async function uploadZipToBlobStorage(
   let lastProgressTime = Date.now()
   let timeoutId: NodeJS.Timeout | undefined
 
-  const chunkTimer = (timeout: number): NodeJS.Timeout =>
-    setTimeout(() => {
+  const chunkTimer = (timeout: number): NodeJS.Timeout => {
+    // clear the previous timeout
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+
+    timeoutId = setTimeout(() => {
       const now = Date.now()
       // if there's been more than 30 seconds since the
       // last progress event, then we'll consider the upload stalled
@@ -36,6 +41,8 @@ export async function uploadZipToBlobStorage(
         throw new Error('Upload progress stalled.')
       }
     }, timeout)
+    return timeoutId
+  }
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
   const blobClient = new BlobClient(authenticatedUploadURL)
