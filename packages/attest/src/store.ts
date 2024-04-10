@@ -1,5 +1,4 @@
 import * as github from '@actions/github'
-import fetch from 'make-fetch-happen'
 
 const CREATE_ATTESTATION_REQUEST = 'POST /repos/{owner}/{repo}/attestations'
 
@@ -14,7 +13,7 @@ export const writeAttestation = async (
   attestation: unknown,
   token: string
 ): Promise<string> => {
-  const octokit = github.getOctokit(token, {request: {fetch}})
+  const octokit = github.getOctokit(token)
 
   try {
     const response = await octokit.request(CREATE_ATTESTATION_REQUEST, {
@@ -23,7 +22,11 @@ export const writeAttestation = async (
       data: {bundle: attestation}
     })
 
-    return response.data?.id
+    const data =
+      typeof response.data == 'string'
+        ? JSON.parse(response.data)
+        : response.data
+    return data?.id
   } catch (err) {
     const message = err instanceof Error ? err.message : err
     throw new Error(`Failed to persist attestation: ${message}`)
