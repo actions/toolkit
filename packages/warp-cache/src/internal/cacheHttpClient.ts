@@ -21,7 +21,10 @@ import {
   InternalS3CompletedPart,
   CommitCacheResponse
 } from './contracts'
-import {downloadCacheMultiConnection} from './downloadUtils'
+import {
+  downloadCacheMultiConnection,
+  downloadCacheStreamingGCP
+} from './downloadUtils'
 import {isSuccessStatusCode, retryTypedResponse} from './requestUtils'
 import axios, {AxiosError} from 'axios'
 
@@ -29,12 +32,14 @@ const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string =
-    process.env['WARP_CACHE_URL'] ?? 'https://cache.warpbuild.com'
+    process.env['WARPBUILD_CACHE_URL'] ?? 'https://cache.warpbuild.com'
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
 
-  const url = `${baseUrl}/v1/${resource}`
+  const provider: string = process.env['STORAGE_PROVIDER'] ?? 'gcs'
+
+  const url = `${baseUrl}/v1/${resource}/${provider}`
   core.debug(`Resource Url: ${url}`)
   return url
 }
@@ -54,11 +59,11 @@ function getRequestOptions(): RequestOptions {
 }
 
 function createHttpClient(): HttpClient {
-  const token = process.env['WARP_RUNNER_VERIFICATION_TOKEN'] ?? ''
+  const token = process.env['WARPBUILD_RUNNER_VERIFICATION_TOKEN'] ?? ''
   const bearerCredentialHandler = new BearerCredentialHandler(token)
 
   return new HttpClient(
-    'actions/cache',
+    'warp/cache',
     [bearerCredentialHandler],
     getRequestOptions()
   )
@@ -106,7 +111,7 @@ export async function getCacheEntry(
   const response = await retryTypedResponse('getCacheEntry', async () =>
     httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
   )
-  // Cache not found
+
   if (response.statusCode === 204) {
     // List cache for primary key only if cache miss occurs
     if (core.isDebug()) {
@@ -119,9 +124,9 @@ export async function getCacheEntry(
   }
 
   const cacheResult = response.result
-  const cacheDownloadUrl = cacheResult?.pre_signed_url
+  const cacheDownloadUrl = cacheResult?.archive_location
   if (!cacheDownloadUrl) {
-    // Cache achiveLocation not found. This should never happen, and hence bail out.
+    // Cache archiveLocation not found. This should never happen, and hence bail out.
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
@@ -163,7 +168,20 @@ export async function downloadCache(
   await downloadCacheMultiConnection(archiveLocation, archivePath, 8)
 }
 
-// Reserve Cache
+export function downloadCacheStreaming(
+  provider: string,
+  archiveLocation: string
+): NodeJS.ReadableStream | undefined {
+  switch (provider) {
+    case 's3':
+      return undefined
+    case 'gcs':
+      return downloadCacheStreamingGCP(archiveLocation)
+    default:
+      return undefined
+  }
+}
+
 export async function reserveCache(
   cacheKey: string,
   numberOfChunks: number,
@@ -240,7 +258,6 @@ async function uploadFileToS3(
   preSignedURLs: string[],
   archivePath: string
 ): Promise<InternalS3CompletedPart[]> {
-  // Upload Chunks
   const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
   const numberOfChunks = preSignedURLs.length
 
@@ -334,7 +351,6 @@ export async function saveCache(
   // Sort parts in ascending order by partNumber
   completedParts.sort((a, b) => a.PartNumber - b.PartNumber)
 
-  // Commit Cache
   core.debug('Committing cache')
   const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
   core.info(

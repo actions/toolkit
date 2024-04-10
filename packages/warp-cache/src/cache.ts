@@ -2,7 +2,12 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
-import {createTar, extractTar, listTar} from './internal/tar'
+import {
+  createTar,
+  extractStreamingTar,
+  extractTar,
+  listTar
+} from './internal/tar'
 import {DownloadOptions, getUploadOptions} from './options'
 
 export class ValidationError extends Error {
@@ -50,7 +55,7 @@ function checkKey(key: string): void {
  */
 
 export function isFeatureAvailable(): boolean {
-  return !!process.env['WARP_CACHE_URL']
+  return !!process.env['WARPBUILD_CACHE_URL']
 }
 
 /**
@@ -95,14 +100,15 @@ export async function restoreCache(
       compressionMethod,
       enableCrossOsArchive
     })
-    if (!cacheEntry?.pre_signed_url) {
-      // Cache not found
+
+    if (!cacheEntry) {
+      // Internal Error
       return undefined
     }
 
     if (options?.lookupOnly) {
       core.info('Lookup only - skipping download')
-      return cacheEntry.cache_key
+      return cacheEntry?.cache_key
     }
 
     archivePath = path.join(
@@ -111,22 +117,52 @@ export async function restoreCache(
     )
     core.debug(`Archive Path: ${archivePath}`)
 
-    // Download the cache from the cache entry
-    await cacheHttpClient.downloadCache(cacheEntry.pre_signed_url, archivePath)
+    switch (cacheEntry.provider) {
+      case 's3': {
+        if (!cacheEntry.pre_signed_url) {
+          // Cache not found
+          return undefined
+        }
 
-    if (core.isDebug()) {
-      await listTar(archivePath, compressionMethod)
+        await cacheHttpClient.downloadCache(
+          cacheEntry.pre_signed_url,
+          archivePath
+        )
+
+        if (core.isDebug()) {
+          await listTar(archivePath, compressionMethod)
+        }
+
+        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+        core.info(
+          `Cache Size: ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B)`
+        )
+
+        await extractTar(archivePath, compressionMethod)
+        core.info('Cache restored successfully')
+        break
+      }
+
+      case 'gcs': {
+        // For GCS, we do a streaming download which means that we extract the archive while we are downloading it.
+        const archiveLocation = cacheEntry.archive_location ?? ''
+
+        const readStream = cacheHttpClient.downloadCacheStreaming(
+          'gcs',
+          archiveLocation
+        )
+
+        if (!readStream) {
+          return undefined
+        }
+
+        await extractStreamingTar(readStream, archivePath, compressionMethod)
+        core.info('Cache restored successfully')
+        break
+      }
     }
-
-    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
-    core.info(
-      `Cache Size: ~${Math.round(
-        archiveFileSize / (1024 * 1024)
-      )} MB (${archiveFileSize} B)`
-    )
-
-    await extractTar(archivePath, compressionMethod)
-    core.info('Cache restored successfully')
 
     return cacheEntry.cache_key
   } catch (error) {
@@ -134,7 +170,7 @@ export async function restoreCache(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
+      // Suppress all non-validation cache related errors because caching should be optional
       core.warning(`Failed to restore: ${(error as Error).message}`)
     }
   } finally {

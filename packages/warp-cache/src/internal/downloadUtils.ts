@@ -13,6 +13,7 @@ import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
+import {Storage} from '@google-cloud/storage'
 
 /**
  * Pipes the body of a HTTP response to a stream
@@ -290,5 +291,49 @@ export async function downloadCacheMultiConnection(
   } finally {
     downloadProgress?.stopDisplayTimer()
     await fileHandle?.close()
+  }
+}
+
+/**
+ * Download the cache to a provider writable stream using GCloud SDK
+ *
+ * @param archiveLocation the URL for the cache
+ */
+export function downloadCacheStreamingGCP(
+  archiveLocation: string
+): NodeJS.ReadableStream | undefined {
+  try {
+    const storage = new Storage({
+      token: process.env['GCP_ACCESS_TOKEN']
+    })
+
+    // The archiveLocation for GCP will be in the format of gs://<bucket-name>/<object-name>
+    const bucketName = archiveLocation.split('/')[2]
+    if (!bucketName || bucketName.length < 2) {
+      throw new Error(
+        `Invalid GCS URL: ${archiveLocation}. Should be in the format gs://<bucket-name>/<object-name>`
+      )
+    }
+
+    const fileName = archiveLocation.split('/').slice(3).join('/')
+    if (!fileName || fileName.length < 1) {
+      throw new Error(
+        `Invalid GCS URL: ${archiveLocation}. Should be in the format gs://<bucket-name>/<object-name>`
+      )
+    }
+
+    storage
+      .bucket(bucketName)
+      .file(fileName)
+      .getMetadata()
+      .then(data => {
+        core.info(`File size: ${data[0]?.size} bytes`)
+      })
+
+    return storage.bucket(bucketName).file(fileName).createReadStream()
+  } catch (error) {
+    core.debug(`Failed to download cache: ${error}`)
+    core.error(`Failed to download cache.`)
+    throw error
   }
 }

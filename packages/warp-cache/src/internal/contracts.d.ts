@@ -7,7 +7,10 @@ export interface ITypedResponseWithError<T> extends TypedResponse<T> {
 }
 
 export interface ArtifactCacheEntry {
+  provider: string
+  auth_method: string
   cache_key?: string
+  archive_location?: string
   pre_signed_url?: string
   cache_version?: string
 }

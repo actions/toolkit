@@ -11,8 +11,16 @@ import {
   TarFilename,
   ManifestFilename
 } from './constants'
+import {ChildProcessWithoutNullStreams, spawn} from 'child_process'
 
 const IS_WINDOWS = process.platform === 'win32'
+
+enum TAR_MODE {
+  CREATE = 'create',
+  EXTRACT = 'extract',
+  EXTRACT_STREAM = 'extractStream',
+  LIST = 'list'
+}
 
 // Returns tar path and type: BSD or GNU
 async function getTarPath(): Promise<ArchiveTool> {
@@ -54,7 +62,7 @@ async function getTarPath(): Promise<ArchiveTool> {
 async function getTarArgs(
   tarPath: ArchiveTool,
   compressionMethod: CompressionMethod,
-  type: string,
+  type: TAR_MODE,
   archivePath = ''
 ): Promise<string[]> {
   const args = [`"${tarPath.path}"`]
@@ -69,7 +77,7 @@ async function getTarArgs(
 
   // Method specific args
   switch (type) {
-    case 'create':
+    case TAR_MODE.CREATE:
       args.push(
         '--posix',
         '-cf',
@@ -87,7 +95,7 @@ async function getTarArgs(
         ManifestFilename
       )
       break
-    case 'extract':
+    case TAR_MODE.EXTRACT:
       args.push(
         '-xf',
         BSD_TAR_ZSTD
@@ -98,7 +106,16 @@ async function getTarArgs(
         workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       )
       break
-    case 'list':
+    case TAR_MODE.EXTRACT_STREAM:
+      args.push(
+        '-xf',
+        '-',
+        '-P',
+        '-C',
+        workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+      )
+      break
+    case TAR_MODE.LIST:
       args.push(
         '-tf',
         BSD_TAR_ZSTD
@@ -127,7 +144,7 @@ async function getTarArgs(
 // Returns commands to run tar and compression program
 async function getCommands(
   compressionMethod: CompressionMethod,
-  type: string,
+  type: TAR_MODE,
   archivePath = ''
 ): Promise<string[]> {
   let args
@@ -139,8 +156,9 @@ async function getCommands(
     type,
     archivePath
   )
+
   const compressionArgs =
-    type !== 'create'
+    type !== TAR_MODE.CREATE
       ? await getDecompressionProgram(tarPath, compressionMethod, archivePath)
       : await getCompressionProgram(tarPath, compressionMethod)
   const BSD_TAR_ZSTD =
@@ -148,7 +166,7 @@ async function getCommands(
     compressionMethod !== CompressionMethod.Gzip &&
     IS_WINDOWS
 
-  if (BSD_TAR_ZSTD && type !== 'create') {
+  if (BSD_TAR_ZSTD && type !== TAR_MODE.CREATE) {
     args = [[...compressionArgs].join(' '), [...tarArgs].join(' ')]
   } else {
     args = [[...tarArgs].join(' '), [...compressionArgs].join(' ')]
@@ -159,6 +177,42 @@ async function getCommands(
   }
 
   return [args.join(' ')]
+}
+
+/*
+ * Returns command pipes to stream data to tar and compression program.
+ * Only supports tar and zstd at the moment
+ * @returns Array of ChildProcessWithoutNullStreams. Pipe to the processes in the order they are returned
+ */
+async function getCommandPipes(
+  compressionMethod: CompressionMethod,
+  type: TAR_MODE,
+  archivePath = ''
+): Promise<ChildProcessWithoutNullStreams[]> {
+  const spawnedProcesses: ChildProcessWithoutNullStreams[] = []
+
+  const tarPath = await getTarPath()
+  const tarArgs = await getTarArgs(
+    tarPath,
+    compressionMethod,
+    type,
+    archivePath
+  )
+  // Remove tar executable from tarArgs
+  tarArgs.shift()
+
+  let zstdInfo =
+    type !== TAR_MODE.CREATE
+      ? await getDecompressionProgramStream(tarPath, compressionMethod)
+      : await getCompressionProgramStream(tarPath, compressionMethod)
+
+  const zstdProcess = spawn(zstdInfo.command, zstdInfo.args)
+  spawnedProcesses.push(zstdProcess)
+
+  const tarProcess = spawn(tarPath.path, tarArgs)
+  spawnedProcesses.push(tarProcess)
+
+  return spawnedProcesses
 }
 
 function getWorkingDirectory(): string {
@@ -204,6 +258,39 @@ async function getDecompressionProgram(
   }
 }
 
+// Alternative to getDecompressionProgram which returns zstd that command that can be piped into
+async function getDecompressionProgramStream(
+  tarPath: ArchiveTool,
+  compressionMethod: CompressionMethod
+): Promise<{command: string; args: string[]}> {
+  const BSD_TAR_ZSTD =
+    tarPath.type === ArchiveToolType.BSD &&
+    compressionMethod !== CompressionMethod.Gzip &&
+    IS_WINDOWS
+
+  switch (compressionMethod) {
+    case CompressionMethod.Zstd:
+      return BSD_TAR_ZSTD
+        ? {command: 'zstd', args: ['-d', '--long=30', '--force', '--stdout']}
+        : {
+            command: IS_WINDOWS ? 'zstd' : 'unzstd',
+            args: IS_WINDOWS
+              ? ['-d', '--long=30', '--stdout', '-T0']
+              : ['--long=30', '--stdout', '-T0']
+          }
+    case CompressionMethod.ZstdWithoutLong:
+      return BSD_TAR_ZSTD
+        ? {command: 'zstd', args: ['-d', '--force', '--stdout']}
+        : {
+            command: IS_WINDOWS ? 'zstd' : 'unzstd',
+            args: ['-d', '--stdout', '-T0']
+          }
+    default:
+      // Assuming gzip is the default method if none specified
+      return {command: 'gzip', args: ['-d']}
+  }
+}
+
 // Used for creating the archive
 // -T#: Compress using # working thread. If # is 0, attempt to detect and use the number of physical CPU cores.
 // zstdmt is equivalent to 'zstd -T0'
@@ -244,6 +331,44 @@ async function getCompressionProgram(
   }
 }
 
+async function getCompressionProgramStream(
+  tarPath: ArchiveTool,
+  compressionMethod: CompressionMethod
+): Promise<{command: string; args: string[]}> {
+  const BSD_TAR_ZSTD =
+    tarPath.type === ArchiveToolType.BSD &&
+    compressionMethod !== CompressionMethod.Gzip &&
+    IS_WINDOWS
+
+  switch (compressionMethod) {
+    case CompressionMethod.Zstd:
+      return BSD_TAR_ZSTD
+        ? {
+            command: 'zstd',
+            args: ['-T0', '--long=30', '--force', '--stdout']
+          }
+        : {
+            command: IS_WINDOWS ? 'zstd' : 'zstdmt',
+            args: IS_WINDOWS
+              ? ['-T0', '--long=30', '--stdout', '-T0']
+              : ['--long=30', '--stdout', '-T0']
+          }
+    case CompressionMethod.ZstdWithoutLong:
+      return BSD_TAR_ZSTD
+        ? {
+            command: 'zstd',
+            args: ['-T0', '--force', '--stdout']
+          }
+        : {
+            command: IS_WINDOWS ? 'zstd' : 'zstdmt',
+            args: ['-T0', '--stdout']
+          }
+    default:
+      // Assuming gzip is the default method if none specified
+      return {command: 'gzip', args: []}
+  }
+}
+
 // Executes all commands as separate processes
 async function execCommands(commands: string[], cwd?: string): Promise<void> {
   for (const command of commands) {
@@ -265,11 +390,14 @@ export async function listTar(
   archivePath: string,
   compressionMethod: CompressionMethod
 ): Promise<void> {
-  const commands = await getCommands(compressionMethod, 'list', archivePath)
+  const commands = await getCommands(
+    compressionMethod,
+    TAR_MODE.LIST,
+    archivePath
+  )
   await execCommands(commands)
 }
 
-// Extract a tar
 export async function extractTar(
   archivePath: string,
   compressionMethod: CompressionMethod
@@ -277,8 +405,65 @@ export async function extractTar(
   // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
-  const commands = await getCommands(compressionMethod, 'extract', archivePath)
+  const commands = await getCommands(
+    compressionMethod,
+    TAR_MODE.EXTRACT,
+    archivePath
+  )
   await execCommands(commands)
+}
+
+// Supports only archives created using tar and zstd
+export async function extractStreamingTar(
+  stream: NodeJS.ReadableStream,
+  archivePath: string,
+  compressionMethod: CompressionMethod
+): Promise<void> {
+  const workingDirectory = getWorkingDirectory()
+  await io.mkdirP(workingDirectory)
+  const commandPipes = await getCommandPipes(
+    compressionMethod,
+    TAR_MODE.EXTRACT_STREAM,
+    archivePath
+  )
+
+  if (commandPipes.length < 2) {
+    throw new Error(
+      'At least two processes should be present as the archive is compressed at least twice.'
+    )
+  }
+
+  return new Promise((resolve, reject) => {
+    stream.pipe(commandPipes[0].stdin)
+    for (let i = 0; i < commandPipes.length - 1; i++) {
+      commandPipes[i].stdout.pipe(commandPipes[i + 1].stdin)
+
+      commandPipes[i].stderr.on('data', data => {
+        reject(
+          new Error(`Error in ${commandPipes[i].spawnfile}: ${data.toString()}`)
+        )
+      })
+
+      commandPipes[i].on('error', error => {
+        reject(
+          new Error(`Error in ${commandPipes[i].spawnfile}: ${error.message}`)
+        )
+      })
+    }
+
+    const lastCommand = commandPipes[commandPipes.length - 1]
+    lastCommand.stderr.on('data', data => {
+      console.error(`Error in ${lastCommand.spawnfile}:`, data.toString())
+      reject(new Error(`Error in ${lastCommand.spawnfile}: ${data.toString()}`))
+    })
+    lastCommand.on('close', code => {
+      if (code === 0) {
+        resolve()
+      } else {
+        reject(new Error(`Last command exited with code ${code}`))
+      }
+    })
+  })
 }
 
 // Create a tar
@@ -292,6 +477,6 @@ export async function createTar(
     path.join(archiveFolder, ManifestFilename),
     sourceDirectories.join('\n')
   )
-  const commands = await getCommands(compressionMethod, 'create')
+  const commands = await getCommands(compressionMethod, TAR_MODE.CREATE)
   await execCommands(commands, archiveFolder)
 }
