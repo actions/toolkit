@@ -46,6 +46,15 @@ $ npm install @actions/glob
 ```
 <br/>
 
+:phone: [@actions/http-client](packages/http-client)
+
+A lightweight HTTP client optimized for building actions. Read more [here](packages/http-client)
+
+```bash
+$ npm install @actions/http-client
+```
+<br/>
+
 :pencil2: [@actions/io](packages/io)
 
 Provides disk i/o functions like cp, mv, rmRF, which etc. Read more [here](packages/io)
@@ -90,6 +99,15 @@ Provides functions to cache dependencies and build outputs to improve workflow e
 
 ```bash
 $ npm install @actions/cache
+```
+<br/>
+
+:lock_with_ink_pen: [@actions/attest](packages/attest)
+
+Provides functions to write attestations for workflow artifacts. Read more [here](packages/attest)
+
+```bash
+$ npm install @actions/attest
 ```
 <br/>
 

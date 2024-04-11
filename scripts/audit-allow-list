@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// NEEDS TO BE UPDATED TO WORK ON NODE 16 BECAUSE NPM AUDIT --JSON OUTPUT CHANGED
+// THE AUDIT WORKFLOW IS ONLY RUN ON PRS, BUT IT CAN BE IGNORED AND A RELEASE CAN BE CREATED NONETHELESS
+// @fhammerl @rentziass
+
 /*
 This script takes the output of npm audit --json from stdin
 and writes a filtered version to stdout.
@@ -54,6 +58,16 @@ const AUDIT_ALLOW_LIST = [
     path: "lerna>@lerna/version>@lerna/conventional-commits>conventional-changelog-core>get-pkg-repo>meow>trim-newlines",
     advisoryUrl: "https://www.npmjs.com/advisories/1753",
     justification: "dependency of lerna (dev only); low severity"
+  },
+  {
+    path: "lerna>@lerna/version>@lerna/github-client>git-url-parse>git-up>parse-url",
+    advisoryUrl: "https://github.com/advisories/GHSA-j9fq-vwqv-2fm2",
+    justification: "dependency of lerna; moderate severity"
+  },
+  {
+    path: "lerna>@lerna/publish>@lerna/version>@lerna/github-client>git-url-parse>git-up>parse-url",
+    advisoryUrl: "https://github.com/advisories/GHSA-j9fq-vwqv-2fm2",
+    justification: "dependency of lerna; moderate severity"
   }
 ]
 

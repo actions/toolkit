@@ -1,5 +1,32 @@
 # @actions/core Releases
 
+### 1.10.1
+- Fix error message reference in oidc utils [#1511](https://github.com/actions/toolkit/pull/1511)
+
+### 1.10.0
+- `saveState` and `setOutput` now use environment files if available [#1178](https://github.com/actions/toolkit/pull/1178)
+- `getMultilineInput` now correctly trims whitespace by default [#1185](https://github.com/actions/toolkit/pull/1185)
+
+### 1.9.1
+- Randomize delimiter when calling `core.exportVariable`
+
+### 1.9.0
+- Added `toPosixPath`, `toWin32Path` and `toPlatformPath` utilities [#1102](https://github.com/actions/toolkit/pull/1102)
+
+### 1.8.2
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 1.8.1
+- Update to v2.0.0 of `@actions/http-client`
+
+### 1.8.0
+- Deprecate `markdownSummary` extension export in favor of `summary`
+  - https://github.com/actions/toolkit/pull/1072
+  - https://github.com/actions/toolkit/pull/1073
+
+### 1.7.0
+- [Added `markdownSummary` extension](https://github.com/actions/toolkit/pull/1014)
+
 ### 1.6.0
 - [Added OIDC Client function `getIDToken`](https://github.com/actions/toolkit/pull/919)
 - [Added `file` parameter to `AnnotationProperties`](https://github.com/actions/toolkit/pull/896) 

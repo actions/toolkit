@@ -1,4 +1,5 @@
 * @actions/actions-runtime
 
-/packages/artifact/   @actions/actions-service
-/packages/cache/      @actions/actions-service
+/packages/artifact/   @actions/artifacts-actions
+/packages/cache/      @actions/actions-cache
+/packages/attest/      @actions/package-security

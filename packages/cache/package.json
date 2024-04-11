@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "1.0.8",
+  "version": "3.2.4",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -37,19 +37,20 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^1.2.6",
+    "@actions/core": "^1.10.0",
     "@actions/exec": "^1.0.1",
     "@actions/glob": "^0.1.0",
-    "@actions/http-client": "^1.0.9",
+    "@actions/http-client": "^2.1.1",
     "@actions/io": "^1.0.1",
-    "@azure/ms-rest-js": "^2.0.7",
-    "@azure/storage-blob": "^12.1.2",
-    "semver": "^6.1.0",
+    "@azure/abort-controller": "^1.1.0",
+    "@azure/ms-rest-js": "^2.6.0",
+    "@azure/storage-blob": "^12.13.0",
+    "semver": "^6.3.1",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "typescript": "^3.8.3",
     "@types/semver": "^6.0.0",
-    "@types/uuid": "^3.4.5"
+    "@types/uuid": "^3.4.5",
+    "typescript": "^5.2.2"
   }
 }

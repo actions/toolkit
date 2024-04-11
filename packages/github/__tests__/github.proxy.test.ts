@@ -1,6 +1,6 @@
 import * as http from 'http'
 import * as https from 'https'
-import proxy from 'proxy'
+import {createProxy} from 'proxy'
 
 // Default values are set when the module is imported, so we need to set proxy first.
 const proxyUrl = 'http://127.0.0.1:8081'
@@ -16,13 +16,13 @@ describe('@actions/github', () => {
 
   beforeAll(async () => {
     // Start proxy server
-    proxyServer = proxy()
-    await new Promise(resolve => {
+    proxyServer = createProxy()
+    await new Promise<void>(resolve => {
       const port = Number(proxyUrl.split(':')[2])
       proxyServer.listen(port, () => resolve())
     })
     proxyServer.on('connect', req => {
-      proxyConnects.push(req.url)
+      proxyConnects.push(req.url ?? '')
     })
   })
 
@@ -32,7 +32,7 @@ describe('@actions/github', () => {
 
   afterAll(async () => {
     // Stop proxy server
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       proxyServer.once('close', () => resolve())
       proxyServer.close()
     })

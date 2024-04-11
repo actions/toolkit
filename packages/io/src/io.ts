@@ -1,11 +1,6 @@
 import {ok} from 'assert'
-import * as childProcess from 'child_process'
 import * as path from 'path'
-import {promisify} from 'util'
 import * as ioUtil from './io-util'
-
-const exec = promisify(childProcess.exec)
-const execFile = promisify(childProcess.execFile)
 
 /**
  * Interface for cp/mv options
@@ -116,9 +111,6 @@ export async function mv(
  */
 export async function rmRF(inputPath: string): Promise<void> {
   if (ioUtil.IS_WINDOWS) {
-    // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
-    // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
-
     // Check for invalid characters
     // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
     if (/[*"<>|]/.test(inputPath)) {
@@ -126,47 +118,17 @@ export async function rmRF(inputPath: string): Promise<void> {
         'File path must not contain `*`, `"`, `<`, `>` or `|` on Windows'
       )
     }
-    try {
-      const cmdPath = ioUtil.getCmdPath()
-      if (await ioUtil.isDirectory(inputPath, true)) {
-        await exec(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
-          env: {inputPath}
-        })
-      } else {
-        await exec(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
-          env: {inputPath}
-        })
-      }
-    } catch (err) {
-      // if you try to delete a file that doesn't exist, desired result is achieved
-      // other errors are valid
-      if (err.code !== 'ENOENT') throw err
-    }
-
-    // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
-    try {
-      await ioUtil.unlink(inputPath)
-    } catch (err) {
-      // if you try to delete a file that doesn't exist, desired result is achieved
-      // other errors are valid
-      if (err.code !== 'ENOENT') throw err
-    }
-  } else {
-    let isDir = false
-    try {
-      isDir = await ioUtil.isDirectory(inputPath)
-    } catch (err) {
-      // if you try to delete a file that doesn't exist, desired result is achieved
-      // other errors are valid
-      if (err.code !== 'ENOENT') throw err
-      return
-    }
-
-    if (isDir) {
-      await execFile(`rm`, [`-rf`, `${inputPath}`])
-    } else {
-      await ioUtil.unlink(inputPath)
-    }
+  }
+  try {
+    // note if path does not exist, error is silent
+    await ioUtil.rm(inputPath, {
+      force: true,
+      maxRetries: 3,
+      recursive: true,
+      retryDelay: 300
+    })
+  } catch (err) {
+    throw new Error(`File was unable to be removed ${err}`)
   }
 }
 
