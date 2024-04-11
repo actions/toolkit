@@ -300,37 +300,23 @@ export async function downloadCacheMultiConnection(
  * @param archiveLocation the URL for the cache
  */
 export function downloadCacheStreamingGCP(
+  storage: Storage,
   archiveLocation: string
 ): NodeJS.ReadableStream | undefined {
   try {
-    const storage = new Storage({
-      token: process.env['GCP_ACCESS_TOKEN']
-    })
-
     // The archiveLocation for GCP will be in the format of gs://<bucket-name>/<object-name>
-    const bucketName = archiveLocation.split('/')[2]
-    if (!bucketName || bucketName.length < 2) {
-      throw new Error(
-        `Invalid GCS URL: ${archiveLocation}. Should be in the format gs://<bucket-name>/<object-name>`
-      )
-    }
-
-    const fileName = archiveLocation.split('/').slice(3).join('/')
-    if (!fileName || fileName.length < 1) {
-      throw new Error(
-        `Invalid GCS URL: ${archiveLocation}. Should be in the format gs://<bucket-name>/<object-name>`
-      )
-    }
+    const {bucketName, objectName} =
+      utils.retrieveGCSBucketAndObjectName(archiveLocation)
 
     storage
       .bucket(bucketName)
-      .file(fileName)
+      .file(objectName)
       .getMetadata()
       .then(data => {
         core.info(`File size: ${data[0]?.size} bytes`)
       })
 
-    return storage.bucket(bucketName).file(fileName).createReadStream()
+    return storage.bucket(bucketName).file(objectName).createReadStream()
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
     core.error(`Failed to download cache.`)

@@ -106,26 +106,29 @@ export async function restoreCache(
       return undefined
     }
 
-    if (options?.lookupOnly) {
-      core.info('Lookup only - skipping download')
-      return cacheEntry?.cache_key
-    }
-
     archivePath = path.join(
       await utils.createTempDirectory(),
       utils.getCacheFileName(compressionMethod)
     )
     core.debug(`Archive Path: ${archivePath}`)
 
+    let cacheKey: string = ''
+
     switch (cacheEntry.provider) {
       case 's3': {
-        if (!cacheEntry.pre_signed_url) {
-          // Cache not found
+        if (!cacheEntry.s3?.pre_signed_url) {
           return undefined
         }
 
+        cacheKey = cacheEntry.s3.pre_signed_url
+
+        if (options?.lookupOnly) {
+          core.info('Lookup only - skipping download')
+          return cacheKey
+        }
+
         await cacheHttpClient.downloadCache(
-          cacheEntry.pre_signed_url,
+          cacheEntry.s3?.pre_signed_url,
           archivePath
         )
 
@@ -146,12 +149,23 @@ export async function restoreCache(
       }
 
       case 'gcs': {
+        if (!cacheEntry.gcs?.cache_key) {
+          return undefined
+        }
+        cacheKey = cacheEntry.gcs?.cache_key
+
+        if (options?.lookupOnly) {
+          core.info('Lookup only - skipping download')
+          return cacheKey
+        }
+
         // For GCS, we do a streaming download which means that we extract the archive while we are downloading it.
-        const archiveLocation = cacheEntry.archive_location ?? ''
+        const archiveLocation = `gs://${cacheEntry.gcs?.bucket_name}/${cacheEntry.gcs?.cache_key}`
 
         const readStream = cacheHttpClient.downloadCacheStreaming(
           'gcs',
-          archiveLocation
+          archiveLocation,
+          cacheEntry?.gcs?.short_lived_token?.access_token ?? ''
         )
 
         if (!readStream) {
@@ -164,7 +178,7 @@ export async function restoreCache(
       }
     }
 
-    return cacheEntry.cache_key
+    return cacheKey
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -228,21 +242,20 @@ export async function saveCache(
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
-    const fileSizeLimit = 20 * 1024 * 1024 * 1024 // 20GB per repo limit
+    const fileSizeLimit = 1000 * 1024 * 1024 * 1024 // 1000GB per repo limit
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
 
-    // For GHES, this check will take place in ReserveCache API with enterprise file size limit
-    if (archiveFileSize > fileSizeLimit && !utils.isGhes()) {
+    if (archiveFileSize > fileSizeLimit) {
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
+        )} MB (${archiveFileSize} B) is over the 1000GB limit, not saving cache.`
       )
     }
 
     core.debug('Reserving Cache')
-    // Calculate number of chunks required
+    // Calculate number of chunks required. This is only required if backend is S3 as Google Cloud SDK will do it for us
     const uploadOptions = getUploadOptions()
     const maxChunkSize = uploadOptions?.uploadChunkSize ?? 32 * 1024 * 1024 // Default 32MB
     const numberOfChunks = Math.floor(archiveFileSize / maxChunkSize)
@@ -265,20 +278,46 @@ export async function saveCache(
       )
     }
 
-    core.debug(`Saving Cache`)
-    cacheKey = await cacheHttpClient.saveCache(
-      key,
-      cacheHttpClient.getCacheVersion(
-        paths,
-        compressionMethod,
-        enableCrossOsArchive
-      ),
-      reserveCacheResponse?.result?.upload_id ?? '',
-      reserveCacheResponse?.result?.upload_key ?? '',
-      numberOfChunks,
-      reserveCacheResponse?.result?.pre_signed_urls ?? [],
-      archivePath
+    const cacheVersion = cacheHttpClient.getCacheVersion(
+      paths,
+      compressionMethod,
+      enableCrossOsArchive
     )
+
+    switch (reserveCacheResponse.result?.provider) {
+      case 's3':
+        core.debug(`Saving Cache to S3`)
+        cacheKey = await cacheHttpClient.saveCache(
+          's3',
+          key,
+          cacheVersion,
+          archivePath,
+          reserveCacheResponse?.result?.s3?.upload_id ?? '',
+          reserveCacheResponse?.result?.s3?.upload_key ?? '',
+          numberOfChunks,
+          reserveCacheResponse?.result?.s3?.pre_signed_urls ?? []
+        )
+        break
+
+      case 'gcs':
+        core.debug(`Saving Cache to GCS`)
+        cacheKey = await cacheHttpClient.saveCache(
+          'gcs',
+          key,
+          cacheVersion,
+          archivePath,
+          // S3 Params are undefined for GCS
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          reserveCacheResponse?.result?.gcs?.short_lived_token?.access_token ??
+            '',
+          reserveCacheResponse?.result?.gcs?.bucket_name ?? '',
+          reserveCacheResponse?.result?.gcs?.cache_key ?? ''
+        )
+        break
+    }
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {

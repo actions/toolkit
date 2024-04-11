@@ -413,7 +413,9 @@ export async function extractTar(
   await execCommands(commands)
 }
 
-// Supports only archives created using tar and zstd
+/*
+ * NOTE: Currently tested only on archives created using tar and zstd
+ */
 export async function extractStreamingTar(
   stream: NodeJS.ReadableStream,
   archivePath: string,
@@ -466,7 +468,6 @@ export async function extractStreamingTar(
   })
 }
 
-// Create a tar
 export async function createTar(
   archiveFolder: string,
   sourceDirectories: string[],

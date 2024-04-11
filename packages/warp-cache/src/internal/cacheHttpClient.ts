@@ -6,27 +6,28 @@ import {
   TypedResponse
 } from '@actions/http-client/lib/interfaces'
 import * as crypto from 'crypto'
-import * as fs from 'fs'
 
 import * as utils from './cacheUtils'
 import {CompressionMethod} from './constants'
 import {
-  ArtifactCacheEntry,
   InternalCacheOptions,
-  CommitCacheRequest,
-  ReserveCacheRequest,
-  ReserveCacheResponse,
   ITypedResponseWithError,
-  ArtifactCacheList,
-  InternalS3CompletedPart,
-  CommitCacheResponse
+  InternalS3CompletedPart
 } from './contracts'
 import {
   downloadCacheMultiConnection,
   downloadCacheStreamingGCP
 } from './downloadUtils'
 import {isSuccessStatusCode, retryTypedResponse} from './requestUtils'
-import axios, {AxiosError} from 'axios'
+import {Storage} from '@google-cloud/storage'
+import {
+  CommonsCommitCacheRequest,
+  CommonsCommitCacheResponse,
+  CommonsGetCacheResponse,
+  CommonsReserveCacheRequest,
+  CommonsReserveCacheResponse
+} from './warpcache-ts-sdk'
+import {multiPartUploadToGCS, uploadFileToS3} from './uploadUtils'
 
 const versionSalt = '1.0'
 
@@ -37,9 +38,7 @@ function getCacheApiUrl(resource: string): string {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
 
-  const provider: string = process.env['STORAGE_PROVIDER'] ?? 'gcs'
-
-  const url = `${baseUrl}/v1/${resource}/${provider}`
+  const url = `${baseUrl}/v1/${resource}`
   core.debug(`Resource Url: ${url}`)
   return url
 }
@@ -97,7 +96,7 @@ export async function getCacheEntry(
   keys: string[],
   paths: string[],
   options?: InternalCacheOptions
-): Promise<ArtifactCacheEntry | null> {
+): Promise<CommonsGetCacheResponse | null> {
   const httpClient = createHttpClient()
   const version = getCacheVersion(
     paths,
@@ -109,14 +108,14 @@ export async function getCacheEntry(
   )}&version=${version}`
 
   const response = await retryTypedResponse('getCacheEntry', async () =>
-    httpClient.getJson<ArtifactCacheEntry>(getCacheApiUrl(resource))
+    httpClient.getJson<CommonsGetCacheResponse>(getCacheApiUrl(resource))
   )
 
   if (response.statusCode === 204) {
-    // List cache for primary key only if cache miss occurs
-    if (core.isDebug()) {
-      await printCachesListForDiagnostics(keys[0], httpClient, version)
-    }
+    // TODO: List cache for primary key only if cache miss occurs
+    // if (core.isDebug()) {
+    //   await printCachesListForDiagnostics(keys[0], httpClient, version)
+    // }
     return null
   }
   if (!isSuccessStatusCode(response.statusCode)) {
@@ -124,18 +123,13 @@ export async function getCacheEntry(
   }
 
   const cacheResult = response.result
-  const cacheDownloadUrl = cacheResult?.archive_location
-  if (!cacheDownloadUrl) {
-    // Cache archiveLocation not found. This should never happen, and hence bail out.
-    throw new Error('Cache not found.')
-  }
-  core.setSecret(cacheDownloadUrl)
   core.debug(`Cache Result:`)
   core.debug(JSON.stringify(cacheResult))
 
   return cacheResult
 }
 
+/*
 async function printCachesListForDiagnostics(
   key: string,
   httpClient: HttpClient,
@@ -160,6 +154,7 @@ async function printCachesListForDiagnostics(
     }
   }
 }
+*/
 
 export async function downloadCache(
   archiveLocation: string,
@@ -170,13 +165,23 @@ export async function downloadCache(
 
 export function downloadCacheStreaming(
   provider: string,
-  archiveLocation: string
+  archiveLocation: string,
+  gcsToken?: string
 ): NodeJS.ReadableStream | undefined {
   switch (provider) {
     case 's3':
       return undefined
-    case 'gcs':
-      return downloadCacheStreamingGCP(archiveLocation)
+    case 'gcs': {
+      if (!gcsToken) {
+        throw new Error(
+          'Unable to download cache from GCS. GCP token is not provided.'
+        )
+      }
+      const storage = new Storage({
+        token: gcsToken
+      })
+      return downloadCacheStreamingGCP(storage, archiveLocation)
+    }
     default:
       return undefined
   }
@@ -186,16 +191,16 @@ export async function reserveCache(
   cacheKey: string,
   numberOfChunks: number,
   options?: InternalCacheOptions
-): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
+): Promise<ITypedResponseWithError<CommonsReserveCacheResponse>> {
   const httpClient = createHttpClient()
 
-  const reserveCacheRequest: ReserveCacheRequest = {
+  const reserveCacheRequest: CommonsReserveCacheRequest = {
     cache_key: cacheKey,
     number_of_chunks: numberOfChunks,
     content_type: 'application/zstd'
   }
   const response = await retryTypedResponse('reserveCache', async () =>
-    httpClient.postJson<ReserveCacheResponse>(
+    httpClient.postJson<CommonsReserveCacheResponse>(
       getCacheApiUrl('cache/reserve'),
       reserveCacheRequest
     )
@@ -203,114 +208,20 @@ export async function reserveCache(
   return response
 }
 
-function getContentRange(start: number, end: number): string {
-  // Format: `bytes start-end/filesize
-  // start and end are inclusive
-  // filesize can be *
-  // For a 200 byte chunk starting at byte 0:
-  // Content-Range: bytes 0-199/*
-  return `bytes ${start}-${end}/*`
-}
-
-async function uploadChunk(
-  resourceUrl: string,
-  openStream: () => NodeJS.ReadableStream,
-  partNumber: number,
-  start: number,
-  end: number
-): Promise<InternalS3CompletedPart> {
-  core.debug(
-    `Uploading chunk of size ${
-      end - start + 1
-    } bytes at offset ${start} with content range: ${getContentRange(
-      start,
-      end
-    )}`
-  )
-
-  // Manually convert the readable stream to a buffer. S3 doesn't allow stream as input
-  const chunks = await utils.streamToBuffer(openStream())
-
-  try {
-    // HACK: Using axios here as S3 API doesn't allow readable stream as input and Github's HTTP client is not able to send buffer as body
-    const response = await axios.request({
-      method: 'PUT',
-      url: resourceUrl,
-      headers: {
-        'Content-Type': 'application/octet-stream'
-      },
-      data: chunks
-    })
-    return {
-      ETag: response.headers.etag ?? '',
-      PartNumber: partNumber
-    }
-  } catch (error) {
-    throw new Error(
-      `Cache service responded with ${
-        (error as AxiosError).status
-      } during upload chunk.`
-    )
-  }
-}
-
-async function uploadFileToS3(
-  preSignedURLs: string[],
-  archivePath: string
-): Promise<InternalS3CompletedPart[]> {
-  const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
-  const numberOfChunks = preSignedURLs.length
-
-  const fd = fs.openSync(archivePath, 'r')
-
-  core.debug('Awaiting all uploads')
-  let offset = 0
-
-  try {
-    const completedParts = await Promise.all(
-      preSignedURLs.map(async (presignedURL, index) => {
-        const chunkSize = Math.ceil(fileSize / numberOfChunks)
-        const start = offset
-        const end = offset + chunkSize - 1
-        offset += chunkSize
-
-        return await uploadChunk(
-          presignedURL,
-          () =>
-            fs
-              .createReadStream(archivePath, {
-                fd,
-                start,
-                end,
-                autoClose: false
-              })
-              .on('error', error => {
-                throw new Error(
-                  `Cache upload failed because file read failed with ${error.message}`
-                )
-              }),
-          index + 1,
-          start,
-          end
-        )
-      })
-    )
-
-    return completedParts
-  } finally {
-    fs.closeSync(fd)
-  }
-}
-
 async function commitCache(
-  httpClient: HttpClient,
   cacheKey: string,
   cacheVersion: string,
-  uploadKey: string,
-  uploadID: string,
-  parts: InternalS3CompletedPart[]
-): Promise<TypedResponse<CommitCacheResponse>> {
-  const commitCacheRequest: CommitCacheRequest = {
+  uploadKey?: string,
+  uploadID?: string,
+  parts?: InternalS3CompletedPart[]
+): Promise<TypedResponse<CommonsCommitCacheResponse>> {
+  const httpClient = createHttpClient()
+
+  if (!parts) {
+    parts = []
+  }
+
+  const commitCacheRequest: CommonsCommitCacheRequest = {
     cache_key: cacheKey,
     cache_version: cacheVersion,
     upload_key: uploadKey,
@@ -320,7 +231,7 @@ async function commitCache(
     vcs_type: 'github'
   }
   return await retryTypedResponse('commitCache', async () =>
-    httpClient.postJson<CommitCacheResponse>(
+    httpClient.postJson<CommonsCommitCacheResponse>(
       getCacheApiUrl(`cache/commit`),
       commitCacheRequest
     )
@@ -328,43 +239,97 @@ async function commitCache(
 }
 
 export async function saveCache(
+  provider: string,
   cacheKey: string,
   cacheVersion: string,
-  uploadId: string,
-  uploadKey: string,
-  numberOfChunks: number,
-  preSignedURLs: string[],
-  archivePath: string
+  archivePath: string,
+  S3UploadId?: string,
+  S3UploadKey?: string,
+  S3NumberOfChunks?: number,
+  S3PreSignedURLs?: string[],
+  GCSAuthToken?: string,
+  GCSBucketName?: string,
+  GCSObjectName?: string
 ): Promise<string> {
-  // Number of chunks should match the number of pre-signed URLs
-  if (numberOfChunks !== preSignedURLs.length) {
-    throw new Error(
-      `Number of chunks (${numberOfChunks}) should match the number of pre-signed URLs (${preSignedURLs.length}).`
-    )
-  }
-
-  const httpClient = createHttpClient()
-
-  core.debug('Upload cache')
-  const completedParts = await uploadFileToS3(preSignedURLs, archivePath)
-
-  // Sort parts in ascending order by partNumber
-  completedParts.sort((a, b) => a.PartNumber - b.PartNumber)
-
-  core.debug('Committing cache')
   const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
   core.info(
     `Cache Size: ~${Math.round(cacheSize / (1024 * 1024))} MB (${cacheSize} B)`
   )
 
-  const commitCacheResponse = await commitCache(
-    httpClient,
-    cacheKey,
-    cacheVersion,
-    uploadKey,
-    uploadId,
-    completedParts
-  )
+  let commitCacheResponse: TypedResponse<CommonsCommitCacheResponse> = {
+    headers: {},
+    statusCode: 0,
+    result: null
+  }
+
+  let cacheKeyResponse = ''
+
+  switch (provider) {
+    case 's3': {
+      if (
+        !S3NumberOfChunks ||
+        !S3PreSignedURLs ||
+        !S3UploadId ||
+        !S3UploadKey
+      ) {
+        throw new Error(
+          'Unable to upload cache to S3. One of the following required parameters is missing: numberOfChunks, preSignedURLs, uploadId, uploadKey.'
+        )
+      }
+
+      // Number of chunks should match the number of pre-signed URLs
+      if (S3NumberOfChunks !== S3PreSignedURLs.length) {
+        throw new Error(
+          `Number of chunks (${S3NumberOfChunks}) should match the number of pre-signed URLs (${S3PreSignedURLs.length}).`
+        )
+      }
+
+      core.debug('Uploading cache')
+      const completedParts = await uploadFileToS3(S3PreSignedURLs, archivePath)
+
+      // Sort parts in ascending order by partNumber
+      completedParts.sort((a, b) => a.PartNumber - b.PartNumber)
+
+      core.debug('Committing cache')
+      commitCacheResponse = await commitCache(
+        cacheKey,
+        cacheVersion,
+        S3UploadKey,
+        S3UploadId,
+        completedParts
+      )
+
+      cacheKeyResponse = commitCacheResponse.result?.s3?.cache_key ?? ''
+
+      break
+    }
+
+    case 'gcs': {
+      if (!GCSBucketName || !GCSObjectName || !GCSAuthToken) {
+        throw new Error(
+          'Unable to upload cache to GCS. One of the following required parameters is missing: GCSBucketName, GCSObjectName, GCSAuthToken.'
+        )
+      }
+
+      core.debug('Uploading cache')
+      const storage = new Storage({
+        token: GCSAuthToken
+      })
+      await multiPartUploadToGCS(
+        storage,
+        archivePath,
+        GCSBucketName,
+        GCSObjectName
+      )
+
+      core.debug('Committing cache')
+      commitCacheResponse = await commitCache(cacheKey, cacheVersion)
+
+      cacheKeyResponse = commitCacheResponse.result?.gcs?.cache_key ?? ''
+      break
+    }
+  }
+
   if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
     throw new Error(
       `Cache service responded with ${commitCacheResponse.statusCode} during commit cache.`
@@ -372,7 +337,7 @@ export async function saveCache(
   }
 
   core.info('Cache saved successfully')
-  return commitCacheResponse.result?.cache_key ?? ''
+  return cacheKeyResponse
 }
 
 export async function deleteCache(keys: string[]) {

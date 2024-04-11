@@ -146,3 +146,28 @@ export function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
     stream.on('end', () => resolve(Buffer.concat(buffer)))
   })
 }
+
+/*
+ * Retrieve the bucket name and object name from the GCS URL
+ * @param gcsURL - The URL for the cache in the format gs://<bucket-name>/<object-name>
+ */
+export function retrieveGCSBucketAndObjectName(gcsURL: string): {
+  bucketName: string
+  objectName: string
+} {
+  const bucketName = gcsURL.split('/')[2]
+  if (!bucketName || bucketName.length < 2) {
+    throw new Error(
+      `Invalid GCS URL: ${gcsURL}. Should be in the format gs://<bucket-name>/<object-name>`
+    )
+  }
+
+  const objectName = gcsURL.split('/').slice(3).join('/')
+  if (!objectName || objectName.length < 1) {
+    throw new Error(
+      `Invalid GCS URL: ${gcsURL}. Should be in the format gs://<bucket-name>/<object-name>`
+    )
+  }
+
+  return {bucketName, objectName}
+}
