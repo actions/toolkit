@@ -43,7 +43,7 @@ Note that before a PR will be accepted, you must ensure:
 1. In a new branch, create a new Lerna package:
 
 ```console
-$ npm run create-package new-package
+$ npm run new-package [name]
 ```
 
 This will ask you some questions about the new package. Start with `0.0.0` as the first version (look generally at some of the other packages for how the package.json is structured).
