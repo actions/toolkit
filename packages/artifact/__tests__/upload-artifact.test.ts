@@ -9,8 +9,8 @@ import {uploadArtifact} from '../src/internal/upload/upload-artifact'
 import {noopLogs} from './common'
 import {FilesNotFoundError} from '../src/internal/shared/errors'
 import {BlockBlobClient} from '@azure/storage-blob'
-import fs from 'fs'
-import {Readable} from 'stream'
+import * as fs from 'fs'
+import * as path from 'path'
 
 describe('upload-artifact', () => {
   beforeEach(() => {
@@ -357,14 +357,47 @@ describe('upload-artifact', () => {
 
   it('should throw an error uploading blob chunks get delayed', async () => {
     const mockDate = new Date('2020-01-01')
+    // const root = path.join('/home/user/files/')
+    const dirPath = path.join(__dirname, `plz-upload`)
 
-    // Mock fs.createReadStream to return a mock stream
-    fs.createReadStream = jest.fn().mockImplementation(() => {
-      const mockStream = new Readable()
-      mockStream.push('file content')
-      mockStream.push(null)
-      return mockStream
-    })
+    // const filePath = path.join(dirPath, 'file1.txt')
+    // const root = '/home/user/files'
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, {recursive: true})
+      // fs.mkdirSync(path.join(dirPath, 'file1.txt'), {recursive: true})
+    }
+
+    // Now write the file
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await fs.writeFile(
+      path.join(dirPath, 'file1.txt'),
+      'test file content',
+      err => {
+        if (err) {
+          throw err
+        }
+      }
+    )
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await fs.writeFile(
+      path.join(dirPath, 'file2.txt'),
+      'test file content',
+      err => {
+        if (err) {
+          throw err
+        }
+      }
+    )
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await fs.writeFile(
+      path.join(dirPath, 'file3.txt'),
+      'test file content',
+      err => {
+        if (err) {
+          throw err
+        }
+      }
+    )
 
     jest
       .spyOn(uploadZipSpecification, 'validateRootDirectory')
@@ -373,15 +406,15 @@ describe('upload-artifact', () => {
       .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
       .mockReturnValue([
         {
-          sourcePath: '/home/user/files/plz-upload/file1.txt',
+          sourcePath: path.join(dirPath, 'file1.txt'),
           destinationPath: 'file1.txt'
         },
         {
-          sourcePath: '/home/user/files/plz-upload/file2.txt',
+          sourcePath: path.join(dirPath, 'file2.txt'),
           destinationPath: 'file2.txt'
         },
         {
-          sourcePath: '/home/user/files/plz-upload/dir/file3.txt',
+          sourcePath: path.join(dirPath, 'file3.txt'),
           destinationPath: 'dir/file3.txt'
         }
       ])
