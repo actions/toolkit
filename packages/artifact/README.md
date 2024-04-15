@@ -16,7 +16,6 @@ This is the core library that powers the [`@actions/upload-artifact`](https://gi
     - [Downloading from other workflow runs or repos](#downloading-from-other-workflow-runs-or-repos)
     - [Speeding up large uploads](#speeding-up-large-uploads)
   - [Additional Resources](#additional-resources)
-
 ## v2 - What's New
 
 > [!IMPORTANT]
