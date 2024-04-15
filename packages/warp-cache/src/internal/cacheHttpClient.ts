@@ -31,6 +31,7 @@ import {
 import {multiPartUploadToGCS, uploadFileToS3} from './uploadUtils'
 import {CommonsGetCacheRequest} from './warpcache-ts-sdk/models/commons-get-cache-request'
 import {CommonsDeleteCacheRequest} from './warpcache-ts-sdk/models/commons-delete-cache-request'
+import {OAuth2Client} from 'google-auth-library'
 
 const versionSalt = '1.0'
 
@@ -206,8 +207,10 @@ export function downloadCacheStreaming(
           'Unable to download cache from GCS. GCP token is not provided.'
         )
       }
+      const oauth2Client = new OAuth2Client()
+      oauth2Client.setCredentials({access_token: gcsToken})
       const storage = new Storage({
-        token: gcsToken
+        authClient: oauth2Client
       })
       return downloadCacheStreamingGCP(storage, archiveLocation)
     }
@@ -345,8 +348,10 @@ export async function saveCache(
       }
 
       core.debug('Uploading cache')
+      const oauth2Client = new OAuth2Client()
+      oauth2Client.setCredentials({access_token: GCSAuthToken})
       const storage = new Storage({
-        token: GCSAuthToken
+        authClient: oauth2Client
       })
       await multiPartUploadToGCS(
         storage,

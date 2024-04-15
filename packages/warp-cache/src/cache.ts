@@ -9,6 +9,7 @@ import {
   listTar
 } from './internal/tar'
 import {DownloadOptions, getUploadOptions} from './options'
+import {isSuccessStatusCode} from './internal/requestUtils'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -281,7 +282,7 @@ export async function saveCache(
       cacheVersion
     )
 
-    if (reserveCacheResponse?.statusCode === 400) {
+    if (!isSuccessStatusCode(reserveCacheResponse?.statusCode)) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
           `Cache size of ~${Math.round(
