@@ -58,7 +58,7 @@ function checkKey(key: string): void {
  */
 
 export function isFeatureAvailable(): boolean {
-  return !!process.env['WARPBUILD_CACHE_URL']
+  return !!process.env['WARPBUILD_RUNNER_VERIFICATION_TOKEN']
 }
 
 /**
