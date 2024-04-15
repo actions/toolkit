@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+export { $commons_AppendOperationInput } from './schemas/$commons_AppendOperationInput';
 export { $commons_CacheAnnotationsMap } from './schemas/$commons_CacheAnnotationsMap';
 export { $commons_CacheEntry } from './schemas/$commons_CacheEntry';
 export { $commons_CommitCacheRequest } from './schemas/$commons_CommitCacheRequest';
@@ -13,6 +14,7 @@ export { $commons_GCSGetCacheReponse } from './schemas/$commons_GCSGetCacheRepon
 export { $commons_GCSReserveCacheResponse } from './schemas/$commons_GCSReserveCacheResponse';
 export { $commons_GetCacheRequest } from './schemas/$commons_GetCacheRequest';
 export { $commons_GetCacheResponse } from './schemas/$commons_GetCacheResponse';
+export { $commons_Operation } from './schemas/$commons_Operation';
 export { $commons_ReserveCacheRequest } from './schemas/$commons_ReserveCacheRequest';
 export { $commons_ReserveCacheResponse } from './schemas/$commons_ReserveCacheResponse';
 export { $commons_S3CommitCacheResponse } from './schemas/$commons_S3CommitCacheResponse';

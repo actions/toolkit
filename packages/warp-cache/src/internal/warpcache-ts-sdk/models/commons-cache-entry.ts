@@ -55,6 +55,12 @@ export interface CommonsCacheEntry {
      * @type {string}
      * @memberof CommonsCacheEntry
      */
+    'storage_backend_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CommonsCacheEntry
+     */
     'updated_at'?: string;
     /**
      * 
@@ -62,6 +68,12 @@ export interface CommonsCacheEntry {
      * @memberof CommonsCacheEntry
      */
     'vcs_organization_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CommonsCacheEntry
+     */
+    'vcs_ref'?: string;
     /**
      * 
      * @type {string}

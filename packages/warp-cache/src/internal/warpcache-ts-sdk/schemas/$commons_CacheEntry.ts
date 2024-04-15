@@ -18,10 +18,16 @@ export const $commons_CacheEntry = {
         organization_id: {
             type: 'string',
         },
+        storage_backend_id: {
+            type: 'string',
+        },
         updated_at: {
             type: 'string',
         },
         vcs_organization_name: {
+            type: 'string',
+        },
+        vcs_ref: {
             type: 'string',
         },
         vcs_repository_name: {

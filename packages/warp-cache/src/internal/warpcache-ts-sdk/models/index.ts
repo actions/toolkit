@@ -1,3 +1,4 @@
+export * from './commons-append-operation-input';
 export * from './commons-cache-entry';
 export * from './commons-commit-cache-request';
 export * from './commons-commit-cache-response';
@@ -9,6 +10,7 @@ export * from './commons-gcsget-cache-reponse';
 export * from './commons-gcsreserve-cache-response';
 export * from './commons-get-cache-request';
 export * from './commons-get-cache-response';
+export * from './commons-operation';
 export * from './commons-reserve-cache-request';
 export * from './commons-reserve-cache-response';
 export * from './commons-s3-commit-cache-response';

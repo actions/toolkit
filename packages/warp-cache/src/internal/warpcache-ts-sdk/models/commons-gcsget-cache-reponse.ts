@@ -52,6 +52,12 @@ export interface CommonsGCSGetCacheReponse {
      * @type {string}
      * @memberof CommonsGCSGetCacheReponse
      */
+    'pre_signed_url'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CommonsGCSGetCacheReponse
+     */
     'project_id'?: string;
     /**
      * 

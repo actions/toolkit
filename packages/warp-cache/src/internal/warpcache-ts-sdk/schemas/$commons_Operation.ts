@@ -1,28 +1,29 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $commons_GCSGetCacheReponse = {
+export const $commons_Operation = {
     properties: {
-        bucket_name: {
+        cache_id: {
             type: 'string',
         },
-        cache_key: {
+        'created-at': {
             type: 'string',
         },
-        cache_version: {
+        id: {
             type: 'string',
         },
-        method: {
+        meta: {
+            properties: {
+            },
+        },
+        operation_type: {
             type: 'string',
         },
-        pre_signed_url: {
+        organization_id: {
             type: 'string',
         },
-        project_id: {
+        updated_at: {
             type: 'string',
-        },
-        short_lived_token: {
-            type: 'commons_ShortLivedToken',
         },
     },
 } as const;

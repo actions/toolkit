@@ -14,6 +14,7 @@ import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
 import {Storage, TransferManager} from '@google-cloud/storage'
+import {ChildProcessWithoutNullStreams, spawn} from 'child_process'
 
 /**
  * Pipes the body of a HTTP response to a stream
@@ -349,4 +350,10 @@ export function downloadCacheStreamingGCP(
     core.error(`Failed to download cache.`)
     throw error
   }
+}
+
+export function getDownloadCommandPipeForWget(
+  url: string
+): ChildProcessWithoutNullStreams {
+  return spawn('wget', ['-qO', '-', url])
 }

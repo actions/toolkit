@@ -4,6 +4,8 @@ import {getCompressionMethod} from './internal/cacheUtils'
 
 process.env['WARPBUILD_CACHE_URL'] = 'https://cache.dev.warpbuild.dev'
 // process.env['WARPBUILD_CACHE_URL'] = 'http://localhost:8000'
+// process.env['WARPBUILD_CACHE_URL'] =
+//   'https://6134-36-255-234-176.ngrok-free.app'
 process.env['RUNNER_TEMP'] = '/Users/prajjwal/Repos/warpbuild/playground/tmp_fs'
 process.env['NODE_DEBUG'] = 'http'
 process.env['RUNNER_DEBUG'] = '1'

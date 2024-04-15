@@ -417,9 +417,10 @@ export async function extractTar(
  * NOTE: Currently tested only on archives created using tar and zstd
  */
 export async function extractStreamingTar(
-  stream: NodeJS.ReadableStream,
+  stream: NodeJS.ReadableStream | undefined,
   archivePath: string,
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  downloadCommandPipe?: ChildProcessWithoutNullStreams
 ): Promise<void> {
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
@@ -429,6 +430,10 @@ export async function extractStreamingTar(
     archivePath
   )
 
+  if (downloadCommandPipe) {
+    commandPipes.unshift(downloadCommandPipe)
+  }
+
   if (commandPipes.length < 2) {
     throw new Error(
       'At least two processes should be present as the archive is compressed at least twice.'
@@ -436,7 +441,9 @@ export async function extractStreamingTar(
   }
 
   return new Promise((resolve, reject) => {
-    stream.pipe(commandPipes[0].stdin)
+    if (stream) {
+      stream.pipe(commandPipes[0].stdin)
+    }
     for (let i = 0; i < commandPipes.length - 1; i++) {
       commandPipes[i].stdout.pipe(commandPipes[i + 1].stdin)
 

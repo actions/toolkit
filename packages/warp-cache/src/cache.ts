@@ -10,6 +10,8 @@ import {
 } from './internal/tar'
 import {DownloadOptions, getUploadOptions} from './options'
 import {isSuccessStatusCode} from './internal/requestUtils'
+import {getDownloadCommandPipeForWget} from './internal/downloadUtils'
+import {ChildProcessWithoutNullStreams} from 'child_process'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -171,39 +173,56 @@ export async function restoreCache(
 
         const archiveLocation = `gs://${cacheEntry.gcs?.bucket_name}/${cacheEntry.gcs?.cache_key}`
 
-        // await cacheHttpClient.downloadCache(
-        //   cacheEntry.provider,
-        //   archiveLocation,
-        //   archivePath,
-        //   cacheEntry.gcs?.short_lived_token?.access_token ?? ''
-        // )
+        /*
+        * Alternate, Multipart download method for GCS
+        await cacheHttpClient.downloadCache(
+          cacheEntry.provider,
+          archiveLocation,
+          archivePath,
+          cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+        )
 
-        // if (core.isDebug()) {
-        //   await listTar(archivePath, compressionMethod)
-        // }
+        if (core.isDebug()) {
+          await listTar(archivePath, compressionMethod)
+        }
 
-        // const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
-        // core.info(
-        //   `Cache Size: ~${Math.round(
-        //     archiveFileSize / (1024 * 1024)
-        //   )} MB (${archiveFileSize} B)`
-        // )
+        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+        core.info(
+          `Cache Size: ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B)`
+        )
 
-        // await extractTar(archivePath, compressionMethod)
+        await extractTar(archivePath, compressionMethod)
+        */
 
         // For GCS, we do a streaming download which means that we extract the archive while we are downloading it.
 
-        const readStream = cacheHttpClient.downloadCacheStreaming(
-          'gcs',
-          archiveLocation,
-          cacheEntry?.gcs?.short_lived_token?.access_token ?? ''
-        )
+        let readStream: NodeJS.ReadableStream | undefined
+        let downloadCommandPipe: ChildProcessWithoutNullStreams | undefined
 
-        if (!readStream) {
-          return undefined
+        if (cacheEntry?.gcs?.pre_signed_url) {
+          downloadCommandPipe = getDownloadCommandPipeForWget(
+            cacheEntry?.gcs?.pre_signed_url
+          )
+        } else {
+          readStream = cacheHttpClient.downloadCacheStreaming(
+            'gcs',
+            archiveLocation,
+            cacheEntry?.gcs?.short_lived_token?.access_token ?? ''
+          )
+
+          if (!readStream) {
+            return undefined
+          }
         }
 
-        await extractStreamingTar(readStream, archivePath, compressionMethod)
+        await extractStreamingTar(
+          readStream,
+          archivePath,
+          compressionMethod,
+          downloadCommandPipe
+        )
         core.info('Cache restored successfully')
         break
       }
