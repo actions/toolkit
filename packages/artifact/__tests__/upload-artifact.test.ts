@@ -357,17 +357,10 @@ describe('upload-artifact', () => {
 
   it('should throw an error uploading blob chunks get delayed', async () => {
     const mockDate = new Date('2020-01-01')
-    // const root = path.join('/home/user/files/')
     const dirPath = path.join(__dirname, `plz-upload`)
-
-    // const filePath = path.join(dirPath, 'file1.txt')
-    // const root = '/home/user/files'
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, {recursive: true})
-      // fs.mkdirSync(path.join(dirPath, 'file1.txt'), {recursive: true})
     }
-
-    // Now write the file
     // eslint-disable-next-line @typescript-eslint/await-thenable
     await fs.writeFile(
       path.join(dirPath, 'file1.txt'),
