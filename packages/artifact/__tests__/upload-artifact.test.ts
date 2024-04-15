@@ -10,7 +10,7 @@ import {noopLogs} from './common'
 import {FilesNotFoundError} from '../src/internal/shared/errors'
 import {BlockBlobClient} from '@azure/storage-blob'
 import * as fs from 'fs'
-import {writeFile} from 'fs/promises'
+import {writeFileSync} from 'fs/promises'
 import * as path from 'path'
 
 describe('upload-artifact', () => {
@@ -363,10 +363,10 @@ describe('upload-artifact', () => {
       fs.mkdirSync(dirPath, {recursive: true})
     }
 
-    await writeFile(path.join(dirPath, 'file1.txt'), 'test file content')
-    await writeFile(path.join(dirPath, 'file2.txt'), 'test file content')
+    writeFileSync(path.join(dirPath, 'file1.txt'), 'test file content')
+    writeFileSync(path.join(dirPath, 'file2.txt'), 'test file content')
 
-    await writeFile(path.join(dirPath, 'file3.txt'), 'test file content')
+    writeFileSync(path.join(dirPath, 'file3.txt'), 'test file content')
 
     jest
       .spyOn(uploadZipSpecification, 'validateRootDirectory')
