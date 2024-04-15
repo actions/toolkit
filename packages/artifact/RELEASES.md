@@ -1,9 +1,5 @@
 # @actions/artifact Releases
 
-### 2.1.5
-
-- Upgrading `archiver` dependency for uploads
-
 ### 2.1.4
 
 - Adds info-level logging for zip extraction
