@@ -15,6 +15,12 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { CommonsCacheEntry } from './commons-cache-entry';
+// May contain unused imports in some cases
+// @ts-ignore
+import { CommonsGCSDeleteCacheResponse } from './commons-gcsdelete-cache-response';
+// May contain unused imports in some cases
+// @ts-ignore
 import { CommonsS3DeleteCacheResponse } from './commons-s3-delete-cache-response';
 
 /**
@@ -25,10 +31,22 @@ import { CommonsS3DeleteCacheResponse } from './commons-s3-delete-cache-response
 export interface CommonsDeleteCacheResponse {
     /**
      * 
-     * @type {object}
+     * @type {{ [key: string]: string; }}
      * @memberof CommonsDeleteCacheResponse
      */
-    'gcs'?: object;
+    'annotations'?: { [key: string]: string; };
+    /**
+     * 
+     * @type {CommonsCacheEntry}
+     * @memberof CommonsDeleteCacheResponse
+     */
+    'cache_entry'?: CommonsCacheEntry;
+    /**
+     * 
+     * @type {CommonsGCSDeleteCacheResponse}
+     * @memberof CommonsDeleteCacheResponse
+     */
+    'gcs'?: CommonsGCSDeleteCacheResponse;
     /**
      * 
      * @type {string}

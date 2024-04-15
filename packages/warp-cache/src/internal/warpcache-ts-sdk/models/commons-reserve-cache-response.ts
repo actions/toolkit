@@ -28,6 +28,12 @@ import { CommonsS3ReserveCacheResponse } from './commons-s3-reserve-cache-respon
 export interface CommonsReserveCacheResponse {
     /**
      * 
+     * @type {{ [key: string]: string; }}
+     * @memberof CommonsReserveCacheResponse
+     */
+    'annotations'?: { [key: string]: string; };
+    /**
+     * 
      * @type {CommonsGCSReserveCacheResponse}
      * @memberof CommonsReserveCacheResponse
      */

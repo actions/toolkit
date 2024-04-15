@@ -66,6 +66,7 @@ export function isFeatureAvailable(): boolean {
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @param enableCrossArchArchive an optional boolean enabled to restore cache created on any arch
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
@@ -73,22 +74,23 @@ export async function restoreCache(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  enableCrossArchArchive = false
 ): Promise<string | undefined> {
   checkPaths(paths)
+  checkKey(primaryKey)
 
   restoreKeys = restoreKeys ?? []
-  const keys = [primaryKey, ...restoreKeys]
 
-  core.debug('Resolved Keys:')
-  core.debug(JSON.stringify(keys))
+  core.debug('Resolved Restore Keys:')
+  core.debug(JSON.stringify(restoreKeys))
 
-  if (keys.length > 10) {
+  if (restoreKeys.length > 9) {
     throw new ValidationError(
       `Key Validation Error: Keys are limited to a maximum of 10.`
     )
   }
-  for (const key of keys) {
+  for (const key of restoreKeys) {
     checkKey(key)
   }
 
@@ -96,10 +98,16 @@ export async function restoreCache(
   let archivePath = ''
   try {
     // path are needed to compute version
-    const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-      compressionMethod,
-      enableCrossOsArchive
-    })
+    const cacheEntry = await cacheHttpClient.getCacheEntry(
+      primaryKey,
+      restoreKeys,
+      paths,
+      {
+        compressionMethod,
+        enableCrossOsArchive,
+        enableCrossArchArchive
+      }
+    )
 
     if (!cacheEntry) {
       // Internal Error
@@ -205,13 +213,14 @@ export async function restoreCache(
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
  * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
- * @param options cache upload options
- * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
+ * @param enableCrossArchArchive an optional boolean enabled to save cache on any arch which could be restored on any arch
+ * @returns string returns cacheId if the cache was saved successfully and throws an error if save fails
  */
 export async function saveCache(
   paths: string[],
   key: string,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  enableCrossArchArchive = false
 ): Promise<string> {
   checkPaths(paths)
   checkKey(key)
@@ -254,6 +263,13 @@ export async function saveCache(
       )
     }
 
+    const cacheVersion = cacheHttpClient.getCacheVersion(
+      paths,
+      compressionMethod,
+      enableCrossOsArchive,
+      enableCrossArchArchive
+    )
+
     core.debug('Reserving Cache')
     // Calculate number of chunks required. This is only required if backend is S3 as Google Cloud SDK will do it for us
     const uploadOptions = getUploadOptions()
@@ -262,11 +278,7 @@ export async function saveCache(
     const reserveCacheResponse = await cacheHttpClient.reserveCache(
       key,
       numberOfChunks,
-      {
-        compressionMethod,
-        enableCrossOsArchive,
-        cacheSize: archiveFileSize
-      }
+      cacheVersion
     )
 
     if (reserveCacheResponse?.statusCode === 400) {
@@ -277,12 +289,6 @@ export async function saveCache(
           )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     }
-
-    const cacheVersion = cacheHttpClient.getCacheVersion(
-      paths,
-      compressionMethod,
-      enableCrossOsArchive
-    )
 
     switch (reserveCacheResponse.result?.provider) {
       case 's3':
@@ -341,18 +347,30 @@ export async function saveCache(
 
 /**
  * Deletes an entire cache by cache key.
- * @param keys The cache keys
+ * @param key The cache keys
  */
-export async function deleteCache(keys: string[]): Promise<void> {
-  for (const key of keys) {
-    checkKey(key)
-  }
+export async function deleteCache(
+  paths: string[],
+  key: string,
+  enableCrossOsArchive = false,
+  enableCrossArchArchive = false
+): Promise<void> {
+  checkKey(key)
 
   core.debug('Deleting Cache')
-  core.debug(`Cache Keys: ${keys}`)
+  core.debug(`Cache Key: ${key}`)
+
+  const compressionMethod = await utils.getCompressionMethod()
+
+  const cacheVersion = cacheHttpClient.getCacheVersion(
+    paths,
+    compressionMethod,
+    enableCrossOsArchive,
+    enableCrossArchArchive
+  )
 
   try {
-    await cacheHttpClient.deleteCache(keys)
+    await cacheHttpClient.deleteCache(key, cacheVersion)
   } catch (error) {
     core.warning(`Failed to delete cache: ${error}`)
   }

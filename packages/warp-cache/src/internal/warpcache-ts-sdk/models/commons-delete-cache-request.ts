@@ -13,69 +13,42 @@
  */
 
 
-// May contain unused imports in some cases
-// @ts-ignore
-import { TypesCompletedPart } from './types-completed-part';
 
 /**
  * 
  * @export
- * @interface CommonsCommitCacheRequest
+ * @interface CommonsDeleteCacheRequest
  */
-export interface CommonsCommitCacheRequest {
+export interface CommonsDeleteCacheRequest {
     /**
      * 
      * @type {{ [key: string]: string; }}
-     * @memberof CommonsCommitCacheRequest
+     * @memberof CommonsDeleteCacheRequest
      */
     'annotations'?: { [key: string]: string; };
     /**
      * 
      * @type {string}
-     * @memberof CommonsCommitCacheRequest
+     * @memberof CommonsDeleteCacheRequest
      */
     'cache_key': string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCommitCacheRequest
+     * @memberof CommonsDeleteCacheRequest
      */
     'cache_version': string;
     /**
-     * 
-     * @type {Array<TypesCompletedPart>}
-     * @memberof CommonsCommitCacheRequest
-     */
-    'parts': Array<TypesCompletedPart>;
-    /**
-     * UploadID  * This is not supported for GCS cache. When passed this will be ignored. *
-     * @type {string}
-     * @memberof CommonsCommitCacheRequest
-     */
-    'upload_id'?: string;
-    /**
-     * UploadKey  * This is not supported for GCS cache. When passed this will be ignored. *
-     * @type {string}
-     * @memberof CommonsCommitCacheRequest
-     */
-    'upload_key'?: string;
-    /**
      * VCSRef is the ref of the repository in vcs for which cache is being used. This can be a branch, git tag, or pull request ref.
      * @type {string}
-     * @memberof CommonsCommitCacheRequest
+     * @memberof CommonsDeleteCacheRequest
      */
     'vcs_ref'?: string;
     /**
      * VCSRepository is the repository name in vcs. It can be of the format <organization>/<repository> or <repository>. While saving the entry, <organization>/ will be trimmed if passed.
      * @type {string}
-     * @memberof CommonsCommitCacheRequest
+     * @memberof CommonsDeleteCacheRequest
      */
     'vcs_repository'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CommonsCommitCacheRequest
-     */
-    'vcs_type': string;
 }
 

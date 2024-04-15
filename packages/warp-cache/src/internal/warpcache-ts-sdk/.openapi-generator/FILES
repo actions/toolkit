@@ -9,12 +9,16 @@ common.ts
 configuration.ts
 git_push.sh
 index.ts
+models/commons-cache-entry.ts
 models/commons-commit-cache-request.ts
 models/commons-commit-cache-response.ts
+models/commons-delete-cache-request.ts
 models/commons-delete-cache-response.ts
 models/commons-gcscommit-cache-response.ts
+models/commons-gcsdelete-cache-response.ts
 models/commons-gcsget-cache-reponse.ts
 models/commons-gcsreserve-cache-response.ts
+models/commons-get-cache-request.ts
 models/commons-get-cache-response.ts
 models/commons-reserve-cache-request.ts
 models/commons-reserve-cache-response.ts

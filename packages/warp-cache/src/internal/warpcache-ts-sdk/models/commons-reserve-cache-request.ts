@@ -22,10 +22,22 @@
 export interface CommonsReserveCacheRequest {
     /**
      * 
+     * @type {{ [key: string]: string; }}
+     * @memberof CommonsReserveCacheRequest
+     */
+    'annotations'?: { [key: string]: string; };
+    /**
+     * 
      * @type {string}
      * @memberof CommonsReserveCacheRequest
      */
     'cache_key': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CommonsReserveCacheRequest
+     */
+    'cache_version': string;
     /**
      * ContentType contains the content type of the cache.  * This is not supported for GCS cache. When passed this will be ignored. *
      * @type {string}
@@ -38,5 +50,17 @@ export interface CommonsReserveCacheRequest {
      * @memberof CommonsReserveCacheRequest
      */
     'number_of_chunks'?: number;
+    /**
+     * VCSRef is the ref of the repository in vcs for which cache is being used. This can be a branch, git tag, or pull request ref.
+     * @type {string}
+     * @memberof CommonsReserveCacheRequest
+     */
+    'vcs_ref'?: string;
+    /**
+     * VCSRepository is the repository name in vcs. It can be of the format <organization>/<repository> or <repository>. While saving the entry, <organization>/ will be trimmed if passed.
+     * @type {string}
+     * @memberof CommonsReserveCacheRequest
+     */
+    'vcs_repository'?: string;
 }
 

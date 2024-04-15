@@ -26,7 +26,11 @@ import { CommonsCommitCacheRequest } from '../models';
 // @ts-ignore
 import { CommonsCommitCacheResponse } from '../models';
 // @ts-ignore
+import { CommonsDeleteCacheRequest } from '../models';
+// @ts-ignore
 import { CommonsDeleteCacheResponse } from '../models';
+// @ts-ignore
+import { CommonsGetCacheRequest } from '../models';
 // @ts-ignore
 import { CommonsGetCacheResponse } from '../models';
 // @ts-ignore
@@ -110,13 +114,13 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * delete cache
          * @summary delete cache
-         * @param {string} keys cache keys
+         * @param {CommonsDeleteCacheRequest} body Delete Cache Request Body
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        v1CacheDeleteDelete: async (keys: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'keys' is not null or undefined
-            assertParamExists('v1CacheDeleteDelete', 'keys', keys)
+        v1CacheDeletePost: async (body: CommonsDeleteCacheRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('v1CacheDeletePost', 'body', body)
             const localVarPath = `/v1/cache/delete`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -125,19 +129,18 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            if (keys !== undefined) {
-                localVarQueryParameter['keys'] = keys;
-            }
-
 
     
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -147,17 +150,14 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * get cache
          * @summary get cache
-         * @param {string} keys cache keys
-         * @param {string} version cache version
+         * @param {CommonsGetCacheRequest} body Get Cache Request Body
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        v1CacheGet: async (keys: string, version: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'keys' is not null or undefined
-            assertParamExists('v1CacheGet', 'keys', keys)
-            // verify required parameter 'version' is not null or undefined
-            assertParamExists('v1CacheGet', 'version', version)
-            const localVarPath = `/v1/cache`;
+        v1CacheGetPost: async (body: CommonsGetCacheRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('v1CacheGetPost', 'body', body)
+            const localVarPath = `/v1/cache/get`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -165,23 +165,18 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            if (keys !== undefined) {
-                localVarQueryParameter['keys'] = keys;
-            }
-
-            if (version !== undefined) {
-                localVarQueryParameter['version'] = version;
-            }
-
 
     
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -262,28 +257,27 @@ export const DefaultApiFp = function(configuration?: Configuration) {
         /**
          * delete cache
          * @summary delete cache
-         * @param {string} keys cache keys
+         * @param {CommonsDeleteCacheRequest} body Delete Cache Request Body
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async v1CacheDeleteDelete(keys: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommonsDeleteCacheResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.v1CacheDeleteDelete(keys, options);
+        async v1CacheDeletePost(body: CommonsDeleteCacheRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommonsDeleteCacheResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.v1CacheDeletePost(body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['DefaultApi.v1CacheDeleteDelete']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.v1CacheDeletePost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * get cache
          * @summary get cache
-         * @param {string} keys cache keys
-         * @param {string} version cache version
+         * @param {CommonsGetCacheRequest} body Get Cache Request Body
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async v1CacheGet(keys: string, version: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommonsGetCacheResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.v1CacheGet(keys, version, options);
+        async v1CacheGetPost(body: CommonsGetCacheRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommonsGetCacheResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.v1CacheGetPost(body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['DefaultApi.v1CacheGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.v1CacheGetPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -331,22 +325,22 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
         /**
          * delete cache
          * @summary delete cache
-         * @param {DefaultApiV1CacheDeleteDeleteRequest} requestParameters Request parameters.
+         * @param {DefaultApiV1CacheDeletePostRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        v1CacheDeleteDelete(requestParameters: DefaultApiV1CacheDeleteDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<CommonsDeleteCacheResponse> {
-            return localVarFp.v1CacheDeleteDelete(requestParameters.keys, options).then((request) => request(axios, basePath));
+        v1CacheDeletePost(requestParameters: DefaultApiV1CacheDeletePostRequest, options?: RawAxiosRequestConfig): AxiosPromise<CommonsDeleteCacheResponse> {
+            return localVarFp.v1CacheDeletePost(requestParameters.body, options).then((request) => request(axios, basePath));
         },
         /**
          * get cache
          * @summary get cache
-         * @param {DefaultApiV1CacheGetRequest} requestParameters Request parameters.
+         * @param {DefaultApiV1CacheGetPostRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        v1CacheGet(requestParameters: DefaultApiV1CacheGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<CommonsGetCacheResponse> {
-            return localVarFp.v1CacheGet(requestParameters.keys, requestParameters.version, options).then((request) => request(axios, basePath));
+        v1CacheGetPost(requestParameters: DefaultApiV1CacheGetPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<CommonsGetCacheResponse> {
+            return localVarFp.v1CacheGetPost(requestParameters.body, options).then((request) => request(axios, basePath));
         },
         /**
          * reserve cache
@@ -376,38 +370,31 @@ export interface DefaultApiV1CacheCommitPostRequest {
 }
 
 /**
- * Request parameters for v1CacheDeleteDelete operation in DefaultApi.
+ * Request parameters for v1CacheDeletePost operation in DefaultApi.
  * @export
- * @interface DefaultApiV1CacheDeleteDeleteRequest
+ * @interface DefaultApiV1CacheDeletePostRequest
  */
-export interface DefaultApiV1CacheDeleteDeleteRequest {
+export interface DefaultApiV1CacheDeletePostRequest {
     /**
-     * cache keys
-     * @type {string}
-     * @memberof DefaultApiV1CacheDeleteDelete
+     * Delete Cache Request Body
+     * @type {CommonsDeleteCacheRequest}
+     * @memberof DefaultApiV1CacheDeletePost
      */
-    readonly keys: string
+    readonly body: CommonsDeleteCacheRequest
 }
 
 /**
- * Request parameters for v1CacheGet operation in DefaultApi.
+ * Request parameters for v1CacheGetPost operation in DefaultApi.
  * @export
- * @interface DefaultApiV1CacheGetRequest
+ * @interface DefaultApiV1CacheGetPostRequest
  */
-export interface DefaultApiV1CacheGetRequest {
+export interface DefaultApiV1CacheGetPostRequest {
     /**
-     * cache keys
-     * @type {string}
-     * @memberof DefaultApiV1CacheGet
+     * Get Cache Request Body
+     * @type {CommonsGetCacheRequest}
+     * @memberof DefaultApiV1CacheGetPost
      */
-    readonly keys: string
-
-    /**
-     * cache version
-     * @type {string}
-     * @memberof DefaultApiV1CacheGet
-     */
-    readonly version: string
+    readonly body: CommonsGetCacheRequest
 }
 
 /**
@@ -457,25 +444,25 @@ export class DefaultApi extends BaseAPI {
     /**
      * delete cache
      * @summary delete cache
-     * @param {DefaultApiV1CacheDeleteDeleteRequest} requestParameters Request parameters.
+     * @param {DefaultApiV1CacheDeletePostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DefaultApi
      */
-    public v1CacheDeleteDelete(requestParameters: DefaultApiV1CacheDeleteDeleteRequest, options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).v1CacheDeleteDelete(requestParameters.keys, options).then((request) => request(this.axios, this.basePath));
+    public v1CacheDeletePost(requestParameters: DefaultApiV1CacheDeletePostRequest, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).v1CacheDeletePost(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * get cache
      * @summary get cache
-     * @param {DefaultApiV1CacheGetRequest} requestParameters Request parameters.
+     * @param {DefaultApiV1CacheGetPostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof DefaultApi
      */
-    public v1CacheGet(requestParameters: DefaultApiV1CacheGetRequest, options?: RawAxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).v1CacheGet(requestParameters.keys, requestParameters.version, options).then((request) => request(this.axios, this.basePath));
+    public v1CacheGetPost(requestParameters: DefaultApiV1CacheGetPostRequest, options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).v1CacheGetPost(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

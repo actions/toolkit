@@ -9,6 +9,7 @@ export interface ITypedResponseWithError<T> extends TypedResponse<T> {
 export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
   enableCrossOsArchive?: boolean
+  enableCrossArchArchive?: boolean
   cacheSize?: number
 }
 

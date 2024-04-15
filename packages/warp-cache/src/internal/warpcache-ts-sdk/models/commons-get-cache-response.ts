@@ -15,6 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { CommonsCacheEntry } from './commons-cache-entry';
+// May contain unused imports in some cases
+// @ts-ignore
 import { CommonsGCSGetCacheReponse } from './commons-gcsget-cache-reponse';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -26,6 +29,18 @@ import { CommonsS3GetCacheResponse } from './commons-s3-get-cache-response';
  * @interface CommonsGetCacheResponse
  */
 export interface CommonsGetCacheResponse {
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof CommonsGetCacheResponse
+     */
+    'annotations'?: { [key: string]: string; };
+    /**
+     * 
+     * @type {CommonsCacheEntry}
+     * @memberof CommonsGetCacheResponse
+     */
+    'cache_entry'?: CommonsCacheEntry;
     /**
      * 
      * @type {CommonsGCSGetCacheReponse}

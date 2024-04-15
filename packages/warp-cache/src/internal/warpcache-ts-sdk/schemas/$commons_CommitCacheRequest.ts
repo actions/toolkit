@@ -3,15 +3,14 @@
 /* eslint-disable */
 export const $commons_CommitCacheRequest = {
     properties: {
+        annotations: {
+            type: 'commons_CacheAnnotationsMap',
+        },
         cache_key: {
             type: 'string',
             isRequired: true,
         },
         cache_version: {
-            type: 'string',
-            isRequired: true,
-        },
-        os: {
             type: 'string',
             isRequired: true,
         },
@@ -26,6 +25,12 @@ export const $commons_CommitCacheRequest = {
             type: 'string',
         },
         upload_key: {
+            type: 'string',
+        },
+        vcs_ref: {
+            type: 'string',
+        },
+        vcs_repository: {
             type: 'string',
         },
         vcs_type: {

@@ -23,11 +23,14 @@ import {Storage} from '@google-cloud/storage'
 import {
   CommonsCommitCacheRequest,
   CommonsCommitCacheResponse,
+  CommonsDeleteCacheResponse,
   CommonsGetCacheResponse,
   CommonsReserveCacheRequest,
   CommonsReserveCacheResponse
 } from './warpcache-ts-sdk'
 import {multiPartUploadToGCS, uploadFileToS3} from './uploadUtils'
+import {CommonsGetCacheRequest} from './warpcache-ts-sdk/models/commons-get-cache-request'
+import {CommonsDeleteCacheRequest} from './warpcache-ts-sdk/models/commons-delete-cache-request'
 
 const versionSalt = '1.0'
 
@@ -45,6 +48,16 @@ function getCacheApiUrl(resource: string): string {
 
 function createAcceptHeader(type: string, apiVersion: string): string {
   return `${type};api-version=${apiVersion}`
+}
+
+function getVCSRepository(): string {
+  const vcsRepository = process.env['GITHUB_REPOSITORY'] ?? ''
+  return vcsRepository
+}
+
+function getVCSRef(): string {
+  const vcsBranch = process.env['GITHUB_REF'] ?? ''
+  return vcsBranch
 }
 
 function getRequestOptions(): RequestOptions {
@@ -71,7 +84,8 @@ function createHttpClient(): HttpClient {
 export function getCacheVersion(
   paths: string[],
   compressionMethod?: CompressionMethod,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  enableCrossArchArchive = false
 ): string {
   const components = paths
 
@@ -86,6 +100,11 @@ export function getCacheVersion(
     components.push('windows-only')
   }
 
+  // Add architecture to cache version
+  if (!enableCrossArchArchive) {
+    components.push(process.arch)
+  }
+
   // Add salt to cache version to support breaking changes in cache entry
   components.push(versionSalt)
 
@@ -93,7 +112,8 @@ export function getCacheVersion(
 }
 
 export async function getCacheEntry(
-  keys: string[],
+  key: string,
+  restoreKeys: string[],
   paths: string[],
   options?: InternalCacheOptions
 ): Promise<CommonsGetCacheResponse | null> {
@@ -101,14 +121,23 @@ export async function getCacheEntry(
   const version = getCacheVersion(
     paths,
     options?.compressionMethod,
-    options?.enableCrossOsArchive
+    options?.enableCrossOsArchive,
+    options?.enableCrossArchArchive
   )
-  const resource = `cache?keys=${encodeURIComponent(
-    keys.join(',')
-  )}&version=${version}`
+
+  const getCacheRequest: CommonsGetCacheRequest = {
+    cache_key: key,
+    restore_keys: restoreKeys,
+    cache_version: version,
+    vcs_repository: getVCSRepository(),
+    vcs_ref: getVCSRef()
+  }
 
   const response = await retryTypedResponse('getCacheEntry', async () =>
-    httpClient.getJson<CommonsGetCacheResponse>(getCacheApiUrl(resource))
+    httpClient.postJson<CommonsGetCacheResponse>(
+      getCacheApiUrl('cache/get'),
+      getCacheRequest
+    )
   )
 
   if (response.statusCode === 204) {
@@ -190,14 +219,17 @@ export function downloadCacheStreaming(
 export async function reserveCache(
   cacheKey: string,
   numberOfChunks: number,
-  options?: InternalCacheOptions
+  cacheVersion: string
 ): Promise<ITypedResponseWithError<CommonsReserveCacheResponse>> {
   const httpClient = createHttpClient()
 
   const reserveCacheRequest: CommonsReserveCacheRequest = {
     cache_key: cacheKey,
+    cache_version: cacheVersion,
     number_of_chunks: numberOfChunks,
-    content_type: 'application/zstd'
+    content_type: 'application/zstd',
+    vcs_repository: getVCSRepository(),
+    vcs_ref: getVCSRef()
   }
   const response = await retryTypedResponse('reserveCache', async () =>
     httpClient.postJson<CommonsReserveCacheResponse>(
@@ -227,8 +259,9 @@ async function commitCache(
     upload_key: uploadKey,
     upload_id: uploadID,
     parts: parts,
-    os: process.env['RUNNER_OS'] ?? 'Linux',
-    vcs_type: 'github'
+    vcs_type: 'github',
+    vcs_repository: getVCSRepository(),
+    vcs_ref: getVCSRef()
   }
   return await retryTypedResponse('commitCache', async () =>
     httpClient.postJson<CommonsCommitCacheResponse>(
@@ -340,13 +373,24 @@ export async function saveCache(
   return cacheKeyResponse
 }
 
-export async function deleteCache(keys: string[]) {
+export async function deleteCache(cacheKey: string, cacheVersion: string) {
   const httpClient = createHttpClient()
-  const resource = `cache?keys=${encodeURIComponent(keys.join(','))}`
-  const response = await httpClient.del(getCacheApiUrl(resource))
-  if (!isSuccessStatusCode(response.message.statusCode)) {
-    throw new Error(
-      `Cache service responded with ${response.message.statusCode}`
+
+  const deleteCacheRequest: CommonsDeleteCacheRequest = {
+    cache_key: cacheKey,
+    cache_version: cacheVersion,
+    vcs_repository: getVCSRepository(),
+    vcs_ref: getVCSRef()
+  }
+
+  const response = await retryTypedResponse('deleteCacheEntry', async () =>
+    httpClient.postJson<CommonsDeleteCacheResponse>(
+      getCacheApiUrl('cache/delete'),
+      deleteCacheRequest
     )
+  )
+
+  if (!isSuccessStatusCode(response.statusCode)) {
+    throw new Error(`Cache service responded with ${response.statusCode}`)
   }
 }

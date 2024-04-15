@@ -3,6 +3,9 @@
 /* eslint-disable */
 export const $commons_ReserveCacheResponse = {
     properties: {
+        annotations: {
+            type: 'commons_CacheAnnotationsMap',
+        },
         gcs: {
             type: 'commons_GCSReserveCacheResponse',
         },

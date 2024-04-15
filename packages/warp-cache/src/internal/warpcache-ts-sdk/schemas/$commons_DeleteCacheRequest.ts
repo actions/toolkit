@@ -1,18 +1,23 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $commons_S3GetCacheResponse = {
+export const $commons_DeleteCacheRequest = {
     properties: {
         annotations: {
             type: 'commons_CacheAnnotationsMap',
         },
         cache_key: {
             type: 'string',
+            isRequired: true,
         },
         cache_version: {
             type: 'string',
+            isRequired: true,
         },
-        pre_signed_url: {
+        vcs_ref: {
+            type: 'string',
+        },
+        vcs_repository: {
             type: 'string',
         },
     },

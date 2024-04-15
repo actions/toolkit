@@ -22,6 +22,12 @@
 export interface CommonsS3GetCacheResponse {
     /**
      * 
+     * @type {{ [key: string]: string; }}
+     * @memberof CommonsS3GetCacheResponse
+     */
+    'annotations'?: { [key: string]: string; };
+    /**
+     * 
      * @type {string}
      * @memberof CommonsS3GetCacheResponse
      */

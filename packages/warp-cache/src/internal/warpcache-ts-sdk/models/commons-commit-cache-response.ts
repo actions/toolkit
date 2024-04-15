@@ -15,6 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { CommonsCacheEntry } from './commons-cache-entry';
+// May contain unused imports in some cases
+// @ts-ignore
 import { CommonsGCSCommitCacheResponse } from './commons-gcscommit-cache-response';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -26,6 +29,18 @@ import { CommonsS3CommitCacheResponse } from './commons-s3-commit-cache-response
  * @interface CommonsCommitCacheResponse
  */
 export interface CommonsCommitCacheResponse {
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof CommonsCommitCacheResponse
+     */
+    'annotations'?: { [key: string]: string; };
+    /**
+     * 
+     * @type {CommonsCacheEntry}
+     * @memberof CommonsCommitCacheResponse
+     */
+    'cache_entry'?: CommonsCacheEntry;
     /**
      * 
      * @type {CommonsGCSCommitCacheResponse}
@@ -44,5 +59,11 @@ export interface CommonsCommitCacheResponse {
      * @memberof CommonsCommitCacheResponse
      */
     's3'?: CommonsS3CommitCacheResponse;
+    /**
+     * VCSRepository is the repository name in vcs. It can be of the format <organization>/<repository> or <repository>. While saving the entry, <organization>/ will be trimmed if passed.
+     * @type {string}
+     * @memberof CommonsCommitCacheResponse
+     */
+    'vcs_repository'?: string;
 }
 
