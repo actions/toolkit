@@ -12,11 +12,11 @@ process.env['WARPBUILD_RUNNER_VERIFICATION_TOKEN'] =
 process.env['GITHUB_REPOSITORY'] = 'Warpbuilds/backend-cache'
 process.env['GITHUB_REF'] = 'refs/heads/main'
 
-saveCache(
-  ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
-  'test-fs-local-key',
-  true
-)
+// saveCache(
+//   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
+//   'test-fs-local-key',
+//   true
+// )
 
 // saveCache(
 //   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
@@ -31,14 +31,14 @@ saveCache(
 //   true
 // )
 
-// restoreCache(
-//   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
-//   'test-fs-local-key-3',
-//   ['test-fs'],
-//   {},
-//   true,
-//   false
-// )
+restoreCache(
+  ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
+  'test-fs-local-key',
+  ['test-fs'],
+  {},
+  true,
+  false
+)
 
 // deleteCache(
 //   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],

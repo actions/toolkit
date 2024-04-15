@@ -137,6 +137,7 @@ export async function restoreCache(
         }
 
         await cacheHttpClient.downloadCache(
+          cacheEntry.provider,
           cacheEntry.s3?.pre_signed_url,
           archivePath
         )
@@ -168,20 +169,41 @@ export async function restoreCache(
           return cacheKey
         }
 
-        // For GCS, we do a streaming download which means that we extract the archive while we are downloading it.
         const archiveLocation = `gs://${cacheEntry.gcs?.bucket_name}/${cacheEntry.gcs?.cache_key}`
 
-        const readStream = cacheHttpClient.downloadCacheStreaming(
-          'gcs',
+        await cacheHttpClient.downloadCache(
+          cacheEntry.provider,
           archiveLocation,
-          cacheEntry?.gcs?.short_lived_token?.access_token ?? ''
+          archivePath,
+          cacheEntry.gcs?.short_lived_token?.access_token ?? ''
         )
 
-        if (!readStream) {
-          return undefined
+        if (core.isDebug()) {
+          await listTar(archivePath, compressionMethod)
         }
 
-        await extractStreamingTar(readStream, archivePath, compressionMethod)
+        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+        core.info(
+          `Cache Size: ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B)`
+        )
+
+        await extractTar(archivePath, compressionMethod)
+
+        // For GCS, we do a streaming download which means that we extract the archive while we are downloading it.
+
+        // const readStream = cacheHttpClient.downloadCacheStreaming(
+        //   'gcs',
+        //   archiveLocation,
+        //   cacheEntry?.gcs?.short_lived_token?.access_token ?? ''
+        // )
+
+        // if (!readStream) {
+        //   return undefined
+        // }
+
+        // await extractStreamingTar(readStream, archivePath, compressionMethod)
         core.info('Cache restored successfully')
         break
       }
@@ -283,6 +305,14 @@ export async function saveCache(
     )
 
     if (!isSuccessStatusCode(reserveCacheResponse?.statusCode)) {
+      core.debug(`Failed to reserve cache: ${reserveCacheResponse?.statusCode}`)
+      core.debug(
+        `Reserve Cache Request: ${JSON.stringify({
+          key,
+          numberOfChunks,
+          cacheVersion
+        })}`
+      )
       throw new Error(
         reserveCacheResponse?.error?.message ??
           `Cache size of ~${Math.round(

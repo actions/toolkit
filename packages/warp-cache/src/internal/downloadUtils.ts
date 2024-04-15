@@ -13,7 +13,7 @@ import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
-import {Storage} from '@google-cloud/storage'
+import {Storage, TransferManager} from '@google-cloud/storage'
 
 /**
  * Pipes the body of a HTTP response to a stream
@@ -291,6 +291,31 @@ export async function downloadCacheMultiConnection(
   } finally {
     downloadProgress?.stopDisplayTimer()
     await fileHandle?.close()
+  }
+}
+
+/**
+ * Download cache in multipart using the Gcloud SDK
+ *
+ * @param archiveLocation the URL for the cache
+ */
+export async function downloadCacheMultipartGCP(
+  storage: Storage,
+  archiveLocation: string,
+  archivePath: string
+) {
+  try {
+    const {bucketName, objectName} =
+      utils.retrieveGCSBucketAndObjectName(archiveLocation)
+
+    const transferManager = new TransferManager(storage.bucket(bucketName))
+    await transferManager.downloadFileInChunks(objectName, {
+      destination: archivePath
+    })
+  } catch (error) {
+    core.debug(`Failed to download cache: ${error}`)
+    core.error(`Failed to download cache.`)
+    throw error
   }
 }
 

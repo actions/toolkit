@@ -16,6 +16,7 @@ import {
 } from './contracts'
 import {
   downloadCacheMultiConnection,
+  downloadCacheMultipartGCP,
   downloadCacheStreamingGCP
 } from './downloadUtils'
 import {isSuccessStatusCode, retryTypedResponse} from './requestUtils'
@@ -187,10 +188,31 @@ async function printCachesListForDiagnostics(
 */
 
 export async function downloadCache(
+  provider: string,
   archiveLocation: string,
-  archivePath: string
+  archivePath: string,
+  gcsToken?: string
 ): Promise<void> {
-  await downloadCacheMultiConnection(archiveLocation, archivePath, 8)
+  switch (provider) {
+    case 's3':
+      await downloadCacheMultiConnection(archiveLocation, archivePath, 8)
+      break
+    case 'gcs': {
+      if (!gcsToken) {
+        throw new Error(
+          'Unable to download cache from GCS. GCP token is not provided.'
+        )
+      }
+
+      const oauth2Client = new OAuth2Client()
+      oauth2Client.setCredentials({access_token: gcsToken})
+      const storage = new Storage({
+        authClient: oauth2Client
+      })
+      await downloadCacheMultipartGCP(storage, archiveLocation, archivePath)
+      break
+    }
+  }
 }
 
 export function downloadCacheStreaming(
