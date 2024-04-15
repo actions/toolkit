@@ -111,7 +111,7 @@ export async function retryTypedResponse<T>(
       if (error instanceof HttpClientError) {
         return {
           statusCode: error.statusCode,
-          result: null,
+          result: error.result ?? null,
           headers: {},
           error
         }

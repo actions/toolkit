@@ -1,6 +1,6 @@
 {
   "name": "github-actions.warp-cache",
-  "version": "0.2.0",
+  "version": "1.1.2",
   "preview": true,
   "description": "Github action to use WarpBuild's in-house cache offering",
   "keywords": [
@@ -9,7 +9,7 @@
     "cache",
     "warpbuild"
   ],
-  "homepage": "https://github.com/actions/toolkit/tree/main/packages/cache",
+  "homepage": "https://github.com/WarpBuilds/toolkit/tree/main/packages/warp-cache",
   "license": "MIT",
   "main": "lib/cache.js",
   "types": "lib/cache.d.ts",
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/toolkit.git",
+    "url": "git+https://github.com/WarpBuilds/toolkit.git",
     "directory": "packages/cache"
   },
   "scripts": {
@@ -35,7 +35,7 @@
     "tsc": "tsc"
   },
   "bugs": {
-    "url": "https://github.com/actions/toolkit/issues"
+    "url": "https://github.com/WarpBuilds/toolkit/issues"
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
@@ -46,7 +46,9 @@
     "@azure/abort-controller": "^1.1.0",
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
+    "@google-cloud/storage": "^7.9.0",
     "axios": "^1.6.2",
+    "google-auth-library": "^9.7.0",
     "semver": "^6.3.1",
     "uuid": "^3.3.3"
   },

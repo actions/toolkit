@@ -2,8 +2,16 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
-import {createTar, extractTar, listTar} from './internal/tar'
+import {
+  createTar,
+  extractStreamingTar,
+  extractTar,
+  listTar
+} from './internal/tar'
 import {DownloadOptions, getUploadOptions} from './options'
+import {isSuccessStatusCode} from './internal/requestUtils'
+import {getDownloadCommandPipeForWget} from './internal/downloadUtils'
+import {ChildProcessWithoutNullStreams} from 'child_process'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -50,7 +58,7 @@ function checkKey(key: string): void {
  */
 
 export function isFeatureAvailable(): boolean {
-  return !!process.env['WARP_CACHE_URL']
+  return !!process.env['WARPBUILD_CACHE_URL']
 }
 
 /**
@@ -61,6 +69,7 @@ export function isFeatureAvailable(): boolean {
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @param enableCrossArchArchive an optional boolean enabled to restore cache created on any arch
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
@@ -68,22 +77,23 @@ export async function restoreCache(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  enableCrossArchArchive = false
 ): Promise<string | undefined> {
   checkPaths(paths)
+  checkKey(primaryKey)
 
   restoreKeys = restoreKeys ?? []
-  const keys = [primaryKey, ...restoreKeys]
 
-  core.debug('Resolved Keys:')
-  core.debug(JSON.stringify(keys))
+  core.debug('Resolved Restore Keys:')
+  core.debug(JSON.stringify(restoreKeys))
 
-  if (keys.length > 10) {
+  if (restoreKeys.length > 9) {
     throw new ValidationError(
       `Key Validation Error: Keys are limited to a maximum of 10.`
     )
   }
-  for (const key of keys) {
+  for (const key of restoreKeys) {
     checkKey(key)
   }
 
@@ -91,18 +101,20 @@ export async function restoreCache(
   let archivePath = ''
   try {
     // path are needed to compute version
-    const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-      compressionMethod,
-      enableCrossOsArchive
-    })
-    if (!cacheEntry?.pre_signed_url) {
-      // Cache not found
-      return undefined
-    }
+    const cacheEntry = await cacheHttpClient.getCacheEntry(
+      primaryKey,
+      restoreKeys,
+      paths,
+      {
+        compressionMethod,
+        enableCrossOsArchive,
+        enableCrossArchArchive
+      }
+    )
 
-    if (options?.lookupOnly) {
-      core.info('Lookup only - skipping download')
-      return cacheEntry.cache_key
+    if (!cacheEntry) {
+      // Internal Error
+      return undefined
     }
 
     archivePath = path.join(
@@ -111,30 +123,118 @@ export async function restoreCache(
     )
     core.debug(`Archive Path: ${archivePath}`)
 
-    // Download the cache from the cache entry
-    await cacheHttpClient.downloadCache(cacheEntry.pre_signed_url, archivePath)
+    let cacheKey: string = ''
 
-    if (core.isDebug()) {
-      await listTar(archivePath, compressionMethod)
+    switch (cacheEntry.provider) {
+      case 's3': {
+        if (!cacheEntry.s3?.pre_signed_url) {
+          return undefined
+        }
+
+        cacheKey = cacheEntry.s3.pre_signed_url
+
+        if (options?.lookupOnly) {
+          core.info('Lookup only - skipping download')
+          return cacheKey
+        }
+
+        await cacheHttpClient.downloadCache(
+          cacheEntry.provider,
+          cacheEntry.s3?.pre_signed_url,
+          archivePath
+        )
+
+        if (core.isDebug()) {
+          await listTar(archivePath, compressionMethod)
+        }
+
+        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+        core.info(
+          `Cache Size: ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B)`
+        )
+
+        await extractTar(archivePath, compressionMethod)
+        core.info('Cache restored successfully')
+        break
+      }
+
+      case 'gcs': {
+        if (!cacheEntry.gcs?.cache_key) {
+          return undefined
+        }
+        cacheKey = cacheEntry.gcs?.cache_key
+
+        if (options?.lookupOnly) {
+          core.info('Lookup only - skipping download')
+          return cacheKey
+        }
+
+        const archiveLocation = `gs://${cacheEntry.gcs?.bucket_name}/${cacheEntry.gcs?.cache_key}`
+
+        /*
+        * Alternate, Multipart download method for GCS
+        await cacheHttpClient.downloadCache(
+          cacheEntry.provider,
+          archiveLocation,
+          archivePath,
+          cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+        )
+
+        if (core.isDebug()) {
+          await listTar(archivePath, compressionMethod)
+        }
+
+        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+        core.info(
+          `Cache Size: ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B)`
+        )
+
+        await extractTar(archivePath, compressionMethod)
+        */
+
+        // For GCS, we do a streaming download which means that we extract the archive while we are downloading it.
+
+        let readStream: NodeJS.ReadableStream | undefined
+        let downloadCommandPipe: ChildProcessWithoutNullStreams | undefined
+
+        if (cacheEntry?.gcs?.pre_signed_url) {
+          downloadCommandPipe = getDownloadCommandPipeForWget(
+            cacheEntry?.gcs?.pre_signed_url
+          )
+        } else {
+          readStream = cacheHttpClient.downloadCacheStreaming(
+            'gcs',
+            archiveLocation,
+            cacheEntry?.gcs?.short_lived_token?.access_token ?? ''
+          )
+
+          if (!readStream) {
+            return undefined
+          }
+        }
+
+        await extractStreamingTar(
+          readStream,
+          archivePath,
+          compressionMethod,
+          downloadCommandPipe
+        )
+        core.info('Cache restored successfully')
+        break
+      }
     }
 
-    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
-    core.info(
-      `Cache Size: ~${Math.round(
-        archiveFileSize / (1024 * 1024)
-      )} MB (${archiveFileSize} B)`
-    )
-
-    await extractTar(archivePath, compressionMethod)
-    core.info('Cache restored successfully')
-
-    return cacheEntry.cache_key
+    return cacheKey
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
+      // Suppress all non-validation cache related errors because caching should be optional
       core.warning(`Failed to restore: ${(error as Error).message}`)
     }
   } finally {
@@ -155,13 +255,14 @@ export async function restoreCache(
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
  * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
- * @param options cache upload options
- * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
+ * @param enableCrossArchArchive an optional boolean enabled to save cache on any arch which could be restored on any arch
+ * @returns string returns cacheId if the cache was saved successfully and throws an error if save fails
  */
 export async function saveCache(
   paths: string[],
   key: string,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  enableCrossArchArchive = false
 ): Promise<string> {
   checkPaths(paths)
   checkKey(key)
@@ -192,35 +293,45 @@ export async function saveCache(
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
-    const fileSizeLimit = 20 * 1024 * 1024 * 1024 // 20GB per repo limit
+    const fileSizeLimit = 1000 * 1024 * 1024 * 1024 // 1000GB per repo limit
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
 
-    // For GHES, this check will take place in ReserveCache API with enterprise file size limit
-    if (archiveFileSize > fileSizeLimit && !utils.isGhes()) {
+    if (archiveFileSize > fileSizeLimit) {
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
+        )} MB (${archiveFileSize} B) is over the 1000GB limit, not saving cache.`
       )
     }
 
+    const cacheVersion = cacheHttpClient.getCacheVersion(
+      paths,
+      compressionMethod,
+      enableCrossOsArchive,
+      enableCrossArchArchive
+    )
+
     core.debug('Reserving Cache')
-    // Calculate number of chunks required
+    // Calculate number of chunks required. This is only required if backend is S3 as Google Cloud SDK will do it for us
     const uploadOptions = getUploadOptions()
     const maxChunkSize = uploadOptions?.uploadChunkSize ?? 32 * 1024 * 1024 // Default 32MB
     const numberOfChunks = Math.floor(archiveFileSize / maxChunkSize)
     const reserveCacheResponse = await cacheHttpClient.reserveCache(
       key,
       numberOfChunks,
-      {
-        compressionMethod,
-        enableCrossOsArchive,
-        cacheSize: archiveFileSize
-      }
+      cacheVersion
     )
 
-    if (reserveCacheResponse?.statusCode === 400) {
+    if (!isSuccessStatusCode(reserveCacheResponse?.statusCode)) {
+      core.debug(`Failed to reserve cache: ${reserveCacheResponse?.statusCode}`)
+      core.debug(
+        `Reserve Cache Request: ${JSON.stringify({
+          key,
+          numberOfChunks,
+          cacheVersion
+        })}`
+      )
       throw new Error(
         reserveCacheResponse?.error?.message ??
           `Cache size of ~${Math.round(
@@ -229,20 +340,40 @@ export async function saveCache(
       )
     }
 
-    core.debug(`Saving Cache`)
-    cacheKey = await cacheHttpClient.saveCache(
-      key,
-      cacheHttpClient.getCacheVersion(
-        paths,
-        compressionMethod,
-        enableCrossOsArchive
-      ),
-      reserveCacheResponse?.result?.upload_id ?? '',
-      reserveCacheResponse?.result?.upload_key ?? '',
-      numberOfChunks,
-      reserveCacheResponse?.result?.pre_signed_urls ?? [],
-      archivePath
-    )
+    switch (reserveCacheResponse.result?.provider) {
+      case 's3':
+        core.debug(`Saving Cache to S3`)
+        cacheKey = await cacheHttpClient.saveCache(
+          's3',
+          key,
+          cacheVersion,
+          archivePath,
+          reserveCacheResponse?.result?.s3?.upload_id ?? '',
+          reserveCacheResponse?.result?.s3?.upload_key ?? '',
+          numberOfChunks,
+          reserveCacheResponse?.result?.s3?.pre_signed_urls ?? []
+        )
+        break
+
+      case 'gcs':
+        core.debug(`Saving Cache to GCS`)
+        cacheKey = await cacheHttpClient.saveCache(
+          'gcs',
+          key,
+          cacheVersion,
+          archivePath,
+          // S3 Params are undefined for GCS
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          reserveCacheResponse?.result?.gcs?.short_lived_token?.access_token ??
+            '',
+          reserveCacheResponse?.result?.gcs?.bucket_name ?? '',
+          reserveCacheResponse?.result?.gcs?.cache_key ?? ''
+        )
+        break
+    }
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -266,18 +397,30 @@ export async function saveCache(
 
 /**
  * Deletes an entire cache by cache key.
- * @param keys The cache keys
+ * @param key The cache keys
  */
-export async function deleteCache(keys: string[]): Promise<void> {
-  for (const key of keys) {
-    checkKey(key)
-  }
+export async function deleteCache(
+  paths: string[],
+  key: string,
+  enableCrossOsArchive = false,
+  enableCrossArchArchive = false
+): Promise<void> {
+  checkKey(key)
 
   core.debug('Deleting Cache')
-  core.debug(`Cache Keys: ${keys}`)
+  core.debug(`Cache Key: ${key}`)
+
+  const compressionMethod = await utils.getCompressionMethod()
+
+  const cacheVersion = cacheHttpClient.getCacheVersion(
+    paths,
+    compressionMethod,
+    enableCrossOsArchive,
+    enableCrossArchArchive
+  )
 
   try {
-    await cacheHttpClient.deleteCache(keys)
+    await cacheHttpClient.deleteCache(key, cacheVersion)
   } catch (error) {
     core.warning(`Failed to delete cache: ${error}`)
   }

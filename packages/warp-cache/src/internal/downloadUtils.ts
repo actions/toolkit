@@ -13,6 +13,8 @@ import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
+import {Storage, TransferManager} from '@google-cloud/storage'
+import {ChildProcessWithoutNullStreams, spawn} from 'child_process'
 
 /**
  * Pipes the body of a HTTP response to a stream
@@ -291,4 +293,67 @@ export async function downloadCacheMultiConnection(
     downloadProgress?.stopDisplayTimer()
     await fileHandle?.close()
   }
+}
+
+/**
+ * Download cache in multipart using the Gcloud SDK
+ *
+ * @param archiveLocation the URL for the cache
+ */
+export async function downloadCacheMultipartGCP(
+  storage: Storage,
+  archiveLocation: string,
+  archivePath: string
+) {
+  try {
+    const {bucketName, objectName} =
+      utils.retrieveGCSBucketAndObjectName(archiveLocation)
+
+    const transferManager = new TransferManager(storage.bucket(bucketName))
+    await transferManager.downloadFileInChunks(objectName, {
+      destination: archivePath,
+      noReturnData: true,
+      chunkSizeBytes: 1024 * 1024 * 8
+    })
+  } catch (error) {
+    core.debug(`Failed to download cache: ${error}`)
+    core.error(`Failed to download cache.`)
+    throw error
+  }
+}
+
+/**
+ * Download the cache to a provider writable stream using GCloud SDK
+ *
+ * @param archiveLocation the URL for the cache
+ */
+export function downloadCacheStreamingGCP(
+  storage: Storage,
+  archiveLocation: string
+): NodeJS.ReadableStream | undefined {
+  try {
+    // The archiveLocation for GCP will be in the format of gs://<bucket-name>/<object-name>
+    const {bucketName, objectName} =
+      utils.retrieveGCSBucketAndObjectName(archiveLocation)
+
+    storage
+      .bucket(bucketName)
+      .file(objectName)
+      .getMetadata()
+      .then(data => {
+        core.info(`File size: ${data[0]?.size} bytes`)
+      })
+
+    return storage.bucket(bucketName).file(objectName).createReadStream()
+  } catch (error) {
+    core.debug(`Failed to download cache: ${error}`)
+    core.error(`Failed to download cache.`)
+    throw error
+  }
+}
+
+export function getDownloadCommandPipeForWget(
+  url: string
+): ChildProcessWithoutNullStreams {
+  return spawn('wget', ['-qO', '-', url])
 }
