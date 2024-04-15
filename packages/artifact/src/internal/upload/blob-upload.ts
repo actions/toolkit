@@ -60,8 +60,6 @@ export async function uploadZipToBlobStorage(
     lastProgressTime = Date.now()
   }
 
-  // // Timeout if the upload stalls
-  // const progressTimeout
   const options: BlockBlobUploadStreamOptions = {
     blobHTTPHeaders: {blobContentType: 'zip'},
     onProgress: uploadCallback
@@ -108,9 +106,6 @@ export async function uploadZipToBlobStorage(
       `No data was uploaded to blob storage. Reported upload byte count is 0.`
     )
   }
-
-  // clear the progress timeout when upload completes
-  clearTimeout(chunkTimer(timeoutDuration))
   return {
     uploadSize: uploadByteCount,
     sha256Hash
