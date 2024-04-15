@@ -62,6 +62,20 @@ function getVCSRef(): string {
   return vcsBranch
 }
 
+function getAnnotations(): {[key: string]: string} {
+  const annotations: {[key: string]: string} = {
+    GITHUB_WORKFLOW: process.env['GITHUB_WORKFLOW'] ?? '',
+    GITHUB_RUN_ID: process.env['GITHUB_RUN_ID'] ?? '',
+    GITHUB_RUN_ATTEMPT: process.env['GITHUB_RUN_ATTEMPT'] ?? '',
+    GITHUB_JOB: process.env['GITHUB_JOB'] ?? '',
+    GITHUB_REPOSITORY: process.env['GITHUB_REPOSITORY'] ?? '',
+    GITHUB_REF: process.env['GITHUB_REF'] ?? '',
+    GITHUB_ACTION: process.env['GITHUB_ACTION'] ?? '',
+    RUNNER_NAME: process.env['RUNNER_NAME'] ?? ''
+  }
+  return annotations
+}
+
 function getRequestOptions(): RequestOptions {
   const requestOptions: RequestOptions = {
     headers: {
@@ -132,7 +146,8 @@ export async function getCacheEntry(
     restore_keys: restoreKeys,
     cache_version: version,
     vcs_repository: getVCSRepository(),
-    vcs_ref: getVCSRef()
+    vcs_ref: getVCSRef(),
+    annotations: getAnnotations()
   }
 
   const response = await retryTypedResponse('getCacheEntry', async () =>
@@ -254,7 +269,8 @@ export async function reserveCache(
     number_of_chunks: numberOfChunks,
     content_type: 'application/zstd',
     vcs_repository: getVCSRepository(),
-    vcs_ref: getVCSRef()
+    vcs_ref: getVCSRef(),
+    annotations: getAnnotations()
   }
   const response = await retryTypedResponse('reserveCache', async () =>
     httpClient.postJson<CommonsReserveCacheResponse>(
@@ -286,7 +302,8 @@ async function commitCache(
     parts: parts,
     vcs_type: 'github',
     vcs_repository: getVCSRepository(),
-    vcs_ref: getVCSRef()
+    vcs_ref: getVCSRef(),
+    annotations: getAnnotations()
   }
   return await retryTypedResponse('commitCache', async () =>
     httpClient.postJson<CommonsCommitCacheResponse>(
@@ -407,7 +424,8 @@ export async function deleteCache(cacheKey: string, cacheVersion: string) {
     cache_key: cacheKey,
     cache_version: cacheVersion,
     vcs_repository: getVCSRepository(),
-    vcs_ref: getVCSRef()
+    vcs_ref: getVCSRef(),
+    annotations: getAnnotations()
   }
 
   const response = await retryTypedResponse('deleteCacheEntry', async () =>
