@@ -24,11 +24,30 @@ export async function uploadZipToBlobStorage(
   zipUploadStream: ZipUploadStream
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
+  let lastProgressTime = Date.now()
+  let timeoutId: NodeJS.Timeout | undefined
 
+  const chunkTimer = (timeout: number): NodeJS.Timeout => {
+    // clear the previous timeout
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
+
+    timeoutId = setTimeout(() => {
+      const now = Date.now()
+      // if there's been more than 30 seconds since the
+      // last progress event, then we'll consider the upload stalled
+      if (now - lastProgressTime > timeout) {
+        throw new Error('Upload progress stalled.')
+      }
+    }, timeout)
+    return timeoutId
+  }
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
   const blobClient = new BlobClient(authenticatedUploadURL)
   const blockBlobClient = blobClient.getBlockBlobClient()
+  const timeoutDuration = 300000 // 30 seconds
 
   core.debug(
     `Uploading artifact zip to blob storage with maxConcurrency: ${maxConcurrency}, bufferSize: ${bufferSize}`
@@ -37,6 +56,8 @@ export async function uploadZipToBlobStorage(
   const uploadCallback = (progress: TransferProgressEvent): void => {
     core.info(`Uploaded bytes ${progress.loadedBytes}`)
     uploadByteCount = progress.loadedBytes
+    chunkTimer(timeoutDuration)
+    lastProgressTime = Date.now()
   }
 
   const options: BlockBlobUploadStreamOptions = {
@@ -54,6 +75,8 @@ export async function uploadZipToBlobStorage(
   core.info('Beginning upload of artifact content to blob storage')
 
   try {
+    // Start the chunk timer
+    timeoutId = chunkTimer(timeoutDuration)
     await blockBlobClient.uploadStream(
       uploadStream,
       bufferSize,
@@ -64,8 +87,12 @@ export async function uploadZipToBlobStorage(
     if (NetworkError.isNetworkErrorCode(error?.code)) {
       throw new NetworkError(error?.code)
     }
-
     throw error
+  } finally {
+    // clear the timeout whether or not the upload completes
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+    }
   }
 
   core.info('Finished uploading artifact content to blob storage!')
@@ -79,7 +106,6 @@ export async function uploadZipToBlobStorage(
       `No data was uploaded to blob storage. Reported upload byte count is 0.`
     )
   }
-
   return {
     uploadSize: uploadByteCount,
     sha256Hash
