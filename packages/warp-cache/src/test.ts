@@ -31,14 +31,14 @@ process.env['GITHUB_REF'] = 'refs/heads/main'
 //   true
 // )
 
-// restoreCache(
-//   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
-//   'test-fs-local-key',
-//   ['test-fs'],
-//   {},
-//   true,
-//   false
-// )
+restoreCache(
+  ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],
+  'test-fs-local-key',
+  ['test-fs'],
+  {},
+  true,
+  false
+)
 
 // deleteCache(
 //   ['/Users/prajjwal/Repos/warpbuild/playground/test_fs'],

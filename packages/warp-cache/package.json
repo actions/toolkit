@@ -1,6 +1,6 @@
 {
   "name": "github-actions.warp-cache",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "preview": true,
   "description": "Github action to use WarpBuild's in-house cache offering",
   "keywords": [

@@ -311,7 +311,8 @@ export async function downloadCacheMultipartGCP(
     const transferManager = new TransferManager(storage.bucket(bucketName))
     await transferManager.downloadFileInChunks(objectName, {
       destination: archivePath,
-      chunkSizeBytes: 8 * 1024 * 1024 // 8MB chunk size
+      noReturnData: true,
+      chunkSizeBytes: 1024 * 1024 * 8
     })
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
