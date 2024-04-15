@@ -10,6 +10,7 @@ import {noopLogs} from './common'
 import {FilesNotFoundError} from '../src/internal/shared/errors'
 import {BlockBlobClient} from '@azure/storage-blob'
 import * as fs from 'fs'
+import {writeFile} from 'fs/promises'
 import * as path from 'path'
 
 describe('upload-artifact', () => {
@@ -361,36 +362,11 @@ describe('upload-artifact', () => {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, {recursive: true})
     }
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    await fs.writeFile(
-      path.join(dirPath, 'file1.txt'),
-      'test file content',
-      err => {
-        if (err) {
-          throw err
-        }
-      }
-    )
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    await fs.writeFile(
-      path.join(dirPath, 'file2.txt'),
-      'test file content',
-      err => {
-        if (err) {
-          throw err
-        }
-      }
-    )
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    await fs.writeFile(
-      path.join(dirPath, 'file3.txt'),
-      'test file content',
-      err => {
-        if (err) {
-          throw err
-        }
-      }
-    )
+
+    await writeFile(path.join(dirPath, 'file1.txt'), 'test file content')
+    await writeFile(path.join(dirPath, 'file2.txt'), 'test file content')
+
+    await writeFile(path.join(dirPath, 'file3.txt'), 'test file content')
 
     jest
       .spyOn(uploadZipSpecification, 'validateRootDirectory')
