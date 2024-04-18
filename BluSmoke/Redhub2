@@ -1,0 +1,45 @@
+import os
+import requests
+from github import Github
+
+# GitHub credentials
+username = 'Redhub2'
+token = 'YOUR_GITHUB_TOKEN'
+repo_name = 'custom-app'
+
+# Initialize GitHub client
+g = Github(token)
+user = g.get_user(Redhub2)
+
+# Create a new repository
+repo = user.create_repo(repo_name)
+
+# Directory structure for the custom application
+directories = ['python', 'java', 'ruby']
+
+# Create directories and files
+for directory in directories:
+    os.makedirs(f'{repo_name}/{directory}', exist_ok=True)
+    with open(f'{repo_name}/{directory}/README.md', 'w') as f:
+        f.write(f'# {directory} commands')
+    with open(f'{repo_name}/{directory}/commands.txt', 'w') as f:
+        if directory == 'python':
+            f.write('print("Hello, World!")\n')
+        elif directory == 'java':
+            f.write('public class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello, World!");\n\t}\n}')
+        elif directory == 'ruby':
+            f.write('puts "Hello, World!"')
+
+# Add and commit files to the repository
+repo_path = f'{os.getcwd()}/{repo_name}'
+os.chdir(repo_path)
+os.system('git init')
+os.system('git add .')
+os.system('git commit -m "Initial commit"')
+
+# Push to GitHub
+origin_url = f'https://{Redhub2}:{token}@github.com/{username}/{repo_name}.git'
+os.system(f'git remote add origin {origin_url}')
+os.system('git push -u origin master')
+
+print(f'Custom application generated at https://github.com/{username}/{repo_name}')
