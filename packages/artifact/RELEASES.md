@@ -1,5 +1,13 @@
 # @actions/artifact Releases
 
+### 2.1.6
+
+- Will retry on invalid request responses.
+
+### 2.1.5
+
+- Bumped `archiver` dependency to 7.0.1
+
 ### 2.1.4
 
 - Adds info-level logging for zip extraction
@@ -11,9 +19,9 @@
 ### 2.1.2
 
 - Updated the stream extract functionality to use `unzip.Parse()` instead of `unzip.Extract()` for greater control of unzipping artifacts
-  
+
 ### 2.1.1
- 
+
 - Updated `isGhes` check to include `.ghe.com` and `.ghe.localhost` as accepted hosts
 
 ### 2.1.0
