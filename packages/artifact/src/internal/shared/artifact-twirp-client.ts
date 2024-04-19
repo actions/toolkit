@@ -102,7 +102,6 @@ class ArtifactHttpClient implements Rpc {
       } catch (error) {
         if (error instanceof SyntaxError) {
           debug(`Raw Body: ${rawBody}`)
-          throw error
         }
 
         if (error instanceof UsageError) {

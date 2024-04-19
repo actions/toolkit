@@ -116,6 +116,54 @@ describe('artifact-http-client', () => {
     expect(mockPost).toHaveBeenCalledTimes(2)
   })
 
+  it('should retry if invalid body response', async () => {
+    const mockPost = jest
+      .fn(() => {
+        const msgSucceeded = new http.IncomingMessage(new net.Socket())
+        msgSucceeded.statusCode = 200
+        return {
+          message: msgSucceeded,
+          readBody: async () => {
+            return Promise.resolve(
+              `{"ok": true, "signedUploadUrl": "http://localhost:8080/upload"}`
+            )
+          }
+        }
+      })
+      .mockImplementationOnce(() => {
+        const msgFailed = new http.IncomingMessage(new net.Socket())
+        msgFailed.statusCode = 502
+        msgFailed.statusMessage = 'Bad Gateway'
+        return {
+          message: msgFailed,
+          readBody: async () => {
+            return Promise.resolve('💥')
+          }
+        }
+      })
+    const mockHttpClient = (
+      HttpClient as unknown as jest.Mock
+    ).mockImplementation(() => {
+      return {
+        post: mockPost
+      }
+    })
+
+    const client = internalArtifactTwirpClient(clientOptions)
+    const artifact = await client.CreateArtifact({
+      workflowRunBackendId: '1234',
+      workflowJobRunBackendId: '5678',
+      name: 'artifact',
+      version: 4
+    })
+
+    expect(mockHttpClient).toHaveBeenCalledTimes(1)
+    expect(artifact).toBeDefined()
+    expect(artifact.ok).toBe(true)
+    expect(artifact.signedUploadUrl).toBe('http://localhost:8080/upload')
+    expect(mockPost).toHaveBeenCalledTimes(2)
+  })
+
   it('should fail if the request fails 5 times', async () => {
     const mockPost = jest.fn(() => {
       const msgFailed = new http.IncomingMessage(new net.Socket())
