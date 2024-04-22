@@ -19,7 +19,7 @@
     "@types/jest": "^29.5.4",
     "@types/node": "^20.5.7",
     "@types/signale": "^1.4.1",
-    "concurrently": "^8.2.1",
+    "concurrently": "^8.2.2",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.9.0",
     "eslint-plugin-github": "^4.9.2",
