@@ -223,8 +223,8 @@ describe('download-artifact', () => {
       )
 
       // ensure path traversal was not possible
-      expect(fs.existsSync(path.join(fixtures.workspaceDir, 'x/etc/hosts'))).toBe(true);
-      expect(fs.existsSync(path.join(fixtures.workspaceDir, 'y/etc/hosts'))).toBe(true);
+      expect(fs.existsSync(path.join(fixtures.workspaceDir, 'x/etc/hosts'))).toBe(true)
+      expect(fs.existsSync(path.join(fixtures.workspaceDir, 'y/etc/hosts'))).toBe(true)
 
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })

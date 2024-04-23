@@ -90,7 +90,7 @@ export async function streamExtractExternal(
         reject(error)
       })
       .pipe(unzip.Extract({path: directory}))
-      .on('close', () => { 
+      .on('close', () => {
         clearTimeout(timer)
         resolve()
       })
