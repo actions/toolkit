@@ -5,6 +5,7 @@
 - Generate attestations using the v0.3 Sigstore bundle format.
 - Bump @sigstore/bundle from 2.2.0 to 2.3.0.
 - Bump @sigstore/sign from 2.2.3 to 2.3.0.
+- Remove dependency on make-fetch-happen
 
 ### 1.1.0
 
