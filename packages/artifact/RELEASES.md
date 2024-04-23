@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.1.7
+
+- Update unzip-stream dependency and reverted to using `unzip.Extract()`
+
 ### 2.1.6
 
 - Will retry on invalid request responses.
