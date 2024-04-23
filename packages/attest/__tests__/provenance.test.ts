@@ -2,6 +2,7 @@ import * as github from '@actions/github'
 import {mockFulcio, mockRekor, mockTSA} from '@sigstore/mock'
 import * as jose from 'jose'
 import nock from 'nock'
+import {MockAgent, setGlobalDispatcher} from 'undici'
 import {SIGSTORE_GITHUB, SIGSTORE_PUBLIC_GOOD} from '../src/endpoints'
 import {attestProvenance, buildSLSAProvenancePredicate} from '../src/provenance'
 
@@ -11,6 +12,10 @@ describe('provenance functions', () => {
   const audience = 'nobody'
   const jwksPath = '/.well-known/jwks.json'
   const tokenPath = '/token'
+
+  // MockAgent for mocking @actions/github
+  const mockAgent = new MockAgent()
+  setGlobalDispatcher(mockAgent)
 
   const claims = {
     iss: issuer,
@@ -97,9 +102,12 @@ describe('provenance functions', () => {
         await mockFulcio({baseURL: fulcioURL, strict: false})
         await mockTSA({baseURL: tsaServerURL})
 
-        // Mock GH attestations API
-        nock('https://api.github.com')
-          .post(/^\/repos\/.*\/.*\/attestations$/)
+        mockAgent
+          .get('https://api.github.com')
+          .intercept({
+            path: /^\/repos\/.*\/.*\/attestations$/,
+            method: 'post'
+          })
           .reply(201, {id: attestationID})
       })
 
@@ -159,8 +167,12 @@ describe('provenance functions', () => {
         await mockRekor({baseURL: rekorURL})
 
         // Mock GH attestations API
-        nock('https://api.github.com')
-          .post(/^\/repos\/.*\/.*\/attestations$/)
+        mockAgent
+          .get('https://api.github.com')
+          .intercept({
+            path: /^\/repos\/.*\/.*\/attestations$/,
+            method: 'post'
+          })
           .reply(201, {id: attestationID})
       })
 
