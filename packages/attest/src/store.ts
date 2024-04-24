@@ -1,7 +1,12 @@
 import * as github from '@actions/github'
+import {retry} from '@octokit/plugin-retry'
 
 const CREATE_ATTESTATION_REQUEST = 'POST /repos/{owner}/{repo}/attestations'
+const DEFAULT_RETRY_COUNT = 5
 
+export type WriteOptions = {
+  retry?: number
+}
 /**
  * Writes an attestation to the repository's attestations endpoint.
  * @param attestation - The attestation to write.
@@ -11,9 +16,11 @@ const CREATE_ATTESTATION_REQUEST = 'POST /repos/{owner}/{repo}/attestations'
  */
 export const writeAttestation = async (
   attestation: unknown,
-  token: string
+  token: string,
+  options: WriteOptions = {}
 ): Promise<string> => {
-  const octokit = github.getOctokit(token)
+  const retries = options.retry ?? DEFAULT_RETRY_COUNT
+  const octokit = github.getOctokit(token, {retry: {retries}}, retry)
 
   try {
     const response = await octokit.request(CREATE_ATTESTATION_REQUEST, {

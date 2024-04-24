@@ -52,7 +52,39 @@ describe('writeAttestation', () => {
     })
 
     it('throws an error', async () => {
-      await expect(writeAttestation(attestation, token)).rejects.toThrow(/oops/)
+      await expect(
+        writeAttestation(attestation, token, {retry: 0})
+      ).rejects.toThrow(/oops/)
+    })
+  })
+
+  describe('when the api call fails but succeeds on retry', () => {
+    beforeEach(() => {
+      const pool = mockAgent.get('https://api.github.com')
+
+      pool
+        .intercept({
+          path: '/repos/foo/bar/attestations',
+          method: 'POST',
+          headers: {authorization: `token ${token}`},
+          body: JSON.stringify({bundle: attestation})
+        })
+        .reply(500, 'oops')
+        .times(1)
+
+      pool
+        .intercept({
+          path: '/repos/foo/bar/attestations',
+          method: 'POST',
+          headers: {authorization: `token ${token}`},
+          body: JSON.stringify({bundle: attestation})
+        })
+        .reply(201, {id: '123'})
+        .times(1)
+    })
+
+    it('persists the attestation', async () => {
+      await expect(writeAttestation(attestation, token)).resolves.toEqual('123')
     })
   })
 })

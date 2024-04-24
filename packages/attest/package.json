@@ -1,6 +1,6 @@
 {
   "name": "@actions/attest",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Actions attestation lib",
   "keywords": [
     "github",
@@ -46,9 +46,15 @@
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
     "@actions/http-client": "^2.2.1",
+    "@octokit/plugin-retry": "^6.0.1",
     "@sigstore/bundle": "^2.3.0",
     "@sigstore/sign": "^2.3.0",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.1.0"
+  },
+  "overrides": {
+    "@octokit/plugin-retry": {
+      "@octokit/core": "^5.2.0"
+    }
   }
 }
