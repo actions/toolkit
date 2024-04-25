@@ -1,5 +1,9 @@
 # @actions/attest Releases
 
+### 1.2.1
+
+- Retry request on attestation persistence failure
+
 ### 1.2.0
 
 - Generate attestations using the v0.3 Sigstore bundle format.
