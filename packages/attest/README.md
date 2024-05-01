@@ -12,6 +12,9 @@ Once the attestation has been created and signed, it will be uploaded to the GH
 attestations API and associated with the repository from which the workflow was
 initiated.
 
+See [Using artifact attestations to establish provenance for builds](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
+for more information on artifact attestations.
+
 ## Usage
 
 ### `attest`
