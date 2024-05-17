@@ -217,12 +217,36 @@ export async function restoreCache(
           }
         }
 
-        await extractStreamingTar(
-          readStream,
-          archivePath,
-          compressionMethod,
-          downloadCommandPipe
-        )
+        try {
+          await extractStreamingTar(
+            readStream,
+            archivePath,
+            compressionMethod,
+            downloadCommandPipe
+          )
+        } catch (error) {
+          core.info(`Streaming download failed. Retrying: ${error}`)
+          // Try to download the cache using the non-streaming method
+          await cacheHttpClient.downloadCache(
+            cacheEntry.provider,
+            archiveLocation,
+            archivePath,
+            cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+          )
+
+          if (core.isDebug()) {
+            await listTar(archivePath, compressionMethod)
+          }
+
+          const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+          core.info(
+            `Cache Size: ~${Math.round(
+              archiveFileSize / (1024 * 1024)
+            )} MB (${archiveFileSize} B)`
+          )
+
+          await extractTar(archivePath, compressionMethod)
+        }
         core.info('Cache restored successfully')
         break
       }
