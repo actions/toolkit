@@ -15,6 +15,7 @@ import {
   InternalS3CompletedPart
 } from './contracts'
 import {
+  downloadCacheGCP,
   downloadCacheMultiConnection,
   downloadCacheMultipartGCP,
   downloadCacheStreamingGCP
@@ -225,6 +226,33 @@ export async function downloadCache(
         authClient: oauth2Client
       })
       await downloadCacheMultipartGCP(storage, archiveLocation, archivePath)
+      break
+    }
+  }
+}
+
+export async function downloadCacheSingleThread(
+  provider: string,
+  archiveLocation: string,
+  archivePath: string,
+  gcsToken?: string
+): Promise<void> {
+  switch (provider) {
+    case 's3':
+      break
+    case 'gcs': {
+      if (!gcsToken) {
+        throw new Error(
+          'Unable to download cache from GCS. GCP token is not provided.'
+        )
+      }
+
+      const oauth2Client = new OAuth2Client()
+      oauth2Client.setCredentials({access_token: gcsToken})
+      const storage = new Storage({
+        authClient: oauth2Client
+      })
+      await downloadCacheGCP(storage, archiveLocation, archivePath)
       break
     }
   }

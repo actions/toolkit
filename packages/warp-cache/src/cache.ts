@@ -225,14 +225,31 @@ export async function restoreCache(
             downloadCommandPipe
           )
         } catch (error) {
-          core.info(`Streaming download failed. Retrying: ${error}`)
-          // Try to download the cache using the non-streaming method
-          await cacheHttpClient.downloadCache(
-            cacheEntry.provider,
-            archiveLocation,
-            archivePath,
-            cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+          core.info(
+            `Streaming download failed. Retrying with multipart: ${error}`
           )
+          // Wait 1 second
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          // Try to download the cache using the non-streaming method
+          try {
+            await cacheHttpClient.downloadCache(
+              cacheEntry.provider,
+              archiveLocation,
+              archivePath,
+              cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+            )
+          } catch (error) {
+            core.info(
+              `Multipart Download failed. Retrying with basic download: ${error}`
+            )
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            await cacheHttpClient.downloadCacheSingleThread(
+              cacheEntry.provider,
+              archiveLocation,
+              archivePath,
+              cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+            )
+          }
 
           if (core.isDebug()) {
             await listTar(archivePath, compressionMethod)

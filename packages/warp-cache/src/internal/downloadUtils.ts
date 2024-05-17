@@ -322,6 +322,26 @@ export async function downloadCacheMultipartGCP(
   }
 }
 
+export async function downloadCacheGCP(
+  storage: Storage,
+  archiveLocation: string,
+  archivePath: string
+) {
+  try {
+    const {bucketName, objectName} =
+      utils.retrieveGCSBucketAndObjectName(archiveLocation)
+
+    await storage.bucket(bucketName).file(objectName).download({
+      destination: archivePath,
+      validation: 'crc32c'
+    })
+  } catch (error) {
+    core.debug(`Failed to download cache: ${error}`)
+    core.error(`Failed to download cache.`)
+    throw error
+  }
+}
+
 /**
  * Download the cache to a provider writable stream using GCloud SDK
  *
