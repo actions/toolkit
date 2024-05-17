@@ -441,23 +441,49 @@ export async function extractStreamingTar(
   }
 
   return new Promise((resolve, reject) => {
+    const handleStreamError = (
+      stream: NodeJS.ReadableStream | NodeJS.WritableStream,
+      commandName: string
+    ) => {
+      stream.on('error', error => {
+        reject(new Error(`Error in ${commandName}: ${error.message}`))
+      })
+    }
+
+    // Attach error handlers and pipe the streams
+    commandPipes.forEach(commandPipe => {
+      handleStreamError(commandPipe.stdin, commandPipe.spawnfile)
+      handleStreamError(commandPipe.stdout, commandPipe.spawnfile)
+      handleStreamError(commandPipe.stderr, commandPipe.spawnfile)
+
+      commandPipe.stderr.on('data', data => {
+        reject(
+          new Error(`Error in ${commandPipe.spawnfile}: ${data.toString()}`)
+        )
+      })
+    })
+
     if (stream) {
-      stream.pipe(commandPipes[0].stdin)
+      stream.pipe(commandPipes[0].stdin).on('error', error => {
+        reject(
+          new Error(
+            `Error piping to ${commandPipes[0].spawnfile}: ${error.message}`
+          )
+        )
+      })
     }
     for (let i = 0; i < commandPipes.length - 1; i++) {
-      commandPipes[i].stdout.pipe(commandPipes[i + 1].stdin)
-
-      commandPipes[i].stderr.on('data', data => {
-        reject(
-          new Error(`Error in ${commandPipes[i].spawnfile}: ${data.toString()}`)
-        )
-      })
-
-      commandPipes[i].on('error', error => {
-        reject(
-          new Error(`Error in ${commandPipes[i].spawnfile}: ${error.message}`)
-        )
-      })
+      commandPipes[i].stdout
+        .pipe(commandPipes[i + 1].stdin)
+        .on('error', error => {
+          reject(
+            new Error(
+              `Error piping between ${commandPipes[i].spawnfile} and ${
+                commandPipes[i + 1].spawnfile
+              }: ${error.message}`
+            )
+          )
+        })
     }
 
     const lastCommand = commandPipes[commandPipes.length - 1]
@@ -471,6 +497,9 @@ export async function extractStreamingTar(
       } else {
         reject(new Error(`Last command exited with code ${code}`))
       }
+    })
+    lastCommand.on('error', error => {
+      reject(new Error(`Error in ${lastCommand.spawnfile}: ${error.message}`))
     })
   })
 }
