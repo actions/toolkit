@@ -330,8 +330,6 @@ export async function downloadCacheGCP(
     const {bucketName, objectName} =
       utils.retrieveGCSBucketAndObjectName(archiveLocation)
 
-    storage.retryOptions.totalTimeout = 120
-
     await storage.bucket(bucketName).file(objectName).download({
       destination: archivePath,
       validation: 'crc32c'

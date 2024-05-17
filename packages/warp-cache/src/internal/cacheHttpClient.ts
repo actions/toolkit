@@ -250,7 +250,11 @@ export async function downloadCacheSingleThread(
       const oauth2Client = new OAuth2Client()
       oauth2Client.setCredentials({access_token: gcsToken})
       const storage = new Storage({
-        authClient: oauth2Client
+        authClient: oauth2Client,
+        retryOptions: {
+          autoRetry: false,
+          maxRetries: 1
+        }
       })
       await downloadCacheGCP(storage, archiveLocation, archivePath)
       break
