@@ -225,8 +225,9 @@ export async function restoreCache(
             downloadCommandPipe
           )
         } catch (error) {
+          core.debug(`Failed to download cache: ${error}`)
           core.info(
-            `Streaming download failed. Retrying with multipart: ${error}`
+            `Streaming download failed. Likely a cloud provider issue. Retrying with multipart download`
           )
           // Wait 1 second
           await new Promise(resolve => setTimeout(resolve, 1000))
@@ -239,16 +240,24 @@ export async function restoreCache(
               cacheEntry.gcs?.short_lived_token?.access_token ?? ''
             )
           } catch (error) {
+            core.debug(`Failed to download cache: ${error}`)
             core.info(
-              `Multipart Download failed. Retrying with basic download: ${error}`
+              `Multipart download failed. Likely a cloud provider issue. Retrying with basic download`
             )
+            // Wait 1 second
             await new Promise(resolve => setTimeout(resolve, 1000))
-            await cacheHttpClient.downloadCacheSingleThread(
-              cacheEntry.provider,
-              archiveLocation,
-              archivePath,
-              cacheEntry.gcs?.short_lived_token?.access_token ?? ''
-            )
+            // Try to download the cache using the basic method
+            try {
+              await cacheHttpClient.downloadCacheSingleThread(
+                cacheEntry.provider,
+                archiveLocation,
+                archivePath,
+                cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+              )
+            } catch (error) {
+              core.info('Cache Miss. Failed to download cache.')
+              return undefined
+            }
           }
 
           if (core.isDebug()) {

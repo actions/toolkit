@@ -317,7 +317,6 @@ export async function downloadCacheMultipartGCP(
     })
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
-    core.error(`Failed to download cache.`)
     throw error
   }
 }
@@ -331,13 +330,14 @@ export async function downloadCacheGCP(
     const {bucketName, objectName} =
       utils.retrieveGCSBucketAndObjectName(archiveLocation)
 
+    storage.retryOptions.totalTimeout = 120
+
     await storage.bucket(bucketName).file(objectName).download({
       destination: archivePath,
       validation: 'crc32c'
     })
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
-    core.error(`Failed to download cache.`)
     throw error
   }
 }
@@ -367,7 +367,6 @@ export function downloadCacheStreamingGCP(
     return storage.bucket(bucketName).file(objectName).createReadStream()
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
-    core.error(`Failed to download cache.`)
     throw error
   }
 }
