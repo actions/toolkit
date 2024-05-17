@@ -327,13 +327,32 @@ export async function downloadCacheGCP(
   archivePath: string
 ) {
   try {
+    const timeoutDuration = 300000 // 5 minutes
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Download timed out')), timeoutDuration)
+    )
+
     const {bucketName, objectName} =
       utils.retrieveGCSBucketAndObjectName(archiveLocation)
 
-    await storage.bucket(bucketName).file(objectName).download({
-      destination: archivePath,
-      validation: 'crc32c'
-    })
+    const downloadPromise = storage
+      .bucket(bucketName)
+      .file(objectName)
+      .download({
+        destination: archivePath,
+        validation: 'crc32c'
+      })
+
+    try {
+      await Promise.race([downloadPromise, timeoutPromise])
+      core.debug(
+        `Download completed for bucket: ${bucketName}, object: ${objectName}`
+      )
+    } catch (error) {
+      core.debug(`Failed to download cache: ${error}`)
+      throw error
+    }
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
     throw error

@@ -254,8 +254,7 @@ export async function downloadCacheSingleThread(
         retryOptions: {
           autoRetry: false,
           maxRetries: 1
-        },
-        timeout: 300
+        }
       })
       await downloadCacheGCP(storage, archiveLocation, archivePath)
       break
