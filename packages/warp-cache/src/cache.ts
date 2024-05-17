@@ -217,12 +217,62 @@ export async function restoreCache(
           }
         }
 
-        await extractStreamingTar(
-          readStream,
-          archivePath,
-          compressionMethod,
-          downloadCommandPipe
-        )
+        try {
+          await extractStreamingTar(
+            readStream,
+            archivePath,
+            compressionMethod,
+            downloadCommandPipe
+          )
+        } catch (error) {
+          core.debug(`Failed to download cache: ${error}`)
+          core.info(
+            `Streaming download failed. Likely a cloud provider issue. Retrying with multipart download`
+          )
+          // Wait 1 second
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          // Try to download the cache using the non-streaming method
+          try {
+            await cacheHttpClient.downloadCache(
+              cacheEntry.provider,
+              archiveLocation,
+              archivePath,
+              cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+            )
+          } catch (error) {
+            core.debug(`Failed to download cache: ${error}`)
+            core.info(
+              `Multipart download failed. Likely a cloud provider issue. Retrying with basic download`
+            )
+            // Wait 1 second
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            // Try to download the cache using the basic method
+            try {
+              await cacheHttpClient.downloadCacheSingleThread(
+                cacheEntry.provider,
+                archiveLocation,
+                archivePath,
+                cacheEntry.gcs?.short_lived_token?.access_token ?? ''
+              )
+            } catch (error) {
+              core.info('Cache Miss. Failed to download cache.')
+              return undefined
+            }
+          }
+
+          if (core.isDebug()) {
+            await listTar(archivePath, compressionMethod)
+          }
+
+          const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+          core.info(
+            `Cache Size: ~${Math.round(
+              archiveFileSize / (1024 * 1024)
+            )} MB (${archiveFileSize} B)`
+          )
+
+          await extractTar(archivePath, compressionMethod)
+        }
         core.info('Cache restored successfully')
         break
       }

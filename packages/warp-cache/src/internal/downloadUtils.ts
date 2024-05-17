@@ -313,11 +313,48 @@ export async function downloadCacheMultipartGCP(
     await transferManager.downloadFileInChunks(objectName, {
       destination: archivePath,
       noReturnData: true,
-      chunkSizeBytes: 1024 * 1024 * 8
+      validation: 'crc32c'
     })
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
-    core.error(`Failed to download cache.`)
+    throw error
+  }
+}
+
+export async function downloadCacheGCP(
+  storage: Storage,
+  archiveLocation: string,
+  archivePath: string
+) {
+  try {
+    const timeoutDuration = 300000 // 5 minutes
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Download timed out')), timeoutDuration)
+    )
+
+    const {bucketName, objectName} =
+      utils.retrieveGCSBucketAndObjectName(archiveLocation)
+
+    const downloadPromise = storage
+      .bucket(bucketName)
+      .file(objectName)
+      .download({
+        destination: archivePath,
+        validation: 'crc32c'
+      })
+
+    try {
+      await Promise.race([downloadPromise, timeoutPromise])
+      core.debug(
+        `Download completed for bucket: ${bucketName}, object: ${objectName}`
+      )
+    } catch (error) {
+      core.debug(`Failed to download cache: ${error}`)
+      throw error
+    }
+  } catch (error) {
+    core.debug(`Failed to download cache: ${error}`)
     throw error
   }
 }
@@ -347,7 +384,6 @@ export function downloadCacheStreamingGCP(
     return storage.bucket(bucketName).file(objectName).createReadStream()
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
-    core.error(`Failed to download cache.`)
     throw error
   }
 }
