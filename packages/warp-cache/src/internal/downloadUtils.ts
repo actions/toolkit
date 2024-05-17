@@ -313,7 +313,7 @@ export async function downloadCacheMultipartGCP(
     await transferManager.downloadFileInChunks(objectName, {
       destination: archivePath,
       noReturnData: true,
-      chunkSizeBytes: 1024 * 1024 * 8
+      validation: 'crc32c'
     })
   } catch (error) {
     core.debug(`Failed to download cache: ${error}`)
