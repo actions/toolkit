@@ -42,15 +42,14 @@ export const signingEndpoints = (sigstore?: SigstoreInstance): Endpoints => {
 }
 
 function buildGitHubEndpoints(): Endpoints {
-  const serverURL = process.env.GITHUB_SERVER_URL ?? `https://github.com`
-  let url = serverURL.replace('https://', '')
+  const serverURL = process.env.GITHUB_SERVER_URL || 'https://github.com'
+  let host = new URL(serverURL).hostname
 
-  if (url === 'github.com') {
-    url = 'githubapp.com'
+  if (host === 'github.com') {
+    host = 'githubapp.com'
   }
-  const endpoints: Endpoints = {
-    fulcioURL: `https://fulcio.${url}`,
-    tsaServerURL: `https://timestamp.${url}`
+  return {
+    fulcioURL: `https://fulcio.${hostl}`,
+    tsaServerURL: `https://timestamp.${host}`
   }
-  return endpoints
 }
