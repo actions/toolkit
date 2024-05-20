@@ -49,7 +49,7 @@ function buildGitHubEndpoints(): Endpoints {
     host = 'githubapp.com'
   }
   return {
-    fulcioURL: `https://fulcio.${hostl}`,
+    fulcioURL: `https://fulcio.${host}`,
     tsaServerURL: `https://timestamp.${host}`
   }
 }
