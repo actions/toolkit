@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "2.0.0",
+  "version": "2.1.7",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -30,10 +30,11 @@
   },
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
-    "test": "echo \"Error: run tests from root\" && exit 1",
+    "test": "cd ../../ && npm run test ./packages/artifact",
     "bootstrap": "cd ../../ && npm run bootstrap",
     "tsc-run": "tsc",
-    "tsc": "npm run bootstrap && npm run tsc-run"
+    "tsc": "npm run bootstrap && npm run tsc-run",
+    "gen:docs": "typedoc --plugin typedoc-plugin-markdown --out docs/generated src/artifact.ts --githubPages false --readme none"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -48,15 +49,17 @@
     "@octokit/plugin-retry": "^3.0.9",
     "@octokit/request-error": "^5.0.0",
     "@protobuf-ts/plugin": "^2.2.3-alpha.1",
-    "@types/unzipper": "^0.10.6",
-    "archiver": "^5.3.1",
+    "archiver": "^7.0.1",
     "crypto": "^1.0.1",
     "jwt-decode": "^3.1.2",
     "twirp-ts": "^2.5.0",
-    "unzipper": "^0.10.14"
+    "unzip-stream": "^0.3.1"
   },
   "devDependencies": {
     "@types/archiver": "^5.3.2",
+    "@types/unzip-stream": "^0.3.4",
+    "typedoc": "^0.25.4",
+    "typedoc-plugin-markdown": "^3.17.1",
     "typescript": "^5.2.2"
   }
 }

@@ -11,6 +11,12 @@ describe('basics', () => {
     _http.dispose()
   })
 
+  it.each([true, false])('creates Agent with keepAlive %s', keepAlive => {
+    const http = new httpm.HttpClient('http-client-tests', [], {keepAlive})
+    const agent = http.getAgent('http://postman-echo.com')
+    expect(agent).toHaveProperty('keepAlive', keepAlive)
+  })
+
   it('does basic http get request with keepAlive true', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
       'http://postman-echo.com/get'

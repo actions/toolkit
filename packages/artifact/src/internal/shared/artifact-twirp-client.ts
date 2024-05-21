@@ -3,6 +3,8 @@ import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
+import {getUserAgentString} from './user-agent'
+import {NetworkError, UsageError} from './errors'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -52,17 +54,17 @@ class ArtifactHttpClient implements Rpc {
     contentType: 'application/json' | 'application/protobuf',
     data: object | Uint8Array
   ): Promise<object | Uint8Array> {
-    const url = `${this.baseUrl}/twirp/${service}/${method}`
-    debug(`Requesting ${url}`)
+    const url = new URL(`/twirp/${service}/${method}`, this.baseUrl).href
+    debug(`[Request] ${method} ${url}`)
     const headers = {
       'Content-Type': contentType
     }
     try {
-      const response = await this.retryableRequest(async () =>
+      const {body} = await this.retryableRequest(async () =>
         this.httpClient.post(url, JSON.stringify(data), headers)
       )
-      const body = await response.readBody()
-      return JSON.parse(body)
+
+      return body
     } catch (error) {
       throw new Error(`Failed to ${method}: ${error.message}`)
     }
@@ -70,23 +72,46 @@ class ArtifactHttpClient implements Rpc {
 
   async retryableRequest(
     operation: () => Promise<HttpClientResponse>
-  ): Promise<HttpClientResponse> {
+  ): Promise<{response: HttpClientResponse; body: object}> {
     let attempt = 0
     let errorMessage = ''
+    let rawBody = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
 
       try {
         const response = await operation()
         const statusCode = response.message.statusCode
-
+        rawBody = await response.readBody()
+        debug(`[Response] - ${response.message.statusCode}`)
+        debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
+        const body = JSON.parse(rawBody)
+        debug(`Body: ${JSON.stringify(body, null, 2)}`)
         if (this.isSuccessStatusCode(statusCode)) {
-          return response
+          return {response, body}
         }
-
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
+        if (body.msg) {
+          if (UsageError.isUsageErrorMessage(body.msg)) {
+            throw new UsageError()
+          }
+
+          errorMessage = `${errorMessage}: ${body.msg}`
+        }
       } catch (error) {
+        if (error instanceof SyntaxError) {
+          debug(`Raw Body: ${rawBody}`)
+        }
+
+        if (error instanceof UsageError) {
+          throw error
+        }
+
+        if (NetworkError.isNetworkErrorCode(error?.code)) {
+          throw new NetworkError(error?.code)
+        }
+
         isRetryable = true
         errorMessage = error.message
       }
@@ -128,8 +153,7 @@ class ArtifactHttpClient implements Rpc {
       HttpCodes.GatewayTimeout,
       HttpCodes.InternalServerError,
       HttpCodes.ServiceUnavailable,
-      HttpCodes.TooManyRequests,
-      413 // Payload Too Large
+      HttpCodes.TooManyRequests
     ]
 
     return retryableStatusCodes.includes(statusCode)
@@ -157,17 +181,16 @@ class ArtifactHttpClient implements Rpc {
   }
 }
 
-export function createArtifactTwirpClient(
-  type: 'upload' | 'download',
-  maxAttempts?: number,
-  baseRetryIntervalMilliseconds?: number,
+export function internalArtifactTwirpClient(options?: {
+  maxAttempts?: number
+  retryIntervalMs?: number
   retryMultiplier?: number
-): ArtifactServiceClientJSON {
+}): ArtifactServiceClientJSON {
   const client = new ArtifactHttpClient(
-    `@actions/artifact-${type}`,
-    maxAttempts,
-    baseRetryIntervalMilliseconds,
-    retryMultiplier
+    getUserAgentString(),
+    options?.maxAttempts,
+    options?.retryIntervalMs,
+    options?.retryMultiplier
   )
   return new ArtifactServiceClientJSON(client)
 }

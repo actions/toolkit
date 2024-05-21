@@ -7,23 +7,27 @@ import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
+import {getBackendIdsFromToken} from '../shared/util'
+import {ListArtifactsRequest, Timestamp} from '../../generated'
 
 // Limiting to 1000 for perf reasons
 const maximumArtifactCount = 1000
 const paginationCount = 100
 const maxNumberOfPages = maximumArtifactCount / paginationCount
 
-export async function listArtifacts(
+export async function listArtifactsPublic(
   workflowRunId: number,
   repositoryOwner: string,
   repositoryName: string,
-  token: string
+  token: string,
+  latest = false
 ): Promise<ListArtifactsResponse> {
   info(
     `Fetching artifact list for workflow run ${workflowRunId} in repository ${repositoryOwner}/${repositoryName}`
   )
 
-  const artifacts: Artifact[] = []
+  let artifacts: Artifact[] = []
   const [retryOpts, requestOpts] = getRetryOptions(defaultGitHubOptions)
 
   const opts: OctokitOptions = {
@@ -62,8 +66,8 @@ export async function listArtifacts(
     artifacts.push({
       name: artifact.name,
       id: artifact.id,
-      url: artifact.url,
-      size: artifact.size_in_bytes
+      size: artifact.size_in_bytes,
+      createdAt: artifact.created_at ? new Date(artifact.created_at) : undefined
     })
   }
 
@@ -89,15 +93,73 @@ export async function listArtifacts(
       artifacts.push({
         name: artifact.name,
         id: artifact.id,
-        url: artifact.url,
-        size: artifact.size_in_bytes
+        size: artifact.size_in_bytes,
+        createdAt: artifact.created_at
+          ? new Date(artifact.created_at)
+          : undefined
       })
     }
   }
 
-  info(`Finished fetching artifact list`)
+  if (latest) {
+    artifacts = filterLatest(artifacts)
+  }
+
+  info(`Found ${artifacts.length} artifact(s)`)
 
   return {
     artifacts
   }
+}
+
+export async function listArtifactsInternal(
+  latest = false
+): Promise<ListArtifactsResponse> {
+  const artifactClient = internalArtifactTwirpClient()
+
+  const {workflowRunBackendId, workflowJobRunBackendId} =
+    getBackendIdsFromToken()
+
+  const req: ListArtifactsRequest = {
+    workflowRunBackendId,
+    workflowJobRunBackendId
+  }
+
+  const res = await artifactClient.ListArtifacts(req)
+  let artifacts: Artifact[] = res.artifacts.map(artifact => ({
+    name: artifact.name,
+    id: Number(artifact.databaseId),
+    size: Number(artifact.size),
+    createdAt: artifact.createdAt
+      ? Timestamp.toDate(artifact.createdAt)
+      : undefined
+  }))
+
+  if (latest) {
+    artifacts = filterLatest(artifacts)
+  }
+
+  info(`Found ${artifacts.length} artifact(s)`)
+
+  return {
+    artifacts
+  }
+}
+
+/**
+ * Filters a list of artifacts to only include the latest artifact for each name
+ * @param artifacts The artifacts to filter
+ * @returns The filtered list of artifacts
+ */
+function filterLatest(artifacts: Artifact[]): Artifact[] {
+  artifacts.sort((a, b) => b.id - a.id)
+  const latestArtifacts: Artifact[] = []
+  const seenArtifactNames = new Set<string>()
+  for (const artifact of artifacts) {
+    if (!seenArtifactNames.has(artifact.name)) {
+      latestArtifacts.push(artifact)
+      seenArtifactNames.add(artifact.name)
+    }
+  }
+  return latestArtifacts
 }

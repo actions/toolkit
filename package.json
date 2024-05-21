@@ -13,7 +13,7 @@
     "lint": "eslint packages/**/*.ts",
     "lint-fix": "eslint packages/**/*.ts --fix",
     "new-package": "scripts/create-package",
-    "test": "jest --testTimeout 10000"
+    "test": "jest --testTimeout 70000"
   },
   "devDependencies": {
     "@types/jest": "^29.5.4",
@@ -27,7 +27,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "flow-bin": "^0.115.0",
     "jest": "^29.6.4",
-    "lerna": "^7.1.4",
+    "lerna": "^6.4.1",
     "nx": "16.6.0",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.1",
