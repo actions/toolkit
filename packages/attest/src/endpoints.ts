@@ -6,9 +6,6 @@ const GITHUB_ID = 'github'
 const FULCIO_PUBLIC_GOOD_URL = 'https://fulcio.sigstore.dev'
 const REKOR_PUBLIC_GOOD_URL = 'https://rekor.sigstore.dev'
 
-const FULCIO_INTERNAL_URL = 'https://fulcio.githubapp.com'
-const TSA_INTERNAL_URL = 'https://timestamp.githubapp.com'
-
 export type SigstoreInstance = typeof PUBLIC_GOOD_ID | typeof GITHUB_ID
 
 export type Endpoints = {
@@ -20,11 +17,6 @@ export type Endpoints = {
 export const SIGSTORE_PUBLIC_GOOD: Endpoints = {
   fulcioURL: FULCIO_PUBLIC_GOOD_URL,
   rekorURL: REKOR_PUBLIC_GOOD_URL
-}
-
-export const SIGSTORE_GITHUB: Endpoints = {
-  fulcioURL: FULCIO_INTERNAL_URL,
-  tsaServerURL: TSA_INTERNAL_URL
 }
 
 export const signingEndpoints = (sigstore?: SigstoreInstance): Endpoints => {
@@ -45,6 +37,19 @@ export const signingEndpoints = (sigstore?: SigstoreInstance): Endpoints => {
     case PUBLIC_GOOD_ID:
       return SIGSTORE_PUBLIC_GOOD
     case GITHUB_ID:
-      return SIGSTORE_GITHUB
+      return buildGitHubEndpoints()
+  }
+}
+
+function buildGitHubEndpoints(): Endpoints {
+  const serverURL = process.env.GITHUB_SERVER_URL || 'https://github.com'
+  let host = new URL(serverURL).hostname
+
+  if (host === 'github.com') {
+    host = 'githubapp.com'
+  }
+  return {
+    fulcioURL: `https://fulcio.${host}`,
+    tsaServerURL: `https://timestamp.${host}`
   }
 }

@@ -3,7 +3,7 @@ import {mockFulcio, mockRekor, mockTSA} from '@sigstore/mock'
 import * as jose from 'jose'
 import nock from 'nock'
 import {MockAgent, setGlobalDispatcher} from 'undici'
-import {SIGSTORE_GITHUB, SIGSTORE_PUBLIC_GOOD} from '../src/endpoints'
+import {SIGSTORE_PUBLIC_GOOD, signingEndpoints} from '../src/endpoints'
 import {attestProvenance, buildSLSAProvenancePredicate} from '../src/provenance'
 
 describe('provenance functions', () => {
@@ -95,7 +95,7 @@ describe('provenance functions', () => {
     })
 
     describe('when using the github Sigstore instance', () => {
-      const {fulcioURL, tsaServerURL} = SIGSTORE_GITHUB
+      const {fulcioURL, tsaServerURL} = signingEndpoints('github')
 
       beforeEach(async () => {
         // Mock Sigstore
