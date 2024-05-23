@@ -111,6 +111,9 @@ export async function getCacheEntry(
     options?.compressionMethod,
     options?.enableCrossOsArchive
   )
+
+  core.console.log(`We're running from the abyss`);
+  
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
   )}&version=${version}`
