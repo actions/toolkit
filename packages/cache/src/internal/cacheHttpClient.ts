@@ -36,11 +36,12 @@ import {
   retryHttpClientResponse,
   retryTypedResponse
 } from './requestUtils'
+import {CacheUrl} from './constants'
 
 const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
-  const baseUrl: string = process.env['ACTIONS_CACHE_URL'] || ''
+  const baseUrl: string = CacheUrl || ''
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
@@ -111,8 +112,6 @@ export async function getCacheEntry(
     options?.compressionMethod,
     options?.enableCrossOsArchive
   )
-
-  core.debug(`We're running from the abyss`);
   
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')

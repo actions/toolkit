@@ -1,9 +1,12 @@
 import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
+import {CacheUrl} from './internal/constants'
 import * as cacheHttpClient from './internal/cacheHttpClient'
+import * as cacheTwirpClient from './internal/cacheTwirpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
+import {GetCachedBlobRequest} from './generated/results/api/v1/blobcache'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -50,7 +53,7 @@ function checkKey(key: string): void {
  */
 
 export function isFeatureAvailable(): boolean {
-  return !!process.env['ACTIONS_CACHE_URL']
+  return !!CacheUrl
 }
 
 /**
@@ -170,6 +173,16 @@ export async function saveCache(
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
+
+  // TODO: REMOVE ME
+  // Making a call to the service
+  const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
+  const getBlobRequest: GetCachedBlobRequest = {
+    owner: "link-/test",
+    keys: ['test-123412631236126'],
+  }
+  const getBlobResponse = await twirpClient.GetCachedBlob(getBlobRequest)
+  core.info(`GetCachedBlobResponse: ${JSON.stringify(getBlobResponse)}`)
 
   const compressionMethod = await utils.getCompressionMethod()
   let cacheId = -1

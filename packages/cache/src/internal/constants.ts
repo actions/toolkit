@@ -36,3 +36,6 @@ export const SystemTarPathOnWindows = `${process.env['SYSTEMDRIVE']}\\Windows\\S
 export const TarFilename = 'cache.tar'
 
 export const ManifestFilename = 'manifest.txt'
+
+// Cache URL
+export const CacheUrl = `${process.env['ACTIONS_CACHE_URL_NEXT']}`
