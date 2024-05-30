@@ -90,6 +90,8 @@ const {id, size} = await artifact.uploadArtifact(
   'my-artifact',
   // files to include (supports absolute and relative paths)
   ['/absolute/path/file1.txt', './relative/file2.txt'],
+  // An absolute or relative file path that denotes the root parent directory of the files being uploaded
+  '/',
   {
     // optional: how long to retain the artifact
     // if unspecified, defaults to repository/org retention settings (the limit of this value)
