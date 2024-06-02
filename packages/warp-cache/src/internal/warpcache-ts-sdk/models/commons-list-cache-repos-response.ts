@@ -17,26 +17,14 @@
 /**
  * 
  * @export
- * @interface CommonsS3ReserveCacheResponse
+ * @interface CommonsListCacheReposResponse
  */
-export interface CommonsS3ReserveCacheResponse {
+export interface CommonsListCacheReposResponse {
     /**
      * 
      * @type {Array<string>}
-     * @memberof CommonsS3ReserveCacheResponse
+     * @memberof CommonsListCacheReposResponse
      */
-    'pre_signed_urls'?: Array<string>;
-    /**
-     * 
-     * @type {string}
-     * @memberof CommonsS3ReserveCacheResponse
-     */
-    'upload_id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CommonsS3ReserveCacheResponse
-     */
-    'upload_key'?: string;
+    'vcs_repositories'?: Array<string>;
 }
 

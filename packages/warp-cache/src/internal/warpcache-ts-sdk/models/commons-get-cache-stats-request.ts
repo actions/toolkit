@@ -17,38 +17,38 @@
 /**
  * 
  * @export
- * @interface WarpBuildAPIError
+ * @interface CommonsGetCacheStatsRequest
  */
-export interface WarpBuildAPIError {
+export interface CommonsGetCacheStatsRequest {
     /**
      * 
      * @type {string}
-     * @memberof WarpBuildAPIError
+     * @memberof CommonsGetCacheStatsRequest
      */
-    'code'?: string;
+    'search_text'?: string;
     /**
      * 
      * @type {string}
-     * @memberof WarpBuildAPIError
+     * @memberof CommonsGetCacheStatsRequest
      */
-    'description'?: string;
+    'stats_from_time'?: string;
     /**
      * 
      * @type {string}
-     * @memberof WarpBuildAPIError
+     * @memberof CommonsGetCacheStatsRequest
      */
-    'message'?: string;
+    'stats_to_time'?: string;
     /**
      * 
-     * @type {string}
-     * @memberof WarpBuildAPIError
+     * @type {Array<string>}
+     * @memberof CommonsGetCacheStatsRequest
      */
-    'sub_code'?: string;
+    'vcs_refs'?: Array<string>;
     /**
      * 
-     * @type {string}
-     * @memberof WarpBuildAPIError
+     * @type {Array<string>}
+     * @memberof CommonsGetCacheStatsRequest
      */
-    'sub_message'?: string;
+    'vcs_repositories'?: Array<string>;
 }
 

@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $commons_CacheEntry = {
+export const $commons_CacheEntryWithStat = {
     properties: {
         cache_key: {
             type: 'string',
@@ -18,8 +18,14 @@ export const $commons_CacheEntry = {
         id: {
             type: 'string',
         },
+        last_used_at: {
+            type: 'string',
+        },
         organization_id: {
             type: 'string',
+        },
+        size: {
+            type: 'number',
         },
         storage_backend_id: {
             type: 'string',

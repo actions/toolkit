@@ -14,6 +14,7 @@ export const $commons_GCSGetCacheReponse = {
         },
         method: {
             type: 'string',
+            description: `Method contains the auth method to be used to connect to the GCP storage backend`,
         },
         pre_signed_url: {
             type: 'string',

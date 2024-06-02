@@ -434,7 +434,10 @@ export async function saveCache(
       core.debug('Committing cache')
       commitCacheResponse = await commitCache(cacheKey, cacheVersion)
 
-      cacheKeyResponse = commitCacheResponse.result?.gcs?.cache_key ?? ''
+      cacheKeyResponse =
+        commitCacheResponse.result?.cache_entry?.cache_user_given_key ??
+        commitCacheResponse.result?.gcs?.cache_key ??
+        ''
       break
     }
   }
