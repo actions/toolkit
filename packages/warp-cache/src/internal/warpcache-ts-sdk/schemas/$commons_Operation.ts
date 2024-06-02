@@ -22,6 +22,12 @@ export const $commons_Operation = {
         organization_id: {
             type: 'string',
         },
+        size: {
+            type: 'number',
+        },
+        time: {
+            type: 'string',
+        },
         updated_at: {
             type: 'string',
         },

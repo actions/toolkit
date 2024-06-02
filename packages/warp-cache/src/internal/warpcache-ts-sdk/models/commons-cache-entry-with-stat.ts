@@ -17,79 +17,91 @@
 /**
  * 
  * @export
- * @interface CommonsCacheEntry
+ * @interface CommonsCacheEntryWithStat
  */
-export interface CommonsCacheEntry {
+export interface CommonsCacheEntryWithStat {
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'cache_key'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'cache_user_given_key'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'cache_version'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'created_at'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'id'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
+     */
+    'last_used_at'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CommonsCacheEntryWithStat
      */
     'organization_id'?: string;
     /**
      * 
+     * @type {number}
+     * @memberof CommonsCacheEntryWithStat
+     */
+    'size'?: number;
+    /**
+     * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'storage_backend_id'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'storage_backend_location'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'updated_at'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'vcs_organization_name'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'vcs_ref'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsCacheEntry
+     * @memberof CommonsCacheEntryWithStat
      */
     'vcs_repository_name'?: string;
 }

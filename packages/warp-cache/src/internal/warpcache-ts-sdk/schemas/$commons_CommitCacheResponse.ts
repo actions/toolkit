@@ -5,6 +5,9 @@ export const $commons_CommitCacheResponse = {
     properties: {
         annotations: {
             type: 'commons_CacheAnnotationsMap',
+            description: `Annotations is a map of annotations that can be passed as additional
+            context to the cache service. This is not stored in the cache but is published
+            in events for tracking purposes.`,
         },
         cache_entry: {
             type: 'commons_CacheEntry',
@@ -20,6 +23,9 @@ export const $commons_CommitCacheResponse = {
         },
         vcs_repository: {
             type: 'string',
+            description: `VCSRepository is the repository name in vcs.
+            It can be of the format <organization>/<repository> or <repository>.
+            While saving the entry, <organization>/ will be trimmed if passed.`,
         },
     },
 } as const;

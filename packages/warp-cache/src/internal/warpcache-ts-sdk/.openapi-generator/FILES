@@ -10,9 +10,11 @@ configuration.ts
 git_push.sh
 index.ts
 models/commons-append-operation-input.ts
+models/commons-cache-entry-with-stat.ts
 models/commons-cache-entry.ts
 models/commons-commit-cache-request.ts
 models/commons-commit-cache-response.ts
+models/commons-daily-operations-breakdown.ts
 models/commons-delete-cache-request.ts
 models/commons-delete-cache-response.ts
 models/commons-gcscommit-cache-response.ts
@@ -21,6 +23,11 @@ models/commons-gcsget-cache-reponse.ts
 models/commons-gcsreserve-cache-response.ts
 models/commons-get-cache-request.ts
 models/commons-get-cache-response.ts
+models/commons-get-cache-stats-request.ts
+models/commons-get-cache-stats-response.ts
+models/commons-list-cache-repos-response.ts
+models/commons-list-cache-request.ts
+models/commons-list-cache-response.ts
 models/commons-operation.ts
 models/commons-reserve-cache-request.ts
 models/commons-reserve-cache-response.ts
