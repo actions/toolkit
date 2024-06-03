@@ -123,15 +123,13 @@ export async function restoreCache(
     )
     core.debug(`Archive Path: ${archivePath}`)
 
-    let cacheKey: string = ''
+    let cacheKey = cacheEntry?.cache_entry?.cache_user_given_key ?? primaryKey
 
     switch (cacheEntry.provider) {
       case 's3': {
         if (!cacheEntry.s3?.pre_signed_url) {
           return undefined
         }
-
-        cacheKey = cacheEntry.s3.pre_signed_url
 
         if (options?.lookupOnly) {
           core.info('Lookup only - skipping download')
@@ -167,20 +165,21 @@ export async function restoreCache(
             core.info('Cache Miss. Failed to download cache.')
             return undefined
           }
+
+          if (core.isDebug()) {
+            await listTar(archivePath, compressionMethod)
+          }
+
+          const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+          core.info(
+            `Cache Size: ~${Math.round(
+              archiveFileSize / (1024 * 1024)
+            )} MB (${archiveFileSize} B)`
+          )
+
+          await extractTar(archivePath, compressionMethod)
         }
 
-        if (core.isDebug()) {
-          await listTar(archivePath, compressionMethod)
-        }
-
-        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
-        core.info(
-          `Cache Size: ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B)`
-        )
-
-        await extractTar(archivePath, compressionMethod)
         core.info('Cache restored successfully')
         break
       }
@@ -189,7 +188,6 @@ export async function restoreCache(
         if (!cacheEntry.gcs?.cache_key) {
           return undefined
         }
-        cacheKey = cacheEntry.gcs?.cache_key
 
         if (options?.lookupOnly) {
           core.info('Lookup only - skipping download')
@@ -280,7 +278,7 @@ export async function restoreCache(
       }
     }
 
-    return cacheEntry?.cache_entry?.cache_user_given_key ?? cacheKey
+    return cacheKey
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
