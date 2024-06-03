@@ -123,7 +123,7 @@ export async function restoreCache(
     )
     core.debug(`Archive Path: ${archivePath}`)
 
-    let cacheKey: string = ''
+    let cacheKey = cacheEntry?.cache_entry?.cache_user_given_key ?? primaryKey
 
     switch (cacheEntry.provider) {
       case 's3': {
@@ -131,31 +131,55 @@ export async function restoreCache(
           return undefined
         }
 
-        cacheKey = cacheEntry.s3.pre_signed_url
-
         if (options?.lookupOnly) {
           core.info('Lookup only - skipping download')
           return cacheKey
         }
 
-        await cacheHttpClient.downloadCache(
-          cacheEntry.provider,
-          cacheEntry.s3?.pre_signed_url,
-          archivePath
-        )
+        try {
+          let readStream: NodeJS.ReadableStream | undefined
+          let downloadCommandPipe = getDownloadCommandPipeForWget(
+            cacheEntry?.s3?.pre_signed_url
+          )
+          await extractStreamingTar(
+            readStream,
+            archivePath,
+            compressionMethod,
+            downloadCommandPipe
+          )
+        } catch (error) {
+          core.debug(`Failed to download cache: ${error}`)
+          core.info(
+            `Streaming download failed. Likely a cloud provider issue. Retrying with multipart download`
+          )
+          // Wait 1 second
+          await new Promise(resolve => setTimeout(resolve, 1000))
 
-        if (core.isDebug()) {
-          await listTar(archivePath, compressionMethod)
+          try {
+            await cacheHttpClient.downloadCache(
+              cacheEntry.provider,
+              cacheEntry.s3?.pre_signed_url,
+              archivePath
+            )
+          } catch (error) {
+            core.info('Cache Miss. Failed to download cache.')
+            return undefined
+          }
+
+          if (core.isDebug()) {
+            await listTar(archivePath, compressionMethod)
+          }
+
+          const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+          core.info(
+            `Cache Size: ~${Math.round(
+              archiveFileSize / (1024 * 1024)
+            )} MB (${archiveFileSize} B)`
+          )
+
+          await extractTar(archivePath, compressionMethod)
         }
 
-        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
-        core.info(
-          `Cache Size: ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B)`
-        )
-
-        await extractTar(archivePath, compressionMethod)
         core.info('Cache restored successfully')
         break
       }
@@ -164,7 +188,6 @@ export async function restoreCache(
         if (!cacheEntry.gcs?.cache_key) {
           return undefined
         }
-        cacheKey = cacheEntry.gcs?.cache_key
 
         if (options?.lookupOnly) {
           core.info('Lookup only - skipping download')
@@ -255,7 +278,7 @@ export async function restoreCache(
       }
     }
 
-    return cacheEntry?.cache_entry?.cache_user_given_key ?? cacheKey
+    return cacheKey
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -343,7 +366,10 @@ export async function saveCache(
     // Calculate number of chunks required. This is only required if backend is S3 as Google Cloud SDK will do it for us
     const uploadOptions = getUploadOptions()
     const maxChunkSize = uploadOptions?.uploadChunkSize ?? 32 * 1024 * 1024 // Default 32MB
-    const numberOfChunks = Math.floor(archiveFileSize / maxChunkSize)
+    const numberOfChunks = Math.max(
+      Math.floor(archiveFileSize / maxChunkSize),
+      1
+    )
     const reserveCacheResponse = await cacheHttpClient.reserveCache(
       key,
       numberOfChunks,

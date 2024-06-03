@@ -379,6 +379,9 @@ export async function saveCache(
         !S3UploadId ||
         !S3UploadKey
       ) {
+        core.debug(
+          `S3 params are not set. Number of Chunks: ${S3NumberOfChunks}, PreSigned URLs: ${S3PreSignedURLs}, Upload ID: ${S3UploadId}, Upload Key: ${S3UploadKey}`
+        )
         throw new Error(
           'Unable to upload cache to S3. One of the following required parameters is missing: numberOfChunks, preSignedURLs, uploadId, uploadKey.'
         )
