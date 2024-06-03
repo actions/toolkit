@@ -368,7 +368,7 @@ export async function saveCache(
     // Calculate number of chunks required. This is only required if backend is S3 as Google Cloud SDK will do it for us
     const uploadOptions = getUploadOptions()
     const maxChunkSize = uploadOptions?.uploadChunkSize ?? 32 * 1024 * 1024 // Default 32MB
-    const numberOfChunks = Math.min(
+    const numberOfChunks = Math.max(
       Math.floor(archiveFileSize / maxChunkSize),
       1
     )
