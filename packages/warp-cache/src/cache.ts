@@ -138,11 +138,36 @@ export async function restoreCache(
           return cacheKey
         }
 
-        await cacheHttpClient.downloadCache(
-          cacheEntry.provider,
-          cacheEntry.s3?.pre_signed_url,
-          archivePath
-        )
+        try {
+          let readStream: NodeJS.ReadableStream | undefined
+          let downloadCommandPipe = getDownloadCommandPipeForWget(
+            cacheEntry?.s3?.pre_signed_url
+          )
+          await extractStreamingTar(
+            readStream,
+            archivePath,
+            compressionMethod,
+            downloadCommandPipe
+          )
+        } catch (error) {
+          core.debug(`Failed to download cache: ${error}`)
+          core.info(
+            `Streaming download failed. Likely a cloud provider issue. Retrying with multipart download`
+          )
+          // Wait 1 second
+          await new Promise(resolve => setTimeout(resolve, 1000))
+
+          try {
+            await cacheHttpClient.downloadCache(
+              cacheEntry.provider,
+              cacheEntry.s3?.pre_signed_url,
+              archivePath
+            )
+          } catch (error) {
+            core.info('Cache Miss. Failed to download cache.')
+            return undefined
+          }
+        }
 
         if (core.isDebug()) {
           await listTar(archivePath, compressionMethod)
@@ -343,7 +368,10 @@ export async function saveCache(
     // Calculate number of chunks required. This is only required if backend is S3 as Google Cloud SDK will do it for us
     const uploadOptions = getUploadOptions()
     const maxChunkSize = uploadOptions?.uploadChunkSize ?? 32 * 1024 * 1024 // Default 32MB
-    const numberOfChunks = Math.floor(archiveFileSize / maxChunkSize)
+    const numberOfChunks = Math.min(
+      Math.floor(archiveFileSize / maxChunkSize),
+      1
+    )
     const reserveCacheResponse = await cacheHttpClient.reserveCache(
       key,
       numberOfChunks,
