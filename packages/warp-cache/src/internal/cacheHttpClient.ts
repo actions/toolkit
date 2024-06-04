@@ -9,6 +9,7 @@ import * as crypto from 'crypto'
 
 import * as utils from './cacheUtils'
 import {CompressionMethod} from './constants'
+import os from 'os'
 import {
   InternalCacheOptions,
   ITypedResponseWithError,
@@ -211,7 +212,14 @@ export async function downloadCache(
 ): Promise<void> {
   switch (provider) {
     case 's3':
-      await downloadCacheMultiConnection(archiveLocation, archivePath, 8)
+      {
+        const numberOfConnections = 2 + os.cpus().length
+        await downloadCacheMultiConnection(
+          archiveLocation,
+          archivePath,
+          Math.min(numberOfConnections, 30)
+        )
+      }
       break
     case 'gcs': {
       if (!gcsToken) {
