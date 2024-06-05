@@ -137,48 +137,28 @@ export async function restoreCache(
         }
 
         try {
-          let readStream: NodeJS.ReadableStream | undefined
-          let downloadCommandPipe = getDownloadCommandPipeForWget(
-            cacheEntry?.s3?.pre_signed_url
-          )
-          await extractStreamingTar(
-            readStream,
-            archivePath,
-            compressionMethod,
-            downloadCommandPipe
+          await cacheHttpClient.downloadCache(
+            cacheEntry.provider,
+            cacheEntry.s3?.pre_signed_url,
+            archivePath
           )
         } catch (error) {
-          core.debug(`Failed to download cache: ${error}`)
-          core.info(
-            `Streaming download failed. Likely a cloud provider issue. Retrying with multipart download`
-          )
-          // Wait 1 second
-          await new Promise(resolve => setTimeout(resolve, 1000))
-
-          try {
-            await cacheHttpClient.downloadCache(
-              cacheEntry.provider,
-              cacheEntry.s3?.pre_signed_url,
-              archivePath
-            )
-          } catch (error) {
-            core.info('Cache Miss. Failed to download cache.')
-            return undefined
-          }
-
-          if (core.isDebug()) {
-            await listTar(archivePath, compressionMethod)
-          }
-
-          const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
-          core.info(
-            `Cache Size: ~${Math.round(
-              archiveFileSize / (1024 * 1024)
-            )} MB (${archiveFileSize} B)`
-          )
-
-          await extractTar(archivePath, compressionMethod)
+          core.info('Cache Miss. Failed to download cache.')
+          return undefined
         }
+
+        if (core.isDebug()) {
+          await listTar(archivePath, compressionMethod)
+        }
+
+        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+        core.info(
+          `Cache Size: ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B)`
+        )
+
+        await extractTar(archivePath, compressionMethod)
 
         core.info('Cache restored successfully')
         break
