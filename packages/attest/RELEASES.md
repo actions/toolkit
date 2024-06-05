@@ -1,5 +1,11 @@
 # @actions/attest Releases
 
+### 1.3.0
+
+- Dynamic construction of Sigstore API URLs
+- Bump @sigstore/bundle from 2.3.0 to 2.3.2
+- Bump @sigstore/sign from 2.3.0 to 2.3.2
+
 ### 1.2.1
 
 - Retry request on attestation persistence failure
