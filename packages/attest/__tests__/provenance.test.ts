@@ -23,6 +23,7 @@ describe('provenance functions', () => {
     repository: 'owner/repo',
     ref: 'refs/heads/main',
     sha: 'babca52ab0c93ae16539e5923cb0d7403b9a093b',
+    job_workflow_ref: 'owner/workflows/.github/workflows/publish.yml@main',
     workflow_ref: 'owner/repo/.github/workflows/main.yml@main',
     event_name: 'push',
     repository_id: 'repo-id',

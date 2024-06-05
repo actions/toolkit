@@ -11,6 +11,7 @@ const REQUIRED_CLAIMS = [
   'sha',
   'repository',
   'event_name',
+  'job_workflow_ref',
   'workflow_ref',
   'repository_id',
   'repository_owner_id',
