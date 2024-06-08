@@ -5,6 +5,7 @@ import nock from 'nock'
 import {MockAgent, setGlobalDispatcher} from 'undici'
 import {SIGSTORE_PUBLIC_GOOD, signingEndpoints} from '../src/endpoints'
 import {attestProvenance, buildSLSAProvenancePredicate} from '../src/provenance'
+import type {Subject} from '../src/shared.types'
 
 describe('provenance functions', () => {
   const originalEnv = process.env
@@ -79,6 +80,22 @@ describe('provenance functions', () => {
       sha256: '7d070f6b64d9bcc530fe99cc21eaaa4b3c364e0b2d367d7735671fa202a03b32'
     }
 
+    const subjects: Subject[] = [
+      {
+        name: 'subjective',
+        digest: {
+          sha256:
+            '7d070f6b64d9bcc530fe99cc21eaaa4b3c364e0b2d367d7735671fa202a03b32'
+        }
+      },
+      {
+        name: 'subject_two',
+        digest: {
+          gitcommit: 'c6b487124a61d7dc6c7bd6ea0208368af3513a6e'
+        }
+      }
+    ]
+
     // Fake an OIDC token
     const oidcPayload = {sub: 'foo@bar.com', iss: ''}
     const oidcToken = `.${Buffer.from(JSON.stringify(oidcPayload)).toString(
@@ -114,8 +131,7 @@ describe('provenance functions', () => {
       describe('when the sigstore instance is explicitly set', () => {
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
+            subjects,
             token: 'token',
             sigstore: 'github',
             issuer
