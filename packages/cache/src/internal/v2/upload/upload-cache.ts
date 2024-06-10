@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import {GetCacheBlobUploadURLResponse} from '../../../generated/results/api/v1/blobcache'
-import {BlobClient, BlockBlobParallelUploadOptions} from '@azure/storage-blob'
+import {BlobClient, BlockBlobClient, BlockBlobParallelUploadOptions} from '@azure/storage-blob'
 
 export async function UploadCache(
   uploadURL: GetCacheBlobUploadURLResponse,
@@ -16,7 +16,9 @@ export async function UploadCache(
   };
 
   // Create blob client from container client
-  const blobClient: BlobClient = new BlobClient(uploadURL.urls[0])
+  // const blobClient: BlobClient = new BlobClient(uploadURL.urls[0])
+  const blobClient: BlobClient = new BlobClient(uploadURL.urls[0].url)
+  const blockBlobClient: BlockBlobClient = blobClient.getBlockBlobClient()
 
-  return blobClient.uploadFile(archivePath, uploadOptions);
+  return blockBlobClient.uploadFile(archivePath, uploadOptions);
 }
