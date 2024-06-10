@@ -6,7 +6,7 @@ export async function UploadCache(
   uploadURL: GetCacheBlobUploadURLResponse,
   archivePath: string,
 ): Promise<{}> {
-  core.debug(`Uploading cache to: ${uploadURL}`)
+  core.info(`Uploading ${archivePath} to: ${uploadURL}`)
   
   // Specify data transfer options
   const uploadOptions: BlockBlobParallelUploadOptions = {
@@ -15,10 +15,12 @@ export async function UploadCache(
     maxSingleShotSize: 8 * 1024 * 1024, // 8 MiB initial transfer size
   };
 
-  // Create blob client from container client
   // const blobClient: BlobClient = new BlobClient(uploadURL.urls[0])
   const blobClient: BlobClient = new BlobClient(uploadURL.urls[0].url)
   const blockBlobClient: BlockBlobClient = blobClient.getBlockBlobClient()
+
+  core.info(`BlobClient: ${blobClient}`)
+  core.info(`BlobClient: ${blockBlobClient}`)
 
   return blockBlobClient.uploadFile(archivePath, uploadOptions);
 }
