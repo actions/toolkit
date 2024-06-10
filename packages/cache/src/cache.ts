@@ -224,6 +224,15 @@ export async function saveCache(
       )
     }
 
+
+    // Cache v2 upload
+    // inputs:
+    // - getSignedUploadURL
+    // - archivePath
+    core.debug(`Saving Cache v2: ${archivePath}`)
+    await UploadCache(signedUploadURL, archivePath)
+
+
     core.debug('Reserving Cache')
     const reserveCacheResponse = await cacheHttpClient.reserveCache(
       key,
@@ -252,14 +261,6 @@ export async function saveCache(
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
-
-    // Cache v2 upload
-    // inputs:
-    // - getSignedUploadURL
-    // - archivePath
-    core.debug(`Saving Cache v2: ${archivePath}`)
-    await UploadCache(signedUploadURL, archivePath)
-
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
