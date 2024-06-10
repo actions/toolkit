@@ -6,7 +6,7 @@ export async function UploadCache(
   uploadURL: GetCacheBlobUploadURLResponse,
   archivePath: string,
 ): Promise<{}> {
-  core.info(`Uploading ${archivePath} to: ${uploadURL}`)
+  core.info(`Uploading ${archivePath} to: ${JSON.stringify(uploadURL)}`)
   
   // Specify data transfer options
   const uploadOptions: BlockBlobParallelUploadOptions = {
@@ -19,8 +19,8 @@ export async function UploadCache(
   const blobClient: BlobClient = new BlobClient(uploadURL.urls[0].url)
   const blockBlobClient: BlockBlobClient = blobClient.getBlockBlobClient()
 
-  core.info(`BlobClient: ${blobClient}`)
-  core.info(`BlobClient: ${blockBlobClient}`)
+  core.info(`BlobClient: ${JSON.stringify(blobClient)}`)
+  core.info(`blockBlobClient: ${JSON.stringify(blockBlobClient)}`)
 
   return blockBlobClient.uploadFile(archivePath, uploadOptions);
 }

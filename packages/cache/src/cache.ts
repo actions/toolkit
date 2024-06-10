@@ -229,7 +229,7 @@ export async function saveCache(
     // inputs:
     // - getSignedUploadURL
     // - archivePath
-    core.debug(`Saving Cache v2: ${archivePath}`)
+    core.info(`Saving Cache v2: ${archivePath}`)
     await UploadCache(signedUploadURL, archivePath)
 
 
