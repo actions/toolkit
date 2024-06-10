@@ -6,7 +6,8 @@ import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/cacheTwirpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
-import {GetCachedBlobRequest} from './generated/results/api/v1/blobcache'
+import {GetCacheBlobUploadURLRequest, GetCacheBlobUploadURLResponse} from './generated/results/api/v1/blobcache'
+import {UploadCache} from './internal/v2/upload/upload-cache'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -177,12 +178,12 @@ export async function saveCache(
   // TODO: REMOVE ME
   // Making a call to the service
   const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
-  const getBlobRequest: GetCachedBlobRequest = {
-    owner: "link-/test",
-    keys: ['test-123412631236126'],
+  const getSignedUploadURL: GetCacheBlobUploadURLRequest = {
+    organization: "github",
+    keys: [key],
   }
-  const getBlobResponse = await twirpClient.GetCachedBlob(getBlobRequest)
-  core.info(`GetCachedBlobResponse: ${JSON.stringify(getBlobResponse)}`)
+  const signedUploadURL: GetCacheBlobUploadURLResponse = await twirpClient.GetCacheBlobUploadURL(getSignedUploadURL)
+  core.info(`GetCacheBlobUploadURLResponse: ${JSON.stringify(signedUploadURL)}`)
 
   const compressionMethod = await utils.getCompressionMethod()
   let cacheId = -1
@@ -251,6 +252,14 @@ export async function saveCache(
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
     await cacheHttpClient.saveCache(cacheId, archivePath, options)
+
+    // Cache v2 upload
+    // inputs:
+    // - getSignedUploadURL
+    // - archivePath
+    core.debug(`Saving Cache v2: ${archivePath}`)
+    await UploadCache(signedUploadURL, archivePath)
+
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
