@@ -87,6 +87,7 @@ const initBundleBuilder = (opts: SignOptions): BundleBuilder => {
       new RekorWitness({
         rekorBaseURL: opts.rekorURL,
         entryType: 'dsse',
+        fetchOnConflict: true,
         timeout,
         retry
       })
