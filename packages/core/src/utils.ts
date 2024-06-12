@@ -3,6 +3,7 @@
 
 import {AnnotationProperties} from './core'
 import {CommandProperties} from './command'
+import ErrorStackParser from 'error-stack-parser'
 
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
@@ -37,5 +38,23 @@ export function toCommandProperties(
     endLine: annotationProperties.endLine,
     col: annotationProperties.startColumn,
     endColumn: annotationProperties.endColumn
+  }
+}
+
+export function toAnnotationProperties(error: Error): AnnotationProperties {
+  let firstFrame
+
+  try {
+    const stack = ErrorStackParser.parse(error)
+    firstFrame = stack?.[0]
+  } catch (parseError) {
+    // If we can't parse the stack, we'll just skip it
+  }
+
+  return {
+    title: error.name,
+    file: firstFrame?.fileName,
+    startLine: firstFrame?.lineNumber,
+    startColumn: firstFrame?.columnNumber
   }
 }
