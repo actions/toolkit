@@ -4,7 +4,7 @@ exports[`provenance functions buildSLSAProvenancePredicate returns a provenance 
 {
   "params": {
     "buildDefinition": {
-      "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+      "buildType": "https://actions.github.io/buildtypes/workflow/v1",
       "externalParameters": {
         "workflow": {
           "path": ".github/workflows/main.yml",
@@ -17,6 +17,7 @@ exports[`provenance functions buildSLSAProvenancePredicate returns a provenance 
           "event_name": "push",
           "repository_id": "repo-id",
           "repository_owner_id": "owner-id",
+          "runner_environment": "github-hosted",
         },
       },
       "resolvedDependencies": [
@@ -30,7 +31,7 @@ exports[`provenance functions buildSLSAProvenancePredicate returns a provenance 
     },
     "runDetails": {
       "builder": {
-        "id": "https://github.com/actions/runner/github-hosted",
+        "id": "https://github.com/owner/workflows/.github/workflows/publish.yml@main",
       },
       "metadata": {
         "invocationId": "https://github.com/owner/repo/actions/runs/run-id/attempts/run-attempt",

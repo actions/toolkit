@@ -3,6 +3,7 @@
 ### 1.3.0
 
 - Dynamic construction of Sigstore API URLs
+- Switch to new GH provenance build type
 - Bump @sigstore/bundle from 2.3.0 to 2.3.2
 - Bump @sigstore/sign from 2.3.0 to 2.3.2
 
