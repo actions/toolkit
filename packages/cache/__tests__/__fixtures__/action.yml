@@ -1,5 +1,6 @@
 name: 'Set env variables'
 description: 'Sets certain env variables so that e2e restore and save cache can be tested in a shell'
 runs:
-  using: 'node12'
+  using: 'node20'
   main: 'index.js'
+  
