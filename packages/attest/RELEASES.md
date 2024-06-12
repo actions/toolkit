@@ -4,6 +4,7 @@
 
 - Dynamic construction of Sigstore API URLs
 - Switch to new GH provenance build type
+- Fetch existing Rekor entry on 409 conflict error
 - Bump @sigstore/bundle from 2.3.0 to 2.3.2
 - Bump @sigstore/sign from 2.3.0 to 2.3.2
 
