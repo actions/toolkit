@@ -37,5 +37,6 @@ export const TarFilename = 'cache.tar'
 
 export const ManifestFilename = 'manifest.txt'
 
-// Cache URL
-export const CacheUrl = `${process.env['ACTIONS_CACHE_URL_NEXT']}`
+// Cache Service Metadata
+export const CacheUrl = `${process.env['ACTIONS_CACHE_URL_NEXT']} || ${process.env['ACTIONS_CACHE_URL']}`
+export const CacheServiceVersion = `${process.env['ACTIONS_CACHE_URL_NEXT']} ? 'v2' : 'v1'`

@@ -1,13 +1,18 @@
 import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
-import {CacheUrl} from './internal/constants'
+import {CacheServiceVersion, CacheUrl} from './internal/constants'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/cacheTwirpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
 import {GetCacheBlobUploadURLRequest, GetCacheBlobUploadURLResponse} from './generated/results/api/v1/blobcache'
-import {UploadCache} from './internal/v2/upload/upload-cache'
+import {UploadCacheStream} from './internal/v2/upload-cache'
+import {
+  UploadZipSpecification,
+  getUploadZipSpecification
+} from '@actions/artifact/lib/internal/upload/upload-zip-specification'
+import {createZipUploadStream} from '@actions/artifact/lib/internal/upload/zip'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -174,17 +179,23 @@ export async function saveCache(
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
-
-  // TODO: REMOVE ME
-  // Making a call to the service
-  const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
-  const getSignedUploadURL: GetCacheBlobUploadURLRequest = {
-    organization: "github",
-    keys: [key],
+  
+  console.debug(`Cache Service Version: ${CacheServiceVersion}`)
+  switch (CacheServiceVersion) {
+    case "v2":
+      return await saveCachev1(paths, key, options, enableCrossOsArchive)
+    case "v1":
+    default:
+      return await saveCachev2(paths, key, options, enableCrossOsArchive)
   }
-  const signedUploadURL: GetCacheBlobUploadURLResponse = await twirpClient.GetCacheBlobUploadURL(getSignedUploadURL)
-  core.info(`GetCacheBlobUploadURLResponse: ${JSON.stringify(signedUploadURL)}`)
+}
 
+async function saveCachev1(
+  paths: string[],
+  key: string,
+  options?: UploadOptions,
+  enableCrossOsArchive = false
+): Promise<number> {
   const compressionMethod = await utils.getCompressionMethod()
   let cacheId = -1
 
@@ -223,15 +234,6 @@ export async function saveCache(
         )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
       )
     }
-
-
-    // Cache v2 upload
-    // inputs:
-    // - getSignedUploadURL
-    // - archivePath
-    core.info(`Saving Cache v2: ${archivePath}`)
-    await UploadCache(signedUploadURL, archivePath)
-
 
     core.debug('Reserving Cache')
     const reserveCacheResponse = await cacheHttpClient.reserveCache(
@@ -280,4 +282,48 @@ export async function saveCache(
   }
 
   return cacheId
+}
+
+async function saveCachev2(
+  paths: string[],
+  key: string,
+  options?: UploadOptions,
+  enableCrossOsArchive = false
+): Promise<number> {
+  const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
+  const getSignedUploadURL: GetCacheBlobUploadURLRequest = {
+    organization: "github",
+    keys: [key],
+  }
+  const signedUploadURL: GetCacheBlobUploadURLResponse = await twirpClient.GetCacheBlobUploadURL(getSignedUploadURL)
+  core.info(`GetCacheBlobUploadURLResponse: ${JSON.stringify(signedUploadURL)}`)
+
+  // Archive
+  // We're going to handle 1 path fow now. This needs to be fixed to handle all 
+  // paths passed in.
+  const rootDir = path.dirname(paths[0])
+  const zipSpecs: UploadZipSpecification[] = getUploadZipSpecification(paths, rootDir)
+  if (zipSpecs.length === 0) {
+    throw new Error(
+      `Error with zip specs: ${zipSpecs.flatMap(s => (s.sourcePath ? [s.sourcePath] : [])).join(', ')}`
+    )
+  }
+
+  // 0: No compression
+  // 1: Best speed
+  // 6: Default compression (same as GNU Gzip)
+  // 9: Best compression Higher levels will result in better compression, but will take longer to complete. For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
+  const zipUploadStream = await createZipUploadStream(
+    zipSpecs,
+    6
+  )
+
+  // Cache v2 upload
+  // inputs:
+  // - getSignedUploadURL
+  // - archivePath
+  core.info(`Saving Cache v2: ${paths[0]}`)
+  await UploadCacheStream(signedUploadURL.urls[0].url, zipUploadStream)
+
+  return 0
 }
