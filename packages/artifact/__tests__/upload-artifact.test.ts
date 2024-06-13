@@ -31,15 +31,18 @@ describe('upload-artifact', () => {
       .mockReturnValue([
         {
           sourcePath: '/home/user/files/plz-upload/file1.txt',
-          destinationPath: 'file1.txt'
+          destinationPath: 'file1.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/file2.txt',
-          destinationPath: 'file2.txt'
+          destinationPath: 'file2.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/dir/file3.txt',
-          destinationPath: 'dir/file3.txt'
+          destinationPath: 'dir/file3.txt',
+          stats: new fs.Stats()
         }
       ])
 
@@ -139,15 +142,18 @@ describe('upload-artifact', () => {
       .mockReturnValue([
         {
           sourcePath: '/home/user/files/plz-upload/file1.txt',
-          destinationPath: 'file1.txt'
+          destinationPath: 'file1.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/file2.txt',
-          destinationPath: 'file2.txt'
+          destinationPath: 'file2.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/dir/file3.txt',
-          destinationPath: 'dir/file3.txt'
+          destinationPath: 'dir/file3.txt',
+          stats: new fs.Stats()
         }
       ])
 
@@ -178,15 +184,18 @@ describe('upload-artifact', () => {
       .mockReturnValue([
         {
           sourcePath: '/home/user/files/plz-upload/file1.txt',
-          destinationPath: 'file1.txt'
+          destinationPath: 'file1.txt',
+          stats: fs.Stats.prototype
         },
         {
           sourcePath: '/home/user/files/plz-upload/file2.txt',
-          destinationPath: 'file2.txt'
+          destinationPath: 'file2.txt',
+          stats: fs.Stats.prototype
         },
         {
           sourcePath: '/home/user/files/plz-upload/dir/file3.txt',
-          destinationPath: 'dir/file3.txt'
+          destinationPath: 'dir/file3.txt',
+          stats: fs.Stats.prototype
         }
       ])
 
@@ -233,15 +242,18 @@ describe('upload-artifact', () => {
       .mockReturnValue([
         {
           sourcePath: '/home/user/files/plz-upload/file1.txt',
-          destinationPath: 'file1.txt'
+          destinationPath: 'file1.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/file2.txt',
-          destinationPath: 'file2.txt'
+          destinationPath: 'file2.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/dir/file3.txt',
-          destinationPath: 'dir/file3.txt'
+          destinationPath: 'dir/file3.txt',
+          stats: new fs.Stats()
         }
       ])
 
@@ -296,15 +308,18 @@ describe('upload-artifact', () => {
       .mockReturnValue([
         {
           sourcePath: '/home/user/files/plz-upload/file1.txt',
-          destinationPath: 'file1.txt'
+          destinationPath: 'file1.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/file2.txt',
-          destinationPath: 'file2.txt'
+          destinationPath: 'file2.txt',
+          stats: new fs.Stats()
         },
         {
           sourcePath: '/home/user/files/plz-upload/dir/file3.txt',
-          destinationPath: 'dir/file3.txt'
+          destinationPath: 'dir/file3.txt',
+          stats: new fs.Stats()
         }
       ])
 
