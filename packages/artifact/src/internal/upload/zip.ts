@@ -1,6 +1,7 @@
 import * as stream from 'stream'
-import * as archiver from 'archiver'
+import * as ZipStream from 'zip-stream'
 import * as core from '@actions/core'
+import async from 'async'
 import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
@@ -30,31 +31,57 @@ export async function createZipUploadStream(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
 
-  const zip = archiver.create('zip', {
-    highWaterMark: getUploadChunkSize(),
-    zlib: {level: compressionLevel}
-  })
+  const zlibOptions = {
+    zlib: {
+      level: compressionLevel,
+      bufferSize: getUploadChunkSize()
+    }
+  }
+  const zip = new ZipStream.default(zlibOptions)
 
+  const bufferSize = getUploadChunkSize()
+  const zipUploadStream = new ZipUploadStream(bufferSize)
+  zip.pipe(zipUploadStream)
   // register callbacks for various events during the zip lifecycle
   zip.on('error', zipErrorCallback)
   zip.on('warning', zipWarningCallback)
   zip.on('finish', zipFinishCallback)
   zip.on('end', zipEndCallback)
-
-  for (const file of uploadSpecification) {
+  const addFileToZip = (
+    file: UploadZipSpecification,
+    callback: (error?: Error) => void
+  ): void => {
     if (file.sourcePath !== null) {
-      // Add a normal file to the zip
-      zip.append(createReadStream(file.sourcePath), {
-        name: file.destinationPath
-      })
+      zip.entry(
+        createReadStream(file.sourcePath),
+        {name: file.destinationPath},
+        (error: unknown) => {
+          if (error) {
+            callback(error as Error) // Cast the error object to the Error type
+            return
+          }
+          callback()
+        }
+      )
     } else {
-      // Add a directory to the zip
-      zip.append('', {name: file.destinationPath})
+      zip.entry('', {name: file.destinationPath}, (error: unknown) => {
+        if (error) {
+          callback(error as Error)
+          return
+        }
+        callback()
+      })
     }
   }
 
-  const bufferSize = getUploadChunkSize()
-  const zipUploadStream = new ZipUploadStream(bufferSize)
+  async.eachSeries(uploadSpecification, addFileToZip, (error: unknown) => {
+    if (error) {
+      core.error('Failed to add a file to the zip:')
+      core.info(error.toString()) // Convert error to string
+      return
+    }
+    zip.finalize() // Finalize the archive once all files have been added
+  })
 
   core.debug(
     `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`
@@ -62,9 +89,6 @@ export async function createZipUploadStream(
   core.debug(
     `Zip read high watermark value ${zipUploadStream.readableHighWaterMark}`
   )
-
-  zip.pipe(zipUploadStream)
-  zip.finalize()
 
   return zipUploadStream
 }
@@ -76,7 +100,6 @@ const zipErrorCallback = (error: any): void => {
 
   throw new Error('An error has occurred during zip creation for the artifact')
 }
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const zipWarningCallback = (error: any): void => {
   if (error.code === 'ENOENT') {
