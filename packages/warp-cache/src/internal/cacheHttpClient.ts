@@ -417,7 +417,10 @@ export async function saveCache(
         completedParts
       )
 
-      cacheKeyResponse = commitCacheResponse.result?.s3?.cache_key ?? ''
+      cacheKeyResponse =
+        commitCacheResponse.result?.cache_entry?.cache_user_given_key ??
+        commitCacheResponse.result?.s3?.cache_key ??
+        ''
 
       break
     }
