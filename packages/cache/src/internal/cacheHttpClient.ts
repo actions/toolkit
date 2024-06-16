@@ -8,7 +8,7 @@ import {
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import {URL} from 'url'
-import {Readable as ReadableStream} from 'stream';
+import {Readable as ReadableStream} from 'stream'
 
 import * as utils from './cacheUtils'
 import {CompressionMethod} from './constants'
@@ -172,7 +172,10 @@ async function printCachesListForDiagnostics(
   }
 }
 
-export async function downloadCacheToBuffer(archiveLocation: string, options?: DownloadOptions): Promise<Buffer> {
+export async function downloadCacheToBuffer(
+  archiveLocation: string,
+  options?: DownloadOptions
+): Promise<Buffer> {
   let lastWrittenChunkLocation: number = 0
   let writtenBytes: number = 0
   interface IChunk {
@@ -182,29 +185,41 @@ export async function downloadCacheToBuffer(archiveLocation: string, options?: D
   }
   const bufferChunks: IChunk[] = []
 
-  await downloadCacheInternal(archiveLocation,
-    (chunkBuffer, chunkLength = chunkBuffer.length, bufferPosition = lastWrittenChunkLocation) => {
-      bufferChunks.push({ chunkBuffer, chunkLength, bufferPosition })
+  await downloadCacheInternal(
+    archiveLocation,
+    (
+      chunkBuffer,
+      chunkLength = chunkBuffer.length,
+      bufferPosition = lastWrittenChunkLocation
+    ) => {
+      bufferChunks.push({chunkBuffer, chunkLength, bufferPosition})
       lastWrittenChunkLocation = bufferPosition + chunkLength
-      writtenBytes = writtenBytes > lastWrittenChunkLocation ? writtenBytes : lastWrittenChunkLocation
+      writtenBytes =
+        writtenBytes > lastWrittenChunkLocation
+          ? writtenBytes
+          : lastWrittenChunkLocation
     },
     () => writtenBytes,
     options
   )
 
   if (bufferChunks.length === 1) {
-    const [{ chunkBuffer }] = bufferChunks
-    return chunkBuffer;
+    const [{chunkBuffer}] = bufferChunks
+    return chunkBuffer
   } else if (bufferChunks.length === 0) {
     return Buffer.alloc(0)
   } else {
     const finalBuffer = Buffer.alloc(writtenBytes)
-    for (const { chunkBuffer: buffer, bufferPosition: position, chunkLength: length} of bufferChunks) {
+    for (const {
+      chunkBuffer: buffer,
+      bufferPosition: position,
+      chunkLength: length
+    } of bufferChunks) {
       buffer.copy(finalBuffer, position, 0, length)
     }
 
     return finalBuffer
-}
+  }
 }
 
 export async function downloadCache(
@@ -215,7 +230,8 @@ export async function downloadCache(
   const archiveDescriptor = await fs.promises.open(archivePath, 'w')
 
   try {
-    await downloadCacheInternal(archiveLocation,
+    await downloadCacheInternal(
+      archiveLocation,
       async (buffer, length, position) => {
         await archiveDescriptor.write(buffer, 0, length, position)
       },
@@ -404,18 +420,19 @@ export async function saveCache(
   try {
     await saveCacheInner(
       cacheId,
-      (start, end) => fs
-        .createReadStream(archivePath, {
-          fd,
-          start,
-          end,
-          autoClose: false
-        })
-        .on('error', error => {
-          throw new Error(
-            `Cache upload failed because file read failed with ${error.message}`
-          )
-        }),
+      (start, end) =>
+        fs
+          .createReadStream(archivePath, {
+            fd,
+            start,
+            end,
+            autoClose: false
+          })
+          .on('error', error => {
+            throw new Error(
+              `Cache upload failed because file read failed with ${error.message}`
+            )
+          }),
       fileSize,
       options
     )

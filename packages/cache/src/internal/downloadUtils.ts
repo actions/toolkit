@@ -12,7 +12,11 @@ import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
 
-export type ChunkWriteCallback = (chunk: Buffer, count: number | undefined, offset: number | undefined) => Promise<void> | void
+export type ChunkWriteCallback = (
+  chunk: Buffer,
+  count: number | undefined,
+  offset: number | undefined
+) => Promise<void> | void
 
 /**
  * Pipes the body of a HTTP response to a stream
@@ -271,7 +275,9 @@ export async function downloadCacheHttpClientConcurrent(
       | undefined
 
     const waitAndWrite: () => Promise<void> = async () => {
-      const { buffer, count, offset} = await Promise.race(Object.values(activeDownloads))
+      const {buffer, count, offset} = await Promise.race(
+        Object.values(activeDownloads)
+      )
       onChunk(buffer, count, offset)
       actives--
       delete activeDownloads[offset]
