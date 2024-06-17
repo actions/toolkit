@@ -226,11 +226,11 @@ async function restoreCachev2(
     core.info(`Starting download of artifact to: ${paths[0]}`)
     await StreamExtract(signedDownloadURL.blobs[0].signedUrl, paths[0])
     core.info(`Artifact download completed successfully.`)
+
+    return keys[0]
   } catch (error) {
     throw new Error(`Unable to download and extract cache: ${error.message}`)
   }
-  
-  return undefined
 }
 
 /**
