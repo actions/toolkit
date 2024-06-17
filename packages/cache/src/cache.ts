@@ -6,8 +6,14 @@ import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/cacheTwirpClient'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {DownloadOptions, UploadOptions} from './options'
-import {GetCacheBlobUploadURLRequest, GetCacheBlobUploadURLResponse} from './generated/results/api/v1/blobcache'
+import {
+  GetCacheBlobUploadURLRequest,
+  GetCacheBlobUploadURLResponse,
+  GetCachedBlobRequest,
+  GetCachedBlobResponse
+} from './generated/results/api/v1/blobcache'
 import {UploadCacheStream} from './internal/v2/upload-cache'
+import {StreamExtract} from './internal/v2/download-cache'
 import {
   UploadZipSpecification,
   getUploadZipSpecification
@@ -81,6 +87,23 @@ export async function restoreCache(
 ): Promise<string | undefined> {
   checkPaths(paths)
 
+  console.debug(`Cache Service Version: ${CacheServiceVersion}`)
+  switch (CacheServiceVersion) {
+    case "v2":
+      return await restoreCachev2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
+    case "v1":
+    default:
+      return await restoreCachev1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
+  }
+}
+
+async function restoreCachev1(
+  paths: string[],
+  primaryKey: string,
+  restoreKeys?: string[],
+  options?: DownloadOptions,
+  enableCrossOsArchive = false
+) {
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -159,6 +182,54 @@ export async function restoreCache(
     }
   }
 
+  return undefined
+}
+
+async function restoreCachev2(
+  paths: string[],
+  primaryKey: string,
+  restoreKeys?: string[],
+  options?: DownloadOptions,
+  enableCrossOsArchive = false
+) {
+  
+  restoreKeys = restoreKeys || []
+  const keys = [primaryKey, ...restoreKeys]
+
+  core.debug('Resolved Keys:')
+  core.debug(JSON.stringify(keys))
+
+  if (keys.length > 10) {
+    throw new ValidationError(
+      `Key Validation Error: Keys are limited to a maximum of 10.`
+    )
+  }
+  for (const key of keys) {
+    checkKey(key)
+  }
+
+  try {
+    const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
+    const getSignedDownloadURLRequest: GetCachedBlobRequest = {
+      owner: "github",
+      keys: keys,
+    }
+    const signedDownloadURL: GetCachedBlobResponse = await twirpClient.GetCachedBlob(getSignedDownloadURLRequest)
+    core.info(`GetCachedBlobResponse: ${JSON.stringify(signedDownloadURL)}`)
+
+    if (signedDownloadURL.blobs.length === 0) {
+      // Cache not found
+      core.warning(`Cache not found for keys: ${keys.join(', ')}`)
+      return undefined
+    }
+
+    core.info(`Starting download of artifact to: ${paths[0]}`)
+    await StreamExtract(signedDownloadURL.blobs[0].signedUrl, paths[0])
+    core.info(`Artifact download completed successfully.`)
+  } catch (error) {
+    throw new Error(`Unable to download and extract cache: ${error.message}`)
+  }
+  
   return undefined
 }
 
