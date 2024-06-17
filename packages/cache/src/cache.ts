@@ -223,8 +223,9 @@ async function restoreCachev2(
       return undefined
     }
 
+    core.info(`Cache hit for: ${signedDownloadURL.blobs[0].key}`)
     core.info(`Starting download of artifact to: ${paths[0]}`)
-    await StreamExtract(signedDownloadURL.blobs[0].signedUrl, paths[0])
+    await StreamExtract(signedDownloadURL.blobs[0].signedUrl, path.dirname(paths[0]))
     core.info(`Artifact download completed successfully.`)
 
     return keys[0]

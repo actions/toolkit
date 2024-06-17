@@ -11,7 +11,7 @@ export async function StreamExtract(url: string, directory: string): Promise<voi
         return
       } catch (error) {
         retryCount++
-        core.debug(
+        core.info(
           `Failed to download cache after ${retryCount} retries due to ${error.message}. Retrying in 5 seconds...`
         )
         // wait 5 seconds before retrying
@@ -29,6 +29,7 @@ export async function streamExtractExternal(
     const client = new httpClient.HttpClient(`@actions/cache-${packageJson.version}`)
     const response = await client.get(url)
     if (response.message.statusCode !== 200) {
+      core.info(`Failed to download cache. HTTP status code: ${response.message.statusCode}`)
       throw new Error(
         `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
       )
@@ -49,7 +50,7 @@ export async function streamExtractExternal(
           timer.refresh()
         })
         .on('error', (error: Error) => {
-          core.debug(
+          core.info(
             `response.message: Cache download failed: ${error.message}`
           )
           clearTimeout(timer)
