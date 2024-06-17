@@ -254,10 +254,10 @@ export async function saveCache(
   console.debug(`Cache Service Version: ${CacheServiceVersion}`)
   switch (CacheServiceVersion) {
     case "v2":
-      return await saveCachev1(paths, key, options, enableCrossOsArchive)
+      return await saveCachev2(paths, key, options, enableCrossOsArchive)
     case "v1":
     default:
-      return await saveCachev2(paths, key, options, enableCrossOsArchive)
+      return await saveCachev1(paths, key, options, enableCrossOsArchive)
   }
 }
 
