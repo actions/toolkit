@@ -149,23 +149,23 @@ export async function getCacheEntry(
     options?.enableCrossArchArchive
   )
 
-  const restoreBranches: Array<string> = []
-  const restoreRepos: Array<string> = []
+  const restoreBranches: Set<string> = new Set()
+  const restoreRepos: Set<string> = new Set()
 
   switch (github.context.eventName) {
     case 'pull_request':
       {
         const pullPayload = github.context.payload as PullRequestEvent
         // Adds PR head branch and base branch to restoreBranches
-        restoreBranches.push(
+        restoreBranches.add(
           `refs/heads/${pullPayload?.pull_request?.head?.ref}`
         )
-        restoreBranches.push(
+        restoreBranches.add(
           `refs/heads/${pullPayload?.pull_request?.base?.ref}`
         )
 
         // Adds default branch to restoreBranches
-        restoreBranches.push(
+        restoreBranches.add(
           `refs/heads/${pullPayload?.repository?.default_branch}`
         )
 
@@ -174,7 +174,7 @@ export async function getCacheEntry(
           pullPayload?.pull_request?.head?.repo?.name !==
           pullPayload?.repository?.name
         ) {
-          restoreRepos.push(pullPayload?.pull_request?.head?.repo?.name)
+          restoreRepos.add(pullPayload?.pull_request?.head?.repo?.name)
         }
       }
       break
@@ -184,7 +184,7 @@ export async function getCacheEntry(
         const pushPayload = github.context.payload as PushEvent
         // Default branch is not in the complete format
         // Ref: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push
-        restoreBranches.push(
+        restoreBranches.add(
           `refs/heads/${pushPayload?.repository?.default_branch}`
         )
       }
@@ -200,8 +200,8 @@ export async function getCacheEntry(
     vcs_repository: getVCSRepository(),
     vcs_ref: getVCSRef(),
     annotations: getAnnotations(),
-    restore_branches: restoreBranches,
-    restore_repos: restoreRepos
+    restore_branches: Array.from(restoreBranches),
+    restore_repos: Array.from(restoreRepos)
   }
 
   const response = await retryTypedResponse('getCacheEntry', async () =>
