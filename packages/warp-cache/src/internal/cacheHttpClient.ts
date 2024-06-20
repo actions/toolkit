@@ -156,8 +156,17 @@ export async function getCacheEntry(
     case 'pull_request':
       {
         const pullPayload = github.context.payload as PullRequestEvent
+        // Adds PR head branch and base branch to restoreBranches
         restoreBranches.push(
           `refs/heads/${pullPayload?.pull_request?.head?.ref}`
+        )
+        restoreBranches.push(
+          `refs/heads/${pullPayload?.pull_request?.base?.ref}`
+        )
+
+        // Adds default branch to restoreBranches
+        restoreBranches.push(
+          `refs/heads/${pullPayload?.repository?.default_branch}`
         )
 
         // If head points to a different repository, add it to restoreRepos. We allow restores from head repos as well.
