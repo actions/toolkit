@@ -21,6 +21,9 @@ export const $commons_CacheEntry = {
         organization_id: {
             type: 'string',
         },
+        provider: {
+            type: 'string',
+        },
         storage_backend_id: {
             type: 'string',
         },

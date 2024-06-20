@@ -1,4 +1,10 @@
 import * as core from '@actions/core'
+import * as github from '@actions/github'
+import {
+  PushEvent,
+  PullRequestEvent,
+  WorkflowDispatchEvent
+} from '@octokit/webhooks-definitions/schema'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {
@@ -143,13 +149,59 @@ export async function getCacheEntry(
     options?.enableCrossArchArchive
   )
 
+  const restoreBranches: Set<string> = new Set()
+  const restoreRepos: Set<string> = new Set()
+
+  switch (github.context.eventName) {
+    case 'pull_request':
+      {
+        const pullPayload = github.context.payload as PullRequestEvent
+        // Adds PR head branch and base branch to restoreBranches
+        restoreBranches.add(
+          `refs/heads/${pullPayload?.pull_request?.head?.ref}`
+        )
+        restoreBranches.add(
+          `refs/heads/${pullPayload?.pull_request?.base?.ref}`
+        )
+
+        // Adds default branch to restoreBranches
+        restoreBranches.add(
+          `refs/heads/${pullPayload?.repository?.default_branch}`
+        )
+
+        // If head points to a different repository, add it to restoreRepos. We allow restores from head repos as well.
+        if (
+          pullPayload?.pull_request?.head?.repo?.name !==
+          pullPayload?.repository?.name
+        ) {
+          restoreRepos.add(pullPayload?.pull_request?.head?.repo?.name)
+        }
+      }
+      break
+    case 'push':
+    case 'workflow_dispatch':
+      {
+        const pushPayload = github.context.payload as PushEvent
+        // Default branch is not in the complete format
+        // Ref: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+        restoreBranches.add(
+          `refs/heads/${pushPayload?.repository?.default_branch}`
+        )
+      }
+      break
+    default:
+      break
+  }
+
   const getCacheRequest: CommonsGetCacheRequest = {
     cache_key: key,
     restore_keys: restoreKeys,
     cache_version: version,
     vcs_repository: getVCSRepository(),
     vcs_ref: getVCSRef(),
-    annotations: getAnnotations()
+    annotations: getAnnotations(),
+    restore_branches: Array.from(restoreBranches),
+    restore_repos: Array.from(restoreRepos)
   }
 
   const response = await retryTypedResponse('getCacheEntry', async () =>

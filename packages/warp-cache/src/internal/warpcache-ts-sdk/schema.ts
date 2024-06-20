@@ -9,6 +9,7 @@ export { $commons_CacheEntryWithStat } from './schemas/$commons_CacheEntryWithSt
 export { $commons_CommitCacheRequest } from './schemas/$commons_CommitCacheRequest';
 export { $commons_CommitCacheResponse } from './schemas/$commons_CommitCacheResponse';
 export { $commons_DailyOperationsBreakdown } from './schemas/$commons_DailyOperationsBreakdown';
+export { $commons_DaywiseCost } from './schemas/$commons_DaywiseCost';
 export { $commons_DeleteCacheRequest } from './schemas/$commons_DeleteCacheRequest';
 export { $commons_DeleteCacheResponse } from './schemas/$commons_DeleteCacheResponse';
 export { $commons_GCSCommitCacheResponse } from './schemas/$commons_GCSCommitCacheResponse';

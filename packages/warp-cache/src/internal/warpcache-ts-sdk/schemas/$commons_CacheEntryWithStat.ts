@@ -24,6 +24,9 @@ export const $commons_CacheEntryWithStat = {
         organization_id: {
             type: 'string',
         },
+        provider: {
+            type: 'string',
+        },
         size: {
             type: 'number',
         },

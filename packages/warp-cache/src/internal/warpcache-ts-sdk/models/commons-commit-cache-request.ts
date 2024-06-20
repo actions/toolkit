@@ -48,6 +48,12 @@ export interface CommonsCommitCacheRequest {
      */
     'parts': Array<TypesCompletedPart>;
     /**
+     * 
+     * @type {string}
+     * @memberof CommonsCommitCacheRequest
+     */
+    'provider'?: string;
+    /**
      * UploadID  * This is not supported for GCS cache. When passed this will be ignored. *
      * @type {string}
      * @memberof CommonsCommitCacheRequest

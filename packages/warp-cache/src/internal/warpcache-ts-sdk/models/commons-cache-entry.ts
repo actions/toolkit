@@ -61,6 +61,12 @@ export interface CommonsCacheEntry {
      * @type {string}
      * @memberof CommonsCacheEntry
      */
+    'provider'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CommonsCacheEntry
+     */
     'storage_backend_id'?: string;
     /**
      * 
