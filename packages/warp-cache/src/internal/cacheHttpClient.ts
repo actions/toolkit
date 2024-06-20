@@ -1,4 +1,10 @@
 import * as core from '@actions/core'
+import * as github from '@actions/github'
+import {
+  PushEvent,
+  PullRequestEvent,
+  WorkflowDispatchEvent
+} from '@octokit/webhooks-definitions/schema'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {
@@ -143,13 +149,50 @@ export async function getCacheEntry(
     options?.enableCrossArchArchive
   )
 
+  const restoreBranches: Array<string> = []
+  const restoreRepos: Array<string> = []
+
+  switch (github.context.eventName) {
+    case 'pull_request':
+      {
+        const pullPayload = github.context.payload as PullRequestEvent
+        restoreBranches.push(
+          `refs/heads/${pullPayload?.pull_request?.head?.ref}`
+        )
+
+        // If head points to a different repository, add it to restoreRepos. We allow restores from head repos as well.
+        if (
+          pullPayload?.pull_request?.head?.repo?.name !==
+          pullPayload?.repository?.name
+        ) {
+          restoreRepos.push(pullPayload?.pull_request?.head?.repo?.name)
+        }
+      }
+      break
+    case 'push':
+    case 'workflow_dispatch':
+      {
+        const pushPayload = github.context.payload as PushEvent
+        // Default branch is not in the complete format
+        // Ref: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+        restoreBranches.push(
+          `refs/heads/${pushPayload?.repository?.default_branch}`
+        )
+      }
+      break
+    default:
+      break
+  }
+
   const getCacheRequest: CommonsGetCacheRequest = {
     cache_key: key,
     restore_keys: restoreKeys,
     cache_version: version,
     vcs_repository: getVCSRepository(),
     vcs_ref: getVCSRef(),
-    annotations: getAnnotations()
+    annotations: getAnnotations(),
+    restore_branches: restoreBranches,
+    restore_repos: restoreRepos
   }
 
   const response = await retryTypedResponse('getCacheEntry', async () =>

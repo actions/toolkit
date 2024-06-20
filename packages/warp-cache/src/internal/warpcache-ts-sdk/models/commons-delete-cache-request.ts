@@ -39,6 +39,12 @@ export interface CommonsDeleteCacheRequest {
      */
     'cache_version': string;
     /**
+     * 
+     * @type {string}
+     * @memberof CommonsDeleteCacheRequest
+     */
+    'provider'?: string;
+    /**
      * VCSRef is the ref of the repository in vcs for which cache is being used. This can be a branch, git tag, or pull request ref.
      * @type {string}
      * @memberof CommonsDeleteCacheRequest

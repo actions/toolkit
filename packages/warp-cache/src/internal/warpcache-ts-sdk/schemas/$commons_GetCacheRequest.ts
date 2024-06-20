@@ -17,7 +17,22 @@ export const $commons_GetCacheRequest = {
             type: 'string',
             isRequired: true,
         },
+        provider: {
+            type: 'string',
+        },
+        restore_branches: {
+            type: 'array',
+            contains: {
+                type: 'string',
+            },
+        },
         restore_keys: {
+            type: 'array',
+            contains: {
+                type: 'string',
+            },
+        },
+        restore_repos: {
             type: 'array',
             contains: {
                 type: 'string',

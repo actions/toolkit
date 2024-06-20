@@ -17,6 +17,9 @@ export const $commons_DeleteCacheRequest = {
             type: 'string',
             isRequired: true,
         },
+        provider: {
+            type: 'string',
+        },
         vcs_ref: {
             type: 'string',
             description: `VCSRef is the ref of the repository in vcs for which cache is being used.

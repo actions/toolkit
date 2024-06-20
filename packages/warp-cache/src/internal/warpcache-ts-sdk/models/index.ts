@@ -4,6 +4,7 @@ export * from './commons-cache-entry-with-stat';
 export * from './commons-commit-cache-request';
 export * from './commons-commit-cache-response';
 export * from './commons-daily-operations-breakdown';
+export * from './commons-daywise-cost';
 export * from './commons-delete-cache-request';
 export * from './commons-delete-cache-response';
 export * from './commons-gcscommit-cache-response';

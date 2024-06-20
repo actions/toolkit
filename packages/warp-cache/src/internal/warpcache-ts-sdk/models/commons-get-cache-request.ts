@@ -40,10 +40,28 @@ export interface CommonsGetCacheRequest {
     'cache_version': string;
     /**
      * 
+     * @type {string}
+     * @memberof CommonsGetCacheRequest
+     */
+    'provider'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof CommonsGetCacheRequest
+     */
+    'restore_branches'?: Array<string>;
+    /**
+     * 
      * @type {Array<string>}
      * @memberof CommonsGetCacheRequest
      */
     'restore_keys'?: Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof CommonsGetCacheRequest
+     */
+    'restore_repos'?: Array<string>;
     /**
      * VCSRef is the ref of the repository in vcs for which cache is being used. This can be a branch, git tag, or pull request ref.
      * @type {string}

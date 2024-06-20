@@ -31,6 +31,9 @@ export const $commons_ReserveCacheRequest = {
 
              * This is not supported for GCS cache. When passed this will be ignored. *`,
         },
+        provider: {
+            type: 'string',
+        },
         vcs_ref: {
             type: 'string',
             description: `VCSRef is the ref of the repository in vcs for which cache is being used.

@@ -24,6 +24,9 @@ export const $commons_CommitCacheRequest = {
             },
             isRequired: true,
         },
+        provider: {
+            type: 'string',
+        },
         upload_id: {
             type: 'string',
             description: `UploadID

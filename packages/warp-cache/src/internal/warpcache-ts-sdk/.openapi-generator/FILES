@@ -15,6 +15,7 @@ models/commons-cache-entry.ts
 models/commons-commit-cache-request.ts
 models/commons-commit-cache-response.ts
 models/commons-daily-operations-breakdown.ts
+models/commons-daywise-cost.ts
 models/commons-delete-cache-request.ts
 models/commons-delete-cache-response.ts
 models/commons-gcscommit-cache-response.ts

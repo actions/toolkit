@@ -64,6 +64,12 @@ export interface CommonsCacheEntryWithStat {
     'organization_id'?: string;
     /**
      * 
+     * @type {string}
+     * @memberof CommonsCacheEntryWithStat
+     */
+    'provider'?: string;
+    /**
+     * 
      * @type {number}
      * @memberof CommonsCacheEntryWithStat
      */
