@@ -19,6 +19,7 @@ import {
   getUploadZipSpecification
 } from '@actions/artifact/lib/internal/upload/upload-zip-specification'
 import {createZipUploadStream} from '@actions/artifact/lib/internal/upload/zip'
+import {getBackendIdsFromToken, BackendIds} from '@actions/artifact/lib/internal/shared/util'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -209,9 +210,12 @@ async function restoreCachev2(
   }
 
   try {
+    // BackendIds are retrieved form the signed JWT
+    const backendIds: BackendIds = getBackendIdsFromToken()
     const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
     const getSignedDownloadURLRequest: GetCachedBlobRequest = {
-      owner: "github",
+      workflowRunBackendId: backendIds.workflowRunBackendId,
+      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
       keys: keys,
     }
     const signedDownloadURL: GetCachedBlobResponse = await twirpClient.GetCachedBlob(getSignedDownloadURLRequest)
@@ -362,8 +366,12 @@ async function saveCachev2(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
+  // BackendIds are retrieved form the signed JWT
+  const backendIds: BackendIds = getBackendIdsFromToken()
   const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
   const getSignedUploadURL: GetCacheBlobUploadURLRequest = {
+    workflowRunBackendId: backendIds.workflowRunBackendId,
+    workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
     organization: "github",
     keys: [key],
   }

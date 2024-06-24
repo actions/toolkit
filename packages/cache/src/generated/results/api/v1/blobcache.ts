@@ -18,15 +18,21 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
  */
 export interface GetCachedBlobRequest {
     /**
-     * Owner of the blob(s) to be retrieved
+     * Workflow run backend ID
      *
-     * @generated from protobuf field: string owner = 1;
+     * @generated from protobuf field: string workflow_run_backend_id = 1;
      */
-    owner: string;
+    workflowRunBackendId: string;
+    /**
+     * Workflow job run backend ID
+     *
+     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
+     */
+    workflowJobRunBackendId: string;
     /**
      * Key(s) of te blob(s) to be retrieved
      *
-     * @generated from protobuf field: repeated string keys = 2;
+     * @generated from protobuf field: repeated string keys = 3;
      */
     keys: string[];
 }
@@ -87,15 +93,27 @@ export interface GetCachedBlobResponse_Blob {
  */
 export interface GetCacheBlobUploadURLRequest {
     /**
-     * Owner of the blob(s) to be retrieved
+     * Workflow run backend ID
      *
-     * @generated from protobuf field: string organization = 1;
+     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     */
+    workflowRunBackendId: string;
+    /**
+     * Workflow job run backend ID
+     *
+     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
+     */
+    workflowJobRunBackendId: string;
+    /**
+     * / Owner of the blob(s) to be retrieved
+     *
+     * @generated from protobuf field: string organization = 3;
      */
     organization: string;
     /**
      * Key(s) of te blob(s) to be retrieved
      *
-     * @generated from protobuf field: repeated string keys = 2;
+     * @generated from protobuf field: repeated string keys = 4;
      */
     keys: string[];
 }
@@ -131,12 +149,13 @@ export interface GetCacheBlobUploadURLResponse_Url {
 class GetCachedBlobRequest$Type extends MessageType<GetCachedBlobRequest> {
     constructor() {
         super("github.actions.results.api.v1.GetCachedBlobRequest", [
-            { no: 1, name: "owner", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetCachedBlobRequest>): GetCachedBlobRequest {
-        const message = { owner: "", keys: [] };
+        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", keys: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetCachedBlobRequest>(this, message, value);
@@ -147,10 +166,13 @@ class GetCachedBlobRequest$Type extends MessageType<GetCachedBlobRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string owner */ 1:
-                    message.owner = reader.string();
+                case /* string workflow_run_backend_id */ 1:
+                    message.workflowRunBackendId = reader.string();
                     break;
-                case /* repeated string keys */ 2:
+                case /* string workflow_job_run_backend_id */ 2:
+                    message.workflowJobRunBackendId = reader.string();
+                    break;
+                case /* repeated string keys */ 3:
                     message.keys.push(reader.string());
                     break;
                 default:
@@ -165,12 +187,15 @@ class GetCachedBlobRequest$Type extends MessageType<GetCachedBlobRequest> {
         return message;
     }
     internalBinaryWrite(message: GetCachedBlobRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string owner = 1; */
-        if (message.owner !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.owner);
-        /* repeated string keys = 2; */
+        /* string workflow_run_backend_id = 1; */
+        if (message.workflowRunBackendId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
+        /* string workflow_job_run_backend_id = 2; */
+        if (message.workflowJobRunBackendId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
+        /* repeated string keys = 3; */
         for (let i = 0; i < message.keys.length; i++)
-            writer.tag(2, WireType.LengthDelimited).string(message.keys[i]);
+            writer.tag(3, WireType.LengthDelimited).string(message.keys[i]);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -314,12 +339,14 @@ export const GetCachedBlobResponse_Blob = new GetCachedBlobResponse_Blob$Type();
 class GetCacheBlobUploadURLRequest$Type extends MessageType<GetCacheBlobUploadURLRequest> {
     constructor() {
         super("github.actions.results.api.v1.GetCacheBlobUploadURLRequest", [
-            { no: 1, name: "organization", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "organization", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetCacheBlobUploadURLRequest>): GetCacheBlobUploadURLRequest {
-        const message = { organization: "", keys: [] };
+        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", organization: "", keys: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetCacheBlobUploadURLRequest>(this, message, value);
@@ -330,10 +357,16 @@ class GetCacheBlobUploadURLRequest$Type extends MessageType<GetCacheBlobUploadUR
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string organization */ 1:
+                case /* string workflow_run_backend_id */ 1:
+                    message.workflowRunBackendId = reader.string();
+                    break;
+                case /* string workflow_job_run_backend_id */ 2:
+                    message.workflowJobRunBackendId = reader.string();
+                    break;
+                case /* string organization */ 3:
                     message.organization = reader.string();
                     break;
-                case /* repeated string keys */ 2:
+                case /* repeated string keys */ 4:
                     message.keys.push(reader.string());
                     break;
                 default:
@@ -348,12 +381,18 @@ class GetCacheBlobUploadURLRequest$Type extends MessageType<GetCacheBlobUploadUR
         return message;
     }
     internalBinaryWrite(message: GetCacheBlobUploadURLRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string organization = 1; */
+        /* string workflow_run_backend_id = 1; */
+        if (message.workflowRunBackendId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
+        /* string workflow_job_run_backend_id = 2; */
+        if (message.workflowJobRunBackendId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
+        /* string organization = 3; */
         if (message.organization !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.organization);
-        /* repeated string keys = 2; */
+            writer.tag(3, WireType.LengthDelimited).string(message.organization);
+        /* repeated string keys = 4; */
         for (let i = 0; i < message.keys.length; i++)
-            writer.tag(2, WireType.LengthDelimited).string(message.keys[i]);
+            writer.tag(4, WireType.LengthDelimited).string(message.keys[i]);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
