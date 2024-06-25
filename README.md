@@ -24,7 +24,7 @@ The GitHub Actions ToolKit provides a set of packages to make creating actions e
 Provides functions for inputs, outputs, results, logging, secrets and variables. Read more [here](packages/core)
 
 ```bash
-$ npm install @actions/core
+npm install @actions/core
 ```
 <br/>
 
@@ -33,7 +33,7 @@ $ npm install @actions/core
 Provides functions to exec cli tools and process output. Read more [here](packages/exec)
 
 ```bash
-$ npm install @actions/exec
+npm install @actions/exec
 ```
 <br/>
 
@@ -42,7 +42,7 @@ $ npm install @actions/exec
 Provides functions to search for files matching glob patterns. Read more [here](packages/glob)
 
 ```bash
-$ npm install @actions/glob
+npm install @actions/glob
 ```
 <br/>
 
@@ -51,7 +51,7 @@ $ npm install @actions/glob
 A lightweight HTTP client optimized for building actions. Read more [here](packages/http-client)
 
 ```bash
-$ npm install @actions/http-client
+npm install @actions/http-client
 ```
 <br/>
 
@@ -60,7 +60,7 @@ $ npm install @actions/http-client
 Provides disk i/o functions like cp, mv, rmRF, which etc. Read more [here](packages/io)
 
 ```bash
-$ npm install @actions/io
+npm install @actions/io
 ```
 <br/>
 
@@ -71,7 +71,7 @@ Provides functions for downloading and caching tools.  e.g. setup-* actions. Rea
 See @actions/cache for caching workflow dependencies.
 
 ```bash
-$ npm install @actions/tool-cache
+npm install @actions/tool-cache
 ```
 <br/>
 
@@ -80,7 +80,7 @@ $ npm install @actions/tool-cache
 Provides an Octokit client hydrated with the context that the current action is being run in. Read more [here](packages/github)
 
 ```bash
-$ npm install @actions/github
+npm install @actions/github
 ```
 <br/>
 
@@ -89,7 +89,7 @@ $ npm install @actions/github
 Provides functions to interact with actions artifacts. Read more [here](packages/artifact)
 
 ```bash
-$ npm install @actions/artifact
+npm install @actions/artifact
 ```
 <br/>
 
@@ -98,7 +98,7 @@ $ npm install @actions/artifact
 Provides functions to cache dependencies and build outputs to improve workflow execution time. Read more [here](packages/cache)
 
 ```bash
-$ npm install @actions/cache
+npm install @actions/cache
 ```
 <br/>
 
@@ -107,7 +107,7 @@ $ npm install @actions/cache
 Provides functions to write attestations for workflow artifacts. Read more [here](packages/attest)
 
 ```bash
-$ npm install @actions/attest
+npm install @actions/attest
 ```
 <br/>
 
