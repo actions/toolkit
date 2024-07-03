@@ -67,18 +67,25 @@ export async function uploadArtifact(
       'CreateArtifact: response from backend was not ok'
     )
   }
-
+  // Create the zipupload stream for use in blob upload
   const zipUploadStream = await createZipUploadStream(
     zipSpecification,
     options?.compressionLevel
-  )
+  ).catch(err => {
+    throw new InvalidResponseError(
+      `createZipUploadStream: response from backend was not ok: ${err}`
+    )
+  })
 
   // Upload zip to blob storage
   const uploadResult = await uploadZipToBlobStorage(
     createArtifactResp.signedUploadUrl,
     zipUploadStream
-  )
-
+  ).catch(err => {
+    throw new InvalidResponseError(
+      `uploadZipToBlobStorage: response blob was not ok: ${err}`
+    )
+  })
   // finalize the artifact
   const finalizeArtifactReq: FinalizeArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
@@ -86,15 +93,12 @@ export async function uploadArtifact(
     name,
     size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
   }
-
   if (uploadResult.sha256Hash) {
     finalizeArtifactReq.hash = StringValue.create({
       value: `sha256:${uploadResult.sha256Hash}`
     })
   }
-
   core.info(`Finalizing artifact upload`)
-
   const finalizeArtifactResp =
     await artifactClient.FinalizeArtifact(finalizeArtifactReq)
   if (!finalizeArtifactResp.ok) {
