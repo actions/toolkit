@@ -20,6 +20,11 @@ describe('isGhes', () => {
     expect(config.isGhes()).toBe(false)
   })
 
+  it('should return false when the request domain ends with .localhost', () => {
+    process.env.GITHUB_SERVER_URL = 'https://github.localhost'
+    expect(config.isGhes()).toBe(false)
+  })
+
   it('should return false when the request domain is specific to an enterprise', () => {
     process.env.GITHUB_SERVER_URL = 'https://my-enterprise.github.com'
     expect(config.isGhes()).toBe(true)
