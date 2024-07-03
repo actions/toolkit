@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.1.8
+
+- Allows `*.localhost` domains for hostname checks for local development.
+
 ### 2.1.7
 
 - Update unzip-stream dependency and reverted to using `unzip.Extract()`

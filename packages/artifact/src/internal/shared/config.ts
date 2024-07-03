@@ -30,10 +30,10 @@ export function isGhes(): boolean {
 
   const hostname = ghUrl.hostname.trimEnd().toUpperCase()
   const isGitHubHost = hostname === 'GITHUB.COM'
-  const isGheHost =
-    hostname.endsWith('.GHE.COM') || hostname.endsWith('.GHE.LOCALHOST')
+  const isGheHost = hostname.endsWith('.GHE.COM')
+  const isLocalHost = hostname.endsWith('.LOCALHOST')
 
-  return !isGitHubHost && !isGheHost
+  return !isGitHubHost && !isGheHost && !isLocalHost
 }
 
 export function getGitHubWorkspaceDir(): string {
