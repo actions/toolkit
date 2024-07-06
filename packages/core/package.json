@@ -38,6 +38,7 @@
   "dependencies": {
     "@actions/exec": "^1.1.1",
     "@actions/http-client": "^2.0.1",
+    "error-stack-parser": "^2.1.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
