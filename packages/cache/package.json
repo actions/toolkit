@@ -42,7 +42,7 @@
     "@actions/glob": "^0.1.0",
     "@actions/http-client": "^2.1.1",
     "@actions/io": "^1.0.1",
-    "@azure/abort-controller": "^1.1.0",
+    "@azure/abort-controller": "^2.1.2",
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
     "semver": "^7.6.2",
