@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as utils from './cacheUtils'
+import * as os from 'os'
 
 import fs from 'fs'
 
@@ -52,9 +53,8 @@ async function uploadChunk(
     }
   } catch (error) {
     throw new Error(
-      `Cache service responded with ${
-        (error as AxiosError).status
-      } during upload chunk.`
+      `Cache service responded with ${(error as AxiosError).response
+        ?.status} during upload chunk.`
     )
   }
 }
@@ -66,41 +66,54 @@ export async function uploadFileToS3(
   const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
   const numberOfChunks = preSignedURLs.length
 
+  let concurrency = 4
+  // Adjust concurrency based on the number of cpu cores
+  if (os.cpus().length > 4) {
+    concurrency = 8
+  }
+
   const fd = fs.openSync(archivePath, 'r')
 
-  core.debug('Awaiting all uploads')
+  core.debug(`Awaiting all uploads with concurrency limit of ${concurrency}`)
   let offset = 0
 
+  const completedParts: InternalS3CompletedPart[] = []
+
   try {
-    const completedParts = await Promise.all(
-      preSignedURLs.map(async (presignedURL, index) => {
-        const chunkSize = Math.ceil(fileSize / numberOfChunks)
-        const start = offset
-        const end = offset + chunkSize - 1
-        offset += chunkSize
+    for (let i = 0; i < numberOfChunks; i += concurrency) {
+      const batch = preSignedURLs
+        .slice(i, i + concurrency)
+        .map((presignedURL, index) => {
+          const chunkIndex = i + index
+          const chunkSize = Math.ceil(fileSize / numberOfChunks)
+          const start = offset
+          const end = offset + chunkSize - 1
+          offset += chunkSize
 
-        return await uploadChunk(
-          presignedURL,
-          () =>
-            fs
-              .createReadStream(archivePath, {
-                fd,
-                start,
-                end,
-                autoClose: false
-              })
-              .on('error', error => {
-                throw new Error(
-                  `Cache upload failed because file read failed with ${error.message}`
-                )
-              }),
-          index + 1,
-          start,
-          end
-        )
-      })
-    )
+          return uploadChunk(
+            presignedURL,
+            () =>
+              fs
+                .createReadStream(archivePath, {
+                  fd,
+                  start,
+                  end,
+                  autoClose: false
+                })
+                .on('error', error => {
+                  throw new Error(
+                    `Cache upload failed because file read failed with ${error.message}`
+                  )
+                }),
+            chunkIndex + 1,
+            start,
+            end
+          )
+        })
 
+      const batchResults = await Promise.all(batch)
+      completedParts.push(...batchResults)
+    }
     return completedParts
   } finally {
     fs.closeSync(fd)

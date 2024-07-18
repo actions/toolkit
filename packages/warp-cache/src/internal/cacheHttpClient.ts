@@ -124,6 +124,11 @@ export function getCacheVersion(
     components.push('windows-only')
   }
 
+  // Check for mac platforms if enableCrossOsArchive is false
+  if (process.platform === 'darwin' && !enableCrossOsArchive) {
+    components.push('mac-only')
+  }
+
   // Add architecture to cache version
   if (!enableCrossArchArchive) {
     components.push(process.arch)
