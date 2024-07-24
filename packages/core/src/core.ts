@@ -6,6 +6,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 import {OidcClient} from './oidc-utils'
+import * as YAML from 'yaml';
 
 /**
  * Interface for getInput options
@@ -180,6 +181,19 @@ export function getBooleanInput(name: string, options?: InputOptions): boolean {
     `Input does not meet YAML 1.2 "Core Schema" specification: ${name}\n` +
       `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``
   )
+}
+
+/**
+ * Gets the value of an input parsed as YAML.
+ * Returns null if the value not defined.
+ *
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   object
+ */
+export function getYamlInput(name: string, options?: InputOptions): string {
+  const input = getInput(name, options)
+  return YAML.parse(input)
 }
 
 /**

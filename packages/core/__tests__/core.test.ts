@@ -289,6 +289,23 @@ describe('@actions/core', () => {
     ).toEqual(['  val1  ', '  val2  ', '  '])
   })
 
+  it('getYamlInput works with object', () => {
+    expect(core.getMultilineInput('key1: val1\nkey2: val2')).toEqual({
+      key1: 'val1',
+      key2: 'val2',
+    })
+  })
+  it('getYamlInput works with array', () => {
+    expect(core.getMultilineInput('- val1\n- val2\n- val3')).toEqual([
+      'val1',
+      'val2',
+      'val3'
+    ])
+  })
+  it('getYamlInput works with single value', () => {
+    expect(core.getMultilineInput('val1')).toEqual('val1')
+  })
+
   it('legacy setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
     assertWriteCalls([

@@ -38,7 +38,8 @@
   "dependencies": {
     "@actions/exec": "^1.1.1",
     "@actions/http-client": "^2.0.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "yaml": "^2.4.5"
   },
   "devDependencies": {
     "@types/node": "^12.0.2",
