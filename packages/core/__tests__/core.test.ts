@@ -295,6 +295,7 @@ describe('@actions/core', () => {
       key2: 'val2',
     })
   })
+  
   it('getYamlInput works with array', () => {
     expect(core.getMultilineInput('- val1\n- val2\n- val3')).toEqual([
       'val1',
@@ -302,6 +303,7 @@ describe('@actions/core', () => {
       'val3'
     ])
   })
+  
   it('getYamlInput works with single value', () => {
     expect(core.getMultilineInput('val1')).toEqual('val1')
   })
