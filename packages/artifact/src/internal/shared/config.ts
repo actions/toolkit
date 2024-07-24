@@ -59,5 +59,5 @@ export function getConcurrency(): number {
 }
 
 export function getUploadChunkTimeout(): number {
-  return 30_000
+  return 30_000 // 30 seconds
 }
