@@ -57,3 +57,7 @@ export function getConcurrency(): number {
   const concurrency = 16 * numCPUs
   return concurrency > 300 ? 300 : concurrency
 }
+
+export function getUploadChunkTimeout(): number {
+  return 30_000 // 30 seconds
+}
