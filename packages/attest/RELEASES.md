@@ -1,5 +1,9 @@
 # @actions/attest Releases
 
+### 1.3.1
+
+- Fix bug with proxy support when retrieving JWKS for OIDC issuer
+
 ### 1.3.0
 
 - Dynamic construction of Sigstore API URLs

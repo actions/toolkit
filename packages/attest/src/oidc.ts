@@ -1,7 +1,6 @@
 import {getIDToken} from '@actions/core'
 import {HttpClient} from '@actions/http-client'
-import * as jwt from 'jsonwebtoken'
-import jwks from 'jwks-rsa'
+import * as jose from 'jose'
 
 const OIDC_AUDIENCE = 'nobody'
 
@@ -40,55 +39,37 @@ export const getIDTokenClaims = async (issuer: string): Promise<ClaimSet> => {
 const decodeOIDCToken = async (
   token: string,
   issuer: string
-): Promise<jwt.JwtPayload> => {
+): Promise<jose.JWTPayload> => {
   // Verify and decode token
-  return new Promise((resolve, reject) => {
-    jwt.verify(
-      token,
-      getPublicKey(issuer),
-      {audience: OIDC_AUDIENCE, issuer},
-      (err, decoded) => {
-        if (err) {
-          reject(err)
-        } else if (!decoded || typeof decoded === 'string') {
-          reject(new Error('No decoded token'))
-        } else {
-          resolve(decoded)
-        }
-      }
-    )
+  const jwks = jose.createLocalJWKSet(await getJWKS(issuer))
+  const {payload} = await jose.jwtVerify(token, jwks, {
+    audience: OIDC_AUDIENCE,
+    issuer
   })
+
+  return payload
 }
 
-// Returns a callback to locate the public key for the given JWT header. This
-// involves two calls:
-// 1. Fetch the OpenID configuration to get the JWKS URI.
-// 2. Fetch the public key from the JWKS URI.
-const getPublicKey =
-  (issuer: string): jwt.GetPublicKeyOrSecret =>
-  (header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) => {
-    // Look up the JWKS URI from the issuer's OpenID configuration
-    new HttpClient('actions/attest')
-      .getJson<OIDCConfig>(`${issuer}/.well-known/openid-configuration`)
-      .then(data => {
-        if (!data.result) {
-          callback(new Error('No OpenID configuration found'))
-        } else {
-          // Fetch the public key from the JWKS URI
-          jwks({jwksUri: data.result.jwks_uri}).getSigningKey(
-            header.kid,
-            (err, key) => {
-              callback(err, key?.getPublicKey())
-            }
-          )
-        }
-      })
-      .catch(err => {
-        callback(err)
-      })
+const getJWKS = async (issuer: string): Promise<jose.JSONWebKeySet> => {
+  const client = new HttpClient('@actions/attest')
+  const config = await client.getJson<OIDCConfig>(
+    `${issuer}/.well-known/openid-configuration`
+  )
+
+  if (!config.result) {
+    throw new Error('No OpenID configuration found')
   }
 
-function assertClaimSet(claims: jwt.JwtPayload): asserts claims is ClaimSet {
+  const jwks = await client.getJson<jose.JSONWebKeySet>(config.result.jwks_uri)
+
+  if (!jwks.result) {
+    throw new Error('No JWKS found for issuer')
+  }
+
+  return jwks.result
+}
+
+function assertClaimSet(claims: jose.JWTPayload): asserts claims is ClaimSet {
   const missingClaims: string[] = []
 
   for (const claim of REQUIRED_CLAIMS) {
