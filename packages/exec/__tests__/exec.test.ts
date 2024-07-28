@@ -820,6 +820,15 @@ describe('@actions/exec', () => {
     expect(stdout).toBe('©')
   })
 
+  it('allows to specify timeouts on running the child process', async () => {
+    const options = getExecOptions()
+    // The `cat` command will be killed after 100ms
+    options.timeout = 100
+    await expect(exec.exec('cat', [], options)).rejects.toThrowError(
+      'failed with exit code null'
+    )
+  })
+
   if (IS_WINDOWS) {
     it('Exec roots relative tool path using process.cwd (Windows path separator)', async () => {
       let exitCode: number
