@@ -99,7 +99,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throws an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/issuer invalid/)
+      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/unexpected "iss"/)
     })
   })
 
@@ -115,7 +115,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throw an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/audience invalid/)
+      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/unexpected "aud"/)
     })
   })
 
