@@ -38,6 +38,6 @@
   },
   "dependencies": {
     "@actions/core": "^1.9.1",
-    "minimatch": "^9.0.5"
+    "minimatch": "^10.0.1"
   }
 }
