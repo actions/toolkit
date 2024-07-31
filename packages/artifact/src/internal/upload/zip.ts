@@ -1,7 +1,6 @@
 import * as stream from 'stream'
 import * as archiver from 'archiver'
 import * as core from '@actions/core'
-import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
 
@@ -44,7 +43,7 @@ export async function createZipUploadStream(
   for (const file of uploadSpecification) {
     if (file.sourcePath !== null) {
       // Add a normal file to the zip
-      zip.append(createReadStream(file.sourcePath), {
+      zip.file(file.sourcePath, {
         name: file.destinationPath
       })
     } else {
