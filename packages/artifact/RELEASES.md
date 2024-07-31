@@ -1,5 +1,10 @@
 # @actions/artifact Releases
 
+### 2.1.9
+
+- Fixed artifact upload chunk timeout logic [#1774](https://github.com/actions/toolkit/pull/1774)
+- Use lazy stream to prevent issues with open file limits [#1771](https://github.com/actions/toolkit/pull/1771)
+
 ### 2.1.8
 
 - Allows `*.localhost` domains for hostname checks for local development.
