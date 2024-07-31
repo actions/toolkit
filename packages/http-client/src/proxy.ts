@@ -15,10 +15,15 @@ export function getProxyUrl(reqUrl: URL): URL | undefined {
 
   if (proxyVar) {
     try {
-      return new URL(proxyVar)
+      const decodedProxyVar = decodeURIComponent(proxyVar)
+      return new URL(decodedProxyVar)
     } catch {
-      if (!proxyVar.startsWith('http://') && !proxyVar.startsWith('https://'))
-        return new URL(`http://${proxyVar}`)
+      const decodedProxyVar = decodeURIComponent(proxyVar)
+      if (
+        !decodedProxyVar.startsWith('http://') &&
+        !decodedProxyVar.startsWith('https://')
+      )
+        return new URL(`http://${decodedProxyVar}`)
     }
   } else {
     return undefined
