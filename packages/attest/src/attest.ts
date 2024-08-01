@@ -15,10 +15,16 @@ const INTOTO_PAYLOAD_TYPE = 'application/vnd.in-toto+json'
  */
 export type AttestOptions = {
   // The name of the subject to be attested.
-  subjectName: string
+  // @deprecated see 'subjects'
+  subjectName?: string
   // The digest of the subject to be attested. Should be a map of digest
   // algorithms to their hex-encoded values.
-  subjectDigest: Record<string, string>
+  // @deprecated see 'subjects'
+  subjectDigest?: Record<string, string>
+  // The subjects to be attested
+  // Includes the digest(s) of the subject to be attested. Should be a map of digest
+  // algorithms to their hex-encoded values.
+  subjects?: Subject[]
   // Content type of the predicate being attested.
   predicateType: string
   // Predicate to be attested.
@@ -40,10 +46,18 @@ export type AttestOptions = {
  * @returns A promise that resolves to the attestation.
  */
 export async function attest(options: AttestOptions): Promise<Attestation> {
-  const subject: Subject = {
-    name: options.subjectName,
-    digest: options.subjectDigest
+  let subject = [] as Subject[]
+  if (options.subjects && options.subjects.length > 0) {
+    subject = options.subjects
+  } else if (options.subjectName && options.subjectDigest) {
+    subject = [
+      {
+        name: options.subjectName,
+        digest: options.subjectDigest
+      }
+    ]
   }
+
   const predicate: Predicate = {
     type: options.predicateType,
     params: options.predicate
