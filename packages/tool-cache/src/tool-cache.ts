@@ -657,6 +657,13 @@ async function _createExtractFolder(dest?: string): Promise<string> {
   return dest
 }
 
+function sanitizePathComponent(comp: string, name: string): string {
+  if (comp.includes(path.sep) || comp === '..' || comp === '.') {
+    throw new Error(`invalid ${name}: ${comp}`)
+  }
+  return comp
+}
+
 async function _createToolPath(
   tool: string,
   version: string,
@@ -664,9 +671,9 @@ async function _createToolPath(
 ): Promise<string> {
   const folderPath = path.join(
     _getCacheDirectory(),
-    tool,
-    semver.clean(version) || version,
-    arch || ''
+    sanitizePathComponent(tool, 'tool'),
+    sanitizePathComponent(semver.clean(version) || version, 'version'),
+    sanitizePathComponent(arch || '', 'architecture')
   )
   core.debug(`destination ${folderPath}`)
   const markerPath = `${folderPath}.complete`
