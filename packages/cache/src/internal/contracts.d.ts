@@ -33,6 +33,10 @@ export interface ReserveCacheResponse {
   cacheId: number
 }
 
+export interface DeleteCacheResponse {
+  totalCount: number
+}
+
 export interface InternalCacheOptions {
   compressionMethod?: CompressionMethod
   enableCrossOsArchive?: boolean
