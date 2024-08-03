@@ -14,10 +14,16 @@ export interface SummaryTableCell {
    */
   data: string
   /**
-   * Render cell as header
+   * @deprecated use `heading`
+   * Render cell as heading
    * (optional) default: false
    */
   header?: boolean
+  /**
+   * Render cell as heading
+   * (optional) default: false
+   */
+  heading?: boolean
   /**
    * Number of columns the cell extends
    * (optional) default: '1'
@@ -235,8 +241,8 @@ class Summary {
               return this.wrap('td', cell)
             }
 
-            const {header, data, colspan, rowspan} = cell
-            const tag = header ? 'th' : 'td'
+            const {header, heading, data, colspan, rowspan} = cell
+            const tag = (header || heading) ? 'th' : 'td'
             const attrs = {
               ...(colspan && {colspan}),
               ...(rowspan && {rowspan})
