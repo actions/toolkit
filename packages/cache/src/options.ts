@@ -40,6 +40,12 @@ export interface DownloadOptions {
   downloadConcurrency?: number
 
   /**
+   * Indicates whether to use Actions HttpClient with concurrency
+   * for Azure Blob Storage
+   */
+  concurrentBlobDownloads?: boolean
+
+  /**
    * Maximum time for each download request, in milliseconds (this
    * option only applies when using the Azure SDK)
    *
@@ -98,7 +104,8 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
  */
 export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
   const result: DownloadOptions = {
-    useAzureSdk: true,
+    useAzureSdk: false,
+    concurrentBlobDownloads: true,
     downloadConcurrency: 8,
     timeoutInMs: 30000,
     segmentTimeoutInMs: 600000,
@@ -108,6 +115,10 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
   if (copy) {
     if (typeof copy.useAzureSdk === 'boolean') {
       result.useAzureSdk = copy.useAzureSdk
+    }
+
+    if (typeof copy.concurrentBlobDownloads === 'boolean') {
+      result.concurrentBlobDownloads = copy.concurrentBlobDownloads
     }
 
     if (typeof copy.downloadConcurrency === 'number') {

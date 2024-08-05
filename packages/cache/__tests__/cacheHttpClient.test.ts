@@ -5,6 +5,12 @@ import {DownloadOptions, getDownloadOptions} from '../src/options'
 
 jest.mock('../src/internal/downloadUtils')
 
+test('getCacheVersion does not mutate arguments', async () => {
+  const paths = ['node_modules']
+  getCacheVersion(paths, undefined, true)
+  expect(paths).toEqual(['node_modules'])
+})
+
 test('getCacheVersion with one path returns version', async () => {
   const paths = ['node_modules']
   const result = getCacheVersion(paths, undefined, true)
@@ -84,18 +90,24 @@ test('downloadCache uses storage SDK for Azure storage URLs', async () => {
     'downloadCacheStorageSDK'
   )
 
+  const downloadCacheHttpClientConcurrentMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheHttpClientConcurrent'
+  )
+
   const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
   const archivePath = '/foo/bar'
 
   await downloadCache(archiveLocation, archivePath)
 
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
+  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledWith(
     archiveLocation,
     archivePath,
     getDownloadOptions()
   )
 
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
   expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
 })
 
@@ -109,20 +121,26 @@ test('downloadCache passes options to download methods', async () => {
     'downloadCacheStorageSDK'
   )
 
+  const downloadCacheHttpClientConcurrentMock = jest.spyOn(
+    downloadUtils,
+    'downloadCacheHttpClientConcurrent'
+  )
+
   const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
   const archivePath = '/foo/bar'
   const options: DownloadOptions = {downloadConcurrency: 4}
 
   await downloadCache(archiveLocation, archivePath, options)
 
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalled()
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
+  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalled()
+  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledWith(
     archiveLocation,
     archivePath,
     getDownloadOptions(options)
   )
 
+  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
   expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
 })
 
@@ -138,7 +156,10 @@ test('downloadCache uses http-client when overridden', async () => {
 
   const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
   const archivePath = '/foo/bar'
-  const options: DownloadOptions = {useAzureSdk: false}
+  const options: DownloadOptions = {
+    useAzureSdk: false,
+    concurrentBlobDownloads: false
+  }
 
   await downloadCache(archiveLocation, archivePath, options)
 

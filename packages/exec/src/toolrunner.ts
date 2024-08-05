@@ -267,10 +267,7 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     reverse += '"'
-    return reverse
-      .split('')
-      .reverse()
-      .join('')
+    return reverse.split('').reverse().join('')
   }
 
   private _uvQuoteCmdArg(arg: string): string {
@@ -350,10 +347,7 @@ export class ToolRunner extends events.EventEmitter {
     }
 
     reverse += '"'
-    return reverse
-      .split('')
-      .reverse()
-      .join('')
+    return reverse.split('').reverse().join('')
   }
 
   private _cloneExecOptions(options?: im.ExecOptions): im.ExecOptions {
@@ -637,7 +631,7 @@ class ExecState extends events.EventEmitter {
   private delay = 10000 // 10 seconds
   private done = false
   private options: im.ExecOptions
-  private timeout: NodeJS.Timer | null = null
+  private timeout: NodeJS.Timeout | null = null
   private toolPath: string
 
   CheckComplete(): void {
@@ -691,8 +685,9 @@ class ExecState extends events.EventEmitter {
     }
 
     if (!state.processClosed && state.processExited) {
-      const message = `The STDIO streams did not close within ${state.delay /
-        1000} seconds of the exit event from process '${
+      const message = `The STDIO streams did not close within ${
+        state.delay / 1000
+      } seconds of the exit event from process '${
         state.toolPath
       }'. This may indicate a child process inherited the STDIO streams and has not yet exited.`
       state._debug(message)

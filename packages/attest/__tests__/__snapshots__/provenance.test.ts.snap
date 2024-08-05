@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`provenance functions buildSLSAProvenancePredicate returns a provenance hydrated from an OIDC token 1`] = `
+{
+  "params": {
+    "buildDefinition": {
+      "buildType": "https://actions.github.io/buildtypes/workflow/v1",
+      "externalParameters": {
+        "workflow": {
+          "path": ".github/workflows/main.yml",
+          "ref": "main",
+          "repository": "https://github.com/owner/repo",
+        },
+      },
+      "internalParameters": {
+        "github": {
+          "event_name": "push",
+          "repository_id": "repo-id",
+          "repository_owner_id": "owner-id",
+          "runner_environment": "github-hosted",
+        },
+      },
+      "resolvedDependencies": [
+        {
+          "digest": {
+            "gitCommit": "babca52ab0c93ae16539e5923cb0d7403b9a093b",
+          },
+          "uri": "git+https://github.com/owner/repo@refs/heads/main",
+        },
+      ],
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/owner/workflows/.github/workflows/publish.yml@main",
+      },
+      "metadata": {
+        "invocationId": "https://github.com/owner/repo/actions/runs/run-id/attempts/run-attempt",
+      },
+    },
+  },
+  "type": "https://slsa.dev/provenance/v1",
+}
+`;

@@ -20,7 +20,11 @@ import {
   ITypedResponseWithError,
   ArtifactCacheList
 } from './contracts'
-import {downloadCacheHttpClient, downloadCacheStorageSDK} from './downloadUtils'
+import {
+  downloadCacheHttpClient,
+  downloadCacheHttpClientConcurrent,
+  downloadCacheStorageSDK
+} from './downloadUtils'
 import {
   DownloadOptions,
   UploadOptions,
@@ -76,7 +80,8 @@ export function getCacheVersion(
   compressionMethod?: CompressionMethod,
   enableCrossOsArchive = false
 ): string {
-  const components = paths
+  // don't pass changes upstream
+  const components = paths.slice()
 
   // Add compression method to cache version to restore
   // compressed cache as per compression method
@@ -92,10 +97,7 @@ export function getCacheVersion(
   // Add salt to cache version to support breaking changes in cache entry
   components.push(versionSalt)
 
-  return crypto
-    .createHash('sha256')
-    .update(components.join('|'))
-    .digest('hex')
+  return crypto.createHash('sha256').update(components.join('|')).digest('hex')
 }
 
 export async function getCacheEntry(
@@ -174,14 +176,26 @@ export async function downloadCache(
   const archiveUrl = new URL(archiveLocation)
   const downloadOptions = getDownloadOptions(options)
 
-  if (
-    downloadOptions.useAzureSdk &&
-    archiveUrl.hostname.endsWith('.blob.core.windows.net')
-  ) {
-    // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-    await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
+  if (archiveUrl.hostname.endsWith('.blob.core.windows.net')) {
+    if (downloadOptions.useAzureSdk) {
+      // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
+      await downloadCacheStorageSDK(
+        archiveLocation,
+        archivePath,
+        downloadOptions
+      )
+    } else if (downloadOptions.concurrentBlobDownloads) {
+      // Use concurrent implementation with HttpClient to work around blob SDK issue
+      await downloadCacheHttpClientConcurrent(
+        archiveLocation,
+        archivePath,
+        downloadOptions
+      )
+    } else {
+      // Otherwise, download using the Actions http-client.
+      await downloadCacheHttpClient(archiveLocation, archivePath)
+    }
   } else {
-    // Otherwise, download using the Actions http-client.
     await downloadCacheHttpClient(archiveLocation, archivePath)
   }
 }
@@ -230,9 +244,9 @@ async function uploadChunk(
   end: number
 ): Promise<void> {
   core.debug(
-    `Uploading chunk of size ${end -
-      start +
-      1} bytes at offset ${start} with content range: ${getContentRange(
+    `Uploading chunk of size ${
+      end - start + 1
+    } bytes at offset ${start} with content range: ${getContentRange(
       start,
       end
     )}`

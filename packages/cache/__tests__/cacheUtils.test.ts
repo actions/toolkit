@@ -2,6 +2,10 @@ import {promises as fs} from 'fs'
 import * as path from 'path'
 import * as cacheUtils from '../src/internal/cacheUtils'
 
+beforeEach(() => {
+  jest.resetModules()
+})
+
 test('getArchiveFileSizeInBytes returns file size', () => {
   const filePath = path.join(__dirname, '__fixtures__', 'helloWorld.txt')
 
@@ -37,4 +41,24 @@ test('resolvePaths works on github workspace directory', async () => {
   const workspace = process.env['GITHUB_WORKSPACE'] ?? '.'
   const paths = await cacheUtils.resolvePaths([workspace])
   expect(paths.length).toBeGreaterThan(0)
+})
+
+test('isGhes returns false for github.com', async () => {
+  process.env.GITHUB_SERVER_URL = 'https://github.com'
+  expect(cacheUtils.isGhes()).toBe(false)
+})
+
+test('isGhes returns false for ghe.com', async () => {
+  process.env.GITHUB_SERVER_URL = 'https://somedomain.ghe.com'
+  expect(cacheUtils.isGhes()).toBe(false)
+})
+
+test('isGhes returns true for enterprise URL', async () => {
+  process.env.GITHUB_SERVER_URL = 'https://my-enterprise.github.com'
+  expect(cacheUtils.isGhes()).toBe(true)
+})
+
+test('isGhes returns false for ghe.localhost', () => {
+  process.env.GITHUB_SERVER_URL = 'https://my.domain.ghe.localhost'
+  expect(cacheUtils.isGhes()).toBe(false)
 })
