@@ -40,7 +40,7 @@ import {
 const versionSalt = '1.0'
 
 function getCacheApiUrl(resource: string): string {
-  const baseUrl: string = process.env['ACTIONS_CACHE_URL'] || ''
+  const baseUrl: string = process.env['CUSTOM_ACTIONS_CACHE_URL'] || process.env['ACTIONS_CACHE_URL'] || ''
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
