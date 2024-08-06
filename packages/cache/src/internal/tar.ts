@@ -11,6 +11,7 @@ import {
   TarFilename,
   ManifestFilename
 } from './constants'
+import {ExtraTarOptions} from '../options'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -128,7 +129,8 @@ async function getTarArgs(
 async function getCommands(
   compressionMethod: CompressionMethod,
   type: string,
-  archivePath = ''
+  archivePath = '',
+  extraTarOptions: ExtraTarOptions = []
 ): Promise<string[]> {
   let args
 
@@ -139,6 +141,7 @@ async function getCommands(
     type,
     archivePath
   )
+  tarArgs.push(...extraTarOptions)
   const compressionArgs =
     type !== 'create'
       ? await getDecompressionProgram(tarPath, compressionMethod, archivePath)
@@ -272,12 +275,18 @@ export async function listTar(
 // Extract a tar
 export async function extractTar(
   archivePath: string,
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  extraTarOptions: ExtraTarOptions = []
 ): Promise<void> {
   // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
-  const commands = await getCommands(compressionMethod, 'extract', archivePath)
+  const commands = await getCommands(
+    compressionMethod,
+    'extract',
+    archivePath,
+    extraTarOptions
+  )
   await execCommands(commands)
 }
 
@@ -285,13 +294,19 @@ export async function extractTar(
 export async function createTar(
   archiveFolder: string,
   sourceDirectories: string[],
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  extraTarOptions: ExtraTarOptions = []
 ): Promise<void> {
   // Write source directories to manifest.txt to avoid command length limits
   writeFileSync(
     path.join(archiveFolder, ManifestFilename),
     sourceDirectories.join('\n')
   )
-  const commands = await getCommands(compressionMethod, 'create')
+  const commands = await getCommands(
+    compressionMethod,
+    'create',
+    undefined,
+    extraTarOptions
+  )
   await execCommands(commands, archiveFolder)
 }
