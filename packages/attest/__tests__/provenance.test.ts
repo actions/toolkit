@@ -8,7 +8,7 @@ import {attestProvenance, buildSLSAProvenancePredicate} from '../src/provenance'
 
 describe('provenance functions', () => {
   const originalEnv = process.env
-  const issuer = 'https://example.com'
+  const issuer = 'https://token.actions.githubusercontent.com'
   const audience = 'nobody'
   const jwksPath = '/.well-known/jwks.json'
   const tokenPath = '/token'

@@ -4,7 +4,7 @@ import {getIDTokenClaims} from '../src/oidc'
 
 describe('getIDTokenClaims', () => {
   const originalEnv = process.env
-  const issuer = 'https://example.com'
+  const issuer = 'https://token.actions.example.ghe.com'
   const audience = 'nobody'
   const requestToken = 'token'
   const openidConfigPath = '/.well-known/openid-configuration'
@@ -63,7 +63,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('returns the ID token claims', async () => {
-      const result = await getIDTokenClaims(issuer)
+      const result = await getIDTokenClaims()
       expect(result).toEqual(claims)
     })
   })
@@ -83,7 +83,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throws an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/missing claims/i)
+      await expect(getIDTokenClaims()).rejects.toThrow(/missing claims/i)
     })
   })
 
@@ -99,7 +99,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throws an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/unexpected "iss"/)
+      await expect(getIDTokenClaims()).rejects.toThrow(/issuer mismatch/i)
     })
   })
 
@@ -115,7 +115,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throw an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/unexpected "aud"/)
+      await expect(getIDTokenClaims()).rejects.toThrow(/verification failed/i)
     })
   })
 
@@ -140,9 +140,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throws an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(
-        /failed to get id/i
-      )
+      await expect(getIDTokenClaims()).rejects.toThrow(/failed to get id/i)
     })
   })
 })

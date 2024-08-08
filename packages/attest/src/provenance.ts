@@ -27,7 +27,7 @@ export const buildSLSAProvenancePredicate = async (
   issuer: string = DEFAULT_ISSUER
 ): Promise<Predicate> => {
   const serverURL = process.env.GITHUB_SERVER_URL
-  const claims = await getIDTokenClaims(issuer)
+  const claims = await getIDTokenClaims()
 
   // Split just the path and ref from the workflow string.
   // owner/repo/.github/workflows/main.yml@main =>

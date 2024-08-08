@@ -2,6 +2,11 @@ import {getIDToken} from '@actions/core'
 import {HttpClient} from '@actions/http-client'
 import * as jose from 'jose'
 
+const VALID_ISSUERS = [
+  'https://token.actions.githubusercontent.com',
+  new RegExp('^https://token\\.actions\\.[a-z0-9-]+\\.ghe\\.com$')
+] as const
+
 const OIDC_AUDIENCE = 'nobody'
 
 const REQUIRED_CLAIMS = [
@@ -25,10 +30,10 @@ type OIDCConfig = {
   jwks_uri: string
 }
 
-export const getIDTokenClaims = async (issuer: string): Promise<ClaimSet> => {
+export const getIDTokenClaims = async (): Promise<ClaimSet> => {
   try {
     const token = await getIDToken(OIDC_AUDIENCE)
-    const claims = await decodeOIDCToken(token, issuer)
+    const claims = await decodeOIDCToken(token)
     assertClaimSet(claims)
     return claims
   } catch (error) {
@@ -36,15 +41,24 @@ export const getIDTokenClaims = async (issuer: string): Promise<ClaimSet> => {
   }
 }
 
-const decodeOIDCToken = async (
-  token: string,
-  issuer: string
-): Promise<jose.JWTPayload> => {
+const decodeOIDCToken = async (token: string): Promise<jose.JWTPayload> => {
+  // Decode is an unsafe operation (no signature verification) but we're
+  // verifying the signature below after retrieving the issuer.
+  const {iss} = jose.decodeJwt(token)
+
+  if (!iss) {
+    throw new Error('No issuer found')
+  }
+
+  // Issuer must match at least one of the valid issuers
+  if (!VALID_ISSUERS.some(allowed => iss.match(allowed))) {
+    throw new Error('Issuer mismatch')
+  }
+
   // Verify and decode token
-  const jwks = jose.createLocalJWKSet(await getJWKS(issuer))
+  const jwks = jose.createLocalJWKSet(await getJWKS(iss))
   const {payload} = await jose.jwtVerify(token, jwks, {
-    audience: OIDC_AUDIENCE,
-    issuer
+    audience: OIDC_AUDIENCE
   })
 
   return payload
