@@ -6,8 +6,11 @@ export enum CacheFilename {
 export enum CompressionMethod {
   Gzip = 'gzip',
   // Long range mode was added to zstd in v1.3.2.
-  // This enum is for earlier version of zstd that does not have --long support
+  // https://github.com/facebook/zstd/releases/tag/v1.3.2
   ZstdWithoutLong = 'zstd-without-long',
+  // Adapt mode was added to zstd in v1.3.6.
+  // https://github.com/facebook/zstd/releases/tag/v1.3.6
+  ZstdWithoutAdapt = 'zstd-without-adapt',
   Zstd = 'zstd'
 }
 

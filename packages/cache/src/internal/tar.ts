@@ -172,7 +172,6 @@ async function getDecompressionProgram(
   archivePath: string
 ): Promise<string[]> {
   // -d: Decompress.
-  // unzstd is equivalent to 'zstd -d'
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
   const BSD_TAR_ZSTD =
@@ -187,10 +186,7 @@ async function getDecompressionProgram(
             TarFilename,
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
-        : [
-            '--use-compress-program',
-            IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
-          ]
+        : ['--use-compress-program', '"zstd -d --long=30"']
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
         ? [
@@ -198,7 +194,7 @@ async function getDecompressionProgram(
             TarFilename,
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
-        : ['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd']
+        : ['--use-compress-program', '"zstd -d"']
     default:
       return ['-z']
   }
@@ -206,7 +202,7 @@ async function getDecompressionProgram(
 
 // Used for creating the archive
 // -T#: Compress using # working thread. If # is 0, attempt to detect and use the number of physical CPU cores.
-// zstdmt is equivalent to 'zstd -T0'
+// --adapt: Dynamically adapt compression level to I/O conditions.
 // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
 // Using 30 here because we also support 32-bit self-hosted runners.
 // Long range mode is added to zstd in v1.3.2 release, so we will not use --long in older version of zstd.
@@ -223,14 +219,19 @@ async function getCompressionProgram(
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
         ? [
+            'zstd -T0 --adapt --long=30 --force -o',
+            cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+            TarFilename
+          ]
+        : ['--use-compress-program', '"zstd -T0 --adapt --long=30"']
+    case CompressionMethod.ZstdWithoutAdapt:
+      return BSD_TAR_ZSTD
+        ? [
             'zstd -T0 --long=30 --force -o',
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
-        : [
-            '--use-compress-program',
-            IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
-          ]
+        : ['--use-compress-program', '"zstd -T0 --long=30"']
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
         ? [
@@ -238,7 +239,7 @@ async function getCompressionProgram(
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
-        : ['--use-compress-program', IS_WINDOWS ? '"zstd -T0"' : 'zstdmt']
+        : ['--use-compress-program', '"zstd -T0"']
     default:
       return ['-z']
   }
