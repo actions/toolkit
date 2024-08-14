@@ -28,6 +28,8 @@ export type AttestOptions = {
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: SigstoreInstance
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
 }
@@ -61,7 +63,11 @@ export async function attest(options: AttestOptions): Promise<Attestation> {
   // Store the attestation
   let attestationID: string | undefined
   if (options.skipWrite !== true) {
-    attestationID = await writeAttestation(bundleToJSON(bundle), options.token)
+    attestationID = await writeAttestation(
+      bundleToJSON(bundle),
+      options.token,
+      {headers: options.headers}
+    )
   }
 
   return toAttestation(bundle, attestationID)
