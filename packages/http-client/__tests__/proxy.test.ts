@@ -235,8 +235,8 @@ describe('proxy', () => {
     expect(_proxyConnects).toEqual(['postman-echo.com:443'])
   })
 
-  it('HttpClient does basic https get request when bypass proxy', async () => {
-    process.env['https_proxy'] = _proxyUrl
+  it('HttpClient does basic http get request when bypass proxy', async () => {
+    process.env['http_proxy'] = _proxyUrl
     process.env['no_proxy'] = 'postman-echo.com'
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(

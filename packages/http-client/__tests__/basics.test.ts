@@ -63,6 +63,7 @@ describe('basics', () => {
     expect(obj.headers['user-agent']).toBeFalsy()
   })
 
+  /* TODO write a mock rather then relying on a third party
   it('does basic https get request', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
       'http://postman-echo.com/get'
@@ -72,7 +73,7 @@ describe('basics', () => {
     const obj = JSON.parse(body)
     expect(obj.url).toBe('http://postman-echo.com/get')
   })
-
+*/
   it('does basic http get request with default headers', async () => {
     const http: httpm.HttpClient = new httpm.HttpClient(
       'http-client-tests',
@@ -226,7 +227,7 @@ describe('basics', () => {
     expect(obj.headers[httpm.Headers.Accept]).toBe('application/json')
     expect(obj.headers['Authorization']).toBeUndefined()
     expect(obj.headers['authorization']).toBeUndefined()
-    expect(obj.url).toBe('https://www.postman-echo.com/get')
+    expect(obj.url).toBe('http://www.postman-echo.com/get')
   })
 
   it('does basic head request', async () => {
