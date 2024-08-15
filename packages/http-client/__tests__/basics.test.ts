@@ -192,7 +192,7 @@ describe('basics', () => {
     }
     const res: httpm.HttpClientResponse = await _http.get(
       `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
-        'https://www.postman-echo.com/get'
+        'http://www.postman-echo.com/get'
       )}`,
       headers
     )
@@ -204,7 +204,7 @@ describe('basics', () => {
     expect(obj.headers[httpm.Headers.Accept]).toBe('application/json')
     expect(obj.headers['Authorization']).toBeUndefined()
     expect(obj.headers['authorization']).toBeUndefined()
-    expect(obj.url).toBe('https://www.postman-echo.com/get')
+    expect(obj.url).toBe('http://www.postman-echo.com/get')
   })
 
   it('does not pass Auth with diff hostname redirects', async () => {
@@ -214,7 +214,7 @@ describe('basics', () => {
     }
     const res: httpm.HttpClientResponse = await _http.get(
       `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
-        'https://www.postman-echo.com/get'
+        'http://www.postman-echo.com/get'
       )}`,
       headers
     )
