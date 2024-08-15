@@ -129,7 +129,7 @@ export class DefaultGlobber implements Globber {
       }
 
       // Hidden file or directory?
-      if (options.excludeHiddenFiles && item.path.startsWith('.')) {
+      if (options.excludeHiddenFiles && path.basename(item.path).match(/^\./)) {
         continue
       }
 
