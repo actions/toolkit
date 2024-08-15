@@ -1,5 +1,8 @@
 # @actions/glob Releases
 
+### 0.5.0
+- Added `excludeHiddenFiles` option, which is disabled by default to preserve existing behavior [#1791: Add glob option to ignore hidden files](https://github.com/actions/toolkit/pull/1791)
+
 ### 0.4.0
 - Pass in the current workspace as a parameter to HashFiles [#1318](https://github.com/actions/toolkit/pull/1318)
 
