@@ -708,7 +708,7 @@ describe('globber', () => {
     expect(itemPaths).toEqual([])
   })
 
-  it('returns hidden files', async () => {
+  it('returns hidden files by default', async () => {
     // Create the following layout:
     //   <root>
     //   <root>/.emptyFolder
@@ -732,6 +732,26 @@ describe('globber', () => {
       path.join(root, '.folder'),
       path.join(root, '.folder', 'file')
     ])
+  })
+
+  it('ignores hidden files when excludeHiddenFiles is set', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/.emptyFolder
+    //   <root>/.file
+    //   <root>/.folder
+    //   <root>/.folder/file
+    const root = path.join(getTestTemp(), 'ignores-hidden-files')
+    await createHiddenDirectory(path.join(root, '.emptyFolder'))
+    await createHiddenDirectory(path.join(root, '.folder'))
+    await createHiddenFile(path.join(root, '.file'), 'test .file content')
+    await fs.writeFile(
+      path.join(root, '.folder', 'file'),
+      'test .folder/file content'
+    )
+
+    const itemPaths = await glob(root, {excludeHiddenFiles: true})
+    expect(itemPaths).toEqual([root])
   })
 
   it('returns normalized paths', async () => {
