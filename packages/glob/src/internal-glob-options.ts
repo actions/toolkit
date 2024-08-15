@@ -36,4 +36,11 @@ export interface GlobOptions {
    * @default true
    */
   omitBrokenSymbolicLinks?: boolean
+
+  /**
+   * Indicates whether to include hidden files (files and directories starting with a `.`).
+   * 
+   * @default false
+   */
+  excludeHiddenFiles?: boolean
 }
