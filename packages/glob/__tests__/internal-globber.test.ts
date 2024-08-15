@@ -751,9 +751,7 @@ describe('globber', () => {
     )
 
     const itemPaths = await glob(root, {excludeHiddenFiles: true})
-    expect(itemPaths).toEqual([
-      root
-    ])
+    expect(itemPaths).toEqual([root])
   })
 
   it('returns normalized paths', async () => {
