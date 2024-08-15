@@ -12,7 +12,7 @@ describe('headers', () => {
   it('preserves existing headers on getJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
     let jsonObj = await _http.getJson<any>(
-      'https://postman-echo.com/get',
+      'http://postman-echo.com/get',
       additionalHeaders
     )
     expect(jsonObj.result.headers[httpm.Headers.Accept]).toBe('foo')
@@ -26,7 +26,7 @@ describe('headers', () => {
         [httpm.Headers.Accept]: 'baz'
       }
     }
-    jsonObj = await httpWithHeaders.getJson<any>('https://postman-echo.com/get')
+    jsonObj = await httpWithHeaders.getJson<any>('http://postman-echo.com/get')
     expect(jsonObj.result.headers[httpm.Headers.Accept]).toBe('baz')
     expect(jsonObj.headers[httpm.Headers.ContentType]).toContain(
       httpm.MediaTypes.ApplicationJson
