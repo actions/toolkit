@@ -222,6 +222,8 @@ describe('proxy', () => {
     expect(_proxyConnects).toHaveLength(0)
   })
 
+  // TODO mock this out so we don't rely on a third party
+  /*
   it('HttpClient does basic https get request through proxy', async () => {
     process.env['https_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
@@ -234,6 +236,7 @@ describe('proxy', () => {
     expect(obj.url).toBe('http://postman-echo.com/get')
     expect(_proxyConnects).toEqual(['postman-echo.com:443'])
   })
+  */
 
   it('HttpClient does basic http get request when bypass proxy', async () => {
     process.env['http_proxy'] = _proxyUrl
