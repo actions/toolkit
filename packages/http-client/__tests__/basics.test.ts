@@ -138,7 +138,7 @@ describe('basics', () => {
 
   it('does basic get request with redirects', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
-      `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
+      `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
         'http://postman-echo.com/get'
       )}`
     )
@@ -150,7 +150,7 @@ describe('basics', () => {
 
   it('does basic get request with redirects (303)', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
-      `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
+      `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
         'http://postman-echo.com/get'
       )}&status_code=303`
     )
@@ -162,8 +162,8 @@ describe('basics', () => {
 
   it('returns 404 for not found get request on redirect', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
-      `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
-        'https://postman-echo.com/status/404'
+      `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
+        'http://postman-echo.com/status/404'
       )}&status_code=303`
     )
     expect(res.message.statusCode).toBe(404)
@@ -177,7 +177,7 @@ describe('basics', () => {
       {allowRedirects: false}
     )
     const res: httpm.HttpClientResponse = await http.get(
-      `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
+      `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
         'http://postman-echo.com/get'
       )}`
     )
@@ -191,7 +191,7 @@ describe('basics', () => {
       authorization: 'shhh'
     }
     const res: httpm.HttpClientResponse = await _http.get(
-      `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
+      `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
         'https://www.postman-echo.com/get'
       )}`,
       headers
@@ -213,7 +213,7 @@ describe('basics', () => {
       Authorization: 'shhh'
     }
     const res: httpm.HttpClientResponse = await _http.get(
-      `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
+      `http://postman-echo.com/redirect-to?url=${encodeURIComponent(
         'https://www.postman-echo.com/get'
       )}`,
       headers
@@ -304,7 +304,7 @@ describe('basics', () => {
 
   it('getting a non existent json object returns null', async () => {
     const jsonObj = await _http.getJson<HttpBinData>(
-      'https://postman-echo.com/status/404'
+      'http://postman-echo.com/status/404'
     )
     expect(jsonObj.statusCode).toBe(404)
     expect(jsonObj.result).toBeNull()
@@ -313,12 +313,12 @@ describe('basics', () => {
   it('posts a json object', async () => {
     const res = {name: 'foo'}
     const restRes = await _http.postJson<HttpBinData>(
-      'https://postman-echo.com/post',
+      'http://postman-echo.com/post',
       res
     )
     expect(restRes.statusCode).toBe(200)
     expect(restRes.result).toBeDefined()
-    expect(restRes.result?.url).toBe('https://postman-echo.com/post')
+    expect(restRes.result?.url).toBe('http://postman-echo.com/post')
     expect(restRes.result?.json.name).toBe('foo')
     expect(restRes.result?.headers[httpm.Headers.Accept]).toBe(
       httpm.MediaTypes.ApplicationJson
@@ -334,12 +334,12 @@ describe('basics', () => {
   it('puts a json object', async () => {
     const res = {name: 'foo'}
     const restRes = await _http.putJson<HttpBinData>(
-      'https://postman-echo.com/put',
+      'http://postman-echo.com/put',
       res
     )
     expect(restRes.statusCode).toBe(200)
     expect(restRes.result).toBeDefined()
-    expect(restRes.result?.url).toBe('https://postman-echo.com/put')
+    expect(restRes.result?.url).toBe('http://postman-echo.com/put')
     expect(restRes.result?.json.name).toBe('foo')
 
     expect(restRes.result?.headers[httpm.Headers.Accept]).toBe(
@@ -356,12 +356,12 @@ describe('basics', () => {
   it('patch a json object', async () => {
     const res = {name: 'foo'}
     const restRes = await _http.patchJson<HttpBinData>(
-      'https://postman-echo.com/patch',
+      'http://postman-echo.com/patch',
       res
     )
     expect(restRes.statusCode).toBe(200)
     expect(restRes.result).toBeDefined()
-    expect(restRes.result?.url).toBe('https://postman-echo.com/patch')
+    expect(restRes.result?.url).toBe('http://postman-echo.com/patch')
     expect(restRes.result?.json.name).toBe('foo')
     expect(restRes.result?.headers[httpm.Headers.Accept]).toBe(
       httpm.MediaTypes.ApplicationJson
