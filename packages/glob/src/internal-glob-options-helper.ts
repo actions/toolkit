@@ -10,7 +10,7 @@ export function getOptions(copy?: GlobOptions): GlobOptions {
     implicitDescendants: true,
     matchDirectories: true,
     omitBrokenSymbolicLinks: true,
-    excludeHiddenFiles: false,
+    excludeHiddenFiles: false
   }
 
   if (copy) {
