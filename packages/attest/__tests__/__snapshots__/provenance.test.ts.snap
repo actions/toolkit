@@ -9,7 +9,7 @@ exports[`provenance functions buildSLSAProvenancePredicate returns a provenance 
         "workflow": {
           "path": ".github/workflows/main.yml",
           "ref": "main",
-          "repository": "https://github.com/owner/repo",
+          "repository": "https://foo.ghe.com/owner/repo",
         },
       },
       "internalParameters": {
@@ -25,16 +25,16 @@ exports[`provenance functions buildSLSAProvenancePredicate returns a provenance 
           "digest": {
             "gitCommit": "babca52ab0c93ae16539e5923cb0d7403b9a093b",
           },
-          "uri": "git+https://github.com/owner/repo@refs/heads/main",
+          "uri": "git+https://foo.ghe.com/owner/repo@refs/heads/main",
         },
       ],
     },
     "runDetails": {
       "builder": {
-        "id": "https://github.com/owner/workflows/.github/workflows/publish.yml@main",
+        "id": "https://foo.ghe.com/owner/workflows/.github/workflows/publish.yml@main",
       },
       "metadata": {
-        "invocationId": "https://github.com/owner/repo/actions/runs/run-id/attempts/run-attempt",
+        "invocationId": "https://foo.ghe.com/owner/repo/actions/runs/run-id/attempts/run-attempt",
       },
     },
   },
