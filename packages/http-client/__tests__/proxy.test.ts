@@ -307,6 +307,18 @@ describe('proxy', () => {
     console.log(agent)
     expect(agent instanceof ProxyAgent).toBe(true)
   })
+
+  it('proxyAuth is set in tunnel agent when authentication is provided with URIencoding', async () => {
+    process.env['https_proxy'] =
+      'http://user%40github.com:p%40ssword@127.0.0.1:8080'
+    const httpClient = new httpm.HttpClient()
+    const agent: any = httpClient.getAgent('https://some-url')
+    // eslint-disable-next-line no-console
+    console.log(agent)
+    expect(agent.proxyOptions.host).toBe('127.0.0.1')
+    expect(agent.proxyOptions.port).toBe('8080')
+    expect(agent.proxyOptions.proxyAuth).toBe('user@github.com:p@ssword')
+  })
 })
 
 function _clearVars(): void {
