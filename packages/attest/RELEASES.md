@@ -1,5 +1,9 @@
 # @actions/attest Releases
 
+### 1.4.0
+
+- Add new `headers` parameter to the `attest` and `attestProvenance` functions.
+
 ### 1.3.1
 
 - Fix bug with proxy support when retrieving JWKS for OIDC issuer
