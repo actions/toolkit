@@ -5,8 +5,6 @@ import type {Attestation, Predicate} from './shared.types'
 const SLSA_PREDICATE_V1_TYPE = 'https://slsa.dev/provenance/v1'
 const GITHUB_BUILD_TYPE = 'https://actions.github.io/buildtypes/workflow/v1'
 
-const DEFAULT_ISSUER = 'https://token.actions.githubusercontent.com'
-
 export type AttestProvenanceOptions = Omit<
   AttestOptions,
   'predicate' | 'predicateType'
@@ -24,7 +22,7 @@ export type AttestProvenanceOptions = Omit<
  * @returns The SLSA provenance predicate.
  */
 export const buildSLSAProvenancePredicate = async (
-  issuer: string = DEFAULT_ISSUER
+  issuer?: string
 ): Promise<Predicate> => {
   const serverURL = process.env.GITHUB_SERVER_URL
   const claims = await getIDTokenClaims(issuer)

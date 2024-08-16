@@ -4,6 +4,11 @@ import * as jose from 'jose'
 
 const OIDC_AUDIENCE = 'nobody'
 
+const VALID_SERVER_URLS = [
+  'https://github.com',
+  new RegExp('^https://[a-z0-9-]+\\.ghe\\.com$')
+] as const
+
 const REQUIRED_CLAIMS = [
   'iss',
   'ref',
@@ -25,7 +30,8 @@ type OIDCConfig = {
   jwks_uri: string
 }
 
-export const getIDTokenClaims = async (issuer: string): Promise<ClaimSet> => {
+export const getIDTokenClaims = async (issuer?: string): Promise<ClaimSet> => {
+  issuer = issuer || getIssuer()
   try {
     const token = await getIDToken(OIDC_AUDIENCE)
     const claims = await decodeOIDCToken(token, issuer)
@@ -81,4 +87,22 @@ function assertClaimSet(claims: jose.JWTPayload): asserts claims is ClaimSet {
   if (missingClaims.length > 0) {
     throw new Error(`Missing claims: ${missingClaims.join(', ')}`)
   }
+}
+
+// Derive the current OIDC issuer based on the server URL
+function getIssuer(): string {
+  const serverURL = process.env.GITHUB_SERVER_URL || 'https://github.com'
+
+  // Ensure the server URL is a valid GitHub server URL
+  if (!VALID_SERVER_URLS.some(valid_url => serverURL.match(valid_url))) {
+    throw new Error(`Invalid server URL: ${serverURL}`)
+  }
+
+  let host = new URL(serverURL).hostname
+
+  if (host === 'github.com') {
+    host = 'githubusercontent.com'
+  }
+
+  return `https://token.actions.${host}`
 }

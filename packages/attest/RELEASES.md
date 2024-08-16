@@ -3,6 +3,7 @@
 ### 1.4.0
 
 - Add new `headers` parameter to the `attest` and `attestProvenance` functions.
+- Update `buildSLSAProvenancePredicate`/`attestProvenance` to automatically derive default OIDC issuer URL from current execution context.
 
 ### 1.3.1
 
