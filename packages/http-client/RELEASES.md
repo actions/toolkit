@@ -1,10 +1,10 @@
 ## Releases
 
 ## 2.2.2
-- Better handling of url encoded usernames and passwords in proxy config
+- Better handling of url encoded usernames and passwords in proxy config [#1782](https://github.com/actions/toolkit/pull/1782)
 
 ## 2.2.1
-- Make sure RequestOptions.keepAlive is applied properly on node20 runtime
+- Make sure RequestOptions.keepAlive is applied properly on node20 runtime [#1572](https://github.com/actions/toolkit/pull/1572)
 
 ## 2.2.0
 - Add function to return proxy agent dispatcher for compatibility with latest octokit packages [#1547](https://github.com/actions/toolkit/pull/1547)
