@@ -6,7 +6,7 @@ import * as ifm from './interfaces'
 import * as net from 'net'
 import * as pm from './proxy'
 import * as tunnel from 'tunnel'
-import {ProxyAgent} from 'undici'
+import type ProxyAgent from 'undici/types/proxy-agent'
 
 export enum HttpCodes {
   OK = 200,
@@ -722,6 +722,12 @@ export class HttpClient {
     }
 
     const usingSsl = parsedUrl.protocol === 'https:'
+
+    // Lazy load ProxyAgent to avoid bundling all the undici
+    const ProxyAgent =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      require('undici/lib/proxy-agent') as typeof import('undici/types/proxy-agent').default
+
     proxyAgent = new ProxyAgent({
       uri: proxyUrl.href,
       pipelining: !this._keepAlive ? 0 : 1,
