@@ -1,11 +1,13 @@
 name: Publish NPM
 
+run-name: Publish NPM - ${{ github.event.inputs.package }}
+
 on:
   workflow_dispatch:
     inputs:
       package:
         required: true
-        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache'
+        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache, attest'
 
 jobs:
   test:
@@ -13,13 +15,13 @@ jobs:
 
     steps:
       - name: setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
 
       - name: Set Node.js 20.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
@@ -40,7 +42,7 @@ jobs:
         working-directory: packages/${{ github.event.inputs.package }}
 
       - name: upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.inputs.package }}
           path: packages/${{ github.event.inputs.package }}/*.tgz
@@ -49,10 +51,13 @@ jobs:
     runs-on: macos-latest
     needs: test
     environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
     steps:
 
       - name: download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.inputs.package }}
 
@@ -62,7 +67,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.TOKEN }}
 
       - name: publish
-        run: npm publish *.tgz
+        run: npm publish --provenance *.tgz
 
       - name: notify slack on failure
         if: failure()

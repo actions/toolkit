@@ -1,7 +1,11 @@
 import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/core-http'
 import {ZipUploadStream} from './zip'
-import {getUploadChunkSize, getConcurrency} from '../shared/config'
+import {
+  getUploadChunkSize,
+  getConcurrency,
+  getUploadChunkTimeout
+} from '../shared/config'
 import * as core from '@actions/core'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
@@ -24,6 +28,22 @@ export async function uploadZipToBlobStorage(
   zipUploadStream: ZipUploadStream
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
+  let lastProgressTime = Date.now()
+  const abortController = new AbortController()
+
+  const chunkTimer = async (interval: number): Promise<void> =>
+    new Promise((resolve, reject) => {
+      const timer = setInterval(() => {
+        if (Date.now() - lastProgressTime > interval) {
+          reject(new Error('Upload progress stalled.'))
+        }
+      }, interval)
+
+      abortController.signal.addEventListener('abort', () => {
+        clearInterval(timer)
+        resolve()
+      })
+    })
 
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
@@ -37,11 +57,13 @@ export async function uploadZipToBlobStorage(
   const uploadCallback = (progress: TransferProgressEvent): void => {
     core.info(`Uploaded bytes ${progress.loadedBytes}`)
     uploadByteCount = progress.loadedBytes
+    lastProgressTime = Date.now()
   }
 
   const options: BlockBlobUploadStreamOptions = {
     blobHTTPHeaders: {blobContentType: 'zip'},
-    onProgress: uploadCallback
+    onProgress: uploadCallback,
+    abortSignal: abortController.signal
   }
 
   let sha256Hash: string | undefined = undefined
@@ -54,18 +76,22 @@ export async function uploadZipToBlobStorage(
   core.info('Beginning upload of artifact content to blob storage')
 
   try {
-    await blockBlobClient.uploadStream(
-      uploadStream,
-      bufferSize,
-      maxConcurrency,
-      options
-    )
+    await Promise.race([
+      blockBlobClient.uploadStream(
+        uploadStream,
+        bufferSize,
+        maxConcurrency,
+        options
+      ),
+      chunkTimer(getUploadChunkTimeout())
+    ])
   } catch (error) {
     if (NetworkError.isNetworkErrorCode(error?.code)) {
       throw new NetworkError(error?.code)
     }
-
     throw error
+  } finally {
+    abortController.abort()
   }
 
   core.info('Finished uploading artifact content to blob storage!')
@@ -79,7 +105,6 @@ export async function uploadZipToBlobStorage(
       `No data was uploaded to blob storage. Reported upload byte count is 0.`
     )
   }
-
   return {
     uploadSize: uploadByteCount,
     sha256Hash
