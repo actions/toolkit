@@ -47,7 +47,7 @@
     "@octokit/core": "^6.1.2",
     "@octokit/plugin-request-log": "^1.0.4",
     "@octokit/plugin-retry": "^7.1.1",
-    "@octokit/request-error": "^5.0.0",
+    "@octokit/request-error": "^6.1.4",
     "@protobuf-ts/plugin": "^2.2.3-alpha.1",
     "archiver": "^7.0.1",
     "crypto": "^1.0.1",
