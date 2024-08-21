@@ -39,13 +39,13 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/exec": "^1.0.1",
-    "@actions/glob": "^0.1.0",
-    "@actions/http-client": "^2.1.1",
+    "@actions/glob": "^0.4.0",
+    "@actions/http-client": "^2.2.1",
     "@actions/io": "^1.0.1",
-    "@azure/abort-controller": "^1.1.0",
+    "@azure/abort-controller": "^2.1.2",
     "@azure/ms-rest-js": "^2.6.0",
-    "@azure/storage-blob": "^12.13.0",
-    "semver": "^6.3.1",
+    "@azure/storage-blob": "^12.23.0",
+    "semver": "^7.6.2",
     "uuid": "^3.3.3"
   },
   "devDependencies": {

@@ -46,6 +46,6 @@
   },
   "dependencies": {
     "tunnel": "^0.0.6",
-    "undici": "^5.25.4"
+    "undici": "^6.19.4"
   }
 }
