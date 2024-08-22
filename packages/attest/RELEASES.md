@@ -1,5 +1,9 @@
 # @actions/attest Releases
 
+### 1.4.1
+
+- Bump @actions/http-client from 2.2.1 to 2.2.3 [#1805](https://github.com/actions/toolkit/pull/1805)
+
 ### 1.4.0
 
 - Add new `headers` parameter to the `attest` and `attestProvenance` functions [#1790](https://github.com/actions/toolkit/pull/1790)
