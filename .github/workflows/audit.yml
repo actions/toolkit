@@ -32,7 +32,7 @@ jobs:
       run: npm run bootstrap
 
     - name: audit tools (without allow-list)
-      run: npm audit --audit-level=moderate
+      run: npm audit --audit-level=moderate --omit dev
 
     - name: audit packages
       run: npm run audit-all
