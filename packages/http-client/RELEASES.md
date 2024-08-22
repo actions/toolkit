@@ -1,5 +1,8 @@
 ## Releases
 
+## 2.2.3
+- Fixed an issue where proxy username and password were not handled correctly [#1799](https://github.com/actions/toolkit/pull/1799)
+
 ## 2.2.2
 - Better handling of url encoded usernames and passwords in proxy config [#1782](https://github.com/actions/toolkit/pull/1782)
 
