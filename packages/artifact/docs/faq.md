@@ -1,3 +1,7 @@
+# Update 2024-09-03
+
+A recent [security advisory](https://github.com/actions/download-artifact/security/advisories/GHSA-cxww-7g56-2vh6) was released for `actions/download-artifact`. Versions of this action before 4.1.7 are vulnerable to an arbitrary file write exception. Repositories which have Dependabot enabled may see their actions start to fail if they were using v1, v2, or v3 of `actions/download-artifact`, as Dependabot will automatically update them to 4.1.7. To fix this issue, update the major version of `toolkit/upload-artifact` that your workflow uses to match the major version of `actions/download-artifact`.
+
 # Frequently Asked Questions
 
 - [Frequently Asked Questions](#frequently-asked-questions)
