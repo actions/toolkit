@@ -5,7 +5,6 @@
 
 import * as fs from 'fs'
 import * as os from 'os'
-import {v4 as uuidv4} from 'uuid'
 import {toCommandValue} from './utils'
 
 export function issueFileCommand(command: string, message: any): void {
@@ -25,7 +24,7 @@ export function issueFileCommand(command: string, message: any): void {
 }
 
 export function prepareKeyValueMessage(key: string, value: any): string {
-  const delimiter = `ghadelimiter_${uuidv4()}`
+  const delimiter = `ghadelimiter_${crypto.randomUUID()}`
   const convertedValue = toCommandValue(value)
 
   // These should realistically never happen, but just in case someone finds a
