@@ -49,9 +49,18 @@ const decodeOIDCToken = async (
   // Verify and decode token
   const jwks = jose.createLocalJWKSet(await getJWKS(issuer))
   const {payload} = await jose.jwtVerify(token, jwks, {
-    audience: OIDC_AUDIENCE,
-    issuer
+    audience: OIDC_AUDIENCE
   })
+
+  if (!payload.iss) {
+    throw new Error('Missing "iss" claim')
+  }
+
+  // Check that the issuer STARTS WITH the expected issuer URL to account for
+  // the fact that the value may include an enterprise-specific slug
+  if (!payload.iss.startsWith(issuer)) {
+    throw new Error(`Unexpected "iss" claim: ${payload.iss}`)
+  }
 
   return payload
 }
