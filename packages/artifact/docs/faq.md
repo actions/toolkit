@@ -1,16 +1,17 @@
-# Update 2024-09-03
+- [Dependabot Updates](#dependabot-updates)
+- [Frequently Asked Questions](#frequently-asked-questions)
+  - [Supported Characters](#supported-characters)
+  - [Compression? ZIP? How is my artifact stored?](#compression-zip-how-is-my-artifact-stored)
+  - [Which versions of the artifacts packages are compatible?](#which-versions-of-the-artifacts-packages-are-compatible)
+  - [How long will my artifact be available?](#how-long-will-my-artifact-be-available)
+
+# Dependabot Updates
 
 A recent [security advisory](https://github.com/actions/download-artifact/security/advisories/GHSA-cxww-7g56-2vh6) was released for `actions/download-artifact`. Versions of this action before 4.1.7 are vulnerable to an arbitrary file write exception. Repositories which have Dependabot enabled may see their actions start to fail if they were using v1, v2, or v3 of `actions/download-artifact`, as Dependabot will automatically update them to 4.1.7. To fix this issue, update the major version of `actions/upload-artifact` that your workflow uses to `v4`.
 
 Refer to the `v4` [breaking changes](https://github.com/actions/upload-artifact?tab=readme-ov-file#breaking-changes) for additional information.
 
 # Frequently Asked Questions
-
-- [Frequently Asked Questions](#frequently-asked-questions)
-  - [Supported Characters](#supported-characters)
-  - [Compression? ZIP? How is my artifact stored?](#compression-zip-how-is-my-artifact-stored)
-  - [Which versions of the artifacts packages are compatible?](#which-versions-of-the-artifacts-packages-are-compatible)
-  - [How long will my artifact be available?](#how-long-will-my-artifact-be-available)
 
 ## Supported Characters
 
