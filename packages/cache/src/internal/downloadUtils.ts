@@ -1,7 +1,6 @@
 import * as core from '@actions/core'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {BlockBlobClient} from '@azure/storage-blob'
-import {TransferProgressEvent} from '@azure/ms-rest-js'
 import * as buffer from 'buffer'
 import * as fs from 'fs'
 import * as stream from 'stream'
@@ -13,6 +12,13 @@ import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
+
+type TransferProgressEvent = {
+  /**
+   * The number of bytes loaded so far.
+   */
+  loadedBytes: number;
+}
 
 /**
  * Pipes the body of a HTTP response to a stream
