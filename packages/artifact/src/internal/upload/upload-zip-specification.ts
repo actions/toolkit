@@ -13,6 +13,11 @@ export interface UploadZipSpecification {
    * The destination path in a zip for a file
    */
   destinationPath: string
+
+  /**
+   * The relative path to a symlink target (file or directory) in a zip
+   */
+  symlinkTargetPath?: string
 }
 
 /**
@@ -78,7 +83,8 @@ export function getUploadZipSpecification(
     if (!fs.existsSync(file)) {
       throw new Error(`File ${file} does not exist`)
     }
-    if (!fs.statSync(file).isDirectory()) {
+    const fileLstat = fs.lstatSync(file)
+    if (!fileLstat.isDirectory()) {
       // Normalize and resolve, this allows for either absolute or relative paths to be used
       file = normalize(file)
       file = resolve(file)
@@ -94,7 +100,10 @@ export function getUploadZipSpecification(
 
       specification.push({
         sourcePath: file,
-        destinationPath: uploadPath
+        destinationPath: uploadPath,
+        symlinkTargetPath: fileLstat.isSymbolicLink()
+          ? fs.readlinkSync(file)
+          : undefined
       })
     } else {
       // Empty directory

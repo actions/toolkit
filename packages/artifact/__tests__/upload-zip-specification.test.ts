@@ -38,6 +38,7 @@ const extraFileInFolderCPath = path.join(
   'extra-file-in-folder-c.txt'
 )
 const amazingFileInFolderHPath = path.join(root, 'folder-h', 'amazing-item.txt')
+const symlinkToFolderDPath = path.join(root, 'symlink-to-folder-d')
 
 const artifactFilesToUpload = [
   goodItem1Path,
@@ -46,7 +47,8 @@ const artifactFilesToUpload = [
   goodItem4Path,
   goodItem5Path,
   extraFileInFolderCPath,
-  amazingFileInFolderHPath
+  amazingFileInFolderHPath,
+  symlinkToFolderDPath
 ]
 
 describe('Search', () => {
@@ -89,6 +91,8 @@ describe('Search', () => {
     await fs.writeFile(extraFileInFolderCPath, 'extra file')
 
     await fs.writeFile(amazingFileInFolderHPath, 'amazing file')
+
+    await fs.symlink(path.join(root, 'folder-d'), symlinkToFolderDPath)
     /*
       Directory structure of files that get created:
       root/
@@ -112,6 +116,7 @@ describe('Search', () => {
               folder-i/
                   bad-item4.txt
                   bad-item5.txt
+          symlink-to-folder-d -> folder-d/
           good-item5.txt
     */
   })
@@ -168,7 +173,7 @@ describe('Search', () => {
       artifactFilesToUpload,
       root
     )
-    expect(specifications.length).toEqual(7)
+    expect(specifications.length).toEqual(8)
 
     const absolutePaths = specifications.map(item => item.sourcePath)
     expect(absolutePaths).toContain(goodItem1Path)
@@ -178,6 +183,7 @@ describe('Search', () => {
     expect(absolutePaths).toContain(goodItem5Path)
     expect(absolutePaths).toContain(extraFileInFolderCPath)
     expect(absolutePaths).toContain(amazingFileInFolderHPath)
+    expect(absolutePaths).toContain(symlinkToFolderDPath)
 
     for (const specification of specifications) {
       if (specification.sourcePath === goodItem1Path) {
@@ -212,6 +218,13 @@ describe('Search', () => {
       } else if (specification.sourcePath === amazingFileInFolderHPath) {
         expect(specification.destinationPath).toEqual(
           path.join('/folder-h', 'amazing-item.txt')
+        )
+      } else if (specification.sourcePath === symlinkToFolderDPath) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/symlink-to-folder-d')
+        )
+        expect(specification.symlinkTargetPath).toEqual(
+          path.join(root, '/folder-d')
         )
       } else {
         throw new Error(
@@ -227,7 +240,7 @@ describe('Search', () => {
       artifactFilesToUpload,
       rootWithSlash
     )
-    expect(specifications.length).toEqual(7)
+    expect(specifications.length).toEqual(8)
 
     const absolutePaths = specifications.map(item => item.sourcePath)
     expect(absolutePaths).toContain(goodItem1Path)
@@ -237,6 +250,7 @@ describe('Search', () => {
     expect(absolutePaths).toContain(goodItem5Path)
     expect(absolutePaths).toContain(extraFileInFolderCPath)
     expect(absolutePaths).toContain(amazingFileInFolderHPath)
+    expect(absolutePaths).toContain(symlinkToFolderDPath)
 
     for (const specification of specifications) {
       if (specification.sourcePath === goodItem1Path) {
@@ -271,6 +285,13 @@ describe('Search', () => {
       } else if (specification.sourcePath === amazingFileInFolderHPath) {
         expect(specification.destinationPath).toEqual(
           path.join('/folder-h', 'amazing-item.txt')
+        )
+      } else if (specification.sourcePath === symlinkToFolderDPath) {
+        expect(specification.destinationPath).toEqual(
+          path.join('/symlink-to-folder-d')
+        )
+        expect(specification.symlinkTargetPath).toEqual(
+          path.join(root, '/folder-d')
         )
       } else {
         throw new Error(

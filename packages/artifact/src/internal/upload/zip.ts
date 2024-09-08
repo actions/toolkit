@@ -23,7 +23,8 @@ export class ZipUploadStream extends stream.Transform {
 
 export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
-  compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
+  compressionLevel: number = DEFAULT_COMPRESSION_LEVEL,
+  followSymlinks = true
 ): Promise<ZipUploadStream> {
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
@@ -42,10 +43,15 @@ export async function createZipUploadStream(
 
   for (const file of uploadSpecification) {
     if (file.sourcePath !== null) {
-      // Add a normal file to the zip
-      zip.file(file.sourcePath, {
-        name: file.destinationPath
-      })
+      if (file.symlinkTargetPath !== undefined && !followSymlinks) {
+        // Add a symlink to the zip
+        zip.symlink(file.destinationPath, file.symlinkTargetPath)
+      } else {
+        // Add a normal file to the zip
+        zip.file(file.sourcePath, {
+          name: file.destinationPath
+        })
+      }
     } else {
       // Add a directory to the zip
       zip.append('', {name: file.destinationPath})

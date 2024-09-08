@@ -45,6 +45,13 @@ export interface UploadArtifactOptions {
    * For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
    */
   compressionLevel?: number
+
+  /**
+   * Whether or not symlinks in artifact ZIP should be followed.
+   *
+   * By default, artifact ZIP will follow symlinks.
+   */
+  followSymlinks?: boolean
 }
 
 /**
