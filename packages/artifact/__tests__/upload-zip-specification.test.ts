@@ -305,4 +305,20 @@ describe('Search', () => {
       }
     }
   })
+
+  it('Upload Specification - Includes symlinks', async () => {
+    const targetPath = path.join(root, 'link-dir', 'symlink-me.txt')
+    await fs.mkdir(path.dirname(targetPath), {recursive: true})
+    await fs.writeFile(targetPath, 'symlink file content')
+
+    const uploadPath = path.join(root, 'upload-dir', 'symlink.txt')
+    await fs.mkdir(path.dirname(uploadPath), {recursive: true})
+    await fs.symlink(targetPath, uploadPath, 'file')
+
+    const specifications = getUploadZipSpecification([uploadPath], root)
+    expect(specifications.length).toEqual(1)
+    expect(specifications[0].sourcePath).toEqual(uploadPath)
+    expect(specifications[0].destinationPath).toEqual('/upload-dir/symlink.txt')
+    expect(specifications[0].stats.isSymbolicLink()).toBe(true)
+  })
 })

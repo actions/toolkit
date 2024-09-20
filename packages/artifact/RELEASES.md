@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.1.10
+
+- Fixed a bug with symlinks not being automatically resolved.
+
 ### 2.1.9
 
 - Fixed artifact upload chunk timeout logic [#1774](https://github.com/actions/toolkit/pull/1774)
