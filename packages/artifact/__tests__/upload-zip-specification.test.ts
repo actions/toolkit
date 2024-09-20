@@ -318,7 +318,9 @@ describe('Search', () => {
     const specifications = getUploadZipSpecification([uploadPath], root)
     expect(specifications.length).toEqual(1)
     expect(specifications[0].sourcePath).toEqual(uploadPath)
-    expect(specifications[0].destinationPath).toEqual('/upload-dir/symlink.txt')
+    expect(specifications[0].destinationPath).toEqual(
+      path.join('upload-dir', 'symlink.txt')
+    )
     expect(specifications[0].stats.isSymbolicLink()).toBe(true)
   })
 })
