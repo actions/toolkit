@@ -1,9 +1,9 @@
 ## Releases
 
 ## 2.1.1
-- Add `HttpClientResponse.readBodyBuffer` method to read from a response stream and return a buffer [#1475](https://github.com/actions/toolkit/pull/1475)
+**- Add `HttpClientResponse.readBodyBuffer` method to read from a response stream and return a buffer [#1475][def]
 
-## 2.1.0
+**## 2.1.0
 - Add support for `*` and subdomains in `no_proxy` [#1355](https://github.com/actions/toolkit/pull/1355) [#1223](https://github.com/actions/toolkit/pull/1223)
 - Bypass proxy for loopback IP adresses [#1360](https://github.com/actions/toolkit/pull/1360))
 
@@ -44,3 +44,6 @@ Started to add \<verb>Json() helper methods.  Do not use this release for that. 
 
 ## 1.0.1 to 1.0.3
 Adds proxy support.
+
+
+[def]: https://github.com/actions/toolkit/pull/1475
