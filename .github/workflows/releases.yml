@@ -1,5 +1,7 @@
 name: Publish NPM
 
+run-name: Publish NPM - ${{ github.event.inputs.package }}
+
 on:
   workflow_dispatch:
     inputs:

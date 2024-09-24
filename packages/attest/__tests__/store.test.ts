@@ -5,6 +5,7 @@ describe('writeAttestation', () => {
   const originalEnv = process.env
   const attestation = {foo: 'bar '}
   const token = 'token'
+  const headers = {'X-GitHub-Foo': 'true'}
 
   const mockAgent = new MockAgent()
   setGlobalDispatcher(mockAgent)
@@ -27,14 +28,16 @@ describe('writeAttestation', () => {
         .intercept({
           path: '/repos/foo/bar/attestations',
           method: 'POST',
-          headers: {authorization: `token ${token}`},
+          headers: {authorization: `token ${token}`, ...headers},
           body: JSON.stringify({bundle: attestation})
         })
         .reply(201, {id: '123'})
     })
 
     it('persists the attestation', async () => {
-      await expect(writeAttestation(attestation, token)).resolves.toEqual('123')
+      await expect(
+        writeAttestation(attestation, token, {headers})
+      ).resolves.toEqual('123')
     })
   })
 

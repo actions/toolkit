@@ -15,10 +15,10 @@ export function getProxyUrl(reqUrl: URL): URL | undefined {
 
   if (proxyVar) {
     try {
-      return new URL(proxyVar)
+      return new DecodedURL(proxyVar)
     } catch {
       if (!proxyVar.startsWith('http://') && !proxyVar.startsWith('https://'))
-        return new URL(`http://${proxyVar}`)
+        return new DecodedURL(`http://${proxyVar}`)
     }
   } else {
     return undefined
@@ -86,4 +86,23 @@ function isLoopbackAddress(host: string): boolean {
     hostLower.startsWith('[::1]') ||
     hostLower.startsWith('[0:0:0:0:0:0:0:1]')
   )
+}
+
+class DecodedURL extends URL {
+  private _decodedUsername: string
+  private _decodedPassword: string
+
+  constructor(url: string | URL, base?: string | URL) {
+    super(url, base)
+    this._decodedUsername = decodeURIComponent(super.username)
+    this._decodedPassword = decodeURIComponent(super.password)
+  }
+
+  get username(): string {
+    return this._decodedUsername
+  }
+
+  get password(): string {
+    return this._decodedPassword
+  }
 }

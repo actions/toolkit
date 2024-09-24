@@ -1,6 +1,6 @@
 {
   "name": "@actions/http-client",
-  "version": "2.2.1",
+  "version": "2.2.3",
   "description": "Actions Http Client",
   "keywords": [
     "github",

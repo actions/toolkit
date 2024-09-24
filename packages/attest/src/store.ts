@@ -1,11 +1,13 @@
 import * as github from '@actions/github'
 import {retry} from '@octokit/plugin-retry'
+import {RequestHeaders} from '@octokit/types'
 
 const CREATE_ATTESTATION_REQUEST = 'POST /repos/{owner}/{repo}/attestations'
 const DEFAULT_RETRY_COUNT = 5
 
 export type WriteOptions = {
   retry?: number
+  headers?: RequestHeaders
 }
 /**
  * Writes an attestation to the repository's attestations endpoint.
@@ -26,6 +28,7 @@ export const writeAttestation = async (
     const response = await octokit.request(CREATE_ATTESTATION_REQUEST, {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
+      headers: options.headers,
       data: {bundle: attestation}
     })
 
