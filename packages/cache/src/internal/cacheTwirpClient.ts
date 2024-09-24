@@ -2,8 +2,7 @@ import { HttpClient, HttpClientResponse, HttpCodes } from '@actions/http-client'
 import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 import { info, debug } from '@actions/core'
 import { CacheServiceClientJSON } from '../generated/results/api/v1/cache.twirp'
-import { CacheUrl } from './constants'
-import { getRuntimeToken } from './config'
+import { getRuntimeToken, getCacheServiceURL } from './config'
 // import {getUserAgentString} from './user-agent'
 // import {NetworkError, UsageError} from './errors'
 
@@ -31,7 +30,7 @@ class CacheServiceClient implements Rpc {
         retryMultiplier?: number
     ) {
         const token = getRuntimeToken()
-        this.baseUrl = CacheUrl
+        this.baseUrl = getCacheServiceURL()
         if (maxAttempts) {
             this.maxAttempts = maxAttempts
         }

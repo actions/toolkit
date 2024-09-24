@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
-import { CacheServiceVersion, CacheUrl } from './internal/constants'
+import * as config from './internal/config'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/cacheTwirpClient'
 import { createTar, extractTar, listTar } from './internal/tar'
@@ -67,9 +67,9 @@ function checkKey(key: string): void {
  * @returns boolean return true if Actions cache service feature is available, otherwise false
  */
 
-export function isFeatureAvailable(): boolean {
-  return !!CacheUrl
-}
+// export function isFeatureAvailable(): boolean {
+//   return !!CacheUrl
+// }
 
 /**
  * Restores cache from keys
@@ -90,8 +90,9 @@ export async function restoreCache(
 ): Promise<string | undefined> {
   checkPaths(paths)
 
-  console.debug(`Cache Service Version: ${CacheServiceVersion}`)
-  switch (CacheServiceVersion) {
+  const cacheServiceVersion: string = config.getCacheServiceVersion()
+  console.debug(`Cache Service Version: ${cacheServiceVersion}`)
+  switch (cacheServiceVersion) {
     case "v2":
       return await restoreCachev2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
     case "v1":
@@ -265,8 +266,9 @@ export async function saveCache(
   checkPaths(paths)
   checkKey(key)
 
-  console.debug(`Cache Service Version: ${CacheServiceVersion}`)
-  switch (CacheServiceVersion) {
+  const cacheServiceVersion: string = config.getCacheServiceVersion()
+  console.debug(`Cache Service Version: ${cacheServiceVersion}`)
+  switch (cacheServiceVersion) {
     case "v2":
       return await saveCachev2(paths, key, options, enableCrossOsArchive)
     case "v1":

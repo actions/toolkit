@@ -33,10 +33,10 @@ import {
   retryHttpClientResponse,
   retryTypedResponse
 } from './requestUtils'
-import { CacheUrl } from './constants'
+import { getCacheServiceURL } from './config'
 
 function getCacheApiUrl(resource: string): string {
-  const baseUrl: string = CacheUrl || ''
+  const baseUrl: string = getCacheServiceURL()
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
