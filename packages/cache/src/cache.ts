@@ -1,25 +1,27 @@
 import * as core from '@actions/core'
 import * as path from 'path'
 import * as utils from './internal/cacheUtils'
-import {CacheServiceVersion, CacheUrl} from './internal/constants'
+import { CacheServiceVersion, CacheUrl } from './internal/constants'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/cacheTwirpClient'
-import {createTar, extractTar, listTar} from './internal/tar'
-import {DownloadOptions, UploadOptions} from './options'
+import { createTar, extractTar, listTar } from './internal/tar'
+import { DownloadOptions, UploadOptions } from './options'
 import {
-  GetCacheBlobUploadURLRequest,
-  GetCacheBlobUploadURLResponse,
-  GetCachedBlobRequest,
-  GetCachedBlobResponse
-} from './generated/results/api/v1/blobcache'
-import {UploadCacheStream} from './internal/v2/upload-cache'
-import {StreamExtract} from './internal/v2/download-cache'
+  CreateCacheEntryRequest,
+  CreateCacheEntryResponse,
+  FinalizeCacheEntryUploadRequest,
+  FinalizeCacheEntryUploadResponse,
+  GetCacheEntryDownloadURLRequest,
+  GetCacheEntryDownloadURLResponse
+} from './generated/results/api/v1/cache'
+import { UploadCacheStream } from './internal/v2/upload-cache'
+import { StreamExtract } from './internal/v2/download-cache'
 import {
   UploadZipSpecification,
   getUploadZipSpecification
 } from '@actions/artifact/lib/internal/upload/upload-zip-specification'
-import {createZipUploadStream} from '@actions/artifact/lib/internal/upload/zip'
-import {getBackendIdsFromToken, BackendIds} from '@actions/artifact/lib/internal/shared/util'
+import { createZipUploadStream } from '@actions/artifact/lib/internal/upload/zip'
+import { getBackendIdsFromToken, BackendIds } from '@actions/artifact/lib/internal/shared/util'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -193,7 +195,7 @@ async function restoreCachev2(
   options?: DownloadOptions,
   enableCrossOsArchive = false
 ) {
-  
+
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -212,24 +214,31 @@ async function restoreCachev2(
   try {
     // BackendIds are retrieved form the signed JWT
     const backendIds: BackendIds = getBackendIdsFromToken()
-    const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
-    const getSignedDownloadURLRequest: GetCachedBlobRequest = {
+    const compressionMethod = await utils.getCompressionMethod()
+    const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
+    const request: GetCacheEntryDownloadURLRequest = {
       workflowRunBackendId: backendIds.workflowRunBackendId,
       workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-      keys: keys,
+      key: primaryKey,
+      restoreKeys: restoreKeys,
+      version: utils.getCacheVersion(
+        paths,
+        compressionMethod,
+        enableCrossOsArchive,
+      ),
     }
-    const signedDownloadURL: GetCachedBlobResponse = await twirpClient.GetCachedBlob(getSignedDownloadURLRequest)
-    core.info(`GetCachedBlobResponse: ${JSON.stringify(signedDownloadURL)}`)
+    const response: GetCacheEntryDownloadURLResponse = await twirpClient.GetCacheEntryDownloadURL(request)
+    core.info(`GetCacheEntryDownloadURLResponse: ${JSON.stringify(response)}`)
 
-    if (signedDownloadURL.blobs.length === 0) {
+    if (!response.ok) {
       // Cache not found
       core.warning(`Cache not found for keys: ${keys.join(', ')}`)
       return undefined
     }
 
-    core.info(`Cache hit for: ${signedDownloadURL.blobs[0].key}`)
+    core.info(`Cache hit for: ${request.key}`)
     core.info(`Starting download of artifact to: ${paths[0]}`)
-    await StreamExtract(signedDownloadURL.blobs[0].signedUrl, path.dirname(paths[0]))
+    await StreamExtract(response.signedDownloadUrl, path.dirname(paths[0]))
     core.info(`Artifact download completed successfully.`)
 
     return keys[0]
@@ -255,7 +264,7 @@ export async function saveCache(
 ): Promise<number> {
   checkPaths(paths)
   checkKey(key)
-  
+
   console.debug(`Cache Service Version: ${CacheServiceVersion}`)
   switch (CacheServiceVersion) {
     case "v2":
@@ -327,9 +336,9 @@ async function saveCachev1(
     } else if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
-          `Cache size of ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     } else {
       throw new ReserveCacheError(
@@ -368,15 +377,21 @@ async function saveCachev2(
 ): Promise<number> {
   // BackendIds are retrieved form the signed JWT
   const backendIds: BackendIds = getBackendIdsFromToken()
-  const twirpClient = cacheTwirpClient.internalBlobCacheTwirpClient()
-  const getSignedUploadURL: GetCacheBlobUploadURLRequest = {
+  const compressionMethod = await utils.getCompressionMethod()
+  const version = utils.getCacheVersion(
+    paths,
+    compressionMethod,
+    enableCrossOsArchive
+  )
+  const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
+  const request: CreateCacheEntryRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    organization: "github",
-    keys: [key],
+    key: key,
+    version: version
   }
-  const signedUploadURL: GetCacheBlobUploadURLResponse = await twirpClient.GetCacheBlobUploadURL(getSignedUploadURL)
-  core.info(`GetCacheBlobUploadURLResponse: ${JSON.stringify(signedUploadURL)}`)
+  const response: CreateCacheEntryResponse = await twirpClient.CreateCacheEntry(request)
+  core.info(`CreateCacheEntryResponse: ${JSON.stringify(response)}`)
 
   // Archive
   // We're going to handle 1 path fow now. This needs to be fixed to handle all 
@@ -403,7 +418,19 @@ async function saveCachev2(
   // - getSignedUploadURL
   // - archivePath
   core.info(`Saving Cache v2: ${paths[0]}`)
-  await UploadCacheStream(signedUploadURL.urls[0].url, zipUploadStream)
+  await UploadCacheStream(response.signedUploadUrl, zipUploadStream)
+
+  // Finalize the cache entry
+  const finalizeRequest: FinalizeCacheEntryUploadRequest = {
+    workflowRunBackendId: backendIds.workflowRunBackendId,
+    workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+    key: key,
+    version: version,
+    sizeBytes: "1024",
+  }
+
+  const finalizeResponse: FinalizeCacheEntryUploadResponse = await twirpClient.FinalizeCacheEntryUpload(finalizeRequest)
+  core.info(`FinalizeCacheEntryUploadResponse: ${JSON.stringify(finalizeResponse)}`)
 
   return 0
 }

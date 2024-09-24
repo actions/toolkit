@@ -1,16 +1,13 @@
 import * as core from '@actions/core'
-import {HttpClient} from '@actions/http-client'
-import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
+import { HttpClient } from '@actions/http-client'
+import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 import {
   RequestOptions,
   TypedResponse
 } from '@actions/http-client/lib/interfaces'
-import * as crypto from 'crypto'
 import * as fs from 'fs'
-import {URL} from 'url'
-
+import { URL } from 'url'
 import * as utils from './cacheUtils'
-import {CompressionMethod} from './constants'
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
@@ -36,9 +33,7 @@ import {
   retryHttpClientResponse,
   retryTypedResponse
 } from './requestUtils'
-import {CacheUrl} from './constants'
-
-const versionSalt = '1.0'
+import { CacheUrl } from './constants'
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string = CacheUrl || ''
@@ -76,43 +71,18 @@ function createHttpClient(): HttpClient {
   )
 }
 
-export function getCacheVersion(
-  paths: string[],
-  compressionMethod?: CompressionMethod,
-  enableCrossOsArchive = false
-): string {
-  // don't pass changes upstream
-  const components = paths.slice()
-
-  // Add compression method to cache version to restore
-  // compressed cache as per compression method
-  if (compressionMethod) {
-    components.push(compressionMethod)
-  }
-
-  // Only check for windows platforms if enableCrossOsArchive is false
-  if (process.platform === 'win32' && !enableCrossOsArchive) {
-    components.push('windows-only')
-  }
-
-  // Add salt to cache version to support breaking changes in cache entry
-  components.push(versionSalt)
-
-  return crypto.createHash('sha256').update(components.join('|')).digest('hex')
-}
-
 export async function getCacheEntry(
   keys: string[],
   paths: string[],
   options?: InternalCacheOptions
 ): Promise<ArtifactCacheEntry | null> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(
+  const version = utils.getCacheVersion(
     paths,
     options?.compressionMethod,
     options?.enableCrossOsArchive
   )
-  
+
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
   )}&version=${version}`
@@ -209,7 +179,7 @@ export async function reserveCache(
   options?: InternalCacheOptions
 ): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(
+  const version = utils.getCacheVersion(
     paths,
     options?.compressionMethod,
     options?.enableCrossOsArchive
@@ -246,8 +216,7 @@ async function uploadChunk(
   end: number
 ): Promise<void> {
   core.debug(
-    `Uploading chunk of size ${
-      end - start + 1
+    `Uploading chunk of size ${end - start + 1
     } bytes at offset ${start} with content range: ${getContentRange(
       start,
       end
@@ -343,7 +312,7 @@ async function commitCache(
   cacheId: number,
   filesize: number
 ): Promise<TypedResponse<null>> {
-  const commitCacheRequest: CommitCacheRequest = {size: filesize}
+  const commitCacheRequest: CommitCacheRequest = { size: filesize }
   return await retryTypedResponse('commitCache', async () =>
     httpClient.postJson<null>(
       getCacheApiUrl(`caches/${cacheId.toString()}`),

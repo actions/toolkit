@@ -1,13 +1,14 @@
 import * as core from '@actions/core'
-import {GetCacheBlobUploadURLResponse} from '../../generated/results/api/v1/blobcache'
-import {ZipUploadStream} from '@actions/artifact/lib/internal/upload/zip'
-import {NetworkError} from '@actions/artifact/'
-import {TransferProgressEvent} from '@azure/core-http'
+import { CreateCacheEntryResponse } from '../../generated/results/api/v1/cache'
+import { ZipUploadStream } from '@actions/artifact/lib/internal/upload/zip'
+import { NetworkError } from '@actions/artifact/'
+import { TransferProgressEvent } from '@azure/core-http'
 import * as stream from 'stream'
 import * as crypto from 'crypto'
+
 import {
-  BlobClient, 
-  BlockBlobClient, 
+  BlobClient,
+  BlockBlobClient,
   BlockBlobUploadStreamOptions,
   BlockBlobParallelUploadOptions
 } from '@azure/storage-blob'
@@ -55,7 +56,7 @@ export async function UploadCacheStream(
   }
 
   const options: BlockBlobUploadStreamOptions = {
-    blobHTTPHeaders: {blobContentType: 'zip'},
+    blobHTTPHeaders: { blobContentType: 'zip' },
     onProgress: uploadCallback
   }
 
@@ -89,7 +90,7 @@ export async function UploadCacheStream(
   }
 
   core.info('Finished uploading cache content to blob storage!')
-  
+
   hashStream.end()
   sha256Hash = hashStream.read() as string
   core.info(`SHA256 hash of uploaded artifact zip is ${sha256Hash}`)
@@ -107,11 +108,11 @@ export async function UploadCacheStream(
 }
 
 export async function UploadCacheFile(
-  uploadURL: GetCacheBlobUploadURLResponse,
+  uploadURL: CreateCacheEntryResponse,
   archivePath: string,
 ): Promise<{}> {
   core.info(`Uploading ${archivePath} to: ${JSON.stringify(uploadURL)}`)
-  
+
   // Specify data transfer options
   const uploadOptions: BlockBlobParallelUploadOptions = {
     blockSize: 4 * 1024 * 1024, // 4 MiB max block size
@@ -119,8 +120,7 @@ export async function UploadCacheFile(
     maxSingleShotSize: 8 * 1024 * 1024, // 8 MiB initial transfer size
   };
 
-  // const blobClient: BlobClient = new BlobClient(uploadURL.urls[0])
-  const blobClient: BlobClient = new BlobClient(uploadURL.urls[0].url)
+  const blobClient: BlobClient = new BlobClient(uploadURL.signedUploadUrl)
   const blockBlobClient: BlockBlobClient = blobClient.getBlockBlobClient()
 
   core.info(`BlobClient: ${JSON.stringify(blobClient)}`)
