@@ -27,9 +27,14 @@ jest.mock('@azure/storage-blob', () => ({
 const fixtures = {
   uploadDirectory: path.join(__dirname, '_temp', 'plz-upload'),
   files: [
-    ['file1.txt', 'test 1 file content'],
-    ['file2.txt', 'test 2 file content'],
-    ['file3.txt', 'test 3 file content']
+    {name: 'file1.txt', content: 'test 1 file content'},
+    {name: 'file2.txt', content: 'test 2 file content'},
+    {name: 'file3.txt', content: 'test 3 file content'},
+    {
+      name: 'from_symlink.txt',
+      content: 'from a symlink',
+      symlink: '../symlinked.txt'
+    }
   ],
   backendIDs: {
     workflowRunBackendId: '67dbcc20-e851-4452-a7c3-2cc0d2e0ec67',
@@ -54,8 +59,23 @@ describe('upload-artifact', () => {
       fs.mkdirSync(fixtures.uploadDirectory, {recursive: true})
     }
 
-    for (const [file, content] of fixtures.files) {
-      fs.writeFileSync(path.join(fixtures.uploadDirectory, file), content)
+    for (const file of fixtures.files) {
+      if (file.symlink) {
+        const symlinkPath = path.join(fixtures.uploadDirectory, file.symlink)
+        fs.writeFileSync(symlinkPath, file.content)
+        if (!fs.existsSync(path.join(fixtures.uploadDirectory, file.name))) {
+          fs.symlinkSync(
+            symlinkPath,
+            path.join(fixtures.uploadDirectory, file.name),
+            'file'
+          )
+        }
+      } else {
+        fs.writeFileSync(
+          path.join(fixtures.uploadDirectory, file.name),
+          file.content
+        )
+      }
     }
   })
 
@@ -71,8 +91,9 @@ describe('upload-artifact', () => {
       .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
       .mockReturnValue(
         fixtures.files.map(file => ({
-          sourcePath: path.join(fixtures.uploadDirectory, file[0]),
-          destinationPath: file[0]
+          sourcePath: path.join(fixtures.uploadDirectory, file.name),
+          destinationPath: file.name,
+          stats: new fs.Stats()
         }))
       )
     jest.spyOn(config, 'getRuntimeToken').mockReturnValue(fixtures.runtimeToken)
@@ -186,6 +207,10 @@ describe('upload-artifact', () => {
 
   it('should successfully upload an artifact', async () => {
     jest
+      .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
+      .mockRestore()
+
+    jest
       .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
       .mockReturnValue(
         Promise.resolve({
@@ -228,8 +253,10 @@ describe('upload-artifact', () => {
 
     const {id, size} = await uploadArtifact(
       fixtures.inputs.artifactName,
-      fixtures.inputs.files,
-      fixtures.inputs.rootDirectory
+      fixtures.files.map(file =>
+        path.join(fixtures.uploadDirectory, file.name)
+      ),
+      fixtures.uploadDirectory
     )
 
     expect(id).toBe(1)
