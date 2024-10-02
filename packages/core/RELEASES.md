@@ -1,6 +1,7 @@
 # @actions/core Releases
 
 ### 1.11.0
+- Add platform info utilities [#1551](https://github.com/actions/toolkit/pull/1551)
 - Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824)
 
 ### 1.10.1
