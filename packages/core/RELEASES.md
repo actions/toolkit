@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.11.0
+- Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824)
+
 ### 1.10.1
 - Fix error message reference in oidc utils [#1511](https://github.com/actions/toolkit/pull/1511)
 
