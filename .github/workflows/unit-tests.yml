@@ -17,6 +17,11 @@ jobs:
     strategy:
       matrix:
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
+
+        # Node 16 actions are in the process of being deprecated
+        # Node 18 is the current default Node version in hosted runners, so users may still use the toolkit with it
+        # Node 20 is the currently support Node version for actions - https://docs.github.com/actions/sharing-automations/creating-actions/metadata-syntax-for-github-actions#runsusing-for-javascript-actions
+        node-version: [16.x, 18.x, 20.x]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}
@@ -25,10 +30,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set Node.js 20.x
+    - name: Set up Node ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: ${{ matrix.node-version }}
 
     - name: npm install
       run: npm install
