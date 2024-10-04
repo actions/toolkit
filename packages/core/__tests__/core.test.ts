@@ -1,4 +1,3 @@
-import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
@@ -49,8 +48,8 @@ const DELIMITER = `ghadelimiter_${UUID}`
 
 jest.mock('crypto', () => ({
   ...jest.requireActual('crypto'),
-  randomUUID: jest.fn(() => UUID),
-}));
+  randomUUID: jest.fn(() => UUID)
+}))
 
 const TEMP_DIR = path.join(__dirname, '_temp')
 
