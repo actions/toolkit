@@ -3,6 +3,7 @@
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as os from 'os'
 import {toCommandValue} from './utils'
