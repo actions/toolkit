@@ -46,6 +46,11 @@ const testEnvVars = {
 const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 const DELIMITER = `ghadelimiter_${UUID}`
 
+jest.mock('crypto', () => ({
+  ...jest.requireActual('crypto'),
+  randomUUID: jest.fn(() => UUID)
+}))
+
 const TEMP_DIR = path.join(__dirname, '_temp')
 
 describe('@actions/core', () => {
@@ -66,10 +71,6 @@ describe('@actions/core', () => {
       process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
     }
     process.stdout.write = jest.fn()
-
-    jest.spyOn(crypto, 'randomUUID').mockImplementation(() => {
-      return UUID
-    })
   })
 
   afterEach(() => {
