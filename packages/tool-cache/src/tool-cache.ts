@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as io from '@actions/io'
+import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as mm from './manifest'
 import * as os from 'os'
