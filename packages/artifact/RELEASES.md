@@ -3,6 +3,7 @@
 ### 2.1.11
 
 - Fixed a bug with relative symlinks resolution [#1844](https://github.com/actions/toolkit/pull/1844)
+- Use native `crypto` [#1815](https://github.com/actions/toolkit/pull/1815)
 
 ### 2.1.10
 
