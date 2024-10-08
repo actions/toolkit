@@ -2,7 +2,7 @@
 
 ### 2.1.11
 
-- Fixed a bug with relative symlinks resolution [#????](https://github.com/actions/toolkit/pull/????)
+- Fixed a bug with relative symlinks resolution [#1844](https://github.com/actions/toolkit/pull/1844)
 
 ### 2.1.10
 
