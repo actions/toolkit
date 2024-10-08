@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.1.11
+
+- Fixed a bug with relative symlinks resolution [#????](https://github.com/actions/toolkit/pull/????)
+
 ### 2.1.10
 
 - Fixed a regression with symlinks not being automatically resolved [#1830](https://github.com/actions/toolkit/pull/1830)
