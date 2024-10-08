@@ -10,6 +10,7 @@ import {FilesNotFoundError} from '../src/internal/shared/errors'
 import {BlockBlobUploadStreamOptions} from '@azure/storage-blob'
 import * as fs from 'fs'
 import * as path from 'path'
+import unzip from 'unzip-stream'
 
 const uploadStreamMock = jest.fn()
 const blockBlobClientMock = jest.fn().mockImplementation(() => ({
@@ -31,9 +32,20 @@ const fixtures = {
     {name: 'file2.txt', content: 'test 2 file content'},
     {name: 'file3.txt', content: 'test 3 file content'},
     {
-      name: 'from_symlink.txt',
+      name: 'real.txt',
+      content: 'from a symlink'
+    },
+    {
+      name: 'relative.txt',
       content: 'from a symlink',
-      symlink: '../symlinked.txt'
+      symlink: 'real.txt',
+      relative: true
+    },
+    {
+      name: 'absolute.txt',
+      content: 'from a symlink',
+      symlink: 'real.txt',
+      relative: false
     }
   ],
   backendIDs: {
@@ -55,14 +67,17 @@ const fixtures = {
 
 describe('upload-artifact', () => {
   beforeAll(() => {
-    if (!fs.existsSync(fixtures.uploadDirectory)) {
-      fs.mkdirSync(fixtures.uploadDirectory, {recursive: true})
-    }
+    fs.mkdirSync(fixtures.uploadDirectory, {
+      recursive: true
+    })
 
     for (const file of fixtures.files) {
       if (file.symlink) {
-        const symlinkPath = path.join(fixtures.uploadDirectory, file.symlink)
-        fs.writeFileSync(symlinkPath, file.content)
+        let symlinkPath = file.symlink
+        if (!file.relative) {
+          symlinkPath = path.join(fixtures.uploadDirectory, file.symlink)
+        }
+
         if (!fs.existsSync(path.join(fixtures.uploadDirectory, file.name))) {
           fs.symlinkSync(
             symlinkPath,
@@ -227,6 +242,12 @@ describe('upload-artifact', () => {
         })
       )
 
+    let loadedBytes = 0
+    const uploadedZip = path.join(
+      fixtures.uploadDirectory,
+      '..',
+      'uploaded.zip'
+    )
     uploadStreamMock.mockImplementation(
       async (
         stream: NodeJS.ReadableStream,
@@ -234,18 +255,27 @@ describe('upload-artifact', () => {
         maxConcurrency?: number,
         options?: BlockBlobUploadStreamOptions
       ) => {
-        const {onProgress, abortSignal} = options || {}
+        const {onProgress} = options || {}
+
+        if (fs.existsSync(uploadedZip)) {
+          fs.unlinkSync(uploadedZip)
+        }
+        const uploadedZipStream = fs.createWriteStream(uploadedZip)
 
         onProgress?.({loadedBytes: 0})
-
-        return new Promise(resolve => {
-          const timerId = setTimeout(() => {
-            onProgress?.({loadedBytes: 256})
+        return new Promise((resolve, reject) => {
+          stream.on('data', chunk => {
+            loadedBytes += chunk.length
+            uploadedZipStream.write(chunk)
+            onProgress?.({loadedBytes})
+          })
+          stream.on('end', () => {
+            onProgress?.({loadedBytes})
+            uploadedZipStream.end()
             resolve({})
-          }, 1_000)
-          abortSignal?.addEventListener('abort', () => {
-            clearTimeout(timerId)
-            resolve({})
+          })
+          stream.on('error', err => {
+            reject(err)
           })
         })
       }
@@ -260,7 +290,34 @@ describe('upload-artifact', () => {
     )
 
     expect(id).toBe(1)
-    expect(size).toBe(256)
+    expect(size).toBe(loadedBytes)
+
+    const extractedDirectory = path.join(
+      fixtures.uploadDirectory,
+      '..',
+      'extracted'
+    )
+    if (fs.existsSync(extractedDirectory)) {
+      fs.rmdirSync(extractedDirectory, {recursive: true})
+    }
+
+    const extract = new Promise((resolve, reject) => {
+      fs.createReadStream(uploadedZip)
+        .pipe(unzip.Extract({path: extractedDirectory}))
+        .on('close', () => {
+          resolve(true)
+        })
+        .on('error', err => {
+          reject(err)
+        })
+    })
+
+    await expect(extract).resolves.toBe(true)
+    for (const file of fixtures.files) {
+      const filePath = path.join(extractedDirectory, file.name)
+      expect(fs.existsSync(filePath)).toBe(true)
+      expect(fs.readFileSync(filePath, 'utf8')).toBe(file.content)
+    }
   })
 
   it('should throw an error uploading blob chunks get delayed', async () => {
