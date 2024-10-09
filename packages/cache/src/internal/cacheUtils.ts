@@ -2,12 +2,11 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as glob from '@actions/glob'
 import * as io from '@actions/io'
+import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as semver from 'semver'
 import * as util from 'util'
-import { v4 as uuidV4 } from 'uuid'
-import * as crypto from 'crypto'
 import {
   CacheFilename,
   CompressionMethod,
@@ -37,7 +36,7 @@ export async function createTempDirectory(): Promise<string> {
     tempDirectory = path.join(baseLocation, 'actions', 'temp')
   }
 
-  const dest = path.join(tempDirectory, uuidV4())
+  const dest = path.join(tempDirectory, crypto.randomUUID())
   await io.mkdirP(dest)
   return dest
 }

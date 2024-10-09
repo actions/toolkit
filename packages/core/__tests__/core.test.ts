@@ -4,9 +4,6 @@ import * as path from 'path'
 import * as core from '../src/core'
 import {HttpClient} from '@actions/http-client'
 import {toCommandProperties} from '../src/utils'
-import * as uuid from 'uuid'
-
-jest.mock('uuid')
 
 /* eslint-disable @typescript-eslint/unbound-method */
 
@@ -49,11 +46,23 @@ const testEnvVars = {
 const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 const DELIMITER = `ghadelimiter_${UUID}`
 
+jest.mock('crypto', () => ({
+  ...jest.requireActual('crypto'),
+  randomUUID: jest.fn(() => UUID)
+}))
+
+const TEMP_DIR = path.join(__dirname, '_temp')
+
 describe('@actions/core', () => {
   beforeAll(() => {
-    const filePath = path.join(__dirname, `test`)
+    const filePath = TEMP_DIR
     if (!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath)
+    } else {
+      // Clear out the temp directory
+      for (const file of fs.readdirSync(filePath)) {
+        fs.unlinkSync(path.join(filePath, file))
+      }
     }
   })
 
@@ -62,10 +71,6 @@ describe('@actions/core', () => {
       process.env[key] = testEnvVars[key as keyof typeof testEnvVars]
     }
     process.stdout.write = jest.fn()
-
-    jest.spyOn(uuid, 'v4').mockImplementation(() => {
-      return UUID
-    })
   })
 
   afterEach(() => {
@@ -141,7 +146,7 @@ describe('@actions/core', () => {
       `Unexpected input: value should not contain the delimiter "${DELIMITER}"`
     )
 
-    const filePath = path.join(__dirname, `test/${command}`)
+    const filePath = path.join(TEMP_DIR, command)
     fs.unlinkSync(filePath)
   })
 
@@ -155,7 +160,7 @@ describe('@actions/core', () => {
       `Unexpected input: name should not contain the delimiter "${DELIMITER}"`
     )
 
-    const filePath = path.join(__dirname, `test/${command}`)
+    const filePath = path.join(TEMP_DIR, command)
     fs.unlinkSync(filePath)
   })
 
@@ -347,7 +352,7 @@ describe('@actions/core', () => {
       `Unexpected input: value should not contain the delimiter "${DELIMITER}"`
     )
 
-    const filePath = path.join(__dirname, `test/${command}`)
+    const filePath = path.join(TEMP_DIR, command)
     fs.unlinkSync(filePath)
   })
 
@@ -361,7 +366,7 @@ describe('@actions/core', () => {
       `Unexpected input: name should not contain the delimiter "${DELIMITER}"`
     )
 
-    const filePath = path.join(__dirname, `test/${command}`)
+    const filePath = path.join(TEMP_DIR, command)
     fs.unlinkSync(filePath)
   })
 
@@ -585,7 +590,7 @@ describe('@actions/core', () => {
       `Unexpected input: value should not contain the delimiter "${DELIMITER}"`
     )
 
-    const filePath = path.join(__dirname, `test/${command}`)
+    const filePath = path.join(TEMP_DIR, command)
     fs.unlinkSync(filePath)
   })
 
@@ -599,7 +604,7 @@ describe('@actions/core', () => {
       `Unexpected input: name should not contain the delimiter "${DELIMITER}"`
     )
 
-    const filePath = path.join(__dirname, `test/${command}`)
+    const filePath = path.join(TEMP_DIR, command)
     fs.unlinkSync(filePath)
   })
 
@@ -641,7 +646,7 @@ function assertWriteCalls(calls: string[]): void {
 }
 
 function createFileCommandFile(command: string): void {
-  const filePath = path.join(__dirname, `test/${command}`)
+  const filePath = path.join(__dirname, `_temp/${command}`)
   process.env[`GITHUB_${command}`] = filePath
   fs.appendFileSync(filePath, '', {
     encoding: 'utf8'
@@ -649,7 +654,7 @@ function createFileCommandFile(command: string): void {
 }
 
 function verifyFileCommand(command: string, expectedContents: string): void {
-  const filePath = path.join(__dirname, `test/${command}`)
+  const filePath = path.join(__dirname, `_temp/${command}`)
   const contents = fs.readFileSync(filePath, 'utf8')
   try {
     expect(contents).toEqual(expectedContents)
