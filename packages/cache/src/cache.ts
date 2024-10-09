@@ -67,9 +67,9 @@ function checkKey(key: string): void {
  * @returns boolean return true if Actions cache service feature is available, otherwise false
  */
 
-// export function isFeatureAvailable(): boolean {
-//   return !!CacheUrl
-// }
+export function isFeatureAvailable(): boolean {
+  return !!config.getCacheServiceVersion
+}
 
 /**
  * Restores cache from keys
@@ -91,7 +91,7 @@ export async function restoreCache(
   checkPaths(paths)
 
   const cacheServiceVersion: string = config.getCacheServiceVersion()
-  console.debug(`Cache Service Version: ${cacheServiceVersion}`)
+  console.debug(`Cache service version: ${cacheServiceVersion}`)
   switch (cacheServiceVersion) {
     case "v2":
       return await restoreCachev2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
@@ -189,6 +189,16 @@ async function restoreCachev1(
   return undefined
 }
 
+/**
+ * Restores cache using the new Cache Service
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
+ * @param downloadOptions cache download options
+ * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @returns string returns the key for the cache hit, otherwise returns undefined
+ */
 async function restoreCachev2(
   paths: string[],
   primaryKey: string,
@@ -196,7 +206,6 @@ async function restoreCachev2(
   options?: DownloadOptions,
   enableCrossOsArchive = false
 ) {
-
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -212,11 +221,13 @@ async function restoreCachev2(
     checkKey(key)
   }
 
+  let archivePath = ''
   try {
+    const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
     // BackendIds are retrieved form the signed JWT
     const backendIds: BackendIds = getBackendIdsFromToken()
     const compressionMethod = await utils.getCompressionMethod()
-    const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
+
     const request: GetCacheEntryDownloadURLRequest = {
       workflowRunBackendId: backendIds.workflowRunBackendId,
       workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
@@ -228,8 +239,9 @@ async function restoreCachev2(
         enableCrossOsArchive,
       ),
     }
+
     const response: GetCacheEntryDownloadURLResponse = await twirpClient.GetCacheEntryDownloadURL(request)
-    core.info(`GetCacheEntryDownloadURLResponse: ${JSON.stringify(response)}`)
+    core.debug(`GetCacheEntryDownloadURLResponse: ${JSON.stringify(response)}`)
 
     if (!response.ok) {
       // Cache not found
@@ -238,13 +250,49 @@ async function restoreCachev2(
     }
 
     core.info(`Cache hit for: ${request.key}`)
-    core.info(`Starting download of artifact to: ${paths[0]}`)
-    await StreamExtract(response.signedDownloadUrl, path.dirname(paths[0]))
-    core.info(`Artifact download completed successfully.`)
 
-    return keys[0]
+    if (options?.lookupOnly) {
+      core.info('Lookup only - skipping download')
+      return request.key
+    }
+
+    archivePath = path.join(
+      await utils.createTempDirectory(),
+      utils.getCacheFileName(compressionMethod)
+    )
+    core.debug(`Archive path: ${archivePath}`)
+
+    if (core.isDebug()) {
+      await listTar(archivePath, compressionMethod)
+    }
+
+    core.debug(`Starting download of artifact to: ${archivePath}`)
+    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+    core.info(
+      `Cache Size: ~${Math.round(
+        archiveFileSize / (1024 * 1024)
+      )} MB (${archiveFileSize} B)`
+    )
+
+    // Download the cache from the cache entry
+    await cacheHttpClient.downloadCache(
+      response.signedDownloadUrl,
+      archivePath,
+      options
+    )
+
+    await extractTar(archivePath, compressionMethod)
+    core.info('Cache restored successfully')
+
+    return request.key
   } catch (error) {
     throw new Error(`Unable to download and extract cache: ${error.message}`)
+  } finally {
+    try {
+      await utils.unlinkFile(archivePath)
+    } catch (error) {
+      core.debug(`Failed to delete archive: ${error}`)
+    }
   }
 }
 
