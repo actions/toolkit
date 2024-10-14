@@ -1,8 +1,15 @@
 # @actions/attest Releases
 
+### 1.5.0
+
+- Bump @actions/core from 1.10.1 to 1.11.1 [#1847](https://github.com/actions/toolkit/pull/1847)
+- Bump @sigstore/bundle from 2.3.2 to 3.0.0 [#1846](https://github.com/actions/toolkit/pull/1846)
+- Bump @sigstore/sign from 2.3.2 to 3.0.0 [#1846](https://github.com/actions/toolkit/pull/1846)
+
 ### 1.4.2
 
 - Fix bug in `buildSLSAProvenancePredicate`/`attestProvenance` when generating provenance statement for enterprise account using customized OIDC issuer value [#1823](https://github.com/actions/toolkit/pull/1823)
+
 ### 1.4.1
 
 - Bump @actions/http-client from 2.2.1 to 2.2.3 [#1805](https://github.com/actions/toolkit/pull/1805)
