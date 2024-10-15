@@ -393,6 +393,9 @@ describe('@actions/exec', () => {
       const args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' &`]
 
       exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
+      console.log(toolName)
+      console.log(exitCode)
+      console.log(debugList)
     }
 
     expect(exitCode).toBe(0)
