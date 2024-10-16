@@ -324,7 +324,10 @@ export function endGroup(): void {
  * @param name The name of the group
  * @param fn The function to wrap in the group
  */
-export async function group<T>(name: string, fn: () => T | Promise<T>): Promise<T> {
+export async function group<T>(
+  name: string,
+  fn: () => T | Promise<T>
+): Promise<T> {
   startGroup(name)
 
   let result: T
