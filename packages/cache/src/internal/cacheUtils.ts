@@ -46,9 +46,7 @@ export function getArchiveFileSizeInBytes(filePath: string): number {
 export async function resolvePaths(patterns: string[]): Promise<string[]> {
   const paths: string[] = []
   const workspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
-  const globber = await glob.create(patterns.join('\n'), {
-    implicitDescendants: false
-  })
+  const globber = await glob.create(patterns.join('\n'))
 
   for await (const file of globber.globGenerator()) {
     const relativeFile = path
