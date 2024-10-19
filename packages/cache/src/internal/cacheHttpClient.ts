@@ -13,12 +13,12 @@ import * as utils from './cacheUtils'
 import {CompressionMethod} from './constants'
 import {
   ArtifactCacheEntry,
-  InternalCacheOptions,
+  ArtifactCacheList,
   CommitCacheRequest,
-  ReserveCacheRequest,
-  ReserveCacheResponse,
+  InternalCacheOptions,
   ITypedResponseWithError,
-  ArtifactCacheList
+  ReserveCacheRequest,
+  ReserveCacheResponse
 } from './contracts'
 import {
   downloadCacheHttpClient,
@@ -27,9 +27,9 @@ import {
 } from './downloadUtils'
 import {
   DownloadOptions,
-  UploadOptions,
   getDownloadOptions,
-  getUploadOptions
+  getUploadOptions,
+  UploadOptions
 } from '../options'
 import {
   isSuccessStatusCode,
@@ -179,22 +179,45 @@ export async function downloadCache(
   if (archiveUrl.hostname.endsWith('.blob.core.windows.net')) {
     if (downloadOptions.useAzureSdk) {
       // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-      await downloadCacheStorageSDK(
+      return await downloadCacheStorageSDK(
         archiveLocation,
         archivePath,
         downloadOptions
       )
-    } else if (downloadOptions.concurrentBlobDownloads) {
-      // Use concurrent implementation with HttpClient to work around blob SDK issue
-      await downloadCacheHttpClientConcurrent(
-        archiveLocation,
-        archivePath,
-        downloadOptions
-      )
-    } else {
-      // Otherwise, download using the Actions http-client.
-      await downloadCacheHttpClient(archiveLocation, archivePath)
     }
+  }
+
+  let acceptRange = false
+  let contentLength = -1
+  // Determine partial file downloads is supported by server
+  // via `Accept-Ranges: bytes` response header.
+  try {
+    const httpClient = new HttpClient('actions/cache', undefined, {
+      socketTimeout: downloadOptions.timeoutInMs,
+      keepAlive: true
+    })
+
+    const res = await retryHttpClientResponse(
+      'downloadCacheMetadata',
+      async () => await httpClient.request('HEAD', archiveLocation, null, {})
+    )
+
+    acceptRange = res.message.headers['Accept-Ranges'] === 'bytes'
+
+    const lengthHeader = res.message.headers['Content-Length']
+    contentLength = parseInt(lengthHeader)
+  } catch {
+    // ignore
+  }
+
+  if (acceptRange && contentLength > 0) {
+    // Use concurrent implementation with HttpClient to work around blob SDK issue
+    await downloadCacheHttpClientConcurrent(
+      archiveLocation,
+      archivePath,
+      contentLength,
+      downloadOptions
+    )
   } else {
     await downloadCacheHttpClient(archiveLocation, archivePath)
   }
