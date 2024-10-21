@@ -1,9 +1,14 @@
 # @actions/cache Releases
 
+### 3.3.0
+
+- Add support for zstd adapt mode. [#1772](https://github.com/actions/toolkit/pull/1772)
+- Unlock zstd long mode. [#1772](https://github.com/actions/toolkit/pull/1772)
+
 ### 3.2.4
 
 - Updated `isGhes` check to include `.ghe.com` and `.ghe.localhost` as accepted hosts
-  
+
 ### 3.2.3
 
 - Fixed a bug that mutated path arguments to `getCacheVersion` [#1378](https://github.com/actions/toolkit/pull/1378)
@@ -160,11 +165,11 @@
 ### 0.2.1
 
 - Fix to await async function getCompressionMethod
-  
+
 ### 0.2.0
 
 - Fixes issues with the zstd compression algorithm on Windows and Ubuntu 16.04 [#469](https://github.com/actions/toolkit/pull/469)
-  
+
 ### 0.1.0
 
 - Initial release
