@@ -1,6 +1,6 @@
 {
   "name": "@actions/attest",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Actions attestation lib",
   "keywords": [
     "github",
@@ -35,19 +35,19 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "devDependencies": {
-    "@sigstore/mock": "^0.7.4",
-    "@sigstore/rekor-types": "^2.0.0",
+    "@sigstore/mock": "^0.8.0",
+    "@sigstore/rekor-types": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.6",
     "nock": "^13.5.1",
     "undici": "^5.28.4"
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
+    "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
     "@actions/http-client": "^2.2.3",
     "@octokit/plugin-retry": "^6.0.1",
-    "@sigstore/bundle": "^2.3.2",
-    "@sigstore/sign": "^2.3.2",
+    "@sigstore/bundle": "^3.0.0",
+    "@sigstore/sign": "^3.0.0",
     "jose": "^5.2.3"
   },
   "overrides": {
