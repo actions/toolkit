@@ -1,7 +1,7 @@
 import * as stream from 'stream'
+import {realpath} from 'fs/promises'
 import * as archiver from 'archiver'
 import * as core from '@actions/core'
-import {createReadStream} from 'fs'
 import {UploadZipSpecification} from './upload-zip-specification'
 import {getUploadChunkSize} from '../shared/config'
 
@@ -43,8 +43,14 @@ export async function createZipUploadStream(
 
   for (const file of uploadSpecification) {
     if (file.sourcePath !== null) {
-      // Add a normal file to the zip
-      zip.append(createReadStream(file.sourcePath), {
+      // Check if symlink and resolve the source path
+      let sourcePath = file.sourcePath
+      if (file.stats.isSymbolicLink()) {
+        sourcePath = await realpath(file.sourcePath)
+      }
+
+      // Add the file to the zip
+      zip.file(sourcePath, {
         name: file.destinationPath
       })
     } else {

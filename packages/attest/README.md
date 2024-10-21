@@ -12,6 +12,9 @@ Once the attestation has been created and signed, it will be uploaded to the GH
 attestations API and associated with the repository from which the workflow was
 initiated.
 
+See [Using artifact attestations to establish provenance for builds](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
+for more information on artifact attestations.
+
 ## Usage
 
 ### `attest`
@@ -60,6 +63,8 @@ export type AttestOptions = {
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: 'public-good' | 'github'
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
 }
@@ -110,6 +115,8 @@ export type AttestProvenanceOptions = {
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: 'public-good' | 'github'
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
   // Issuer URL responsible for minting the OIDC token from which the

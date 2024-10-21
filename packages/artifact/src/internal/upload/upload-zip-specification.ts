@@ -13,6 +13,12 @@ export interface UploadZipSpecification {
    * The destination path in a zip for a file
    */
   destinationPath: string
+
+  /**
+   * Information about the file
+   * https://nodejs.org/api/fs.html#class-fsstats
+   */
+  stats: fs.Stats
 }
 
 /**
@@ -75,10 +81,11 @@ export function getUploadZipSpecification(
           - file3.txt
   */
   for (let file of filesToZip) {
-    if (!fs.existsSync(file)) {
+    const stats = fs.lstatSync(file, {throwIfNoEntry: false})
+    if (!stats) {
       throw new Error(`File ${file} does not exist`)
     }
-    if (!fs.statSync(file).isDirectory()) {
+    if (!stats.isDirectory()) {
       // Normalize and resolve, this allows for either absolute or relative paths to be used
       file = normalize(file)
       file = resolve(file)
@@ -94,7 +101,8 @@ export function getUploadZipSpecification(
 
       specification.push({
         sourcePath: file,
-        destinationPath: uploadPath
+        destinationPath: uploadPath,
+        stats
       })
     } else {
       // Empty directory
@@ -103,7 +111,8 @@ export function getUploadZipSpecification(
 
       specification.push({
         sourcePath: null,
-        destinationPath: directoryPath
+        destinationPath: directoryPath,
+        stats
       })
     }
   }

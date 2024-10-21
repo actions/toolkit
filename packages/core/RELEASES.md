@@ -1,5 +1,12 @@
 # @actions/core Releases
 
+### 1.11.1
+- Fix uses of `crypto.randomUUID` on Node 18 and earlier [#1842](https://github.com/actions/toolkit/pull/1842)
+
+### 1.11.0
+- Add platform info utilities [#1551](https://github.com/actions/toolkit/pull/1551)
+- Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824)
+
 ### 1.10.1
 - Fix error message reference in oidc utils [#1511](https://github.com/actions/toolkit/pull/1511)
 

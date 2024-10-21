@@ -1,5 +1,36 @@
 # @actions/artifact Releases
 
+### 2.1.11
+
+- Fixed a bug with relative symlinks resolution [#1844](https://github.com/actions/toolkit/pull/1844)
+- Use native `crypto` [#1815](https://github.com/actions/toolkit/pull/1815)
+
+### 2.1.10
+
+- Fixed a regression with symlinks not being automatically resolved [#1830](https://github.com/actions/toolkit/pull/1830)
+- Fixed a regression with chunk timeout [#1786](https://github.com/actions/toolkit/pull/1786)
+
+### 2.1.9
+
+- Fixed artifact upload chunk timeout logic [#1774](https://github.com/actions/toolkit/pull/1774)
+- Use lazy stream to prevent issues with open file limits [#1771](https://github.com/actions/toolkit/pull/1771)
+
+### 2.1.8
+
+- Allows `*.localhost` domains for hostname checks for local development.
+
+### 2.1.7
+
+- Update unzip-stream dependency and reverted to using `unzip.Extract()`
+
+### 2.1.6
+
+- Will retry on invalid request responses.
+
+### 2.1.5
+
+- Bumped `archiver` dependency to 7.0.1
+
 ### 2.1.4
 
 - Adds info-level logging for zip extraction
@@ -11,9 +42,9 @@
 ### 2.1.2
 
 - Updated the stream extract functionality to use `unzip.Parse()` instead of `unzip.Extract()` for greater control of unzipping artifacts
-  
+
 ### 2.1.1
- 
+
 - Updated `isGhes` check to include `.ghe.com` and `.ghe.localhost` as accepted hosts
 
 ### 2.1.0
