@@ -86,6 +86,7 @@ const initBundleBuilder = (opts: SignOptions): BundleBuilder => {
     witnesses.push(
       new RekorWitness({
         rekorBaseURL: opts.rekorURL,
+        entryType: 'dsse',
         fetchOnConflict: true,
         timeout,
         retry
@@ -105,5 +106,5 @@ const initBundleBuilder = (opts: SignOptions): BundleBuilder => {
 
   // Build the bundle with the singleCertificate option which will
   // trigger the creation of v0.3 DSSE bundles
-  return new DSSEBundleBuilder({signer, witnesses})
+  return new DSSEBundleBuilder({signer, witnesses, singleCertificate: true})
 }

@@ -393,6 +393,12 @@ describe('@actions/exec', () => {
       const args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' &`]
 
       exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
+      /* eslint-disable-next-line no-console */
+      console.log(toolName)
+      /* eslint-disable-next-line no-console */
+      console.log(exitCode)
+      /* eslint-disable-next-line no-console */
+      console.log(debugList)
     }
 
     expect(exitCode).toBe(0)
