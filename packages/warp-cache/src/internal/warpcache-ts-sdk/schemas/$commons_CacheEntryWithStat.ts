@@ -21,6 +21,9 @@ export const $commons_CacheEntryWithStat = {
         last_used_at: {
             type: 'string',
         },
+        metadata: {
+            type: 'commons_CacheEntryMetadata',
+        },
         organization_id: {
             type: 'string',
         },

@@ -9,11 +9,14 @@ export const $commons_GetCacheResponse = {
             context to the cache service. This is not stored in the cache but is published
             in events for tracking purposes.`,
         },
+        azure_blob: {
+            type: 'commons_AzureBlobGetCacheResponse',
+        },
         cache_entry: {
             type: 'commons_CacheEntry',
         },
         gcs: {
-            type: 'commons_GCSGetCacheReponse',
+            type: 'commons_GCSGetCacheResponse',
         },
         provider: {
             type: 'string',

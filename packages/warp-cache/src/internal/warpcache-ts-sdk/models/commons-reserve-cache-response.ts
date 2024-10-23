@@ -15,6 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { CommonsAzureBlobReserveCacheResponse } from './commons-azure-blob-reserve-cache-response';
+// May contain unused imports in some cases
+// @ts-ignore
 import { CommonsGCSReserveCacheResponse } from './commons-gcsreserve-cache-response';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -32,6 +35,12 @@ export interface CommonsReserveCacheResponse {
      * @memberof CommonsReserveCacheResponse
      */
     'annotations'?: { [key: string]: string; };
+    /**
+     * 
+     * @type {CommonsAzureBlobReserveCacheResponse}
+     * @memberof CommonsReserveCacheResponse
+     */
+    'azure_blob'?: CommonsAzureBlobReserveCacheResponse;
     /**
      * 
      * @type {CommonsGCSReserveCacheResponse}

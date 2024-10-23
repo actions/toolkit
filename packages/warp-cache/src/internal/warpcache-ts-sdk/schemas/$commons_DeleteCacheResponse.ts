@@ -9,6 +9,9 @@ export const $commons_DeleteCacheResponse = {
             context to the cache service. This is not stored in the cache but is published
             in events for tracking purposes.`,
         },
+        azure_blob: {
+            type: 'commons_AzureBlobDeleteCacheResponse',
+        },
         cache_entry: {
             type: 'commons_CacheEntry',
         },

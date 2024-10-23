@@ -15,6 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { CommonsAzureBlobDeleteCacheResponse } from './commons-azure-blob-delete-cache-response';
+// May contain unused imports in some cases
+// @ts-ignore
 import { CommonsCacheEntry } from './commons-cache-entry';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -35,6 +38,12 @@ export interface CommonsDeleteCacheResponse {
      * @memberof CommonsDeleteCacheResponse
      */
     'annotations'?: { [key: string]: string; };
+    /**
+     * 
+     * @type {CommonsAzureBlobDeleteCacheResponse}
+     * @memberof CommonsDeleteCacheResponse
+     */
+    'azure_blob'?: CommonsAzureBlobDeleteCacheResponse;
     /**
      * 
      * @type {CommonsCacheEntry}

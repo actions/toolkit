@@ -256,6 +256,44 @@ export async function restoreCache(
         core.info('Cache restored successfully')
         break
       }
+
+      case 'azure_blob': {
+        if (!cacheEntry.azure_blob?.pre_signed_url) {
+          return undefined
+        }
+
+        if (options?.lookupOnly) {
+          core.info('Lookup only - skipping download')
+          return cacheKey
+        }
+
+        try {
+          await cacheHttpClient.downloadCache(
+            cacheEntry.provider,
+            cacheEntry.azure_blob?.pre_signed_url,
+            archivePath
+          )
+        } catch (error) {
+          core.info('Cache Miss. Failed to download cache.')
+          return undefined
+        }
+
+        if (core.isDebug()) {
+          await listTar(archivePath, compressionMethod)
+        }
+
+        const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+        core.info(
+          `Cache Size: ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B)`
+        )
+
+        await extractTar(archivePath, compressionMethod)
+
+        core.info('Cache restored successfully')
+        break
+      }
     }
 
     return cacheKey
@@ -406,6 +444,25 @@ export async function saveCache(
           reserveCacheResponse?.result?.gcs?.cache_key ?? ''
         )
         break
+
+      case 'azure_blob':
+        core.debug(`Saving Cache to Azure Blob`)
+        cacheKey = await cacheHttpClient.saveCache(
+          'azure_blob',
+          key,
+          cacheVersion,
+          archivePath,
+          // S3 Params are undefined for GCS
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          // GCS Params are undefined for Azure Blob
+          undefined,
+          undefined,
+          undefined,
+          reserveCacheResponse?.result?.azure_blob?.pre_signed_url ?? ''
+        )
     }
   } catch (error) {
     const typedError = error as Error

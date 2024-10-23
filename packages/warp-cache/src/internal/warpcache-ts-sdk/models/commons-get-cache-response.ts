@@ -15,10 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { CommonsAzureBlobGetCacheResponse } from './commons-azure-blob-get-cache-response';
+// May contain unused imports in some cases
+// @ts-ignore
 import { CommonsCacheEntry } from './commons-cache-entry';
 // May contain unused imports in some cases
 // @ts-ignore
-import { CommonsGCSGetCacheReponse } from './commons-gcsget-cache-reponse';
+import { CommonsGCSGetCacheResponse } from './commons-gcsget-cache-response';
 // May contain unused imports in some cases
 // @ts-ignore
 import { CommonsS3GetCacheResponse } from './commons-s3-get-cache-response';
@@ -37,16 +40,22 @@ export interface CommonsGetCacheResponse {
     'annotations'?: { [key: string]: string; };
     /**
      * 
+     * @type {CommonsAzureBlobGetCacheResponse}
+     * @memberof CommonsGetCacheResponse
+     */
+    'azure_blob'?: CommonsAzureBlobGetCacheResponse;
+    /**
+     * 
      * @type {CommonsCacheEntry}
      * @memberof CommonsGetCacheResponse
      */
     'cache_entry'?: CommonsCacheEntry;
     /**
      * 
-     * @type {CommonsGCSGetCacheReponse}
+     * @type {CommonsGCSGetCacheResponse}
      * @memberof CommonsGetCacheResponse
      */
-    'gcs'?: CommonsGCSGetCacheReponse;
+    'gcs'?: CommonsGCSGetCacheResponse;
     /**
      * 
      * @type {string}

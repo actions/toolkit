@@ -9,8 +9,15 @@ export const $commons_CommitCacheResponse = {
             context to the cache service. This is not stored in the cache but is published
             in events for tracking purposes.`,
         },
+        azure_blob: {
+            type: 'commons_AzureBlobCommitCacheResponse',
+        },
         cache_entry: {
             type: 'commons_CacheEntry',
+        },
+        cache_entry_size: {
+            type: 'number',
+            description: `Used for BYOC purposes. Check CommitCacheEvent for more details.`,
         },
         gcs: {
             type: 'commons_GCSCommitCacheResponse',
