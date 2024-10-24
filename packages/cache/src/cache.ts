@@ -64,7 +64,7 @@ function checkKey(key: string): void {
  */
 
 export function isFeatureAvailable(): boolean {
-  return !!config.getCacheServiceVersion
+  return !!process.env['ACTIONS_CACHE_URL']
 }
 
 /**

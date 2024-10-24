@@ -2,14 +2,10 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import {saveCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
-import * as cacheTwirpClient from '../src/internal/cacheTwirpClient'
-import {GetCacheBlobUploadURLResponse} from '../src/generated/results/api/v1/blobcache'
-import {BlobCacheServiceClientJSON} from '../src/generated/results/api/v1/blobcache.twirp'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import {TypedResponse} from '@actions/http-client/lib/interfaces'
-import * as uploadCache from '../src/internal/v2/upload-cache'
 import {
   ReserveCacheResponse,
   ITypedResponseWithError
@@ -330,75 +326,4 @@ test('save with non existing path should not save cache', async () => {
   await expect(saveCache([path], primaryKey)).rejects.toThrowError(
     `Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`
   )
-})
-
-test('throwaway test', async () => {
-  const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const cachePaths = [path.resolve(filePath)]
-
-  const cacheSignedURL = 'https://container.blob.core.windows.net/cache/${primaryKey}?sig=1234'
-  const getCacheBlobUploadURL: GetCacheBlobUploadURLResponse = {
-    urls: [
-      {
-        key: primaryKey,
-        url: cacheSignedURL,
-      },
-    ]
-  }
-
-  const cacheId = 4
-  const reserveCacheMock = jest
-    .spyOn(cacheHttpClient, 'reserveCache')
-    .mockImplementation(async () => {
-      const response: TypedResponse<ReserveCacheResponse> = {
-        statusCode: 500,
-        result: {cacheId},
-        headers: {}
-      }
-      return response
-    })
-
-  const getCacheBlobUploadURLMock = jest
-  .spyOn(BlobCacheServiceClientJSON.prototype, 'GetCacheBlobUploadURL')
-  .mockResolvedValue(getCacheBlobUploadURL)
-
-  const uploadCacheMock = jest
-  .spyOn(uploadCache, 'UploadCacheFile')
-  .mockImplementation(async () => {
-    return {
-      status: 200    
-    }
-  })
-
-  const createTarMock = jest.spyOn(tar, 'createTar')
-
-  const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
-  const compression = CompressionMethod.Zstd
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValue(Promise.resolve(compression))
-  
-  await uploadCache.UploadCacheFile(getCacheBlobUploadURL, cachePaths[0])
-  await saveCache([filePath], primaryKey)
-
-  expect(reserveCacheMock).toHaveBeenCalledTimes(1)
-  expect(reserveCacheMock).toHaveBeenCalledWith(primaryKey, [filePath], {
-    cacheSize: undefined,
-    compressionMethod: compression,
-    enableCrossOsArchive: false
-  })
-  expect (getCacheBlobUploadURLMock).toHaveBeenCalledTimes(1)
-  const archiveFolder = '/foo/bar'
-  const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
-  expect(createTarMock).toHaveBeenCalledTimes(1)
-  expect(createTarMock).toHaveBeenCalledWith(
-    archiveFolder,
-    cachePaths,
-    compression
-  )
-  expect(uploadCacheMock).toHaveBeenCalledTimes(2)
-  expect(saveCacheMock).toHaveBeenCalledTimes(1)
-  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile, undefined)
-  expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
