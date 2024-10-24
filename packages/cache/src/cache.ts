@@ -1,9 +1,23 @@
 import * as core from '@actions/core'
 import * as path from 'path'
+import * as config from './internal/config'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
-import {createTar, extractTar, listTar} from './internal/tar'
-import {DownloadOptions, UploadOptions} from './options'
+import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
+import { DownloadOptions, UploadOptions } from './options'
+import { createTar, extractTar, listTar } from './internal/tar'
+import {
+  CreateCacheEntryRequest,
+  CreateCacheEntryResponse,
+  FinalizeCacheEntryUploadRequest,
+  FinalizeCacheEntryUploadResponse,
+  GetCacheEntryDownloadURLRequest,
+  GetCacheEntryDownloadURLResponse
+} from './generated/results/api/v1/cache'
+import { CacheFileSizeLimit } from './internal/constants'
+import { UploadCacheFile } from './internal/blob/upload-cache'
+import { DownloadCacheFile } from './internal/blob/download-cache'
+import { getBackendIdsFromToken, BackendIds } from '@actions/artifact/lib/internal/shared/util'
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -72,6 +86,34 @@ export async function restoreCache(
 ): Promise<string | undefined> {
   checkPaths(paths)
 
+  const cacheServiceVersion: string = config.getCacheServiceVersion()
+  console.debug(`Cache service version: ${cacheServiceVersion}`)
+  switch (cacheServiceVersion) {
+    case "v2":
+      return await restoreCachev2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
+    case "v1":
+    default:
+      return await restoreCachev1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
+  }
+}
+
+/**
+ * Restores cache using the legacy Cache Service
+ * 
+ * @param paths 
+ * @param primaryKey 
+ * @param restoreKeys 
+ * @param options 
+ * @param enableCrossOsArchive 
+ * @returns 
+ */
+async function restoreCachev1(
+  paths: string[],
+  primaryKey: string,
+  restoreKeys?: string[],
+  options?: DownloadOptions,
+  enableCrossOsArchive = false
+) {
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -154,6 +196,113 @@ export async function restoreCache(
 }
 
 /**
+ * Restores cache using the new Cache Service
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
+ * @param downloadOptions cache download options
+ * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @returns string returns the key for the cache hit, otherwise returns undefined
+ */
+async function restoreCachev2(
+  paths: string[],
+  primaryKey: string,
+  restoreKeys?: string[],
+  options?: DownloadOptions,
+  enableCrossOsArchive = false
+) {
+  restoreKeys = restoreKeys || []
+  const keys = [primaryKey, ...restoreKeys]
+
+  core.debug(`Resolved Keys: JSON.stringify(keys)`)
+
+  if (keys.length > 10) {
+    throw new ValidationError(
+      `Key Validation Error: Keys are limited to a maximum of 10.`
+    )
+  }
+  for (const key of keys) {
+    checkKey(key)
+  }
+
+  let archivePath = ''
+  try {
+    const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
+    const backendIds: BackendIds = getBackendIdsFromToken()
+    const compressionMethod = await utils.getCompressionMethod()
+
+    const request: GetCacheEntryDownloadURLRequest = {
+      workflowRunBackendId: backendIds.workflowRunBackendId,
+      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+      key: primaryKey,
+      restoreKeys: restoreKeys,
+      version: utils.getCacheVersion(
+        paths,
+        compressionMethod,
+        enableCrossOsArchive,
+      ),
+    }
+
+    core.debug(`GetCacheEntryDownloadURLRequest: ${JSON.stringify(twirpClient)}`)
+    const response: GetCacheEntryDownloadURLResponse = await twirpClient.GetCacheEntryDownloadURL(request)
+    core.debug(`GetCacheEntryDownloadURLResponse: ${JSON.stringify(response)}`)
+
+    if (!response.ok) {
+      core.warning(`Cache not found for keys: ${keys.join(', ')}`)
+      return undefined
+    }
+
+    core.info(`Cache hit for: ${request.key}`)
+
+    if (options?.lookupOnly) {
+      core.info('Lookup only - skipping download')
+      return request.key
+    }
+
+    archivePath = path.join(
+      await utils.createTempDirectory(),
+      utils.getCacheFileName(compressionMethod)
+    )
+    core.debug(`Archive path: ${archivePath}`)
+
+    core.debug(`Starting download of artifact to: ${archivePath}`)
+
+    await DownloadCacheFile(
+      response.signedDownloadUrl,
+      archivePath
+    )
+
+    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+    core.info(
+      `Cache Size: ~${Math.round(
+        archiveFileSize / (1024 * 1024)
+      )} MB (${archiveFileSize} B)`
+    )
+
+    if (core.isDebug()) {
+      await listTar(archivePath, compressionMethod)
+    }
+
+    await extractTar(archivePath, compressionMethod)
+    core.info('Cache restored successfully')
+
+    return request.key
+  } catch (error) {
+    // TODO: handle all the possible error scenarios
+    throw new Error(`Unable to download and extract cache: ${error.message}`)
+  } finally {
+    try {
+      await utils.unlinkFile(archivePath)
+    } catch (error) {
+      core.debug(`Failed to delete archive: ${error}`)
+    }
+  }
+
+  return undefined
+}
+
+/**
  * Saves a list of files with the specified key
  *
  * @param paths a list of file paths to be cached
@@ -171,6 +320,32 @@ export async function saveCache(
   checkPaths(paths)
   checkKey(key)
 
+  const cacheServiceVersion: string = config.getCacheServiceVersion()
+  console.debug(`Cache Service Version: ${cacheServiceVersion}`)
+  switch (cacheServiceVersion) {
+    case "v2":
+      return await saveCachev2(paths, key, options, enableCrossOsArchive)
+    case "v1":
+    default:
+      return await saveCachev1(paths, key, options, enableCrossOsArchive)
+  }
+}
+
+/**
+ * Save cache using the legacy Cache Service
+ * 
+ * @param paths 
+ * @param key 
+ * @param options 
+ * @param enableCrossOsArchive 
+ * @returns 
+ */
+async function saveCachev1(
+  paths: string[],
+  key: string,
+  options?: UploadOptions,
+  enableCrossOsArchive = false
+): Promise<number> {
   const compressionMethod = await utils.getCompressionMethod()
   let cacheId = -1
 
@@ -226,9 +401,9 @@ export async function saveCache(
     } else if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
-          `Cache size of ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     } else {
       throw new ReserveCacheError(
@@ -247,6 +422,125 @@ export async function saveCache(
     } else {
       core.warning(`Failed to save: ${typedError.message}`)
     }
+  } finally {
+    // Try to delete the archive to save space
+    try {
+      await utils.unlinkFile(archivePath)
+    } catch (error) {
+      core.debug(`Failed to delete archive: ${error}`)
+    }
+  }
+
+  return cacheId
+}
+
+/**
+ * Save cache using the new Cache Service
+ * 
+ * @param paths 
+ * @param key 
+ * @param options 
+ * @param enableCrossOsArchive 
+ * @returns 
+ */
+async function saveCachev2(
+  paths: string[],
+  key: string,
+  options?: UploadOptions,
+  enableCrossOsArchive = false
+): Promise<number> {
+  // BackendIds are retrieved form the signed JWT
+  const backendIds: BackendIds = getBackendIdsFromToken()
+  const compressionMethod = await utils.getCompressionMethod()
+  const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
+  let cacheId = -1
+
+  const cachePaths = await utils.resolvePaths(paths)
+  core.debug('Cache Paths:')
+  core.debug(`${JSON.stringify(cachePaths)}`)
+
+  if (cachePaths.length === 0) {
+    throw new Error(
+      `Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`
+    )
+  }
+
+  const archiveFolder = await utils.createTempDirectory()
+  const archivePath = path.join(
+    archiveFolder,
+    utils.getCacheFileName(compressionMethod)
+  )
+
+  core.debug(`Archive Path: ${archivePath}`)
+
+  try {
+    await createTar(archiveFolder, cachePaths, compressionMethod)
+    if (core.isDebug()) {
+      await listTar(archivePath, compressionMethod)
+    }
+
+    const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
+    core.debug(`File Size: ${archiveFileSize}`)
+
+    // For GHES, this check will take place in ReserveCache API with enterprise file size limit
+    if (archiveFileSize > CacheFileSizeLimit && !utils.isGhes()) {
+      throw new Error(
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
+      )
+    }
+
+    core.debug('Reserving Cache')
+    const version = utils.getCacheVersion(
+      paths,
+      compressionMethod,
+      enableCrossOsArchive
+    )
+    const request: CreateCacheEntryRequest = {
+      workflowRunBackendId: backendIds.workflowRunBackendId,
+      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+      key: key,
+      version: version
+    }
+    const response: CreateCacheEntryResponse = await twirpClient.CreateCacheEntry(request)
+    core.info(`CreateCacheEntryResponse: ${JSON.stringify(response)}`)
+    // TODO: handle the error cases here
+    if (!response.ok) {
+      throw new ReserveCacheError(
+        `Unable to reserve cache with key ${key}, another job may be creating this cache.`
+      )
+    }
+
+    // TODO: mask the signed upload URL
+    core.debug(`Saving Cache to: ${response.signedUploadUrl}`)
+    await UploadCacheFile(
+      response.signedUploadUrl,
+      archivePath,
+    )
+
+    const finalizeRequest: FinalizeCacheEntryUploadRequest = {
+      workflowRunBackendId: backendIds.workflowRunBackendId,
+      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
+      key: key,
+      version: version,
+      sizeBytes: `${archiveFileSize}`,
+    }
+
+    const finalizeResponse: FinalizeCacheEntryUploadResponse = await twirpClient.FinalizeCacheEntryUpload(finalizeRequest)
+    core.debug(`FinalizeCacheEntryUploadResponse: ${JSON.stringify(finalizeResponse)}`)
+
+    if (!finalizeResponse.ok) {
+      throw new Error(
+        `Unable to finalize cache with key ${key}, another job may be finalizing this cache.`
+      )
+    }
+
+    // TODO: this is not great, we should handle the types without parsing
+    cacheId = parseInt(finalizeResponse.entryId)
+  } catch (error) {
+    const typedError = error as Error
+    core.debug(typedError.message)
   } finally {
     // Try to delete the archive to save space
     try {

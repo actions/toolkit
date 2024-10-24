@@ -13,6 +13,8 @@ import {
   GnuTarPathOnWindows
 } from './constants'
 
+const versionSalt = '1.0'
+
 // From https://github.com/actions/toolkit/blob/main/packages/tool-cache/src/tool-cache.ts#L23
 export async function createTempDirectory(): Promise<string> {
   const IS_WINDOWS = process.platform === 'win32'
@@ -142,4 +144,29 @@ export function isGhes(): boolean {
     hostname.endsWith('.GHE.COM') || hostname.endsWith('.GHE.LOCALHOST')
 
   return !isGitHubHost && !isGheHost
+}
+
+export function getCacheVersion(
+  paths: string[],
+  compressionMethod?: CompressionMethod,
+  enableCrossOsArchive = false
+): string {
+  // don't pass changes upstream
+  const components = paths.slice()
+
+  // Add compression method to cache version to restore
+  // compressed cache as per compression method
+  if (compressionMethod) {
+    components.push(compressionMethod)
+  }
+
+  // Only check for windows platforms if enableCrossOsArchive is false
+  if (process.platform === 'win32' && !enableCrossOsArchive) {
+    components.push('windows-only')
+  }
+
+  // Add salt to cache version to support breaking changes in cache entry
+  components.push(versionSalt)
+
+  return crypto.createHash('sha256').update(components.join('|')).digest('hex')
 }
