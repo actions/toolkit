@@ -1,10 +1,10 @@
 import { info, debug } from '@actions/core'
-import { getRuntimeToken, getCacheServiceURL } from './config'
+import { getUserAgentString } from './user-agent'
+import { NetworkError, UsageError } from './errors'
+import { getRuntimeToken, getCacheServiceURL } from '../config'
 import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
 import { HttpClient, HttpClientResponse, HttpCodes } from '@actions/http-client'
-import { CacheServiceClientJSON } from '../generated/results/api/v1/cache.twirp'
-// import {getUserAgentString} from './user-agent'
-// import {NetworkError, UsageError} from './errors'
+import { CacheServiceClientJSON } from '../../generated/results/api/v1/cache.twirp'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -100,9 +100,9 @@ class CacheServiceClient implements Rpc {
                 isRetryable = this.isRetryableHttpStatusCode(statusCode)
                 errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
                 if (body.msg) {
-                    //   if (UsageError.isUsageErrorMessage(body.msg)) {
-                    //     throw new UsageError()
-                    //   }
+                    if (UsageError.isUsageErrorMessage(body.msg)) {
+                        throw new UsageError()
+                    }
 
                     errorMessage = `${errorMessage}: ${body.msg}`
                 }
@@ -111,13 +111,13 @@ class CacheServiceClient implements Rpc {
                     debug(`Raw Body: ${rawBody}`)
                 }
 
-                // if (error instanceof UsageError) {
-                //   throw error
-                // }
+                if (error instanceof UsageError) {
+                    throw error
+                }
 
-                // if (NetworkError.isNetworkErrorCode(error?.code)) {
-                //   throw new NetworkError(error?.code)
-                // }
+                if (NetworkError.isNetworkErrorCode(error?.code)) {
+                    throw new NetworkError(error?.code)
+                }
 
                 isRetryable = true
                 errorMessage = error.message
@@ -193,7 +193,7 @@ export function internalCacheTwirpClient(options?: {
     retryMultiplier?: number
 }): CacheServiceClientJSON {
     const client = new CacheServiceClient(
-        'actions/cache',
+        getUserAgentString(),
         options?.maxAttempts,
         options?.retryIntervalMs,
         options?.retryMultiplier

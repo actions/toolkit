@@ -1,11 +1,11 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import * as utils from './internal/cacheUtils'
 import * as config from './internal/config'
+import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
-import * as cacheTwirpClient from './internal/cacheTwirpClient'
-import { createTar, extractTar, listTar } from './internal/tar'
+import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
 import { DownloadOptions, UploadOptions } from './options'
+import { createTar, extractTar, listTar } from './internal/tar'
 import {
   CreateCacheEntryRequest,
   CreateCacheEntryResponse,
@@ -14,10 +14,10 @@ import {
   GetCacheEntryDownloadURLRequest,
   GetCacheEntryDownloadURLResponse
 } from './generated/results/api/v1/cache'
-import { UploadCacheFile } from './internal/v2/upload-cache'
-import { DownloadCacheFile } from './internal/v2/download-cache'
-import { getBackendIdsFromToken, BackendIds } from '@actions/artifact/lib/internal/shared/util'
 import { CacheFileSizeLimit } from './internal/constants'
+import { UploadCacheFile } from './internal/blob/upload-cache'
+import { DownloadCacheFile } from './internal/blob/download-cache'
+import { getBackendIdsFromToken, BackendIds } from '@actions/artifact/lib/internal/shared/util'
 
 export class ValidationError extends Error {
   constructor(message: string) {
