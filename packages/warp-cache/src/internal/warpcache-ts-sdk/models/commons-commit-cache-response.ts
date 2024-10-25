@@ -15,6 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { CommonsAzureBlobCommitCacheResponse } from './commons-azure-blob-commit-cache-response';
+// May contain unused imports in some cases
+// @ts-ignore
 import { CommonsCacheEntry } from './commons-cache-entry';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -37,10 +40,22 @@ export interface CommonsCommitCacheResponse {
     'annotations'?: { [key: string]: string; };
     /**
      * 
+     * @type {CommonsAzureBlobCommitCacheResponse}
+     * @memberof CommonsCommitCacheResponse
+     */
+    'azure_blob'?: CommonsAzureBlobCommitCacheResponse;
+    /**
+     * 
      * @type {CommonsCacheEntry}
      * @memberof CommonsCommitCacheResponse
      */
     'cache_entry'?: CommonsCacheEntry;
+    /**
+     * Used for BYOC purposes. Check CommitCacheEvent for more details.
+     * @type {number}
+     * @memberof CommonsCommitCacheResponse
+     */
+    'cache_entry_size'?: number;
     /**
      * 
      * @type {CommonsGCSCommitCacheResponse}

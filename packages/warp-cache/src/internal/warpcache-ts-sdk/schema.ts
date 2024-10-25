@@ -3,8 +3,13 @@
 /* eslint-disable */
 
 export { $commons_AppendOperationInput } from './schemas/$commons_AppendOperationInput';
+export { $commons_AzureBlobCommitCacheResponse } from './schemas/$commons_AzureBlobCommitCacheResponse';
+export { $commons_AzureBlobDeleteCacheResponse } from './schemas/$commons_AzureBlobDeleteCacheResponse';
+export { $commons_AzureBlobGetCacheResponse } from './schemas/$commons_AzureBlobGetCacheResponse';
+export { $commons_AzureBlobReserveCacheResponse } from './schemas/$commons_AzureBlobReserveCacheResponse';
 export { $commons_CacheAnnotationsMap } from './schemas/$commons_CacheAnnotationsMap';
 export { $commons_CacheEntry } from './schemas/$commons_CacheEntry';
+export { $commons_CacheEntryMetadata } from './schemas/$commons_CacheEntryMetadata';
 export { $commons_CacheEntryWithStat } from './schemas/$commons_CacheEntryWithStat';
 export { $commons_CommitCacheRequest } from './schemas/$commons_CommitCacheRequest';
 export { $commons_CommitCacheResponse } from './schemas/$commons_CommitCacheResponse';
@@ -14,7 +19,7 @@ export { $commons_DeleteCacheRequest } from './schemas/$commons_DeleteCacheReque
 export { $commons_DeleteCacheResponse } from './schemas/$commons_DeleteCacheResponse';
 export { $commons_GCSCommitCacheResponse } from './schemas/$commons_GCSCommitCacheResponse';
 export { $commons_GCSDeleteCacheResponse } from './schemas/$commons_GCSDeleteCacheResponse';
-export { $commons_GCSGetCacheReponse } from './schemas/$commons_GCSGetCacheReponse';
+export { $commons_GCSGetCacheResponse } from './schemas/$commons_GCSGetCacheResponse';
 export { $commons_GCSReserveCacheResponse } from './schemas/$commons_GCSReserveCacheResponse';
 export { $commons_GetCacheRequest } from './schemas/$commons_GetCacheRequest';
 export { $commons_GetCacheResponse } from './schemas/$commons_GetCacheResponse';

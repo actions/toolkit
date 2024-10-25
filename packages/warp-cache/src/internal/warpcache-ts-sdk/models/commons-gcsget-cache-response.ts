@@ -20,49 +20,49 @@ import { CommonsShortLivedToken } from './commons-short-lived-token';
 /**
  * 
  * @export
- * @interface CommonsGCSGetCacheReponse
+ * @interface CommonsGCSGetCacheResponse
  */
-export interface CommonsGCSGetCacheReponse {
+export interface CommonsGCSGetCacheResponse {
     /**
      * 
      * @type {string}
-     * @memberof CommonsGCSGetCacheReponse
+     * @memberof CommonsGCSGetCacheResponse
      */
     'bucket_name'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsGCSGetCacheReponse
+     * @memberof CommonsGCSGetCacheResponse
      */
     'cache_key'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsGCSGetCacheReponse
+     * @memberof CommonsGCSGetCacheResponse
      */
     'cache_version'?: string;
     /**
      * Method contains the auth method to be used to connect to the GCP storage backend
      * @type {string}
-     * @memberof CommonsGCSGetCacheReponse
+     * @memberof CommonsGCSGetCacheResponse
      */
     'method'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsGCSGetCacheReponse
+     * @memberof CommonsGCSGetCacheResponse
      */
     'pre_signed_url'?: string;
     /**
      * 
      * @type {string}
-     * @memberof CommonsGCSGetCacheReponse
+     * @memberof CommonsGCSGetCacheResponse
      */
     'project_id'?: string;
     /**
      * 
      * @type {CommonsShortLivedToken}
-     * @memberof CommonsGCSGetCacheReponse
+     * @memberof CommonsGCSGetCacheResponse
      */
     'short_lived_token'?: CommonsShortLivedToken;
 }

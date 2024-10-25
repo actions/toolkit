@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export const $commons_GCSGetCacheReponse = {
+export const $commons_GCSGetCacheResponse = {
     properties: {
         bucket_name: {
             type: 'string',

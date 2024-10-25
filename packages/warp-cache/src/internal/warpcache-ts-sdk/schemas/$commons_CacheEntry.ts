@@ -18,6 +18,9 @@ export const $commons_CacheEntry = {
         id: {
             type: 'string',
         },
+        metadata: {
+            type: 'commons_CacheEntryMetadata',
+        },
         organization_id: {
             type: 'string',
         },

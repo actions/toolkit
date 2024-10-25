@@ -13,6 +13,9 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { CommonsCacheEntryMetadata } from './commons-cache-entry-metadata';
 
 /**
  * 
@@ -56,6 +59,12 @@ export interface CommonsCacheEntryWithStat {
      * @memberof CommonsCacheEntryWithStat
      */
     'last_used_at'?: string;
+    /**
+     * 
+     * @type {CommonsCacheEntryMetadata}
+     * @memberof CommonsCacheEntryWithStat
+     */
+    'metadata'?: CommonsCacheEntryMetadata;
     /**
      * 
      * @type {string}

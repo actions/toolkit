@@ -41,6 +41,7 @@ import {multiPartUploadToGCS, uploadFileToS3} from './uploadUtils'
 import {CommonsGetCacheRequest} from './warpcache-ts-sdk/models/commons-get-cache-request'
 import {CommonsDeleteCacheRequest} from './warpcache-ts-sdk/models/commons-delete-cache-request'
 import {OAuth2Client} from 'google-auth-library'
+import {BlockBlobClient} from '@azure/storage-blob'
 
 const versionSalt = '1.0'
 
@@ -293,6 +294,11 @@ export async function downloadCache(
       await downloadCacheMultipartGCP(storage, archiveLocation, archivePath)
       break
     }
+    case 'azure_blob': {
+      const blockBlobClient = new BlockBlobClient(archiveLocation)
+      await blockBlobClient.downloadToFile(archivePath)
+      break
+    }
   }
 }
 
@@ -421,7 +427,8 @@ export async function saveCache(
   S3PreSignedURLs?: string[],
   GCSAuthToken?: string,
   GCSBucketName?: string,
-  GCSObjectName?: string
+  GCSObjectName?: string,
+  AzureSASURL?: string
 ): Promise<string> {
   const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
   core.info(
@@ -508,6 +515,30 @@ export async function saveCache(
       cacheKeyResponse =
         commitCacheResponse.result?.cache_entry?.cache_user_given_key ??
         commitCacheResponse.result?.gcs?.cache_key ??
+        ''
+      break
+    }
+
+    case 'azure_blob': {
+      if (!AzureSASURL) {
+        core.debug(`Azure SAS URL is not set. SAS URL: ${AzureSASURL}`)
+        throw new Error(
+          'Unable to upload cache to Azure Blob. SAS URL is not provided.'
+        )
+      }
+
+      core.debug('Uploading cache')
+      const blockBlobClient = new BlockBlobClient(AzureSASURL)
+      await blockBlobClient.uploadFile(archivePath, {
+        maxSingleShotSize: 10 * 1024 * 1024 // 10 MB
+      })
+
+      core.debug('Committing cache')
+      commitCacheResponse = await commitCache(cacheKey, cacheVersion)
+
+      cacheKeyResponse =
+        commitCacheResponse.result?.cache_entry?.cache_user_given_key ??
+        commitCacheResponse.result?.azure_blob?.cache_key ??
         ''
       break
     }

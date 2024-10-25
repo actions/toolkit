@@ -13,6 +13,9 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { CommonsCacheEntryMetadata } from './commons-cache-entry-metadata';
 
 /**
  * 
@@ -50,6 +53,12 @@ export interface CommonsCacheEntry {
      * @memberof CommonsCacheEntry
      */
     'id'?: string;
+    /**
+     * 
+     * @type {CommonsCacheEntryMetadata}
+     * @memberof CommonsCacheEntry
+     */
+    'metadata'?: CommonsCacheEntryMetadata;
     /**
      * 
      * @type {string}
