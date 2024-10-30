@@ -115,8 +115,7 @@ describe('provenance functions', () => {
       describe('when the sigstore instance is explicitly set', () => {
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
+            subjects: [{name: subjectName, digest: subjectDigest}],
             token: 'token',
             sigstore: 'github'
           })
@@ -143,8 +142,7 @@ describe('provenance functions', () => {
 
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
+            subjects: [{name: subjectName, digest: subjectDigest}],
             token: 'token'
           })
 
@@ -178,8 +176,7 @@ describe('provenance functions', () => {
       describe('when the sigstore instance is explicitly set', () => {
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
+            subjects: [{name: subjectName, digest: subjectDigest}],
             token: 'token',
             sigstore: 'public-good'
           })
@@ -206,8 +203,7 @@ describe('provenance functions', () => {
 
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
+            subjects: [{name: subjectName, digest: subjectDigest}],
             token: 'token'
           })
 
