@@ -1,6 +1,7 @@
 # @actions/tool-cache Releases
 
-### Unreleased
+### 2.0.2
+
 - Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824), [#1842](https://github.com/actions/toolkit/pull/1842)
 
 ### 2.0.1
