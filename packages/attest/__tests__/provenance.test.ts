@@ -33,15 +33,7 @@ describe('provenance functions', () => {
     runner_environment: 'github-hosted'
   }
 
-  beforeEach(async () => {
-    process.env = {
-      ...originalEnv,
-      ACTIONS_ID_TOKEN_REQUEST_URL: `${issuer}${tokenPath}?`,
-      ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'token',
-      GITHUB_SERVER_URL: 'https://foo.ghe.com',
-      GITHUB_REPOSITORY: claims.repository
-    }
-
+  const mockIssuer = async (claims: jose.JWTPayload): Promise<void> => {
     // Generate JWT signing key
     const key = await jose.generateKeyPair('PS256')
 
@@ -60,6 +52,18 @@ describe('provenance functions', () => {
 
     // Mock OIDC token endpoint for populating the provenance
     nock(issuer).get(tokenPath).query({audience}).reply(200, {value: jwt})
+  }
+
+  beforeEach(async () => {
+    process.env = {
+      ...originalEnv,
+      ACTIONS_ID_TOKEN_REQUEST_URL: `${issuer}${tokenPath}?`,
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'token',
+      GITHUB_SERVER_URL: 'https://foo.ghe.com',
+      GITHUB_REPOSITORY: claims.repository
+    }
+
+    await mockIssuer(claims)
   })
 
   afterEach(() => {
@@ -68,6 +72,16 @@ describe('provenance functions', () => {
 
   describe('buildSLSAProvenancePredicate', () => {
     it('returns a provenance hydrated from an OIDC token', async () => {
+      const predicate = await buildSLSAProvenancePredicate()
+      expect(predicate).toMatchSnapshot()
+    })
+
+    it('handle tags including "@" character', async () => {
+      nock.cleanAll()
+      await mockIssuer({
+        ...claims,
+        workflow_ref: 'owner/repo/.github/workflows/main.yml@foo@1.0.0'
+      })
       const predicate = await buildSLSAProvenancePredicate()
       expect(predicate).toMatchSnapshot()
     })
