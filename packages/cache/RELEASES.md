@@ -1,6 +1,7 @@
 # @actions/cache Releases
 
-### Unreleased
+### 3.3.0
+- Update `@actions/core` to `1.11.1`
 - Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824), [#1842](https://github.com/actions/toolkit/pull/1842)
 
 ### 3.2.4
