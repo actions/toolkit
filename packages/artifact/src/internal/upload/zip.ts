@@ -1,5 +1,5 @@
 import * as stream from 'stream'
-import {readlink} from 'fs/promises'
+import {realpath} from 'fs/promises'
 import * as archiver from 'archiver'
 import * as core from '@actions/core'
 import {UploadZipSpecification} from './upload-zip-specification'
@@ -46,7 +46,7 @@ export async function createZipUploadStream(
       // Check if symlink and resolve the source path
       let sourcePath = file.sourcePath
       if (file.stats.isSymbolicLink()) {
-        sourcePath = await readlink(file.sourcePath)
+        sourcePath = await realpath(file.sourcePath)
       }
 
       // Add the file to the zip

@@ -1,9 +1,13 @@
 # @actions/cache Releases
 
+### 3.3.0
+- Update `@actions/core` to `1.11.1`
+- Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824), [#1842](https://github.com/actions/toolkit/pull/1842)
+
 ### 3.2.4
 
 - Updated `isGhes` check to include `.ghe.com` and `.ghe.localhost` as accepted hosts
-  
+
 ### 3.2.3
 
 - Fixed a bug that mutated path arguments to `getCacheVersion` [#1378](https://github.com/actions/toolkit/pull/1378)
