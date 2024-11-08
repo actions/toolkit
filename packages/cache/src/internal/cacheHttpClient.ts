@@ -8,6 +8,7 @@ import {
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import {URL} from 'url'
+import {Readable as ReadableStream} from 'stream'
 
 import * as utils from './cacheUtils'
 import {CompressionMethod} from './constants'
@@ -21,6 +22,7 @@ import {
   ArtifactCacheList
 } from './contracts'
 import {
+  type ChunkWriteCallback,
   downloadCacheHttpClient,
   downloadCacheHttpClientConcurrent,
   downloadCacheStorageSDK
@@ -38,6 +40,8 @@ import {
 } from './requestUtils'
 
 const versionSalt = '1.0'
+
+type GetStreamForChunk = (start: number, end: number) => NodeJS.ReadableStream
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string = process.env['ACTIONS_CACHE_URL'] || ''
@@ -168,10 +172,82 @@ async function printCachesListForDiagnostics(
   }
 }
 
+export async function downloadCacheToBuffer(
+  archiveLocation: string,
+  options?: DownloadOptions
+): Promise<Buffer> {
+  let lastWrittenChunkLocation: number = 0
+  let writtenBytes: number = 0
+  interface IChunk {
+    chunkBuffer: Buffer
+    chunkLength: number
+    bufferPosition: number
+  }
+  const bufferChunks: IChunk[] = []
+
+  await downloadCacheInternal(
+    archiveLocation,
+    (
+      chunkBuffer,
+      chunkLength = chunkBuffer.length,
+      bufferPosition = lastWrittenChunkLocation
+    ) => {
+      bufferChunks.push({chunkBuffer, chunkLength, bufferPosition})
+      lastWrittenChunkLocation = bufferPosition + chunkLength
+      writtenBytes =
+        writtenBytes > lastWrittenChunkLocation
+          ? writtenBytes
+          : lastWrittenChunkLocation
+    },
+    () => writtenBytes,
+    options
+  )
+
+  if (bufferChunks.length === 1) {
+    const [{chunkBuffer}] = bufferChunks
+    return chunkBuffer
+  } else if (bufferChunks.length === 0) {
+    return Buffer.alloc(0)
+  } else {
+    const finalBuffer = Buffer.alloc(writtenBytes)
+    for (const {
+      chunkBuffer: buffer,
+      bufferPosition: position,
+      chunkLength: length
+    } of bufferChunks) {
+      buffer.copy(finalBuffer, position, 0, length)
+    }
+
+    return finalBuffer
+  }
+}
+
 export async function downloadCache(
   archiveLocation: string,
   archivePath: string,
   options?: DownloadOptions
+): Promise<void> {
+  const archiveDescriptor = await fs.promises.open(archivePath, 'w')
+
+  try {
+    await downloadCacheInternal(
+      archiveLocation,
+      async (buffer, length, position) => {
+        await archiveDescriptor.write(buffer, 0, length, position)
+      },
+      () => utils.getArchiveFileSizeInBytes(archivePath),
+      options
+    )
+  } finally {
+    await archiveDescriptor.close()
+  }
+}
+
+async function downloadCacheInternal(
+  archiveLocation: string,
+  onChunk: ChunkWriteCallback,
+  getWrittenLength: () => number,
+  options: DownloadOptions | undefined
 ): Promise<void> {
   const archiveUrl = new URL(archiveLocation)
   const downloadOptions = getDownloadOptions(options)
@@ -181,22 +257,23 @@ export async function downloadCache(
       // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
       await downloadCacheStorageSDK(
         archiveLocation,
-        archivePath,
+        onChunk,
+        getWrittenLength,
         downloadOptions
       )
     } else if (downloadOptions.concurrentBlobDownloads) {
       // Use concurrent implementation with HttpClient to work around blob SDK issue
       await downloadCacheHttpClientConcurrent(
         archiveLocation,
-        archivePath,
+        onChunk,
         downloadOptions
       )
     } else {
       // Otherwise, download using the Actions http-client.
-      await downloadCacheHttpClient(archiveLocation, archivePath)
+      await downloadCacheHttpClient(archiveLocation, onChunk, getWrittenLength)
     }
   } else {
-    await downloadCacheHttpClient(archiveLocation, archivePath)
+    await downloadCacheHttpClient(archiveLocation, onChunk, getWrittenLength)
   }
 }
 
@@ -277,13 +354,12 @@ async function uploadChunk(
 async function uploadFile(
   httpClient: HttpClient,
   cacheId: number,
-  archivePath: string,
+  fileSize: number,
+  getReadStreamForChunk: GetStreamForChunk,
   options?: UploadOptions
 ): Promise<void> {
   // Upload Chunks
-  const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
   const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`)
-  const fd = fs.openSync(archivePath, 'r')
   const uploadOptions = getUploadOptions(options)
 
   const concurrency = utils.assertDefined(
@@ -299,41 +375,24 @@ async function uploadFile(
   core.debug('Awaiting all uploads')
   let offset = 0
 
-  try {
-    await Promise.all(
-      parallelUploads.map(async () => {
-        while (offset < fileSize) {
-          const chunkSize = Math.min(fileSize - offset, maxChunkSize)
-          const start = offset
-          const end = offset + chunkSize - 1
-          offset += maxChunkSize
+  await Promise.all(
+    parallelUploads.map(async () => {
+      while (offset < fileSize) {
+        const chunkSize = Math.min(fileSize - offset, maxChunkSize)
+        const start = offset
+        const end = offset + chunkSize - 1
+        offset += maxChunkSize
 
-          await uploadChunk(
-            httpClient,
-            resourceUrl,
-            () =>
-              fs
-                .createReadStream(archivePath, {
-                  fd,
-                  start,
-                  end,
-                  autoClose: false
-                })
-                .on('error', error => {
-                  throw new Error(
-                    `Cache upload failed because file read failed with ${error.message}`
-                  )
-                }),
-            start,
-            end
-          )
-        }
-      })
-    )
-  } finally {
-    fs.closeSync(fd)
-  }
-  return
+        await uploadChunk(
+          httpClient,
+          resourceUrl,
+          () => getReadStreamForChunk(start, end),
+          start,
+          end
+        )
+      }
+    })
+  )
 }
 
 async function commitCache(
@@ -355,14 +414,65 @@ export async function saveCache(
   archivePath: string,
   options?: UploadOptions
 ): Promise<void> {
+  const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
+  const fd = fs.openSync(archivePath, 'r')
+
+  try {
+    await saveCacheInner(
+      cacheId,
+      (start, end) =>
+        fs
+          .createReadStream(archivePath, {
+            fd,
+            start,
+            end,
+            autoClose: false
+          })
+          .on('error', error => {
+            throw new Error(
+              `Cache upload failed because file read failed with ${error.message}`
+            )
+          }),
+      fileSize,
+      options
+    )
+  } finally {
+    fs.closeSync(fd)
+  }
+}
+
+export async function saveCacheBuffer(
+  cacheId: number,
+  buffer: Buffer,
+  options?: UploadOptions
+): Promise<void> {
+  await saveCacheInner(
+    cacheId,
+    (start, end) => ReadableStream.from(buffer.subarray(start, end + 1)),
+    buffer.length,
+    options
+  )
+}
+
+async function saveCacheInner(
+  cacheId: number,
+  getReadStreamForChunk: GetStreamForChunk,
+  cacheSize: number,
+  options?: UploadOptions
+): Promise<void> {
   const httpClient = createHttpClient()
 
   core.debug('Upload cache')
-  await uploadFile(httpClient, cacheId, archivePath, options)
+  await uploadFile(
+    httpClient,
+    cacheId,
+    cacheSize,
+    getReadStreamForChunk,
+    options
+  )
 
   // Commit Cache
-  core.debug('Commiting cache')
-  const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
+  core.debug('Committing cache')
   core.info(
     `Cache Size: ~${Math.round(cacheSize / (1024 * 1024))} MB (${cacheSize} B)`
   )
