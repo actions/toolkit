@@ -17,7 +17,9 @@ export async function DownloadCacheFile(
   const blobClient: BlobClient = new BlobClient(signedUploadURL)
   const blockBlobClient: BlockBlobClient = blobClient.getBlockBlobClient()
 
-  core.debug(`BlobClient: ${blobClient.name}:${blobClient.accountName}:${blobClient.containerName}`)
+  core.debug(
+    `BlobClient: ${blobClient.name}:${blobClient.accountName}:${blobClient.containerName}`
+  )
 
   return blockBlobClient.downloadToFile(
     archivePath,

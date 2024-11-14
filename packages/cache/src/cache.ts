@@ -524,9 +524,7 @@ async function saveCachev2(
 
     const finalizeResponse: FinalizeCacheEntryUploadResponse =
       await twirpClient.FinalizeCacheEntryUpload(finalizeRequest)
-    core.debug(
-      `FinalizeCacheEntryUploadResponse: ${finalizeResponse.ok}` 
-    )
+    core.debug(`FinalizeCacheEntryUploadResponse: ${finalizeResponse.ok}`)
 
     if (!finalizeResponse.ok) {
       throw new Error(
