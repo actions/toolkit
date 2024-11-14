@@ -253,8 +253,7 @@ async function restoreCachev2(
       )
     }
 
-    const response: GetCacheEntryDownloadURLResponse =
-      await twirpClient.GetCacheEntryDownloadURL(request)
+    const response = await twirpClient.GetCacheEntryDownloadURL(request)
 
     if (!response.ok) {
       core.warning(`Cache not found for keys: ${keys.join(', ')}`)
@@ -273,7 +272,7 @@ async function restoreCachev2(
       utils.getCacheFileName(compressionMethod)
     )
     core.debug(`Archive path: ${archivePath}`)
-    core.debug(`Starting download of artifact to: ${archivePath}`)
+    core.debug(`Starting download of archive to: ${archivePath}`)
 
     await DownloadCacheFile(response.signedDownloadUrl, archivePath)
 
@@ -503,8 +502,8 @@ async function saveCachev2(
       key,
       version
     }
-    const response: CreateCacheEntryResponse =
-      await twirpClient.CreateCacheEntry(request)
+
+    const response = await twirpClient.CreateCacheEntry(request)
     if (!response.ok) {
       throw new ReserveCacheError(
         `Unable to reserve cache with key ${key}, another job may be creating this cache.`
