@@ -17,8 +17,6 @@ import {
 import { CacheFileSizeLimit } from './internal/constants'
 import { UploadCacheFile } from './internal/blob/upload-cache'
 import { DownloadCacheFile } from './internal/blob/download-cache'
-import { getBackendIdsFromToken, BackendIds } from '@actions/artifact/lib/internal/shared/util'
-
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -62,7 +60,6 @@ function checkKey(key: string): void {
  *
  * @returns boolean return true if Actions cache service feature is available, otherwise false
  */
-
 export function isFeatureAvailable(): boolean {
   return !!process.env['ACTIONS_CACHE_URL']
 }
@@ -215,7 +212,8 @@ async function restoreCachev2(
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
-  core.debug(`Resolved Keys: JSON.stringify(keys)`)
+  core.debug('Resolved Keys:')
+  core.debug(JSON.stringify(keys))
 
   if (keys.length > 10) {
     throw new ValidationError(
@@ -229,7 +227,7 @@ async function restoreCachev2(
   let archivePath = ''
   try {
     const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
-    const backendIds: BackendIds = getBackendIdsFromToken()
+    const backendIds: utils.BackendIds = utils.getBackendIdsFromToken()
     const compressionMethod = await utils.getCompressionMethod()
 
     const request: GetCacheEntryDownloadURLRequest = {
@@ -289,8 +287,7 @@ async function restoreCachev2(
 
     return request.key
   } catch (error) {
-    // TODO: handle all the possible error scenarios
-    throw new Error(`Unable to download and extract cache: ${error.message}`)
+    throw new Error(`Failed to restore: ${error.message}`)
   } finally {
     try {
       await utils.unlinkFile(archivePath)
@@ -450,7 +447,7 @@ async function saveCachev2(
   enableCrossOsArchive = false
 ): Promise<number> {
   // BackendIds are retrieved form the signed JWT
-  const backendIds: BackendIds = getBackendIdsFromToken()
+  const backendIds: utils.BackendIds = utils.getBackendIdsFromToken()
   const compressionMethod = await utils.getCompressionMethod()
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
   let cacheId = -1
@@ -504,16 +501,13 @@ async function saveCachev2(
       version: version
     }
     const response: CreateCacheEntryResponse = await twirpClient.CreateCacheEntry(request)
-    core.info(`CreateCacheEntryResponse: ${JSON.stringify(response)}`)
-    // TODO: handle the error cases here
     if (!response.ok) {
       throw new ReserveCacheError(
         `Unable to reserve cache with key ${key}, another job may be creating this cache.`
       )
     }
 
-    // TODO: mask the signed upload URL
-    core.debug(`Saving Cache to: ${response.signedUploadUrl}`)
+    core.debug(`Saving Cache to: ${core.setSecret(response.signedUploadUrl)}`)
     await UploadCacheFile(
       response.signedUploadUrl,
       archivePath,
@@ -536,11 +530,10 @@ async function saveCachev2(
       )
     }
 
-    // TODO: this is not great, we should handle the types without parsing
     cacheId = parseInt(finalizeResponse.entryId)
   } catch (error) {
     const typedError = error as Error
-    core.debug(typedError.message)
+    core.warning(`Failed to save: ${typedError.message}`)
   } finally {
     // Try to delete the archive to save space
     try {
