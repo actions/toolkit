@@ -516,7 +516,7 @@ async function saveCachev2(
       )
     }
 
-    core.debug(`Saving Cache to: ${core.setSecret(response.signedUploadUrl)}`)
+    core.debug(`Attempting to upload cache located at: ${archivePath}`)
     await UploadCacheFile(response.signedUploadUrl, archivePath)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
@@ -530,7 +530,7 @@ async function saveCachev2(
     const finalizeResponse: FinalizeCacheEntryUploadResponse =
       await twirpClient.FinalizeCacheEntryUpload(finalizeRequest)
     core.debug(
-      `FinalizeCacheEntryUploadResponse: ${JSON.stringify(finalizeResponse)}`
+      `FinalizeCacheEntryUploadResponse: ${finalizeResponse.ok}` 
     )
 
     if (!finalizeResponse.ok) {

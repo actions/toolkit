@@ -9,7 +9,6 @@ export async function UploadCacheFile(
   signedUploadURL: string,
   archivePath: string
 ): Promise<{}> {
-  // TODO: tighten the configuration and pass the appropriate user-agent
   // Specify data transfer options
   const uploadOptions: BlockBlobParallelUploadOptions = {
     blockSize: 4 * 1024 * 1024, // 4 MiB max block size
@@ -20,8 +19,7 @@ export async function UploadCacheFile(
   const blobClient: BlobClient = new BlobClient(signedUploadURL)
   const blockBlobClient: BlockBlobClient = blobClient.getBlockBlobClient()
 
-  core.debug(`BlobClient: ${JSON.stringify(blobClient)}`)
-  core.debug(`blockBlobClient: ${JSON.stringify(blockBlobClient)}`)
+  core.debug(`BlobClient: ${blobClient.name}:${blobClient.accountName}:${blobClient.containerName}`)
 
   return blockBlobClient.uploadFile(archivePath, uploadOptions)
 }
