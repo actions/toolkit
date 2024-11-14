@@ -1,12 +1,12 @@
 import * as core from '@actions/core'
-import { HttpClient } from '@actions/http-client'
-import { BearerCredentialHandler } from '@actions/http-client/lib/auth'
+import {HttpClient} from '@actions/http-client'
+import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {
   RequestOptions,
   TypedResponse
 } from '@actions/http-client/lib/interfaces'
 import * as fs from 'fs'
-import { URL } from 'url'
+import {URL} from 'url'
 import * as utils from './cacheUtils'
 import {
   ArtifactCacheEntry,
@@ -33,7 +33,7 @@ import {
   retryHttpClientResponse,
   retryTypedResponse
 } from './requestUtils'
-import { getCacheServiceURL } from './config'
+import {getCacheServiceURL} from './config'
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string = getCacheServiceURL()
@@ -216,7 +216,8 @@ async function uploadChunk(
   end: number
 ): Promise<void> {
   core.debug(
-    `Uploading chunk of size ${end - start + 1
+    `Uploading chunk of size ${
+      end - start + 1
     } bytes at offset ${start} with content range: ${getContentRange(
       start,
       end
@@ -312,7 +313,7 @@ async function commitCache(
   cacheId: number,
   filesize: number
 ): Promise<TypedResponse<null>> {
-  const commitCacheRequest: CommitCacheRequest = { size: filesize }
+  const commitCacheRequest: CommitCacheRequest = {size: filesize}
   return await retryTypedResponse('commitCache', async () =>
     httpClient.postJson<null>(
       getCacheApiUrl(`caches/${cacheId.toString()}`),

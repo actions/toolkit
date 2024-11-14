@@ -1,8 +1,8 @@
-import { downloadCache } from '../src/internal/cacheHttpClient'
-import { getCacheVersion } from '../src/internal/cacheUtils'
-import { CompressionMethod } from '../src/internal/constants'
+import {downloadCache} from '../src/internal/cacheHttpClient'
+import {getCacheVersion} from '../src/internal/cacheUtils'
+import {CompressionMethod} from '../src/internal/constants'
 import * as downloadUtils from '../src/internal/downloadUtils'
-import { DownloadOptions, getDownloadOptions } from '../src/options'
+import {DownloadOptions, getDownloadOptions} from '../src/options'
 
 jest.mock('../src/internal/downloadUtils')
 
@@ -129,7 +129,7 @@ test('downloadCache passes options to download methods', async () => {
 
   const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
   const archivePath = '/foo/bar'
-  const options: DownloadOptions = { downloadConcurrency: 4 }
+  const options: DownloadOptions = {downloadConcurrency: 4}
 
   await downloadCache(archiveLocation, archivePath, options)
 

@@ -4,8 +4,8 @@ import * as config from './internal/config'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import { DownloadOptions, UploadOptions } from './options'
-import { createTar, extractTar, listTar } from './internal/tar'
+import {DownloadOptions, UploadOptions} from './options'
+import {createTar, extractTar, listTar} from './internal/tar'
 import {
   CreateCacheEntryRequest,
   CreateCacheEntryResponse,
@@ -14,9 +14,9 @@ import {
   GetCacheEntryDownloadURLRequest,
   GetCacheEntryDownloadURLResponse
 } from './generated/results/api/v1/cache'
-import { CacheFileSizeLimit } from './internal/constants'
-import { UploadCacheFile } from './internal/blob/upload-cache'
-import { DownloadCacheFile } from './internal/blob/download-cache'
+import {CacheFileSizeLimit} from './internal/constants'
+import {UploadCacheFile} from './internal/blob/upload-cache'
+import {DownloadCacheFile} from './internal/blob/download-cache'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -86,23 +86,35 @@ export async function restoreCache(
   const cacheServiceVersion: string = config.getCacheServiceVersion()
   console.debug(`Cache service version: ${cacheServiceVersion}`)
   switch (cacheServiceVersion) {
-    case "v2":
-      return await restoreCachev2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
-    case "v1":
+    case 'v2':
+      return await restoreCachev2(
+        paths,
+        primaryKey,
+        restoreKeys,
+        options,
+        enableCrossOsArchive
+      )
+    case 'v1':
     default:
-      return await restoreCachev1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive)
+      return await restoreCachev1(
+        paths,
+        primaryKey,
+        restoreKeys,
+        options,
+        enableCrossOsArchive
+      )
   }
 }
 
 /**
  * Restores cache using the legacy Cache Service
- * 
- * @param paths 
- * @param primaryKey 
- * @param restoreKeys 
- * @param options 
- * @param enableCrossOsArchive 
- * @returns 
+ *
+ * @param paths
+ * @param primaryKey
+ * @param restoreKeys
+ * @param options
+ * @param enableCrossOsArchive
+ * @returns
  */
 async function restoreCachev1(
   paths: string[],
@@ -238,12 +250,15 @@ async function restoreCachev2(
       version: utils.getCacheVersion(
         paths,
         compressionMethod,
-        enableCrossOsArchive,
-      ),
+        enableCrossOsArchive
+      )
     }
 
-    core.debug(`GetCacheEntryDownloadURLRequest: ${JSON.stringify(twirpClient)}`)
-    const response: GetCacheEntryDownloadURLResponse = await twirpClient.GetCacheEntryDownloadURL(request)
+    core.debug(
+      `GetCacheEntryDownloadURLRequest: ${JSON.stringify(twirpClient)}`
+    )
+    const response: GetCacheEntryDownloadURLResponse =
+      await twirpClient.GetCacheEntryDownloadURL(request)
     core.debug(`GetCacheEntryDownloadURLResponse: ${JSON.stringify(response)}`)
 
     if (!response.ok) {
@@ -266,10 +281,7 @@ async function restoreCachev2(
 
     core.debug(`Starting download of artifact to: ${archivePath}`)
 
-    await DownloadCacheFile(
-      response.signedDownloadUrl,
-      archivePath
-    )
+    await DownloadCacheFile(response.signedDownloadUrl, archivePath)
 
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.info(
@@ -320,9 +332,9 @@ export async function saveCache(
   const cacheServiceVersion: string = config.getCacheServiceVersion()
   console.debug(`Cache Service Version: ${cacheServiceVersion}`)
   switch (cacheServiceVersion) {
-    case "v2":
+    case 'v2':
       return await saveCachev2(paths, key, options, enableCrossOsArchive)
-    case "v1":
+    case 'v1':
     default:
       return await saveCachev1(paths, key, options, enableCrossOsArchive)
   }
@@ -330,12 +342,12 @@ export async function saveCache(
 
 /**
  * Save cache using the legacy Cache Service
- * 
- * @param paths 
- * @param key 
- * @param options 
- * @param enableCrossOsArchive 
- * @returns 
+ *
+ * @param paths
+ * @param key
+ * @param options
+ * @param enableCrossOsArchive
+ * @returns
  */
 async function saveCachev1(
   paths: string[],
@@ -398,9 +410,9 @@ async function saveCachev1(
     } else if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
-        `Cache size of ~${Math.round(
-          archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+          `Cache size of ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     } else {
       throw new ReserveCacheError(
@@ -433,12 +445,12 @@ async function saveCachev1(
 
 /**
  * Save cache using the new Cache Service
- * 
- * @param paths 
- * @param key 
- * @param options 
- * @param enableCrossOsArchive 
- * @returns 
+ *
+ * @param paths
+ * @param key
+ * @param options
+ * @param enableCrossOsArchive
+ * @returns
  */
 async function saveCachev2(
   paths: string[],
@@ -500,7 +512,8 @@ async function saveCachev2(
       key: key,
       version: version
     }
-    const response: CreateCacheEntryResponse = await twirpClient.CreateCacheEntry(request)
+    const response: CreateCacheEntryResponse =
+      await twirpClient.CreateCacheEntry(request)
     if (!response.ok) {
       throw new ReserveCacheError(
         `Unable to reserve cache with key ${key}, another job may be creating this cache.`
@@ -508,21 +521,21 @@ async function saveCachev2(
     }
 
     core.debug(`Saving Cache to: ${core.setSecret(response.signedUploadUrl)}`)
-    await UploadCacheFile(
-      response.signedUploadUrl,
-      archivePath,
-    )
+    await UploadCacheFile(response.signedUploadUrl, archivePath)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
       workflowRunBackendId: backendIds.workflowRunBackendId,
       workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
       key: key,
       version: version,
-      sizeBytes: `${archiveFileSize}`,
+      sizeBytes: `${archiveFileSize}`
     }
 
-    const finalizeResponse: FinalizeCacheEntryUploadResponse = await twirpClient.FinalizeCacheEntryUpload(finalizeRequest)
-    core.debug(`FinalizeCacheEntryUploadResponse: ${JSON.stringify(finalizeResponse)}`)
+    const finalizeResponse: FinalizeCacheEntryUploadResponse =
+      await twirpClient.FinalizeCacheEntryUpload(finalizeRequest)
+    core.debug(
+      `FinalizeCacheEntryUploadResponse: ${JSON.stringify(finalizeResponse)}`
+    )
 
     if (!finalizeResponse.ok) {
       throw new Error(
