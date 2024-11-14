@@ -4,8 +4,8 @@ import * as config from './internal/config'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import { DownloadOptions, UploadOptions } from './options'
-import { createTar, extractTar, listTar } from './internal/tar'
+import {DownloadOptions, UploadOptions} from './options'
+import {createTar, extractTar, listTar} from './internal/tar'
 import {
   CreateCacheEntryRequest,
   CreateCacheEntryResponse,
@@ -14,9 +14,9 @@ import {
   GetCacheEntryDownloadURLRequest,
   GetCacheEntryDownloadURLResponse
 } from './generated/results/api/v1/cache'
-import { CacheFileSizeLimit } from './internal/constants'
-import { UploadCacheFile } from './internal/blob/upload-cache'
-import { DownloadCacheFile } from './internal/blob/download-cache'
+import {CacheFileSizeLimit} from './internal/constants'
+import {UploadCacheFile} from './internal/blob/upload-cache'
+import {DownloadCacheFile} from './internal/blob/download-cache'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -121,7 +121,7 @@ async function restoreCachev1(
   restoreKeys?: string[],
   options?: DownloadOptions,
   enableCrossOsArchive = false
-) {
+): Promise<string | undefined> {
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -219,7 +219,7 @@ async function restoreCachev2(
   restoreKeys?: string[],
   options?: DownloadOptions,
   enableCrossOsArchive = false
-) {
+): Promise<string | undefined> {
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -406,9 +406,9 @@ async function saveCachev1(
     } else if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
-        `Cache size of ~${Math.round(
-          archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+          `Cache size of ~${Math.round(
+            archiveFileSize / (1024 * 1024)
+          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     } else {
       throw new ReserveCacheError(
