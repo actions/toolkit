@@ -6,9 +6,8 @@ export function getRuntimeToken(): string {
   return token
 }
 
-// TODO: Use the feature flag to determine the cache service version
 export function getCacheServiceVersion(): string {
-  return process.env['ACTIONS_CACHE_SERVICE_VERSION'] || 'v1'
+  return process.env['ACTIONS_CACHE_SERVICE_V2'] ? 'v2' : 'v1';
 }
 
 export function getCacheServiceURL(): string {
