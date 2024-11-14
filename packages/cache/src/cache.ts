@@ -8,11 +8,9 @@ import {DownloadOptions, UploadOptions} from './options'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {
   CreateCacheEntryRequest,
-  CreateCacheEntryResponse,
   FinalizeCacheEntryUploadRequest,
   FinalizeCacheEntryUploadResponse,
-  GetCacheEntryDownloadURLRequest,
-  GetCacheEntryDownloadURLResponse
+  GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
 import {CacheFileSizeLimit} from './internal/constants'
 import {UploadCacheFile} from './internal/blob/upload-cache'
@@ -86,7 +84,7 @@ export async function restoreCache(
   const cacheServiceVersion: string = config.getCacheServiceVersion()
   switch (cacheServiceVersion) {
     case 'v2':
-      return await restoreCachev2(
+      return await restoreCacheV2(
         paths,
         primaryKey,
         restoreKeys,
@@ -95,7 +93,7 @@ export async function restoreCache(
       )
     case 'v1':
     default:
-      return await restoreCachev1(
+      return await restoreCacheV1(
         paths,
         primaryKey,
         restoreKeys,
@@ -115,7 +113,7 @@ export async function restoreCache(
  * @param enableCrossOsArchive
  * @returns
  */
-async function restoreCachev1(
+async function restoreCacheV1(
   paths: string[],
   primaryKey: string,
   restoreKeys?: string[],
@@ -213,7 +211,7 @@ async function restoreCachev1(
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
-async function restoreCachev2(
+async function restoreCacheV2(
   paths: string[],
   primaryKey: string,
   restoreKeys?: string[],
@@ -325,10 +323,10 @@ export async function saveCache(
   const cacheServiceVersion: string = config.getCacheServiceVersion()
   switch (cacheServiceVersion) {
     case 'v2':
-      return await saveCachev2(paths, key, options, enableCrossOsArchive)
+      return await saveCacheV2(paths, key, options, enableCrossOsArchive)
     case 'v1':
     default:
-      return await saveCachev1(paths, key, options, enableCrossOsArchive)
+      return await saveCacheV1(paths, key, options, enableCrossOsArchive)
   }
 }
 
@@ -341,7 +339,7 @@ export async function saveCache(
  * @param enableCrossOsArchive
  * @returns
  */
-async function saveCachev1(
+async function saveCacheV1(
   paths: string[],
   key: string,
   options?: UploadOptions,
@@ -444,7 +442,7 @@ async function saveCachev1(
  * @param enableCrossOsArchive
  * @returns
  */
-async function saveCachev2(
+async function saveCacheV2(
   paths: string[],
   key: string,
   options?: UploadOptions,
