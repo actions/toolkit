@@ -296,7 +296,9 @@ async function restoreCachev2(
     throw new Error(`Failed to restore: ${error.message}`)
   } finally {
     try {
-      await utils.unlinkFile(archivePath)
+      if (archivePath) {
+        await utils.unlinkFile(archivePath)
+      }
     } catch (error) {
       core.debug(`Failed to delete archive: ${error}`)
     }
