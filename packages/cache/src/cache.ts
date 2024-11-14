@@ -253,12 +253,8 @@ async function restoreCachev2(
       )
     }
 
-    core.debug(
-      `GetCacheEntryDownloadURLRequest: ${JSON.stringify(twirpClient)}`
-    )
     const response: GetCacheEntryDownloadURLResponse =
       await twirpClient.GetCacheEntryDownloadURL(request)
-    core.debug(`GetCacheEntryDownloadURLResponse: ${JSON.stringify(response)}`)
 
     if (!response.ok) {
       core.warning(`Cache not found for keys: ${keys.join(', ')}`)
@@ -277,7 +273,6 @@ async function restoreCachev2(
       utils.getCacheFileName(compressionMethod)
     )
     core.debug(`Archive path: ${archivePath}`)
-
     core.debug(`Starting download of artifact to: ${archivePath}`)
 
     await DownloadCacheFile(response.signedDownloadUrl, archivePath)
