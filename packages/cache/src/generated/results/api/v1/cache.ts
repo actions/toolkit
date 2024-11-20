@@ -13,32 +13,27 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
+import { CacheMetadata } from "../../entities/v1/cachemetadata";
 /**
  * @generated from protobuf message github.actions.results.api.v1.CreateCacheEntryRequest
  */
 export interface CreateCacheEntryRequest {
     /**
-     * Workflow run backend ID
+     * Scope and other metadata for the cache entry
      *
-     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     * @generated from protobuf field: github.actions.results.entities.v1.CacheMetadata metadata = 1;
      */
-    workflowRunBackendId: string;
-    /**
-     * Workflow job run backend ID
-     *
-     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
-     */
-    workflowJobRunBackendId: string;
+    metadata?: CacheMetadata;
     /**
      * An explicit key for a cache entry
      *
-     * @generated from protobuf field: string key = 3;
+     * @generated from protobuf field: string key = 2;
      */
     key: string;
     /**
      * Hash of the compression tool, runner OS and paths cached
      *
-     * @generated from protobuf field: string version = 4;
+     * @generated from protobuf field: string version = 3;
      */
     version: string;
 }
@@ -62,33 +57,27 @@ export interface CreateCacheEntryResponse {
  */
 export interface FinalizeCacheEntryUploadRequest {
     /**
-     * Workflow run backend ID
+     * Scope and other metadata for the cache entry
      *
-     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     * @generated from protobuf field: github.actions.results.entities.v1.CacheMetadata metadata = 1;
      */
-    workflowRunBackendId: string;
-    /**
-     * Workflow job run backend ID
-     *
-     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
-     */
-    workflowJobRunBackendId: string;
+    metadata?: CacheMetadata;
     /**
      * An explicit key for a cache entry
      *
-     * @generated from protobuf field: string key = 3;
+     * @generated from protobuf field: string key = 2;
      */
     key: string;
     /**
      * Size of the cache archive in Bytes
      *
-     * @generated from protobuf field: int64 size_bytes = 4;
+     * @generated from protobuf field: int64 size_bytes = 3;
      */
     sizeBytes: string;
     /**
      * Hash of the compression tool, runner OS and paths cached
      *
-     * @generated from protobuf field: string version = 5;
+     * @generated from protobuf field: string version = 4;
      */
     version: string;
 }
@@ -112,33 +101,27 @@ export interface FinalizeCacheEntryUploadResponse {
  */
 export interface GetCacheEntryDownloadURLRequest {
     /**
-     * Workflow run backend ID
+     * Scope and other metadata for the cache entry
      *
-     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     * @generated from protobuf field: github.actions.results.entities.v1.CacheMetadata metadata = 1;
      */
-    workflowRunBackendId: string;
-    /**
-     * Workflow job run backend ID
-     *
-     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
-     */
-    workflowJobRunBackendId: string;
+    metadata?: CacheMetadata;
     /**
      * An explicit key for a cache entry
      *
-     * @generated from protobuf field: string key = 3;
+     * @generated from protobuf field: string key = 2;
      */
     key: string;
     /**
      * Restore keys used for prefix searching
      *
-     * @generated from protobuf field: repeated string restore_keys = 4;
+     * @generated from protobuf field: repeated string restore_keys = 3;
      */
     restoreKeys: string[];
     /**
      * Hash of the compression tool, runner OS and paths cached
      *
-     * @generated from protobuf field: string version = 5;
+     * @generated from protobuf field: string version = 4;
      */
     version: string;
 }
@@ -162,21 +145,15 @@ export interface GetCacheEntryDownloadURLResponse {
  */
 export interface DeleteCacheEntryRequest {
     /**
-     * Workflow run backend ID
+     * Scope and other metadata for the cache entry
      *
-     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     * @generated from protobuf field: github.actions.results.entities.v1.CacheMetadata metadata = 1;
      */
-    workflowRunBackendId: string;
-    /**
-     * Workflow job run backend ID
-     *
-     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
-     */
-    workflowJobRunBackendId: string;
+    metadata?: CacheMetadata;
     /**
      * An explicit key for a cache entry
      *
-     * @generated from protobuf field: string key = 3;
+     * @generated from protobuf field: string key = 2;
      */
     key: string;
 }
@@ -200,27 +177,21 @@ export interface DeleteCacheEntryResponse {
  */
 export interface ListCacheEntriesRequest {
     /**
-     * Workflow run backend ID
+     * Scope and other metadata for the cache entry
      *
-     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     * @generated from protobuf field: github.actions.results.entities.v1.CacheMetadata metadata = 1;
      */
-    workflowRunBackendId: string;
-    /**
-     * Workflow job run backend ID
-     *
-     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
-     */
-    workflowJobRunBackendId: string;
+    metadata?: CacheMetadata;
     /**
      * An explicit key for a cache entry
      *
-     * @generated from protobuf field: string key = 3;
+     * @generated from protobuf field: string key = 2;
      */
     key: string;
     /**
      * Restore keys used for prefix searching
      *
-     * @generated from protobuf field: repeated string restore_keys = 4;
+     * @generated from protobuf field: repeated string restore_keys = 3;
      */
     restoreKeys: string[];
 }
@@ -291,33 +262,27 @@ export interface ListCacheEntriesResponse_CacheEntry {
  */
 export interface LookupCacheEntryRequest {
     /**
-     * Workflow run backend ID
+     * Scope and other metadata for the cache entry
      *
-     * @generated from protobuf field: string workflow_run_backend_id = 1;
+     * @generated from protobuf field: github.actions.results.entities.v1.CacheMetadata metadata = 1;
      */
-    workflowRunBackendId: string;
-    /**
-     * Workflow job run backend ID
-     *
-     * @generated from protobuf field: string workflow_job_run_backend_id = 2;
-     */
-    workflowJobRunBackendId: string;
+    metadata?: CacheMetadata;
     /**
      * An explicit key for a cache entry
      *
-     * @generated from protobuf field: string key = 3;
+     * @generated from protobuf field: string key = 2;
      */
     key: string;
     /**
      * Restore keys used for prefix searching
      *
-     * @generated from protobuf field: repeated string restore_keys = 4;
+     * @generated from protobuf field: repeated string restore_keys = 3;
      */
     restoreKeys: string[];
     /**
      * Hash of the compression tool, runner OS and paths cached
      *
-     * @generated from protobuf field: string version = 5;
+     * @generated from protobuf field: string version = 4;
      */
     version: string;
 }
@@ -391,14 +356,13 @@ export interface LookupCacheEntryResponse_CacheEntry {
 class CreateCacheEntryRequest$Type extends MessageType<CreateCacheEntryRequest> {
     constructor() {
         super("github.actions.results.api.v1.CreateCacheEntryRequest", [
-            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "metadata", kind: "message", T: () => CacheMetadata },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateCacheEntryRequest>): CreateCacheEntryRequest {
-        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", key: "", version: "" };
+        const message = { key: "", version: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateCacheEntryRequest>(this, message, value);
@@ -409,16 +373,13 @@ class CreateCacheEntryRequest$Type extends MessageType<CreateCacheEntryRequest> 
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string workflow_run_backend_id */ 1:
-                    message.workflowRunBackendId = reader.string();
+                case /* github.actions.results.entities.v1.CacheMetadata metadata */ 1:
+                    message.metadata = CacheMetadata.internalBinaryRead(reader, reader.uint32(), options, message.metadata);
                     break;
-                case /* string workflow_job_run_backend_id */ 2:
-                    message.workflowJobRunBackendId = reader.string();
-                    break;
-                case /* string key */ 3:
+                case /* string key */ 2:
                     message.key = reader.string();
                     break;
-                case /* string version */ 4:
+                case /* string version */ 3:
                     message.version = reader.string();
                     break;
                 default:
@@ -433,18 +394,15 @@ class CreateCacheEntryRequest$Type extends MessageType<CreateCacheEntryRequest> 
         return message;
     }
     internalBinaryWrite(message: CreateCacheEntryRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string workflow_run_backend_id = 1; */
-        if (message.workflowRunBackendId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
-        /* string workflow_job_run_backend_id = 2; */
-        if (message.workflowJobRunBackendId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
-        /* string key = 3; */
+        /* github.actions.results.entities.v1.CacheMetadata metadata = 1; */
+        if (message.metadata)
+            CacheMetadata.internalBinaryWrite(message.metadata, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string key = 2; */
         if (message.key !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.key);
-        /* string version = 4; */
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        /* string version = 3; */
         if (message.version !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.version);
+            writer.tag(3, WireType.LengthDelimited).string(message.version);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -513,15 +471,14 @@ export const CreateCacheEntryResponse = new CreateCacheEntryResponse$Type();
 class FinalizeCacheEntryUploadRequest$Type extends MessageType<FinalizeCacheEntryUploadRequest> {
     constructor() {
         super("github.actions.results.api.v1.FinalizeCacheEntryUploadRequest", [
-            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "size_bytes", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 5, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "metadata", kind: "message", T: () => CacheMetadata },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "size_bytes", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 4, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<FinalizeCacheEntryUploadRequest>): FinalizeCacheEntryUploadRequest {
-        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", key: "", sizeBytes: "0", version: "" };
+        const message = { key: "", sizeBytes: "0", version: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<FinalizeCacheEntryUploadRequest>(this, message, value);
@@ -532,19 +489,16 @@ class FinalizeCacheEntryUploadRequest$Type extends MessageType<FinalizeCacheEntr
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string workflow_run_backend_id */ 1:
-                    message.workflowRunBackendId = reader.string();
+                case /* github.actions.results.entities.v1.CacheMetadata metadata */ 1:
+                    message.metadata = CacheMetadata.internalBinaryRead(reader, reader.uint32(), options, message.metadata);
                     break;
-                case /* string workflow_job_run_backend_id */ 2:
-                    message.workflowJobRunBackendId = reader.string();
-                    break;
-                case /* string key */ 3:
+                case /* string key */ 2:
                     message.key = reader.string();
                     break;
-                case /* int64 size_bytes */ 4:
+                case /* int64 size_bytes */ 3:
                     message.sizeBytes = reader.int64().toString();
                     break;
-                case /* string version */ 5:
+                case /* string version */ 4:
                     message.version = reader.string();
                     break;
                 default:
@@ -559,21 +513,18 @@ class FinalizeCacheEntryUploadRequest$Type extends MessageType<FinalizeCacheEntr
         return message;
     }
     internalBinaryWrite(message: FinalizeCacheEntryUploadRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string workflow_run_backend_id = 1; */
-        if (message.workflowRunBackendId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
-        /* string workflow_job_run_backend_id = 2; */
-        if (message.workflowJobRunBackendId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
-        /* string key = 3; */
+        /* github.actions.results.entities.v1.CacheMetadata metadata = 1; */
+        if (message.metadata)
+            CacheMetadata.internalBinaryWrite(message.metadata, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string key = 2; */
         if (message.key !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.key);
-        /* int64 size_bytes = 4; */
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        /* int64 size_bytes = 3; */
         if (message.sizeBytes !== "0")
-            writer.tag(4, WireType.Varint).int64(message.sizeBytes);
-        /* string version = 5; */
+            writer.tag(3, WireType.Varint).int64(message.sizeBytes);
+        /* string version = 4; */
         if (message.version !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.version);
+            writer.tag(4, WireType.LengthDelimited).string(message.version);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -642,15 +593,14 @@ export const FinalizeCacheEntryUploadResponse = new FinalizeCacheEntryUploadResp
 class GetCacheEntryDownloadURLRequest$Type extends MessageType<GetCacheEntryDownloadURLRequest> {
     constructor() {
         super("github.actions.results.api.v1.GetCacheEntryDownloadURLRequest", [
-            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "restore_keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "metadata", kind: "message", T: () => CacheMetadata },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "restore_keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetCacheEntryDownloadURLRequest>): GetCacheEntryDownloadURLRequest {
-        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", key: "", restoreKeys: [], version: "" };
+        const message = { key: "", restoreKeys: [], version: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetCacheEntryDownloadURLRequest>(this, message, value);
@@ -661,19 +611,16 @@ class GetCacheEntryDownloadURLRequest$Type extends MessageType<GetCacheEntryDown
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string workflow_run_backend_id */ 1:
-                    message.workflowRunBackendId = reader.string();
+                case /* github.actions.results.entities.v1.CacheMetadata metadata */ 1:
+                    message.metadata = CacheMetadata.internalBinaryRead(reader, reader.uint32(), options, message.metadata);
                     break;
-                case /* string workflow_job_run_backend_id */ 2:
-                    message.workflowJobRunBackendId = reader.string();
-                    break;
-                case /* string key */ 3:
+                case /* string key */ 2:
                     message.key = reader.string();
                     break;
-                case /* repeated string restore_keys */ 4:
+                case /* repeated string restore_keys */ 3:
                     message.restoreKeys.push(reader.string());
                     break;
-                case /* string version */ 5:
+                case /* string version */ 4:
                     message.version = reader.string();
                     break;
                 default:
@@ -688,21 +635,18 @@ class GetCacheEntryDownloadURLRequest$Type extends MessageType<GetCacheEntryDown
         return message;
     }
     internalBinaryWrite(message: GetCacheEntryDownloadURLRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string workflow_run_backend_id = 1; */
-        if (message.workflowRunBackendId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
-        /* string workflow_job_run_backend_id = 2; */
-        if (message.workflowJobRunBackendId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
-        /* string key = 3; */
+        /* github.actions.results.entities.v1.CacheMetadata metadata = 1; */
+        if (message.metadata)
+            CacheMetadata.internalBinaryWrite(message.metadata, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string key = 2; */
         if (message.key !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.key);
-        /* repeated string restore_keys = 4; */
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        /* repeated string restore_keys = 3; */
         for (let i = 0; i < message.restoreKeys.length; i++)
-            writer.tag(4, WireType.LengthDelimited).string(message.restoreKeys[i]);
-        /* string version = 5; */
+            writer.tag(3, WireType.LengthDelimited).string(message.restoreKeys[i]);
+        /* string version = 4; */
         if (message.version !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.version);
+            writer.tag(4, WireType.LengthDelimited).string(message.version);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -771,13 +715,12 @@ export const GetCacheEntryDownloadURLResponse = new GetCacheEntryDownloadURLResp
 class DeleteCacheEntryRequest$Type extends MessageType<DeleteCacheEntryRequest> {
     constructor() {
         super("github.actions.results.api.v1.DeleteCacheEntryRequest", [
-            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "metadata", kind: "message", T: () => CacheMetadata },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<DeleteCacheEntryRequest>): DeleteCacheEntryRequest {
-        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", key: "" };
+        const message = { key: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<DeleteCacheEntryRequest>(this, message, value);
@@ -788,13 +731,10 @@ class DeleteCacheEntryRequest$Type extends MessageType<DeleteCacheEntryRequest> 
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string workflow_run_backend_id */ 1:
-                    message.workflowRunBackendId = reader.string();
+                case /* github.actions.results.entities.v1.CacheMetadata metadata */ 1:
+                    message.metadata = CacheMetadata.internalBinaryRead(reader, reader.uint32(), options, message.metadata);
                     break;
-                case /* string workflow_job_run_backend_id */ 2:
-                    message.workflowJobRunBackendId = reader.string();
-                    break;
-                case /* string key */ 3:
+                case /* string key */ 2:
                     message.key = reader.string();
                     break;
                 default:
@@ -809,15 +749,12 @@ class DeleteCacheEntryRequest$Type extends MessageType<DeleteCacheEntryRequest> 
         return message;
     }
     internalBinaryWrite(message: DeleteCacheEntryRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string workflow_run_backend_id = 1; */
-        if (message.workflowRunBackendId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
-        /* string workflow_job_run_backend_id = 2; */
-        if (message.workflowJobRunBackendId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
-        /* string key = 3; */
+        /* github.actions.results.entities.v1.CacheMetadata metadata = 1; */
+        if (message.metadata)
+            CacheMetadata.internalBinaryWrite(message.metadata, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string key = 2; */
         if (message.key !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.key);
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -886,14 +823,13 @@ export const DeleteCacheEntryResponse = new DeleteCacheEntryResponse$Type();
 class ListCacheEntriesRequest$Type extends MessageType<ListCacheEntriesRequest> {
     constructor() {
         super("github.actions.results.api.v1.ListCacheEntriesRequest", [
-            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "restore_keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "metadata", kind: "message", T: () => CacheMetadata },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "restore_keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ListCacheEntriesRequest>): ListCacheEntriesRequest {
-        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", key: "", restoreKeys: [] };
+        const message = { key: "", restoreKeys: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListCacheEntriesRequest>(this, message, value);
@@ -904,16 +840,13 @@ class ListCacheEntriesRequest$Type extends MessageType<ListCacheEntriesRequest> 
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string workflow_run_backend_id */ 1:
-                    message.workflowRunBackendId = reader.string();
+                case /* github.actions.results.entities.v1.CacheMetadata metadata */ 1:
+                    message.metadata = CacheMetadata.internalBinaryRead(reader, reader.uint32(), options, message.metadata);
                     break;
-                case /* string workflow_job_run_backend_id */ 2:
-                    message.workflowJobRunBackendId = reader.string();
-                    break;
-                case /* string key */ 3:
+                case /* string key */ 2:
                     message.key = reader.string();
                     break;
-                case /* repeated string restore_keys */ 4:
+                case /* repeated string restore_keys */ 3:
                     message.restoreKeys.push(reader.string());
                     break;
                 default:
@@ -928,18 +861,15 @@ class ListCacheEntriesRequest$Type extends MessageType<ListCacheEntriesRequest> 
         return message;
     }
     internalBinaryWrite(message: ListCacheEntriesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string workflow_run_backend_id = 1; */
-        if (message.workflowRunBackendId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
-        /* string workflow_job_run_backend_id = 2; */
-        if (message.workflowJobRunBackendId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
-        /* string key = 3; */
+        /* github.actions.results.entities.v1.CacheMetadata metadata = 1; */
+        if (message.metadata)
+            CacheMetadata.internalBinaryWrite(message.metadata, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string key = 2; */
         if (message.key !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.key);
-        /* repeated string restore_keys = 4; */
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        /* repeated string restore_keys = 3; */
         for (let i = 0; i < message.restoreKeys.length; i++)
-            writer.tag(4, WireType.LengthDelimited).string(message.restoreKeys[i]);
+            writer.tag(3, WireType.LengthDelimited).string(message.restoreKeys[i]);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1097,15 +1027,14 @@ export const ListCacheEntriesResponse_CacheEntry = new ListCacheEntriesResponse_
 class LookupCacheEntryRequest$Type extends MessageType<LookupCacheEntryRequest> {
     constructor() {
         super("github.actions.results.api.v1.LookupCacheEntryRequest", [
-            { no: 1, name: "workflow_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "restore_keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "metadata", kind: "message", T: () => CacheMetadata },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "restore_keys", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LookupCacheEntryRequest>): LookupCacheEntryRequest {
-        const message = { workflowRunBackendId: "", workflowJobRunBackendId: "", key: "", restoreKeys: [], version: "" };
+        const message = { key: "", restoreKeys: [], version: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LookupCacheEntryRequest>(this, message, value);
@@ -1116,19 +1045,16 @@ class LookupCacheEntryRequest$Type extends MessageType<LookupCacheEntryRequest> 
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string workflow_run_backend_id */ 1:
-                    message.workflowRunBackendId = reader.string();
+                case /* github.actions.results.entities.v1.CacheMetadata metadata */ 1:
+                    message.metadata = CacheMetadata.internalBinaryRead(reader, reader.uint32(), options, message.metadata);
                     break;
-                case /* string workflow_job_run_backend_id */ 2:
-                    message.workflowJobRunBackendId = reader.string();
-                    break;
-                case /* string key */ 3:
+                case /* string key */ 2:
                     message.key = reader.string();
                     break;
-                case /* repeated string restore_keys */ 4:
+                case /* repeated string restore_keys */ 3:
                     message.restoreKeys.push(reader.string());
                     break;
-                case /* string version */ 5:
+                case /* string version */ 4:
                     message.version = reader.string();
                     break;
                 default:
@@ -1143,21 +1069,18 @@ class LookupCacheEntryRequest$Type extends MessageType<LookupCacheEntryRequest> 
         return message;
     }
     internalBinaryWrite(message: LookupCacheEntryRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string workflow_run_backend_id = 1; */
-        if (message.workflowRunBackendId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.workflowRunBackendId);
-        /* string workflow_job_run_backend_id = 2; */
-        if (message.workflowJobRunBackendId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.workflowJobRunBackendId);
-        /* string key = 3; */
+        /* github.actions.results.entities.v1.CacheMetadata metadata = 1; */
+        if (message.metadata)
+            CacheMetadata.internalBinaryWrite(message.metadata, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string key = 2; */
         if (message.key !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.key);
-        /* repeated string restore_keys = 4; */
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        /* repeated string restore_keys = 3; */
         for (let i = 0; i < message.restoreKeys.length; i++)
-            writer.tag(4, WireType.LengthDelimited).string(message.restoreKeys[i]);
-        /* string version = 5; */
+            writer.tag(3, WireType.LengthDelimited).string(message.restoreKeys[i]);
+        /* string version = 4; */
         if (message.version !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.version);
+            writer.tag(4, WireType.LengthDelimited).string(message.version);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

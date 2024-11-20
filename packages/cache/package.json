@@ -47,7 +47,6 @@
     "@azure/storage-blob": "^12.13.0",
     "@protobuf-ts/plugin": "^2.9.4",
     "semver": "^6.3.1",
-    "jwt-decode": "^3.1.2",
     "twirp-ts": "^2.5.0"
   },
   "devDependencies": {

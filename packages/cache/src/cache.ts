@@ -236,12 +236,9 @@ async function restoreCacheV2(
   let archivePath = ''
   try {
     const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
-    const backendIds: utils.BackendIds = utils.getBackendIdsFromToken()
     const compressionMethod = await utils.getCompressionMethod()
 
     const request: GetCacheEntryDownloadURLRequest = {
-      workflowRunBackendId: backendIds.workflowRunBackendId,
-      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
       key: primaryKey,
       restoreKeys,
       version: utils.getCacheVersion(
@@ -448,8 +445,6 @@ async function saveCacheV2(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
-  // BackendIds are retrieved form the signed JWT
-  const backendIds: utils.BackendIds = utils.getBackendIdsFromToken()
   const compressionMethod = await utils.getCompressionMethod()
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
   let cacheId = -1
@@ -497,8 +492,6 @@ async function saveCacheV2(
       enableCrossOsArchive
     )
     const request: CreateCacheEntryRequest = {
-      workflowRunBackendId: backendIds.workflowRunBackendId,
-      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
       key,
       version
     }
@@ -514,8 +507,6 @@ async function saveCacheV2(
     await UploadCacheFile(response.signedUploadUrl, archivePath)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
-      workflowRunBackendId: backendIds.workflowRunBackendId,
-      workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
       key,
       version,
       sizeBytes: `${archiveFileSize}`
