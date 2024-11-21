@@ -5,7 +5,7 @@ import {
   BlockBlobParallelUploadOptions
 } from '@azure/storage-blob'
 
-export async function UploadCacheFile(
+export async function uploadCacheFile(
   signedUploadURL: string,
   archivePath: string
 ): Promise<{}> {

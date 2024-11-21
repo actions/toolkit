@@ -6,7 +6,7 @@ import {
   BlobDownloadOptions
 } from '@azure/storage-blob'
 
-export async function DownloadCacheFile(
+export async function downloadCacheFile(
   signedUploadURL: string,
   archivePath: string
 ): Promise<{}> {

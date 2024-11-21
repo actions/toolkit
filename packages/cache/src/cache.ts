@@ -1,20 +1,20 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import * as config from './internal/config'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import {DownloadOptions, UploadOptions} from './options'
-import {createTar, extractTar, listTar} from './internal/tar'
+import { getCacheServiceVersion, isGhes } from './internal/config'
+import { DownloadOptions, UploadOptions } from './options'
+import { createTar, extractTar, listTar } from './internal/tar'
 import {
   CreateCacheEntryRequest,
   FinalizeCacheEntryUploadRequest,
   FinalizeCacheEntryUploadResponse,
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
-import {CacheFileSizeLimit} from './internal/constants'
-import {UploadCacheFile} from './internal/blob/upload-cache'
-import {DownloadCacheFile} from './internal/blob/download-cache'
+import { CacheFileSizeLimit } from './internal/constants'
+import { uploadCacheFile } from './internal/blob/upload-cache'
+import { downloadCacheFile } from './internal/blob/download-cache'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -81,7 +81,7 @@ export async function restoreCache(
 ): Promise<string | undefined> {
   checkPaths(paths)
 
-  const cacheServiceVersion: string = config.getCacheServiceVersion()
+  const cacheServiceVersion: string = getCacheServiceVersion()
   switch (cacheServiceVersion) {
     case 'v2':
       return await restoreCacheV2(
@@ -269,7 +269,7 @@ async function restoreCacheV2(
     core.debug(`Archive path: ${archivePath}`)
     core.debug(`Starting download of archive to: ${archivePath}`)
 
-    await DownloadCacheFile(response.signedDownloadUrl, archivePath)
+    await downloadCacheFile(response.signedDownloadUrl, archivePath)
 
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.info(
@@ -317,7 +317,7 @@ export async function saveCache(
   checkPaths(paths)
   checkKey(key)
 
-  const cacheServiceVersion: string = config.getCacheServiceVersion()
+  const cacheServiceVersion: string = getCacheServiceVersion()
   switch (cacheServiceVersion) {
     case 'v2':
       return await saveCacheV2(paths, key, options, enableCrossOsArchive)
@@ -373,7 +373,7 @@ async function saveCacheV1(
     core.debug(`File Size: ${archiveFileSize}`)
 
     // For GHES, this check will take place in ReserveCache API with enterprise file size limit
-    if (archiveFileSize > fileSizeLimit && !utils.isGhes()) {
+    if (archiveFileSize > fileSizeLimit && !isGhes()) {
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
@@ -397,9 +397,9 @@ async function saveCacheV1(
     } else if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
-          `Cache size of ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     } else {
       throw new ReserveCacheError(
@@ -477,7 +477,7 @@ async function saveCacheV2(
     core.debug(`File Size: ${archiveFileSize}`)
 
     // For GHES, this check will take place in ReserveCache API with enterprise file size limit
-    if (archiveFileSize > CacheFileSizeLimit && !utils.isGhes()) {
+    if (archiveFileSize > CacheFileSizeLimit && !isGhes()) {
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
@@ -504,7 +504,7 @@ async function saveCacheV2(
     }
 
     core.debug(`Attempting to upload cache located at: ${archivePath}`)
-    await UploadCacheFile(response.signedUploadUrl, archivePath)
+    await uploadCacheFile(response.signedUploadUrl, archivePath)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
       key,
