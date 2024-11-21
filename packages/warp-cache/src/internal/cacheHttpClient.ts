@@ -184,18 +184,13 @@ export async function getCacheEntry(
         }
       }
       break
-    case 'push':
-    case 'workflow_dispatch':
-      {
-        const pushPayload = github.context.payload as PushEvent
-        // Default branch is not in the complete format
-        // Ref: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push
-        restoreBranches.add(
-          `refs/heads/${pushPayload?.repository?.default_branch}`
-        )
-      }
-      break
     default:
+      const payload = github?.context?.payload
+      // Default branch is not in the complete format
+      // Ref: https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+      if (payload?.repository?.default_branch) {
+        restoreBranches.add(`refs/heads/${payload?.repository?.default_branch}`)
+      }
       break
   }
 
