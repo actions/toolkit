@@ -1,17 +1,17 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import { saveCache } from '../src/cache'
+import {saveCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import * as config from '../src/internal/config'
-import { CacheFilename, CompressionMethod } from '../src/internal/constants'
+import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
-import { TypedResponse } from '@actions/http-client/lib/interfaces'
+import {TypedResponse} from '@actions/http-client/lib/interfaces'
 import {
   ReserveCacheResponse,
   ITypedResponseWithError
 } from '../src/internal/contracts'
-import { HttpClientError } from '@actions/http-client'
+import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -19,11 +19,11 @@ jest.mock('../src/internal/config')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
-  jest.spyOn(console, 'log').mockImplementation(() => { })
-  jest.spyOn(core, 'debug').mockImplementation(() => { })
-  jest.spyOn(core, 'info').mockImplementation(() => { })
-  jest.spyOn(core, 'warning').mockImplementation(() => { })
-  jest.spyOn(core, 'error').mockImplementation(() => { })
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+  jest.spyOn(core, 'debug').mockImplementation(() => {})
+  jest.spyOn(core, 'info').mockImplementation(() => {})
+  jest.spyOn(core, 'warning').mockImplementation(() => {})
+  jest.spyOn(core, 'error').mockImplementation(() => {})
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
     const actualUtils = jest.requireActual('../src/internal/cacheUtils')
     return actualUtils.getCacheFileName(cm)
@@ -231,7 +231,7 @@ test('save with server error should fail', async () => {
     .mockImplementation(async () => {
       const response: TypedResponse<ReserveCacheResponse> = {
         statusCode: 500,
-        result: { cacheId },
+        result: {cacheId},
         headers: {}
       }
       return response
@@ -285,7 +285,7 @@ test('save with valid inputs uploads a cache', async () => {
     .mockImplementation(async () => {
       const response: TypedResponse<ReserveCacheResponse> = {
         statusCode: 500,
-        result: { cacheId },
+        result: {cacheId},
         headers: {}
       }
       return response
