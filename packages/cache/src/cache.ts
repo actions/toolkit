@@ -3,18 +3,18 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import {getCacheServiceVersion, isGhes} from './internal/config'
-import {DownloadOptions, UploadOptions} from './options'
-import {createTar, extractTar, listTar} from './internal/tar'
+import { getCacheServiceVersion, isGhes } from './internal/config'
+import { DownloadOptions, UploadOptions } from './options'
+import { createTar, extractTar, listTar } from './internal/tar'
 import {
   CreateCacheEntryRequest,
   FinalizeCacheEntryUploadRequest,
   FinalizeCacheEntryUploadResponse,
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
-import {CacheFileSizeLimit} from './internal/constants'
-import {uploadCacheFile} from './internal/blob/upload-cache'
-import {downloadCacheFile} from './internal/blob/download-cache'
+import { CacheFileSizeLimit } from './internal/constants'
+import { uploadCacheFile } from './internal/blob/upload-cache'
+import { downloadCacheFile } from './internal/blob/download-cache'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -287,7 +287,13 @@ async function restoreCacheV2(
 
     return request.key
   } catch (error) {
-    throw new Error(`Failed to restore: ${error.message}`)
+    const typedError = error as Error
+    if (typedError.name === ValidationError.name) {
+      throw error
+    } else {
+      // Supress all non-validation cache related errors because caching should be optional
+      core.warning(`Failed to restore: ${(error as Error).message}`)
+    }
   } finally {
     try {
       if (archivePath) {
@@ -297,6 +303,8 @@ async function restoreCacheV2(
       core.debug(`Failed to delete archive: ${error}`)
     }
   }
+
+  return undefined
 }
 
 /**
@@ -397,9 +405,9 @@ async function saveCacheV1(
     } else if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
-          `Cache size of ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     } else {
       throw new ReserveCacheError(
@@ -525,7 +533,13 @@ async function saveCacheV2(
     cacheId = parseInt(finalizeResponse.entryId)
   } catch (error) {
     const typedError = error as Error
-    core.warning(`Failed to save: ${typedError.message}`)
+    if (typedError.name === ValidationError.name) {
+      throw error
+    } else if (typedError.name === ReserveCacheError.name) {
+      core.info(`Failed to save: ${typedError.message}`)
+    } else {
+      core.warning(`Failed to save: ${typedError.message}`)
+    }
   } finally {
     // Try to delete the archive to save space
     try {
