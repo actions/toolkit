@@ -5,12 +5,9 @@ import {
   RequestOptions,
   TypedResponse
 } from '@actions/http-client/lib/interfaces'
-import * as crypto from 'crypto'
 import * as fs from 'fs'
 import {URL} from 'url'
-
 import * as utils from './cacheUtils'
-import {CompressionMethod} from './constants'
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
@@ -36,11 +33,10 @@ import {
   retryHttpClientResponse,
   retryTypedResponse
 } from './requestUtils'
-
-const versionSalt = '1.0'
+import {getCacheServiceURL} from './config'
 
 function getCacheApiUrl(resource: string): string {
-  const baseUrl: string = process.env['ACTIONS_CACHE_URL'] || ''
+  const baseUrl: string = getCacheServiceURL()
   if (!baseUrl) {
     throw new Error('Cache Service Url not found, unable to restore cache.')
   }
@@ -75,42 +71,18 @@ function createHttpClient(): HttpClient {
   )
 }
 
-export function getCacheVersion(
-  paths: string[],
-  compressionMethod?: CompressionMethod,
-  enableCrossOsArchive = false
-): string {
-  // don't pass changes upstream
-  const components = paths.slice()
-
-  // Add compression method to cache version to restore
-  // compressed cache as per compression method
-  if (compressionMethod) {
-    components.push(compressionMethod)
-  }
-
-  // Only check for windows platforms if enableCrossOsArchive is false
-  if (process.platform === 'win32' && !enableCrossOsArchive) {
-    components.push('windows-only')
-  }
-
-  // Add salt to cache version to support breaking changes in cache entry
-  components.push(versionSalt)
-
-  return crypto.createHash('sha256').update(components.join('|')).digest('hex')
-}
-
 export async function getCacheEntry(
   keys: string[],
   paths: string[],
   options?: InternalCacheOptions
 ): Promise<ArtifactCacheEntry | null> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(
+  const version = utils.getCacheVersion(
     paths,
     options?.compressionMethod,
     options?.enableCrossOsArchive
   )
+
   const resource = `cache?keys=${encodeURIComponent(
     keys.join(',')
   )}&version=${version}`
@@ -207,7 +179,7 @@ export async function reserveCache(
   options?: InternalCacheOptions
 ): Promise<ITypedResponseWithError<ReserveCacheResponse>> {
   const httpClient = createHttpClient()
-  const version = getCacheVersion(
+  const version = utils.getCacheVersion(
     paths,
     options?.compressionMethod,
     options?.enableCrossOsArchive
