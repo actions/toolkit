@@ -46,6 +46,40 @@ afterAll(async () => {
   await jest.requireActual('@actions/io').rmRF(getTempDir())
 })
 
+test('extract tar', async () => {
+  const mkdirMock = jest.spyOn(io, 'mkdirP')
+  const execMock = jest.spyOn(exec, 'exec')
+
+  const archivePath = IS_WINDOWS
+    ? `${process.env['windir']}\\fakepath\\cache.tar`
+    : 'cache.tar'
+  const workspace = process.env['GITHUB_WORKSPACE']
+  const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+
+  await tar.extractTar(archivePath, CompressionMethod.None)
+
+  expect(mkdirMock).toHaveBeenCalledWith(workspace)
+  expect(execMock).toHaveBeenCalledTimes(1)
+  expect(execMock).toHaveBeenCalledWith(
+    [
+      `"${tarPath}"`,
+      '-xf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P',
+      '-C',
+      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .join(' '),
+    undefined,
+    {
+      cwd: undefined,
+      env: expect.objectContaining(defaultEnv)
+    }
+  )
+})
+
 test('zstd extract tar', async () => {
   const mkdirMock = jest.spyOn(io, 'mkdirP')
   const execMock = jest.spyOn(exec, 'exec')
@@ -201,6 +235,45 @@ test('gzip extract GNU tar on windows with GNUtar in path', async () => {
   }
 })
 
+test('create tar', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  const archiveFolder = getTempDir()
+  const workspace = process.env['GITHUB_WORKSPACE']
+  const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+
+  await fs.promises.mkdir(archiveFolder, {recursive: true})
+
+  await tar.createTar(archiveFolder, sourceDirectories, CompressionMethod.None)
+
+  const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+
+  expect(execMock).toHaveBeenCalledTimes(1)
+  expect(execMock).toHaveBeenCalledWith(
+    [
+      `"${tarPath}"`,
+      '--posix',
+      '-cf',
+      IS_WINDOWS ? CacheFilename.None.replace(/\\/g, '/') : CacheFilename.None,
+      '--exclude',
+      IS_WINDOWS ? CacheFilename.None.replace(/\\/g, '/') : CacheFilename.None,
+      '-P',
+      '-C',
+      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+      '--files-from',
+      ManifestFilename
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .join(' '),
+    undefined, // args
+    {
+      cwd: archiveFolder,
+      env: expect.objectContaining(defaultEnv)
+    }
+  )
+})
+
 test('zstd create tar', async () => {
   const execMock = jest.spyOn(exec, 'exec')
 
@@ -340,6 +413,35 @@ test('gzip create tar', async () => {
     undefined, // args
     {
       cwd: archiveFolder,
+      env: expect.objectContaining(defaultEnv)
+    }
+  )
+})
+
+test('list tar', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  const archivePath = IS_WINDOWS
+    ? `${process.env['windir']}\\fakepath\\cache.tar`
+    : 'cache.tar'
+
+  await tar.listTar(archivePath, CompressionMethod.None)
+
+  const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+  expect(execMock).toHaveBeenCalledTimes(1)
+  expect(execMock).toHaveBeenCalledWith(
+    [
+      `"${tarPath}"`,
+      '-tf',
+      IS_WINDOWS ? archivePath.replace(/\\/g, '/') : archivePath,
+      '-P'
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .join(' '),
+    undefined,
+    {
+      cwd: undefined,
       env: expect.objectContaining(defaultEnv)
     }
   )
