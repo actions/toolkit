@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import {
   BlobClient,
+  BlobUploadCommonResponse,
   BlockBlobClient,
   BlockBlobParallelUploadOptions
 } from '@azure/storage-blob'
@@ -8,7 +9,7 @@ import {
 export async function uploadCacheFile(
   signedUploadURL: string,
   archivePath: string
-): Promise<{}> {
+): Promise<BlobUploadCommonResponse> {
   // Specify data transfer options
   const uploadOptions: BlockBlobParallelUploadOptions = {
     blockSize: 4 * 1024 * 1024, // 4 MiB max block size

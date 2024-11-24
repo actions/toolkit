@@ -328,10 +328,10 @@ export async function saveCache(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
+  const cacheServiceVersion: string = getCacheServiceVersion()
+  core.debug(`Cache service version: ${cacheServiceVersion}`)
   checkPaths(paths)
   checkKey(key)
-
-  const cacheServiceVersion: string = getCacheServiceVersion()
   switch (cacheServiceVersion) {
     case 'v2':
       return await saveCacheV2(paths, key, options, enableCrossOsArchive)
