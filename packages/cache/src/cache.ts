@@ -12,7 +12,8 @@ import {
   FinalizeCacheEntryUploadResponse,
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
-import {CacheFileSizeLimit} from './internal/constants'
+import {CacheFileSizeLimit, CompressionMethod} from './internal/constants'
+
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -68,6 +69,8 @@ export function isFeatureAvailable(): boolean {
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @param compressionMethod optionally explicitly set the compression method. The default behaviour is 'Auto' which will
+ * use Zstd if it is available, otherwise Gzip
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 export async function restoreCache(
@@ -75,7 +78,8 @@ export async function restoreCache(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  compressionMethod = CompressionMethod.Auto
 ): Promise<string | undefined> {
   const cacheServiceVersion: string = getCacheServiceVersion()
   core.debug(`Cache service version: ${cacheServiceVersion}`)
@@ -89,7 +93,8 @@ export async function restoreCache(
         primaryKey,
         restoreKeys,
         options,
-        enableCrossOsArchive
+        enableCrossOsArchive,
+        compressionMethod
       )
     case 'v1':
     default:
@@ -98,7 +103,8 @@ export async function restoreCache(
         primaryKey,
         restoreKeys,
         options,
-        enableCrossOsArchive
+        enableCrossOsArchive,
+        compressionMethod
       )
   }
 }
@@ -111,6 +117,7 @@ export async function restoreCache(
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
  * @param options cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on Windows any cache created on any platform
+ * @param compressionMethod Optionally specify the cache compression method. The default is to use Zstd if it is available, otherwise Gzip
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 async function restoreCacheV1(
@@ -118,7 +125,8 @@ async function restoreCacheV1(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  compressionMethod = CompressionMethod.Auto
 ): Promise<string | undefined> {
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
@@ -135,7 +143,9 @@ async function restoreCacheV1(
     checkKey(key)
   }
 
-  const compressionMethod = await utils.getCompressionMethod()
+  if (compressionMethod === CompressionMethod.Auto) {
+    compressionMethod = await utils.getCompressionMethod()
+  }
   let archivePath = ''
   try {
     // path are needed to compute version
@@ -209,6 +219,8 @@ async function restoreCacheV1(
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @param compressionMethod optionally explicitly set the compression method. The default behaviour is 'Auto' which will
+ * use Zstd if it is available, otherwise Gzip
  * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 async function restoreCacheV2(
@@ -216,7 +228,8 @@ async function restoreCacheV2(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  compressionMethod = CompressionMethod.Auto
 ): Promise<string | undefined> {
   // Override UploadOptions to force the use of Azure
   options = {
@@ -241,7 +254,9 @@ async function restoreCacheV2(
   let archivePath = ''
   try {
     const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
-    const compressionMethod = await utils.getCompressionMethod()
+    if (compressionMethod === CompressionMethod.Auto) {
+      compressionMethod = await utils.getCompressionMethod()
+    }
 
     const request: GetCacheEntryDownloadURLRequest = {
       key: primaryKey,
@@ -254,7 +269,6 @@ async function restoreCacheV2(
     }
 
     const response = await twirpClient.GetCacheEntryDownloadURL(request)
-
     if (!response.ok) {
       core.warning(`Cache not found for keys: ${keys.join(', ')}`)
       return undefined

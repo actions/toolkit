@@ -10,6 +10,7 @@ export enum CompressionMethod {
   // This enum is for earlier version of zstd that does not have --long support
   ZstdWithoutLong = 'zstd-without-long',
   Zstd = 'zstd',
+  Auto = 'auto',
   None = 'none'
 }
 
