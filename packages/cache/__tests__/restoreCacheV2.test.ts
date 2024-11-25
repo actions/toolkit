@@ -174,7 +174,11 @@ test('restore with gzip compressed cache found', async () => {
     'downloadCacheFile'
   )
   downloadCacheFileMock.mockReturnValue(
-    Promise.resolve({} as BlobDownloadResponseParsed)
+    Promise.resolve({
+      _response: {
+        status: 200
+      }
+    } as BlobDownloadResponseParsed)
   )
 
   const fileSize = 142
@@ -254,7 +258,11 @@ test('restore with zstd compressed cache found', async () => {
     'downloadCacheFile'
   )
   downloadCacheFileMock.mockReturnValue(
-    Promise.resolve({} as BlobDownloadResponseParsed)
+    Promise.resolve({
+      _response: {
+        status: 200
+      }
+    } as BlobDownloadResponseParsed)
   )
 
   const fileSize = 62915000
@@ -335,7 +343,11 @@ test('restore with cache found for restore key', async () => {
     'downloadCacheFile'
   )
   downloadCacheFileMock.mockReturnValue(
-    Promise.resolve({} as BlobDownloadResponseParsed)
+    Promise.resolve({
+      _response: {
+        status: 200
+      }
+    } as BlobDownloadResponseParsed)
   )
 
   const fileSize = 142
