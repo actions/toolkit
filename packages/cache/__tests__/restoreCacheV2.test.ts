@@ -80,7 +80,13 @@ test('restore with no cache found', async () => {
 
     jest
         .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
-        .mockReturnValue(Promise.resolve({ ok: false, signedDownloadUrl: '' }))
+        .mockReturnValue(
+            Promise.resolve({
+                ok: false,
+                signedDownloadUrl: '',
+                matchedKey: ''
+            })
+        )
 
     const cacheKey = await restoreCache(paths, key)
 
@@ -109,18 +115,24 @@ test('restore with server error should fail', async () => {
 test('restore with restore keys and no cache found', async () => {
     const paths = ['node_modules']
     const key = 'node-test'
-    const restoreKey = 'node-'
+    const restoreKeys = ['node-']
     const logWarningMock = jest.spyOn(core, 'warning')
 
     jest
         .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
-        .mockReturnValue(Promise.resolve({ ok: false, signedDownloadUrl: '' }))
+        .mockReturnValue(
+            Promise.resolve({
+                ok: false,
+                signedDownloadUrl: '',
+                matchedKey: ''
+            })
+        )
 
-    const cacheKey = await restoreCache(paths, key, [restoreKey])
+    const cacheKey = await restoreCache(paths, key, restoreKeys)
 
     expect(cacheKey).toBe(undefined)
     expect(logWarningMock).toHaveBeenCalledWith(
-        `Cache not found for keys: ${[key, restoreKey].join(', ')}`
+        `Cache not found for keys: ${[key, ...restoreKeys].join(', ')}`
     )
 })
 
@@ -143,7 +155,11 @@ test('restore with gzip compressed cache found', async () => {
         'GetCacheEntryDownloadURL'
     )
     getCacheDownloadURLMock.mockReturnValue(
-        Promise.resolve({ ok: true, signedDownloadUrl })
+        Promise.resolve({
+            ok: true,
+            signedDownloadUrl,
+            matchedKey: key
+        })
     )
 
     const tempPath = '/foo/bar'
@@ -219,7 +235,11 @@ test('restore with zstd compressed cache found', async () => {
         'GetCacheEntryDownloadURL'
     )
     getCacheDownloadURLMock.mockReturnValue(
-        Promise.resolve({ ok: true, signedDownloadUrl })
+        Promise.resolve({
+            ok: true,
+            signedDownloadUrl,
+            matchedKey: key
+        })
     )
 
     const tempPath = '/foo/bar'
@@ -279,7 +299,7 @@ test('restore with zstd compressed cache found', async () => {
 test('restore with cache found for restore key', async () => {
     const paths = ['node_modules']
     const key = 'node-test'
-    const restoreKey = 'node-'
+    const restoreKeys = ['node-']
     const compressionMethod = CompressionMethod.Gzip
     const signedDownloadUrl = 'https://blob-storage.local?signed=true'
     const cacheVersion =
@@ -296,7 +316,11 @@ test('restore with cache found for restore key', async () => {
         'GetCacheEntryDownloadURL'
     )
     getCacheDownloadURLMock.mockReturnValue(
-        Promise.resolve({ ok: true, signedDownloadUrl })
+        Promise.resolve({
+            ok: true,
+            signedDownloadUrl,
+            matchedKey: restoreKeys[0]
+        })
     )
 
     const tempPath = '/foo/bar'
@@ -323,9 +347,9 @@ test('restore with cache found for restore key', async () => {
     const extractTarMock = jest.spyOn(tar, 'extractTar')
     const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
 
-    const cacheKey = await restoreCache(paths, key, [restoreKey])
+    const cacheKey = await restoreCache(paths, key, restoreKeys)
 
-    expect(cacheKey).toBe(restoreKey)
+    expect(cacheKey).toBe(restoreKeys[0])
     expect(getCacheVersionMock).toHaveBeenCalledWith(
         paths,
         compressionMethod,
@@ -333,7 +357,7 @@ test('restore with cache found for restore key', async () => {
     )
     expect(getCacheDownloadURLMock).toHaveBeenCalledWith({
         key,
-        restoreKeys: restoreKey,
+        restoreKeys: restoreKeys,
         version: cacheVersion
     })
     expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
@@ -373,7 +397,11 @@ test('restore with dry run', async () => {
         'GetCacheEntryDownloadURL'
     )
     getCacheDownloadURLMock.mockReturnValue(
-        Promise.resolve({ ok: true, signedDownloadUrl })
+        Promise.resolve({
+            ok: true,
+            signedDownloadUrl,
+            matchedKey: key
+        })
     )
 
     const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
