@@ -335,15 +335,18 @@ async function restoreCacheV2(
  *
  * @param paths a list of file paths to be cached
  * @param key an explicit key for restoring the cache
- * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
  * @param options cache upload options
+ * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
+ * @param compressionMethod optionally explicitly set the compression method. The default behaviour is 'Auto' which will
+ * use Zstd if it is available, otherwise Gzip
  * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
  */
 export async function saveCache(
   paths: string[],
   key: string,
   options?: UploadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  compressionMethod = CompressionMethod.Auto
 ): Promise<number> {
   const cacheServiceVersion: string = getCacheServiceVersion()
   core.debug(`Cache service version: ${cacheServiceVersion}`)
@@ -351,10 +354,22 @@ export async function saveCache(
   checkKey(key)
   switch (cacheServiceVersion) {
     case 'v2':
-      return await saveCacheV2(paths, key, options, enableCrossOsArchive)
+      return await saveCacheV2(
+        paths,
+        key,
+        options,
+        enableCrossOsArchive,
+        compressionMethod
+      )
     case 'v1':
     default:
-      return await saveCacheV1(paths, key, options, enableCrossOsArchive)
+      return await saveCacheV1(
+        paths,
+        key,
+        options,
+        enableCrossOsArchive,
+        compressionMethod
+      )
   }
 }
 
@@ -365,15 +380,19 @@ export async function saveCache(
  * @param key
  * @param options
  * @param enableCrossOsArchive
+ * @param compressionMethod
  * @returns
  */
 async function saveCacheV1(
   paths: string[],
   key: string,
   options?: UploadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  compressionMethod = CompressionMethod.Auto
 ): Promise<number> {
-  const compressionMethod = await utils.getCompressionMethod()
+  if (compressionMethod === CompressionMethod.Auto) {
+    compressionMethod = await utils.getCompressionMethod()
+  }
   let cacheId = -1
 
   const cachePaths = await utils.resolvePaths(paths)
@@ -468,13 +487,15 @@ async function saveCacheV1(
  * @param key an explicit key for restoring the cache
  * @param options cache upload options
  * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
+ * @param compressionMethod Optionally specify the compression method. The default is to use Zstd if available, otherwise Gzip
  * @returns
  */
 async function saveCacheV2(
   paths: string[],
   key: string,
   options?: UploadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  compressionMethod = CompressionMethod.Auto
 ): Promise<number> {
   // Override UploadOptions to force the use of Azure
   // ...options goes first because we want to override the default values
@@ -485,7 +506,9 @@ async function saveCacheV2(
     uploadConcurrency: 8, // 8 workers for parallel upload
     useAzureSdk: true
   }
-  const compressionMethod = await utils.getCompressionMethod()
+  if (compressionMethod === CompressionMethod.Auto) {
+    compressionMethod = await utils.getCompressionMethod()
+  }
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
   let cacheId = -1
 
