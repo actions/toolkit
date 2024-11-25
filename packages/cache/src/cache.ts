@@ -261,7 +261,7 @@ async function restoreCacheV2(
 
     if (options?.lookupOnly) {
       core.info('Lookup only - skipping download')
-      return request.key
+      return response.matchedKey
     }
 
     archivePath = path.join(
