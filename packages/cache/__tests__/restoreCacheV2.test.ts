@@ -8,7 +8,6 @@ import {restoreCache} from '../src/cache'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
 import {BlobDownloadResponseParsed} from '@azure/storage-blob'
-// import {executePromisesSequentially} from '@azure/ms-rest-js'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
