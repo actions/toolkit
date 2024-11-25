@@ -3,13 +3,14 @@ import * as core from '@actions/core'
 import {
   BlobClient,
   BlockBlobClient,
-  BlobDownloadOptions
+  BlobDownloadOptions,
+  BlobDownloadResponseParsed
 } from '@azure/storage-blob'
 
 export async function downloadCacheFile(
   signedUploadURL: string,
   archivePath: string
-): Promise<{}> {
+): Promise<BlobDownloadResponseParsed> {
   const downloadOptions: BlobDownloadOptions = {
     maxRetryRequests: 5
   }
