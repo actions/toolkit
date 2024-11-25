@@ -4,10 +4,10 @@ import * as tar from '../src/internal/tar'
 import * as config from '../src/internal/config'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import * as downloadCacheModule from '../src/internal/blob/download-cache'
-import {restoreCache} from '../src/cache'
-import {CacheFilename, CompressionMethod} from '../src/internal/constants'
-import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
-import {BlobDownloadResponseParsed} from '@azure/storage-blob'
+import { restoreCache } from '../src/cache'
+import { CacheFilename, CompressionMethod } from '../src/internal/constants'
+import { CacheServiceClientJSON } from '../src/generated/results/api/v1/cache.twirp'
+import { BlobDownloadResponseParsed } from '@azure/storage-blob'
 // import {executePromisesSequentially} from '@azure/ms-rest-js'
 
 jest.mock('../src/internal/cacheHttpClient')
@@ -15,349 +15,389 @@ jest.mock('../src/internal/cacheUtils')
 jest.mock('../src/internal/config')
 jest.mock('../src/internal/tar')
 
+let logDebugMock: jest.SpyInstance
+let logInfoMock: jest.SpyInstance
+
 beforeAll(() => {
-  jest.spyOn(console, 'log').mockImplementation(() => {})
-  jest.spyOn(core, 'debug').mockImplementation(() => {})
-  jest.spyOn(core, 'info').mockImplementation(() => {})
-  jest.spyOn(core, 'warning').mockImplementation(() => {})
-  jest.spyOn(core, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => { })
+    jest.spyOn(core, 'debug').mockImplementation(() => { })
+    jest.spyOn(core, 'info').mockImplementation(() => { })
+    jest.spyOn(core, 'warning').mockImplementation(() => { })
+    jest.spyOn(core, 'error').mockImplementation(() => { })
 
-  jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
-    const actualUtils = jest.requireActual('../src/internal/cacheUtils')
-    return actualUtils.getCacheFileName(cm)
-  })
+    jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
+        const actualUtils = jest.requireActual('../src/internal/cacheUtils')
+        return actualUtils.getCacheFileName(cm)
+    })
 
-  // Ensure that we're using v2 for these tests
-  jest.spyOn(config, 'getCacheServiceVersion').mockReturnValue('v2')
+    // Ensure that we're using v2 for these tests
+    jest.spyOn(config, 'getCacheServiceVersion').mockReturnValue('v2')
+
+    logDebugMock = jest.spyOn(core, 'debug')
+    logInfoMock = jest.spyOn(core, 'info')
+})
+
+afterEach(() => {
+    expect(logDebugMock).toHaveBeenCalledWith('Cache service version: v2')
 })
 
 test('restore with no path should fail', async () => {
-  const paths: string[] = []
-  const key = 'node-test'
-  await expect(restoreCache(paths, key)).rejects.toThrowError(
-    `Path Validation Error: At least one directory or file path is required`
-  )
+    const paths: string[] = []
+    const key = 'node-test'
+    await expect(restoreCache(paths, key)).rejects.toThrowError(
+        `Path Validation Error: At least one directory or file path is required`
+    )
 })
 
 test('restore with too many keys should fail', async () => {
-  const paths = ['node_modules']
-  const key = 'node-test'
-  const restoreKeys = [...Array(20).keys()].map(x => x.toString())
-  await expect(restoreCache(paths, key, restoreKeys)).rejects.toThrowError(
-    `Key Validation Error: Keys are limited to a maximum of 10.`
-  )
+    const paths = ['node_modules']
+    const key = 'node-test'
+    const restoreKeys = [...Array(20).keys()].map(x => x.toString())
+    await expect(restoreCache(paths, key, restoreKeys)).rejects.toThrowError(
+        `Key Validation Error: Keys are limited to a maximum of 10.`
+    )
 })
 
 test('restore with large key should fail', async () => {
-  const paths = ['node_modules']
-  const key = 'foo'.repeat(512) // Over the 512 character limit
-  await expect(restoreCache(paths, key)).rejects.toThrowError(
-    `Key Validation Error: ${key} cannot be larger than 512 characters.`
-  )
+    const paths = ['node_modules']
+    const key = 'foo'.repeat(512) // Over the 512 character limit
+    await expect(restoreCache(paths, key)).rejects.toThrowError(
+        `Key Validation Error: ${key} cannot be larger than 512 characters.`
+    )
 })
 
 test('restore with invalid key should fail', async () => {
-  const paths = ['node_modules']
-  const key = 'comma,comma'
-  await expect(restoreCache(paths, key)).rejects.toThrowError(
-    `Key Validation Error: ${key} cannot contain commas.`
-  )
+    const paths = ['node_modules']
+    const key = 'comma,comma'
+    await expect(restoreCache(paths, key)).rejects.toThrowError(
+        `Key Validation Error: ${key} cannot contain commas.`
+    )
 })
 
 test('restore with no cache found', async () => {
-  const paths = ['node_modules']
-  const key = 'node-test'
+    const paths = ['node_modules']
+    const key = 'node-test'
 
-  jest
-    .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
-    .mockReturnValue(Promise.resolve({ok: false, signedDownloadUrl: ''}))
+    jest
+        .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
+        .mockReturnValue(Promise.resolve({ ok: false, signedDownloadUrl: '' }))
 
-  const cacheKey = await restoreCache(paths, key)
+    const cacheKey = await restoreCache(paths, key)
 
-  expect(cacheKey).toBe(undefined)
+    expect(cacheKey).toBe(undefined)
 })
 
 test('restore with server error should fail', async () => {
-  const paths = ['node_modules']
-  const key = 'node-test'
-  const logWarningMock = jest.spyOn(core, 'warning')
+    const paths = ['node_modules']
+    const key = 'node-test'
+    const logWarningMock = jest.spyOn(core, 'warning')
 
-  jest
-    .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
-    .mockImplementation(() => {
-      throw new Error('HTTP Error Occurred')
-    })
+    jest
+        .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
+        .mockImplementation(() => {
+            throw new Error('HTTP Error Occurred')
+        })
 
-  const cacheKey = await restoreCache(paths, key)
-  expect(cacheKey).toBe(undefined)
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
-  expect(logWarningMock).toHaveBeenCalledWith(
-    'Failed to restore: HTTP Error Occurred'
-  )
+    const cacheKey = await restoreCache(paths, key)
+    expect(cacheKey).toBe(undefined)
+    expect(logWarningMock).toHaveBeenCalledTimes(1)
+    expect(logWarningMock).toHaveBeenCalledWith(
+        'Failed to restore: HTTP Error Occurred'
+    )
 })
 
 test('restore with restore keys and no cache found', async () => {
-  const paths = ['node_modules']
-  const key = 'node-test'
-  const restoreKey = 'node-'
-  const logWarningMock = jest.spyOn(core, 'warning')
+    const paths = ['node_modules']
+    const key = 'node-test'
+    const restoreKey = 'node-'
+    const logWarningMock = jest.spyOn(core, 'warning')
 
-  jest
-    .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
-    .mockReturnValue(Promise.resolve({ok: false, signedDownloadUrl: ''}))
+    jest
+        .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
+        .mockReturnValue(Promise.resolve({ ok: false, signedDownloadUrl: '' }))
 
-  const cacheKey = await restoreCache(paths, key, [restoreKey])
+    const cacheKey = await restoreCache(paths, key, [restoreKey])
 
-  expect(cacheKey).toBe(undefined)
-  expect(logWarningMock).toHaveBeenCalledWith(
-    `Cache not found for keys: ${[key, restoreKey].join(', ')}`
-  )
+    expect(cacheKey).toBe(undefined)
+    expect(logWarningMock).toHaveBeenCalledWith(
+        `Cache not found for keys: ${[key, restoreKey].join(', ')}`
+    )
 })
 
 test('restore with gzip compressed cache found', async () => {
-  const paths = ['node_modules']
-  const key = 'node-test'
-  const logInfoMock = jest.spyOn(core, 'info')
-  const compressionMethod = CompressionMethod.Gzip
-  const signedDownloadUrl = 'https://blob-storage.local?signed=true'
-  const cacheVersion =
-    'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
+    const paths = ['node_modules']
+    const key = 'node-test'
+    const compressionMethod = CompressionMethod.Gzip
+    const signedDownloadUrl = 'https://blob-storage.local?signed=true'
+    const cacheVersion =
+        'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
 
-  const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
-  getCacheVersionMock.mockReturnValue(cacheVersion)
+    const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
+    getCacheVersionMock.mockReturnValue(cacheVersion)
 
-  const compressionMethodMock = jest.spyOn(cacheUtils, 'getCompressionMethod')
-  compressionMethodMock.mockReturnValue(Promise.resolve(compressionMethod))
+    const compressionMethodMock = jest.spyOn(cacheUtils, 'getCompressionMethod')
+    compressionMethodMock.mockReturnValue(Promise.resolve(compressionMethod))
 
-  const getCacheDownloadURLMock = jest.spyOn(
-    CacheServiceClientJSON.prototype,
-    'GetCacheEntryDownloadURL'
-  )
-  getCacheDownloadURLMock.mockReturnValue(
-    Promise.resolve({ok: true, signedDownloadUrl})
-  )
+    const getCacheDownloadURLMock = jest.spyOn(
+        CacheServiceClientJSON.prototype,
+        'GetCacheEntryDownloadURL'
+    )
+    getCacheDownloadURLMock.mockReturnValue(
+        Promise.resolve({ ok: true, signedDownloadUrl })
+    )
 
-  const tempPath = '/foo/bar'
+    const tempPath = '/foo/bar'
 
-  const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
-  createTempDirectoryMock.mockImplementation(async () => {
-    return Promise.resolve(tempPath)
-  })
+    const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
+    createTempDirectoryMock.mockImplementation(async () => {
+        return Promise.resolve(tempPath)
+    })
 
-  const archivePath = path.join(tempPath, CacheFilename.Gzip)
-  const downloadCacheFileMock = jest.spyOn(
-    downloadCacheModule,
-    'downloadCacheFile'
-  )
-  downloadCacheFileMock.mockReturnValue(
-    Promise.resolve({} as BlobDownloadResponseParsed)
-  )
+    const archivePath = path.join(tempPath, CacheFilename.Gzip)
+    const downloadCacheFileMock = jest.spyOn(
+        downloadCacheModule,
+        'downloadCacheFile'
+    )
+    downloadCacheFileMock.mockReturnValue(
+        Promise.resolve({} as BlobDownloadResponseParsed)
+    )
 
-  const fileSize = 142
-  const getArchiveFileSizeInBytesMock = jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-    .mockReturnValue(fileSize)
+    const fileSize = 142
+    const getArchiveFileSizeInBytesMock = jest
+        .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+        .mockReturnValue(fileSize)
 
-  const extractTarMock = jest.spyOn(tar, 'extractTar')
-  const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
+    const extractTarMock = jest.spyOn(tar, 'extractTar')
+    const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
 
-  const cacheKey = await restoreCache(paths, key)
+    const cacheKey = await restoreCache(paths, key)
 
-  expect(cacheKey).toBe(key)
-  expect(getCacheVersionMock).toHaveBeenCalledWith(
-    paths,
-    compressionMethod,
-    false
-  )
-  expect(getCacheDownloadURLMock).toHaveBeenCalledWith({
-    key,
-    restoreKeys: [],
-    version: cacheVersion
-  })
-  expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheFileMock).toHaveBeenCalledWith(
-    signedDownloadUrl,
-    archivePath
-  )
-  expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
-  expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
+    expect(cacheKey).toBe(key)
+    expect(getCacheVersionMock).toHaveBeenCalledWith(
+        paths,
+        compressionMethod,
+        false
+    )
+    expect(getCacheDownloadURLMock).toHaveBeenCalledWith({
+        key,
+        restoreKeys: [],
+        version: cacheVersion
+    })
+    expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
+    expect(downloadCacheFileMock).toHaveBeenCalledWith(
+        signedDownloadUrl,
+        archivePath
+    )
+    expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
+    expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
 
-  expect(extractTarMock).toHaveBeenCalledTimes(1)
-  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compressionMethod)
+    expect(extractTarMock).toHaveBeenCalledTimes(1)
+    expect(extractTarMock).toHaveBeenCalledWith(archivePath, compressionMethod)
 
-  expect(unlinkFileMock).toHaveBeenCalledTimes(1)
-  expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
+    expect(unlinkFileMock).toHaveBeenCalledTimes(1)
+    expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
 
-  expect(compressionMethodMock).toHaveBeenCalledTimes(1)
+    expect(compressionMethodMock).toHaveBeenCalledTimes(1)
 })
 
 test('restore with zstd compressed cache found', async () => {
-  const paths = ['node_modules']
-  const key = 'node-test'
-  const logInfoMock = jest.spyOn(core, 'info')
-  const compressionMethod = CompressionMethod.Zstd
-  const signedDownloadUrl = 'https://blob-storage.local?signed=true'
-  const cacheVersion =
-    '8e2e96a184cb0cd6b48285b176c06a418f3d7fce14c29d9886fd1bb4f05c513d'
+    const paths = ['node_modules']
+    const key = 'node-test'
+    const compressionMethod = CompressionMethod.Zstd
+    const signedDownloadUrl = 'https://blob-storage.local?signed=true'
+    const cacheVersion =
+        '8e2e96a184cb0cd6b48285b176c06a418f3d7fce14c29d9886fd1bb4f05c513d'
 
-  const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
-  getCacheVersionMock.mockReturnValue(cacheVersion)
+    const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
+    getCacheVersionMock.mockReturnValue(cacheVersion)
 
-  const compressionMethodMock = jest.spyOn(cacheUtils, 'getCompressionMethod')
-  compressionMethodMock.mockReturnValue(Promise.resolve(compressionMethod))
+    const compressionMethodMock = jest.spyOn(cacheUtils, 'getCompressionMethod')
+    compressionMethodMock.mockReturnValue(Promise.resolve(compressionMethod))
 
-  const getCacheDownloadURLMock = jest.spyOn(
-    CacheServiceClientJSON.prototype,
-    'GetCacheEntryDownloadURL'
-  )
-  getCacheDownloadURLMock.mockReturnValue(
-    Promise.resolve({ok: true, signedDownloadUrl})
-  )
+    const getCacheDownloadURLMock = jest.spyOn(
+        CacheServiceClientJSON.prototype,
+        'GetCacheEntryDownloadURL'
+    )
+    getCacheDownloadURLMock.mockReturnValue(
+        Promise.resolve({ ok: true, signedDownloadUrl })
+    )
 
-  const tempPath = '/foo/bar'
+    const tempPath = '/foo/bar'
 
-  const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
-  createTempDirectoryMock.mockImplementation(async () => {
-    return Promise.resolve(tempPath)
-  })
+    const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
+    createTempDirectoryMock.mockImplementation(async () => {
+        return Promise.resolve(tempPath)
+    })
 
-  const archivePath = path.join(tempPath, CacheFilename.Zstd)
-  const downloadCacheFileMock = jest.spyOn(
-    downloadCacheModule,
-    'downloadCacheFile'
-  )
-  downloadCacheFileMock.mockReturnValue(
-    Promise.resolve({} as BlobDownloadResponseParsed)
-  )
+    const archivePath = path.join(tempPath, CacheFilename.Zstd)
+    const downloadCacheFileMock = jest.spyOn(
+        downloadCacheModule,
+        'downloadCacheFile'
+    )
+    downloadCacheFileMock.mockReturnValue(
+        Promise.resolve({} as BlobDownloadResponseParsed)
+    )
 
-  const fileSize = 62915000
-  const getArchiveFileSizeInBytesMock = jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-    .mockReturnValue(fileSize)
+    const fileSize = 62915000
+    const getArchiveFileSizeInBytesMock = jest
+        .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+        .mockReturnValue(fileSize)
 
-  const extractTarMock = jest.spyOn(tar, 'extractTar')
-  const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
+    const extractTarMock = jest.spyOn(tar, 'extractTar')
+    const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
 
-  const cacheKey = await restoreCache(paths, key)
+    const cacheKey = await restoreCache(paths, key)
 
-  expect(cacheKey).toBe(key)
-  expect(getCacheVersionMock).toHaveBeenCalledWith(
-    paths,
-    compressionMethod,
-    false
-  )
-  expect(getCacheDownloadURLMock).toHaveBeenCalledWith({
-    key,
-    restoreKeys: [],
-    version: cacheVersion
-  })
-  expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheFileMock).toHaveBeenCalledWith(
-    signedDownloadUrl,
-    archivePath
-  )
-  expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
-  expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
+    expect(cacheKey).toBe(key)
+    expect(getCacheVersionMock).toHaveBeenCalledWith(
+        paths,
+        compressionMethod,
+        false
+    )
+    expect(getCacheDownloadURLMock).toHaveBeenCalledWith({
+        key,
+        restoreKeys: [],
+        version: cacheVersion
+    })
+    expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
+    expect(downloadCacheFileMock).toHaveBeenCalledWith(
+        signedDownloadUrl,
+        archivePath
+    )
+    expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
+    expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
 
-  expect(extractTarMock).toHaveBeenCalledTimes(1)
-  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compressionMethod)
+    expect(extractTarMock).toHaveBeenCalledTimes(1)
+    expect(extractTarMock).toHaveBeenCalledWith(archivePath, compressionMethod)
 
-  expect(unlinkFileMock).toHaveBeenCalledTimes(1)
-  expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
+    expect(unlinkFileMock).toHaveBeenCalledTimes(1)
+    expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
 
-  expect(compressionMethodMock).toHaveBeenCalledTimes(1)
+    expect(compressionMethodMock).toHaveBeenCalledTimes(1)
 })
 
-// test('restore with cache found for restore key', async () => {
-//     const paths = ['node_modules']
-//     const key = 'node-test'
-//     const restoreKey = 'node-'
+test('restore with cache found for restore key', async () => {
+    const paths = ['node_modules']
+    const key = 'node-test'
+    const restoreKey = 'node-'
+    const compressionMethod = CompressionMethod.Gzip
+    const signedDownloadUrl = 'https://blob-storage.local?signed=true'
+    const cacheVersion =
+        'b8b58e9bd7b1e8f83d9f05c7e06ea865ba44a0330e07a14db74ac74386677bed'
 
-//     const infoMock = jest.spyOn(core, 'info')
+    const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
+    getCacheVersionMock.mockReturnValue(cacheVersion)
 
-//     const cacheEntry: ArtifactCacheEntry = {
-//         cacheKey: restoreKey,
-//         scope: 'refs/heads/main',
-//         archiveLocation: 'www.actionscache.test/download'
-//     }
-//     const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
-//     getCacheMock.mockImplementation(async () => {
-//         return Promise.resolve(cacheEntry)
-//     })
-//     const tempPath = '/foo/bar'
+    const compressionMethodMock = jest.spyOn(cacheUtils, 'getCompressionMethod')
+    compressionMethodMock.mockReturnValue(Promise.resolve(compressionMethod))
 
-//     const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
-//     createTempDirectoryMock.mockImplementation(async () => {
-//         return Promise.resolve(tempPath)
-//     })
+    const getCacheDownloadURLMock = jest.spyOn(
+        CacheServiceClientJSON.prototype,
+        'GetCacheEntryDownloadURL'
+    )
+    getCacheDownloadURLMock.mockReturnValue(
+        Promise.resolve({ ok: true, signedDownloadUrl })
+    )
 
-//     const archivePath = path.join(tempPath, CacheFilename.Zstd)
-//     const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
+    const tempPath = '/foo/bar'
 
-//     const fileSize = 142
-//     const getArchiveFileSizeInBytesMock = jest
-//         .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-//         .mockReturnValue(fileSize)
+    const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
+    createTempDirectoryMock.mockImplementation(async () => {
+        return Promise.resolve(tempPath)
+    })
 
-//     const extractTarMock = jest.spyOn(tar, 'extractTar')
-//     const compression = CompressionMethod.Zstd
-//     const getCompressionMock = jest
-//         .spyOn(cacheUtils, 'getCompressionMethod')
-//         .mockReturnValue(Promise.resolve(compression))
+    const archivePath = path.join(tempPath, CacheFilename.Gzip)
+    const downloadCacheFileMock = jest.spyOn(
+        downloadCacheModule,
+        'downloadCacheFile'
+    )
+    downloadCacheFileMock.mockReturnValue(
+        Promise.resolve({} as BlobDownloadResponseParsed)
+    )
 
-//     const cacheKey = await restoreCache(paths, key, [restoreKey])
+    const fileSize = 142
+    const getArchiveFileSizeInBytesMock = jest
+        .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+        .mockReturnValue(fileSize)
 
-//     expect(cacheKey).toBe(restoreKey)
-//     expect(getCacheMock).toHaveBeenCalledWith([key, restoreKey], paths, {
-//         compressionMethod: compression,
-//         enableCrossOsArchive: false
-//     })
-//     expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
-//     expect(downloadCacheMock).toHaveBeenCalledWith(
-//         cacheEntry.archiveLocation,
-//         archivePath,
-//         undefined
-//     )
-//     expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
-//     expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
+    const extractTarMock = jest.spyOn(tar, 'extractTar')
+    const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
 
-//     expect(extractTarMock).toHaveBeenCalledTimes(1)
-//     expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
-//     expect(getCompressionMock).toHaveBeenCalledTimes(1)
-// })
+    const cacheKey = await restoreCache(paths, key, [restoreKey])
 
-// test('restore with dry run', async () => {
-//     const paths = ['node_modules']
-//     const key = 'node-test'
-//     const options = { lookupOnly: true }
+    expect(cacheKey).toBe(restoreKey)
+    expect(getCacheVersionMock).toHaveBeenCalledWith(
+        paths,
+        compressionMethod,
+        false
+    )
+    expect(getCacheDownloadURLMock).toHaveBeenCalledWith({
+        key,
+        restoreKeys: restoreKey,
+        version: cacheVersion
+    })
+    expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
+    expect(downloadCacheFileMock).toHaveBeenCalledWith(
+        signedDownloadUrl,
+        archivePath
+    )
+    expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
+    expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
 
-//     const cacheEntry: ArtifactCacheEntry = {
-//         cacheKey: key,
-//         scope: 'refs/heads/main',
-//         archiveLocation: 'www.actionscache.test/download'
-//     }
-//     const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
-//     getCacheMock.mockImplementation(async () => {
-//         return Promise.resolve(cacheEntry)
-//     })
+    expect(extractTarMock).toHaveBeenCalledTimes(1)
+    expect(extractTarMock).toHaveBeenCalledWith(archivePath, compressionMethod)
 
-//     const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
-//     const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
+    expect(unlinkFileMock).toHaveBeenCalledTimes(1)
+    expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
 
-//     const compression = CompressionMethod.Gzip
-//     const getCompressionMock = jest
-//         .spyOn(cacheUtils, 'getCompressionMethod')
-//         .mockReturnValue(Promise.resolve(compression))
+    expect(compressionMethodMock).toHaveBeenCalledTimes(1)
+})
 
-//     const cacheKey = await restoreCache(paths, key, undefined, options)
+test('restore with dry run', async () => {
+    const paths = ['node_modules']
+    const key = 'node-test'
+    const options = { lookupOnly: true }
+    const compressionMethod = CompressionMethod.Gzip
+    const signedDownloadUrl = 'https://blob-storage.local?signed=true'
+    const cacheVersion =
+        'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
 
-//     expect(cacheKey).toBe(key)
-//     expect(getCompressionMock).toHaveBeenCalledTimes(1)
-//     expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
-//         compressionMethod: compression,
-//         enableCrossOsArchive: false
-//     })
-//     // creating a tempDir and downloading the cache are skipped
-//     expect(createTempDirectoryMock).toHaveBeenCalledTimes(0)
-//     expect(downloadCacheMock).toHaveBeenCalledTimes(0)
-// })
+    const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
+    getCacheVersionMock.mockReturnValue(cacheVersion)
+
+    const compressionMethodMock = jest.spyOn(cacheUtils, 'getCompressionMethod')
+    compressionMethodMock.mockReturnValue(Promise.resolve(compressionMethod))
+
+    const getCacheDownloadURLMock = jest.spyOn(
+        CacheServiceClientJSON.prototype,
+        'GetCacheEntryDownloadURL'
+    )
+    getCacheDownloadURLMock.mockReturnValue(
+        Promise.resolve({ ok: true, signedDownloadUrl })
+    )
+
+    const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
+    const downloadCacheFileMock = jest.spyOn(
+        downloadCacheModule,
+        'downloadCacheFile'
+    )
+
+    const cacheKey = await restoreCache(paths, key, undefined, options)
+
+    expect(cacheKey).toBe(key)
+    expect(getCacheVersionMock).toHaveBeenCalledWith(
+        paths,
+        compressionMethod,
+        false
+    )
+    expect(getCacheDownloadURLMock).toHaveBeenCalledWith({
+        key,
+        restoreKeys: [],
+        version: cacheVersion
+    })
+    expect(logInfoMock).toHaveBeenCalledWith('Lookup only - skipping download')
+
+    // creating a tempDir and downloading the cache are skipped
+    expect(createTempDirectoryMock).toHaveBeenCalledTimes(0)
+    expect(downloadCacheFileMock).toHaveBeenCalledTimes(0)
+})
