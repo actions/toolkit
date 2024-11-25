@@ -79,9 +79,11 @@ export async function restoreCache(
   options?: DownloadOptions,
   enableCrossOsArchive = false
 ): Promise<string | undefined> {
+  const cacheServiceVersion: string = getCacheServiceVersion()
+  core.debug(`Cache service version: ${cacheServiceVersion}`)
+
   checkPaths(paths)
 
-  const cacheServiceVersion: string = getCacheServiceVersion()
   switch (cacheServiceVersion) {
     case 'v2':
       return await restoreCacheV2(
@@ -259,7 +261,7 @@ async function restoreCacheV2(
 
     if (options?.lookupOnly) {
       core.info('Lookup only - skipping download')
-      return request.key
+      return response.matchedKey
     }
 
     archivePath = path.join(
@@ -269,7 +271,11 @@ async function restoreCacheV2(
     core.debug(`Archive path: ${archivePath}`)
     core.debug(`Starting download of archive to: ${archivePath}`)
 
-    await downloadCacheFile(response.signedDownloadUrl, archivePath)
+    const downloadResponse = await downloadCacheFile(
+      response.signedDownloadUrl,
+      archivePath
+    )
+    core.debug(`Download response status: ${downloadResponse._response.status}`)
 
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.info(
@@ -285,9 +291,15 @@ async function restoreCacheV2(
     await extractTar(archivePath, compressionMethod)
     core.info('Cache restored successfully')
 
-    return request.key
+    return response.matchedKey
   } catch (error) {
-    throw new Error(`Failed to restore: ${error.message}`)
+    const typedError = error as Error
+    if (typedError.name === ValidationError.name) {
+      throw error
+    } else {
+      // Supress all non-validation cache related errors because caching should be optional
+      core.warning(`Failed to restore: ${(error as Error).message}`)
+    }
   } finally {
     try {
       if (archivePath) {
@@ -297,6 +309,8 @@ async function restoreCacheV2(
       core.debug(`Failed to delete archive: ${error}`)
     }
   }
+
+  return undefined
 }
 
 /**
@@ -525,7 +539,13 @@ async function saveCacheV2(
     cacheId = parseInt(finalizeResponse.entryId)
   } catch (error) {
     const typedError = error as Error
-    core.warning(`Failed to save: ${typedError.message}`)
+    if (typedError.name === ValidationError.name) {
+      throw error
+    } else if (typedError.name === ReserveCacheError.name) {
+      core.info(`Failed to save: ${typedError.message}`)
+    } else {
+      core.warning(`Failed to save: ${typedError.message}`)
+    }
   } finally {
     // Try to delete the archive to save space
     try {

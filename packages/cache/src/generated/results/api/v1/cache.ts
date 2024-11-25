@@ -12,7 +12,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
-import { Timestamp } from "../../../google/protobuf/timestamp";
+import { CacheEntry } from "../../entities/v1/cacheentry";
 import { CacheMetadata } from "../../entities/v1/cachemetadata";
 /**
  * @generated from protobuf message github.actions.results.api.v1.CreateCacheEntryRequest
@@ -139,6 +139,12 @@ export interface GetCacheEntryDownloadURLResponse {
      * @generated from protobuf field: string signed_download_url = 2;
      */
     signedDownloadUrl: string;
+    /**
+     * Key or restore key that matches the lookup
+     *
+     * @generated from protobuf field: string matched_key = 3;
+     */
+    matchedKey: string;
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.DeleteCacheEntryRequest
@@ -200,62 +206,11 @@ export interface ListCacheEntriesRequest {
  */
 export interface ListCacheEntriesResponse {
     /**
-     * @generated from protobuf field: repeated github.actions.results.api.v1.ListCacheEntriesResponse.CacheEntry entries = 1;
-     */
-    entries: ListCacheEntriesResponse_CacheEntry[];
-}
-/**
- * @generated from protobuf message github.actions.results.api.v1.ListCacheEntriesResponse.CacheEntry
- */
-export interface ListCacheEntriesResponse_CacheEntry {
-    /**
-     * An explicit key for a cache entry
+     * Cache entries in the defined scope
      *
-     * @generated from protobuf field: string key = 1;
+     * @generated from protobuf field: repeated github.actions.results.entities.v1.CacheEntry entries = 1;
      */
-    key: string;
-    /**
-     * SHA256 hex digest of the cache archive
-     *
-     * @generated from protobuf field: string hash = 2;
-     */
-    hash: string;
-    /**
-     * Cache entry size in bytes
-     *
-     * @generated from protobuf field: int64 size_bytes = 3;
-     */
-    sizeBytes: string;
-    /**
-     * Access scope
-     *
-     * @generated from protobuf field: string scope = 4;
-     */
-    scope: string;
-    /**
-     * Version SHA256 hex digest
-     *
-     * @generated from protobuf field: string version = 5;
-     */
-    version: string;
-    /**
-     * When the cache entry was created
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
-     */
-    createdAt?: Timestamp;
-    /**
-     * When the cache entry was last accessed
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp last_accessed_at = 7;
-     */
-    lastAccessedAt?: Timestamp;
-    /**
-     * When the cache entry is set to expire
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp expires_at = 8;
-     */
-    expiresAt?: Timestamp;
+    entries: CacheEntry[];
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.LookupCacheEntryRequest
@@ -296,61 +251,12 @@ export interface LookupCacheEntryResponse {
      * @generated from protobuf field: bool exists = 1;
      */
     exists: boolean;
-}
-/**
- * Matched cache entry metadata
- *
- * @generated from protobuf message github.actions.results.api.v1.LookupCacheEntryResponse.CacheEntry
- */
-export interface LookupCacheEntryResponse_CacheEntry {
     /**
-     * An explicit key for a cache entry
+     * Matched cache entry metadata
      *
-     * @generated from protobuf field: string key = 1;
+     * @generated from protobuf field: github.actions.results.entities.v1.CacheEntry entry = 2;
      */
-    key: string;
-    /**
-     * SHA256 hex digest of the cache archive
-     *
-     * @generated from protobuf field: string hash = 2;
-     */
-    hash: string;
-    /**
-     * Cache entry size in bytes
-     *
-     * @generated from protobuf field: int64 size_bytes = 3;
-     */
-    sizeBytes: string;
-    /**
-     * Access scope
-     *
-     * @generated from protobuf field: string scope = 4;
-     */
-    scope: string;
-    /**
-     * Version SHA256 hex digest
-     *
-     * @generated from protobuf field: string version = 5;
-     */
-    version: string;
-    /**
-     * When the cache entry was created
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
-     */
-    createdAt?: Timestamp;
-    /**
-     * When the cache entry was last accessed
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp last_accessed_at = 7;
-     */
-    lastAccessedAt?: Timestamp;
-    /**
-     * When the cache entry is set to expire
-     *
-     * @generated from protobuf field: google.protobuf.Timestamp expires_at = 8;
-     */
-    expiresAt?: Timestamp;
+    entry?: CacheEntry;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateCacheEntryRequest$Type extends MessageType<CreateCacheEntryRequest> {
@@ -662,11 +568,12 @@ class GetCacheEntryDownloadURLResponse$Type extends MessageType<GetCacheEntryDow
     constructor() {
         super("github.actions.results.api.v1.GetCacheEntryDownloadURLResponse", [
             { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "signed_download_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "signed_download_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "matched_key", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetCacheEntryDownloadURLResponse>): GetCacheEntryDownloadURLResponse {
-        const message = { ok: false, signedDownloadUrl: "" };
+        const message = { ok: false, signedDownloadUrl: "", matchedKey: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetCacheEntryDownloadURLResponse>(this, message, value);
@@ -682,6 +589,9 @@ class GetCacheEntryDownloadURLResponse$Type extends MessageType<GetCacheEntryDow
                     break;
                 case /* string signed_download_url */ 2:
                     message.signedDownloadUrl = reader.string();
+                    break;
+                case /* string matched_key */ 3:
+                    message.matchedKey = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -701,6 +611,9 @@ class GetCacheEntryDownloadURLResponse$Type extends MessageType<GetCacheEntryDow
         /* string signed_download_url = 2; */
         if (message.signedDownloadUrl !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.signedDownloadUrl);
+        /* string matched_key = 3; */
+        if (message.matchedKey !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.matchedKey);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -884,7 +797,7 @@ export const ListCacheEntriesRequest = new ListCacheEntriesRequest$Type();
 class ListCacheEntriesResponse$Type extends MessageType<ListCacheEntriesResponse> {
     constructor() {
         super("github.actions.results.api.v1.ListCacheEntriesResponse", [
-            { no: 1, name: "entries", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ListCacheEntriesResponse_CacheEntry }
+            { no: 1, name: "entries", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CacheEntry }
         ]);
     }
     create(value?: PartialMessage<ListCacheEntriesResponse>): ListCacheEntriesResponse {
@@ -899,8 +812,8 @@ class ListCacheEntriesResponse$Type extends MessageType<ListCacheEntriesResponse
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated github.actions.results.api.v1.ListCacheEntriesResponse.CacheEntry entries */ 1:
-                    message.entries.push(ListCacheEntriesResponse_CacheEntry.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated github.actions.results.entities.v1.CacheEntry entries */ 1:
+                    message.entries.push(CacheEntry.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -914,9 +827,9 @@ class ListCacheEntriesResponse$Type extends MessageType<ListCacheEntriesResponse
         return message;
     }
     internalBinaryWrite(message: ListCacheEntriesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated github.actions.results.api.v1.ListCacheEntriesResponse.CacheEntry entries = 1; */
+        /* repeated github.actions.results.entities.v1.CacheEntry entries = 1; */
         for (let i = 0; i < message.entries.length; i++)
-            ListCacheEntriesResponse_CacheEntry.internalBinaryWrite(message.entries[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            CacheEntry.internalBinaryWrite(message.entries[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -927,102 +840,6 @@ class ListCacheEntriesResponse$Type extends MessageType<ListCacheEntriesResponse
  * @generated MessageType for protobuf message github.actions.results.api.v1.ListCacheEntriesResponse
  */
 export const ListCacheEntriesResponse = new ListCacheEntriesResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class ListCacheEntriesResponse_CacheEntry$Type extends MessageType<ListCacheEntriesResponse_CacheEntry> {
-    constructor() {
-        super("github.actions.results.api.v1.ListCacheEntriesResponse.CacheEntry", [
-            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "hash", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "size_bytes", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 4, name: "scope", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 7, name: "last_accessed_at", kind: "message", T: () => Timestamp },
-            { no: 8, name: "expires_at", kind: "message", T: () => Timestamp }
-        ]);
-    }
-    create(value?: PartialMessage<ListCacheEntriesResponse_CacheEntry>): ListCacheEntriesResponse_CacheEntry {
-        const message = { key: "", hash: "", sizeBytes: "0", scope: "", version: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<ListCacheEntriesResponse_CacheEntry>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListCacheEntriesResponse_CacheEntry): ListCacheEntriesResponse_CacheEntry {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string key */ 1:
-                    message.key = reader.string();
-                    break;
-                case /* string hash */ 2:
-                    message.hash = reader.string();
-                    break;
-                case /* int64 size_bytes */ 3:
-                    message.sizeBytes = reader.int64().toString();
-                    break;
-                case /* string scope */ 4:
-                    message.scope = reader.string();
-                    break;
-                case /* string version */ 5:
-                    message.version = reader.string();
-                    break;
-                case /* google.protobuf.Timestamp created_at */ 6:
-                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
-                    break;
-                case /* google.protobuf.Timestamp last_accessed_at */ 7:
-                    message.lastAccessedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.lastAccessedAt);
-                    break;
-                case /* google.protobuf.Timestamp expires_at */ 8:
-                    message.expiresAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.expiresAt);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: ListCacheEntriesResponse_CacheEntry, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string key = 1; */
-        if (message.key !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.key);
-        /* string hash = 2; */
-        if (message.hash !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.hash);
-        /* int64 size_bytes = 3; */
-        if (message.sizeBytes !== "0")
-            writer.tag(3, WireType.Varint).int64(message.sizeBytes);
-        /* string scope = 4; */
-        if (message.scope !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.scope);
-        /* string version = 5; */
-        if (message.version !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.version);
-        /* google.protobuf.Timestamp created_at = 6; */
-        if (message.createdAt)
-            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp last_accessed_at = 7; */
-        if (message.lastAccessedAt)
-            Timestamp.internalBinaryWrite(message.lastAccessedAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp expires_at = 8; */
-        if (message.expiresAt)
-            Timestamp.internalBinaryWrite(message.expiresAt, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message github.actions.results.api.v1.ListCacheEntriesResponse.CacheEntry
- */
-export const ListCacheEntriesResponse_CacheEntry = new ListCacheEntriesResponse_CacheEntry$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class LookupCacheEntryRequest$Type extends MessageType<LookupCacheEntryRequest> {
     constructor() {
@@ -1095,7 +912,8 @@ export const LookupCacheEntryRequest = new LookupCacheEntryRequest$Type();
 class LookupCacheEntryResponse$Type extends MessageType<LookupCacheEntryResponse> {
     constructor() {
         super("github.actions.results.api.v1.LookupCacheEntryResponse", [
-            { no: 1, name: "exists", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 1, name: "exists", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "entry", kind: "message", T: () => CacheEntry }
         ]);
     }
     create(value?: PartialMessage<LookupCacheEntryResponse>): LookupCacheEntryResponse {
@@ -1113,6 +931,9 @@ class LookupCacheEntryResponse$Type extends MessageType<LookupCacheEntryResponse
                 case /* bool exists */ 1:
                     message.exists = reader.bool();
                     break;
+                case /* github.actions.results.entities.v1.CacheEntry entry */ 2:
+                    message.entry = CacheEntry.internalBinaryRead(reader, reader.uint32(), options, message.entry);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -1128,6 +949,9 @@ class LookupCacheEntryResponse$Type extends MessageType<LookupCacheEntryResponse
         /* bool exists = 1; */
         if (message.exists !== false)
             writer.tag(1, WireType.Varint).bool(message.exists);
+        /* github.actions.results.entities.v1.CacheEntry entry = 2; */
+        if (message.entry)
+            CacheEntry.internalBinaryWrite(message.entry, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1138,102 +962,6 @@ class LookupCacheEntryResponse$Type extends MessageType<LookupCacheEntryResponse
  * @generated MessageType for protobuf message github.actions.results.api.v1.LookupCacheEntryResponse
  */
 export const LookupCacheEntryResponse = new LookupCacheEntryResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class LookupCacheEntryResponse_CacheEntry$Type extends MessageType<LookupCacheEntryResponse_CacheEntry> {
-    constructor() {
-        super("github.actions.results.api.v1.LookupCacheEntryResponse.CacheEntry", [
-            { no: 1, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "hash", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "size_bytes", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 4, name: "scope", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "created_at", kind: "message", T: () => Timestamp },
-            { no: 7, name: "last_accessed_at", kind: "message", T: () => Timestamp },
-            { no: 8, name: "expires_at", kind: "message", T: () => Timestamp }
-        ]);
-    }
-    create(value?: PartialMessage<LookupCacheEntryResponse_CacheEntry>): LookupCacheEntryResponse_CacheEntry {
-        const message = { key: "", hash: "", sizeBytes: "0", scope: "", version: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<LookupCacheEntryResponse_CacheEntry>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LookupCacheEntryResponse_CacheEntry): LookupCacheEntryResponse_CacheEntry {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string key */ 1:
-                    message.key = reader.string();
-                    break;
-                case /* string hash */ 2:
-                    message.hash = reader.string();
-                    break;
-                case /* int64 size_bytes */ 3:
-                    message.sizeBytes = reader.int64().toString();
-                    break;
-                case /* string scope */ 4:
-                    message.scope = reader.string();
-                    break;
-                case /* string version */ 5:
-                    message.version = reader.string();
-                    break;
-                case /* google.protobuf.Timestamp created_at */ 6:
-                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
-                    break;
-                case /* google.protobuf.Timestamp last_accessed_at */ 7:
-                    message.lastAccessedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.lastAccessedAt);
-                    break;
-                case /* google.protobuf.Timestamp expires_at */ 8:
-                    message.expiresAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.expiresAt);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: LookupCacheEntryResponse_CacheEntry, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string key = 1; */
-        if (message.key !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.key);
-        /* string hash = 2; */
-        if (message.hash !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.hash);
-        /* int64 size_bytes = 3; */
-        if (message.sizeBytes !== "0")
-            writer.tag(3, WireType.Varint).int64(message.sizeBytes);
-        /* string scope = 4; */
-        if (message.scope !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.scope);
-        /* string version = 5; */
-        if (message.version !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.version);
-        /* google.protobuf.Timestamp created_at = 6; */
-        if (message.createdAt)
-            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp last_accessed_at = 7; */
-        if (message.lastAccessedAt)
-            Timestamp.internalBinaryWrite(message.lastAccessedAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* google.protobuf.Timestamp expires_at = 8; */
-        if (message.expiresAt)
-            Timestamp.internalBinaryWrite(message.expiresAt, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message github.actions.results.api.v1.LookupCacheEntryResponse.CacheEntry
- */
-export const LookupCacheEntryResponse_CacheEntry = new LookupCacheEntryResponse_CacheEntry$Type();
 /**
  * @generated ServiceType for protobuf service github.actions.results.api.v1.CacheService
  */
