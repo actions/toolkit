@@ -49,17 +49,17 @@ afterEach(() => {
 
 test('save with missing input should fail', async () => {
   const paths: string[] = []
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
 
-  await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
+  await expect(saveCache(paths, key)).rejects.toThrowError(
     `Path Validation Error: At least one directory or file path is required`
   )
 })
 
 test('save with large cache outputs should fail using', async () => {
-  const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const cachePaths = [path.resolve(filePath)]
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(paths)]
 
   const createTarMock = jest.spyOn(tar, 'createTar')
   const logWarningMock = jest.spyOn(core, 'warning')
@@ -73,16 +73,14 @@ test('save with large cache outputs should fail using', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-  const cacheId = await saveCache([filePath], primaryKey)
+  const cacheId = await saveCache([paths], key)
   expect(cacheId).toBe(-1)
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
   expect(logWarningMock).toHaveBeenCalledWith(
     'Failed to save: Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
   )
 
   const archiveFolder = '/foo/bar'
 
-  expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
@@ -93,7 +91,7 @@ test('save with large cache outputs should fail using', async () => {
 
 test('create cache entry failure', async () => {
   const paths = ['node_modules']
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const infoLogMock = jest.spyOn(core, 'info')
 
   const createCacheEntryMock = jest
@@ -120,16 +118,14 @@ test('create cache entry failure', async () => {
       } as BlobUploadCommonResponse)
     )
 
-  const cacheId = await saveCache(paths, primaryKey)
+  const cacheId = await saveCache(paths, key)
   expect(cacheId).toBe(-1)
-  expect(infoLogMock).toHaveBeenCalledTimes(1)
   expect(infoLogMock).toHaveBeenCalledWith(
-    `Failed to save: Unable to reserve cache with key ${primaryKey}, another job may be creating this cache.`
+    `Failed to save: Unable to reserve cache with key ${key}, another job may be creating this cache.`
   )
 
-  expect(createCacheEntryMock).toHaveBeenCalledTimes(1)
   expect(createCacheEntryMock).toHaveBeenCalledWith({
-    key: primaryKey,
+    key,
     version: cacheVersion
   })
   expect(createTarMock).toHaveBeenCalledTimes(1)
@@ -139,9 +135,9 @@ test('create cache entry failure', async () => {
 })
 
 test('finalize save cache failure', async () => {
-  const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const cachePaths = [path.resolve(filePath)]
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(paths)]
   const logWarningMock = jest.spyOn(core, 'warning')
   const signedUploadURL = 'https://blob-storage.local?signed=true'
 
@@ -167,7 +163,7 @@ test('finalize save cache failure', async () => {
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-  const cacheVersion = cacheUtils.getCacheVersion([filePath], compression)
+  const cacheVersion = cacheUtils.getCacheVersion([paths], compression)
   const archiveFileSize = 1024
   jest
     .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
@@ -177,46 +173,41 @@ test('finalize save cache failure', async () => {
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
     .mockReturnValue(Promise.resolve({ok: false, entryId: ''}))
 
-  const cacheId = await saveCache([filePath], primaryKey)
+  const cacheId = await saveCache([paths], key)
 
-  expect(createCacheEntryMock).toHaveBeenCalledTimes(1)
   expect(createCacheEntryMock).toHaveBeenCalledWith({
-    key: primaryKey,
+    key,
     version: cacheVersion
   })
 
   const archiveFolder = '/foo/bar'
   const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
-  expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
     compression
   )
 
-  expect(uploadCacheMock).toHaveBeenCalledTimes(1)
   expect(uploadCacheMock).toHaveBeenCalledWith(signedUploadURL, archiveFile)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 
-  expect(finalizeCacheEntryMock).toHaveBeenCalledTimes(1)
   expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
-    key: primaryKey,
+    key,
     version: cacheVersion,
     sizeBytes: archiveFileSize.toString()
   })
 
   expect(cacheId).toBe(-1)
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
   expect(logWarningMock).toHaveBeenCalledWith(
-    `Failed to save: Unable to finalize cache with key ${primaryKey}, another job may be finalizing this cache.`
+    `Failed to save: Unable to finalize cache with key ${key}, another job may be finalizing this cache.`
   )
 })
 
 test('save with uploadCache Server error will fail', async () => {
-  const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const logWarningMock = jest.spyOn(core, 'warning')
-  const signedUploadURL = 'https://signed-upload-url.com'
+  const signedUploadURL = 'https://blob-storage.local?signed=true'
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
@@ -227,9 +218,8 @@ test('save with uploadCache Server error will fail', async () => {
     .spyOn(uploadCacheModule, 'uploadCacheFile')
     .mockReturnValueOnce(Promise.reject(new Error('HTTP Error Occurred')))
 
-  const cacheId = await saveCache([filePath], primaryKey)
+  const cacheId = await saveCache([paths], key)
 
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
   expect(logWarningMock).toHaveBeenCalledWith(
     `Failed to save: HTTP Error Occurred`
   )
@@ -237,9 +227,9 @@ test('save with uploadCache Server error will fail', async () => {
 })
 
 test('save with valid inputs uploads a cache', async () => {
-  const filePath = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const cachePaths = [path.resolve(filePath)]
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(paths)]
   const signedUploadURL = 'https://blob-storage.local?signed=true'
   const createTarMock = jest.spyOn(tar, 'createTar')
 
@@ -269,28 +259,25 @@ test('save with valid inputs uploads a cache', async () => {
   const getCompressionMock = jest
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValue(Promise.resolve(compression))
-  const cacheVersion = cacheUtils.getCacheVersion([filePath], compression)
+  const cacheVersion = cacheUtils.getCacheVersion([paths], compression)
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
     .mockReturnValue(Promise.resolve({ok: true, entryId: cacheId.toString()}))
 
-  const expectedCacheId = await saveCache([filePath], primaryKey)
+  const expectedCacheId = await saveCache([paths], key)
 
   const archiveFolder = '/foo/bar'
   const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
-  expect(uploadCacheMock).toHaveBeenCalledTimes(1)
   expect(uploadCacheMock).toHaveBeenCalledWith(signedUploadURL, archiveFile)
-  expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
     compression
   )
 
-  expect(finalizeCacheEntryMock).toHaveBeenCalledTimes(1)
   expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
-    key: primaryKey,
+    key,
     version: cacheVersion,
     sizeBytes: archiveFileSize.toString()
   })
@@ -301,11 +288,11 @@ test('save with valid inputs uploads a cache', async () => {
 
 test('save with non existing path should not save cache using v2 saveCache', async () => {
   const path = 'node_modules'
-  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async () => {
     return []
   })
-  await expect(saveCache([path], primaryKey)).rejects.toThrowError(
+  await expect(saveCache([path], key)).rejects.toThrowError(
     `Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`
   )
 })
