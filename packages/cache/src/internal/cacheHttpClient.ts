@@ -105,7 +105,7 @@ export async function getCacheEntry(
   const cacheResult = response.result
   const cacheDownloadUrl = cacheResult?.archiveLocation
   if (!cacheDownloadUrl) {
-    // Cache achiveLocation not found. This should never happen, and hence bail out.
+    // Cache archiveLocation not found. This should never happen, and hence bail out.
     throw new Error('Cache not found.')
   }
   core.setSecret(cacheDownloadUrl)
@@ -333,7 +333,7 @@ export async function saveCache(
   await uploadFile(httpClient, cacheId, archivePath, options)
 
   // Commit Cache
-  core.debug('Commiting cache')
+  core.debug('Committing cache')
   const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
   core.info(
     `Cache Size: ~${Math.round(cacheSize / (1024 * 1024))} MB (${cacheSize} B)`

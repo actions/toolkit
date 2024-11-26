@@ -188,7 +188,7 @@ async function restoreCacheV1(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
+      // Suppress all non-validation cache related errors because caching should be optional
       core.warning(`Failed to restore: ${(error as Error).message}`)
     }
   } finally {
