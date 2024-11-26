@@ -5,6 +5,7 @@ import {
   BlockBlobClient,
   BlockBlobParallelUploadOptions
 } from '@azure/storage-blob'
+import {InvalidResponseError} from '../shared/errors'
 
 export async function uploadCacheFile(
   signedUploadURL: string,
@@ -24,5 +25,13 @@ export async function uploadCacheFile(
     `BlobClient: ${blobClient.name}:${blobClient.accountName}:${blobClient.containerName}`
   )
 
-  return blockBlobClient.uploadFile(archivePath, uploadOptions)
+  const resp = await blockBlobClient.uploadFile(archivePath, uploadOptions)
+
+  if (resp._response.status >= 400) {
+    throw new InvalidResponseError(
+      `Upload failed with status code: ${resp._response.status}`
+    )
+  }
+
+  return resp
 }

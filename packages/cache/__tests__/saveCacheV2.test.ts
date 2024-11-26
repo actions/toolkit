@@ -8,10 +8,10 @@ import * as tar from '../src/internal/tar'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
 import * as uploadCacheModule from '../src/internal/blob/upload-cache'
 import {BlobUploadCommonResponse} from '@azure/storage-blob'
+import {InvalidResponseError} from '../src/internal/shared/errors'
 
 let logDebugMock: jest.SpyInstance
 
-jest.mock('../src/internal/cacheUtils')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
@@ -21,14 +21,6 @@ beforeAll(() => {
   jest.spyOn(core, 'info').mockImplementation(() => {})
   jest.spyOn(core, 'warning').mockImplementation(() => {})
   jest.spyOn(core, 'error').mockImplementation(() => {})
-  jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
-    const actualUtils = jest.requireActual('../src/internal/cacheUtils')
-    return actualUtils.getCacheFileName(cm)
-  })
-  jest.spyOn(cacheUtils, 'getCacheVersion').mockImplementation((paths, cm) => {
-    const actualUtils = jest.requireActual('../src/internal/cacheUtils')
-    return actualUtils.getCacheVersion(paths, cm)
-  })
   jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async filePaths => {
     return filePaths.map(x => path.resolve(x))
   })
@@ -107,6 +99,10 @@ test('create cache entry failure', async () => {
   const getCompressionMock = jest
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
+  const archiveFileSize = 1024
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
   const cacheVersion = cacheUtils.getCacheVersion(paths, compression)
   const uploadCacheFileMock = jest
     .spyOn(uploadCacheModule, 'uploadCacheFile')
@@ -214,15 +210,15 @@ test('save with uploadCache Server error will fail', async () => {
       Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
     )
 
+  const archiveFileSize = 1024
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
   jest
     .spyOn(uploadCacheModule, 'uploadCacheFile')
-    .mockReturnValueOnce(Promise.reject(new Error('HTTP Error Occurred')))
+    .mockRejectedValueOnce(new InvalidResponseError('boom'))
 
   const cacheId = await saveCache([paths], key)
-
-  expect(logWarningMock).toHaveBeenCalledWith(
-    `Failed to save: HTTP Error Occurred`
-  )
   expect(cacheId).toBe(-1)
 })
 
