@@ -202,7 +202,6 @@ test('finalize save cache failure', async () => {
 test('save with uploadCache Server error will fail', async () => {
   const paths = 'node_modules'
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const logWarningMock = jest.spyOn(core, 'warning')
   const signedUploadURL = 'https://blob-storage.local?signed=true'
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
