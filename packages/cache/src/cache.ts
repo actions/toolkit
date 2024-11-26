@@ -518,7 +518,10 @@ async function saveCacheV2(
     }
 
     core.debug(`Attempting to upload cache located at: ${archivePath}`)
-    const uploadResponse = await uploadCacheFile(response.signedUploadUrl, archivePath)
+    const uploadResponse = await uploadCacheFile(
+      response.signedUploadUrl,
+      archivePath
+    )
     core.debug(`Download response status: ${uploadResponse._response.status}`)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {

@@ -1,13 +1,13 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import { saveCache } from '../src/cache'
+import {saveCache} from '../src/cache'
 import * as cacheUtils from '../src/internal/cacheUtils'
-import { CacheFilename, CompressionMethod } from '../src/internal/constants'
+import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as config from '../src/internal/config'
 import * as tar from '../src/internal/tar'
-import { CacheServiceClientJSON } from '../src/generated/results/api/v1/cache.twirp'
+import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
 import * as uploadCacheModule from '../src/internal/blob/upload-cache'
-import { BlobUploadCommonResponse } from '@azure/storage-blob'
+import {BlobUploadCommonResponse} from '@azure/storage-blob'
 
 let logDebugMock: jest.SpyInstance
 
@@ -16,11 +16,11 @@ jest.mock('../src/internal/tar')
 
 beforeAll(() => {
   process.env['ACTIONS_RUNTIME_TOKEN'] = 'token'
-  jest.spyOn(console, 'log').mockImplementation(() => { })
-  jest.spyOn(core, 'debug').mockImplementation(() => { })
-  jest.spyOn(core, 'info').mockImplementation(() => { })
-  jest.spyOn(core, 'warning').mockImplementation(() => { })
-  jest.spyOn(core, 'error').mockImplementation(() => { })
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+  jest.spyOn(core, 'debug').mockImplementation(() => {})
+  jest.spyOn(core, 'info').mockImplementation(() => {})
+  jest.spyOn(core, 'warning').mockImplementation(() => {})
+  jest.spyOn(core, 'error').mockImplementation(() => {})
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
     const actualUtils = jest.requireActual('../src/internal/cacheUtils')
     return actualUtils.getCacheFileName(cm)
@@ -98,7 +98,7 @@ test('create cache entry failure', async () => {
 
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
-    .mockReturnValue(Promise.resolve({ ok: false, signedUploadUrl: '' }))
+    .mockReturnValue(Promise.resolve({ok: false, signedUploadUrl: ''}))
 
   const createTarMock = jest.spyOn(tar, 'createTar')
   const finalizeCacheEntryMock = jest.spyOn(
@@ -148,7 +148,7 @@ test('finalize save cache failure', async () => {
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ ok: true, signedUploadUrl: signedUploadURL })
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
     )
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -175,7 +175,7 @@ test('finalize save cache failure', async () => {
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ ok: false, entryId: '' }))
+    .mockReturnValue(Promise.resolve({ok: false, entryId: ''}))
 
   const cacheId = await saveCache([filePath], primaryKey)
 
@@ -220,7 +220,7 @@ test('save with uploadCache Server error will fail', async () => {
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ ok: true, signedUploadUrl: signedUploadURL })
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
     )
 
   jest
@@ -252,7 +252,7 @@ test('save with valid inputs uploads a cache', async () => {
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ ok: true, signedUploadUrl: signedUploadURL })
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
     )
 
   const uploadCacheMock = jest
@@ -273,7 +273,7 @@ test('save with valid inputs uploads a cache', async () => {
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ ok: true, entryId: cacheId.toString() }))
+    .mockReturnValue(Promise.resolve({ok: true, entryId: cacheId.toString()}))
 
   const expectedCacheId = await saveCache([filePath], primaryKey)
 
