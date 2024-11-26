@@ -56,7 +56,7 @@ test('save with missing input should fail', async () => {
   )
 })
 
-test('save with large cache outputs should fail using v2 saveCache', async () => {
+test('save with large cache outputs should fail using', async () => {
   const filePath = 'node_modules'
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const cachePaths = [path.resolve(filePath)]
