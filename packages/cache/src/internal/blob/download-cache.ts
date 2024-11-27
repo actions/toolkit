@@ -22,10 +22,24 @@ export async function downloadCacheFile(
     `BlobClient: ${blobClient.name}:${blobClient.accountName}:${blobClient.containerName}`
   )
 
-  return blockBlobClient.downloadToFile(
+  const response = await blockBlobClient.downloadToFile(
     archivePath,
     0,
     undefined,
     downloadOptions
   )
+
+  switch (response._response.status) {
+    case 200:
+      core.info(`Cache downloaded from "${signedUploadURL}"`)
+      break
+    case 304:
+      core.info(`Cache not found at "${signedUploadURL}"`)
+      break
+    default:
+      core.info(`Unexpected HTTP response: ${response._response.status}`)
+      break
+  }
+
+  return response
 }

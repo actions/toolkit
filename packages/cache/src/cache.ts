@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
+import {downloadCacheStorageSDK} from './internal/downloadUtils'
 import {getCacheServiceVersion, isGhes} from './internal/config'
 import {DownloadOptions, UploadOptions} from './options'
 import {createTar, extractTar, listTar} from './internal/tar'
@@ -14,7 +15,6 @@ import {
 } from './generated/results/api/v1/cache'
 import {CacheFileSizeLimit} from './internal/constants'
 import {uploadCacheFile} from './internal/blob/upload-cache'
-import {downloadCacheFile} from './internal/blob/download-cache'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -161,11 +161,14 @@ async function restoreCacheV1(
     )
     core.debug(`Archive Path: ${archivePath}`)
 
-    // Download the cache from the cache entry
+    // Download the cache archive from from blob storage
     await cacheHttpClient.downloadCache(
       cacheEntry.archiveLocation,
       archivePath,
-      options
+      options ||
+        ({
+          timeoutInMs: 30000
+        } as DownloadOptions)
     )
 
     if (core.isDebug()) {
@@ -271,11 +274,14 @@ async function restoreCacheV2(
     core.debug(`Archive path: ${archivePath}`)
     core.debug(`Starting download of archive to: ${archivePath}`)
 
-    const downloadResponse = await downloadCacheFile(
+    await downloadCacheStorageSDK(
       response.signedDownloadUrl,
-      archivePath
+      archivePath,
+      options ||
+        ({
+          timeoutInMs: 30000
+        } as DownloadOptions)
     )
-    core.debug(`Download response status: ${downloadResponse._response.status}`)
 
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.info(
