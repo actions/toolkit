@@ -328,10 +328,10 @@ export async function saveCache(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
+  const cacheServiceVersion: string = getCacheServiceVersion()
+  core.debug(`Cache service version: ${cacheServiceVersion}`)
   checkPaths(paths)
   checkKey(key)
-
-  const cacheServiceVersion: string = getCacheServiceVersion()
   switch (cacheServiceVersion) {
     case 'v2':
       return await saveCacheV2(paths, key, options, enableCrossOsArchive)
@@ -518,7 +518,11 @@ async function saveCacheV2(
     }
 
     core.debug(`Attempting to upload cache located at: ${archivePath}`)
-    await uploadCacheFile(response.signedUploadUrl, archivePath)
+    const uploadResponse = await uploadCacheFile(
+      response.signedUploadUrl,
+      archivePath
+    )
+    core.debug(`Download response status: ${uploadResponse._response.status}`)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
       key,
