@@ -29,7 +29,7 @@ export async function uploadCacheFile(
 
   if (resp._response.status >= 400) {
     throw new InvalidResponseError(
-      `Upload failed with status code: ${resp._response.status}`
+      `Upload failed with status code ${resp._response.status}`
     )
   }
 

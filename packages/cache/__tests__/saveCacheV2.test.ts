@@ -14,6 +14,18 @@ let logDebugMock: jest.SpyInstance
 
 jest.mock('../src/internal/tar')
 
+let uploadFileMock = jest.fn()
+const blockBlobClientMock = jest.fn().mockImplementation(() => ({
+  uploadFile: uploadFileMock
+}))
+jest.mock('@azure/storage-blob', () => ({
+  BlobClient: jest.fn().mockImplementation(() => {
+    return {
+      getBlockBlobClient: blockBlobClientMock
+    }
+  })
+}))
+
 beforeAll(() => {
   process.env['ACTIONS_RUNTIME_TOKEN'] = 'token'
   jest.spyOn(console, 'log').mockImplementation(() => {})
@@ -106,7 +118,7 @@ test('create cache entry failure', async () => {
   const cacheVersion = cacheUtils.getCacheVersion(paths, compression)
   const uploadCacheFileMock = jest
     .spyOn(uploadCacheModule, 'uploadCacheFile')
-    .mockReturnValue(
+    .mockReturnValueOnce(
       Promise.resolve({
         _response: {
           status: 200
@@ -146,7 +158,7 @@ test('finalize save cache failure', async () => {
   const createTarMock = jest.spyOn(tar, 'createTar')
 
   const uploadCacheMock = jest.spyOn(uploadCacheModule, 'uploadCacheFile')
-  uploadCacheMock.mockReturnValue(
+  uploadCacheMock.mockReturnValueOnce(
     Promise.resolve({
       _response: {
         status: 200
@@ -221,6 +233,36 @@ test('save with uploadCache Server error will fail', async () => {
   expect(cacheId).toBe(-1)
 })
 
+test('uploadFile returns 500', async () => {
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const signedUploadURL = 'https://blob-storage.local?signed=true'
+  const logWarningMock = jest.spyOn(core, 'warning')
+  jest
+    .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+    .mockReturnValue(
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
+    )
+
+  const archiveFileSize = 1024
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
+  jest.spyOn(uploadCacheModule, 'uploadCacheFile').mockRestore()
+
+  uploadFileMock = jest.fn().mockResolvedValueOnce({
+    _response: {
+      status: 500
+    }
+  })
+  const cacheId = await saveCache([paths], key)
+
+  expect(logWarningMock).toHaveBeenCalledWith(
+    'Failed to save: Upload failed with status code 500'
+  )
+  expect(cacheId).toBe(-1)
+})
+
 test('save with valid inputs uploads a cache', async () => {
   const paths = 'node_modules'
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
@@ -242,7 +284,7 @@ test('save with valid inputs uploads a cache', async () => {
 
   const uploadCacheMock = jest
     .spyOn(uploadCacheModule, 'uploadCacheFile')
-    .mockReturnValue(
+    .mockReturnValueOnce(
       Promise.resolve({
         _response: {
           status: 200
