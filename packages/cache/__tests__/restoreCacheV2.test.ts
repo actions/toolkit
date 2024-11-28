@@ -142,6 +142,7 @@ test('restore with gzip compressed cache found', async () => {
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
+  const options = {useAzureSdk: true} as DownloadOptions
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)
@@ -179,7 +180,7 @@ test('restore with gzip compressed cache found', async () => {
   const extractTarMock = jest.spyOn(tar, 'extractTar')
   const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
 
-  const cacheKey = await restoreCache(paths, key)
+  const cacheKey = await restoreCache(paths, key, [], options)
 
   expect(cacheKey).toBe(key)
   expect(getCacheVersionMock).toHaveBeenCalledWith(
@@ -196,7 +197,7 @@ test('restore with gzip compressed cache found', async () => {
   expect(downloadCacheMock).toHaveBeenCalledWith(
     signedDownloadUrl,
     archivePath,
-    undefined
+    options
   )
   expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
   expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
@@ -217,6 +218,7 @@ test('restore with zstd compressed cache found', async () => {
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     '8e2e96a184cb0cd6b48285b176c06a418f3d7fce14c29d9886fd1bb4f05c513d'
+  const options = {useAzureSdk: true} as DownloadOptions
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)
@@ -254,7 +256,7 @@ test('restore with zstd compressed cache found', async () => {
   const extractTarMock = jest.spyOn(tar, 'extractTar')
   const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
 
-  const cacheKey = await restoreCache(paths, key)
+  const cacheKey = await restoreCache(paths, key, [], options)
 
   expect(cacheKey).toBe(key)
   expect(getCacheVersionMock).toHaveBeenCalledWith(
@@ -271,7 +273,7 @@ test('restore with zstd compressed cache found', async () => {
   expect(downloadCacheMock).toHaveBeenCalledWith(
     signedDownloadUrl,
     archivePath,
-    undefined
+    options
   )
   expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
   expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
@@ -293,6 +295,7 @@ test('restore with cache found for restore key', async () => {
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     'b8b58e9bd7b1e8f83d9f05c7e06ea865ba44a0330e07a14db74ac74386677bed'
+  const options = {useAzureSdk: true} as DownloadOptions
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)
@@ -330,7 +333,7 @@ test('restore with cache found for restore key', async () => {
   const extractTarMock = jest.spyOn(tar, 'extractTar')
   const unlinkFileMock = jest.spyOn(cacheUtils, 'unlinkFile')
 
-  const cacheKey = await restoreCache(paths, key, restoreKeys)
+  const cacheKey = await restoreCache(paths, key, restoreKeys, options)
 
   expect(cacheKey).toBe(restoreKeys[0])
   expect(getCacheVersionMock).toHaveBeenCalledWith(
@@ -347,7 +350,7 @@ test('restore with cache found for restore key', async () => {
   expect(downloadCacheMock).toHaveBeenCalledWith(
     signedDownloadUrl,
     archivePath,
-    undefined
+    options
   )
   expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
   expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
@@ -368,7 +371,7 @@ test('restore with lookup only enabled', async () => {
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
-  const options = {lookupOnly: true} as DownloadOptions
+  const options = {lookupOnly: true, useAzureSdk: true} as DownloadOptions
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)

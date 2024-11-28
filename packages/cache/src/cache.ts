@@ -218,6 +218,11 @@ async function restoreCacheV2(
   options?: DownloadOptions,
   enableCrossOsArchive = false
 ): Promise<string | undefined> {
+  // Override UploadOptions to force the use of Azure
+  options = {
+    ...options,
+    useAzureSdk: true
+  }
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
