@@ -47,14 +47,16 @@ test('getUploadOptions sets defaults', async () => {
 
   expect(actualOptions).toEqual({
     uploadConcurrency,
-    uploadChunkSize
+    uploadChunkSize,
+    useAzureSdk
   })
 })
 
 test('getUploadOptions overrides all settings', async () => {
   const expectedOptions: UploadOptions = {
     uploadConcurrency: 2,
-    uploadChunkSize: 16 * 1024 * 1024
+    uploadChunkSize: 16 * 1024 * 1024,
+    useAzureSdk: true
   }
 
   const actualOptions = getUploadOptions(expectedOptions)

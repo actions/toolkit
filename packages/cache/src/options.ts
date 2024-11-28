@@ -5,6 +5,14 @@ import * as core from '@actions/core'
  */
 export interface UploadOptions {
   /**
+   * Indicates whether to use the Azure Blob SDK to download caches
+   * that are stored on Azure Blob Storage to improve reliability and
+   * performance
+   *
+   * @default false
+   */
+  useAzureSdk?: boolean
+  /**
    * Number of parallel cache upload
    *
    * @default 4
@@ -77,11 +85,16 @@ export interface DownloadOptions {
  */
 export function getUploadOptions(copy?: UploadOptions): UploadOptions {
   const result: UploadOptions = {
+    useAzureSdk: false,
     uploadConcurrency: 4,
     uploadChunkSize: 32 * 1024 * 1024
   }
 
   if (copy) {
+    if (typeof copy.useAzureSdk === 'boolean') {
+      result.useAzureSdk = copy.useAzureSdk
+    }
+
     if (typeof copy.uploadConcurrency === 'number') {
       result.uploadConcurrency = copy.uploadConcurrency
     }
@@ -91,6 +104,7 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
     }
   }
 
+  core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
   core.debug(`Upload concurrency: ${result.uploadConcurrency}`)
   core.debug(`Upload chunk size: ${result.uploadChunkSize}`)
 

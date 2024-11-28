@@ -8,6 +8,7 @@ import {
 import * as fs from 'fs'
 import {URL} from 'url'
 import * as utils from './cacheUtils'
+import {uploadCacheArchiveSDK} from './uploadUtils'
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
@@ -326,26 +327,45 @@ async function commitCache(
 export async function saveCache(
   cacheId: number,
   archivePath: string,
+  signedUploadURL?: string,
   options?: UploadOptions
 ): Promise<void> {
-  const httpClient = createHttpClient()
+  const uploadOptions = getUploadOptions(options)
 
-  core.debug('Upload cache')
-  await uploadFile(httpClient, cacheId, archivePath, options)
+  if (uploadOptions.useAzureSdk) {
+    // Use Azure storage SDK to upload caches directly to Azure
+    if (!signedUploadURL) {
+      throw new Error(
+        'Azure Storage SDK can only be used when a signed URL is provided.'
+      )
+    }
+    await uploadCacheArchiveSDK(signedUploadURL, archivePath, options)
+  } else {
+    const httpClient = createHttpClient()
 
-  // Commit Cache
-  core.debug('Commiting cache')
-  const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
-  core.info(
-    `Cache Size: ~${Math.round(cacheSize / (1024 * 1024))} MB (${cacheSize} B)`
-  )
+    core.debug('Upload cache')
+    await uploadFile(httpClient, cacheId, archivePath, options)
 
-  const commitCacheResponse = await commitCache(httpClient, cacheId, cacheSize)
-  if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
-    throw new Error(
-      `Cache service responded with ${commitCacheResponse.statusCode} during commit cache.`
+    // Commit Cache
+    core.debug('Commiting cache')
+    const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
+    core.info(
+      `Cache Size: ~${Math.round(
+        cacheSize / (1024 * 1024)
+      )} MB (${cacheSize} B)`
     )
-  }
 
-  core.info('Cache saved successfully')
+    const commitCacheResponse = await commitCache(
+      httpClient,
+      cacheId,
+      cacheSize
+    )
+    if (!isSuccessStatusCode(commitCacheResponse.statusCode)) {
+      throw new Error(
+        `Cache service responded with ${commitCacheResponse.statusCode} during commit cache.`
+      )
+    }
+
+    core.info('Cache saved successfully')
+  }
 }

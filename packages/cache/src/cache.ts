@@ -13,7 +13,6 @@ import {
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
 import {CacheFileSizeLimit} from './internal/constants'
-import {uploadCacheArchiveSDK} from './internal/uploadUtils'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -421,7 +420,7 @@ async function saveCacheV1(
     }
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
-    await cacheHttpClient.saveCache(cacheId, archivePath, options)
+    await cacheHttpClient.saveCache(cacheId, archivePath, '', options)
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -458,6 +457,11 @@ async function saveCacheV2(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
+  // Override UploadOptions to force the use of Azure
+  options = {
+    ...options,
+    useAzureSdk: true
+  }
   const compressionMethod = await utils.getCompressionMethod()
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
   let cacheId = -1
@@ -517,11 +521,12 @@ async function saveCacheV2(
     }
 
     core.debug(`Attempting to upload cache located at: ${archivePath}`)
-    const uploadResponse = await uploadCacheArchiveSDK(
+    await cacheHttpClient.saveCache(
+      cacheId,
+      archivePath,
       response.signedUploadUrl,
-      archivePath
+      options
     )
-    core.debug(`Download response status: ${uploadResponse._response.status}`)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
       key,
