@@ -3,7 +3,6 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import {downloadCacheStorageSDK} from './internal/downloadUtils'
 import {getCacheServiceVersion, isGhes} from './internal/config'
 import {DownloadOptions, UploadOptions} from './options'
 import {createTar, extractTar, listTar} from './internal/tar'
@@ -271,13 +270,10 @@ async function restoreCacheV2(
     core.debug(`Archive path: ${archivePath}`)
     core.debug(`Starting download of archive to: ${archivePath}`)
 
-    await downloadCacheStorageSDK(
+    await cacheHttpClient.downloadCache(
       response.signedDownloadUrl,
       archivePath,
-      options ||
-        ({
-          timeoutInMs: 30000
-        } as DownloadOptions)
+      options
     )
 
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)

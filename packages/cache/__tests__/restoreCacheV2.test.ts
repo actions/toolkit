@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as tar from '../src/internal/tar'
 import * as config from '../src/internal/config'
 import * as cacheUtils from '../src/internal/cacheUtils'
-import * as downloadUtils from '../src/internal/downloadUtils'
+import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import {restoreCache} from '../src/cache'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
@@ -142,7 +142,6 @@ test('restore with gzip compressed cache found', async () => {
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
-  const options: DownloadOptions = {timeoutInMs: 30000}
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)
@@ -170,11 +169,7 @@ test('restore with gzip compressed cache found', async () => {
   })
 
   const archivePath = path.join(tempPath, CacheFilename.Gzip)
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
-  downloadCacheStorageSDKMock.mockReturnValue(Promise.resolve())
+  const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
 
   const fileSize = 142
   const getArchiveFileSizeInBytesMock = jest
@@ -198,10 +193,10 @@ test('restore with gzip compressed cache found', async () => {
     version: cacheVersion
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
+  expect(downloadCacheMock).toHaveBeenCalledWith(
     signedDownloadUrl,
     archivePath,
-    options
+    undefined
   )
   expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
   expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
@@ -222,7 +217,6 @@ test('restore with zstd compressed cache found', async () => {
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     '8e2e96a184cb0cd6b48285b176c06a418f3d7fce14c29d9886fd1bb4f05c513d'
-  const options: DownloadOptions = {timeoutInMs: 30000}
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)
@@ -250,11 +244,7 @@ test('restore with zstd compressed cache found', async () => {
   })
 
   const archivePath = path.join(tempPath, CacheFilename.Zstd)
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
-  downloadCacheStorageSDKMock.mockReturnValue(Promise.resolve())
+  const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
 
   const fileSize = 62915000
   const getArchiveFileSizeInBytesMock = jest
@@ -278,10 +268,10 @@ test('restore with zstd compressed cache found', async () => {
     version: cacheVersion
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
+  expect(downloadCacheMock).toHaveBeenCalledWith(
     signedDownloadUrl,
     archivePath,
-    options
+    undefined
   )
   expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
   expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
@@ -303,7 +293,6 @@ test('restore with cache found for restore key', async () => {
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     'b8b58e9bd7b1e8f83d9f05c7e06ea865ba44a0330e07a14db74ac74386677bed'
-  const options: DownloadOptions = {timeoutInMs: 30000}
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)
@@ -331,11 +320,7 @@ test('restore with cache found for restore key', async () => {
   })
 
   const archivePath = path.join(tempPath, CacheFilename.Gzip)
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
-  downloadCacheStorageSDKMock.mockReturnValue(Promise.resolve())
+  const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
 
   const fileSize = 142
   const getArchiveFileSizeInBytesMock = jest
@@ -359,10 +344,10 @@ test('restore with cache found for restore key', async () => {
     version: cacheVersion
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledWith(
+  expect(downloadCacheMock).toHaveBeenCalledWith(
     signedDownloadUrl,
     archivePath,
-    options
+    undefined
   )
   expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
   expect(logInfoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
@@ -376,14 +361,14 @@ test('restore with cache found for restore key', async () => {
   expect(compressionMethodMock).toHaveBeenCalledTimes(1)
 })
 
-test('restore with dry run', async () => {
+test('restore with lookup only enabled', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
   const compressionMethod = CompressionMethod.Gzip
   const signedDownloadUrl = 'https://blob-storage.local?signed=true'
   const cacheVersion =
     'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
-  const options: DownloadOptions = {lookupOnly: true, timeoutInMs: 30000}
+  const options = {lookupOnly: true} as DownloadOptions
 
   const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
   getCacheVersionMock.mockReturnValue(cacheVersion)
@@ -404,11 +389,7 @@ test('restore with dry run', async () => {
   )
 
   const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
-  downloadCacheStorageSDKMock.mockReturnValue(Promise.resolve())
+  const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
 
   const cacheKey = await restoreCache(paths, key, undefined, options)
 
@@ -427,5 +408,5 @@ test('restore with dry run', async () => {
 
   // creating a tempDir and downloading the cache are skipped
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(0)
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
+  expect(downloadCacheMock).toHaveBeenCalledTimes(0)
 })
