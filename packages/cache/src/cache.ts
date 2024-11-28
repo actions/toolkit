@@ -3,18 +3,18 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import {downloadCacheStorageSDK} from './internal/downloadUtils'
-import {getCacheServiceVersion, isGhes} from './internal/config'
-import {DownloadOptions, UploadOptions} from './options'
-import {createTar, extractTar, listTar} from './internal/tar'
+import { downloadCacheStorageSDK } from './internal/downloadUtils'
+import { getCacheServiceVersion, isGhes } from './internal/config'
+import { DownloadOptions, UploadOptions } from './options'
+import { createTar, extractTar, listTar } from './internal/tar'
 import {
   CreateCacheEntryRequest,
   FinalizeCacheEntryUploadRequest,
   FinalizeCacheEntryUploadResponse,
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
-import {CacheFileSizeLimit} from './internal/constants'
-import {uploadCacheFile} from './internal/blob/upload-cache'
+import { CacheFileSizeLimit } from './internal/constants'
+import { uploadCacheArchiveSDK } from './internal/uploadUtils'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -275,9 +275,9 @@ async function restoreCacheV2(
       response.signedDownloadUrl,
       archivePath,
       options ||
-        ({
-          timeoutInMs: 30000
-        } as DownloadOptions)
+      ({
+        timeoutInMs: 30000
+      } as DownloadOptions)
     )
 
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
@@ -414,9 +414,9 @@ async function saveCacheV1(
     } else if (reserveCacheResponse?.statusCode === 400) {
       throw new Error(
         reserveCacheResponse?.error?.message ??
-          `Cache size of ~${Math.round(
-            archiveFileSize / (1024 * 1024)
-          )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
+        `Cache size of ~${Math.round(
+          archiveFileSize / (1024 * 1024)
+        )} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`
       )
     } else {
       throw new ReserveCacheError(
@@ -521,7 +521,7 @@ async function saveCacheV2(
     }
 
     core.debug(`Attempting to upload cache located at: ${archivePath}`)
-    const uploadResponse = await uploadCacheFile(
+    const uploadResponse = await uploadCacheArchiveSDK(
       response.signedUploadUrl,
       archivePath
     )

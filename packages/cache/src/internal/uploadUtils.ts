@@ -5,12 +5,13 @@ import {
   BlockBlobClient,
   BlockBlobParallelUploadOptions
 } from '@azure/storage-blob'
-import {InvalidResponseError} from '../shared/errors'
+import { InvalidResponseError } from './shared/errors'
 
-export async function uploadCacheFile(
-  signedUploadURL: string,
-  archivePath: string
-): Promise<BlobUploadCommonResponse> {
+export async function uploadCacheArchiveSDK
+  (
+    signedUploadURL: string,
+    archivePath: string
+  ): Promise<BlobUploadCommonResponse> {
   // Specify data transfer options
   const uploadOptions: BlockBlobParallelUploadOptions = {
     blockSize: 4 * 1024 * 1024, // 4 MiB max block size
