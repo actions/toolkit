@@ -138,7 +138,11 @@ test('save cache fails if a signedUploadURL was not passed', async () => {
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const cachePaths = [path.resolve(paths)]
   const signedUploadURL = ''
-  const options: UploadOptions = {useAzureSdk: true}
+  const options: UploadOptions = {
+    useAzureSdk: true,
+    uploadChunkSize: 64 * 1024 * 1024,
+    uploadConcurrency: 8
+  }
 
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
@@ -191,7 +195,11 @@ test('finalize save cache failure', async () => {
   const cachePaths = [path.resolve(paths)]
   const logWarningMock = jest.spyOn(core, 'warning')
   const signedUploadURL = 'https://blob-storage.local?signed=true'
-  const options: UploadOptions = {useAzureSdk: true}
+  const options: UploadOptions = {
+    useAzureSdk: true,
+    uploadChunkSize: 64 * 1024 * 1024,
+    uploadConcurrency: 8
+  }
 
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
@@ -260,7 +268,11 @@ test('save with valid inputs uploads a cache', async () => {
   const cachePaths = [path.resolve(paths)]
   const signedUploadURL = 'https://blob-storage.local?signed=true'
   const createTarMock = jest.spyOn(tar, 'createTar')
-  const options: UploadOptions = {useAzureSdk: true}
+  const options: UploadOptions = {
+    useAzureSdk: true,
+    uploadChunkSize: 64 * 1024 * 1024,
+    uploadConcurrency: 8
+  }
 
   const archiveFileSize = 1024
   jest
