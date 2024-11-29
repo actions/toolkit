@@ -48,7 +48,7 @@
     "@octokit/plugin-request-log": "^4.0.0",
     "@octokit/plugin-retry": "^6.1.0",
     "@octokit/request-error": "^5.1.0",
-    "@protobuf-ts/plugin": "^2.2.3-alpha.1",
+    "@protobuf-ts/plugin": "^2.9.4",
     "archiver": "^7.0.1",
     "jwt-decode": "^3.1.2",
     "twirp-ts": "^2.5.0",
