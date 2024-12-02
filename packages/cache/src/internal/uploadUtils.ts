@@ -160,6 +160,9 @@ export async function uploadCacheArchiveSDK(
     }
 
     return response
+  } catch (error) {
+    core.debug(`Error uploading cache archive: ${error}`)
+    throw error
   } finally {
     uploadProgress.stopDisplayTimer()
   }
