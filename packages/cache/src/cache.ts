@@ -561,6 +561,7 @@ async function saveCacheV2(
     } else {
       core.warning(`Failed to save: ${typedError.message}`)
     }
+    throw error
   } finally {
     // Try to delete the archive to save space
     try {
