@@ -13,8 +13,6 @@ import {
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
 import {CacheFileSizeLimit} from './internal/constants'
-import {uploadCacheFile} from './internal/blob/upload-cache'
-import {downloadCacheFile} from './internal/blob/download-cache'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -66,8 +64,8 @@ export function isFeatureAvailable(): boolean {
  * Restores cache from keys
  *
  * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache
- * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
@@ -108,12 +106,12 @@ export async function restoreCache(
 /**
  * Restores cache using the legacy Cache Service
  *
- * @param paths
- * @param primaryKey
- * @param restoreKeys
- * @param options
- * @param enableCrossOsArchive
- * @returns
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
+ * @param options cache download options
+ * @param enableCrossOsArchive an optional boolean enabled to restore on Windows any cache created on any platform
+ * @returns string returns the key for the cache hit, otherwise returns undefined
  */
 async function restoreCacheV1(
   paths: string[],
@@ -204,11 +202,11 @@ async function restoreCacheV1(
 }
 
 /**
- * Restores cache using the new Cache Service
+ * Restores cache using Cache Service v2
  *
  * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache
- * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
@@ -220,6 +218,11 @@ async function restoreCacheV2(
   options?: DownloadOptions,
   enableCrossOsArchive = false
 ): Promise<string | undefined> {
+  // Override UploadOptions to force the use of Azure
+  options = {
+    ...options,
+    useAzureSdk: true
+  }
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -271,11 +274,11 @@ async function restoreCacheV2(
     core.debug(`Archive path: ${archivePath}`)
     core.debug(`Starting download of archive to: ${archivePath}`)
 
-    const downloadResponse = await downloadCacheFile(
+    await cacheHttpClient.downloadCache(
       response.signedDownloadUrl,
-      archivePath
+      archivePath,
+      options
     )
-    core.debug(`Download response status: ${downloadResponse._response.status}`)
 
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.info(
@@ -422,7 +425,7 @@ async function saveCacheV1(
     }
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
-    await cacheHttpClient.saveCache(cacheId, archivePath, options)
+    await cacheHttpClient.saveCache(cacheId, archivePath, '', options)
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -445,12 +448,12 @@ async function saveCacheV1(
 }
 
 /**
- * Save cache using the new Cache Service
+ * Save cache using Cache Service v2
  *
- * @param paths
- * @param key
- * @param options
- * @param enableCrossOsArchive
+ * @param paths a list of file paths to restore from the cache
+ * @param key an explicit key for restoring the cache
+ * @param options cache upload options
+ * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
  * @returns
  */
 async function saveCacheV2(
@@ -459,6 +462,15 @@ async function saveCacheV2(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
+  // Override UploadOptions to force the use of Azure
+  // ...options goes first because we want to override the default values
+  // set in UploadOptions with these specific figures
+  options = {
+    ...options,
+    uploadChunkSize: 64 * 1024 * 1024, // 64 MiB
+    uploadConcurrency: 8, // 8 workers for parallel upload
+    useAzureSdk: true
+  }
   const compressionMethod = await utils.getCompressionMethod()
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
   let cacheId = -1
@@ -499,6 +511,9 @@ async function saveCacheV2(
       )
     }
 
+    // Set the archive size in the options, will be used to display the upload progress
+    options.archiveSizeBytes = archiveFileSize
+
     core.debug('Reserving Cache')
     const version = utils.getCacheVersion(
       paths,
@@ -518,11 +533,12 @@ async function saveCacheV2(
     }
 
     core.debug(`Attempting to upload cache located at: ${archivePath}`)
-    const uploadResponse = await uploadCacheFile(
+    await cacheHttpClient.saveCache(
+      cacheId,
+      archivePath,
       response.signedUploadUrl,
-      archivePath
+      options
     )
-    core.debug(`Download response status: ${uploadResponse._response.status}`)
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
       key,
