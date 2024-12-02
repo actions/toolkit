@@ -140,30 +140,27 @@ export async function uploadCacheArchiveSDK(
     onProgress: uploadProgress.onProgress()
   }
 
-  try {
-    uploadProgress.startDisplayTimer()
+  // try {
+  uploadProgress.startDisplayTimer()
 
-    core.debug(
-      `BlobClient: ${blobClient.name}:${blobClient.accountName}:${blobClient.containerName}`
+  core.debug(
+    `BlobClient: ${blobClient.name}:${blobClient.accountName}:${blobClient.containerName}`
+  )
+
+  const response = await blockBlobClient.uploadFile(archivePath, uploadOptions)
+
+  // TODO: better management of non-retryable errors
+  if (response._response.status >= 400) {
+    throw new InvalidResponseError(
+      `Upload failed with status code ${response._response.status}`
     )
-
-    const response = await blockBlobClient.uploadFile(
-      archivePath,
-      uploadOptions
-    )
-
-    // TODO: better management of non-retryable errors
-    if (response._response.status >= 400) {
-      throw new InvalidResponseError(
-        `Upload failed with status code ${response._response.status}`
-      )
-    }
-
-    return response
-  } catch (error) {
-    core.debug(`Error uploading cache archive: ${error}`)
-    throw error
-  } finally {
-    uploadProgress.stopDisplayTimer()
   }
+
+  return response
+  // } catch (error) {
+  //   core.debug(`Error uploading cache archive: ${error}`)
+  //   throw error
+  // } finally {
+  //   uploadProgress.stopDisplayTimer()
+  // }
 }
