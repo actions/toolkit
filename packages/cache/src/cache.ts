@@ -64,7 +64,7 @@ export function isFeatureAvailable(): boolean {
  * Restores cache from keys
  *
  * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
@@ -107,7 +107,7 @@ export async function restoreCache(
  * Restores cache using the legacy Cache Service
  *
  * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
  * @param options cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
@@ -205,7 +205,7 @@ async function restoreCacheV1(
  * Restores cache using Cache Service v2
  *
  * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching
  * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for key
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
@@ -463,6 +463,8 @@ async function saveCacheV2(
   enableCrossOsArchive = false
 ): Promise<number> {
   // Override UploadOptions to force the use of Azure
+  // ...options goes first because we want to override the default values
+  // set in UploadOptions with these specific figures
   options = {
     ...options,
     uploadChunkSize: 64 * 1024 * 1024, // 64 MiB
