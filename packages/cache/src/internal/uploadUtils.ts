@@ -119,6 +119,16 @@ export class UploadProgress {
   }
 }
 
+/**
+ * Uploads a cache archive directly to Azure Blob Storage using the Azure SDK.
+ * This function will display progress information to the console. Concurrency of the
+ * upload is determined by the calling functions.
+ *
+ * @param signedUploadURL
+ * @param archivePath
+ * @param options
+ * @returns
+ */
 export async function uploadCacheArchiveSDK(
   signedUploadURL: string,
   archivePath: string,
@@ -151,7 +161,7 @@ export async function uploadCacheArchiveSDK(
     // TODO: better management of non-retryable errors
     if (response._response.status >= 400) {
       throw new InvalidResponseError(
-        `Upload failed with status code ${response._response.status}`
+        `uploadCacheArchiveSDK: upload failed with status code ${response._response.status}`
       )
     }
 
