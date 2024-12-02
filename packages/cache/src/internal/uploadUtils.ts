@@ -126,11 +126,7 @@ export async function uploadCacheArchiveSDK(
 ): Promise<BlobUploadCommonResponse> {
   const blobClient: BlobClient = new BlobClient(signedUploadURL)
   const blockBlobClient: BlockBlobClient = blobClient.getBlockBlobClient()
-
-  const properties = await blobClient.getProperties()
-  const contentLength = properties.contentLength ?? -1
-
-  const uploadProgress = new UploadProgress(contentLength)
+  const uploadProgress = new UploadProgress(options?.archiveSizeBytes ?? 0)
 
   // Specify data transfer options
   const uploadOptions: BlockBlobParallelUploadOptions = {
@@ -161,7 +157,9 @@ export async function uploadCacheArchiveSDK(
 
     return response
   } catch (error) {
-    core.debug(`Error uploading cache archive: ${error}`)
+    core.warning(
+      `uploadCacheArchiveSDK: internal error uploading cache archive: ${error.message}`
+    )
     throw error
   } finally {
     uploadProgress.stopDisplayTimer()

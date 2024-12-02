@@ -509,6 +509,10 @@ async function saveCacheV2(
       )
     }
 
+    // Set the archive size in the options, will be used to display the upload
+    // progress
+    options.archiveSizeBytes = archiveFileSize
+
     core.debug('Reserving Cache')
     const version = utils.getCacheVersion(
       paths,
@@ -561,7 +565,6 @@ async function saveCacheV2(
     } else {
       core.warning(`Failed to save: ${typedError.message}`)
     }
-    throw error
   } finally {
     // Try to delete the archive to save space
     try {

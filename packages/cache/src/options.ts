@@ -24,6 +24,10 @@ export interface UploadOptions {
    * @default 32MB
    */
   uploadChunkSize?: number
+  /**
+   * Archive size in bytes
+   */
+  archiveSizeBytes?: number
 }
 
 /**
