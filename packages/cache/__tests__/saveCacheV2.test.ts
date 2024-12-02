@@ -1,13 +1,13 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import { saveCache } from '../src/cache'
+import {saveCache} from '../src/cache'
 import * as cacheUtils from '../src/internal/cacheUtils'
-import { CacheFilename, CompressionMethod } from '../src/internal/constants'
+import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as config from '../src/internal/config'
 import * as tar from '../src/internal/tar'
-import { CacheServiceClientJSON } from '../src/generated/results/api/v1/cache.twirp'
+import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
-import { UploadOptions } from '../src/options'
+import {UploadOptions} from '../src/options'
 
 let logDebugMock: jest.SpyInstance
 
@@ -27,11 +27,11 @@ jest.mock('@azure/storage-blob', () => ({
 
 beforeAll(() => {
   process.env['ACTIONS_RUNTIME_TOKEN'] = 'token'
-  jest.spyOn(console, 'log').mockImplementation(() => { })
-  jest.spyOn(core, 'debug').mockImplementation(() => { })
-  jest.spyOn(core, 'info').mockImplementation(() => { })
-  jest.spyOn(core, 'warning').mockImplementation(() => { })
-  jest.spyOn(core, 'error').mockImplementation(() => { })
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+  jest.spyOn(core, 'debug').mockImplementation(() => {})
+  jest.spyOn(core, 'info').mockImplementation(() => {})
+  jest.spyOn(core, 'warning').mockImplementation(() => {})
+  jest.spyOn(core, 'error').mockImplementation(() => {})
   jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async filePaths => {
     return filePaths.map(x => path.resolve(x))
   })
@@ -99,7 +99,7 @@ test('create cache entry failure', async () => {
 
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
-    .mockReturnValue(Promise.resolve({ ok: false, signedUploadUrl: '' }))
+    .mockReturnValue(Promise.resolve({ok: false, signedUploadUrl: ''}))
 
   const createTarMock = jest.spyOn(tar, 'createTar')
   const finalizeCacheEntryMock = jest.spyOn(
@@ -149,7 +149,7 @@ test('save cache fails if a signedUploadURL was not passed', async () => {
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ ok: true, signedUploadUrl: signedUploadURL })
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
     )
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -207,7 +207,7 @@ test('finalize save cache failure', async () => {
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ ok: true, signedUploadUrl: signedUploadURL })
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
     )
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -227,7 +227,7 @@ test('finalize save cache failure', async () => {
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ ok: false, entryId: '' }))
+    .mockReturnValue(Promise.resolve({ok: false, entryId: ''}))
 
   const cacheId = await saveCache([paths], key, options)
 
@@ -286,7 +286,7 @@ test('save with valid inputs uploads a cache', async () => {
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ ok: true, signedUploadUrl: signedUploadURL })
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
     )
 
   const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
@@ -299,7 +299,7 @@ test('save with valid inputs uploads a cache', async () => {
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ ok: true, entryId: cacheId.toString() }))
+    .mockReturnValue(Promise.resolve({ok: true, entryId: cacheId.toString()}))
 
   const expectedCacheId = await saveCache([paths], key)
 
