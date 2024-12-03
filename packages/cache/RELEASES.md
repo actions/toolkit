@@ -1,6 +1,21 @@
 # @actions/cache Releases
 
+### 4.0.0
+
+#### Important changes
+
+- The cache backend service has been rewritten from the ground up for improved performance and reliability. This release integrates with the new cache service (v2) APIs. The new service will gradually rollout following the deprecation period. The legacy service will be sunset on **February 1st, 2025**.
+- Changes in this release are **fully backward compatible**. Upgrading to this version should not break or require any changes to your workflows beyond updating your `package.json` to this version.
+- **All previous versions of this package will be deprecated**. We recommend upgrading to this version as soon as possible before **February 1st, 2025.**
+
+#### Minor changes
+
+- Update `@actions/core` to `1.11.0`
+- Update `semver` `6.3.1`
+- Add `twirp-ts` `2.5.0` to dependencies
+
 ### 3.3.0
+
 - Update `@actions/core` to `1.11.1`
 - Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824), [#1842](https://github.com/actions/toolkit/pull/1842)
 
