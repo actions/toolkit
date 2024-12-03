@@ -5,8 +5,8 @@
 #### Important changes
 
 - The cache backend service has been rewritten from the ground up for improved performance and reliability. This release integrates with the new cache service (v2) APIs. The new service will gradually rollout following the deprecation period. The legacy service will be sunset on **February 1st, 2025**.
-- Changes in this release are **fully backward compatible**. Upgrading to this version should not break or require any changes to your workflows beyond updating your `package.json` to this version.
-- **All previous versions of this package will be deprecated**. We recommend upgrading to this version as soon as possible before **February 1st, 2025.**
+- Changes in this release are **fully backward compatible**. Upgrading to version `4.0.0` should not break or require any changes to your workflows beyond updating your `package.json` to this version.
+- **All previous versions of this package will be deprecated**. We recommend upgrading to version `4.0.0` as soon as possible before **February 1st, 2025.**
 
 #### Minor changes
 
