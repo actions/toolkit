@@ -18,6 +18,8 @@ If you do not upgrade, all workflow runs using any of the deprecated [@actions/c
 
 Upgrading to the recommended version should not break or require any changes to your workflows beyond updating your `package.json` to version `4.0.0`.
 
+Read more about change & access the migration guide: [reference to the announcement](TBD).
+
 ## Usage
 
 This package is used by the v2+ versions of our first party cache action. You can find an example implementation in the cache repo [here](https://github.com/actions/cache).
