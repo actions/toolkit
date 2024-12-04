@@ -6,11 +6,17 @@ See ["Caching dependencies to speed up workflows"](https://docs.github.com/en/ac
 
 Note that GitHub will remove any cache entries that have not been accessed in over 7 days. There is no limit on the number of caches you can store, but the total size of all caches in a repository is limited to 10 GB. If you exceed this limit, GitHub will save your cache but will begin evicting caches until the total size is less than 10 GB.
 
-## Important changes
+## ⚠️ Important changes
 
-- The cache backend service has been rewritten from the ground up for improved performance and reliability. This release integrates with the new cache service (v2) APIs. The new service will gradually rollout following the deprecation period. The legacy service will be sunset on **February 1st, 2025**.
-- Changes in the `4.0.0` release are **fully backward compatible**. Upgrading to version `4.0.0` should not break or require any changes to your workflows beyond updating your `package.json` to this version.
-- **All previous versions of this package will be deprecated**. We recommend upgrading to version `4.0.0` as soon as possible before **February 1st, 2025.**
+The cache backend service has been rewritten from the ground up for improved performance and reliability. The [@actions/cache](https://github.com/actions/toolkit/tree/main/packages/cache) package now integrates with the new cache service (v2) APIs.
+
+The new service will gradually roll out as of **February 1st, 2025**. The legacy service will also be sunset on the same date. Changes in this release are **fully backward compatible**.
+
+**All previous versions of this package will be deprecated**. We recommend upgrading to version `4.0.0` as soon as possible before **February 1st, 2025.**
+
+If you do not upgrade, all workflow runs using any of the deprecated [@actions/cache](https://github.com/actions/toolkit/tree/main/packages/cache) packages will fail.
+
+Upgrading to the recommended version should not break or require any changes to your workflows beyond updating your `package.json` to version `4.0.0`.
 
 ## Usage
 
