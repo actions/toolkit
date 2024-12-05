@@ -2,6 +2,8 @@ import {StringDecoder} from 'string_decoder'
 import {ExecOptions, ExecOutput, ExecListeners} from './interfaces'
 import * as tr from './toolrunner'
 
+export {CommandRunner, createCommandRunner} from './command-runner'
+
 export {ExecOptions, ExecOutput, ExecListeners}
 
 /**
