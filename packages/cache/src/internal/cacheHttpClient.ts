@@ -16,7 +16,8 @@ import {
   ReserveCacheRequest,
   ReserveCacheResponse,
   ITypedResponseWithError,
-  ArtifactCacheList
+  ArtifactCacheList,
+  DeleteCacheResponse
 } from './contracts'
 import {
   downloadCacheHttpClient,
@@ -198,6 +199,37 @@ export async function reserveCache(
       reserveCacheRequest
     )
   )
+  return response
+}
+
+export async function deleteCacheWithKey(
+  key: string,
+  ref?: string
+): Promise<ITypedResponseWithError<DeleteCacheResponse>> {
+  const httpClient = createHttpClient()
+
+  const response = await retryTypedResponse('deleteCache', async () =>
+    httpClient.deleteJson<DeleteCacheResponse>(
+      ref != null
+        ? getCacheApiUrl(`caches?key=${key}&ref=${ref}`)
+        : getCacheApiUrl(`caches?key=${key}`)
+    )
+  )
+
+  return response
+}
+
+export async function deleteCacheWithId(
+  id: number
+): Promise<ITypedResponseWithError<DeleteCacheResponse>> {
+  const httpClient = createHttpClient()
+
+  const response = await retryTypedResponse('deleteCache', async () =>
+    httpClient.deleteJson<DeleteCacheResponse>(
+      getCacheApiUrl(`caches/${id.toString()}`)
+    )
+  )
+
   return response
 }
 
