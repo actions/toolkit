@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macOS-latest]
+        compression: [auto, gzip, zstd, none]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}
@@ -55,8 +56,14 @@ jobs:
 
     # We're using node -e to call the functions directly available in the @actions/cache package
     - name: Save cache using saveCache()
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+      run: >
+        node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(
+          ['test-cache','~/test-cache'],
+          'test-${{ runner.os }}-${{ github.run_id }}',
+          undefined,
+          false,
+          '${{ matrix.compression }}'
+        ))"
 
     - name: Delete cache folders before restoring
       shell: bash
@@ -65,8 +72,15 @@ jobs:
         rm -rf ~/test-cache
 
     - name: Restore cache using restoreCache() with http-client
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}))"
+      run: >
+        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(
+          ['test-cache','~/test-cache'],
+          'test-${{ runner.os }}-${{ github.run_id }}',
+          [],
+          {useAzureSdk: false},
+          false,
+          '${{ matrix.compression }}'
+          ))"
 
     - name: Verify cache restored with http-client
       shell: bash
