@@ -110,6 +110,7 @@ export async function uploadArtifact(
 
   return {
     size: uploadResult.uploadSize,
+    digest: uploadResult.sha256Hash,
     id: Number(artifactId)
   }
 }

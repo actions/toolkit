@@ -281,7 +281,7 @@ describe('upload-artifact', () => {
       }
     )
 
-    const {id, size} = await uploadArtifact(
+    const {id, size, digest} = await uploadArtifact(
       fixtures.inputs.artifactName,
       fixtures.files.map(file =>
         path.join(fixtures.uploadDirectory, file.name)
@@ -291,6 +291,8 @@ describe('upload-artifact', () => {
 
     expect(id).toBe(1)
     expect(size).toBe(loadedBytes)
+    expect(digest).toBeDefined()
+    expect(digest).toHaveLength(64)
 
     const extractedDirectory = path.join(
       fixtures.uploadDirectory,
