@@ -16,11 +16,11 @@ jobs:
 
     strategy:
       matrix:
-        runs-on: [ubuntu-latest, macos-latest, windows-latest]
+        runs-on: [macos-latest]
 
         # Node 18 is the current default Node version in hosted runners, so users may still use the toolkit with it when running tests (see https://github.com/actions/toolkit/issues/1841)
         # Node 20 is the currently support Node version for actions - https://docs.github.com/actions/sharing-automations/creating-actions/metadata-syntax-for-github-actions#runsusing-for-javascript-actions
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}
@@ -44,12 +44,18 @@ jobs:
       run: npm run build
 
     - name: npm test
-      run: npm test -- --runInBand --forceExit
       env:
         GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        npx jest --testPathPattern packages/exec/__tests__/exec.test.ts -t "Handles child process holding streams open"
 
-    - name: Lint
-      run: npm run lint
+    - name: sysdiagnose
+      if: ${{ failure() }}
+      run: |
+        sudo sysdiagnose -u -f ${RUNNER_TEMP} -A sysdiagnose.tar.gz
 
-    - name: Format
-      run: npm run format-check
+    - uses: actions/upload-artifact@v4
+      if: ${{ failure() }}
+      with:
+        name: sysdiagnose
+        path: /Users/runner/work/_temp/sysdiagnose.tar.gz
