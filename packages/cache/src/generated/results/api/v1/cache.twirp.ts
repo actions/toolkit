@@ -19,8 +19,6 @@ import {
   DeleteCacheEntryResponse,
   ListCacheEntriesRequest,
   ListCacheEntriesResponse,
-  LookupCacheEntryRequest,
-  LookupCacheEntryResponse,
 } from "./cache";
 
 //==================================//
@@ -52,9 +50,6 @@ export interface CacheServiceClient {
   ListCacheEntries(
     request: ListCacheEntriesRequest
   ): Promise<ListCacheEntriesResponse>;
-  LookupCacheEntry(
-    request: LookupCacheEntryRequest
-  ): Promise<LookupCacheEntryResponse>;
 }
 
 export class CacheServiceClientJSON implements CacheServiceClient {
@@ -66,7 +61,6 @@ export class CacheServiceClientJSON implements CacheServiceClient {
     this.GetCacheEntryDownloadURL.bind(this);
     this.DeleteCacheEntry.bind(this);
     this.ListCacheEntries.bind(this);
-    this.LookupCacheEntry.bind(this);
   }
   CreateCacheEntry(
     request: CreateCacheEntryRequest
@@ -167,26 +161,6 @@ export class CacheServiceClientJSON implements CacheServiceClient {
       })
     );
   }
-
-  LookupCacheEntry(
-    request: LookupCacheEntryRequest
-  ): Promise<LookupCacheEntryResponse> {
-    const data = LookupCacheEntryRequest.toJson(request, {
-      useProtoFieldName: true,
-      emitDefaultValues: false,
-    });
-    const promise = this.rpc.request(
-      "github.actions.results.api.v1.CacheService",
-      "LookupCacheEntry",
-      "application/json",
-      data as object
-    );
-    return promise.then((data) =>
-      LookupCacheEntryResponse.fromJson(data as any, {
-        ignoreUnknownFields: true,
-      })
-    );
-  }
 }
 
 export class CacheServiceClientProtobuf implements CacheServiceClient {
@@ -198,7 +172,6 @@ export class CacheServiceClientProtobuf implements CacheServiceClient {
     this.GetCacheEntryDownloadURL.bind(this);
     this.DeleteCacheEntry.bind(this);
     this.ListCacheEntries.bind(this);
-    this.LookupCacheEntry.bind(this);
   }
   CreateCacheEntry(
     request: CreateCacheEntryRequest
@@ -274,21 +247,6 @@ export class CacheServiceClientProtobuf implements CacheServiceClient {
       ListCacheEntriesResponse.fromBinary(data as Uint8Array)
     );
   }
-
-  LookupCacheEntry(
-    request: LookupCacheEntryRequest
-  ): Promise<LookupCacheEntryResponse> {
-    const data = LookupCacheEntryRequest.toBinary(request);
-    const promise = this.rpc.request(
-      "github.actions.results.api.v1.CacheService",
-      "LookupCacheEntry",
-      "application/protobuf",
-      data
-    );
-    return promise.then((data) =>
-      LookupCacheEntryResponse.fromBinary(data as Uint8Array)
-    );
-  }
 }
 
 //==================================//
@@ -316,10 +274,6 @@ export interface CacheServiceTwirp<T extends TwirpContext = TwirpContext> {
     ctx: T,
     request: ListCacheEntriesRequest
   ): Promise<ListCacheEntriesResponse>;
-  LookupCacheEntry(
-    ctx: T,
-    request: LookupCacheEntryRequest
-  ): Promise<LookupCacheEntryResponse>;
 }
 
 export enum CacheServiceMethod {
@@ -328,7 +282,6 @@ export enum CacheServiceMethod {
   GetCacheEntryDownloadURL = "GetCacheEntryDownloadURL",
   DeleteCacheEntry = "DeleteCacheEntry",
   ListCacheEntries = "ListCacheEntries",
-  LookupCacheEntry = "LookupCacheEntry",
 }
 
 export const CacheServiceMethodList = [
@@ -337,7 +290,6 @@ export const CacheServiceMethodList = [
   CacheServiceMethod.GetCacheEntryDownloadURL,
   CacheServiceMethod.DeleteCacheEntry,
   CacheServiceMethod.ListCacheEntries,
-  CacheServiceMethod.LookupCacheEntry,
 ];
 
 export function createCacheServiceServer<T extends TwirpContext = TwirpContext>(
@@ -451,26 +403,6 @@ function matchCacheServiceRoute<T extends TwirpContext = TwirpContext>(
         ctx = { ...ctx, methodName: "ListCacheEntries" };
         await events.onMatch(ctx);
         return handleCacheServiceListCacheEntriesRequest(
-          ctx,
-          service,
-          data,
-          interceptors
-        );
-      };
-    case "LookupCacheEntry":
-      return async (
-        ctx: T,
-        service: CacheServiceTwirp,
-        data: Buffer,
-        interceptors?: Interceptor<
-          T,
-          LookupCacheEntryRequest,
-          LookupCacheEntryResponse
-        >[]
-      ) => {
-        ctx = { ...ctx, methodName: "LookupCacheEntry" };
-        await events.onMatch(ctx);
-        return handleCacheServiceLookupCacheEntryRequest(
           ctx,
           service,
           data,
@@ -638,39 +570,6 @@ function handleCacheServiceListCacheEntriesRequest<
       );
     case TwirpContentType.Protobuf:
       return handleCacheServiceListCacheEntriesProtobuf<T>(
-        ctx,
-        service,
-        data,
-        interceptors
-      );
-    default:
-      const msg = "unexpected Content-Type";
-      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
-  }
-}
-
-function handleCacheServiceLookupCacheEntryRequest<
-  T extends TwirpContext = TwirpContext
->(
-  ctx: T,
-  service: CacheServiceTwirp,
-  data: Buffer,
-  interceptors?: Interceptor<
-    T,
-    LookupCacheEntryRequest,
-    LookupCacheEntryResponse
-  >[]
-): Promise<string | Uint8Array> {
-  switch (ctx.contentType) {
-    case TwirpContentType.JSON:
-      return handleCacheServiceLookupCacheEntryJSON<T>(
-        ctx,
-        service,
-        data,
-        interceptors
-      );
-    case TwirpContentType.Protobuf:
-      return handleCacheServiceLookupCacheEntryProtobuf<T>(
         ctx,
         service,
         data,
@@ -920,54 +819,6 @@ async function handleCacheServiceListCacheEntriesJSON<
     }) as string
   );
 }
-
-async function handleCacheServiceLookupCacheEntryJSON<
-  T extends TwirpContext = TwirpContext
->(
-  ctx: T,
-  service: CacheServiceTwirp,
-  data: Buffer,
-  interceptors?: Interceptor<
-    T,
-    LookupCacheEntryRequest,
-    LookupCacheEntryResponse
-  >[]
-) {
-  let request: LookupCacheEntryRequest;
-  let response: LookupCacheEntryResponse;
-
-  try {
-    const body = JSON.parse(data.toString() || "{}");
-    request = LookupCacheEntryRequest.fromJson(body, {
-      ignoreUnknownFields: true,
-    });
-  } catch (e) {
-    if (e instanceof Error) {
-      const msg = "the json request could not be decoded";
-      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
-    }
-  }
-
-  if (interceptors && interceptors.length > 0) {
-    const interceptor = chainInterceptors(...interceptors) as Interceptor<
-      T,
-      LookupCacheEntryRequest,
-      LookupCacheEntryResponse
-    >;
-    response = await interceptor(ctx, request!, (ctx, inputReq) => {
-      return service.LookupCacheEntry(ctx, inputReq);
-    });
-  } else {
-    response = await service.LookupCacheEntry(ctx, request!);
-  }
-
-  return JSON.stringify(
-    LookupCacheEntryResponse.toJson(response, {
-      useProtoFieldName: true,
-      emitDefaultValues: false,
-    }) as string
-  );
-}
 async function handleCacheServiceCreateCacheEntryProtobuf<
   T extends TwirpContext = TwirpContext
 >(
@@ -1166,44 +1017,4 @@ async function handleCacheServiceListCacheEntriesProtobuf<
   }
 
   return Buffer.from(ListCacheEntriesResponse.toBinary(response));
-}
-
-async function handleCacheServiceLookupCacheEntryProtobuf<
-  T extends TwirpContext = TwirpContext
->(
-  ctx: T,
-  service: CacheServiceTwirp,
-  data: Buffer,
-  interceptors?: Interceptor<
-    T,
-    LookupCacheEntryRequest,
-    LookupCacheEntryResponse
-  >[]
-) {
-  let request: LookupCacheEntryRequest;
-  let response: LookupCacheEntryResponse;
-
-  try {
-    request = LookupCacheEntryRequest.fromBinary(data);
-  } catch (e) {
-    if (e instanceof Error) {
-      const msg = "the protobuf request could not be decoded";
-      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
-    }
-  }
-
-  if (interceptors && interceptors.length > 0) {
-    const interceptor = chainInterceptors(...interceptors) as Interceptor<
-      T,
-      LookupCacheEntryRequest,
-      LookupCacheEntryResponse
-    >;
-    response = await interceptor(ctx, request!, (ctx, inputReq) => {
-      return service.LookupCacheEntry(ctx, inputReq);
-    });
-  } else {
-    response = await service.LookupCacheEntry(ctx, request!);
-  }
-
-  return Buffer.from(LookupCacheEntryResponse.toBinary(response));
 }
