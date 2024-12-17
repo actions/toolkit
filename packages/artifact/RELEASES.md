@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.2.0
+
+- Return artifact digest on upload [#1896](https://github.com/actions/toolkit/pull/1896)
+
 ### 2.1.11
 
 - Fixed a bug with relative symlinks resolution [#1844](https://github.com/actions/toolkit/pull/1844)

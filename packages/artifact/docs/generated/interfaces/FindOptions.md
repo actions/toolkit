@@ -27,4 +27,4 @@ The criteria for finding Artifact(s) out of the scope of the current run.
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:131](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L131)
+[src/internal/shared/interfaces.ts:136](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L136)

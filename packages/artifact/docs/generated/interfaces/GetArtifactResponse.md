@@ -20,4 +20,4 @@ Metadata about the artifact that was found
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:57](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L57)
+[src/internal/shared/interfaces.ts:62](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L62)
