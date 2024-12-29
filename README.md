@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="res/at-logo.png">
 </p>
@@ -234,3 +233,9 @@ We welcome contributions.  See [how to contribute](.github/CONTRIBUTING.md).
 ## Code of Conduct
 
 See [our code of conduct](CODE_OF_CONDUCT.md).
+
+## References
+
+RFC 3492: Punycode, a Bootstring encoding of Unicode for Internationalized Domain Names in Applications (IDNA). Punycode uniquely and reversibly transforms a Unicode string into an ASCII string. This is relevant to the repository as it provides a standardized way to handle internationalized domain names.
+
+[Read RFC 3492](https://www.rfc-editor.org/rfc/rfc3492.txt)
