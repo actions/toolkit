@@ -65,6 +65,7 @@ async function getTarArgs(
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
+    compressionMethod !== CompressionMethod.Pigz &&
     IS_WINDOWS
 
   // Method specific args
@@ -146,6 +147,7 @@ async function getCommands(
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
+    compressionMethod !== CompressionMethod.Pigz &&
     IS_WINDOWS
 
   if (BSD_TAR_ZSTD && type !== 'create') {
@@ -171,14 +173,12 @@ async function getDecompressionProgram(
   compressionMethod: CompressionMethod,
   archivePath: string
 ): Promise<string[]> {
-  // -d: Decompress.
-  // unzstd is equivalent to 'zstd -d'
-  // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
-  // Using 30 here because we also support 32-bit self-hosted runners.
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
+    compressionMethod !== CompressionMethod.Pigz &&
     IS_WINDOWS
+
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
@@ -199,6 +199,8 @@ async function getDecompressionProgram(
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
         : ['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd']
+    case CompressionMethod.Pigz:
+      return ['--use-compress-program', IS_WINDOWS ? '"pigz -d"' : 'pigz -d']
     default:
       return ['-z']
   }
@@ -218,7 +220,9 @@ async function getCompressionProgram(
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
+    compressionMethod !== CompressionMethod.Pigz &&
     IS_WINDOWS
+
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
@@ -239,6 +243,8 @@ async function getCompressionProgram(
             TarFilename
           ]
         : ['--use-compress-program', IS_WINDOWS ? '"zstd -T0"' : 'zstdmt']
+    case CompressionMethod.Pigz:
+      return ['--use-compress-program', 'pigz']
     default:
       return ['-z']
   }
