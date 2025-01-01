@@ -98,21 +98,29 @@ async function getVersion(
   return versionOutput
 }
 
-// Use zstandard if possible to maximize cache performance
+// Try pigz first for best performance, then zstandard, then fallback to gzip
 export async function getCompressionMethod(): Promise<CompressionMethod> {
-  const versionOutput = await getVersion('zstd', ['--quiet'])
-  const version = semver.clean(versionOutput)
-  core.debug(`zstd version: ${version}`)
+  // First try pigz
+  const pigzOutput = await getVersion('pigz')
+  if (pigzOutput !== '') {
+    core.debug(`pigz version: ${pigzOutput}`)
+    return CompressionMethod.Pigz
+  }
 
-  if (versionOutput === '') {
-    return CompressionMethod.Gzip
-  } else {
+  // Then try zstd
+  const zstdOutput = await getVersion('zstd', ['--quiet'])
+  if (zstdOutput !== '') {
+    const version = semver.clean(zstdOutput)
+    core.debug(`zstd version: ${version}`)
     return CompressionMethod.ZstdWithoutLong
   }
+
+  // Fallback to gzip
+  return CompressionMethod.Gzip
 }
 
 export function getCacheFileName(compressionMethod: CompressionMethod): string {
-  return compressionMethod === CompressionMethod.Gzip
+  return (compressionMethod === CompressionMethod.Gzip || compressionMethod === CompressionMethod.Pigz)
     ? CacheFilename.Gzip
     : CacheFilename.Zstd
 }
