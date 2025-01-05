@@ -301,9 +301,7 @@ describe('@actions/core', () => {
         line 2,
 
         comma 1, comma 2,,
-      `, {
-        trimWhitespace: false
-      })
+      `)
     ).toEqual(['line 1', 'line 2', 'comma 1', 'comma 2'])
   })
 
