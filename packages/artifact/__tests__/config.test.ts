@@ -85,6 +85,14 @@ describe('uploadConcurrencyEnv', () => {
     }).toThrow()
   })
 
+  it('should throw if ACTIONS_UPLOAD_CONCURRENCY is < 1', () => {
+    ;(os.cpus as jest.Mock).mockReturnValue(new Array(4))
+    process.env.ACTIONS_UPLOAD_CONCURRENCY = '0'
+    expect(() => {
+      config.getConcurrency()
+    }).toThrow()
+  })
+
   it('cannot go over currency cap when override value is greater', () => {
     ;(os.cpus as jest.Mock).mockReturnValue(new Array(4))
     process.env.ACTIONS_UPLOAD_CONCURRENCY = '40'

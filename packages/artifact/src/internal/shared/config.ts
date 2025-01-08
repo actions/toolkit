@@ -61,7 +61,7 @@ export function getConcurrency(): number {
   const concurrencyOverride = process.env['ACTIONS_UPLOAD_CONCURRENCY']
   if (concurrencyOverride) {
     const concurrency = parseInt(concurrencyOverride)
-    if (isNaN(concurrency)) {
+    if (isNaN(concurrency) || concurrency < 1) {
       throw new Error(
         'Invalid value set for ACTIONS_UPLOAD_CONCURRENCY env variable'
       )
