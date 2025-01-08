@@ -1,4 +1,5 @@
 import os from 'os'
+import {info} from '@actions/core'
 
 // Used for controlling the highWaterMark value of the zip that is being streamed
 // The same value is used as the chunk size that is use during upload to blob storage
@@ -44,20 +45,51 @@ export function getGitHubWorkspaceDir(): string {
   return ghWorkspaceDir
 }
 
-// From testing, setting this value to 10 yielded best results in terms of reliability and there are no impact on performance either
+// Mimics behavior of azcopy: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-optimize
+// If your machine has fewer than 5 CPUs, then the value of this variable is set to 32.
+// Otherwise, the default value is equal to 16 multiplied by the number of CPUs. The maximum value of this variable is 300.
+// This value can be lowered with ACTIONS_UPLOAD_CONCURRENCY variable.
 export function getConcurrency(): number {
-  return 10
+  const numCPUs = os.cpus().length
+  let concurrencyCap = 32
+
+  if (numCPUs > 4) {
+    const concurrency = 16 * numCPUs
+    concurrencyCap = concurrency > 300 ? 300 : concurrency
+  }
+
+  const concurrencyOverride = process.env['ACTIONS_UPLOAD_CONCURRENCY']
+  if (concurrencyOverride) {
+    const concurrency = parseInt(concurrencyOverride)
+    if (isNaN(concurrency)) {
+      throw new Error(
+        'Invalid value set for ACTIONS_UPLOAD_CONCURRENCY env variable'
+      )
+    }
+
+    if (concurrency < concurrencyCap) {
+      return concurrency
+    }
+
+    info(
+      `ACTIONS_UPLOAD_CONCURRENCY is higher than the cap of ${concurrencyCap} based on the number of cpus. Lowering it to the cap.`
+    )
+  }
+
+  return concurrencyCap
 }
 
 export function getUploadChunkTimeout(): number {
-  const timeoutVar = process.env['ACTIONS_UPLOAD_TIMEOUT_MS'] 
+  const timeoutVar = process.env['ACTIONS_UPLOAD_TIMEOUT_MS']
   if (!timeoutVar) {
     return 300000 // 5 minutes
   }
 
   const timeout = parseInt(timeoutVar)
   if (isNaN(timeout)) {
-    throw new Error('Invalid value set for ACTIONS_UPLOAD_TIMEOUT_MS env variable')
+    throw new Error(
+      'Invalid value set for ACTIONS_UPLOAD_TIMEOUT_MS env variable'
+    )
   }
 
   return timeout
