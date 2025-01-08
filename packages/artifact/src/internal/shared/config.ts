@@ -44,20 +44,21 @@ export function getGitHubWorkspaceDir(): string {
   return ghWorkspaceDir
 }
 
-// Mimics behavior of azcopy: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-optimize
-// If your machine has fewer than 5 CPUs, then the value of this variable is set to 32.
-// Otherwise, the default value is equal to 16 multiplied by the number of CPUs. The maximum value of this variable is 300.
+// From testing, setting this value to 10 yielded best results in terms of reliability and there are no impact on performance either
 export function getConcurrency(): number {
-  const numCPUs = os.cpus().length
-
-  if (numCPUs <= 4) {
-    return 32
-  }
-
-  const concurrency = 16 * numCPUs
-  return concurrency > 300 ? 300 : concurrency
+  return 10
 }
 
 export function getUploadChunkTimeout(): number {
-  return 300_000 // 5 minutes
+  const timeoutVar = process.env['ACTIONS_UPLOAD_TIMEOUT_MS'] 
+  if (!timeoutVar) {
+    return 300000 // 5 minutes
+  }
+
+  const timeout = parseInt(timeoutVar)
+  if (isNaN(timeout)) {
+    throw new Error('Invalid value set for ACTIONS_UPLOAD_TIMEOUT_MS env variable')
+  }
+
+  return timeout
 }
