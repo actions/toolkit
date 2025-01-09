@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.2.1
+
+- Add `ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY` and `ACTIONS_ARTIFACT_UPLOAD_TIMEOUT_MS` environment variables [#1928](https://github.com/actions/toolkit/pull/1928)
+
 ### 2.2.0
 
 - Return artifact digest on upload [#1896](https://github.com/actions/toolkit/pull/1896)
