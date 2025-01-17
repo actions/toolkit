@@ -1,10 +1,10 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import {saveCache} from '../src/cache'
+import {saveCache, setFileSizeLimit} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import * as config from '../src/internal/config'
-import {CacheFilename, CompressionMethod} from '../src/internal/constants'
+import {CacheFilename, CacheFileSizeLimit, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import {TypedResponse} from '@actions/http-client/lib/interfaces'
 import {
@@ -19,6 +19,7 @@ jest.mock('../src/internal/config')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
+  setFileSizeLimit(CacheFileSizeLimit)
   jest.spyOn(console, 'log').mockImplementation(() => {})
   jest.spyOn(core, 'debug').mockImplementation(() => {})
   jest.spyOn(core, 'info').mockImplementation(() => {})
@@ -66,6 +67,42 @@ test('save with large cache outputs should fail', async () => {
   expect(logWarningMock).toHaveBeenCalledTimes(1)
   expect(logWarningMock).toHaveBeenCalledWith(
     'Failed to save: Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
+  )
+
+  const archiveFolder = '/foo/bar'
+
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(createTarMock).toHaveBeenCalledWith(
+    archiveFolder,
+    cachePaths,
+    compression
+  )
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
+test('save with small cache outputs should fail on changed limit', async () => {
+  setFileSizeLimit(100 * 1024 * 1024) // set default limit to 100 MB
+  const filePath = 'node_modules'
+  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(filePath)]
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  const logWarningMock = jest.spyOn(core, 'warning')
+
+  const cacheSize = 1024 * 1024 * 1024 //1GB, over the 100MB limit
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(cacheSize)
+  const compression = CompressionMethod.Gzip
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValueOnce(Promise.resolve(compression))
+
+  const cacheId = await saveCache([filePath], primaryKey)
+  expect(cacheId).toBe(-1)
+  expect(logWarningMock).toHaveBeenCalledTimes(1)
+  expect(logWarningMock).toHaveBeenCalledWith(
+    'Failed to save: Cache size of ~1024 MB (1073741824 B) is over the 100MB limit, not saving cache.'
   )
 
   const archiveFolder = '/foo/bar'
