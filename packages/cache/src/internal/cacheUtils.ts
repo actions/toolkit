@@ -13,6 +13,8 @@ import {
   GnuTarPathOnWindows
 } from './constants'
 
+const versionSalt = '1.0'
+
 // From https://github.com/actions/toolkit/blob/main/packages/tool-cache/src/tool-cache.ts#L23
 export async function createTempDirectory(): Promise<string> {
   const IS_WINDOWS = process.platform === 'win32'
@@ -131,15 +133,35 @@ export function assertDefined<T>(name: string, value?: T): T {
   return value
 }
 
-export function isGhes(): boolean {
-  const ghUrl = new URL(
-    process.env['GITHUB_SERVER_URL'] || 'https://github.com'
-  )
+export function getCacheVersion(
+  paths: string[],
+  compressionMethod?: CompressionMethod,
+  enableCrossOsArchive = false
+): string {
+  // don't pass changes upstream
+  const components = paths.slice()
 
-  const hostname = ghUrl.hostname.trimEnd().toUpperCase()
-  const isGitHubHost = hostname === 'GITHUB.COM'
-  const isGheHost =
-    hostname.endsWith('.GHE.COM') || hostname.endsWith('.GHE.LOCALHOST')
+  // Add compression method to cache version to restore
+  // compressed cache as per compression method
+  if (compressionMethod) {
+    components.push(compressionMethod)
+  }
 
-  return !isGitHubHost && !isGheHost
+  // Only check for windows platforms if enableCrossOsArchive is false
+  if (process.platform === 'win32' && !enableCrossOsArchive) {
+    components.push('windows-only')
+  }
+
+  // Add salt to cache version to support breaking changes in cache entry
+  components.push(versionSalt)
+
+  return crypto.createHash('sha256').update(components.join('|')).digest('hex')
+}
+
+export function getRuntimeToken(): string {
+  const token = process.env['ACTIONS_RUNTIME_TOKEN']
+  if (!token) {
+    throw new Error('Unable to get the ACTIONS_RUNTIME_TOKEN env variable')
+  }
+  return token
 }
