@@ -32,5 +32,12 @@
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@actions/exec": "^1.1.1",
+    "@actions/glob": "^0.5.0",
+    "@actions/http-client": "^2.2.3",
+    "@actions/io": "^1.1.3",
+    "@actions/tool-cache": "^2.0.2"
   }
 }
