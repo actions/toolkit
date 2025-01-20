@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "useUnknownInCatchVariables": false,
+    "sourceMap": true,
+  },
+  "include": [
+    "./src"
+  ]
+}
