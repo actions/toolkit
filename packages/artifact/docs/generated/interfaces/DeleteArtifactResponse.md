@@ -20,4 +20,4 @@ The id of the artifact that was deleted
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:158](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L158)
+[src/internal/shared/interfaces.ts:163](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L163)

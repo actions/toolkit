@@ -61,7 +61,7 @@ single DeleteArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:248](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L248)
+[src/internal/client.ts:248](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/client.ts#L248)
 
 ___
 
@@ -92,7 +92,7 @@ single DownloadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:138](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L138)
+[src/internal/client.ts:138](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/client.ts#L138)
 
 ___
 
@@ -127,7 +127,7 @@ If there are multiple artifacts with the same name in the same workflow run this
 
 #### Defined in
 
-[src/internal/client.ts:212](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L212)
+[src/internal/client.ts:212](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/client.ts#L212)
 
 ___
 
@@ -159,7 +159,7 @@ ListArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:176](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L176)
+[src/internal/client.ts:176](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/client.ts#L176)
 
 ___
 
@@ -190,4 +190,4 @@ single UploadArtifactResponse object
 
 #### Defined in
 
-[src/internal/client.ts:113](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/client.ts#L113)
+[src/internal/client.ts:113](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/client.ts#L113)

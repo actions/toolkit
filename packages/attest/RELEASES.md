@@ -5,6 +5,8 @@
 - Bump @actions/core from 1.10.1 to 1.11.1 [#1847](https://github.com/actions/toolkit/pull/1847)
 - Bump @sigstore/bundle from 2.3.2 to 3.0.0 [#1846](https://github.com/actions/toolkit/pull/1846)
 - Bump @sigstore/sign from 2.3.2 to 3.0.0 [#1846](https://github.com/actions/toolkit/pull/1846)
+- Support for generating multi-subject attestations [#1864](https://github.com/actions/toolkit/pull/1865)
+- Fix bug in `buildSLSAProvenancePredicate` related to `workflow_ref` OIDC token claims containing the "@" symbol in the tag name [#1863](https://github.com/actions/toolkit/pull/1863)
 
 ### 1.4.2
 

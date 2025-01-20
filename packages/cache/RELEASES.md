@@ -1,9 +1,36 @@
 # @actions/cache Releases
 
+### 4.0.0
+
+#### Important changes
+
+The cache backend service has been rewritten from the ground up for improved performance and reliability. The [@actions/cache](https://github.com/actions/toolkit/tree/main/packages/cache) package now integrates with the new cache service (v2) APIs.
+
+The new service will gradually roll out as of **February 1st, 2025**. The legacy service will also be sunset on the same date. Changes in this release are **fully backward compatible**.
+
+**All previous versions of this package will be deprecated**. We recommend upgrading to version `4.0.0` as soon as possible before **February 1st, 2025.**
+
+If you do not upgrade, all workflow runs using any of the deprecated [@actions/cache](https://github.com/actions/toolkit/tree/main/packages/cache) packages will fail.
+
+Upgrading to the recommended version should not break or require any changes to your workflows beyond updating your `package.json` to version `4.0.0`.
+
+Read more about the change & access the migration guide: [reference to the announcement](https://github.com/actions/toolkit/discussions/1890).
+
+#### Minor changes
+
+- Update `@actions/core` to `1.11.0`
+- Update `semver` `6.3.1`
+- Add `twirp-ts` `2.5.0` to dependencies
+
+### 3.3.0
+
+- Update `@actions/core` to `1.11.1`
+- Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824), [#1842](https://github.com/actions/toolkit/pull/1842)
+
 ### 3.2.4
 
 - Updated `isGhes` check to include `.ghe.com` and `.ghe.localhost` as accepted hosts
-  
+
 ### 3.2.3
 
 - Fixed a bug that mutated path arguments to `getCacheVersion` [#1378](https://github.com/actions/toolkit/pull/1378)

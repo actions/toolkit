@@ -43,7 +43,7 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:62](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L62)
+[src/internal/shared/errors.ts:62](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/errors.ts#L62)
 
 ## Properties
 
@@ -181,4 +181,4 @@ ___
 
 #### Defined in
 
-[src/internal/shared/errors.ts:68](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L68)
+[src/internal/shared/errors.ts:68](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/errors.ts#L68)

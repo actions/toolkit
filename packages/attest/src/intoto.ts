@@ -20,12 +20,12 @@ export type InTotoStatement = {
  * @returns The constructed in-toto statement.
  */
 export const buildIntotoStatement = (
-  subject: Subject,
+  subjects: Subject[],
   predicate: Predicate
 ): InTotoStatement => {
   return {
     _type: INTOTO_STATEMENT_V1_TYPE,
-    subject: [subject],
+    subject: subjects,
     predicateType: predicate.type,
     predicate: predicate.params
   }
