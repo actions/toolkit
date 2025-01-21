@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "audit-moderate",
+			"path": "packages/artifact",
+			"problemMatcher": [],
+			"label": "npm: audit-moderate - packages/artifact",
+			"detail": "npm install && npm audit --json --audit-level=moderate > audit.json"
+		}
+	]
+}

@@ -29,5 +29,8 @@
     "prettier": "^1.19.1",
     "ts-jest": "^26.5.6",
     "typescript": "^3.9.9"
+  },
+  "dependencies": {
+    "@actions/exec": "^1.1.1"
   }
 }
