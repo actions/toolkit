@@ -8,6 +8,13 @@
 			"problemMatcher": [],
 			"label": "npm: audit-moderate - packages/artifact",
 			"detail": "npm install && npm audit --json --audit-level=moderate > audit.json"
+		},
+		{
+			"type": "npm",
+			"script": "audit-all",
+			"problemMatcher": [],
+			"label": "npm: audit-all",
+			"detail": "lerna run audit-moderate"
 		}
 	]
 }
