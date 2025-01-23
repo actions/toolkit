@@ -14,18 +14,45 @@ const core = require('@actions/core');
 import * as core from '@actions/core';
 ```
 
-#### Inputs/Outputs
+#### Inputs
 
-Action inputs can be read with `getInput` which returns a `string` or `getBooleanInput` which parses a boolean based on the [yaml 1.2 specification](https://yaml.org/spec/1.2/spec.html#id2804923). If `required` set to be false, the input should have a default value in `action.yml`.
+There are three functions to parse an action's input from the `INPUT_*` environment variables:
 
-Outputs can be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
+- **`getInput(name: string, options?: InputOptions): string`**
+  - Returns the input value as a string.
+
+- **`getBooleanInput(name: string, options?: InputOptions): boolean`**
+  - Parses the input value as a boolean, following the YAML 1.2 specification.
+
+- **`getMultilineInput(name: string, options?: InputOptions): string[]`**
+  - Parses the input value as an array of non-blank lines.
+
+> **Note:** Input names are always converted to uppercase, with any spaces replaced by underscores, when matching `INPUT_*` environment variables.
+
+**InputOptions:**
+
+- **`required`**: If set to `false` and the input environment variable is not set, these functions will throw an error. To prevent this, `action.yml` should define a default value.
+- **`trimWhitespace`**: If set to `true`, `getInput()` and `getMultilineInput()` will trim whitespace from the returned values, and `getBooleanInput()` will trim whitespace before parsing the value.
 
 ```js
-const myInput = core.getInput('inputName', { required: true });
-const myBooleanInput = core.getBooleanInput('booleanInputName', { required: true });
-const myMultilineInput = core.getMultilineInput('multilineInputName', { required: true });
-core.setOutput('outputKey', 'outputVal');
+const myInput          = core.getInput('inputName', { required: true })
+const myBooleanInput   = core.getBooleanInput('booleanInputName')
+const myMultilineInput = core.getMultilineInput('multilineInputName', { trimWhitespace: true })
 ```
+
+#### Outputs
+
+To set outputs for downstream actions, use:
+
+- **`setOutput(name: string, value: any): void`**
+  - Any data passed to this function will be available in the [`steps`][steps-context] context as `steps['<step_id>'].outputs['<output_name>']`, ensuring decoupling between actions.
+  Non-string values will be serialized to JSON.
+
+```js
+core.setOutput('outputKey', 'outputVal')
+```
+
+[steps-context]: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs#steps-context
 
 #### Exporting variables
 
