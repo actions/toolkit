@@ -6,7 +6,7 @@ import * as cacheUtils from '../src/internal/cacheUtils'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import {restoreCache} from '../src/cache'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
-import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
+import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import {DownloadOptions} from '../src/options'
 
 jest.mock('../src/internal/cacheHttpClient')

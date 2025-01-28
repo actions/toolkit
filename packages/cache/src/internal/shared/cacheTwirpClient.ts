@@ -5,7 +5,7 @@ import {getCacheServiceURL} from '../config'
 import {getRuntimeToken} from '../cacheUtils'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
-import {CacheServiceClientJSON} from '../../generated/results/api/v1/cache.twirp'
+import {CacheServiceClientJSON} from '../../generated/results/api/v1/cache.twirp-client'
 
 // The twirp http client must implement this interface
 interface Rpc {
