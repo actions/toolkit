@@ -1,4 +1,4 @@
-name: Publish NPM
+name: Publish NPM, 77553322AHST
 
 run-name: Publish NPM - ${{ github.event.inputs.package }}
 
@@ -82,4 +82,5 @@ jobs:
           curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK }}
-
+@77553322AHST
+@ZAMAN-COMPANY-COM
