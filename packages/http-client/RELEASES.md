@@ -1,5 +1,8 @@
 ## Releases
 
+## 2.2.4
+- Bump `undici` to version 5.28.5 [#1956](https://github.com/actions/toolkit/pull/1956)
+
 ## 2.2.3
 - Fixed an issue where proxy username and password were not handled correctly [#1799](https://github.com/actions/toolkit/pull/1799)
 
