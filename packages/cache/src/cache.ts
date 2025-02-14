@@ -256,7 +256,7 @@ async function restoreCacheV2(
     const response = await twirpClient.GetCacheEntryDownloadURL(request)
 
     if (!response.ok) {
-      core.warning(`Cache not found for keys: ${keys.join(', ')}`)
+      core.debug(`Cache not found for keys: ${keys.join(', ')}`)
       return undefined
     }
 
