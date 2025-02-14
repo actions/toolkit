@@ -1,5 +1,10 @@
 # @actions/cache Releases
 
+### 4.0.1
+
+- Remove runtime dependency on `twirp-ts` [#1947](https://github.com/actions/toolkit/pull/1947)
+- Cache miss as debug, not warning annotation [#1954](https://github.com/actions/toolkit/pull/1954)
+
 ### 4.0.0
 
 #### Important changes
