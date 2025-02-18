@@ -77,6 +77,8 @@ async function getTarArgs(
           ? tarFile
           : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '--exclude',
+        ManifestFilename,
+        '--exclude',
         BSD_TAR_ZSTD
           ? tarFile
           : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
