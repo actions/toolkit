@@ -37,9 +37,9 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-async function streamExtract(url: string, directory: string): Promise<void> {
+async function streamExtract(url: string, directory: string, maxAttempts: int): Promise<void> {
   let retryCount = 0
-  while (retryCount < 5) {
+  while (retryCount < maxAttempts) {
     try {
       await streamExtractExternal(url, directory)
       return
@@ -140,7 +140,7 @@ export async function downloadArtifactPublic(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    await streamExtract(location, downloadPath)
+    await streamExtract(location, downloadPath, options.maxAttempts)
     core.info(`Artifact download completed successfully.`)
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
@@ -192,7 +192,7 @@ export async function downloadArtifactInternal(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    await streamExtract(signedUrl, downloadPath)
+    await streamExtract(signedUrl, downloadPath, options.maxAttempts)
     core.info(`Artifact download completed successfully.`)
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
