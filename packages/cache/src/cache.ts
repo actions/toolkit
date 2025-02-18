@@ -51,6 +51,24 @@ function checkKey(key: string): void {
   }
 }
 
+let fileSizeLimit = CacheFileSizeLimit // default 10GB per repo limit
+let fileSizeLimitStr = formatBytes(fileSizeLimit)
+
+export function setFileSizeLimit(newFileSizeLimit: number){
+  fileSizeLimit = newFileSizeLimit
+  fileSizeLimitStr = formatBytes(newFileSizeLimit)
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 Bytes";
+
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const value = bytes / Math.pow(1024, i);
+
+  return `${value.toFixed(0)}${sizes[i]}`;
+}
+
 /**
  * isFeatureAvailable to check the presence of Actions cache service
  *
@@ -385,7 +403,7 @@ async function saveCacheV1(
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
-    const fileSizeLimit = 10 * 1024 * 1024 * 1024 // 10GB per repo limit
+
     const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath)
     core.debug(`File Size: ${archiveFileSize}`)
 
@@ -394,7 +412,7 @@ async function saveCacheV1(
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
+        )} MB (${archiveFileSize} B) is over the ${fileSizeLimitStr} limit, not saving cache.`
       )
     }
 
@@ -503,11 +521,11 @@ async function saveCacheV2(
     core.debug(`File Size: ${archiveFileSize}`)
 
     // For GHES, this check will take place in ReserveCache API with enterprise file size limit
-    if (archiveFileSize > CacheFileSizeLimit && !isGhes()) {
+    if (archiveFileSize > fileSizeLimit && !isGhes()) {
       throw new Error(
         `Cache size of ~${Math.round(
           archiveFileSize / (1024 * 1024)
-        )} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`
+        )} MB (${archiveFileSize} B) is over the ${fileSizeLimitStr} limit, not saving cache.`
       )
     }
 
