@@ -111,6 +111,9 @@ async function getTarArgs(
 
   // Platform specific args
   if (tarPath.type === ArchiveToolType.GNU) {
+    // Make sure any existing files are overwritten
+    args.push('--overwrite')
+
     switch (process.platform) {
       case 'win32':
         args.push('--force-local')
