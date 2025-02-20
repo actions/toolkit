@@ -24,6 +24,7 @@ Outputs can be set with `setOutput` which makes them available to be mapped into
 const myInput = core.getInput('inputName', { required: true });
 const myBooleanInput = core.getBooleanInput('booleanInputName', { required: true });
 const myMultilineInput = core.getMultilineInput('multilineInputName', { required: true });
+const myArrayInput = core.getStringAsArray('stringAsArray', { required: true });
 core.setOutput('outputKey', 'outputVal');
 ```
 
