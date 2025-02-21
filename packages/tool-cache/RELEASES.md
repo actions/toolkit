@@ -1,5 +1,10 @@
 # @actions/tool-cache Releases
 
+### 2.0.2
+
+- Update `@actions/core` to v1.11.1 [#1872](https://github.com/actions/toolkit/pull/1872)
+- Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824), [#1842](https://github.com/actions/toolkit/pull/1842)
+
 ### 2.0.1
 - Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
 

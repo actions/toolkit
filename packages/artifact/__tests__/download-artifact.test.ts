@@ -200,14 +200,12 @@ describe('download-artifact', () => {
         }
       )
 
-      await expect(
-        downloadArtifactPublic(
-          fixtures.artifactID,
-          fixtures.repositoryOwner,
-          fixtures.repositoryName,
-          fixtures.token
-        )
-      ).rejects.toBeInstanceOf(Error)
+      const response = await downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token
+      )
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
         owner: fixtures.repositoryOwner,
@@ -223,6 +221,16 @@ describe('download-artifact', () => {
       expect(mockGetArtifactMalicious).toHaveBeenCalledWith(
         fixtures.blobStorageUrl
       )
+
+      // ensure path traversal was not possible
+      expect(
+        fs.existsSync(path.join(fixtures.workspaceDir, 'x/etc/hosts'))
+      ).toBe(true)
+      expect(
+        fs.existsSync(path.join(fixtures.workspaceDir, 'y/etc/hosts'))
+      ).toBe(true)
+
+      expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
 
     it('should successfully download an artifact to user defined path', async () => {

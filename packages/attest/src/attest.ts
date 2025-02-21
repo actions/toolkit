@@ -1,10 +1,11 @@
-import {Bundle, bundleToJSON} from '@sigstore/bundle'
+import {bundleToJSON} from '@sigstore/bundle'
 import {X509Certificate} from 'crypto'
 import {SigstoreInstance, signingEndpoints} from './endpoints'
 import {buildIntotoStatement} from './intoto'
 import {Payload, signPayload} from './sign'
 import {writeAttestation} from './store'
 
+import type {Bundle} from '@sigstore/sign'
 import type {Attestation, Predicate, Subject} from './shared.types'
 
 const INTOTO_PAYLOAD_TYPE = 'application/vnd.in-toto+json'
@@ -13,11 +14,16 @@ const INTOTO_PAYLOAD_TYPE = 'application/vnd.in-toto+json'
  * Options for attesting a subject / predicate.
  */
 export type AttestOptions = {
-  // The name of the subject to be attested.
-  subjectName: string
-  // The digest of the subject to be attested. Should be a map of digest
-  // algorithms to their hex-encoded values.
-  subjectDigest: Record<string, string>
+  /**
+   * @deprecated Use `subjects` instead.
+   **/
+  subjectName?: string
+  /**
+   * @deprecated Use `subjects` instead.
+   **/
+  subjectDigest?: Record<string, string>
+  // Subjects to be attested.
+  subjects?: Subject[]
   // Content type of the predicate being attested.
   predicateType: string
   // Predicate to be attested.
@@ -27,6 +33,8 @@ export type AttestOptions = {
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: SigstoreInstance
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
 }
@@ -39,15 +47,24 @@ export type AttestOptions = {
  * @returns A promise that resolves to the attestation.
  */
 export async function attest(options: AttestOptions): Promise<Attestation> {
-  const subject: Subject = {
-    name: options.subjectName,
-    digest: options.subjectDigest
+  let subjects: Subject[]
+
+  if (options.subjects) {
+    subjects = options.subjects
+  } else if (options.subjectName && options.subjectDigest) {
+    subjects = [{name: options.subjectName, digest: options.subjectDigest}]
+  } else {
+    throw new Error(
+      'Must provide either subjectName and subjectDigest or subjects'
+    )
   }
+
   const predicate: Predicate = {
     type: options.predicateType,
     params: options.predicate
   }
-  const statement = buildIntotoStatement(subject, predicate)
+
+  const statement = buildIntotoStatement(subjects, predicate)
 
   // Sign the provenance statement
   const payload: Payload = {
@@ -60,7 +77,11 @@ export async function attest(options: AttestOptions): Promise<Attestation> {
   // Store the attestation
   let attestationID: string | undefined
   if (options.skipWrite !== true) {
-    attestationID = await writeAttestation(bundleToJSON(bundle), options.token)
+    attestationID = await writeAttestation(
+      bundleToJSON(bundle),
+      options.token,
+      {headers: options.headers}
+    )
   }
 
   return toAttestation(bundle, attestationID)

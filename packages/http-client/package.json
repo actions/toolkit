@@ -1,6 +1,6 @@
 {
   "name": "@actions/http-client",
-  "version": "2.2.1",
+  "version": "2.2.3",
   "description": "Actions Http Client",
   "keywords": [
     "github",
@@ -46,6 +46,6 @@
   },
   "dependencies": {
     "tunnel": "^0.0.6",
-    "undici": "^5.25.4"
+    "undici": "^5.25.5"
   }
 }

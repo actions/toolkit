@@ -3,6 +3,7 @@ import * as path from 'path'
 import {saveCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/cacheUtils'
+import * as config from '../src/internal/config'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import {TypedResponse} from '@actions/http-client/lib/interfaces'
@@ -14,6 +15,7 @@ import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
+jest.mock('../src/internal/config')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
@@ -94,7 +96,7 @@ test('save with large cache outputs should fail in GHES with error message', asy
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-  jest.spyOn(cacheUtils, 'isGhes').mockReturnValueOnce(true)
+  jest.spyOn(config, 'isGhes').mockReturnValueOnce(true)
 
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
@@ -146,7 +148,7 @@ test('save with large cache outputs should fail in GHES without error message', 
     .spyOn(cacheUtils, 'getCompressionMethod')
     .mockReturnValueOnce(Promise.resolve(compression))
 
-  jest.spyOn(cacheUtils, 'isGhes').mockReturnValueOnce(true)
+  jest.spyOn(config, 'isGhes').mockReturnValueOnce(true)
 
   const reserveCacheMock = jest
     .spyOn(cacheHttpClient, 'reserveCache')
@@ -268,7 +270,12 @@ test('save with server error should fail', async () => {
     compression
   )
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
-  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile, undefined)
+  expect(saveCacheMock).toHaveBeenCalledWith(
+    cacheId,
+    archiveFile,
+    '',
+    undefined
+  )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
@@ -313,7 +320,12 @@ test('save with valid inputs uploads a cache', async () => {
     compression
   )
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
-  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile, undefined)
+  expect(saveCacheMock).toHaveBeenCalledWith(
+    cacheId,
+    archiveFile,
+    '',
+    undefined
+  )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 

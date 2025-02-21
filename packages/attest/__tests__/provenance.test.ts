@@ -2,15 +2,20 @@ import * as github from '@actions/github'
 import {mockFulcio, mockRekor, mockTSA} from '@sigstore/mock'
 import * as jose from 'jose'
 import nock from 'nock'
-import {SIGSTORE_GITHUB, SIGSTORE_PUBLIC_GOOD} from '../src/endpoints'
+import {MockAgent, setGlobalDispatcher} from 'undici'
+import {SIGSTORE_PUBLIC_GOOD, signingEndpoints} from '../src/endpoints'
 import {attestProvenance, buildSLSAProvenancePredicate} from '../src/provenance'
 
 describe('provenance functions', () => {
   const originalEnv = process.env
-  const issuer = 'https://example.com'
+  const issuer = 'https://token.actions.foo.ghe.com'
   const audience = 'nobody'
   const jwksPath = '/.well-known/jwks.json'
   const tokenPath = '/token'
+
+  // MockAgent for mocking @actions/github
+  const mockAgent = new MockAgent()
+  setGlobalDispatcher(mockAgent)
 
   const claims = {
     iss: issuer,
@@ -18,6 +23,7 @@ describe('provenance functions', () => {
     repository: 'owner/repo',
     ref: 'refs/heads/main',
     sha: 'babca52ab0c93ae16539e5923cb0d7403b9a093b',
+    job_workflow_ref: 'owner/workflows/.github/workflows/publish.yml@main',
     workflow_ref: 'owner/repo/.github/workflows/main.yml@main',
     event_name: 'push',
     repository_id: 'repo-id',
@@ -27,15 +33,7 @@ describe('provenance functions', () => {
     runner_environment: 'github-hosted'
   }
 
-  beforeEach(async () => {
-    process.env = {
-      ...originalEnv,
-      ACTIONS_ID_TOKEN_REQUEST_URL: `${issuer}${tokenPath}?`,
-      ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'token',
-      GITHUB_SERVER_URL: 'https://github.com',
-      GITHUB_REPOSITORY: claims.repository
-    }
-
+  const mockIssuer = async (claims: jose.JWTPayload): Promise<void> => {
     // Generate JWT signing key
     const key = await jose.generateKeyPair('PS256')
 
@@ -54,6 +52,18 @@ describe('provenance functions', () => {
 
     // Mock OIDC token endpoint for populating the provenance
     nock(issuer).get(tokenPath).query({audience}).reply(200, {value: jwt})
+  }
+
+  beforeEach(async () => {
+    process.env = {
+      ...originalEnv,
+      ACTIONS_ID_TOKEN_REQUEST_URL: `${issuer}${tokenPath}?`,
+      ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'token',
+      GITHUB_SERVER_URL: 'https://foo.ghe.com',
+      GITHUB_REPOSITORY: claims.repository
+    }
+
+    await mockIssuer(claims)
   })
 
   afterEach(() => {
@@ -62,7 +72,17 @@ describe('provenance functions', () => {
 
   describe('buildSLSAProvenancePredicate', () => {
     it('returns a provenance hydrated from an OIDC token', async () => {
-      const predicate = await buildSLSAProvenancePredicate(issuer)
+      const predicate = await buildSLSAProvenancePredicate()
+      expect(predicate).toMatchSnapshot()
+    })
+
+    it('handle tags including "@" character', async () => {
+      nock.cleanAll()
+      await mockIssuer({
+        ...claims,
+        workflow_ref: 'owner/repo/.github/workflows/main.yml@foo@1.0.0'
+      })
+      const predicate = await buildSLSAProvenancePredicate()
       expect(predicate).toMatchSnapshot()
     })
   })
@@ -90,27 +110,28 @@ describe('provenance functions', () => {
     })
 
     describe('when using the github Sigstore instance', () => {
-      const {fulcioURL, tsaServerURL} = SIGSTORE_GITHUB
-
       beforeEach(async () => {
+        const {fulcioURL, tsaServerURL} = signingEndpoints('github')
+
         // Mock Sigstore
         await mockFulcio({baseURL: fulcioURL, strict: false})
         await mockTSA({baseURL: tsaServerURL})
 
-        // Mock GH attestations API
-        nock('https://api.github.com')
-          .post(/^\/repos\/.*\/.*\/attestations$/)
+        mockAgent
+          .get('https://api.github.com')
+          .intercept({
+            path: /^\/repos\/.*\/.*\/attestations$/,
+            method: 'post'
+          })
           .reply(201, {id: attestationID})
       })
 
       describe('when the sigstore instance is explicitly set', () => {
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
+            subjects: [{name: subjectName, digest: subjectDigest}],
             token: 'token',
-            sigstore: 'github',
-            issuer
+            sigstore: 'github'
           })
 
           expect(attestation).toBeDefined()
@@ -135,10 +156,8 @@ describe('provenance functions', () => {
 
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
-            token: 'token',
-            issuer
+            subjects: [{name: subjectName, digest: subjectDigest}],
+            token: 'token'
           })
 
           expect(attestation).toBeDefined()
@@ -159,19 +178,21 @@ describe('provenance functions', () => {
         await mockRekor({baseURL: rekorURL})
 
         // Mock GH attestations API
-        nock('https://api.github.com')
-          .post(/^\/repos\/.*\/.*\/attestations$/)
+        mockAgent
+          .get('https://api.github.com')
+          .intercept({
+            path: /^\/repos\/.*\/.*\/attestations$/,
+            method: 'post'
+          })
           .reply(201, {id: attestationID})
       })
 
       describe('when the sigstore instance is explicitly set', () => {
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
+            subjects: [{name: subjectName, digest: subjectDigest}],
             token: 'token',
-            sigstore: 'public-good',
-            issuer
+            sigstore: 'public-good'
           })
 
           expect(attestation).toBeDefined()
@@ -196,10 +217,8 @@ describe('provenance functions', () => {
 
         it('attests provenance', async () => {
           const attestation = await attestProvenance({
-            subjectName,
-            subjectDigest,
-            token: 'token',
-            issuer
+            subjects: [{name: subjectName, digest: subjectDigest}],
+            token: 'token'
           })
 
           expect(attestation).toBeDefined()
@@ -225,8 +244,7 @@ describe('provenance functions', () => {
           subjectDigest,
           token: 'token',
           sigstore: 'public-good',
-          skipWrite: true,
-          issuer
+          skipWrite: true
         })
 
         expect(attestation).toBeDefined()

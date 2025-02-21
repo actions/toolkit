@@ -12,6 +12,9 @@ Once the attestation has been created and signed, it will be uploaded to the GH
 attestations API and associated with the repository from which the workflow was
 initiated.
 
+See [Using artifact attestations to establish provenance for builds](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
+for more information on artifact attestations.
+
 ## Usage
 
 ### `attest`
@@ -29,8 +32,7 @@ async function run() {
     const ghToken = core.getInput('gh-token');
 
     const attestation = await attest({
-        subjectName: 'my-artifact-name',
-        subjectDigest: { 'sha256': '36ab4667...'},
+        subjects: [{name: 'my-artifact-name', digest: { 'sha256': '36ab4667...'}}],
         predicateType: 'https://in-toto.io/attestation/release',
         predicate: { . . . },
         token: ghToken
@@ -46,11 +48,12 @@ The `attest` function supports the following options:
 
 ```typescript
 export type AttestOptions = {
-  // The name of the subject to be attested.
-  subjectName: string
-  // The digest of the subject to be attested. Should be a map of digest
-  // algorithms to their hex-encoded values.
-  subjectDigest: Record<string, string>
+  // Deprecated. Use 'subjects' instead.
+  subjectName?: string
+  // Deprecated. Use 'subjects' instead.
+  subjectDigest?: Record<string, string>
+  // Collection of subjects to be attested
+  subjects?: Subject[]
   // URI identifying the content type of the predicate being attested.
   predicateType: string
   // Predicate to be attested.
@@ -60,8 +63,17 @@ export type AttestOptions = {
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: 'public-good' | 'github'
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
+}
+
+export type Subject = {
+   // Name of the subject.
+  name: string
+   // Digests of the subject. Should be a map of digest algorithms to their hex-encoded values.
+  digest: Record<string, string>
 }
 ```
 
@@ -100,16 +112,19 @@ The `attestProvenance` function supports the following options:
 
 ```typescript
 export type AttestProvenanceOptions = {
-  // The name of the subject to be attested.
-  subjectName: string
-  // The digest of the subject to be attested. Should be a map of digest
-  // algorithms to their hex-encoded values.
-  subjectDigest: Record<string, string>
-  // GitHub token for writing attestations.
+  // Deprecated. Use 'subjects' instead.
+  subjectName?: string
+  // Deprecated. Use 'subjects' instead.
+  subjectDigest?: Record<string, string>
+  // Collection of subjects to be attested
+  subjects?: Subject[]
+  // URI identifying the content type of the predicate being attested.
   token: string
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: 'public-good' | 'github'
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
   // Issuer URL responsible for minting the OIDC token from which the

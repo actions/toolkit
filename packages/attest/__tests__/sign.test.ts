@@ -64,13 +64,11 @@ describe('signProvenance', () => {
 
       expect(att).toBeDefined()
       expect(att.mediaType).toEqual(
-        'application/vnd.dev.sigstore.bundle+json;version=0.2'
+        'application/vnd.dev.sigstore.bundle.v0.3+json'
       )
 
       expect(att.content.$case).toEqual('dsseEnvelope')
-      expect(att.verificationMaterial.content.$case).toEqual(
-        'x509CertificateChain'
-      )
+      expect(att.verificationMaterial.content.$case).toEqual('certificate')
       expect(att.verificationMaterial.tlogEntries).toHaveLength(1)
       expect(
         att.verificationMaterial.timestampVerificationData?.rfc3161Timestamps
@@ -89,13 +87,11 @@ describe('signProvenance', () => {
 
       expect(att).toBeDefined()
       expect(att.mediaType).toEqual(
-        'application/vnd.dev.sigstore.bundle+json;version=0.2'
+        'application/vnd.dev.sigstore.bundle.v0.3+json'
       )
 
       expect(att.content.$case).toEqual('dsseEnvelope')
-      expect(att.verificationMaterial.content.$case).toEqual(
-        'x509CertificateChain'
-      )
+      expect(att.verificationMaterial.content.$case).toEqual('certificate')
       expect(att.verificationMaterial.tlogEntries).toHaveLength(0)
       expect(
         att.verificationMaterial.timestampVerificationData?.rfc3161Timestamps

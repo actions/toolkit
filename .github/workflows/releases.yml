@@ -1,5 +1,7 @@
 name: Publish NPM
 
+run-name: Publish NPM - ${{ github.event.inputs.package }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,7 +11,7 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: macos-latest-large
 
     steps:
       - name: setup repo
@@ -46,7 +48,7 @@ jobs:
           path: packages/${{ github.event.inputs.package }}/*.tgz
 
   publish:
-    runs-on: macos-latest
+    runs-on: macos-latest-large
     needs: test
     environment: npm-publish
     permissions:
