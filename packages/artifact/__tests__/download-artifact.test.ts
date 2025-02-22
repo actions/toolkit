@@ -104,6 +104,18 @@ const cleanup = async (): Promise<void> => {
 const mockGetArtifactSuccess = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 200
+  message.headers['content-type'] = 'zip'
+  message.push(fs.readFileSync(fixtures.exampleArtifact.path))
+  message.push(null)
+  return {
+    message
+  }
+})
+
+const mockGetArtifactGzip = jest.fn(() => {
+  const message = new http.IncomingMessage(new net.Socket())
+  message.statusCode = 200
+  message.headers['content-type'] = 'application/gzip'
   message.push(fs.readFileSync(fixtures.exampleArtifact.path))
   message.push(null)
   return {
@@ -124,6 +136,7 @@ const mockGetArtifactFailure = jest.fn(() => {
 const mockGetArtifactMalicious = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 200
+  message.headers['content-type'] = 'zip'
   message.push(fs.readFileSync(path.join(__dirname, 'fixtures', 'evil.zip'))) // evil.zip contains files that are formatted x/../../etc/hosts
   message.push(null)
   return {
@@ -178,6 +191,7 @@ describe('download-artifact', () => {
       )
       expectExtractedArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
+      expect(response.skipped).toBe(false)
     })
 
     it('should not allow path traversal from malicious artifacts', async () => {
@@ -231,6 +245,7 @@ describe('download-artifact', () => {
       ).toBe(true)
 
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
+      expect(response.skipped).toBe(false)
     })
 
     it('should successfully download an artifact to user defined path', async () => {
@@ -280,6 +295,7 @@ describe('download-artifact', () => {
       )
       expectExtractedArchive(customPath)
       expect(response.downloadPath).toBe(customPath)
+      expect(response.skipped).toBe(false)
     })
 
     it('should fail if download artifact API does not respond with location', async () => {
@@ -316,6 +332,7 @@ describe('download-artifact', () => {
       // mock http client to delay response data by 30s
       const msg = new http.IncomingMessage(new net.Socket())
       msg.statusCode = 200
+      msg.headers['content-type'] = 'zip'
 
       const mockGet = jest.fn(async () => {
         return new Promise((resolve, reject) => {
@@ -444,7 +461,39 @@ describe('download-artifact', () => {
       )
       expect(mockGetArtifactSuccess).toHaveBeenCalledTimes(1)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
+      expect(response.skipped).toBe(false)
     }, 28000)
+
+    it('should skip if artifact does not have the right content type', async () => {
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {
+          location: fixtures.blobStorageUrl
+        },
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactGzip
+          }
+        }
+      )
+
+      const response = await downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(response.skipped).toBe(true)
+    })
   })
 
   describe('internal', () => {
@@ -499,6 +548,7 @@ describe('download-artifact', () => {
 
       expectExtractedArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
+      expect(response.skipped).toBe(false)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
         idFilter: {
@@ -550,6 +600,7 @@ describe('download-artifact', () => {
 
       expectExtractedArchive(customPath)
       expect(response.downloadPath).toBe(customPath)
+      expect(response.skipped).toBe(false)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
         idFilter: {

@@ -91,6 +91,11 @@ export interface DownloadArtifactResponse {
    * The path where the artifact was downloaded to
    */
   downloadPath?: string
+
+  /**
+   * If the artifact download was skipped
+   */
+  skipped?: boolean
 }
 
 /**
