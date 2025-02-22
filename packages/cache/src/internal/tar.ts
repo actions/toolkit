@@ -5,11 +5,11 @@ import * as path from 'path'
 import * as utils from './cacheUtils'
 import {ArchiveTool} from './contracts'
 import {
-  CompressionMethod,
-  SystemTarPathOnWindows,
   ArchiveToolType,
-  TarFilename,
-  ManifestFilename
+  CompressionMethod,
+  ManifestFilename,
+  SystemTarPathOnWindows,
+  TarFilename
 } from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -65,6 +65,7 @@ async function getTarArgs(
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
+    compressionMethod !== CompressionMethod.None &&
     IS_WINDOWS
 
   // Method specific args
@@ -139,10 +140,16 @@ async function getCommands(
     type,
     archivePath
   )
+
+  if (compressionMethod === CompressionMethod.None) {
+    return [tarArgs.join(' ')]
+  }
+
   const compressionArgs =
     type !== 'create'
       ? await getDecompressionProgram(tarPath, compressionMethod, archivePath)
       : await getCompressionProgram(tarPath, compressionMethod)
+
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
@@ -178,6 +185,7 @@ async function getDecompressionProgram(
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
+    compressionMethod !== CompressionMethod.None &&
     IS_WINDOWS
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
@@ -199,7 +207,10 @@ async function getDecompressionProgram(
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
         : ['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd']
+    case CompressionMethod.None:
+      return []
     default:
+    case CompressionMethod.Gzip:
       return ['-z']
   }
 }
