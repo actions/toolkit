@@ -6,7 +6,7 @@ import * as cacheUtils from '../src/internal/cacheUtils'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import {restoreCache} from '../src/cache'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
-import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
+import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import {DownloadOptions} from '../src/options'
 
 jest.mock('../src/internal/cacheHttpClient')
@@ -115,7 +115,6 @@ test('restore with restore keys and no cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
   const restoreKeys = ['node-']
-  const logWarningMock = jest.spyOn(core, 'warning')
 
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
@@ -130,7 +129,7 @@ test('restore with restore keys and no cache found', async () => {
   const cacheKey = await restoreCache(paths, key, restoreKeys)
 
   expect(cacheKey).toBe(undefined)
-  expect(logWarningMock).toHaveBeenCalledWith(
+  expect(logDebugMock).toHaveBeenCalledWith(
     `Cache not found for keys: ${[key, ...restoreKeys].join(', ')}`
   )
 })
