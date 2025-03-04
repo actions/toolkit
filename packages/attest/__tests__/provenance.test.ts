@@ -75,16 +75,6 @@ describe('provenance functions', () => {
       const predicate = await buildSLSAProvenancePredicate()
       expect(predicate).toMatchSnapshot()
     })
-
-    it('handle tags including "@" character', async () => {
-      nock.cleanAll()
-      await mockIssuer({
-        ...claims,
-        workflow_ref: 'owner/repo/.github/workflows/main.yml@foo@1.0.0'
-      })
-      const predicate = await buildSLSAProvenancePredicate()
-      expect(predicate).toMatchSnapshot()
-    })
   })
 
   describe('attestProvenance', () => {

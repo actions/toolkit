@@ -56,22 +56,30 @@ describe('uploadChunkTimeoutEnv', () => {
 })
 
 describe('uploadConcurrencyEnv', () => {
-  it('should return default 32 when cpu num is <= 4', () => {
+  it('Concurrency default to 5', () => {
     ;(os.cpus as jest.Mock).mockReturnValue(new Array(4))
-    expect(config.getConcurrency()).toBe(32)
+    expect(config.getConcurrency()).toBe(5)
   })
 
-  it('should return 16 * num of cpu when cpu num is > 4', () => {
-    ;(os.cpus as jest.Mock).mockReturnValue(new Array(6))
-    expect(config.getConcurrency()).toBe(96)
-  })
-
-  it('should return up to 300 max value', () => {
+  it('Concurrency max out at 300 on systems with many CPUs', () => {
     ;(os.cpus as jest.Mock).mockReturnValue(new Array(32))
+    process.env.ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY = '301'
     expect(config.getConcurrency()).toBe(300)
   })
 
-  it('should return override value when ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY is set', () => {
+  it('Concurrency can be set to 32 when cpu num is <= 4', () => {
+    ;(os.cpus as jest.Mock).mockReturnValue(new Array(4))
+    process.env.ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY = '32'
+    expect(config.getConcurrency()).toBe(32)
+  })
+
+  it('Concurrency can be set 16 * num of cpu when cpu num is > 4', () => {
+    ;(os.cpus as jest.Mock).mockReturnValue(new Array(6))
+    process.env.ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY = '96'
+    expect(config.getConcurrency()).toBe(96)
+  })
+
+  it('Concurrency can be overridden by env var ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY', () => {
     ;(os.cpus as jest.Mock).mockReturnValue(new Array(4))
     process.env.ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY = '10'
     expect(config.getConcurrency()).toBe(10)
@@ -91,11 +99,5 @@ describe('uploadConcurrencyEnv', () => {
     expect(() => {
       config.getConcurrency()
     }).toThrow()
-  })
-
-  it('cannot go over currency cap when override value is greater', () => {
-    ;(os.cpus as jest.Mock).mockReturnValue(new Array(4))
-    process.env.ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY = '40'
-    expect(config.getConcurrency()).toBe(32)
   })
 })

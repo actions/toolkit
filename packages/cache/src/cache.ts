@@ -525,8 +525,16 @@ async function saveCacheV2(
       version
     }
 
-    const response = await twirpClient.CreateCacheEntry(request)
-    if (!response.ok) {
+    let signedUploadUrl
+
+    try {
+      const response = await twirpClient.CreateCacheEntry(request)
+      if (!response.ok) {
+        throw new Error('Response was not ok')
+      }
+      signedUploadUrl = response.signedUploadUrl
+    } catch (error) {
+      core.debug(`Failed to reserve cache: ${error}`)
       throw new ReserveCacheError(
         `Unable to reserve cache with key ${key}, another job may be creating this cache.`
       )
@@ -536,7 +544,7 @@ async function saveCacheV2(
     await cacheHttpClient.saveCache(
       cacheId,
       archivePath,
-      response.signedUploadUrl,
+      signedUploadUrl,
       options
     )
 

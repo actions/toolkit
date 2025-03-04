@@ -1,5 +1,9 @@
 # @actions/attest Releases
 
+### 1.6.0
+
+- Update `buildSLSAProvenancePredicate` to populate `workflow.ref` field from the `ref` claim in the OIDC token [#1969](https://github.com/actions/toolkit/pull/1969)
+
 ### 1.5.0
 
 - Bump @actions/core from 1.10.1 to 1.11.1 [#1847](https://github.com/actions/toolkit/pull/1847)
