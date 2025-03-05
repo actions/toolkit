@@ -319,14 +319,6 @@ describe('download-artifact', () => {
 
       const mockGet = jest.fn(async () => {
         return new Promise((resolve, reject) => {
-          // Resolve with a 200 status code immediately
-          resolve({
-            message: msg,
-            readBody: async () => {
-              return Promise.resolve(`{"ok": true}`)
-            }
-          })
-
           // Reject with an error after 31 seconds
           setTimeout(() => {
             reject(new Error('Request timeout'))
