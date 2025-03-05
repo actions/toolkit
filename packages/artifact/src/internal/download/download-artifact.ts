@@ -110,7 +110,7 @@ export async function streamExtractExternal(
           hashStream.end()
           sha256Digest = hashStream.read() as string
           core.info(
-            `SHA256 digest of downloaded artifact zip is ${sha256Digest}`
+            `SHA256 digest of downloaded artifact is ${sha256Digest}`
           )
         }
         resolve({sha256Digest: `sha256:${sha256Digest}`})
