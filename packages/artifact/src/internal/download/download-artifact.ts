@@ -109,7 +109,7 @@ export async function streamExtractExternal(
         if (hashStream) {
           hashStream.end()
           sha256Digest = hashStream.read() as string
-          core.debug(
+          core.info(
             `SHA256 digest of downloaded artifact zip is ${sha256Digest}`
           )
         }
@@ -229,8 +229,8 @@ export async function downloadArtifactInternal(
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {
         digestMismatch = true
-        core.debug(`Computed digest: ${extractResponse.sha256Digest}`)
-        core.debug(`Expected digest: ${options.expectedHash}`)
+        core.info(`Computed digest: ${extractResponse.sha256Digest}`)
+        core.info(`Expected digest: ${options.expectedHash}`)
       }
     }
   } catch (error) {
