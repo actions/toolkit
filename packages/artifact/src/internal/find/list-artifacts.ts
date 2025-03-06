@@ -70,14 +70,14 @@ export async function listArtifactsPublic(
       createdAt: artifact.created_at ? new Date(artifact.created_at) : undefined
     })
   }
-
+  // Move to the next page
+  currentPageNumber++
   // Iterate over any remaining pages
   for (
     currentPageNumber;
     currentPageNumber < numberOfPages;
     currentPageNumber++
   ) {
-    currentPageNumber++
     debug(`Fetching page ${currentPageNumber} of artifact list`)
 
     const {data: listArtifactResponse} =
