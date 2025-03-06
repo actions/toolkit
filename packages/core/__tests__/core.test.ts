@@ -294,6 +294,17 @@ describe('@actions/core', () => {
     ).toEqual(['  val1  ', '  val2  ', '  '])
   })
 
+  it('getStringAsArray; separated by either comma or new line', () => {
+    expect(
+      core.getStringAsArray(`
+        line 1,
+        line 2,
+
+        comma 1, comma 2,,
+      `)
+    ).toEqual(['line 1', 'line 2', 'comma 1', 'comma 2'])
+  })
+
   it('legacy setOutput produces the correct command', () => {
     core.setOutput('some output', 'some value')
     assertWriteCalls([
