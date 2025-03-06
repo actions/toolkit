@@ -1,4 +1,4 @@
-import {info, debug} from '@actions/core'
+import {info, debug, maskSigUrl} from '@actions/core'
 import {getUserAgentString} from './user-agent'
 import {NetworkError, UsageError} from './errors'
 import {getCacheServiceURL} from '../config'
@@ -6,6 +6,10 @@ import {getRuntimeToken} from '../cacheUtils'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {CacheServiceClientJSON} from '../../generated/results/api/v1/cache.twirp-client'
+import {
+  CreateCacheEntryResponse,
+  GetCacheEntryDownloadURLResponse
+} from '../../generated/results/api/v1/cache'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -24,7 +28,7 @@ interface Rpc {
  *
  * This class is used to interact with cache service v2.
  */
-class CacheServiceClient implements Rpc {
+export class CacheServiceClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
   private maxAttempts = 5
@@ -94,6 +98,7 @@ class CacheServiceClient implements Rpc {
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
         const body = JSON.parse(rawBody)
+        this.maskSecretUrls(body)
         debug(`Body: ${JSON.stringify(body, null, 2)}`)
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
@@ -146,6 +151,17 @@ class CacheServiceClient implements Rpc {
     }
 
     throw new Error(`Request failed`)
+  }
+
+  maskSecretUrls(
+    body: CreateCacheEntryResponse | GetCacheEntryDownloadURLResponse
+  ): void {
+    if ('signedUploadUrl' in body && body.signedUploadUrl) {
+      maskSigUrl(body.signedUploadUrl, 'signedUploadUrl')
+    }
+    if ('signedDownloadUrl' in body && body.signedDownloadUrl) {
+      maskSigUrl(body.signedDownloadUrl, 'signedDownloadUrl')
+    }
   }
 
   isSuccessStatusCode(statusCode?: number): boolean {

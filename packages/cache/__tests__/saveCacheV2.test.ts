@@ -8,10 +8,16 @@ import * as tar from '../src/internal/tar'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import {UploadOptions} from '../src/options'
+import {
+  CreateCacheEntryResponse,
+  GetCacheEntryDownloadURLResponse
+} from '../src/generated/results/api/v1/cache'
+import {CacheServiceClient} from '../src/internal/shared/cacheTwirpClient'
 
 let logDebugMock: jest.SpyInstance
 
 jest.mock('../src/internal/tar')
+jest.mock('@actions/core')
 
 const uploadFileMock = jest.fn()
 const blockBlobClientMock = jest.fn().mockImplementation(() => ({

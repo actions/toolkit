@@ -1,10 +1,14 @@
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {info, debug} from '@actions/core'
+import {setSecret, info, debug, maskSigUrl} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 import {getUserAgentString} from './user-agent'
 import {NetworkError, UsageError} from './errors'
+import {
+  CreateArtifactResponse,
+  GetSignedArtifactURLResponse
+} from '../../generated/results/api/v1/artifact'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -16,7 +20,7 @@ interface Rpc {
   ): Promise<object | Uint8Array>
 }
 
-class ArtifactHttpClient implements Rpc {
+export class ArtifactHttpClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
   private maxAttempts = 5
@@ -70,6 +74,17 @@ class ArtifactHttpClient implements Rpc {
     }
   }
 
+  maskSecretUrls(
+    body: CreateArtifactResponse | GetSignedArtifactURLResponse
+  ): void {
+    if ('signedUploadUrl' in body && body.signedUploadUrl) {
+      maskSigUrl(body.signedUploadUrl, 'signed_upload_url')
+    }
+    if ('signedUrl' in body && body.signedUrl) {
+      maskSigUrl(body.signedUrl, 'signed_url')
+    }
+  }
+
   async retryableRequest(
     operation: () => Promise<HttpClientResponse>
   ): Promise<{response: HttpClientResponse; body: object}> {
@@ -86,6 +101,7 @@ class ArtifactHttpClient implements Rpc {
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
         const body = JSON.parse(rawBody)
+        this.maskSecretUrls(body)
         debug(`Body: ${JSON.stringify(body, null, 2)}`)
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
