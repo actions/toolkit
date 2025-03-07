@@ -122,7 +122,7 @@ test('retry fails after exhausting retries', async () => {
 })
 
 test('retry fails after non-retryable status code', async () => {
-  await testRetryExpectingError([TestResponse(500), TestResponse(200, 'Ok')])
+  await testRetryExpectingError([TestResponse(501), TestResponse(200, 'Ok')])
 })
 
 test('retry works after error', async () => {
