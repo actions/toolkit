@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.2.3
+
+- Allow ArtifactClient to perform digest comparisons, if supplied. [#1975](https://github.com/actions/toolkit/pull/1975)
+
 ### 2.2.2
 
 - Default concurrency to 5 for uploading artifacts [#1962](https://github.com/actions/toolkit/pull/1962
