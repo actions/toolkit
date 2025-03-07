@@ -31,7 +31,8 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "clean": "rm -rf node_modules lib"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -46,6 +47,7 @@
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
     "@protobuf-ts/plugin": "^2.9.4",
+    "@types/node": "^22.13.9",
     "semver": "^6.3.1"
   },
   "devDependencies": {

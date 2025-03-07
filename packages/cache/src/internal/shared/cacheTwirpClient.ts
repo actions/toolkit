@@ -1,4 +1,4 @@
-import {info, debug, maskSigUrl} from '@actions/core'
+import {info, debug, setSecret} from '@actions/core'
 import {getUserAgentString} from './user-agent'
 import {NetworkError, UsageError} from './errors'
 import {getCacheServiceURL} from '../config'
@@ -153,14 +153,27 @@ export class CacheServiceClient implements Rpc {
     throw new Error(`Request failed`)
   }
 
+  /**
+   * Masks the `sig` parameter in a URL and sets it as a secret.
+   * @param url The URL containing the `sig` parameter.
+   * @param urlType The type of the URL (e.g., 'signed_upload_url', 'signed_download_url').
+   */
+  maskSigUrl(url: string, urlType: string): void {
+    const sigMatch = url.match(/[?&]sig=([^&]+)/)
+    if (sigMatch) {
+      setSecret(sigMatch[1])
+      debug(`Masked ${urlType}: ${url.replace(sigMatch[1], '***')}`)
+    }
+  }
+
   maskSecretUrls(
     body: CreateCacheEntryResponse | GetCacheEntryDownloadURLResponse
   ): void {
     if ('signedUploadUrl' in body && body.signedUploadUrl) {
-      maskSigUrl(body.signedUploadUrl, 'signedUploadUrl')
+      this.maskSigUrl(body.signedUploadUrl, 'signed_upload_url')
     }
     if ('signedDownloadUrl' in body && body.signedDownloadUrl) {
-      maskSigUrl(body.signedDownloadUrl, 'signedDownloadUrl')
+      this.maskSigUrl(body.signedDownloadUrl, 'signed_download_url')
     }
   }
 

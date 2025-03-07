@@ -1,6 +1,6 @@
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {setSecret, info, debug, maskSigUrl} from '@actions/core'
+import {setSecret, info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 import {getUserAgentString} from './user-agent'
@@ -74,14 +74,27 @@ export class ArtifactHttpClient implements Rpc {
     }
   }
 
+  /**
+   * Masks the `sig` parameter in a URL and sets it as a secret.
+   * @param url The URL containing the `sig` parameter.
+   * @param urlType The type of the URL (e.g., 'signed_upload_url', 'signed_download_url').
+   */
+  maskSigUrl(url: string, urlType: string): void {
+    const sigMatch = url.match(/[?&]sig=([^&]+)/)
+    if (sigMatch) {
+      setSecret(sigMatch[1])
+      debug(`Masked ${urlType}: ${url.replace(sigMatch[1], '***')}`)
+    }
+  }
+
   maskSecretUrls(
     body: CreateArtifactResponse | GetSignedArtifactURLResponse
   ): void {
     if ('signedUploadUrl' in body && body.signedUploadUrl) {
-      maskSigUrl(body.signedUploadUrl, 'signed_upload_url')
+      this.maskSigUrl(body.signedUploadUrl, 'signed_upload_url')
     }
     if ('signedUrl' in body && body.signedUrl) {
-      maskSigUrl(body.signedUrl, 'signed_url')
+      this.maskSigUrl(body.signedUrl, 'signed_url')
     }
   }
 

@@ -391,19 +391,3 @@ export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils'
  * Platform utilities exports
  */
 export * as platform from './platform'
-
-/**
- * Masks the `sig` parameter in a URL and sets it as a secret.
- * @param url The URL containing the `sig` parameter.
- * @param urlType The type of the URL (e.g., 'signed_upload_url', 'signed_download_url').
- * @returns The URL with the `sig` parameter masked.
- */
-export function maskSigUrl(url: string, urlType: string): string {
-  const sigMatch = url.match(/[?&]sig=([^&]+)/)
-  if (sigMatch) {
-    setSecret(sigMatch[1])
-    debug(`Masked ${urlType}: ${url.replace(sigMatch[1], '***')}`)
-    return url.replace(sigMatch[1], '***')
-  }
-  return url
-}

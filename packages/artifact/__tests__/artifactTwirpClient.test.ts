@@ -30,24 +30,30 @@ describe('ArtifactHttpClient', () => {
     it('should mask signed_upload_url', () => {
       const response: CreateArtifactResponse = {
         ok: true,
-        signedUploadUrl: 'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
+        signedUploadUrl:
+          'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       }
 
       client.maskSecretUrls(response)
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith('Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***')
+      expect(debug).toHaveBeenCalledWith(
+        'Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      )
     })
 
     it('should mask signed_download_url', () => {
       const response: GetSignedArtifactURLResponse = {
-        signedUrl: 'https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
+        signedUrl:
+          'https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       }
 
       client.maskSecretUrls(response)
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith('Masked signed_download_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***')
+      expect(debug).toHaveBeenCalledWith(
+        'Masked signed_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      )
     })
 
     it('should not call setSecret if URLs are missing', () => {
@@ -61,24 +67,30 @@ describe('ArtifactHttpClient', () => {
     it('should mask only the sensitive token part of signed_upload_url', () => {
       const response: CreateArtifactResponse = {
         ok: true,
-        signedUploadUrl: 'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
+        signedUploadUrl:
+          'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       }
 
       client.maskSecretUrls(response)
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith('Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***')
+      expect(debug).toHaveBeenCalledWith(
+        'Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      )
     })
 
     it('should mask only the sensitive token part of signed_download_url', () => {
       const response: GetSignedArtifactURLResponse = {
-        signedUrl: 'https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
+        signedUrl:
+          'https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       }
 
       client.maskSecretUrls(response)
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith('Masked signed_download_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***')
+      expect(debug).toHaveBeenCalledWith(
+        'Masked signed_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      )
     })
   })
 })

@@ -16,12 +16,12 @@ describe('CacheServiceClient', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    process.env['ACTIONS_RUNTIME_TOKEN'] = 'test-token' // <-- set the required env variable
+    process.env['ACTIONS_RUNTIME_TOKEN'] = 'test-token'
     client = new CacheServiceClient('test-agent')
   })
 
   afterEach(() => {
-    delete process.env['ACTIONS_RUNTIME_TOKEN'] // <-- clean up after tests
+    delete process.env['ACTIONS_RUNTIME_TOKEN']
   })
 
   describe('maskSecretUrls', () => {
@@ -36,7 +36,7 @@ describe('CacheServiceClient', () => {
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
       expect(debug).toHaveBeenCalledWith(
-        'Masked signedUploadUrl: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
+        'Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
       )
     })
 
@@ -52,7 +52,7 @@ describe('CacheServiceClient', () => {
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
       expect(debug).toHaveBeenCalledWith(
-        'Masked signedDownloadUrl: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
+        'Masked signed_download_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
       )
     })
 
@@ -75,7 +75,7 @@ describe('CacheServiceClient', () => {
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
       expect(debug).toHaveBeenCalledWith(
-        'Masked signedUploadUrl: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
+        'Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
       )
     })
 
@@ -91,7 +91,7 @@ describe('CacheServiceClient', () => {
 
       expect(setSecret).toHaveBeenCalledWith('secret-token')
       expect(debug).toHaveBeenCalledWith(
-        'Masked signedDownloadUrl: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
+        'Masked signed_download_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
       )
     })
   })
