@@ -227,8 +227,8 @@ export async function downloadArtifactInternal(
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {
         digestMismatch = true
-        core.info(`Computed digest: ${extractResponse.sha256Digest}`)
-        core.info(`Expected digest: ${options.expectedHash}`)
+        core.debug(`Computed digest: ${extractResponse.sha256Digest}`)
+        core.debug(`Expected digest: ${options.expectedHash}`)
       }
     }
   } catch (error) {
