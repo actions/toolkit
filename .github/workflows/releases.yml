@@ -6,8 +6,21 @@ on:
   workflow_dispatch:
     inputs:
       package:
+        type: choice
         required: true
-        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache, attest'
+        description: 'Which package to release'
+        options:
+          - artifact
+          - attest
+          - cache
+          - core
+          - exec
+          - github
+          - glob
+          - http-client
+          - io
+          - tool-cache
+          
 
 jobs:
   test:
