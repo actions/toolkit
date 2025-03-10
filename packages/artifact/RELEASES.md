@@ -1,6 +1,6 @@
 # @actions/artifact Releases
 
-### 2.2.3
+### 2.3.0
 
 - Allow ArtifactClient to perform digest comparisons, if supplied. [#1975](https://github.com/actions/toolkit/pull/1975)
 
