@@ -1,6 +1,6 @@
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {info, debug} from '@actions/core'
+import {setSecret, info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 import {getUserAgentString} from './user-agent'
@@ -16,7 +16,7 @@ interface Rpc {
   ): Promise<object | Uint8Array>
 }
 
-class ArtifactHttpClient implements Rpc {
+export class ArtifactHttpClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
   private maxAttempts = 5
@@ -70,6 +70,38 @@ class ArtifactHttpClient implements Rpc {
     }
   }
 
+  /**
+   * Masks the `sig` parameter in a URL and sets it as a secret.
+   * @param url The URL containing the `sig` parameter.
+   * @returns A masked URL where the sig parameter value is replaced with '***' if found,
+   *          or the original URL if no sig parameter is present.
+   */
+  maskSigUrl(url: string): string {
+    const sigIndex = url.indexOf('sig=')
+    if (sigIndex !== -1) {
+      const sigValue = url.substring(sigIndex + 4)
+      setSecret(sigValue)
+      return `${url.substring(0, sigIndex + 4)}***`
+    }
+    return url
+  }
+
+  maskSecretUrls(body): void {
+    if (typeof body === 'object' && body !== null) {
+      if (
+        'signed_upload_url' in body &&
+        typeof body.signed_upload_url === 'string'
+      ) {
+        this.maskSigUrl(body.signed_upload_url)
+      }
+      if ('signed_url' in body && typeof body.signed_url === 'string') {
+        this.maskSigUrl(body.signed_url)
+      }
+    } else {
+      debug('body is not an object or is null')
+    }
+  }
+
   async retryableRequest(
     operation: () => Promise<HttpClientResponse>
   ): Promise<{response: HttpClientResponse; body: object}> {
@@ -86,6 +118,7 @@ class ArtifactHttpClient implements Rpc {
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
         const body = JSON.parse(rawBody)
+        this.maskSecretUrls(body)
         debug(`Body: ${JSON.stringify(body, null, 2)}`)
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
