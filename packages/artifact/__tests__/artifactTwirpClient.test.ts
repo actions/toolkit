@@ -1,9 +1,6 @@
 import {ArtifactHttpClient} from '../src/internal/shared/artifact-twirp-client'
-import {setSecret, debug} from '@actions/core'
-import {
-  CreateArtifactResponse,
-  GetSignedArtifactURLResponse
-} from '../src/generated/results/api/v1/artifact'
+import {setSecret} from '@actions/core'
+import {CreateArtifactResponse} from '../src/generated/results/api/v1/artifact'
 
 jest.mock('@actions/core', () => ({
   setSecret: jest.fn(),
@@ -26,70 +23,101 @@ describe('ArtifactHttpClient', () => {
     delete process.env['ACTIONS_RESULTS_URL']
   })
 
+  describe('maskSigUrl', () => {
+    it('should mask the sig parameter and set it as a secret', () => {
+      const url =
+        'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
+
+      const maskedUrl = client.maskSigUrl(url)
+
+      expect(setSecret).toHaveBeenCalledWith('secret-token')
+      expect(maskedUrl).toBe(
+        'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      )
+    })
+
+    it('should return the original URL if no sig parameter is found', () => {
+      const url = 'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z'
+
+      const maskedUrl = client.maskSigUrl(url)
+
+      expect(setSecret).not.toHaveBeenCalled()
+      expect(maskedUrl).toBe(url)
+    })
+
+    it('should handle sig parameter at the end of the URL', () => {
+      const url = 'https://example.com/upload?param1=value&sig=secret-token'
+
+      const maskedUrl = client.maskSigUrl(url)
+
+      expect(setSecret).toHaveBeenCalledWith('secret-token')
+      expect(maskedUrl).toBe('https://example.com/upload?param1=value&sig=***')
+    })
+
+    it('should handle sig parameter in the middle of the URL', () => {
+      const url = 'https://example.com/upload?sig=secret-token&param2=value'
+
+      const maskedUrl = client.maskSigUrl(url)
+
+      expect(setSecret).toHaveBeenCalledWith('secret-token&param2=value')
+      expect(maskedUrl).toBe('https://example.com/upload?sig=***')
+    })
+  })
+
   describe('maskSecretUrls', () => {
     it('should mask signed_upload_url', () => {
-      const response: CreateArtifactResponse = {
+      const spy = jest.spyOn(client, 'maskSigUrl')
+      const response = {
         ok: true,
-        signedUploadUrl:
+        signed_upload_url:
           'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       }
 
       client.maskSecretUrls(response)
 
-      expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith(
-        'Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      expect(spy).toHaveBeenCalledWith(
+        'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       )
     })
 
     it('should mask signed_download_url', () => {
-      const response: GetSignedArtifactURLResponse = {
-        signedUrl:
+      const spy = jest.spyOn(client, 'maskSigUrl')
+      const response = {
+        signed_url:
           'https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       }
 
       client.maskSecretUrls(response)
 
-      expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith(
-        'Masked signed_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      expect(spy).toHaveBeenCalledWith(
+        'https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
       )
     })
 
-    it('should not call setSecret if URLs are missing', () => {
+    it('should not call maskSigUrl if URLs are missing', () => {
+      const spy = jest.spyOn(client, 'maskSigUrl')
       const response = {} as CreateArtifactResponse
 
       client.maskSecretUrls(response)
 
-      expect(setSecret).not.toHaveBeenCalled()
+      expect(spy).not.toHaveBeenCalled()
     })
 
-    it('should mask only the sensitive token part of signed_upload_url', () => {
-      const response: CreateArtifactResponse = {
-        ok: true,
-        signedUploadUrl:
-          'https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
+    it('should handle both URL types when present', () => {
+      const spy = jest.spyOn(client, 'maskSigUrl')
+      const response = {
+        signed_upload_url: 'https://example.com/upload?sig=secret-token1',
+        signed_url: 'https://example.com/download?sig=secret-token2'
       }
 
       client.maskSecretUrls(response)
 
-      expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith(
-        'Masked signed_upload_url: https://example.com/upload?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      expect(spy).toHaveBeenCalledTimes(2)
+      expect(spy).toHaveBeenCalledWith(
+        'https://example.com/upload?sig=secret-token1'
       )
-    })
-
-    it('should mask only the sensitive token part of signed_download_url', () => {
-      const response: GetSignedArtifactURLResponse = {
-        signedUrl:
-          'https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=secret-token'
-      }
-
-      client.maskSecretUrls(response)
-
-      expect(setSecret).toHaveBeenCalledWith('secret-token')
-      expect(debug).toHaveBeenCalledWith(
-        'Masked signed_url: https://example.com/download?se=2025-03-05T16%3A47%3A23Z&sig=***'
+      expect(spy).toHaveBeenCalledWith(
+        'https://example.com/download?sig=secret-token2'
       )
     })
   })

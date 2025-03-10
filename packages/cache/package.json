@@ -47,10 +47,10 @@
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
     "@protobuf-ts/plugin": "^2.9.4",
-    "@types/node": "^22.13.9",
     "semver": "^6.3.1"
   },
   "devDependencies": {
+    "@types/node": "^22.13.9",
     "@types/semver": "^6.0.0",
     "typescript": "^5.2.2"
   }

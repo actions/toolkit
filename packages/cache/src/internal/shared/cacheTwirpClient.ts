@@ -6,10 +6,6 @@ import {getRuntimeToken} from '../cacheUtils'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {CacheServiceClientJSON} from '../../generated/results/api/v1/cache.twirp-client'
-import {
-  CreateCacheEntryResponse,
-  GetCacheEntryDownloadURLResponse
-} from '../../generated/results/api/v1/cache'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -156,24 +152,35 @@ export class CacheServiceClient implements Rpc {
   /**
    * Masks the `sig` parameter in a URL and sets it as a secret.
    * @param url The URL containing the `sig` parameter.
-   * @param urlType The type of the URL (e.g., 'signed_upload_url', 'signed_download_url').
+   * @returns A masked URL where the sig parameter value is replaced with '***' if found,
+   *          or the original URL if no sig parameter is present.
    */
-  maskSigUrl(url: string, urlType: string): void {
-    const sigMatch = url.match(/[?&]sig=([^&]+)/)
-    if (sigMatch) {
-      setSecret(sigMatch[1])
-      debug(`Masked ${urlType}: ${url.replace(sigMatch[1], '***')}`)
+  maskSigUrl(url: string): string {
+    const sigIndex = url.indexOf('sig=')
+    if (sigIndex !== -1) {
+      const sigValue = url.substring(sigIndex + 4)
+      setSecret(sigValue)
+      return `${url.substring(0, sigIndex + 4)}***`
     }
+    return url
   }
 
-  maskSecretUrls(
-    body: CreateCacheEntryResponse | GetCacheEntryDownloadURLResponse
-  ): void {
-    if ('signedUploadUrl' in body && body.signedUploadUrl) {
-      this.maskSigUrl(body.signedUploadUrl, 'signed_upload_url')
-    }
-    if ('signedDownloadUrl' in body && body.signedDownloadUrl) {
-      this.maskSigUrl(body.signedDownloadUrl, 'signed_download_url')
+  maskSecretUrls(body): void {
+    if (typeof body === 'object' && body !== null) {
+      if (
+        'signed_upload_url' in body &&
+        typeof body.signed_upload_url === 'string'
+      ) {
+        this.maskSigUrl(body.signed_upload_url)
+      }
+      if (
+        'signed_download_url' in body &&
+        typeof body.signed_download_url === 'string'
+      ) {
+        this.maskSigUrl(body.signed_download_url)
+      }
+    } else {
+      debug('body is not an object or is null')
     }
   }
 
