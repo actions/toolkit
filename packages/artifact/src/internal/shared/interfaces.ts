@@ -108,8 +108,9 @@ export interface DownloadArtifactOptions {
   path?: string
 
   /**
-   * The hash that was computed for the artifact during upload. Don't provide this unless you want to verify the hash.
-   * If the hash doesn't match, the download will fail.
+   * The hash that was computed for the artifact during upload. If provided, the outcome of the download
+   * will provide a digestMismatch property indicating whether the hash of the downloaded artifact
+   * matches the expected hash.
    */
   expectedHash?: string
 }
