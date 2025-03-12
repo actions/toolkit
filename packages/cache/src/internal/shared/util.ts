@@ -77,8 +77,12 @@ function maskSigWithRegex(url: string): string {
         setSecret(value)
         try {
           setSecret(decodeURIComponent(value))
-        } catch {
-          // Ignore decoding errors
+        } catch (error) {
+          debug(
+            `Failed to decode URL parameter: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          )
         }
         return `${prefix}${paramName}=***`
       }
