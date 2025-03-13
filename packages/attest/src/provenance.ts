@@ -30,11 +30,9 @@ export const buildSLSAProvenancePredicate = async (
   // Split just the path and ref from the workflow string.
   // owner/repo/.github/workflows/main.yml@main =>
   //   .github/workflows/main.yml, main
-  const [workflowPath, ...workflowRefChunks] = claims.workflow_ref
+  const [workflowPath] = claims.workflow_ref
     .replace(`${claims.repository}/`, '')
     .split('@')
-  // Handle case where tag contains `@` (e.g: when using changesets in a monorepo context),
-  const workflowRef = workflowRefChunks.join('@')
 
   return {
     type: SLSA_PREDICATE_V1_TYPE,
@@ -43,7 +41,7 @@ export const buildSLSAProvenancePredicate = async (
         buildType: GITHUB_BUILD_TYPE,
         externalParameters: {
           workflow: {
-            ref: workflowRef,
+            ref: claims.ref,
             repository: `${serverURL}/${claims.repository}`,
             path: workflowPath
           }

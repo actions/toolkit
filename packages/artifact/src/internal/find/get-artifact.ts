@@ -68,7 +68,10 @@ export async function getArtifactPublic(
       name: artifact.name,
       id: artifact.id,
       size: artifact.size_in_bytes,
-      createdAt: artifact.created_at ? new Date(artifact.created_at) : undefined
+      createdAt: artifact.created_at
+        ? new Date(artifact.created_at)
+        : undefined,
+      digest: artifact.digest
     }
   }
 }
@@ -115,7 +118,8 @@ export async function getArtifactInternal(
       size: Number(artifact.size),
       createdAt: artifact.createdAt
         ? Timestamp.toDate(artifact.createdAt)
-        : undefined
+        : undefined,
+      digest: artifact.digest?.value
     }
   }
 }

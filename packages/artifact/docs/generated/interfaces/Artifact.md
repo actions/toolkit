@@ -23,7 +23,7 @@ The time when the artifact was created
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:123](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L123)
+[src/internal/shared/interfaces.ts:128](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L128)
 
 ___
 
@@ -35,7 +35,7 @@ The ID of the artifact
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:113](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L113)
+[src/internal/shared/interfaces.ts:118](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L118)
 
 ___
 
@@ -47,7 +47,7 @@ The name of the artifact
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:108](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L108)
+[src/internal/shared/interfaces.ts:113](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L113)
 
 ___
 
@@ -59,4 +59,4 @@ The size of the artifact in bytes
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:118](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L118)
+[src/internal/shared/interfaces.ts:123](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L123)

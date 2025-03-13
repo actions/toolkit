@@ -1,5 +1,4 @@
 import * as github from '@actions/github'
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
 import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types'
 import {
   listArtifactsInternal,
@@ -10,13 +9,13 @@ import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
 import * as util from '../src/internal/shared/util'
 import {noopLogs} from './common'
 import {Artifact} from '../src/internal/shared/interfaces'
+import {RequestInterface} from '@octokit/types'
 
-type MockedListWorkflowRunArtifacts = jest.MockedFunction<
-  RestEndpointMethods['actions']['listWorkflowRunArtifacts']
->
+type MockedRequest = jest.MockedFunction<RequestInterface<object>>
 
 jest.mock('@actions/github', () => ({
   getOctokit: jest.fn().mockReturnValue({
+    request: jest.fn(),
     rest: {
       actions: {
         listWorkflowRunArtifacts: jest.fn()
@@ -81,10 +80,10 @@ describe('list-artifact', () => {
 
   describe('public', () => {
     it('should return a list of artifacts', async () => {
-      const mockListArtifacts = github.getOctokit(fixtures.token).rest.actions
-        .listWorkflowRunArtifacts as MockedListWorkflowRunArtifacts
+      const mockRequest = github.getOctokit(fixtures.token)
+        .request as MockedRequest
 
-      mockListArtifacts.mockResolvedValueOnce({
+      mockRequest.mockResolvedValueOnce({
         status: 200,
         headers: {},
         url: '',
@@ -105,10 +104,10 @@ describe('list-artifact', () => {
     })
 
     it('should return the latest artifact when latest is specified', async () => {
-      const mockListArtifacts = github.getOctokit(fixtures.token).rest.actions
-        .listWorkflowRunArtifacts as MockedListWorkflowRunArtifacts
+      const mockRequest = github.getOctokit(fixtures.token)
+        .request as MockedRequest
 
-      mockListArtifacts.mockResolvedValueOnce({
+      mockRequest.mockResolvedValueOnce({
         status: 200,
         headers: {},
         url: '',
@@ -129,10 +128,10 @@ describe('list-artifact', () => {
     })
 
     it('can return empty artifacts', async () => {
-      const mockListArtifacts = github.getOctokit(fixtures.token).rest.actions
-        .listWorkflowRunArtifacts as MockedListWorkflowRunArtifacts
+      const mockRequest = github.getOctokit(fixtures.token)
+        .request as MockedRequest
 
-      mockListArtifacts.mockResolvedValueOnce({
+      mockRequest.mockResolvedValueOnce({
         status: 200,
         headers: {},
         url: '',
@@ -156,10 +155,10 @@ describe('list-artifact', () => {
     })
 
     it('should fail if non-200 response', async () => {
-      const mockListArtifacts = github.getOctokit(fixtures.token).rest.actions
-        .listWorkflowRunArtifacts as MockedListWorkflowRunArtifacts
+      const mockRequest = github.getOctokit(fixtures.token)
+        .request as MockedRequest
 
-      mockListArtifacts.mockRejectedValue(new Error('boom'))
+      mockRequest.mockRejectedValueOnce(new Error('boom'))
 
       await expect(
         listArtifactsPublic(

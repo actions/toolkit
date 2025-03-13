@@ -1,5 +1,25 @@
 # @actions/artifact Releases
 
+### 2.3.1
+
+- Fix comment typo on expectedHash. [#1986](https://github.com/actions/toolkit/pull/1986)
+
+### 2.3.0
+
+- Allow ArtifactClient to perform digest comparisons, if supplied. [#1975](https://github.com/actions/toolkit/pull/1975)
+
+### 2.2.2
+
+- Default concurrency to 5 for uploading artifacts [#1962](https://github.com/actions/toolkit/pull/1962
+
+### 2.2.1
+
+- Add `ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY` and `ACTIONS_ARTIFACT_UPLOAD_TIMEOUT_MS` environment variables [#1928](https://github.com/actions/toolkit/pull/1928)
+
+### 2.2.0
+
+- Return artifact digest on upload [#1896](https://github.com/actions/toolkit/pull/1896)
+
 ### 2.1.11
 
 - Fixed a bug with relative symlinks resolution [#1844](https://github.com/actions/toolkit/pull/1844)
