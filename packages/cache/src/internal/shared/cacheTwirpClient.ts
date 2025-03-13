@@ -25,7 +25,7 @@ interface Rpc {
  *
  * This class is used to interact with cache service v2.
  */
-export class CacheServiceClient implements Rpc {
+class CacheServiceClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
   private maxAttempts = 5

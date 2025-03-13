@@ -17,7 +17,7 @@ interface Rpc {
   ): Promise<object | Uint8Array>
 }
 
-export class ArtifactHttpClient implements Rpc {
+class ArtifactHttpClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
   private maxAttempts = 5
