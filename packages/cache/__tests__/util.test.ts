@@ -8,34 +8,28 @@ describe('maskSigUrl', () => {
     jest.clearAllMocks()
   })
 
-  it('returns the original URL if no sig parameter is present', () => {
+  it('does nothing if no sig parameter is present', () => {
     const url = 'https://example.com'
-    const maskedUrl = maskSigUrl(url)
-    expect(maskedUrl).toBe(url)
+    maskSigUrl(url)
     expect(setSecret).not.toHaveBeenCalled()
   })
 
   it('masks the sig parameter in the middle of the URL and sets it as a secret', () => {
     const url = 'https://example.com/?param1=value1&sig=12345&param2=value2'
-    const maskedUrl = maskSigUrl(url)
-    expect(maskedUrl).toBe(
-      'https://example.com/?param1=value1&sig=***&param2=value2'
-    )
+    maskSigUrl(url)
     expect(setSecret).toHaveBeenCalledWith('12345')
     expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('12345'))
   })
 
-  it('returns the original URL if it is empty', () => {
+  it('does nothing if the URL is empty', () => {
     const url = ''
-    const maskedUrl = maskSigUrl(url)
-    expect(maskedUrl).toBe('')
+    maskSigUrl(url)
     expect(setSecret).not.toHaveBeenCalled()
   })
 
   it('handles URLs with fragments', () => {
     const url = 'https://example.com?sig=12345#fragment'
-    const maskedUrl = maskSigUrl(url)
-    expect(maskedUrl).toBe('https://example.com/?sig=***#fragment')
+    maskSigUrl(url)
     expect(setSecret).toHaveBeenCalledWith('12345')
     expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('12345'))
   })
