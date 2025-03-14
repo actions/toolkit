@@ -5,6 +5,7 @@ import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 import {getUserAgentString} from './user-agent'
 import {NetworkError, UsageError} from './errors'
+import {maskSecretUrls} from './util'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -86,6 +87,7 @@ class ArtifactHttpClient implements Rpc {
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
         const body = JSON.parse(rawBody)
+        maskSecretUrls(body)
         debug(`Body: ${JSON.stringify(body, null, 2)}`)
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
