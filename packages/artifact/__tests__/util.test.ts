@@ -96,6 +96,59 @@ describe('maskSigUrl', () => {
   })
 })
 
+describe('maskSigUrl handles special characters in signatures', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('handles signatures with slashes', () => {
+    const url = 'https://example.com/?sig=abc/123'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc/123')
+    expect(setSecret).toHaveBeenCalledWith('abc%2F123')
+  })
+
+  it('handles signatures with plus signs', () => {
+    const url = 'https://example.com/?sig=abc+123'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc 123')
+    expect(setSecret).toHaveBeenCalledWith('abc%20123')
+  })
+
+  it('handles signatures with equals signs', () => {
+    const url = 'https://example.com/?sig=abc=123'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc=123')
+    expect(setSecret).toHaveBeenCalledWith('abc%3D123')
+  })
+
+  it('handles already percent-encoded signatures', () => {
+    const url = 'https://example.com/?sig=abc%2F123%3D'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc/123=')
+    expect(setSecret).toHaveBeenCalledWith('abc%2F123%3D')
+  })
+
+  it('handles complex Azure SAS signatures', () => {
+    const url =
+      'https://example.com/container/file.txt?sig=nXyQIUj%2F%2F06Cxt80pBRYiiJlYqtPYg5sz%2FvEh5iHAhw%3D&se=2023-12-31'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith(
+      'nXyQIUj//06Cxt80pBRYiiJlYqtPYg5sz/vEh5iHAhw='
+    )
+    expect(setSecret).toHaveBeenCalledWith(
+      'nXyQIUj%2F%2F06Cxt80pBRYiiJlYqtPYg5sz%2FvEh5iHAhw%3D'
+    )
+  })
+
+  it('handles signatures with multiple special characters', () => {
+    const url = 'https://example.com/?sig=a/b+c=d&e=f'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('a/b c=d')
+    expect(setSecret).toHaveBeenCalledWith('a%2Fb%20c%3Dd')
+  })
+})
+
 describe('maskSecretUrls', () => {
   beforeEach(() => {
     jest.clearAllMocks()

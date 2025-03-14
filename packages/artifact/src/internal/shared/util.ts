@@ -95,6 +95,7 @@ export function maskSigUrl(url: string): void {
     const signature = parsedUrl.searchParams.get('sig')
     if (signature) {
       setSecret(signature)
+      setSecret(encodeURIComponent(signature))
     }
   } catch (error) {
     debug(
