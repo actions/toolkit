@@ -3,6 +3,7 @@
 ### 4.0.3
 
 - Added masking for Shared Access Signature (SAS) cache entry URLs [#1982](https://github.com/actions/toolkit/pull/1982)
+- Improved debugging by logging both the cache version alongside the keys requested when a cache restore fails [#1994]](https://github.com/actions/toolkit/pull/1994)
 
 ### 4.0.2
 
