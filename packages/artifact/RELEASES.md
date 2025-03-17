@@ -1,5 +1,10 @@
 # @actions/artifact Releases
 
+### 3.0.0
+
+- Support the latest Octokit in @actions/artifact [#1553](https://github.com/actions/toolkit/pull/1553)
+  - Drop support of NodeJS v14, v16
+
 ### 2.3.1
 
 - Fix comment typo on expectedHash. [#1986](https://github.com/actions/toolkit/pull/1986)
