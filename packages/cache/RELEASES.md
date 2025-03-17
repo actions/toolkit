@@ -1,6 +1,6 @@
 # @actions/cache Releases
 
-### 4.1.0
+### 4.0.3
 
 - Added masking for Shared Access Signature (SAS) cache entry URLs [#1982](https://github.com/actions/toolkit/pull/1982)
 
