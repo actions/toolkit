@@ -1,5 +1,10 @@
 # @actions/artifact Releases
 
+### 2.3.2
+
+- Added masking for Secure Access Signatures (SAS) artifact URLs [#1982](https://github.com/actions/toolkit/pull/1982)
+- Change hash to digest for consistent terminology across runner logs [#1991](https://github.com/actions/toolkit/pull/1991) 
+
 ### 2.3.1
 
 - Fix comment typo on expectedHash. [#1986](https://github.com/actions/toolkit/pull/1986)

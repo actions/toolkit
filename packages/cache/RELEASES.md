@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+### 4.0.3
+
+- Added masking for Secure Access Signatures (SAS) cache entry URLs [#1982](https://github.com/actions/toolkit/pull/1982)
+
 ### 4.0.2
 
 - Wrap create failures in ReserveCacheError [#1966](https://github.com/actions/toolkit/pull/1966)
