@@ -1,6 +1,6 @@
 import {ok} from 'assert'
 import * as path from 'path'
-import * as ioUtil from './io-utils'
+import * as ioUtil from './shared/utils'
 
 /**
  * Interface for cp/mv options
