@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {DownloadProgress} from '../src/internal/downloadUtils'
+import {DownloadProgress} from '../src/internal/shared/downloadUtils'
 
 test('download progress tracked correctly', () => {
   const progress = new DownloadProgress(1000)
