@@ -1,6 +1,6 @@
 import * as config from '../src/internal/shared/config'
-import * as util from '../src/internal/shared/util'
-import {maskSigUrl, maskSecretUrls} from '../src/internal/shared/util'
+import * as util from '../src/internal/shared/utils'
+import {maskSigUrl, maskSecretUrls} from '../src/internal/shared/utils'
 import {setSecret, debug} from '@actions/core'
 
 export const testRuntimeToken =

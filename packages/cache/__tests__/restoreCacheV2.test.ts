@@ -5,7 +5,10 @@ import * as config from '../src/internal/config'
 import * as cacheUtils from '../src/internal/shared/utils'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import {restoreCache} from '../src/cache'
-import {CacheFilename, CompressionMethod} from '../src/internal/constants'
+import {
+  CacheFilename,
+  CompressionMethod
+} from '../src/internal/shared/constants'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import {DownloadOptions} from '../src/options'
 
