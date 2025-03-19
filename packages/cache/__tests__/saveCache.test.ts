@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import {saveCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
-import * as cacheUtils from '../src/internal/cacheUtils'
+import * as cacheUtils from '../src/internal/shared/utils'
 import * as config from '../src/internal/config'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
@@ -14,7 +14,7 @@ import {
 import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
-jest.mock('../src/internal/cacheUtils')
+jest.mock('../src/internal/shared/utils')
 jest.mock('../src/internal/config')
 jest.mock('../src/internal/tar')
 
@@ -25,7 +25,7 @@ beforeAll(() => {
   jest.spyOn(core, 'warning').mockImplementation(() => {})
   jest.spyOn(core, 'error').mockImplementation(() => {})
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
-    const actualUtils = jest.requireActual('../src/internal/cacheUtils')
+    const actualUtils = jest.requireActual('../src/internal/shared/utils')
     return actualUtils.getCacheFileName(cm)
   })
   jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async filePaths => {

@@ -7,8 +7,8 @@ import {
 } from '@actions/http-client/lib/interfaces'
 import * as fs from 'fs'
 import {URL} from 'url'
-import * as utils from './cacheUtils'
-import {uploadCacheArchiveSDK} from './uploadUtils'
+import * as utils from './shared/utils'
+import {uploadCacheArchiveSDK} from './shared/uploadUtils'
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
@@ -22,7 +22,7 @@ import {
   downloadCacheHttpClient,
   downloadCacheHttpClientConcurrent,
   downloadCacheStorageSDK
-} from './downloadUtils'
+} from './shared/downloadUtils'
 import {
   DownloadOptions,
   UploadOptions,
@@ -33,7 +33,7 @@ import {
   isSuccessStatusCode,
   retryHttpClientResponse,
   retryTypedResponse
-} from './requestUtils'
+} from './shared/requestUtils'
 import {getCacheServiceURL} from './config'
 import {getUserAgentString} from './shared/user-agent'
 

@@ -10,7 +10,7 @@ import {
   TarFilename
 } from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
-import * as utils from '../src/internal/cacheUtils'
+import * as utils from '../src/internal/shared/utils'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import fs = require('fs')
 

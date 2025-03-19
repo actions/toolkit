@@ -1,7 +1,7 @@
 import {downloadCache} from '../src/internal/cacheHttpClient'
-import {getCacheVersion} from '../src/internal/cacheUtils'
-import {CompressionMethod} from '../src/internal/constants'
-import * as downloadUtils from '../src/internal/downloadUtils'
+import {getCacheVersion} from '../src/internal/shared/utils'
+import {CompressionMethod} from '../src/internal/shared/constants'
+import * as downloadUtils from '../src/internal/shared/downloadUtils'
 import {DownloadOptions, getDownloadOptions} from '../src/options'
 
 jest.mock('../src/internal/downloadUtils')

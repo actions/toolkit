@@ -2,11 +2,11 @@ import {info, debug} from '@actions/core'
 import {getUserAgentString} from './user-agent'
 import {NetworkError, UsageError} from './errors'
 import {getCacheServiceURL} from '../config'
-import {getRuntimeToken} from '../cacheUtils'
+import {getRuntimeToken} from '../shared/utils'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {CacheServiceClientJSON} from '../../generated/results/api/v1/cache.twirp-client'
-import {maskSecretUrls} from './util'
+import {maskSecretUrls} from './utils'
 
 // The twirp http client must implement this interface
 interface Rpc {

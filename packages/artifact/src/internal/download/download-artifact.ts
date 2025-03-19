@@ -19,7 +19,7 @@ import {
   Int64Value,
   ListArtifactsRequest
 } from '../../generated'
-import {getBackendIdsFromToken} from '../shared/util'
+import {getBackendIdsFromToken} from '../shared/utils'
 import {ArtifactNotFoundError} from '../shared/errors'
 
 const scrubQueryParameters = (url: string): string => {

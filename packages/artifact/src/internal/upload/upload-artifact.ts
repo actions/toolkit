@@ -11,7 +11,7 @@ import {
   getUploadZipSpecification,
   validateRootDirectory
 } from './upload-zip-specification'
-import {getBackendIdsFromToken} from '../shared/util'
+import {getBackendIdsFromToken} from '../shared/utils'
 import {uploadZipToBlobStorage} from './blob-upload'
 import {createZipUploadStream} from './zip'
 import {
