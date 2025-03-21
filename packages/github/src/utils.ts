@@ -1,5 +1,5 @@
 import * as Context from './context'
-import * as Utils from './internal/utils'
+import * as Utils from './internal/shared/utils'
 
 // octokit + plugins
 import {Octokit} from '@octokit/core'
