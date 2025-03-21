@@ -6,7 +6,7 @@ import {
 } from '../src/internal/find/get-artifact'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
-import * as util from '../src/internal/shared/util'
+import * as util from '../src/internal/shared/utils'
 import {noopLogs} from './common'
 import {
   ArtifactNotFoundError,
