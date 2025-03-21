@@ -269,7 +269,7 @@ export function debug(message: string): void {
 
 /**
  * Adds an error issue
- * @param message error issue message. Errors will be converted to string via toString()
+ * @param message error issue message. error.stack will be used for Errors
  * @param properties optional properties to add to the annotation.
  */
 export function error(
@@ -279,7 +279,7 @@ export function error(
   issueCommand(
     'error',
     toCommandProperties(properties),
-    message instanceof Error ? message.toString() : message
+    message instanceof Error ? message.stack : message
   )
 }
 
