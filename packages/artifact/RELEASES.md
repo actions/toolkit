@@ -1,5 +1,22 @@
 # @actions/artifact Releases
 
+### 2.3.2
+
+- Added masking for Shared Access Signature (SAS) artifact URLs [#1982](https://github.com/actions/toolkit/pull/1982)
+- Change hash to digest for consistent terminology across runner logs [#1991](https://github.com/actions/toolkit/pull/1991) 
+
+### 2.3.1
+
+- Fix comment typo on expectedHash. [#1986](https://github.com/actions/toolkit/pull/1986)
+
+### 2.3.0
+
+- Allow ArtifactClient to perform digest comparisons, if supplied. [#1975](https://github.com/actions/toolkit/pull/1975)
+
+### 2.2.2
+
+- Default concurrency to 5 for uploading artifacts [#1962](https://github.com/actions/toolkit/pull/1962
+
 ### 2.2.1
 
 - Add `ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY` and `ACTIONS_ARTIFACT_UPLOAD_TIMEOUT_MS` environment variables [#1928](https://github.com/actions/toolkit/pull/1928)

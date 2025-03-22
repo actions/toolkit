@@ -1,11 +1,15 @@
 import fs from 'fs/promises'
+import * as crypto from 'crypto'
+import * as stream from 'stream'
+
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as httpClient from '@actions/http-client'
 import unzip from 'unzip-stream'
 import {
   DownloadArtifactOptions,
-  DownloadArtifactResponse
+  DownloadArtifactResponse,
+  StreamExtractResponse
 } from '../shared/interfaces'
 import {getUserAgentString} from '../shared/user-agent'
 import {getGitHubWorkspaceDir} from '../shared/config'
@@ -37,12 +41,14 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-async function streamExtract(url: string, directory: string): Promise<void> {
+async function streamExtract(
+  url: string,
+  directory: string
+): Promise<StreamExtractResponse> {
   let retryCount = 0
   while (retryCount < 5) {
     try {
-      await streamExtractExternal(url, directory)
-      return
+      return await streamExtractExternal(url, directory)
     } catch (error) {
       retryCount++
       core.debug(
@@ -59,7 +65,7 @@ async function streamExtract(url: string, directory: string): Promise<void> {
 export async function streamExtractExternal(
   url: string,
   directory: string
-): Promise<void> {
+): Promise<StreamExtractResponse> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
   if (response.message.statusCode !== 200) {
@@ -69,6 +75,7 @@ export async function streamExtractExternal(
   }
 
   const timeout = 30 * 1000 // 30 seconds
+  let sha256Digest: string | undefined = undefined
 
   return new Promise((resolve, reject) => {
     const timerFn = (): void => {
@@ -78,7 +85,14 @@ export async function streamExtractExternal(
     }
     const timer = setTimeout(timerFn, timeout)
 
-    response.message
+    const hashStream = crypto.createHash('sha256').setEncoding('hex')
+    const passThrough = new stream.PassThrough()
+
+    response.message.pipe(passThrough)
+    passThrough.pipe(hashStream)
+    const extractStream = passThrough
+
+    extractStream
       .on('data', () => {
         timer.refresh()
       })
@@ -92,7 +106,12 @@ export async function streamExtractExternal(
       .pipe(unzip.Extract({path: directory}))
       .on('close', () => {
         clearTimeout(timer)
-        resolve()
+        if (hashStream) {
+          hashStream.end()
+          sha256Digest = hashStream.read() as string
+          core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
+        }
+        resolve({sha256Digest: `sha256:${sha256Digest}`})
       })
       .on('error', (error: Error) => {
         reject(error)
@@ -110,6 +129,8 @@ export async function downloadArtifactPublic(
   const downloadPath = await resolveOrCreateDirectory(options?.path)
 
   const api = github.getOctokit(token)
+
+  let digestMismatch = false
 
   core.info(
     `Downloading artifact '${artifactId}' from '${repositoryOwner}/${repositoryName}'`
@@ -140,13 +161,20 @@ export async function downloadArtifactPublic(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    await streamExtract(location, downloadPath)
+    const extractResponse = await streamExtract(location, downloadPath)
     core.info(`Artifact download completed successfully.`)
+    if (options?.expectedHash) {
+      if (options?.expectedHash !== extractResponse.sha256Digest) {
+        digestMismatch = true
+        core.debug(`Computed digest: ${extractResponse.sha256Digest}`)
+        core.debug(`Expected digest: ${options.expectedHash}`)
+      }
+    }
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
 
-  return {downloadPath}
+  return {downloadPath, digestMismatch}
 }
 
 export async function downloadArtifactInternal(
@@ -156,6 +184,8 @@ export async function downloadArtifactInternal(
   const downloadPath = await resolveOrCreateDirectory(options?.path)
 
   const artifactClient = internalArtifactTwirpClient()
+
+  let digestMismatch = false
 
   const {workflowRunBackendId, workflowJobRunBackendId} =
     getBackendIdsFromToken()
@@ -192,13 +222,20 @@ export async function downloadArtifactInternal(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    await streamExtract(signedUrl, downloadPath)
+    const extractResponse = await streamExtract(signedUrl, downloadPath)
     core.info(`Artifact download completed successfully.`)
+    if (options?.expectedHash) {
+      if (options?.expectedHash !== extractResponse.sha256Digest) {
+        digestMismatch = true
+        core.debug(`Computed digest: ${extractResponse.sha256Digest}`)
+        core.debug(`Expected digest: ${options.expectedHash}`)
+      }
+    }
   } catch (error) {
     throw new Error(`Unable to download and extract artifact: ${error.message}`)
   }
 
-  return {downloadPath}
+  return {downloadPath, digestMismatch}
 }
 
 async function resolveOrCreateDirectory(

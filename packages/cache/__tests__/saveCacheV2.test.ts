@@ -5,7 +5,7 @@ import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as config from '../src/internal/config'
 import * as tar from '../src/internal/tar'
-import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp'
+import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import {UploadOptions} from '../src/options'
 
@@ -92,14 +92,14 @@ test('save with large cache outputs should fail using', async () => {
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
-test('create cache entry failure', async () => {
+test('create cache entry failure on non-ok response', async () => {
   const paths = ['node_modules']
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const infoLogMock = jest.spyOn(core, 'info')
 
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
-    .mockReturnValue(Promise.resolve({ok: false, signedUploadUrl: ''}))
+    .mockResolvedValue({ok: false, signedUploadUrl: ''})
 
   const createTarMock = jest.spyOn(tar, 'createTar')
   const finalizeCacheEntryMock = jest.spyOn(
@@ -109,7 +109,7 @@ test('create cache entry failure', async () => {
   const compression = CompressionMethod.Zstd
   const getCompressionMock = jest
     .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
+    .mockResolvedValueOnce(compression)
   const archiveFileSize = 1024
   jest
     .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
@@ -131,6 +131,39 @@ test('create cache entry failure', async () => {
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
   expect(finalizeCacheEntryMock).toHaveBeenCalledTimes(0)
   expect(saveCacheMock).toHaveBeenCalledTimes(0)
+})
+
+test('create cache entry fails on rejected promise', async () => {
+  const paths = ['node_modules']
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const infoLogMock = jest.spyOn(core, 'info')
+
+  const createCacheEntryMock = jest
+    .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+    .mockRejectedValue(new Error('Failed to create cache entry'))
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  const compression = CompressionMethod.Zstd
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockResolvedValueOnce(compression)
+  const archiveFileSize = 1024
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
+
+  const cacheId = await saveCache(paths, key)
+  expect(cacheId).toBe(-1)
+  expect(infoLogMock).toHaveBeenCalledWith(
+    `Failed to save: Unable to reserve cache with key ${key}, another job may be creating this cache.`
+  )
+
+  expect(createCacheEntryMock).toHaveBeenCalledWith({
+    key,
+    version: cacheUtils.getCacheVersion(paths, compression)
+  })
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
 test('save cache fails if a signedUploadURL was not passed', async () => {

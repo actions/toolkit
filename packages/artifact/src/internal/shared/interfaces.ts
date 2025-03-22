@@ -91,6 +91,11 @@ export interface DownloadArtifactResponse {
    * The path where the artifact was downloaded to
    */
   downloadPath?: string
+
+  /**
+   * Returns true if the digest of the downloaded artifact does not match the expected hash
+   */
+  digestMismatch?: boolean
 }
 
 /**
@@ -101,6 +106,20 @@ export interface DownloadArtifactOptions {
    * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
    */
   path?: string
+
+  /**
+   * The hash that was computed for the artifact during upload. If provided, the outcome of the download
+   * will provide a digestMismatch property indicating whether the hash of the downloaded artifact
+   * matches the expected hash.
+   */
+  expectedHash?: string
+}
+
+export interface StreamExtractResponse {
+  /**
+   * The SHA256 hash of the downloaded file
+   */
+  sha256Digest?: string
 }
 
 /**
@@ -126,6 +145,11 @@ export interface Artifact {
    * The time when the artifact was created
    */
   createdAt?: Date
+
+  /**
+   * The digest of the artifact, computed at time of upload.
+   */
+  digest?: string
 }
 
 // FindOptions are for fetching Artifact(s) out of the scope of the current run.
