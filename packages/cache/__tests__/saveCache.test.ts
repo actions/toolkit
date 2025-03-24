@@ -17,8 +17,8 @@ import {
 import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
-jest.mock('../src/internal/cacheUtils')
-jest.mock('../src/internal/config')
+jest.mock('../src/internal/shared/cacheUtils')
+jest.mock('../src/internal/shared/config')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
