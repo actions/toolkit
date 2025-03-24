@@ -1,4 +1,4 @@
-import * as config from '../src/internal/config'
+import * as config from '../src/internal/shared/config'
 
 beforeEach(() => {
   jest.resetModules()
