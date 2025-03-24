@@ -48,7 +48,6 @@ export function getApiBaseUrl(): string {
   return process.env['GITHUB_API_URL'] || 'https://api.github.com'
 }
 
-
 export const context = new Context.Context()
 
 const baseUrl = getApiBaseUrl()
@@ -85,4 +84,3 @@ export function getOctokitOptions(
 
   return opts
 }
-
