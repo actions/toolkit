@@ -34,7 +34,7 @@ import {
   retryHttpClientResponse,
   retryTypedResponse
 } from './shared/requestUtils'
-import {getCacheServiceURL} from './config'
+import {getCacheServiceURL} from './shared/config'
 import {getUserAgentString} from './shared/user-agent'
 
 function getCacheApiUrl(resource: string): string {

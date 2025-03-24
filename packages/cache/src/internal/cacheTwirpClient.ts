@@ -1,7 +1,7 @@
 import {info, debug} from '@actions/core'
 import {getUserAgentString} from './shared/user-agent'
 import {NetworkError, UsageError} from './shared/errors'
-import {getCacheServiceURL} from './config'
+import {getCacheServiceURL} from './shared/config'
 import {getRuntimeToken} from './shared/cacheUtils'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'

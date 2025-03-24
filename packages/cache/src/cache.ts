@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as utils from './internal/shared/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/cacheTwirpClient'
-import {getCacheServiceVersion, isGhes} from './internal/config'
+import {getCacheServiceVersion, isGhes} from './internal/shared/config'
 import {DownloadOptions, UploadOptions} from './options'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {

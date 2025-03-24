@@ -6,7 +6,7 @@ import {
   CacheFilename,
   CompressionMethod
 } from '../src/internal/shared/constants'
-import * as config from '../src/internal/config'
+import * as config from '../src/internal/shared/config'
 import * as tar from '../src/internal/tar'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'

@@ -3,7 +3,7 @@ import * as path from 'path'
 import {saveCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/shared/cacheUtils'
-import * as config from '../src/internal/config'
+import * as config from '../src/internal/shared/config'
 import {
   CacheFilename,
   CompressionMethod
