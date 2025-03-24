@@ -8,8 +8,8 @@ import * as stream from 'stream'
 import * as util from 'util'
 
 import * as utils from './cacheUtils'
-import {SocketTimeout} from './constants'
-import {DownloadOptions} from '../options'
+import {SocketTimeout} from '../constants'
+import {DownloadOptions} from '../../options'
 import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'

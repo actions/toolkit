@@ -2,7 +2,7 @@ import {exec} from '@actions/exec'
 import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
-import * as utils from './cacheUtils'
+import * as utils from './shared/cacheUtils'
 import {ArchiveTool} from './contracts'
 import {
   CompressionMethod,

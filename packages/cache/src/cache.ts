@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import * as utils from './internal/cacheUtils'
+import * as utils from './internal/shared/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
 import {getCacheServiceVersion, isGhes} from './internal/config'
