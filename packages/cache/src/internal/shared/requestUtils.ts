@@ -6,7 +6,6 @@ import {
 } from '@actions/http-client'
 import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
 import {ITypedResponseWithError} from '../contracts'
-
 import {debug, setSecret} from '@actions/core'
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
