@@ -11,7 +11,7 @@ import {ArtifactCacheEntry} from '../src/internal/contracts'
 import * as tar from '../src/internal/tar'
 
 jest.mock('../src/internal/cacheHttpClient')
-jest.mock('../src/internal/cacheUtils')
+jest.mock('../src/internal/shared/cacheUtils')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
