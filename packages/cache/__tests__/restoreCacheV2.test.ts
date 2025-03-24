@@ -28,7 +28,7 @@ beforeAll(() => {
   jest.spyOn(core, 'error').mockImplementation(() => {})
 
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
-    const actualUtils = jest.requireActual('../src/internal/cacheUtils')
+    const actualUtils = jest.requireActual('../src/internal/shared/cacheUtils')
     return actualUtils.getCacheFileName(cm)
   })
 
