@@ -3,7 +3,10 @@ import * as path from 'path'
 import {restoreCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/shared/cacheUtils'
-import {CacheFilename, CompressionMethod} from '../src/internal/constants'
+import {
+  CacheFilename,
+  CompressionMethod
+} from '../src/internal/shared/constants'
 import {ArtifactCacheEntry} from '../src/internal/contracts'
 import * as tar from '../src/internal/tar'
 

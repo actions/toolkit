@@ -10,7 +10,7 @@ import {
   ArchiveToolType,
   TarFilename,
   ManifestFilename
-} from './constants'
+} from './shared/constants'
 
 const IS_WINDOWS = process.platform === 'win32'
 

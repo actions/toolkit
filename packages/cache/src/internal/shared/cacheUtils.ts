@@ -11,7 +11,7 @@ import {
   CacheFilename,
   CompressionMethod,
   GnuTarPathOnWindows
-} from '../constants'
+} from './constants'
 
 const versionSalt = '1.0'
 

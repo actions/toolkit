@@ -4,7 +4,7 @@ import {
   HttpClientError,
   HttpClientResponse
 } from '@actions/http-client'
-import {DefaultRetryDelay, DefaultRetryAttempts} from '../constants'
+import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
 import {ITypedResponseWithError} from '../contracts'
 
 import {debug, setSecret} from '@actions/core'

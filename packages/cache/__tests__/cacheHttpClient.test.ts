@@ -1,4 +1,4 @@
-import {downloadCache} from '../src/internal/shared/cacheHttpClient'
+import {downloadCache} from '../src/internal/cacheHttpClient'
 import {getCacheVersion} from '../src/internal/shared/cacheUtils'
 import {CompressionMethod} from '../src/internal/shared/constants'
 import * as downloadUtils from '../src/internal/shared/downloadUtils'

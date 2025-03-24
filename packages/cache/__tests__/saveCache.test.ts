@@ -4,7 +4,10 @@ import {saveCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/shared/cacheUtils'
 import * as config from '../src/internal/config'
-import {CacheFilename, CompressionMethod} from '../src/internal/constants'
+import {
+  CacheFilename,
+  CompressionMethod
+} from '../src/internal/shared/constants'
 import * as tar from '../src/internal/tar'
 import {TypedResponse} from '@actions/http-client/lib/interfaces'
 import {
