@@ -1,6 +1,54 @@
 # Problem Matchers
 
-Problem Matchers are a way to scan the output of actions for a specified regex pattern and surface that information prominently in the UI. Both [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created when a match is detected.
+Problem Matchers are a way to scan the output of actions for a specified regex pattern and surface that information prominently in the UI.
+Both [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created when a match is detected.
+
+## Usage
+
+Problem matches are installed by specifying the file that contains the regex patterns.
+Once they are installed, output lines are scanned with this regex.
+When the matcher is not used anymore, it can be removed again.
+
+### Example Matcher
+
+First we need a problem matcher file defining what output we are interested in.
+
+With the below problem matcher in a file `.github/matcher.json`, we are saying:
+- the first capture group is the file (start of the line, up to the first colon)
+- the second capture group is the line (after the colon until the next colon)
+- and the third capture group is the remainder of the line, which is the error message
+
+See [Single Line Matchers](#single-line-matchers) below for more options.
+
+```json
+{
+  "problemMatcher": [
+    {
+      "owner": "test-matcher",
+      "pattern": [
+        {
+          "regexp": "^([^:]+):([0-9]+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      ]
+    }
+  ]
+}
+```
+
+We can install it in our workflow using the command `add-matcher`:
+```yaml
+steps:
+  - run: echo "::add-matcher::.github/matcher.json"
+  - run: |
+      echo ".github/matcher.json:2: json error"
+  - run: echo "::remove-matcher owner=test-matcher::"
+```
+
+This sample echo command is going to create an annotation in the file `.github/matcher.json` on line 2 with an error message "json error":
+![Screenshot showing the inline annotation](assets/problem-matcher-annotation.png)
 
 ## Limitations
 
