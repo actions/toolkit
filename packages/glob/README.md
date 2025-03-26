@@ -11,7 +11,7 @@ Relative paths and absolute paths are both allowed. Relative paths are rooted ag
 ```js
 const glob = require('@actions/glob');
 
-const patterns = ['**/tar.gz', '**/tar.bz']
+const patterns = ['**/*.tar.gz', '**/*.tar.bz']
 const globber = await glob.create(patterns.join('\n'))
 const files = await globber.glob()
 ```
