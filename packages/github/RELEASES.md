@@ -1,5 +1,25 @@
 # @actions/github Releases
 
+### 6.0.0 
+- Support the latest Octokit in @actions/github [#1553](https://github.com/actions/toolkit/pull/1553)
+  - Drop support of NodeJS v14, v16
+
+### 5.1.1
+- Export default octokit options [#1188](https://github.com/actions/toolkit/pull/1188)
+
+### 5.1.0
+- Add additionalPlugins parameter to getOctokit method [#1181](https://github.com/actions/toolkit/pull/1181)
+- Dependency updates [#1180](https://github.com/actions/toolkit/pull/1180)
+
+
+### 5.0.3
+- - Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 5.0.2
+- Update to v2.0.0 of `@actions/http-client`
+
+### 5.0.1
+- [Update Octokit Dependencies](https://github.com/actions/toolkit/pull/1037)
 ### 5.0.0
 - [Update @actions/github to include latest octokit definitions](https://github.com/actions/toolkit/pull/783)
 - [Add urls to context](https://github.com/actions/toolkit/pull/794)

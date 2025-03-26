@@ -1,5 +1,17 @@
 # @actions/glob Releases
 
+### 0.5.0
+- Added `excludeHiddenFiles` option, which is disabled by default to preserve existing behavior [#1791: Add glob option to ignore hidden files](https://github.com/actions/toolkit/pull/1791)
+
+### 0.4.0
+- Pass in the current workspace as a parameter to HashFiles [#1318](https://github.com/actions/toolkit/pull/1318)
+
+### 0.3.0
+- Added a `verbose` option to HashFiles [#1052](https://github.com/actions/toolkit/pull/1052/files)
+
+### 0.2.1
+- Update `lockfileVersion` to `v2` in `package-lock.json [#1023](https://github.com/actions/toolkit/pull/1023) 
+
 ### 0.2.0
 - [Added the hashFiles function to Glob](https://github.com/actions/toolkit/pull/830)
 - [Added an option to filter out directories](https://github.com/actions/toolkit/pull/728)

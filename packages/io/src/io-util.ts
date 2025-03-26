@@ -6,16 +6,21 @@ export const {
   copyFile,
   lstat,
   mkdir,
+  open,
   readdir,
   readlink,
   rename,
+  rm,
   rmdir,
   stat,
   symlink,
   unlink
 } = fs.promises
-
+// export const {open} = 'fs'
 export const IS_WINDOWS = process.platform === 'win32'
+// See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
+export const UV_FS_O_EXLOCK = 0x10000000
+export const READONLY = fs.constants.O_RDONLY
 
 export async function exists(fsPath: string): Promise<boolean> {
   try {
@@ -162,8 +167,12 @@ function normalizeSeparators(p: string): string {
 function isUnixExecutable(stats: fs.Stats): boolean {
   return (
     (stats.mode & 1) > 0 ||
-    ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
-    ((stats.mode & 64) > 0 && stats.uid === process.getuid())
+    ((stats.mode & 8) > 0 &&
+      process.getgid !== undefined &&
+      stats.gid === process.getgid()) ||
+    ((stats.mode & 64) > 0 &&
+      process.getuid !== undefined &&
+      stats.uid === process.getuid())
   )
 }
 

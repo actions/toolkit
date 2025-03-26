@@ -1,282 +1,219 @@
-import * as fs from 'fs'
-import * as io from '../../io/src/io'
-import * as path from 'path'
-import * as utils from '../src/internal/utils'
-import * as core from '@actions/core'
-import {HttpCodes} from '@actions/http-client'
-import {
-  getRuntimeUrl,
-  getWorkFlowRunId,
-  getInitialRetryIntervalInMilliseconds,
-  getRetryMultiplier
-} from '../src/internal/config-variables'
+import * as config from '../src/internal/shared/config'
+import * as util from '../src/internal/shared/util'
+import {maskSigUrl, maskSecretUrls} from '../src/internal/shared/util'
+import {setSecret, debug} from '@actions/core'
 
-jest.mock('../src/internal/config-variables')
+export const testRuntimeToken =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NwIjoiQWN0aW9ucy5FeGFtcGxlIEFjdGlvbnMuQW5vdGhlckV4YW1wbGU6dGVzdCBBY3Rpb25zLlJlc3VsdHM6Y2U3ZjU0YzctNjFjNy00YWFlLTg4N2YtMzBkYTQ3NWY1ZjFhOmNhMzk1MDg1LTA0MGEtNTI2Yi0yY2U4LWJkYzg1ZjY5Mjc3NCIsImlhdCI6MTUxNjIzOTAyMn0.XYnI_wHPBlUi1mqYveJnnkJhp4dlFjqxzRmISPsqfw8'
 
-describe('Utils', () => {
-  beforeAll(() => {
-    // mock all output so that there is less noise when running tests
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(core, 'debug').mockImplementation(() => {})
-    jest.spyOn(core, 'info').mockImplementation(() => {})
-    jest.spyOn(core, 'warning').mockImplementation(() => {})
+describe('get-backend-ids-from-token', () => {
+  it('should return backend ids when the token is valid', () => {
+    jest.spyOn(config, 'getRuntimeToken').mockReturnValue(testRuntimeToken)
+
+    const backendIds = util.getBackendIdsFromToken()
+    expect(backendIds.workflowRunBackendId).toBe(
+      'ce7f54c7-61c7-4aae-887f-30da475f5f1a'
+    )
+    expect(backendIds.workflowJobRunBackendId).toBe(
+      'ca395085-040a-526b-2ce8-bdc85f692774'
+    )
   })
 
-  it('Check exponential retry range', () => {
-    // No retries should return the initial retry interval
-    const retryWaitTime0 = utils.getExponentialRetryTimeInMilliseconds(0)
-    expect(retryWaitTime0).toEqual(getInitialRetryIntervalInMilliseconds())
-
-    const testMinMaxRange = (retryCount: number): void => {
-      const retryWaitTime = utils.getExponentialRetryTimeInMilliseconds(
-        retryCount
+  it("should throw an error when the token doesn't have the right scope", () => {
+    jest
+      .spyOn(config, 'getRuntimeToken')
+      .mockReturnValue(
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NwIjoiQWN0aW9ucy5FeGFtcGxlIEFjdGlvbnMuQW5vdGhlckV4YW1wbGU6dGVzdCIsImlhdCI6MTUxNjIzOTAyMn0.K0IEoULZteGevF38G94xiaA8zcZ5UlKWfGfqE6q3dhw'
       )
-      const minRange =
-        getInitialRetryIntervalInMilliseconds() *
-        getRetryMultiplier() *
-        retryCount
-      const maxRange = minRange * getRetryMultiplier()
 
-      expect(retryWaitTime).toBeGreaterThanOrEqual(minRange)
-      expect(retryWaitTime).toBeLessThan(maxRange)
+    expect(util.getBackendIdsFromToken).toThrowError(
+      'Failed to get backend IDs: The provided JWT token is invalid'
+    )
+  })
+
+  it('should throw an error when the token has a malformed scope', () => {
+    jest
+      .spyOn(config, 'getRuntimeToken')
+      .mockReturnValue(
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NwIjoiQWN0aW9ucy5FeGFtcGxlIEFjdGlvbnMuQW5vdGhlckV4YW1wbGU6dGVzdCBBY3Rpb25zLlJlc3VsdHM6Y2U3ZjU0YzctNjFjNy00YWFlLTg4N2YtMzBkYTQ3NWY1ZjFhIiwiaWF0IjoxNTE2MjM5MDIyfQ.7D0_LRfRFRZFImHQ7GxH2S6ZyFjjZ5U0ujjGCfle1XE'
+      )
+
+    expect(util.getBackendIdsFromToken).toThrowError(
+      'Failed to get backend IDs: The provided JWT token is invalid'
+    )
+  })
+
+  it('should throw an error when the token is in an invalid format', () => {
+    jest.spyOn(config, 'getRuntimeToken').mockReturnValue('token')
+
+    expect(util.getBackendIdsFromToken).toThrowError('Invalid token specified')
+  })
+
+  it("should throw an error when the token doesn't have the right field", () => {
+    jest
+      .spyOn(config, 'getRuntimeToken')
+      .mockReturnValue(
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+      )
+
+    expect(util.getBackendIdsFromToken).toThrowError(
+      'Failed to get backend IDs: The provided JWT token is invalid'
+    )
+  })
+})
+
+jest.mock('@actions/core')
+
+describe('maskSigUrl', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('does nothing if no sig parameter is present', () => {
+    const url = 'https://example.com'
+    maskSigUrl(url)
+    expect(setSecret).not.toHaveBeenCalled()
+  })
+
+  it('masks the sig parameter in the middle of the URL and sets it as a secret', () => {
+    const url = 'https://example.com/?param1=value1&sig=12345&param2=value2'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('12345')
+    expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('12345'))
+  })
+
+  it('does nothing if the URL is empty', () => {
+    const url = ''
+    maskSigUrl(url)
+    expect(setSecret).not.toHaveBeenCalled()
+  })
+
+  it('handles URLs with fragments', () => {
+    const url = 'https://example.com?sig=12345#fragment'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('12345')
+    expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('12345'))
+  })
+})
+
+describe('maskSigUrl handles special characters in signatures', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('handles signatures with slashes', () => {
+    const url = 'https://example.com/?sig=abc/123'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc/123')
+    expect(setSecret).toHaveBeenCalledWith('abc%2F123')
+  })
+
+  it('handles signatures with plus signs', () => {
+    const url = 'https://example.com/?sig=abc+123'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc 123')
+    expect(setSecret).toHaveBeenCalledWith('abc%20123')
+  })
+
+  it('handles signatures with equals signs', () => {
+    const url = 'https://example.com/?sig=abc=123'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc=123')
+    expect(setSecret).toHaveBeenCalledWith('abc%3D123')
+  })
+
+  it('handles already percent-encoded signatures', () => {
+    const url = 'https://example.com/?sig=abc%2F123%3D'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('abc/123=')
+    expect(setSecret).toHaveBeenCalledWith('abc%2F123%3D')
+  })
+
+  it('handles complex Azure SAS signatures', () => {
+    const url =
+      'https://example.com/container/file.txt?sig=nXyQIUj%2F%2F06Cxt80pBRYiiJlYqtPYg5sz%2FvEh5iHAhw%3D&se=2023-12-31'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith(
+      'nXyQIUj//06Cxt80pBRYiiJlYqtPYg5sz/vEh5iHAhw='
+    )
+    expect(setSecret).toHaveBeenCalledWith(
+      'nXyQIUj%2F%2F06Cxt80pBRYiiJlYqtPYg5sz%2FvEh5iHAhw%3D'
+    )
+  })
+
+  it('handles signatures with multiple special characters', () => {
+    const url = 'https://example.com/?sig=a/b+c=d&e=f'
+    maskSigUrl(url)
+    expect(setSecret).toHaveBeenCalledWith('a/b c=d')
+    expect(setSecret).toHaveBeenCalledWith('a%2Fb%20c%3Dd')
+  })
+})
+
+describe('maskSecretUrls', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('masks sig parameters in signed_upload_url and signed_url', () => {
+    const body = {
+      signed_upload_url: 'https://upload.com?sig=upload123',
+      signed_url: 'https://download.com?sig=download123'
     }
+    maskSecretUrls(body)
+    expect(setSecret).toHaveBeenCalledWith('upload123')
+    expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('upload123'))
+    expect(setSecret).toHaveBeenCalledWith('download123')
+    expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('download123'))
+  })
 
-    for (let i = 1; i < 10; i++) {
-      testMinMaxRange(i)
+  it('handles case where only upload_url is present', () => {
+    const body = {
+      signed_upload_url: 'https://upload.com?sig=upload123'
     }
+    maskSecretUrls(body)
+    expect(setSecret).toHaveBeenCalledWith('upload123')
+    expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('upload123'))
   })
 
-  it('Check Artifact Name for any invalid characters', () => {
-    const invalidNames = [
-      'my\\artifact',
-      'my/artifact',
-      'my"artifact',
-      'my:artifact',
-      'my<artifact',
-      'my>artifact',
-      'my|artifact',
-      'my*artifact',
-      'my?artifact',
-      ''
-    ]
-    for (const invalidName of invalidNames) {
-      expect(() => {
-        utils.checkArtifactName(invalidName)
-      }).toThrow()
+  it('handles case where only download_url is present', () => {
+    const body = {
+      signed_url: 'https://download.com?sig=download123'
     }
+    maskSecretUrls(body)
+    expect(setSecret).toHaveBeenCalledWith('download123')
+    expect(setSecret).toHaveBeenCalledWith(encodeURIComponent('download123'))
+  })
 
-    const validNames = [
-      'my-normal-artifact',
-      'myNormalArtifact',
-      'm¥ñðrmålÄr†ï£å¢†'
-    ]
-    for (const validName of validNames) {
-      expect(() => {
-        utils.checkArtifactName(validName)
-      }).not.toThrow()
+  it('handles case where URLs do not contain sig parameters', () => {
+    const body = {
+      signed_upload_url: 'https://upload.com?token=abc',
+      signed_url: 'https://download.com?token=xyz'
     }
+    maskSecretUrls(body)
+    expect(setSecret).not.toHaveBeenCalled()
   })
 
-  it('Check Artifact File Path for any invalid characters', () => {
-    const invalidNames = [
-      'some/invalid"artifact/path',
-      'some/invalid:artifact/path',
-      'some/invalid<artifact/path',
-      'some/invalid>artifact/path',
-      'some/invalid|artifact/path',
-      'some/invalid*artifact/path',
-      'some/invalid?artifact/path',
-      ''
-    ]
-    for (const invalidName of invalidNames) {
-      expect(() => {
-        utils.checkArtifactFilePath(invalidName)
-      }).toThrow()
+  it('handles empty string URLs', () => {
+    const body = {
+      signed_upload_url: '',
+      signed_url: ''
     }
+    maskSecretUrls(body)
+    expect(setSecret).not.toHaveBeenCalled()
+  })
 
-    const validNames = [
-      'my/perfectly-normal/artifact-path',
-      'my/perfectly\\Normal/Artifact-path',
-      'm¥/ñðrmål/Är†ï£å¢†'
-    ]
-    for (const validName of validNames) {
-      expect(() => {
-        utils.checkArtifactFilePath(validName)
-      }).not.toThrow()
+  it('does nothing if body is not an object or is null', () => {
+    maskSecretUrls(null)
+    expect(debug).toHaveBeenCalledWith('body is not an object or is null')
+    expect(setSecret).not.toHaveBeenCalled()
+  })
+
+  it('does nothing if signed_upload_url and signed_url are not strings', () => {
+    const body = {
+      signed_upload_url: 123,
+      signed_url: 456
     }
-  })
-
-  it('Test negative artifact retention throws', () => {
-    expect(() => {
-      utils.getProperRetention(-1, undefined)
-    }).toThrow()
-  })
-
-  it('Test no setting specified takes artifact retention input', () => {
-    expect(utils.getProperRetention(180, undefined)).toEqual(180)
-  })
-
-  it('Test artifact retention must conform to max allowed', () => {
-    expect(utils.getProperRetention(180, '45')).toEqual(45)
-  })
-
-  it('Test constructing artifact URL', () => {
-    const runtimeUrl = getRuntimeUrl()
-    const runId = getWorkFlowRunId()
-    const artifactUrl = utils.getArtifactUrl()
-    expect(artifactUrl).toEqual(
-      `${runtimeUrl}_apis/pipelines/workflows/${runId}/artifacts?api-version=${utils.getApiVersion()}`
-    )
-  })
-
-  it('Test constructing upload headers with all optional parameters', () => {
-    const contentType = 'application/octet-stream'
-    const size = 24
-    const uncompressedLength = 100
-    const range = 'bytes 0-199/200'
-    const headers = utils.getUploadHeaders(
-      contentType,
-      true,
-      true,
-      uncompressedLength,
-      size,
-      range
-    )
-    expect(Object.keys(headers).length).toEqual(8)
-    expect(headers['Accept']).toEqual(
-      `application/json;api-version=${utils.getApiVersion()}`
-    )
-    expect(headers['Content-Type']).toEqual(contentType)
-    expect(headers['Connection']).toEqual('Keep-Alive')
-    expect(headers['Keep-Alive']).toEqual('10')
-    expect(headers['Content-Encoding']).toEqual('gzip')
-    expect(headers['x-tfs-filelength']).toEqual(uncompressedLength)
-    expect(headers['Content-Length']).toEqual(size)
-    expect(headers['Content-Range']).toEqual(range)
-  })
-
-  it('Test constructing upload headers with only required parameter', () => {
-    const headers = utils.getUploadHeaders('application/octet-stream')
-    expect(Object.keys(headers).length).toEqual(2)
-    expect(headers['Accept']).toEqual(
-      `application/json;api-version=${utils.getApiVersion()}`
-    )
-    expect(headers['Content-Type']).toEqual('application/octet-stream')
-  })
-
-  it('Test constructing download headers with all optional parameters', () => {
-    const contentType = 'application/json'
-    const headers = utils.getDownloadHeaders(contentType, true, true)
-    expect(Object.keys(headers).length).toEqual(5)
-    expect(headers['Content-Type']).toEqual(contentType)
-    expect(headers['Connection']).toEqual('Keep-Alive')
-    expect(headers['Keep-Alive']).toEqual('10')
-    expect(headers['Accept-Encoding']).toEqual('gzip')
-    expect(headers['Accept']).toEqual(
-      `application/octet-stream;api-version=${utils.getApiVersion()}`
-    )
-  })
-
-  it('Test constructing download headers with only required parameter', () => {
-    const headers = utils.getDownloadHeaders('application/octet-stream')
-    expect(Object.keys(headers).length).toEqual(2)
-    expect(headers['Content-Type']).toEqual('application/octet-stream')
-    // check for default accept type
-    expect(headers['Accept']).toEqual(
-      `application/json;api-version=${utils.getApiVersion()}`
-    )
-  })
-
-  it('Test Success Status Code', () => {
-    expect(utils.isSuccessStatusCode(HttpCodes.OK)).toEqual(true)
-    expect(utils.isSuccessStatusCode(201)).toEqual(true)
-    expect(utils.isSuccessStatusCode(299)).toEqual(true)
-    expect(utils.isSuccessStatusCode(HttpCodes.NotFound)).toEqual(false)
-    expect(utils.isSuccessStatusCode(HttpCodes.BadGateway)).toEqual(false)
-    expect(utils.isSuccessStatusCode(HttpCodes.Forbidden)).toEqual(false)
-  })
-
-  it('Test Retry Status Code', () => {
-    expect(utils.isRetryableStatusCode(HttpCodes.BadGateway)).toEqual(true)
-    expect(utils.isRetryableStatusCode(HttpCodes.ServiceUnavailable)).toEqual(
-      true
-    )
-    expect(utils.isRetryableStatusCode(HttpCodes.GatewayTimeout)).toEqual(true)
-    expect(utils.isRetryableStatusCode(HttpCodes.TooManyRequests)).toEqual(true)
-    expect(utils.isRetryableStatusCode(HttpCodes.OK)).toEqual(false)
-    expect(utils.isRetryableStatusCode(HttpCodes.NotFound)).toEqual(false)
-    expect(utils.isRetryableStatusCode(HttpCodes.Forbidden)).toEqual(false)
-    expect(utils.isRetryableStatusCode(413)).toEqual(true) // Payload Too Large
-  })
-
-  it('Test Throttled Status Code', () => {
-    expect(utils.isThrottledStatusCode(HttpCodes.TooManyRequests)).toEqual(true)
-    expect(utils.isThrottledStatusCode(HttpCodes.InternalServerError)).toEqual(
-      false
-    )
-    expect(utils.isThrottledStatusCode(HttpCodes.BadGateway)).toEqual(false)
-    expect(utils.isThrottledStatusCode(HttpCodes.ServiceUnavailable)).toEqual(
-      false
-    )
-  })
-
-  it('Test Forbidden Status Code', () => {
-    expect(utils.isForbiddenStatusCode(HttpCodes.Forbidden)).toEqual(true)
-    expect(utils.isForbiddenStatusCode(HttpCodes.InternalServerError)).toEqual(
-      false
-    )
-    expect(utils.isForbiddenStatusCode(HttpCodes.TooManyRequests)).toEqual(
-      false
-    )
-    expect(utils.isForbiddenStatusCode(HttpCodes.OK)).toEqual(false)
-  })
-
-  it('Test Creating Artifact Directories', async () => {
-    const root = path.join(__dirname, '_temp', 'artifact-download')
-    // remove directory before starting
-    await io.rmRF(root)
-
-    const directory1 = path.join(root, 'folder2', 'folder3')
-    const directory2 = path.join(directory1, 'folder1')
-
-    // Initially should not exist
-    await expect(fs.promises.access(directory1)).rejects.not.toBeUndefined()
-    await expect(fs.promises.access(directory2)).rejects.not.toBeUndefined()
-    const directoryStructure = [directory1, directory2]
-    await utils.createDirectoriesForArtifact(directoryStructure)
-    // directories should now be created
-    await expect(fs.promises.access(directory1)).resolves.toEqual(undefined)
-    await expect(fs.promises.access(directory2)).resolves.toEqual(undefined)
-  })
-
-  it('Test Creating Empty Files', async () => {
-    const root = path.join(__dirname, '_temp', 'empty-files')
-    await io.rmRF(root)
-
-    const emptyFile1 = path.join(root, 'emptyFile1')
-    const directoryToCreate = path.join(root, 'folder1')
-    const emptyFile2 = path.join(directoryToCreate, 'emptyFile2')
-
-    // empty files should only be created after the directory structure is fully setup
-    // ensure they are first created by using the createDirectoriesForArtifact method
-    const directoryStructure = [root, directoryToCreate]
-    await utils.createDirectoriesForArtifact(directoryStructure)
-    await expect(fs.promises.access(root)).resolves.toEqual(undefined)
-    await expect(fs.promises.access(directoryToCreate)).resolves.toEqual(
-      undefined
-    )
-
-    await expect(fs.promises.access(emptyFile1)).rejects.not.toBeUndefined()
-    await expect(fs.promises.access(emptyFile2)).rejects.not.toBeUndefined()
-
-    const emptyFilesToCreate = [emptyFile1, emptyFile2]
-    await utils.createEmptyFilesForArtifact(emptyFilesToCreate)
-
-    await expect(fs.promises.access(emptyFile1)).resolves.toEqual(undefined)
-    const size1 = (await fs.promises.stat(emptyFile1)).size
-    expect(size1).toEqual(0)
-    await expect(fs.promises.access(emptyFile2)).resolves.toEqual(undefined)
-    const size2 = (await fs.promises.stat(emptyFile2)).size
-    expect(size2).toEqual(0)
+    maskSecretUrls(body)
+    expect(setSecret).not.toHaveBeenCalled()
   })
 })
