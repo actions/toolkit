@@ -24,7 +24,7 @@ Outputs can be set with `setOutput` which makes them available to be mapped into
 const myInput = core.getInput('inputName', { required: true });
 const myBooleanInput = core.getBooleanInput('booleanInputName', { required: true });
 const myMultilineInput = core.getMultilineInput('multilineInputName', { required: true });
-const myArrayInput = core.getStringAsArray('stringAsArray', { required: true });
+const myListInput = core.getListInput('listInputName', { required: true });
 core.setOutput('outputKey', 'outputVal');
 ```
 
@@ -80,11 +80,11 @@ const core = require('@actions/core');
 const myInput = core.getInput('input');
 try {
   core.debug('Inside try block');
-  
+
   if (!myInput) {
     core.warning('myInput was not set');
   }
-  
+
   if (core.isDebug()) {
     // curl -v https://github.com
   } else {
@@ -120,7 +120,7 @@ const result = await core.group('Do something async', async () => {
 
 #### Annotations
 
-This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run). 
+This library has 3 methods that will produce [annotations](https://docs.github.com/en/rest/reference/checks#create-a-check-run).
 ```js
 core.error('This is a bad error, action may still succeed though.')
 
@@ -133,9 +133,9 @@ These will surface to the UI in the Actions page and on Pull Requests. They look
 
 ![Annotations Image](../../docs/assets/annotations.png)
 
-These annotations can also be attached to particular lines and columns of your source files to show exactly where a problem is occuring. 
+These annotations can also be attached to particular lines and columns of your source files to show exactly where a problem is occuring.
 
-These options are: 
+These options are:
 ```typescript
 export interface AnnotationProperties {
   /**
@@ -282,12 +282,12 @@ In action's `main.ts`:
 ```js
 const core = require('@actions/core');
 async function getIDTokenAction(): Promise<void> {
-  
+
    const audience = core.getInput('audience', {required: false})
-   
+
    const id_token1 = await core.getIDToken()            // ID Token with default audience
    const id_token2 = await core.getIDToken(audience)    // ID token with custom audience
-   
+
    // this id_token can be used to get access token from third party cloud providers
 }
 getIDTokenAction()
@@ -299,13 +299,13 @@ In action's `actions.yml`:
 name: 'GetIDToken'
 description: 'Get ID token from Github OIDC provider'
 inputs:
-  audience:  
+  audience:
     description: 'Audience for which the ID token is intended for'
     required: false
 outputs:
-  id_token1: 
+  id_token1:
     description: 'ID token obtained from OIDC provider'
-  id_token2: 
+  id_token2:
     description: 'ID token obtained from OIDC provider'
 runs:
   using: 'node12'

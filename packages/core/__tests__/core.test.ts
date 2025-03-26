@@ -294,9 +294,9 @@ describe('@actions/core', () => {
     ).toEqual(['  val1  ', '  val2  ', '  '])
   })
 
-  it('getStringAsArray; separated by either comma or new line', () => {
+  it('getListInput; separated by either comma or new line', () => {
     expect(
-      core.getStringAsArray(`
+      core.getListInput(`
         line 1,
         line 2,
 

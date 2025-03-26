@@ -161,14 +161,14 @@ export function getMultilineInput(
 }
 
 /**
- * Gets the values of an array-like input (separated by comma or new lines).  Each value is also trimmed.
+ * Gets the values of an list input (separated by comma or new lines). Each value is also trimmed.
  *
  * @param     name     name of the input to get
  * @param     options  optional. See InputOptions.
  * @returns   string[]
  *
  */
-export function getStringAsArray(
+export function getListInput(
   name: string,
   options?: InputOptions
 ): string[] {
