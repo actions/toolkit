@@ -115,10 +115,6 @@ test('restore with restore keys and no cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
   const restoreKeys = ['node-']
-  const cacheVersion =
-    'd90f107aaeb22920dba0c637a23c37b5bc497b4dfa3b07fe3f79bf88a273c11b'
-  const getCacheVersionMock = jest.spyOn(cacheUtils, 'getCacheVersion')
-  getCacheVersionMock.mockReturnValue(cacheVersion)
 
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
@@ -134,10 +130,7 @@ test('restore with restore keys and no cache found', async () => {
 
   expect(cacheKey).toBe(undefined)
   expect(logDebugMock).toHaveBeenCalledWith(
-    `Cache not found for version ${cacheVersion} of keys: ${[
-      key,
-      ...restoreKeys
-    ].join(', ')}`
+    `Cache not found for keys: ${[key, ...restoreKeys].join(', ')}`
   )
 })
 
