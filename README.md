@@ -1,3 +1,5 @@
+[![Code Scanning - Action](https://github.com/nodoubtz/toolkit/actions/workflows/codeql.yml/badge.svg)](https://github.com/nodoubtz/toolkit/actions/workflows/codeql.yml)
+
 # GitHub ToolKit
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
