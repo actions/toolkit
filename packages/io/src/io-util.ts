@@ -76,7 +76,7 @@ export async function tryGetExecutablePath(
   let stats: fs.Stats | undefined = undefined
   try {
     // test file exists
-    stats = await stat(filePath)
+    stats = await lstat(filePath)
   } catch (err) {
     if (err.code !== 'ENOENT') {
       // eslint-disable-next-line no-console
@@ -106,7 +106,7 @@ export async function tryGetExecutablePath(
 
     stats = undefined
     try {
-      stats = await stat(filePath)
+      stats = await lstat(filePath)
     } catch (err) {
       if (err.code !== 'ENOENT') {
         // eslint-disable-next-line no-console
