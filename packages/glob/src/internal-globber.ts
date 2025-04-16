@@ -146,10 +146,13 @@ export class DefaultGlobber implements Globber {
 
         // Push the child items in reverse
         const childLevel = item.level + 1
-        const childItems = (await fs.promises.readdir(item.path)).map(
-          x => new SearchState(path.join(item.path, x), childLevel)
-        )
-        stack.push(...childItems.reverse())
+        const childItems = await fs.promises.readdir(item.path)
+
+        for (let i = childItems.length - 1; i >= 0; i--) {
+          stack.push(
+            new SearchState(path.join(item.path, childItems[i]), childLevel)
+          )
+        }
       }
       // File
       else if (match & MatchKind.File) {
