@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -49,6 +49,7 @@
     "semver": "^6.3.1"
   },
   "devDependencies": {
+    "@types/node": "^22.13.9",
     "@types/semver": "^6.0.0",
     "typescript": "^5.2.2"
   }
