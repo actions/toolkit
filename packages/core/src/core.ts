@@ -70,6 +70,13 @@ export interface AnnotationProperties {
   endColumn?: number
 }
 
+export interface ErrorMessageProperties {
+  /**
+   * Whether to include the stack trace in the error message. Defaults to false.
+   */
+  withStackTrace?: boolean
+}
+
 //-----------------------------------------------------------------------
 // Variables
 //-----------------------------------------------------------------------
@@ -274,12 +281,16 @@ export function debug(message: string): void {
  */
 export function error(
   message: string | Error,
-  properties: AnnotationProperties = {}
+  properties: AnnotationProperties & ErrorMessageProperties = {}
 ): void {
+  if (typeof message === 'string') {
+    issueCommand('error', toCommandProperties(properties), message)
+    return
+  }
   issueCommand(
     'error',
     toCommandProperties(properties),
-    message instanceof Error ? message.toString() : message
+    properties.withStackTrace ? message.stack : message.toString()
   )
 }
 
