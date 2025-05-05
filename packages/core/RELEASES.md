@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+### 1.12.0
+- Adds optional functionality to `core.error` to allow for the logging of stack traces.
+
 ### 1.11.1
 - Fix uses of `crypto.randomUUID` on Node 18 and earlier [#1842](https://github.com/actions/toolkit/pull/1842)
 
