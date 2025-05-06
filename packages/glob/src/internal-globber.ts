@@ -104,6 +104,7 @@ export class DefaultGlobber implements Globber {
 
     // Search
     const traversalChain: string[] = [] // used to detect cycles
+    let loggedFirstHiddenMessage: boolean = false // if printing hidden, is this the first one
     while (stack.length) {
       // Pop
       const item = stack.pop() as SearchState
@@ -130,6 +131,11 @@ export class DefaultGlobber implements Globber {
 
       // Hidden file or directory?
       if (options.excludeHiddenFiles && path.basename(item.path).match(/^\./)) {
+        if(!loggedFirstHiddenMessage) {
+          core.info(`Ignoring the following hidden files and directories`)
+          loggedFirstHiddenMessage = true
+        }
+        core.info(`- ${item.path}`)
         continue
       }
 
