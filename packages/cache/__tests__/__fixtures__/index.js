@@ -12,3 +12,6 @@ fs.appendFileSync(filePath, `GITHUB_RUN_ID=${process.env.GITHUB_RUN_ID}${os.EOL}
 fs.appendFileSync(filePath, `ACTIONS_CACHE_SERVICE_V2=true${os.EOL}`, {
     encoding: 'utf8'
 })
+fs.appendFileSync(filePath, `ACTIONS_RESULTS_URL=${process.env.ACTIONS_RESULTS_URL}${os.EOL}`, {
+    encoding: 'utf8'
+})
