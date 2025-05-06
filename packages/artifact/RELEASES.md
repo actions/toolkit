@@ -15,7 +15,7 @@
 
 ### 2.2.2
 
-- Default concurrency to 5 for uploading artifacts [#1962](https://github.com/actions/toolkit/pull/1962
+- Default concurrency to 5 for uploading artifacts [#1962](https://github.com/actions/toolkit/pull/1962)
 
 ### 2.2.1
 
