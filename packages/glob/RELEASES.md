@@ -1,5 +1,8 @@
 # @actions/glob Releases
 
+### 0.5.1
+- When using the `excludeHiddenFiles` option, log any ignored files with `core.info()` [#2040](https://github.com/actions/toolkit/pull/2040)
+
 ### 0.5.0
 - Added `excludeHiddenFiles` option, which is disabled by default to preserve existing behavior [#1791: Add glob option to ignore hidden files](https://github.com/actions/toolkit/pull/1791)
 
