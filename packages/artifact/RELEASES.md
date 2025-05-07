@@ -1,5 +1,10 @@
 # @actions/artifact Releases
 
+### 3.0.0
+
+- Support the latest Octokit in @actions/artifact [#1883](https://github.com/actions/toolkit/pull/1883)
+  - Drop support of NodeJS v14, v16
+
 ### 2.3.2
 
 - Added masking for Shared Access Signature (SAS) artifact URLs [#1982](https://github.com/actions/toolkit/pull/1982)
