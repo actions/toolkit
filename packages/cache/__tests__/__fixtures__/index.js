@@ -3,15 +3,15 @@
 const fs = require('fs');
 const os = require('os');
 const filePath = process.env[`GITHUB_ENV`]
-fs.appendFileSync(filePath, `ACTIONS_RUNTIME_TOKEN=${process.env.ACTIONS_RUNTIME_TOKEN}${os.EOL}`, {
-    encoding: 'utf8'
-})
-fs.appendFileSync(filePath, `GITHUB_RUN_ID=${process.env.GITHUB_RUN_ID}${os.EOL}`, {
-    encoding: 'utf8'
-})
 fs.appendFileSync(filePath, `ACTIONS_CACHE_SERVICE_V2=true${os.EOL}`, {
     encoding: 'utf8'
 })
 fs.appendFileSync(filePath, `ACTIONS_RESULTS_URL=${process.env.ACTIONS_RESULTS_URL}${os.EOL}`, {
+    encoding: 'utf8'
+})
+fs.appendFileSync(filePath, `ACTIONS_RUNTIME_TOKEN=${process.env.ACTIONS_RUNTIME_TOKEN}${os.EOL}`, {
+    encoding: 'utf8'
+})
+fs.appendFileSync(filePath, `GITHUB_RUN_ID=${process.env.GITHUB_RUN_ID}${os.EOL}`, {
     encoding: 'utf8'
 })
