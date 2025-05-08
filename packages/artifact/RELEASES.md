@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.3.3
+
+- Dependency updates [#2049](https://github.com/actions/toolkit/pull/2049)
+
 ### 2.3.2
 
 - Added masking for Shared Access Signature (SAS) artifact URLs [#1982](https://github.com/actions/toolkit/pull/1982)
