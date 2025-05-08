@@ -1,6 +1,6 @@
-import {retry, retryTypedResponse} from '../src/internal/requestUtils'
+import {retry, retryTypedResponse} from '../src/internal/shared/requestUtils'
 import {HttpClientError} from '@actions/http-client'
-import * as requestUtils from '../src/internal/requestUtils'
+import * as requestUtils from '../src/internal/shared/requestUtils'
 
 interface ITestResponse {
   statusCode: number
