@@ -1,4 +1,4 @@
-import * as uploadUtils from '../src/internal/uploadUtils'
+import * as uploadUtils from '../src/internal/shared/uploadUtils'
 import {TransferProgressEvent} from '@azure/ms-rest-js'
 
 test('upload progress tracked correctly', () => {

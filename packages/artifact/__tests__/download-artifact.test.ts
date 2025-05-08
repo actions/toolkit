@@ -16,7 +16,7 @@ import {getUserAgentString} from '../src/internal/shared/user-agent'
 import {noopLogs} from './common'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON} from '../src/generated'
-import * as util from '../src/internal/shared/util'
+import * as util from '../src/internal/shared/utils'
 
 type MockedDownloadArtifact = jest.MockedFunction<
   RestEndpointMethods['actions']['downloadArtifact']
