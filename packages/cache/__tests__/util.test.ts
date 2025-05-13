@@ -1,4 +1,4 @@
-import {maskSigUrl, maskSecretUrls} from '../src/internal/shared/util'
+import {maskSigUrl, maskSecretUrls} from '../src/internal/shared/requestUtils'
 import {setSecret, debug} from '@actions/core'
 
 jest.mock('@actions/core')
