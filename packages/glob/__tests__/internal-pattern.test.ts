@@ -350,12 +350,11 @@ describe('pattern', () => {
 
 describe('globEscape ReDos', () => {
   it('done in 1s', () => {
-    const attackString = '['.repeat(100000) + '\u0000'
+    const attackString = `${'['.repeat(100000)}\u0000`
     const startTime = performance.now()
     Pattern.globEscape(attackString)
     const endTime = performance.now()
     const timeTaken = endTime - startTime
-    console.log(`globEscape: ${timeTaken.toFixed(3)} ms`)
     expect(timeTaken).toBeLessThan(1000)
   })
 })
