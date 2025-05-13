@@ -1,4 +1,42 @@
+<script src="https://cc.cdn.civiccomputing.com/9/cookieControl-9.x.min.js"></script>
+                        <script>
+                            var config = {https://cc.cdn.civiccomputing.com/9/cookieControl-9.x.min.js};
+                            apiKey: '1320bfbb177535c6b77017bc949f5ada312d5a1f',
+                            product: 'community',
+                                optionalCookies: [_guc _ga
+                                    {
+                                        name: 'analytics',
+                                        label: 'Analytics',
+                                        description: '',
+                                        cookies: [IDE],
+                                        onAccept : function(){},
+                                        onRevoke: function(){}
+                                    },{
+                                        name: 'marketing',
+                                        label: 'Marketing',
+                                        description: '',
+                                        cookies: [_gid],
+                                        onAccept : function(){},
+                                        onRevoke: function(){}
+                                    },{
+                                        name: 'preferences',
+                                        label: 'Preferences',
+                                        description: '',
+                                        cookies: [],
+                                        onAccept : function(){},
+                                        onRevoke: function(){}
+                                    }
+                                ],
 
+                                position: 'RIGHT',
+                                theme: 'DARK'
+                            };
+
+                            CookieControl.load( pal 8.x/Drupal 9.x module.
+
+Cookie Control requires a valid API key in order to work on your website. This key is embedded in your sample code snippet:
+
+                  
 <p align="center">
   <img src="res/at-logo.png">
 </p>
