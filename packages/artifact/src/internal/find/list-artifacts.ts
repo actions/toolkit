@@ -8,7 +8,7 @@ import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
-import {getBackendIdsFromToken} from '../shared/util'
+import {getBackendIdsFromToken} from '../shared/utils'
 import {ListArtifactsRequest, Timestamp} from '../../generated'
 
 // Limiting to 1000 for perf reasons

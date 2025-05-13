@@ -8,9 +8,9 @@ import {
   ManifestFilename,
   SystemTarPathOnWindows,
   TarFilename
-} from '../src/internal/constants'
+} from '../src/internal/shared/constants'
 import * as tar from '../src/internal/tar'
-import * as utils from '../src/internal/cacheUtils'
+import * as utils from '../src/internal/shared/utils'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import fs = require('fs')
 
