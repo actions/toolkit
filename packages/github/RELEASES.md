@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 6.0.1
+
+- Dependency updates [#2043](https://github.com/actions/toolkit/pull/2043)
+- Add `context.runAttempt` [#1588](https://github.com/actions/toolkit/pull/1588)
+
 ### 6.0.0 
 - Support the latest Octokit in @actions/github [#1553](https://github.com/actions/toolkit/pull/1553)
   - Drop support of NodeJS v14, v16
