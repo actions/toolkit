@@ -1,3 +1,7 @@
-If you discover a security issue in this repo, please submit it through the [GitHub Security Bug Bounty](https://hackerone.com/github)
+contributions to this repository should follow its contributing guidelines, security policy, and code of conduct.
+ ProTip! Add# Security Policy
 
-Thanks for helping make GitHub Actions safe for everyone.
+## Supported Versions
+[![toolkit-unit-tests](https://github.com/actions/toolkit/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/actions/toolkit/actions/workflows/unit-tests.yml)
+Use this section to tell people about which versions of your project are
+currently being supported with security updates.

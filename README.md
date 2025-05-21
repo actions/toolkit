@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="res/at-logo.png">
+  <img src="https://github.com/">
 </p>
 
 <p align="center">
