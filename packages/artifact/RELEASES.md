@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+### 2.3.3
+
+- Dependency updates [#2049](https://github.com/actions/toolkit/pull/2049)
+
 ### 2.3.2
 
 - Added masking for Shared Access Signature (SAS) artifact URLs [#1982](https://github.com/actions/toolkit/pull/1982)
@@ -15,7 +19,7 @@
 
 ### 2.2.2
 
-- Default concurrency to 5 for uploading artifacts [#1962](https://github.com/actions/toolkit/pull/1962
+- Default concurrency to 5 for uploading artifacts [#1962](https://github.com/actions/toolkit/pull/1962)
 
 ### 2.2.1
 
