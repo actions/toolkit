@@ -5,7 +5,7 @@ import {ArtifactServiceClientJSON} from '../../generated'
 import {getResultsServiceUrl, getRuntimeToken} from './config'
 import {getUserAgentString} from './user-agent'
 import {NetworkError, UsageError} from './errors'
-import {maskSecretUrls} from './util'
+import {maskSecretUrls} from './utils'
 
 // The twirp http client must implement this interface
 interface Rpc {
