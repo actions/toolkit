@@ -73,7 +73,7 @@ test('zstd extract tar', async () => {
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
         '--use-compress-program',
-        IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
+        IS_WINDOWS ? '"zstd -d -3 --long=30"' : 'unzstd --long=30'
       ])
       .join(' '),
     undefined,
@@ -104,7 +104,7 @@ test('zstd extract tar with windows BSDtar', async () => {
     expect(execMock).toHaveBeenNthCalledWith(
       1,
       [
-        'zstd -d --long=30 --force -o',
+        'zstd -d -3 --long=30 --force -o',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       ].join(' '),
@@ -233,7 +233,7 @@ test('zstd create tar', async () => {
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
         '--use-compress-program',
-        IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
+        IS_WINDOWS ? '"zstd -T0 -3 --long=30"' : 'zstdmt -3 --long=30'
       ])
       .join(' '),
     undefined, // args
@@ -292,7 +292,7 @@ test('zstd create tar with windows BSDtar', async () => {
     expect(execMock).toHaveBeenNthCalledWith(
       2,
       [
-        'zstd -T0 --long=30 --force -o',
+        'zstd -T0 -3 --long=30 --force -o',
         CacheFilename.Zstd.replace(/\\/g, '/'),
         TarFilename.replace(/\\/g, '/')
       ].join(' '),
@@ -479,4 +479,280 @@ test('gzip list tar', async () => {
       env: expect.objectContaining(defaultEnv)
     }
   )
+})
+
+test('zstd create tar with custom compression level', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  // Save the original environment variable value
+  const originalCompressionLevel = process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+
+  try {
+    // Set the custom compression level
+    process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = '10'
+
+    const archiveFolder = getTempDir()
+    const workspace = process.env['GITHUB_WORKSPACE']
+    const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+
+    await fs.promises.mkdir(archiveFolder, {recursive: true})
+
+    await tar.createTar(
+      archiveFolder,
+      sourceDirectories,
+      CompressionMethod.Zstd
+    )
+
+    const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+
+    expect(execMock).toHaveBeenCalledTimes(1)
+    expect(execMock).toHaveBeenCalledWith(
+      [
+        `"${tarPath}"`,
+        '--posix',
+        '-cf',
+        IS_WINDOWS
+          ? CacheFilename.Zstd.replace(/\\/g, '/')
+          : CacheFilename.Zstd,
+        '--exclude',
+        IS_WINDOWS
+          ? CacheFilename.Zstd.replace(/\\/g, '/')
+          : CacheFilename.Zstd,
+        '-P',
+        '-C',
+        IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+        '--files-from',
+        ManifestFilename
+      ]
+        .concat(IS_WINDOWS ? ['--force-local'] : [])
+        .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+        .concat([
+          '--use-compress-program',
+          IS_WINDOWS ? '"zstd -T0 -10 --long=30"' : 'zstdmt -10 --long=30'
+        ])
+        .join(' '),
+      undefined, // args
+      {
+        cwd: archiveFolder,
+        env: expect.objectContaining(defaultEnv)
+      }
+    )
+  } finally {
+    // Restore the original environment variable
+    if (originalCompressionLevel === undefined) {
+      delete process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+    } else {
+      process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = originalCompressionLevel
+    }
+  }
+})
+
+test('zstd create tar with invalid compression level', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  // Save the original environment variable value
+  const originalCompressionLevel = process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+
+  try {
+    // Set an invalid compression level
+    process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = 'invalid'
+
+    const archiveFolder = getTempDir()
+    const workspace = process.env['GITHUB_WORKSPACE']
+    const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+
+    await fs.promises.mkdir(archiveFolder, {recursive: true})
+
+    await tar.createTar(
+      archiveFolder,
+      sourceDirectories,
+      CompressionMethod.Zstd
+    )
+
+    const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+
+    // Should fall back to the default compression level (-3)
+    expect(execMock).toHaveBeenCalledTimes(1)
+    expect(execMock).toHaveBeenCalledWith(
+      [
+        `"${tarPath}"`,
+        '--posix',
+        '-cf',
+        IS_WINDOWS
+          ? CacheFilename.Zstd.replace(/\\/g, '/')
+          : CacheFilename.Zstd,
+        '--exclude',
+        IS_WINDOWS
+          ? CacheFilename.Zstd.replace(/\\/g, '/')
+          : CacheFilename.Zstd,
+        '-P',
+        '-C',
+        IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+        '--files-from',
+        ManifestFilename
+      ]
+        .concat(IS_WINDOWS ? ['--force-local'] : [])
+        .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+        .concat([
+          '--use-compress-program',
+          IS_WINDOWS ? '"zstd -T0 -3 --long=30"' : 'zstdmt -3 --long=30'
+        ])
+        .join(' '),
+      undefined, // args
+      {
+        cwd: archiveFolder,
+        env: expect.objectContaining(defaultEnv)
+      }
+    )
+  } finally {
+    // Restore the original environment variable
+    if (originalCompressionLevel === undefined) {
+      delete process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+    } else {
+      process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = originalCompressionLevel
+    }
+  }
+})
+
+test('zstd create tar with out-of-range compression level', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  // Save the original environment variable value
+  const originalCompressionLevel = process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+
+  try {
+    // Set an out-of-range compression level
+    process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = '25'
+
+    const archiveFolder = getTempDir()
+    const workspace = process.env['GITHUB_WORKSPACE']
+    const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+
+    await fs.promises.mkdir(archiveFolder, {recursive: true})
+
+    await tar.createTar(
+      archiveFolder,
+      sourceDirectories,
+      CompressionMethod.Zstd
+    )
+
+    const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+
+    // Should fall back to the default compression level (-3)
+    expect(execMock).toHaveBeenCalledTimes(1)
+    expect(execMock).toHaveBeenCalledWith(
+      [
+        `"${tarPath}"`,
+        '--posix',
+        '-cf',
+        IS_WINDOWS
+          ? CacheFilename.Zstd.replace(/\\/g, '/')
+          : CacheFilename.Zstd,
+        '--exclude',
+        IS_WINDOWS
+          ? CacheFilename.Zstd.replace(/\\/g, '/')
+          : CacheFilename.Zstd,
+        '-P',
+        '-C',
+        IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+        '--files-from',
+        ManifestFilename
+      ]
+        .concat(IS_WINDOWS ? ['--force-local'] : [])
+        .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+        .concat([
+          '--use-compress-program',
+          IS_WINDOWS ? '"zstd -T0 -3 --long=30"' : 'zstdmt -3 --long=30'
+        ])
+        .join(' '),
+      undefined, // args
+      {
+        cwd: archiveFolder,
+        env: expect.objectContaining(defaultEnv)
+      }
+    )
+  } finally {
+    // Restore the original environment variable
+    if (originalCompressionLevel === undefined) {
+      delete process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+    } else {
+      process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = originalCompressionLevel
+    }
+  }
+})
+
+test('zstd create tar with windows BSDtar and custom compression level', async () => {
+  if (IS_WINDOWS) {
+    const execMock = jest.spyOn(exec, 'exec')
+    jest
+      .spyOn(utils, 'getGnuTarPathOnWindows')
+      .mockReturnValue(Promise.resolve(''))
+
+    // Save the original environment variable value
+    const originalCompressionLevel = process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+
+    try {
+      // Set a custom compression level
+      process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = '19'
+
+      const archiveFolder = getTempDir()
+      const workspace = process.env['GITHUB_WORKSPACE']
+      const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+
+      await fs.promises.mkdir(archiveFolder, {recursive: true})
+
+      await tar.createTar(
+        archiveFolder,
+        sourceDirectories,
+        CompressionMethod.Zstd
+      )
+
+      const tarPath = SystemTarPathOnWindows
+
+      expect(execMock).toHaveBeenCalledTimes(2)
+
+      expect(execMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          `"${tarPath}"`,
+          '--posix',
+          '-cf',
+          TarFilename.replace(/\\/g, '/'),
+          '--exclude',
+          TarFilename.replace(/\\/g, '/'),
+          '-P',
+          '-C',
+          workspace?.replace(/\\/g, '/'),
+          '--files-from',
+          ManifestFilename
+        ].join(' '),
+        undefined, // args
+        {
+          cwd: archiveFolder,
+          env: expect.objectContaining(defaultEnv)
+        }
+      )
+
+      expect(execMock).toHaveBeenNthCalledWith(
+        2,
+        [
+          'zstd -T0 -19 --long=30 --force -o',
+          CacheFilename.Zstd.replace(/\\/g, '/'),
+          TarFilename.replace(/\\/g, '/')
+        ].join(' '),
+        undefined, // args
+        {
+          cwd: archiveFolder,
+          env: expect.objectContaining(defaultEnv)
+        }
+      )
+    } finally {
+      // Restore the original environment variable
+      if (originalCompressionLevel === undefined) {
+        delete process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+      } else {
+        process.env['CACHE_ZSTD_COMPRESSION_LEVEL'] = originalCompressionLevel
+      }
+    }
+  }
 })
