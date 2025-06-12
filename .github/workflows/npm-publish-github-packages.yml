@@ -3,6 +3,9 @@
 
 name: Node.js Package
 
+permissions:
+  contents: read
+
 on:
   release:
     types: [created]
