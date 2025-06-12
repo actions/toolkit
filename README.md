@@ -1,36 +1,66 @@
 [![Code Scanning - Action](https://github.com/nodoubtz/toolkit/actions/workflows/codeql.yml/badge.svg)](https://github.com/nodoubtz/toolkit/actions/workflows/codeql.yml)
 
-# GitHub ToolKit
+# @nodoubtz/toolkit
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
-## Description
-**The GitHub ToolKit for developing GitHub Actions.** This toolkit provides a collection of utilities and components to streamline the development of GitHub Actions using TypeScript.
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Contributing](#contributing)
-6. [License](#license)
-7. [Contact](#contact)
-
-## Overview
-
-The GitHub ToolKit is designed to help developers create, test, and deploy GitHub Actions with ease. It includes a set of TypeScript utilities and components that simplify common tasks in Action development.
+A modular toolkit library designed for streamlined configuration, execution, security, and management tasks in modern JavaScript/TypeScript projects.
 
 ## Features
 
-- **TypeScript Utilities**: Reusable TypeScript functions and classes for building robust GitHub Actions.
-- **Pre-built Components**: Ready-to-use components for common tasks like caching, file handling, and more.
-- **Documentation**: Comprehensive documentation for each utility and component.
-- **Examples**: Example GitHub Actions to help you get started quickly.
+- **Configuration:** Flexible APIs and schemas to simplify setup across environments.
+- **Execution:** Utilities to execute scripts and workflows reliably.
+- **Security:** Built-in helpers for securing configurations and hiding sensitive code.
+- **Management:** Tools for project organization and codebase maintenance.
+- **Duplicate Code Finder:** Detects and flags duplicate code blocks (with auto-fix options).
+- **Error Handling:** Powerful functions for error detection and remediation.
 
 ## Installation
 
-To install the GitHub ToolKit, run the following command:
+```bash
+npm install @nodoubtz/toolkit
+# or
+yarn add @nodoubtz/toolkit
+```
 
-```sh
-npm install @actions/toolkit
+## Usage
+
+```javascript
+import { configure, execute, secure, manage } from '@nodoubtz/toolkit';
+
+// Example: Configure a project
+const config = configure({ env: 'production' });
+
+// Example: Run a task
+execute('build', config);
+
+// Example: Hide vulnerable code
+secure.hideSecrets();
+
+// Example: Manage duplicates
+manage.findAndFixDuplicates();
+```
+
+## Documentation
+
+- Refer to the [API documentation](./docs/API.md) for full usage examples.
+- Check the [examples](./examples/) directory for real-world scenarios.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a pull request
+
+## Security
+
+- Sensitive configurations and secrets are automatically masked.
+- Use `secure` utilities to audit and hide vulnerable code.
+
+## License
+
+[MIT](./LICENSE)
+
+---
+
+> © 2025 [nodoubtz](https://github.com/nodoubtz) – Pay me for projects and custom integrations!
