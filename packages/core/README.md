@@ -16,7 +16,7 @@ import * as core from '@actions/core';
 
 #### Inputs/Outputs
 
-Action inputs can be read with `getInput` which returns a `string` or `getBooleanInput` which parses a boolean based on the [yaml 1.2 specification](https://yaml.org/spec/1.2/spec.html#id2804923). If `required` set to be false, the input should have a default value in `action.yml`.
+Action inputs can be read with `getInput` which returns a `string` or `getBooleanInput` which parses a boolean based on the [yaml 1.2 specification](https://yaml.org/spec/1.2/spec.html#id2804923). If `required` is set to be false, the input should have a default value in `action.yml`.
 
 Outputs can be set with `setOutput` which makes them available to be mapped into inputs of other actions to ensure they are decoupled.
 
