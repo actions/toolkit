@@ -67,7 +67,7 @@ Then, assert the type based on the eventName
 ```ts
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {PushEvent} from '@octokit/webhooks-types'
+import type {PushEvent} from '@octokit/webhooks-types'
 
 if (github.context.eventName === 'push') {
   const pushPayload = github.context.payload as PushEvent
