@@ -7,7 +7,7 @@ import {
 } from '../src/internal/delete/delete-artifact'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
-import * as util from '../src/internal/shared/util'
+import * as util from '../src/internal/shared/utils'
 import {noopLogs} from './common'
 
 type MockedRequest = jest.MockedFunction<RequestInterface<object>>

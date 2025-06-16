@@ -1,6 +1,6 @@
 import * as uploadZipSpecification from '../src/internal/upload/upload-zip-specification'
 import * as zip from '../src/internal/upload/zip'
-import * as util from '../src/internal/shared/util'
+import * as util from '../src/internal/shared/utils'
 import * as config from '../src/internal/shared/config'
 import {ArtifactServiceClientJSON} from '../src/generated'
 import * as blobUpload from '../src/internal/upload/blob-upload'

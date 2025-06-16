@@ -2,7 +2,7 @@ import {exec} from '@actions/exec'
 import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
-import * as utils from './cacheUtils'
+import * as utils from './shared/utils'
 import {ArchiveTool} from './contracts'
 import {
   CompressionMethod,
@@ -10,7 +10,7 @@ import {
   ArchiveToolType,
   TarFilename,
   ManifestFilename
-} from './constants'
+} from './shared/constants'
 
 const IS_WINDOWS = process.platform === 'win32'
 

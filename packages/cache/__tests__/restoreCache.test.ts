@@ -2,13 +2,16 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import {restoreCache} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
-import * as cacheUtils from '../src/internal/cacheUtils'
-import {CacheFilename, CompressionMethod} from '../src/internal/constants'
+import * as cacheUtils from '../src/internal/shared/utils'
+import {
+  CacheFilename,
+  CompressionMethod
+} from '../src/internal/shared/constants'
 import {ArtifactCacheEntry} from '../src/internal/contracts'
 import * as tar from '../src/internal/tar'
 
 jest.mock('../src/internal/cacheHttpClient')
-jest.mock('../src/internal/cacheUtils')
+jest.mock('../src/internal/shared/utils')
 jest.mock('../src/internal/tar')
 
 beforeAll(() => {
@@ -19,7 +22,7 @@ beforeAll(() => {
   jest.spyOn(core, 'error').mockImplementation(() => {})
 
   jest.spyOn(cacheUtils, 'getCacheFileName').mockImplementation(cm => {
-    const actualUtils = jest.requireActual('../src/internal/cacheUtils')
+    const actualUtils = jest.requireActual('../src/internal/shared/utils')
     return actualUtils.getCacheFileName(cm)
   })
 })
