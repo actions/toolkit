@@ -12,6 +12,7 @@ import {
   FinalizeCacheEntryUploadResponse,
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
+import {CacheMetadata} from './generated/results/entities/v1/cachemetadata'
 import {CacheFileSizeLimit} from './internal/constants'
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -48,6 +49,17 @@ function checkKey(key: string): void {
     throw new ValidationError(
       `Key Validation Error: ${key} cannot contain commas.`
     )
+  }
+}
+
+function getCacheMetadata(): CacheMetadata | undefined {
+  const repositoryId = process.env['GITHUB_REPOSITORY_ID']
+  if (!repositoryId) {
+    return undefined
+  }
+  return {
+    repositoryId,
+    scope: []
   }
 }
 
@@ -525,6 +537,7 @@ async function saveCacheV2(
       enableCrossOsArchive
     )
     const request: CreateCacheEntryRequest = {
+      metadata: getCacheMetadata(),
       key,
       version
     }
@@ -553,6 +566,7 @@ async function saveCacheV2(
     )
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {
+      metadata: getCacheMetadata(),
       key,
       version,
       sizeBytes: `${archiveFileSize}`

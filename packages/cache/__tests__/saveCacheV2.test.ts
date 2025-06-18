@@ -27,6 +27,7 @@ jest.mock('@azure/storage-blob', () => ({
 
 beforeAll(() => {
   process.env['ACTIONS_RUNTIME_TOKEN'] = 'token'
+  process.env['GITHUB_REPOSITORY_ID'] = '123456789'
   jest.spyOn(console, 'log').mockImplementation(() => {})
   jest.spyOn(core, 'debug').mockImplementation(() => {})
   jest.spyOn(core, 'info').mockImplementation(() => {})
@@ -124,6 +125,10 @@ test('create cache entry failure on non-ok response', async () => {
   )
 
   expect(createCacheEntryMock).toHaveBeenCalledWith({
+    metadata: {
+      repositoryId: '123456789',
+      scope: []
+    },
     key,
     version: cacheVersion
   })
@@ -159,6 +164,10 @@ test('create cache entry fails on rejected promise', async () => {
   )
 
   expect(createCacheEntryMock).toHaveBeenCalledWith({
+    metadata: {
+      repositoryId: '123456789',
+      scope: []
+    },
     key,
     version: cacheUtils.getCacheVersion(paths, compression)
   })
@@ -202,6 +211,10 @@ test('save cache fails if a signedUploadURL was not passed', async () => {
 
   expect(cacheId).toBe(-1)
   expect(createCacheEntryMock).toHaveBeenCalledWith({
+    metadata: {
+      repositoryId: '123456789',
+      scope: []
+    },
     key,
     version: cacheVersion
   })
@@ -265,6 +278,10 @@ test('finalize save cache failure', async () => {
   const cacheId = await saveCache([paths], key, options)
 
   expect(createCacheEntryMock).toHaveBeenCalledWith({
+    metadata: {
+      repositoryId: '123456789',
+      scope: []
+    },
     key,
     version: cacheVersion
   })
@@ -286,6 +303,10 @@ test('finalize save cache failure', async () => {
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 
   expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
+    metadata: {
+      repositoryId: '123456789',
+      scope: []
+    },
     key,
     version: cacheVersion,
     sizeBytes: archiveFileSize.toString()
@@ -351,6 +372,10 @@ test('save with valid inputs uploads a cache', async () => {
   )
 
   expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
+    metadata: {
+      repositoryId: '123456789',
+      scope: []
+    },
     key,
     version: cacheVersion,
     sizeBytes: archiveFileSize.toString()
