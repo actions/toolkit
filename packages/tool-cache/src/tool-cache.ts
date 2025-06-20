@@ -90,7 +90,8 @@ async function downloadToolAttempt(
 
   // Get the response headers
   const http = new httpm.HttpClient(userAgent, [], {
-    allowRetries: false
+    allowRetries: false,
+    keepAlive: true
   })
 
   if (auth) {
