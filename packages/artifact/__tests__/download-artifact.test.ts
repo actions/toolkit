@@ -169,8 +169,7 @@ describe('download-artifact', () => {
         fixtures.artifactID,
         fixtures.repositoryOwner,
         fixtures.repositoryName,
-        fixtures.token,
-        {unzip: true}
+        fixtures.token
       )
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
@@ -214,8 +213,7 @@ describe('download-artifact', () => {
         fixtures.artifactID,
         fixtures.repositoryOwner,
         fixtures.repositoryName,
-        fixtures.token,
-        {unzip: true}
+        fixtures.token
       )
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
@@ -272,8 +270,7 @@ describe('download-artifact', () => {
         fixtures.repositoryName,
         fixtures.token,
         {
-          path: customPath,
-          unzip: true
+          path: customPath
         }
       )
 
@@ -309,8 +306,7 @@ describe('download-artifact', () => {
           fixtures.artifactID,
           fixtures.repositoryOwner,
           fixtures.repositoryName,
-          fixtures.token,
-          {unzip: true}
+          fixtures.token
         )
       ).rejects.toBeInstanceOf(Error)
 
@@ -348,7 +344,7 @@ describe('download-artifact', () => {
       )
 
       await expect(
-        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir, {unzip: true})
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir)
       ).rejects.toBeInstanceOf(Error)
 
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
@@ -379,8 +375,7 @@ describe('download-artifact', () => {
           fixtures.artifactID,
           fixtures.repositoryOwner,
           fixtures.repositoryName,
-          fixtures.token,
-          {unzip: true}
+          fixtures.token
         )
       ).rejects.toBeInstanceOf(Error)
 
@@ -428,8 +423,7 @@ describe('download-artifact', () => {
         fixtures.artifactID,
         fixtures.repositoryOwner,
         fixtures.repositoryName,
-        fixtures.token,
-        {unzip: true}
+        fixtures.token
       )
 
       expect(downloadArtifactMock).toHaveBeenCalledWith({
@@ -547,7 +541,7 @@ describe('download-artifact', () => {
         }
       )
 
-      const response = await downloadArtifactInternal(fixtures.artifactID, {unzip: true})
+      const response = await downloadArtifactInternal(fixtures.artifactID)
 
       expectExtractedArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
@@ -597,8 +591,7 @@ describe('download-artifact', () => {
       )
 
       const response = await downloadArtifactInternal(fixtures.artifactID, {
-        path: customPath,
-        unzip: true
+        path: customPath
       })
 
       expectExtractedArchive(customPath)
@@ -622,7 +615,7 @@ describe('download-artifact', () => {
         .mockRejectedValue(new Error('boom'))
 
       await expect(
-        downloadArtifactInternal(fixtures.artifactID, {unzip: true})
+        downloadArtifactInternal(fixtures.artifactID)
       ).rejects.toBeInstanceOf(Error)
     })
 
@@ -657,7 +650,7 @@ describe('download-artifact', () => {
       )
 
       await expect(
-        downloadArtifactInternal(fixtures.artifactID, {unzip: true})
+        downloadArtifactInternal(fixtures.artifactID)
       ).rejects.toBeInstanceOf(Error)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
