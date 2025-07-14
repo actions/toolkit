@@ -95,7 +95,7 @@ test('restore with no cache found', async () => {
 test('restore with server error should fail', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
-  const logWarningMock = jest.spyOn(core, 'warning')
+  const logErrorMock = jest.spyOn(core, 'error')
 
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
@@ -105,8 +105,8 @@ test('restore with server error should fail', async () => {
 
   const cacheKey = await restoreCache(paths, key)
   expect(cacheKey).toBe(undefined)
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
-  expect(logWarningMock).toHaveBeenCalledWith(
+  expect(logErrorMock).toHaveBeenCalledTimes(1)
+  expect(logErrorMock).toHaveBeenCalledWith(
     'Failed to restore: HTTP Error Occurred'
   )
 })

@@ -65,7 +65,7 @@ test('save with large cache outputs should fail using', async () => {
   const cachePaths = [path.resolve(paths)]
 
   const createTarMock = jest.spyOn(tar, 'createTar')
-  const logWarningMock = jest.spyOn(core, 'warning')
+  const logErrorMock = jest.spyOn(core, 'error')
 
   const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
   jest
@@ -78,7 +78,7 @@ test('save with large cache outputs should fail using', async () => {
 
   const cacheId = await saveCache([paths], key)
   expect(cacheId).toBe(-1)
-  expect(logWarningMock).toHaveBeenCalledWith(
+  expect(logErrorMock).toHaveBeenCalledWith(
     'Failed to save: Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
   )
 
@@ -227,7 +227,7 @@ test('finalize save cache failure', async () => {
   const paths = 'node_modules'
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const cachePaths = [path.resolve(paths)]
-  const logWarningMock = jest.spyOn(core, 'warning')
+  const logErrorMock = jest.spyOn(core, 'error')
   const signedUploadURL = 'https://blob-storage.local?signed=true'
   const archiveFileSize = 1024
   const options: UploadOptions = {
@@ -292,7 +292,7 @@ test('finalize save cache failure', async () => {
   })
 
   expect(cacheId).toBe(-1)
-  expect(logWarningMock).toHaveBeenCalledWith(
+  expect(logErrorMock).toHaveBeenCalledWith(
     `Failed to save: Unable to finalize cache with key ${key}, another job may be finalizing this cache.`
   )
 })
