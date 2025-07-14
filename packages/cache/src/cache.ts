@@ -57,7 +57,20 @@ function checkKey(key: string): void {
  * @returns boolean return true if Actions cache service feature is available, otherwise false
  */
 export function isFeatureAvailable(): boolean {
-  return !!process.env['ACTIONS_CACHE_URL']
+  const cacheServiceVersion = getCacheServiceVersion()
+
+  // Check availability based on cache service version
+  switch (cacheServiceVersion) {
+    case 'v2':
+      // For v2, we need ACTIONS_RESULTS_URL
+      return !!process.env['ACTIONS_RESULTS_URL']
+    case 'v1':
+    default:
+      // For v1, we need either ACTIONS_CACHE_URL or ACTIONS_RESULTS_URL
+      return !!(
+        process.env['ACTIONS_CACHE_URL'] || process.env['ACTIONS_RESULTS_URL']
+      )
+  }
 }
 
 /**
@@ -186,8 +199,8 @@ async function restoreCacheV1(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
-      core.warning(`Failed to restore: ${(error as Error).message}`)
+      // Log cache related errors
+      core.error(`Failed to restore: ${(error as Error).message}`)
     }
   } finally {
     // Try to delete the archive to save space
@@ -304,8 +317,8 @@ async function restoreCacheV2(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
-      core.warning(`Failed to restore: ${(error as Error).message}`)
+      // Log cache related errors
+      core.error(`Failed to restore: ${(error as Error).message}`)
     }
   } finally {
     try {
@@ -437,7 +450,7 @@ async function saveCacheV1(
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
-      core.warning(`Failed to save: ${typedError.message}`)
+      core.error(`Failed to save: ${typedError.message}`)
     }
   } finally {
     // Try to delete the archive to save space
@@ -576,7 +589,7 @@ async function saveCacheV2(
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
-      core.warning(`Failed to save: ${typedError.message}`)
+      core.error(`Failed to save: ${typedError.message}`)
     }
   } finally {
     // Try to delete the archive to save space
