@@ -8,6 +8,7 @@ import {restoreCache} from '../src/cache'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import {DownloadOptions} from '../src/options'
+import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -100,7 +101,7 @@ test('restore with server error should fail', async () => {
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
     .mockImplementation(() => {
-      throw new Error('HTTP Error Occurred')
+      throw new HttpClientError('HTTP Error Occurred', 500)
     })
 
   const cacheKey = await restoreCache(paths, key)

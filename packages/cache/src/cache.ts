@@ -33,7 +33,11 @@ export class ReserveCacheError extends Error {
 
 function logCacheError(message: string, error: Error): void {
   // Log server errors (5xx) as errors, all other errors as warnings
-  if (error instanceof HttpClientError && isServerErrorStatusCode(error.statusCode)) {
+  if (
+    error instanceof HttpClientError &&
+    typeof error.statusCode === 'number' &&
+    isServerErrorStatusCode(error.statusCode)
+  ) {
     core.error(message)
   } else {
     core.warning(message)
@@ -329,7 +333,10 @@ async function restoreCacheV2(
       throw error
     } else {
       // Log cache related errors
-      logCacheError(`Failed to restore: ${(error as Error).message}`, typedError)
+      logCacheError(
+        `Failed to restore: ${(error as Error).message}`,
+        typedError
+      )
     }
   } finally {
     try {
