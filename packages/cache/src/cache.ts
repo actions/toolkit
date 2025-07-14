@@ -13,6 +13,8 @@ import {
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
 import {CacheFileSizeLimit} from './internal/constants'
+import {isServerErrorStatusCode} from './internal/requestUtils'
+import {HttpClientError} from '@actions/http-client'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -26,6 +28,15 @@ export class ReserveCacheError extends Error {
     super(message)
     this.name = 'ReserveCacheError'
     Object.setPrototypeOf(this, ReserveCacheError.prototype)
+  }
+}
+
+function logCacheError(message: string, error: Error): void {
+  // Log server errors (5xx) as errors, all other errors as warnings
+  if (error instanceof HttpClientError && isServerErrorStatusCode(error.statusCode)) {
+    core.error(message)
+  } else {
+    core.warning(message)
   }
 }
 
@@ -199,8 +210,8 @@ async function restoreCacheV1(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Log cache related errors
-      core.error(`Failed to restore: ${(error as Error).message}`)
+      // warn on cache restore failure and continue build
+      core.warning(`Failed to restore: ${(error as Error).message}`)
     }
   } finally {
     // Try to delete the archive to save space
@@ -318,7 +329,7 @@ async function restoreCacheV2(
       throw error
     } else {
       // Log cache related errors
-      core.error(`Failed to restore: ${(error as Error).message}`)
+      logCacheError(`Failed to restore: ${(error as Error).message}`, typedError)
     }
   } finally {
     try {
@@ -450,7 +461,7 @@ async function saveCacheV1(
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
-      core.error(`Failed to save: ${typedError.message}`)
+      core.warning(`Failed to save: ${typedError.message}`)
     }
   } finally {
     // Try to delete the archive to save space
@@ -589,7 +600,7 @@ async function saveCacheV2(
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
-      core.error(`Failed to save: ${typedError.message}`)
+      logCacheError(`Failed to save: ${typedError.message}`, typedError)
     }
   } finally {
     // Try to delete the archive to save space

@@ -1,0 +1,42 @@
+
+> @actions/http-client@2.2.3 tsc
+> tsc
+
+src/auth.ts(1,23): error TS2307: Cannot find module 'http' or its corresponding type declarations.
+src/auth.ts(18,49): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/auth.ts(74,49): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(3,23): error TS2307: Cannot find module 'http' or its corresponding type declarations.
+src/index.ts(4,24): error TS2307: Cannot find module 'https' or its corresponding type declarations.
+src/index.ts(6,22): error TS2307: Cannot find module 'net' or its corresponding type declarations.
+src/index.ts(8,25): error TS2307: Cannot find module 'tunnel' or its corresponding type declarations.
+src/index.ts(9,26): error TS2307: Cannot find module 'undici' or its corresponding type declarations.
+src/index.ts(95,20): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(97,39): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(98,18): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(107,36): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(108,24): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(109,21): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(111,39): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(116,17): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(241,13): error TS2503: Cannot find namespace 'NodeJS'.
+src/index.ts(347,20): error TS2503: Cannot find namespace 'NodeJS'.
+src/index.ts(359,48): error TS2550: Property 'includes' does not exist on type 'string[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2016' or later.
+src/index.ts(395,27): error TS2550: Property 'includes' does not exist on type 'number[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2016' or later.
+src/index.ts(438,33): error TS2550: Property 'includes' does not exist on type 'number[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2016' or later.
+src/index.ts(473,20): error TS2503: Cannot find namespace 'NodeJS'.
+src/index.ts(499,20): error TS2503: Cannot find namespace 'NodeJS'.
+src/index.ts(506,48): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(729,25): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/interfaces.ts(1,23): error TS2307: Cannot find module 'http' or its corresponding type declarations.
+src/interfaces.ts(2,24): error TS2307: Cannot find module 'https' or its corresponding type declarations.
+src/interfaces.ts(36,13): error TS2503: Cannot find namespace 'NodeJS'.
+src/interfaces.ts(42,20): error TS2503: Cannot find namespace 'NodeJS'.
+src/interfaces.ts(47,20): error TS2503: Cannot find namespace 'NodeJS'.
+src/interfaces.ts(51,20): error TS2503: Cannot find namespace 'NodeJS'.
+src/interfaces.ts(62,20): error TS2503: Cannot find namespace 'NodeJS'.
+src/proxy.ts(10,14): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/proxy.ts(10,44): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/proxy.ts(12,14): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/proxy.ts(12,43): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/proxy.ts(38,19): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/proxy.ts(38,46): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
