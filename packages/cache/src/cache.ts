@@ -67,10 +67,8 @@ export function isFeatureAvailable(): boolean {
       return !!process.env['ACTIONS_RESULTS_URL']
     case 'v1':
     default:
-      // For v1, we need either ACTIONS_CACHE_URL or ACTIONS_RESULTS_URL
-      return !!(
-        process.env['ACTIONS_CACHE_URL'] || process.env['ACTIONS_RESULTS_URL']
-      )
+      // For v1, we only need ACTIONS_CACHE_URL
+      return !!process.env['ACTIONS_CACHE_URL']
   }
 }
 

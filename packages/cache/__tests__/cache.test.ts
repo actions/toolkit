@@ -22,9 +22,9 @@ describe('isFeatureAvailable', () => {
     expect(cache.isFeatureAvailable()).toBe(true)
   })
 
-  test('returns true for cache service v1 when ACTIONS_RESULTS_URL is set', () => {
+  test('returns false for cache service v1 when only ACTIONS_RESULTS_URL is set', () => {
     process.env['ACTIONS_RESULTS_URL'] = 'http://results.com'
-    expect(cache.isFeatureAvailable()).toBe(true)
+    expect(cache.isFeatureAvailable()).toBe(false)
   })
 
   test('returns true for cache service v1 when both URLs are set', () => {
@@ -61,9 +61,9 @@ describe('isFeatureAvailable', () => {
     expect(cache.isFeatureAvailable()).toBe(true)
   })
 
-  test('returns true for GHES with ACTIONS_RESULTS_URL', () => {
+  test('returns false for GHES with only ACTIONS_RESULTS_URL', () => {
     process.env['GITHUB_SERVER_URL'] = 'https://my-enterprise.github.com'
     process.env['ACTIONS_RESULTS_URL'] = 'http://results.com'
-    expect(cache.isFeatureAvailable()).toBe(true)
+    expect(cache.isFeatureAvailable()).toBe(false)
   })
 })
