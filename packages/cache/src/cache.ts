@@ -13,6 +13,7 @@ import {
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
 import {CacheFileSizeLimit} from './internal/constants'
+import {HttpClientError} from '@actions/http-client'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -57,7 +58,18 @@ function checkKey(key: string): void {
  * @returns boolean return true if Actions cache service feature is available, otherwise false
  */
 export function isFeatureAvailable(): boolean {
-  return !!process.env['ACTIONS_CACHE_URL']
+  const cacheServiceVersion = getCacheServiceVersion()
+
+  // Check availability based on cache service version
+  switch (cacheServiceVersion) {
+    case 'v2':
+      // For v2, we need ACTIONS_RESULTS_URL
+      return !!process.env['ACTIONS_RESULTS_URL']
+    case 'v1':
+    default:
+      // For v1, we only need ACTIONS_CACHE_URL
+      return !!process.env['ACTIONS_CACHE_URL']
+  }
 }
 
 /**
@@ -186,8 +198,17 @@ async function restoreCacheV1(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
-      core.warning(`Failed to restore: ${(error as Error).message}`)
+      // warn on cache restore failure and continue build
+      // Log server errors (5xx) as errors, all other errors as warnings
+      if (
+        typedError instanceof HttpClientError &&
+        typeof typedError.statusCode === 'number' &&
+        typedError.statusCode >= 500
+      ) {
+        core.error(`Failed to restore: ${(error as Error).message}`)
+      } else {
+        core.warning(`Failed to restore: ${(error as Error).message}`)
+      }
     }
   } finally {
     // Try to delete the archive to save space
@@ -310,7 +331,16 @@ async function restoreCacheV2(
       throw error
     } else {
       // Supress all non-validation cache related errors because caching should be optional
-      core.warning(`Failed to restore: ${(error as Error).message}`)
+      // Log server errors (5xx) as errors, all other errors as warnings
+      if (
+        typedError instanceof HttpClientError &&
+        typeof typedError.statusCode === 'number' &&
+        typedError.statusCode >= 500
+      ) {
+        core.error(`Failed to restore: ${(error as Error).message}`)
+      } else {
+        core.warning(`Failed to restore: ${(error as Error).message}`)
+      }
     }
   } finally {
     try {
@@ -442,7 +472,16 @@ async function saveCacheV1(
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
-      core.warning(`Failed to save: ${typedError.message}`)
+      // Log server errors (5xx) as errors, all other errors as warnings
+      if (
+        typedError instanceof HttpClientError &&
+        typeof typedError.statusCode === 'number' &&
+        typedError.statusCode >= 500
+      ) {
+        core.error(`Failed to save: ${typedError.message}`)
+      } else {
+        core.warning(`Failed to save: ${typedError.message}`)
+      }
     }
   } finally {
     // Try to delete the archive to save space
@@ -581,7 +620,16 @@ async function saveCacheV2(
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
-      core.warning(`Failed to save: ${typedError.message}`)
+      // Log server errors (5xx) as errors, all other errors as warnings
+      if (
+        typedError instanceof HttpClientError &&
+        typeof typedError.statusCode === 'number' &&
+        typedError.statusCode >= 500
+      ) {
+        core.error(`Failed to save: ${typedError.message}`)
+      } else {
+        core.warning(`Failed to save: ${typedError.message}`)
+      }
     }
   } finally {
     // Try to delete the archive to save space
