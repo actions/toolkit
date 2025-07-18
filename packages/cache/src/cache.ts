@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import * as utils from './internal/cacheUtils'
+import * as utils from './internal/shared/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
-import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import {getCacheServiceVersion, isGhes} from './internal/config'
+import * as cacheTwirpClient from './internal/cacheTwirpClient'
+import {getCacheServiceVersion, isGhes} from './internal/shared/config'
 import {DownloadOptions, UploadOptions} from './options'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {
@@ -12,7 +12,7 @@ import {
   FinalizeCacheEntryUploadResponse,
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
-import {CacheFileSizeLimit} from './internal/constants'
+import {CacheFileSizeLimit} from './internal/shared/constants'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
