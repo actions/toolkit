@@ -264,7 +264,12 @@ async function restoreCacheV2(
       return undefined
     }
 
-    core.info(`Cache hit for: ${request.key}`)
+    const isRestoreKeyMatch = request.key !== response.matchedKey
+    if (isRestoreKeyMatch) {
+      core.info(`Cache hit for restore-key: ${response.matchedKey}`)
+    } else {
+      core.info(`Cache hit for: ${response.matchedKey}`)
+    }
 
     if (options?.lookupOnly) {
       core.info('Lookup only - skipping download')
