@@ -2,7 +2,12 @@ import * as http from 'http'
 import * as httpClient from '@actions/http-client'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 import {ProxyAgent, fetch} from 'undici'
+import * as Context from '../../context'
 
+// octokit + plugins
+import {Octokit} from '@octokit/core'
+import {restEndpointMethods} from '@octokit/plugin-rest-endpoint-methods'
+import {paginateRest} from '@octokit/plugin-paginate-rest'
 export function getAuthString(
   token: string,
   options: OctokitOptions
@@ -41,4 +46,41 @@ export function getProxyFetch(destinationUrl): typeof fetch {
 
 export function getApiBaseUrl(): string {
   return process.env['GITHUB_API_URL'] || 'https://api.github.com'
+}
+
+export const context = new Context.Context()
+
+const baseUrl = getApiBaseUrl()
+export const defaults: OctokitOptions = {
+  baseUrl,
+  request: {
+    agent: getProxyAgent(baseUrl),
+    fetch: getProxyFetch(baseUrl)
+  }
+}
+
+export const GitHub = Octokit.plugin(
+  restEndpointMethods,
+  paginateRest
+).defaults(defaults)
+
+/**
+ * Convience function to correctly format Octokit Options to pass into the constructor.
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+export function getOctokitOptions(
+  token: string,
+  options?: OctokitOptions
+): OctokitOptions {
+  const opts = Object.assign({}, options || {}) // Shallow clone - don't mutate the object provided by the caller
+
+  // Auth
+  const auth = getAuthString(token, opts)
+  if (auth) {
+    opts.auth = auth
+  }
+
+  return opts
 }

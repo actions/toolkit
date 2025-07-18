@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as patternHelper from '../src/internal-pattern-helper'
 import {MatchKind} from '../src/internal-match-kind'
-import {IS_WINDOWS} from '../../io/src/io-util'
+import {IS_WINDOWS} from '../../io/src/shared/utils'
 import {Pattern} from '../src/internal-pattern'
 
 describe('pattern-helper', () => {

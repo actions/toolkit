@@ -1,7 +1,7 @@
 import * as http from 'http'
 import {createProxy} from 'proxy'
 import {getOctokit} from '../src/github'
-import {GitHub, getOctokitOptions} from '../src/utils'
+import {GitHub, getOctokitOptions} from '../src/internal/shared/utils'
 
 describe('@actions/github', () => {
   const proxyUrl = 'http://127.0.0.1:8080'

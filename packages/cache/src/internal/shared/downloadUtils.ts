@@ -7,9 +7,9 @@ import * as fs from 'fs'
 import * as stream from 'stream'
 import * as util from 'util'
 
-import * as utils from './cacheUtils'
+import * as utils from './utils'
 import {SocketTimeout} from './constants'
-import {DownloadOptions} from '../options'
+import {DownloadOptions} from '../../options'
 import {retryHttpClientResponse} from './requestUtils'
 
 import {AbortController} from '@azure/abort-controller'
