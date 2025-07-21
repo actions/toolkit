@@ -4,7 +4,7 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
 import {getCacheServiceVersion, isGhes} from './internal/config'
-import {DownloadOptions, UploadOptions} from './options'
+import {DownloadOptions, ExtraTarOptions, UploadOptions} from './options'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {
   CreateCacheEntryRequest,
@@ -13,6 +13,7 @@ import {
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache'
 import {CacheFileSizeLimit} from './internal/constants'
+
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -75,7 +76,8 @@ export async function restoreCache(
   primaryKey: string,
   restoreKeys?: string[],
   options?: DownloadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  extraTarOptions: ExtraTarOptions = []
 ): Promise<string | undefined> {
   const cacheServiceVersion: string = getCacheServiceVersion()
   core.debug(`Cache service version: ${cacheServiceVersion}`)
@@ -177,7 +179,7 @@ async function restoreCacheV1(
       )} MB (${archiveFileSize} B)`
     )
 
-    await extractTar(archivePath, compressionMethod)
+    await extractTar(archivePath, compressionMethod, extraTarOptions)
     core.info('Cache restored successfully')
 
     return cacheEntry.cacheKey
@@ -338,7 +340,8 @@ export async function saveCache(
   paths: string[],
   key: string,
   options?: UploadOptions,
-  enableCrossOsArchive = false
+  enableCrossOsArchive = false,
+  extraTarOptions: ExtraTarOptions = []
 ): Promise<number> {
   const cacheServiceVersion: string = getCacheServiceVersion()
   core.debug(`Cache service version: ${cacheServiceVersion}`)
@@ -390,7 +393,12 @@ async function saveCacheV1(
   core.debug(`Archive Path: ${archivePath}`)
 
   try {
-    await createTar(archiveFolder, cachePaths, compressionMethod)
+    await createTar(
+      archiveFolder,
+      cachePaths,
+      compressionMethod,
+      extraTarOptions
+    )
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
