@@ -265,6 +265,7 @@ test('restore with zstd compressed cache found', async () => {
   const cacheKey = await restoreCache(paths, key, [], options)
 
   expect(cacheKey).toBe(key)
+  expect(logInfoMock).toHaveBeenCalledWith(`Cache hit for: ${key}`)
   expect(getCacheVersionMock).toHaveBeenCalledWith(
     paths,
     compressionMethod,
@@ -342,6 +343,9 @@ test('restore with cache found for restore key', async () => {
   const cacheKey = await restoreCache(paths, key, restoreKeys, options)
 
   expect(cacheKey).toBe(restoreKeys[0])
+  expect(logInfoMock).toHaveBeenCalledWith(
+    `Cache hit for restore-key: ${restoreKeys[0]}`
+  )
   expect(getCacheVersionMock).toHaveBeenCalledWith(
     paths,
     compressionMethod,
