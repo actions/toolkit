@@ -8,6 +8,7 @@ import {restoreCache} from '../src/cache'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 import {DownloadOptions} from '../src/options'
+import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -95,18 +96,18 @@ test('restore with no cache found', async () => {
 test('restore with server error should fail', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
-  const logWarningMock = jest.spyOn(core, 'warning')
+  const logErrorMock = jest.spyOn(core, 'error')
 
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
     .mockImplementation(() => {
-      throw new Error('HTTP Error Occurred')
+      throw new HttpClientError('HTTP Error Occurred', 500)
     })
 
   const cacheKey = await restoreCache(paths, key)
   expect(cacheKey).toBe(undefined)
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
-  expect(logWarningMock).toHaveBeenCalledWith(
+  expect(logErrorMock).toHaveBeenCalledTimes(1)
+  expect(logErrorMock).toHaveBeenCalledWith(
     'Failed to restore: HTTP Error Occurred'
   )
 })
