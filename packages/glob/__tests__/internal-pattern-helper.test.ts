@@ -128,7 +128,7 @@ describe('pattern-helper', () => {
     ])
   })
 
-  it('partialMatch skips negate patterns', () => {
+  it('partialMatch avoids going deep by respecting negate patterns', () => {
     const root = IS_WINDOWS ? 'C:\\' : '/'
     const patterns = [
       `${root}search1/foo/**`,
@@ -143,7 +143,7 @@ describe('pattern-helper', () => {
     expect(patternHelper.partialMatch(patterns, `${root}search2`)).toBeTruthy()
     expect(
       patternHelper.partialMatch(patterns, `${root}search2/bar`)
-    ).toBeTruthy()
+    ).toBeFalsy()
     expect(patternHelper.partialMatch(patterns, `${root}search3`)).toBeFalsy()
     expect(
       patternHelper.partialMatch(patterns, `${root}search3/bar`)
