@@ -71,10 +71,7 @@ test('zstd extract tar', async () => {
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
-      .concat([
-        '--use-compress-program',
-        IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
-      ])
+      .concat(['--use-compress-program', '"zstd -d --long=30"'])
       .join(' '),
     undefined,
     {
@@ -231,10 +228,7 @@ test('zstd create tar', async () => {
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
-      .concat([
-        '--use-compress-program',
-        IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
-      ])
+      .concat(['--use-compress-program', '"zstd -T0 --adapt --long=30"'])
       .join(' '),
     undefined, // args
     {
@@ -292,7 +286,7 @@ test('zstd create tar with windows BSDtar', async () => {
     expect(execMock).toHaveBeenNthCalledWith(
       2,
       [
-        'zstd -T0 --long=30 --force -o',
+        'zstd -T0 --adapt --long=30 --force -o',
         CacheFilename.Zstd.replace(/\\/g, '/'),
         TarFilename.replace(/\\/g, '/')
       ].join(' '),
@@ -365,10 +359,7 @@ test('zstd list tar', async () => {
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
-      .concat([
-        '--use-compress-program',
-        IS_WINDOWS ? '"zstd -d --long=30"' : 'unzstd --long=30'
-      ])
+      .concat(['--use-compress-program', '"zstd -d --long=30"'])
       .join(' '),
     undefined,
     {
@@ -442,7 +433,7 @@ test('zstdWithoutLong list tar', async () => {
     ]
       .concat(IS_WINDOWS ? ['--force-local'] : [])
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
-      .concat(['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd'])
+      .concat(['--use-compress-program', '"zstd -d"'])
       .join(' '),
     undefined,
     {

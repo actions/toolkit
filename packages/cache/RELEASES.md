@@ -1,5 +1,10 @@
 # @actions/cache Releases
 
+### Unreleased
+
+- Add support for zstd adapt mode [#1772](https://github.com/actions/toolkit/pull/1772)
+- Unlock zstd long mode [#1772](https://github.com/actions/toolkit/pull/1772)
+
 ### 4.0.3
 
 - Added masking for Shared Access Signature (SAS) cache entry URLs [#1982](https://github.com/actions/toolkit/pull/1982)
@@ -201,11 +206,11 @@ Read more about the change & access the migration guide: [reference to the annou
 ### 0.2.1
 
 - Fix to await async function getCompressionMethod
-  
+
 ### 0.2.0
 
 - Fixes issues with the zstd compression algorithm on Windows and Ubuntu 16.04 [#469](https://github.com/actions/toolkit/pull/469)
-  
+
 ### 0.1.0
 
 - Initial release

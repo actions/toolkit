@@ -104,10 +104,14 @@ export async function getCompressionMethod(): Promise<CompressionMethod> {
   const version = semver.clean(versionOutput)
   core.debug(`zstd version: ${version}`)
 
-  if (versionOutput === '') {
+  if (version === null) {
     return CompressionMethod.Gzip
-  } else {
+  } else if (semver.lt(version, '1.3.2')) {
     return CompressionMethod.ZstdWithoutLong
+  } else if (semver.lt(version, '1.3.6')) {
+    return CompressionMethod.ZstdWithoutAdapt
+  } else {
+    return CompressionMethod.Zstd
   }
 }
 
