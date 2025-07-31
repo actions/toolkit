@@ -3,6 +3,9 @@
   "version": "4.0.3",
   "preview": true,
   "description": "Actions cache lib",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "keywords": [
     "github",
     "actions",
@@ -48,7 +51,7 @@
     "semver": "^6.3.1"
   },
   "devDependencies": {
-    "@types/node": "^22.13.9",
+    "@types/node": "^24.1.0",
     "@types/semver": "^6.0.0",
     "@protobuf-ts/plugin": "^2.9.4",
     "typescript": "^5.2.2"
