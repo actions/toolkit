@@ -77,5 +77,8 @@ export function match(patterns: Pattern[], itemPath: string): MatchKind {
  * Checks whether to descend further into the directory
  */
 export function partialMatch(patterns: Pattern[], itemPath: string): boolean {
-  return patterns.some(x => !x.negate && x.partialMatch(itemPath))
+  return (
+    patterns.some(x => !x.negate && x.partialMatch(itemPath)) &&
+    !patterns.some(x => x.negate && x.match(itemPath))
+  )
 }
