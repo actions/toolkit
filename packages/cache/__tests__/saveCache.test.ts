@@ -225,22 +225,21 @@ test('save with server error should fail', async () => {
   const filePath = 'node_modules'
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const logErrorMock = jest.spyOn(core, 'error')
-  const logWarningMock = jest.spyOn(core, 'warning')
 
   // Mock cache service version to V2
-  const getCacheServiceVersionMock = jest.spyOn(config, 'getCacheServiceVersion').mockReturnValue('v2')
+  const getCacheServiceVersionMock = jest
+    .spyOn(config, 'getCacheServiceVersion')
+    .mockReturnValue('v2')
 
   // Mock V2 CreateCacheEntry to succeed
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ok: true, signedUploadUrl: 'https://blob-storage.local?signed=true'})
+      Promise.resolve({
+        ok: true,
+        signedUploadUrl: 'https://blob-storage.local?signed=true'
+      })
     )
-
-  // Mock the FinalizeCacheEntryUpload to succeed (since the error should happen in saveCache)
-  const finalizeCacheEntryMock = jest
-    .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ok: true, entryId: '4'}))
 
   const createTarMock = jest.spyOn(tar, 'createTar')
 
@@ -257,7 +256,7 @@ test('save with server error should fail', async () => {
     .mockReturnValueOnce(Promise.resolve(compression))
 
   await saveCache([filePath], primaryKey)
-  
+
   expect(logErrorMock).toHaveBeenCalledTimes(1)
   expect(logErrorMock).toHaveBeenCalledWith(
     'Failed to save: HTTP Error Occurred'
@@ -266,7 +265,6 @@ test('save with server error should fail', async () => {
   expect(createCacheEntryMock).toHaveBeenCalledTimes(1)
   const archiveFolder = '/foo/bar'
   const cachePaths = [path.resolve(filePath)]
-  const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
   expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
@@ -276,7 +274,7 @@ test('save with server error should fail', async () => {
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
-  
+
   // Restore the getCacheServiceVersion mock to its original state
   getCacheServiceVersionMock.mockRestore()
 })
