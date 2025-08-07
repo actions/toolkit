@@ -40,6 +40,7 @@
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.0.1",
     "@actions/glob": "^0.1.0",
+    "@protobuf-ts/runtime": "^2.11.1",
     "@actions/http-client": "^2.1.1",
     "@actions/io": "^1.0.1",
     "@azure/abort-controller": "^1.1.0",
