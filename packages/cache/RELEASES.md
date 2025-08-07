@@ -1,6 +1,12 @@
 # @actions/cache Releases
 
+### 4.0.5
+
+- Reintroduce @protobuf-ts/runtime-rpc as a runtime dependency [#2113](https://github.com/actions/toolkit/pull/2113)
+
 ### 4.0.4
+
+⚠️ Faulty patch release. Upgrade to 4.0.5 instead.
 
 - Optimized cache dependencies by moving `@protobuf-ts/plugin` to dev dependencies [#2106](https://github.com/actions/toolkit/pull/2106)
 - Improved cache service availability determination for different cache service versions (v1 and v2) [#2100](https://github.com/actions/toolkit/pull/2100)
