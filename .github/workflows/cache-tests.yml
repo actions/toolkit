@@ -43,7 +43,7 @@ jobs:
     # that is needed
     - name: Compile cache package
       run: |
-        npm install --omit=dev
+        npm ci --omit=dev
         npm run tsc
       working-directory: packages/cache
     
