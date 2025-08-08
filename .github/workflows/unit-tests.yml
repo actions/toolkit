@@ -20,7 +20,8 @@ jobs:
 
         # Node 18 is the current default Node version in hosted runners, so users may still use the toolkit with it when running tests (see https://github.com/actions/toolkit/issues/1841)
         # Node 20 is the currently support Node version for actions - https://docs.github.com/actions/sharing-automations/creating-actions/metadata-syntax-for-github-actions#runsusing-for-javascript-actions
-        node-version: [18.x, 20.x]
+        # Node 24 is currently supported on actions runners
+        node-version: [18.x, 20.x, 24.x]
       fail-fast: false
 
     runs-on: ${{ matrix.runs-on }}

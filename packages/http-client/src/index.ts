@@ -275,11 +275,11 @@ export class HttpClient {
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.ContentType,
-      MediaTypes.ApplicationJson
-    )
+    additionalHeaders[Headers.ContentType] =
+      this._getExistingOrDefaultContentTypeHeader(
+        additionalHeaders,
+        MediaTypes.ApplicationJson
+      )
     const res: HttpClientResponse = await this.post(
       requestUrl,
       data,
@@ -299,11 +299,11 @@ export class HttpClient {
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.ContentType,
-      MediaTypes.ApplicationJson
-    )
+    additionalHeaders[Headers.ContentType] =
+      this._getExistingOrDefaultContentTypeHeader(
+        additionalHeaders,
+        MediaTypes.ApplicationJson
+      )
     const res: HttpClientResponse = await this.put(
       requestUrl,
       data,
@@ -323,11 +323,11 @@ export class HttpClient {
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.ContentType,
-      MediaTypes.ApplicationJson
-    )
+    additionalHeaders[Headers.ContentType] =
+      this._getExistingOrDefaultContentTypeHeader(
+        additionalHeaders,
+        MediaTypes.ApplicationJson
+      )
     const res: HttpClientResponse = await this.patch(
       requestUrl,
       data,
@@ -632,12 +632,69 @@ export class HttpClient {
     additionalHeaders: http.OutgoingHttpHeaders,
     header: string,
     _default: string
-  ): string | number | string[] {
+  ): string | string[] {
+    let clientHeader: string | string[] | undefined
+    if (this.requestOptions && this.requestOptions.headers) {
+      const headerValue = lowercaseKeys(this.requestOptions.headers)[header]
+      if (headerValue) {
+        clientHeader =
+          typeof headerValue === 'number' ? headerValue.toString() : headerValue
+      }
+    }
+
+    const additionalValue = additionalHeaders[header]
+
+    if (additionalValue !== undefined) {
+      return typeof additionalValue === 'number'
+        ? additionalValue.toString()
+        : additionalValue
+    }
+
+    if (clientHeader !== undefined) {
+      return clientHeader
+    }
+
+    return _default
+  }
+
+  private _getExistingOrDefaultContentTypeHeader(
+    additionalHeaders: http.OutgoingHttpHeaders,
+    _default: string
+  ): string {
     let clientHeader: string | undefined
     if (this.requestOptions && this.requestOptions.headers) {
-      clientHeader = lowercaseKeys(this.requestOptions.headers)[header]
+      const headerValue = lowercaseKeys(this.requestOptions.headers)[
+        Headers.ContentType
+      ]
+      if (headerValue) {
+        if (typeof headerValue === 'number') {
+          clientHeader = String(headerValue)
+        } else if (Array.isArray(headerValue)) {
+          clientHeader = headerValue.join(', ')
+        } else {
+          clientHeader = headerValue
+        }
+      }
     }
-    return additionalHeaders[header] || clientHeader || _default
+
+    const additionalValue = additionalHeaders[Headers.ContentType]
+
+    // Return the first non-undefined value, converting numbers or arrays to strings if necessary
+    if (additionalValue !== undefined) {
+      if (typeof additionalValue === 'number') {
+        return String(additionalValue)
+      } else if (Array.isArray(additionalValue)) {
+        return additionalValue.join(', ')
+      } else {
+        return additionalValue
+      }
+    }
+
+    if (clientHeader !== undefined) {
+      return clientHeader
+    }
+
+    return _default
   }
 
   private _getAgent(parsedUrl: URL): http.Agent {
