@@ -8,7 +8,6 @@ export const {
   mkdir,
   open,
   readdir,
-  readlink,
   rename,
   rm,
   rmdir,
@@ -18,6 +17,28 @@ export const {
 } = fs.promises
 // export const {open} = 'fs'
 export const IS_WINDOWS = process.platform === 'win32'
+
+/**
+ * Custom implementation of readlink to ensure Windows directory symlinks
+ * maintain trailing backslash for backward compatibility with Node.js < 24
+ */
+export async function readlink(fsPath: string): Promise<string> {
+  const result = await fs.promises.readlink(fsPath);
+  
+  // Only on Windows, ensure directory symlinks end with a backslash
+  if (IS_WINDOWS) {
+    try {
+      const stats = await fs.promises.lstat(result);
+      if (stats.isDirectory() && !result.endsWith('\\')) {
+        return `${result}\\`;
+      }
+    } catch (err) {
+      // If we can't access the target, just return the original result
+    }
+  }
+  
+  return result;
+}
 // See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
 export const UV_FS_O_EXLOCK = 0x10000000
 export const READONLY = fs.constants.O_RDONLY
