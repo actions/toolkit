@@ -225,7 +225,6 @@ test('save with server error should fail', async () => {
   const filePath = 'node_modules'
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   const logErrorMock = jest.spyOn(core, 'error')
-  // Removing the unused variable logWarningMock
 
   // Mock cache service version to V2
   const getCacheServiceVersionMock = jest
@@ -271,7 +270,6 @@ test('save with server error should fail', async () => {
   expect(createCacheEntryMock).toHaveBeenCalledTimes(1)
   const archiveFolder = '/foo/bar'
   const cachePaths = [path.resolve(filePath)]
-  // Removing the unused variable archiveFile
   expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
