@@ -458,7 +458,7 @@ test('save with finalize cache entry failure and specific error message', async 
   const createTarMock = jest.spyOn(tar, 'createTar')
   const saveCacheMock = jest
     .spyOn(cacheHttpClient, 'saveCache')
-    .mockResolvedValue(Promise.resolve())
+    .mockResolvedValue()
 
   const compression = CompressionMethod.Zstd
   const getCompressionMock = jest
