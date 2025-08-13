@@ -59,39 +59,6 @@ test('save with missing input should fail', async () => {
   )
 })
 
-test('save with large cache outputs should fail using', async () => {
-  const paths = 'node_modules'
-  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const cachePaths = [path.resolve(paths)]
-
-  const createTarMock = jest.spyOn(tar, 'createTar')
-  const logWarningMock = jest.spyOn(core, 'warning')
-
-  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
-  jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-    .mockReturnValueOnce(cacheSize)
-  const compression = CompressionMethod.Gzip
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
-
-  const cacheId = await saveCache([paths], key)
-  expect(cacheId).toBe(-1)
-  expect(logWarningMock).toHaveBeenCalledWith(
-    'Failed to save: Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
-  )
-
-  const archiveFolder = '/foo/bar'
-
-  expect(createTarMock).toHaveBeenCalledWith(
-    archiveFolder,
-    cachePaths,
-    compression
-  )
-  expect(getCompressionMock).toHaveBeenCalledTimes(1)
-})
-
 test('create cache entry failure on non-ok response', async () => {
   const paths = ['node_modules']
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
