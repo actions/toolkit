@@ -299,7 +299,9 @@ test('save with valid inputs uploads a cache', async () => {
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''}))
+    .mockReturnValue(
+      Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''})
+    )
 
   const expectedCacheId = await saveCache([paths], key)
 
@@ -333,7 +335,6 @@ test('save with extremely large cache should succeed in v2 (no size limit)', asy
   const cachePaths = [path.resolve(paths)]
   const signedUploadURL = 'https://blob-storage.local?signed=true'
   const createTarMock = jest.spyOn(tar, 'createTar')
-  
   // Simulate a very large cache (20GB)
   const archiveFileSize = 20 * 1024 * 1024 * 1024 // 20GB
   const options: UploadOptions = {
@@ -364,7 +365,9 @@ test('save with extremely large cache should succeed in v2 (no size limit)', asy
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''}))
+    .mockReturnValue(
+      Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''})
+    )
 
   const expectedCacheId = await saveCache([paths], key)
 
@@ -415,7 +418,6 @@ test('save with create cache entry failure and specific error message', async ()
 
   const cacheId = await saveCache(paths, key)
   expect(cacheId).toBe(-1)
-  
   expect(warningLogMock).toHaveBeenCalledWith(
     `Cache reservation failed: ${errorMessage}`
   )
@@ -438,7 +440,8 @@ test('save with finalize cache entry failure and specific error message', async 
   const logWarningMock = jest.spyOn(core, 'warning')
   const signedUploadURL = 'https://blob-storage.local?signed=true'
   const archiveFileSize = 1024
-  const errorMessage = 'Cache entry finalization failed due to concurrent access'
+  const errorMessage =
+    'Cache entry finalization failed due to concurrent access'
   const options: UploadOptions = {
     archiveSizeBytes: archiveFileSize,
     useAzureSdk: true,
@@ -469,7 +472,9 @@ test('save with finalize cache entry failure and specific error message', async 
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ok: false, entryId: '', message: errorMessage}))
+    .mockReturnValue(
+      Promise.resolve({ok: false, entryId: '', message: errorMessage})
+    )
 
   const cacheId = await saveCache([paths], key, options)
 
@@ -510,7 +515,6 @@ test('save with multiple large caches should succeed in v2 (testing 50GB)', asyn
   const cachePaths = paths.map(p => path.resolve(p))
   const signedUploadURL = 'https://blob-storage.local?signed=true'
   const createTarMock = jest.spyOn(tar, 'createTar')
-  
   // Simulate an extremely large cache (50GB)
   const archiveFileSize = 50 * 1024 * 1024 * 1024 // 50GB
   const options: UploadOptions = {
@@ -541,7 +545,9 @@ test('save with multiple large caches should succeed in v2 (testing 50GB)', asyn
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''}))
+    .mockReturnValue(
+      Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''})
+    )
 
   const expectedCacheId = await saveCache(paths, key)
 

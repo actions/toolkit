@@ -238,7 +238,7 @@ test('save with server error should fail', async () => {
       Promise.resolve({
         ok: true,
         signedUploadUrl: 'https://blob-storage.local?signed=true',
-        message: ""
+        message: ''
       })
     )
 
