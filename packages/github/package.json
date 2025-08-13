@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -40,8 +40,11 @@
   "dependencies": {
     "@actions/http-client": "^2.2.0",
     "@octokit/core": "^5.0.1",
-    "@octokit/plugin-paginate-rest": "^9.0.0",
-    "@octokit/plugin-rest-endpoint-methods": "^10.0.0"
+    "@octokit/plugin-paginate-rest": "^9.2.2",
+    "@octokit/plugin-rest-endpoint-methods": "^10.4.0",
+    "@octokit/request": "^8.4.1",
+    "@octokit/request-error": "^5.1.1",
+    "undici": "^5.28.5"
   },
   "devDependencies": {
     "proxy": "^2.1.1"

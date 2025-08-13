@@ -98,7 +98,7 @@ export async function uploadZipToBlobStorage(
 
   hashStream.end()
   sha256Hash = hashStream.read() as string
-  core.info(`SHA256 hash of uploaded artifact zip is ${sha256Hash}`)
+  core.info(`SHA256 digest of uploaded artifact zip is ${sha256Hash}`)
 
   if (uploadByteCount === 0) {
     core.warning(

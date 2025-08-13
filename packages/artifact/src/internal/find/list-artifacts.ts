@@ -41,14 +41,17 @@ export async function listArtifactsPublic(
   const github = getOctokit(token, opts, retry, requestLog)
 
   let currentPageNumber = 1
-  const {data: listArtifactResponse} =
-    await github.rest.actions.listWorkflowRunArtifacts({
+
+  const {data: listArtifactResponse} = await github.request(
+    'GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts',
+    {
       owner: repositoryOwner,
       repo: repositoryName,
       run_id: workflowRunId,
       per_page: paginationCount,
       page: currentPageNumber
-    })
+    }
+  )
 
   let numberOfPages = Math.ceil(
     listArtifactResponse.total_count / paginationCount
@@ -67,27 +70,32 @@ export async function listArtifactsPublic(
       name: artifact.name,
       id: artifact.id,
       size: artifact.size_in_bytes,
-      createdAt: artifact.created_at ? new Date(artifact.created_at) : undefined
+      createdAt: artifact.created_at
+        ? new Date(artifact.created_at)
+        : undefined,
+      digest: (artifact as ArtifactResponse).digest
     })
   }
-
+  // Move to the next page
+  currentPageNumber++
   // Iterate over any remaining pages
   for (
     currentPageNumber;
     currentPageNumber < numberOfPages;
     currentPageNumber++
   ) {
-    currentPageNumber++
     debug(`Fetching page ${currentPageNumber} of artifact list`)
 
-    const {data: listArtifactResponse} =
-      await github.rest.actions.listWorkflowRunArtifacts({
+    const {data: listArtifactResponse} = await github.request(
+      'GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts',
+      {
         owner: repositoryOwner,
         repo: repositoryName,
         run_id: workflowRunId,
         per_page: paginationCount,
         page: currentPageNumber
-      })
+      }
+    )
 
     for (const artifact of listArtifactResponse.artifacts) {
       artifacts.push({
@@ -96,7 +104,8 @@ export async function listArtifactsPublic(
         size: artifact.size_in_bytes,
         createdAt: artifact.created_at
           ? new Date(artifact.created_at)
-          : undefined
+          : undefined,
+        digest: (artifact as ArtifactResponse).digest
       })
     }
   }
@@ -132,7 +141,8 @@ export async function listArtifactsInternal(
     size: Number(artifact.size),
     createdAt: artifact.createdAt
       ? Timestamp.toDate(artifact.createdAt)
-      : undefined
+      : undefined,
+    digest: artifact.digest?.value
   }))
 
   if (latest) {
@@ -144,6 +154,18 @@ export async function listArtifactsInternal(
   return {
     artifacts
   }
+}
+
+/**
+ * This exists so that we don't have to use 'any' when receiving the artifact list from the GitHub API.
+ * The digest field is not present in OpenAPI/types at time of writing, which necessitates this change.
+ */
+interface ArtifactResponse {
+  name: string
+  id: number
+  size_in_bytes: number
+  created_at?: string
+  digest?: string
 }
 
 /**

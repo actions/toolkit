@@ -28,7 +28,7 @@ For large files that are not easily compressed, a value of 0 is recommended for 
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:47](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L47)
+[src/internal/shared/interfaces.ts:52](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L52)
 
 ___
 
@@ -52,4 +52,4 @@ input of 0 assumes default retention setting.
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:36](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L36)
+[src/internal/shared/interfaces.ts:41](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L41)

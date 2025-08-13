@@ -40,9 +40,11 @@ jobs:
     - name: Install root npm packages
       run: npm ci
 
+    # We need to install only runtime dependencies (omit dev dependencies) to verify that what we're shipping is all
+    # that is needed
     - name: Compile cache package
       run: |
-        npm ci
+        npm ci --omit=dev
         npm run tsc
       working-directory: packages/cache
     
