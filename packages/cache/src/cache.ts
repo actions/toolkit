@@ -29,6 +29,14 @@ export class ReserveCacheError extends Error {
   }
 }
 
+export class FinalizeCacheError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'FinalizeCacheError'
+    Object.setPrototypeOf(this, FinalizeCacheError.prototype)
+  }
+}
+
 function checkPaths(paths: string[]): void {
   if (!paths || paths.length === 0) {
     throw new ValidationError(
@@ -568,7 +576,10 @@ async function saveCacheV2(
     try {
       const response = await twirpClient.CreateCacheEntry(request)
       if (!response.ok) {
-        throw new Error('Response was not ok')
+        if (response.message) {
+          core.warning(`Cache reservation failed: ${response.message}`)
+        }
+        throw new Error(response.message || 'Response was not ok')
       }
       signedUploadUrl = response.signedUploadUrl
     } catch (error) {
@@ -597,6 +608,9 @@ async function saveCacheV2(
     core.debug(`FinalizeCacheEntryUploadResponse: ${finalizeResponse.ok}`)
 
     if (!finalizeResponse.ok) {
+      if (finalizeResponse.message) {
+        throw new FinalizeCacheError(finalizeResponse.message)
+      }
       throw new Error(
         `Unable to finalize cache with key ${key}, another job may be finalizing this cache.`
       )
@@ -609,6 +623,8 @@ async function saveCacheV2(
       throw error
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
+    } else if (typedError.name === FinalizeCacheError.name) {
+      core.warning(typedError.message)
     } else {
       // Log server errors (5xx) as errors, all other errors as warnings
       if (
