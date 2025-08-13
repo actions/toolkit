@@ -9,8 +9,8 @@ import * as tar from '../src/internal/tar'
 import {TypedResponse} from '@actions/http-client/lib/interfaces'
 import {HttpClientError} from '@actions/http-client'
 import {
-  ReserveCacheResponse,
-  ITypedResponseWithError
+  ITypedResponseWithError,
+  ReserveCacheResponse
 } from '../src/internal/contracts'
 import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 
@@ -327,6 +327,54 @@ test('save with valid inputs uploads a cache', async () => {
     undefined
   )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
+test('upload a cache without compression', async () => {
+  const filePath = 'node_modules'
+  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(filePath)]
+
+  const cacheId = 4
+  const reserveCacheMock = jest
+    .spyOn(cacheHttpClient, 'reserveCache')
+    .mockImplementation(async () => {
+      const response: TypedResponse<ReserveCacheResponse> = {
+        statusCode: 500,
+        result: {cacheId},
+        headers: {}
+      }
+      return response
+    })
+  const createTarMock = jest.spyOn(tar, 'createTar')
+
+  const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
+  const getCompressionMock = jest.spyOn(cacheUtils, 'getCompressionMethod')
+
+  await saveCache(
+    [filePath],
+    primaryKey,
+    undefined,
+    false,
+    CompressionMethod.None
+  )
+
+  expect(reserveCacheMock).toHaveBeenCalledTimes(1)
+  expect(reserveCacheMock).toHaveBeenCalledWith(primaryKey, [filePath], {
+    cacheSize: undefined,
+    compressionMethod: CompressionMethod.None,
+    enableCrossOsArchive: false
+  })
+  const archiveFolder = '/foo/bar'
+  const archiveFile = path.join(archiveFolder, CacheFilename.None)
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(createTarMock).toHaveBeenCalledWith(
+    archiveFolder,
+    cachePaths,
+    CompressionMethod.None
+  )
+  expect(saveCacheMock).toHaveBeenCalledTimes(1)
+  expect(saveCacheMock).toHaveBeenCalledWith(cacheId, archiveFile, undefined)
+  expect(getCompressionMock).toHaveBeenCalledTimes(0)
 })
 
 test('save with non existing path should not save cache', async () => {

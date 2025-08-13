@@ -231,6 +231,71 @@ test('restore with zstd compressed cache found', async () => {
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
+test('restore with uncompressed cache found', async () => {
+  const paths = ['node_modules']
+  const key = 'node-test'
+
+  const infoMock = jest.spyOn(core, 'info')
+
+  const cacheEntry: ArtifactCacheEntry = {
+    cacheKey: key,
+    scope: 'refs/heads/main',
+    archiveLocation: 'www.actionscache.test/download'
+  }
+  const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
+  getCacheMock.mockImplementation(async () => {
+    return Promise.resolve(cacheEntry)
+  })
+  const tempPath = '/foo/bar'
+
+  const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
+  createTempDirectoryMock.mockImplementation(async () => {
+    return Promise.resolve(tempPath)
+  })
+
+  const archivePath = path.join(tempPath, CacheFilename.None)
+  const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
+
+  const fileSize = 62915000
+  const getArchiveFileSizeInBytesMock = jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValue(fileSize)
+
+  const extractTarMock = jest.spyOn(tar, 'extractTar')
+  const compression = CompressionMethod.None
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValue(Promise.resolve(compression))
+
+  const cacheKey = await restoreCache(
+    paths,
+    key,
+    undefined,
+    undefined,
+    false,
+    CompressionMethod.None
+  )
+
+  expect(cacheKey).toBe(key)
+  expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
+    compressionMethod: compression,
+    enableCrossOsArchive: false
+  })
+  expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
+  expect(downloadCacheMock).toHaveBeenCalledWith(
+    cacheEntry.archiveLocation,
+    archivePath,
+    undefined
+  )
+  expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
+  expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
+
+  expect(extractTarMock).toHaveBeenCalledTimes(1)
+  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
+  // We can only use no compression by specifying it explicitly
+  expect(getCompressionMock).toHaveBeenCalledTimes(0)
+})
+
 test('restore with cache found for restore key', async () => {
   const paths = ['node_modules']
   const key = 'node-test'

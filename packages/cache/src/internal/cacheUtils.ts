@@ -112,9 +112,15 @@ export async function getCompressionMethod(): Promise<CompressionMethod> {
 }
 
 export function getCacheFileName(compressionMethod: CompressionMethod): string {
-  return compressionMethod === CompressionMethod.Gzip
-    ? CacheFilename.Gzip
-    : CacheFilename.Zstd
+  switch (compressionMethod) {
+    default:
+    case CompressionMethod.Gzip:
+      return CacheFilename.Gzip
+    case CompressionMethod.Zstd:
+      return CacheFilename.Zstd
+    case CompressionMethod.None:
+      return CacheFilename.None
+  }
 }
 
 export async function getGnuTarPathOnWindows(): Promise<string> {
