@@ -30,6 +30,14 @@ export class ReserveCacheError extends Error {
   }
 }
 
+export class DeleteCacheError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DeleteCacheError'
+    Object.setPrototypeOf(this, DeleteCacheError.prototype)
+  }
+}
+
 function checkPaths(paths: string[]): void {
   if (!paths || paths.length === 0) {
     throw new ValidationError(
@@ -641,4 +649,45 @@ async function saveCacheV2(
   }
 
   return cacheId
+}
+
+/**
+ * Deletes a cache item with the specified key
+ *
+ * @param key an explicit key for the cache to delete
+ * @param ref only delete items with key for this reference The ref for a branch should be formatted as
+ * refs/heads/<branch name>. To reference a pull request use refs/pull/<number>/merge.
+ */
+export async function deleteCacheWithKey(
+  key: string,
+  ref?: string
+): Promise<number> {
+  checkKey(key)
+
+  core.debug(`Deleting Cache with key "${key}" and ref "${ref}"`)
+  const deleteCacheResponse = await cacheHttpClient.deleteCacheWithKey(key, ref)
+  if (deleteCacheResponse?.statusCode !== 200) {
+    throw new DeleteCacheError(
+      `Unable to delete cache with key ${key}. More details: ${deleteCacheResponse?.error?.message}`
+    )
+  }
+
+  return deleteCacheResponse?.result?.totalCount
+}
+
+/**
+ * Deletes a cache item with the specified id
+ *
+ * @param id an explicit id for the cache to delete
+ */
+export async function deleteCacheWithId(id: number): Promise<number> {
+  core.debug(`Deleting Cache with id ${id.toString()}`)
+  const deleteCacheResponse = await cacheHttpClient.deleteCacheWithId(id)
+  if (deleteCacheResponse?.statusCode !== 204) {
+    throw new DeleteCacheError(
+      `Unable to delete cache with id ${id}. More details: ${deleteCacheResponse?.error?.message}`
+    )
+  }
+
+  return deleteCacheResponse?.result?.totalCount
 }

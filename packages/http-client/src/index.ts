@@ -336,6 +336,27 @@ export class HttpClient {
     return this._processResponse<T>(res, this.requestOptions)
   }
 
+  async deleteJson<T>(
+    requestUrl: string,
+    additionalHeaders: http.OutgoingHttpHeaders = {}
+  ): Promise<ifm.TypedResponse<T>> {
+    additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(
+      additionalHeaders,
+      Headers.Accept,
+      MediaTypes.ApplicationJson
+    )
+    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
+      additionalHeaders,
+      Headers.ContentType,
+      MediaTypes.ApplicationJson
+    )
+    const res: HttpClientResponse = await this.del(
+      requestUrl,
+      additionalHeaders
+    )
+    return this._processResponse<T>(res, this.requestOptions)
+  }
+
   /**
    * Makes a raw http request.
    * All other methods such as get, post, patch, and request ultimately call this.
