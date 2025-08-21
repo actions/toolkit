@@ -59,39 +59,6 @@ test('save with missing input should fail', async () => {
   )
 })
 
-test('save with large cache outputs should fail using', async () => {
-  const paths = 'node_modules'
-  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  const cachePaths = [path.resolve(paths)]
-
-  const createTarMock = jest.spyOn(tar, 'createTar')
-  const logWarningMock = jest.spyOn(core, 'warning')
-
-  const cacheSize = 11 * 1024 * 1024 * 1024 //~11GB, over the 10GB limit
-  jest
-    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
-    .mockReturnValueOnce(cacheSize)
-  const compression = CompressionMethod.Gzip
-  const getCompressionMock = jest
-    .spyOn(cacheUtils, 'getCompressionMethod')
-    .mockReturnValueOnce(Promise.resolve(compression))
-
-  const cacheId = await saveCache([paths], key)
-  expect(cacheId).toBe(-1)
-  expect(logWarningMock).toHaveBeenCalledWith(
-    'Failed to save: Cache size of ~11264 MB (11811160064 B) is over the 10GB limit, not saving cache.'
-  )
-
-  const archiveFolder = '/foo/bar'
-
-  expect(createTarMock).toHaveBeenCalledWith(
-    archiveFolder,
-    cachePaths,
-    compression
-  )
-  expect(getCompressionMock).toHaveBeenCalledTimes(1)
-})
-
 test('create cache entry failure on non-ok response', async () => {
   const paths = ['node_modules']
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
@@ -99,7 +66,7 @@ test('create cache entry failure on non-ok response', async () => {
 
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
-    .mockResolvedValue({ok: false, signedUploadUrl: ''})
+    .mockResolvedValue({ok: false, signedUploadUrl: '', message: ''})
 
   const createTarMock = jest.spyOn(tar, 'createTar')
   const finalizeCacheEntryMock = jest.spyOn(
@@ -182,7 +149,7 @@ test('save cache fails if a signedUploadURL was not passed', async () => {
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL, message: ''})
     )
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -240,7 +207,7 @@ test('finalize save cache failure', async () => {
   const createCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL, message: ''})
     )
 
   const createTarMock = jest.spyOn(tar, 'createTar')
@@ -260,7 +227,7 @@ test('finalize save cache failure', async () => {
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ok: false, entryId: ''}))
+    .mockReturnValue(Promise.resolve({ok: false, entryId: '', message: ''}))
 
   const cacheId = await saveCache([paths], key, options)
 
@@ -319,7 +286,7 @@ test('save with valid inputs uploads a cache', async () => {
   jest
     .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
     .mockReturnValue(
-      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL})
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL, message: ''})
     )
 
   const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
@@ -332,9 +299,257 @@ test('save with valid inputs uploads a cache', async () => {
 
   const finalizeCacheEntryMock = jest
     .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
-    .mockReturnValue(Promise.resolve({ok: true, entryId: cacheId.toString()}))
+    .mockReturnValue(
+      Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''})
+    )
 
   const expectedCacheId = await saveCache([paths], key)
+
+  const archiveFolder = '/foo/bar'
+  const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
+  expect(saveCacheMock).toHaveBeenCalledWith(
+    -1,
+    archiveFile,
+    signedUploadURL,
+    options
+  )
+  expect(createTarMock).toHaveBeenCalledWith(
+    archiveFolder,
+    cachePaths,
+    compression
+  )
+
+  expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
+    key,
+    version: cacheVersion,
+    sizeBytes: archiveFileSize.toString()
+  })
+
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+  expect(expectedCacheId).toBe(cacheId)
+})
+
+test('save with extremely large cache should succeed in v2 (no size limit)', async () => {
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(paths)]
+  const signedUploadURL = 'https://blob-storage.local?signed=true'
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  // Simulate a very large cache (20GB)
+  const archiveFileSize = 20 * 1024 * 1024 * 1024 // 20GB
+  const options: UploadOptions = {
+    archiveSizeBytes: archiveFileSize,
+    useAzureSdk: true,
+    uploadChunkSize: 64 * 1024 * 1024,
+    uploadConcurrency: 8
+  }
+
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
+
+  const cacheId = 4
+  jest
+    .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+    .mockReturnValue(
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL, message: ''})
+    )
+
+  const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
+
+  const compression = CompressionMethod.Zstd
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValue(Promise.resolve(compression))
+  const cacheVersion = cacheUtils.getCacheVersion([paths], compression)
+
+  const finalizeCacheEntryMock = jest
+    .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
+    .mockReturnValue(
+      Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''})
+    )
+
+  const expectedCacheId = await saveCache([paths], key)
+
+  const archiveFolder = '/foo/bar'
+  const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
+  expect(saveCacheMock).toHaveBeenCalledWith(
+    -1,
+    archiveFile,
+    signedUploadURL,
+    options
+  )
+  expect(createTarMock).toHaveBeenCalledWith(
+    archiveFolder,
+    cachePaths,
+    compression
+  )
+
+  expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
+    key,
+    version: cacheVersion,
+    sizeBytes: archiveFileSize.toString()
+  })
+
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+  expect(expectedCacheId).toBe(cacheId)
+})
+
+test('save with create cache entry failure and specific error message', async () => {
+  const paths = ['node_modules']
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const infoLogMock = jest.spyOn(core, 'info')
+  const warningLogMock = jest.spyOn(core, 'warning')
+  const errorMessage = 'Cache storage quota exceeded for repository'
+
+  const createCacheEntryMock = jest
+    .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+    .mockResolvedValue({ok: false, signedUploadUrl: '', message: errorMessage})
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  const compression = CompressionMethod.Zstd
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockResolvedValueOnce(compression)
+  const archiveFileSize = 1024
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
+
+  const cacheId = await saveCache(paths, key)
+  expect(cacheId).toBe(-1)
+  expect(warningLogMock).toHaveBeenCalledWith(
+    `Cache reservation failed: ${errorMessage}`
+  )
+  expect(infoLogMock).toHaveBeenCalledWith(
+    `Failed to save: Unable to reserve cache with key ${key}, another job may be creating this cache.`
+  )
+
+  expect(createCacheEntryMock).toHaveBeenCalledWith({
+    key,
+    version: cacheUtils.getCacheVersion(paths, compression)
+  })
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
+test('save with finalize cache entry failure and specific error message', async () => {
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = [path.resolve(paths)]
+  const logWarningMock = jest.spyOn(core, 'warning')
+  const signedUploadURL = 'https://blob-storage.local?signed=true'
+  const archiveFileSize = 1024
+  const errorMessage =
+    'Cache entry finalization failed due to concurrent access'
+  const options: UploadOptions = {
+    archiveSizeBytes: archiveFileSize,
+    useAzureSdk: true,
+    uploadChunkSize: 64 * 1024 * 1024,
+    uploadConcurrency: 8
+  }
+
+  const createCacheEntryMock = jest
+    .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+    .mockReturnValue(
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL, message: ''})
+    )
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  const saveCacheMock = jest
+    .spyOn(cacheHttpClient, 'saveCache')
+    .mockResolvedValue()
+
+  const compression = CompressionMethod.Zstd
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValueOnce(Promise.resolve(compression))
+
+  const cacheVersion = cacheUtils.getCacheVersion([paths], compression)
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
+
+  const finalizeCacheEntryMock = jest
+    .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
+    .mockReturnValue(
+      Promise.resolve({ok: false, entryId: '', message: errorMessage})
+    )
+
+  const cacheId = await saveCache([paths], key, options)
+
+  expect(createCacheEntryMock).toHaveBeenCalledWith({
+    key,
+    version: cacheVersion
+  })
+
+  const archiveFolder = '/foo/bar'
+  const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
+  expect(createTarMock).toHaveBeenCalledWith(
+    archiveFolder,
+    cachePaths,
+    compression
+  )
+
+  expect(saveCacheMock).toHaveBeenCalledWith(
+    -1,
+    archiveFile,
+    signedUploadURL,
+    options
+  )
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+
+  expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
+    key,
+    version: cacheVersion,
+    sizeBytes: archiveFileSize.toString()
+  })
+
+  expect(cacheId).toBe(-1)
+  expect(logWarningMock).toHaveBeenCalledWith(errorMessage)
+})
+
+test('save with multiple large caches should succeed in v2 (testing 50GB)', async () => {
+  const paths = ['large-dataset', 'node_modules', 'build-artifacts']
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const cachePaths = paths.map(p => path.resolve(p))
+  const signedUploadURL = 'https://blob-storage.local?signed=true'
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  // Simulate an extremely large cache (50GB)
+  const archiveFileSize = 50 * 1024 * 1024 * 1024 // 50GB
+  const options: UploadOptions = {
+    archiveSizeBytes: archiveFileSize,
+    useAzureSdk: true,
+    uploadChunkSize: 64 * 1024 * 1024,
+    uploadConcurrency: 8
+  }
+
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
+
+  const cacheId = 7
+  jest
+    .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+    .mockReturnValue(
+      Promise.resolve({ok: true, signedUploadUrl: signedUploadURL, message: ''})
+    )
+
+  const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
+
+  const compression = CompressionMethod.Zstd
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValue(Promise.resolve(compression))
+  const cacheVersion = cacheUtils.getCacheVersion(paths, compression)
+
+  const finalizeCacheEntryMock = jest
+    .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
+    .mockReturnValue(
+      Promise.resolve({ok: true, entryId: cacheId.toString(), message: ''})
+    )
+
+  const expectedCacheId = await saveCache(paths, key)
 
   const archiveFolder = '/foo/bar'
   const archiveFile = path.join(archiveFolder, CacheFilename.Zstd)
