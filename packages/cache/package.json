@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "4.0.3",
+  "version": "4.0.5",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -40,17 +40,18 @@
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.0.1",
     "@actions/glob": "^0.1.0",
+    "@protobuf-ts/runtime-rpc": "^2.11.1",
     "@actions/http-client": "^2.1.1",
     "@actions/io": "^1.0.1",
     "@azure/abort-controller": "^1.1.0",
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
-    "@protobuf-ts/plugin": "^2.9.4",
     "semver": "^6.3.1"
   },
   "devDependencies": {
     "@types/node": "^22.13.9",
     "@types/semver": "^6.0.0",
+    "@protobuf-ts/plugin": "^2.9.4",
     "typescript": "^5.2.2"
   }
 }

@@ -1,5 +1,18 @@
 # @actions/cache Releases
 
+### 4.0.5
+
+- Reintroduce @protobuf-ts/runtime-rpc as a runtime dependency [#2113](https://github.com/actions/toolkit/pull/2113)
+
+### 4.0.4
+
+⚠️ Faulty patch release. Upgrade to 4.0.5 instead.
+
+- Optimized cache dependencies by moving `@protobuf-ts/plugin` to dev dependencies [#2106](https://github.com/actions/toolkit/pull/2106)
+- Improved cache service availability determination for different cache service versions (v1 and v2) [#2100](https://github.com/actions/toolkit/pull/2100)
+- Enhanced server error handling: 5xx HTTP errors are now logged as errors instead of warnings [#2099](https://github.com/actions/toolkit/pull/2099)
+- Fixed cache hit logging to properly distinguish between exact key matches and restore key matches [#2101](https://github.com/actions/toolkit/pull/2101)
+
 ### 4.0.3
 
 - Added masking for Shared Access Signature (SAS) cache entry URLs [#1982](https://github.com/actions/toolkit/pull/1982)
