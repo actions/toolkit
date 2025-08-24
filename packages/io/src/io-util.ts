@@ -9,13 +9,34 @@ export const {
   open,
   readdir,
   readlink,
-  rename,
   rm,
   rmdir,
   stat,
   symlink,
   unlink
 } = fs.promises
+
+export async function rename(
+  src: fs.PathLike,
+  dest: fs.PathLike
+): Promise<void> {
+  try {
+    await fs.promises.rename(src, dest)
+  } catch (err) {
+    if (err.code === 'EXDEV') {
+      await fs.promises.cp(
+        src instanceof Buffer ? src.toString('utf8') : src,
+        dest instanceof Buffer ? dest.toString('utf8') : dest,
+        {recursive: true}
+      )
+      await fs.promises.rm(src, {recursive: true})
+      return
+    }
+
+    throw err
+  }
+}
+
 // export const {open} = 'fs'
 export const IS_WINDOWS = process.platform === 'win32'
 // See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691

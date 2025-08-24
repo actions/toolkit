@@ -292,6 +292,34 @@ describe('mv', () => {
     )
     await assertNotExists(sourceFile)
   })
+
+  describe('ioUtil.rename', () => {
+    beforeAll(() => {
+      jest.spyOn(fs, 'rename').mockImplementation(() => {
+        throw Object.assign(new Error('cross-device link not permitted'), {
+          code: 'EXDEV'
+        })
+      })
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('fallbacks to `fs.cp` and `fs.rm` on `EXDEV` exception', async () => {
+      const root: string = path.join(getTestTemp(), 'rename_fallback_test')
+      const source: string = path.join(root, 'realfile1')
+      const dest: string = path.join(root, 'realfile2')
+
+      await io.mkdirP(root)
+      await fs.writeFile(source, 'test file content', {encoding: 'utf8'})
+      await io.mv(source, dest)
+
+      expect(await fs.readFile(dest, {encoding: 'utf8'})).toBe(
+        'test file content'
+      )
+    })
+  })
 })
 
 describe('rmRF', () => {
