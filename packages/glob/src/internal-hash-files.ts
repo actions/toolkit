@@ -13,15 +13,15 @@ export async function hashFiles(
 ): Promise<string> {
   const writeDelegate = verbose ? core.info : core.debug
   let hasMatch = false
-  const githubWorkspace = currentWorkspace
+  const githubWorkspace = path.resolve(currentWorkspace
     ? currentWorkspace
-    : process.env['GITHUB_WORKSPACE'] ?? process.cwd()
+    : process.env['GITHUB_WORKSPACE'] ?? process.cwd())
   const result = crypto.createHash('sha256')
   let count = 0
   for await (const file of globber.globGenerator()) {
     writeDelegate(file)
     if (!file.startsWith(`${githubWorkspace}${path.sep}`)) {
-      writeDelegate(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`)
+      writeDelegate(`Ignore '${file}' since it is not under github workspace '${githubWorkspace}${path.sep}'.`)
       continue
     }
     if (fs.statSync(file).isDirectory()) {
