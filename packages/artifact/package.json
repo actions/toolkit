@@ -33,7 +33,7 @@
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "cd ../../ && npm run test ./packages/artifact",
     "bootstrap": "cd ../../ && npm run bootstrap",
-    "zshy": "zshy",
+    "tsc": "tsc",
     "build": "zshy",
     "gen:docs": "typedoc --plugin typedoc-plugin-markdown --out docs/generated src/artifact.ts --githubPages false --readme none"
   },

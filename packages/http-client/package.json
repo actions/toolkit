@@ -31,7 +31,7 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "zshy": "zshy",
+    "tsc": "tsc",
     "build": "zshy",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts"

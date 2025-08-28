@@ -4,7 +4,7 @@
   "scripts": {
     "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna exec -- npm install",
-    "build": "lerna run zshy --no-bail --parallel",
+    "build": "lerna run build",
     "clean": "lerna clean",
     "repair": "lerna repair",
     "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build\"",
