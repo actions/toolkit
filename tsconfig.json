@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "commonjs",
     "strict": true,
     "declaration": true,
-    "target": "es2020",
+    "target": "es6",
     "sourceMap": true,
     "noImplicitAny": false,
     "baseUrl": "./",
@@ -17,10 +16,7 @@
         "packages/http-client"
       ],
     },
-    "useUnknownInCatchVariables": false,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "useUnknownInCatchVariables": false
   },
   "exclude": [
     "node_modules",
