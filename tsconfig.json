@@ -21,6 +21,8 @@
   "exclude": [
     "node_modules",
     "**/*.test.ts",
-    "**/__mocks__/*"
+    "**/__mocks__/*",
+    "**/lib/**/*",
+    "**/dist/**/*"
   ]
 }

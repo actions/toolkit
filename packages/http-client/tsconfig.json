@@ -4,7 +4,7 @@
     "outDir": "./lib",
     "rootDir": "./src",
     "moduleResolution": "node",
-    "declaration": true,
+    
   },
   "include": [
     "./src"
