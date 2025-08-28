@@ -4,10 +4,10 @@
   "scripts": {
     "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna exec -- npm install",
-    "build": "lerna run tsc",
+    "build": "lerna run zshy --no-bail --parallel",
     "clean": "lerna clean",
     "repair": "lerna repair",
-    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build -- -- --noEmit\"",
+    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build\"",
     "format": "prettier --write packages/**/*.ts",
     "format-check": "prettier --check packages/**/*.ts",
     "lint": "eslint packages/**/*.ts",
@@ -31,6 +31,7 @@
     "nx": "16.6.0",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "zshy": "^0.3.5"
   }
 }

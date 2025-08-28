@@ -8,8 +8,9 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/github",
   "license": "MIT",
-  "main": "lib/github.js",
-  "types": "lib/github.d.ts",
+  "main": "./lib/github.js",
+  "module": "./lib/github.mjs",
+  "types": "./lib/github.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -29,10 +30,10 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "jest",
-    "build": "tsc",
+    "zshy": "zshy",
+    "build": "zshy",
     "format": "prettier --write **/*.ts",
-    "format-check": "prettier --check **/*.ts",
-    "tsc": "tsc"
+    "format-check": "prettier --check **/*.ts"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -48,5 +49,17 @@
   },
   "devDependencies": {
     "proxy": "^2.1.1"
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/github.ts"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/github.d.ts",
+      "import": "./lib/github.mjs",
+      "require": "./lib/github.js"
+    }
   }
 }

@@ -102,7 +102,7 @@ function toAttestation(bundle: Bundle, attestationID?: string): Attestation {
       throw new Error('Bundle must contain an x509 certificate')
   }
 
-  const signingCert = new X509Certificate(certBytes)
+  const signingCert = new X509Certificate(certBytes as Uint8Array)
 
   // Collect transparency log ID if available
   const tlogEntries = bundle.verificationMaterial.tlogEntries

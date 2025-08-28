@@ -95,7 +95,7 @@ export class HttpClientResponse {
       let output = Buffer.alloc(0)
 
       this.message.on('data', (chunk: Buffer) => {
-        output = Buffer.concat([output, chunk])
+        output = Buffer.concat([output, chunk] as readonly Uint8Array[])
       })
 
       this.message.on('end', () => {
@@ -113,7 +113,7 @@ export class HttpClientResponse {
       })
 
       this.message.on('end', () => {
-        resolve(Buffer.concat(chunks))
+        resolve(Buffer.concat(chunks as readonly Uint8Array[]))
       })
     })
   }

@@ -10,8 +10,9 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/cache",
   "license": "MIT",
-  "main": "lib/cache.js",
-  "types": "lib/cache.d.ts",
+  "main": "./lib/cache.js",
+  "module": "./lib/cache.mjs",
+  "types": "./lib/cache.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -31,7 +32,8 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "zshy": "zshy",
+    "build": "zshy"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -53,5 +55,17 @@
     "@types/semver": "^6.0.0",
     "@protobuf-ts/plugin": "^2.9.4",
     "typescript": "^5.2.2"
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/cache.ts"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/cache.d.ts",
+      "import": "./lib/cache.mjs",
+      "require": "./lib/cache.js"
+    }
   }
 }

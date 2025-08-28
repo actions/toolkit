@@ -9,8 +9,9 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/exec",
   "license": "MIT",
-  "main": "lib/exec.js",
-  "types": "lib/exec.d.ts",
+  "main": "./lib/exec.js",
+  "module": "./lib/exec.mjs",
+  "types": "./lib/exec.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -30,12 +31,25 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "zshy": "zshy",
+    "build": "zshy"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
     "@actions/io": "^1.0.1"
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/exec.ts"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/exec.d.ts",
+      "import": "./lib/exec.mjs",
+      "require": "./lib/exec.js"
+    }
   }
 }

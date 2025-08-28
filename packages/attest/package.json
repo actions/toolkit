@@ -9,8 +9,9 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/attest",
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
+  "types": "./lib/index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -29,7 +30,8 @@
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "zshy": "zshy",
+    "build": "zshy"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -53,6 +55,18 @@
   "overrides": {
     "@octokit/plugin-retry": {
       "@octokit/core": "^5.2.0"
+    }
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/index.ts"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
     }
   }
 }

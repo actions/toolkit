@@ -10,8 +10,8 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/glob",
   "license": "MIT",
-  "main": "lib/glob.js",
-  "types": "lib/glob.d.ts",
+  "main": "./lib/glob.js",
+  "types": "./lib/glob.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -31,7 +31,8 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "zshy": "zshy",
+    "build": "zshy"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -39,5 +40,18 @@
   "dependencies": {
     "@actions/core": "^1.9.1",
     "minimatch": "^3.0.4"
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/glob.ts"
+    }
+  },
+  "module": "./lib/glob.mjs",
+  "exports": {
+    ".": {
+      "types": "./lib/glob.d.ts",
+      "import": "./lib/glob.mjs",
+      "require": "./lib/glob.js"
+    }
   }
 }

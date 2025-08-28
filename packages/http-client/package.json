@@ -9,8 +9,9 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/http-client",
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
+  "types": "./lib/index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -30,10 +31,10 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "tsc",
+    "zshy": "zshy",
+    "build": "zshy",
     "format": "prettier --write **/*.ts",
-    "format-check": "prettier --check **/*.ts",
-    "tsc": "tsc"
+    "format-check": "prettier --check **/*.ts"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -47,5 +48,17 @@
   "dependencies": {
     "tunnel": "^0.0.6",
     "undici": "^5.28.5"
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/index.ts"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
+    }
   }
 }

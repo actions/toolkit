@@ -10,8 +10,9 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/artifact",
   "license": "MIT",
-  "main": "lib/artifact.js",
-  "types": "lib/artifact.d.ts",
+  "main": "./lib/artifact.js",
+  "module": "./lib/artifact.mjs",
+  "types": "./lib/artifact.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -32,8 +33,8 @@
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "cd ../../ && npm run test ./packages/artifact",
     "bootstrap": "cd ../../ && npm run bootstrap",
-    "tsc-run": "tsc",
-    "tsc": "npm run bootstrap && npm run tsc-run",
+    "zshy": "zshy",
+    "build": "zshy",
     "gen:docs": "typedoc --plugin typedoc-plugin-markdown --out docs/generated src/artifact.ts --githubPages false --readme none"
   },
   "bugs": {
@@ -60,5 +61,17 @@
     "typedoc": "^0.25.4",
     "typedoc-plugin-markdown": "^3.17.1",
     "typescript": "^5.2.2"
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/artifact.ts"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/artifact.d.ts",
+      "import": "./lib/artifact.mjs",
+      "require": "./lib/artifact.js"
+    }
   }
 }

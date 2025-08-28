@@ -9,8 +9,8 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/tool-cache",
   "license": "MIT",
-  "main": "lib/tool-cache.js",
-  "types": "lib/tool-cache.d.ts",
+  "main": "./lib/tool-cache.js",
+  "types": "./lib/tool-cache.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -30,7 +30,8 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "zshy": "zshy",
+    "build": "zshy"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
@@ -46,5 +47,18 @@
     "@types/nock": "^11.1.0",
     "@types/semver": "^6.0.0",
     "nock": "^13.2.9"
+  },
+  "zshy": {
+    "exports": {
+      ".": "./src/tool-cache.ts"
+    }
+  },
+  "module": "./lib/tool-cache.mjs",
+  "exports": {
+    ".": {
+      "types": "./lib/tool-cache.d.ts",
+      "import": "./lib/tool-cache.mjs",
+      "require": "./lib/tool-cache.js"
+    }
   }
 }
