@@ -1,5 +1,5 @@
 export function isGhes(): boolean {
-  const vendor = (process.env['ACTIONS_VENDOR'] || 'github').toLowerCase()
+  const vendor = (process.env['ACTIONS_VENDOR'] || '').toLowerCase()
 
   if (vendor === 'ghes' || vendor === 'ghe' || vendor === 'github-enterprise') return true
   if (vendor && vendor !== 'github') return false
