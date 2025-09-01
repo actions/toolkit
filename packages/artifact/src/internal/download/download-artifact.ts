@@ -82,6 +82,7 @@ export async function streamExtractExternal(
       response.message.destroy(
         new Error(`Blob storage chunk did not respond in ${timeout}ms`)
       )
+      reject(`Blob storage chunk did not respond in ${timeout}ms`)
     }
     const timer = setTimeout(timerFn, timeout)
 
