@@ -31,8 +31,8 @@ export const writeAttestation = async (
       headers: options.headers,
       bundle: attestation as {
         mediaType?: string
-        verificationMaterial?: { [key: string]: unknown }
-        dsseEnvelope?: { [key: string]: unknown }
+        verificationMaterial?: {[key: string]: unknown}
+        dsseEnvelope?: {[key: string]: unknown}
       }
     })
 
