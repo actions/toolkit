@@ -2,9 +2,6 @@
   "name": "@actions/core",
   "version": "1.11.1",
   "description": "Actions core lib",
-  "engines": {
-    "node": ">=24.0.0"
-  },
   "keywords": [
     "github",
     "actions",

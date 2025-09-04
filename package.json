@@ -1,9 +1,6 @@
 {
   "name": "root",
   "private": true, 
-  "engines": {
-    "node": ">=24.0.0"
-  },
   "scripts": {
     "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna exec -- npm install",

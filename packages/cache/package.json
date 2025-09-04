@@ -3,9 +3,6 @@
   "version": "4.0.5",
   "preview": true,
   "description": "Actions cache lib",
-  "engines": {
-    "node": ">=24.0.0"
-  },
   "keywords": [
     "github",
     "actions",

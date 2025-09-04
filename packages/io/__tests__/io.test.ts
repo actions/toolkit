@@ -643,9 +643,10 @@ describe('rmRF', () => {
       })
     ).toBe('test file content')
     if (os.platform() === 'win32') {
-      expect(await fs.readlink(symlinkLevel2Directory)).toBe(
-        `${symlinkDirectory}\\`
-      )
+      // Node.js 24 changed behavior - fs.readlink no longer includes trailing backslash
+      // Accept both formats for compatibility
+      const linkPath = await fs.readlink(symlinkLevel2Directory)
+      expect(linkPath.replace(/\\+$/, '')).toBe(symlinkDirectory.replace(/\\+$/, ''))
     } else {
       expect(await fs.readlink(symlinkLevel2Directory)).toBe(symlinkDirectory)
     }
