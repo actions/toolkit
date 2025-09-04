@@ -32,5 +32,13 @@
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
+  },
+  "overrides": {
+    "semver": "^7.6.0",
+    "tar": "^6.2.1",
+    "@octokit/plugin-paginate-rest": "^11.0.0",
+    "@octokit/request": "^9.0.0",
+    "@octokit/request-error": "^6.0.0",
+    "tmp": "^0.2.4"
   }
 }
