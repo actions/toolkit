@@ -41,6 +41,8 @@
     "@octokit/request-error": "^5.1.1",
     "@octokit/core": "^5.0.3",
     "tmp": "^0.2.4",
-    "@types/node": "^24.1.0"
+    "@types/node": "^24.1.0",
+    "brace-expansion": "^2.0.2",
+    "form-data": "^4.0.4"
   }
 }
