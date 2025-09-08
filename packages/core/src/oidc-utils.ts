@@ -8,7 +8,7 @@ interface TokenResponse {
   value?: string
 }
 
-export class OidcClient {
+class OidcClient {
   private static createHttpClient(
     allowRetry = true,
     maxRetry = 10
@@ -81,4 +81,8 @@ export class OidcClient {
       throw new Error(`Error message: ${error.message}`)
     }
   }
+}
+
+export async function getIDToken(aud?: string): Promise<string> {
+  return await OidcClient.getIDToken(aud)
 }

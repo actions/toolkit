@@ -1,11 +1,10 @@
 import {issue, issueCommand} from './command'
 import {issueFileCommand, prepareKeyValueMessage} from './file-command'
 import {toCommandProperties, toCommandValue} from './utils'
+import {AnnotationProperties} from './core-types'
 
 import * as os from 'os'
 import * as path from 'path'
-
-import {OidcClient} from './oidc-utils'
 
 /**
  * Interface for getInput options
@@ -31,43 +30,6 @@ export enum ExitCode {
    * A code indicating that the action was a failure
    */
   Failure = 1
-}
-
-/**
- * Optional properties that can be sent with annotation commands (notice, error, and warning)
- * See: https://docs.github.com/en/rest/reference/checks#create-a-check-run for more information about annotations.
- */
-export interface AnnotationProperties {
-  /**
-   * A title for the annotation.
-   */
-  title?: string
-
-  /**
-   * The path of the file for which the annotation should be created.
-   */
-  file?: string
-
-  /**
-   * The start line for the annotation.
-   */
-  startLine?: number
-
-  /**
-   * The end line for the annotation. Defaults to `startLine` when `startLine` is provided.
-   */
-  endLine?: number
-
-  /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
-   */
-  startColumn?: number
-
-  /**
-   * The end column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
-   * Defaults to `startColumn` when `startColumn` is provided.
-   */
-  endColumn?: number
 }
 
 //-----------------------------------------------------------------------
@@ -392,27 +354,3 @@ export function saveState(name: string, value: any): void {
 export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
 }
-
-export async function getIDToken(aud?: string): Promise<string> {
-  return await OidcClient.getIDToken(aud)
-}
-
-/**
- * Summary exports
- */
-export {summary} from './summary'
-
-/**
- * @deprecated use core.summary
- */
-export {markdownSummary} from './summary'
-
-/**
- * Path exports
- */
-export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils'
-
-/**
- * Platform utilities exports
- */
-export * as platform from './platform'
