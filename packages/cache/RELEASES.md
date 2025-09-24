@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+### 4.1.0
+
+- Remove client side 10GiB cache size limit check & update twirp client [#2118](https://github.com/actions/toolkit/pull/2118)
+
 ### 4.0.5
 
 - Reintroduce @protobuf-ts/runtime-rpc as a runtime dependency [#2113](https://github.com/actions/toolkit/pull/2113)
