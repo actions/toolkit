@@ -11,7 +11,7 @@ updates:
       interval: "daily"
     groups:
       # Group minor and patch updates together but keep major separate
-      npm-minor-patch-updates:
+      artifact-minor-patch:
         update-types:
           - "minor"
           - "patch"
@@ -21,7 +21,7 @@ updates:
       interval: "daily"
     groups:
       # Group minor and patch updates together but keep major separate
-      npm-minor-patch-updates:
+      cache-minor-patch:
         update-types:
           - "minor"
           - "patch"
