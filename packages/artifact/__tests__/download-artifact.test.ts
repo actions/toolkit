@@ -3,7 +3,7 @@ import * as http from 'http'
 import * as net from 'net'
 import * as path from 'path'
 import * as github from '@actions/github'
-import {HttpClient} from '@actions/http-client'
+import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
 import archiver from 'archiver'
 
@@ -106,6 +106,16 @@ const mockGetArtifactSuccess = jest.fn(() => {
   message.statusCode = 200
   message.push(fs.readFileSync(fixtures.exampleArtifact.path))
   message.push(null)
+  return {
+    message
+  }
+})
+
+const mockGetArtifactHung = jest.fn(() => {
+  const message = new http.IncomingMessage(new net.Socket())
+  message.statusCode = 200
+  // Don't push any data or call push(null) to end the stream
+  // This creates a stream that hangs and never completes
   return {
     message
   }
@@ -609,6 +619,36 @@ describe('download-artifact', () => {
         ...fixtures.backendIds,
         name: fixtures.artifactName
       })
+    })
+  })
+  
+  describe('streamExtractExternal', () => {
+    it('should fail if the timeout is exceeded', async () => {
+
+      const mockSlowGetArtifact = jest
+        .fn(mockGetArtifactHung)
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockSlowGetArtifact
+          }
+        }
+      )
+
+      try {
+        await streamExtractExternal(
+          fixtures.blobStorageUrl,
+          fixtures.workspaceDir,
+          { timeout: 2 }
+        )
+        expect(true).toBe(false) // should not be called
+      } catch (e: any) {
+        expect(e).toBeInstanceOf(Error)
+        expect(e.message).toContain('did not respond in 2ms')
+        expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+        expect(mockSlowGetArtifact).toHaveBeenCalledTimes(1)
+      }
     })
   })
 })
