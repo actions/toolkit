@@ -1,6 +1,6 @@
 {
   "name": "@actions/io",
-  "version": "1.1.4",
+  "version": "1.1.3",
   "description": "Actions io lib",
   "keywords": [
     "github",
@@ -33,8 +33,5 @@
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
-  },
-  "overrides": {
-    "uri-js": "npm:uri-js-replace@^1.0.1"
   }
 }
