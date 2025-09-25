@@ -50,6 +50,12 @@ export interface CreateCacheEntryResponse {
      * @generated from protobuf field: string signed_upload_url = 2;
      */
     signedUploadUrl: string;
+    /**
+     * When !ok, this field may contain a human-readable error message used to create an annotation
+     *
+     * @generated from protobuf field: string message = 3;
+     */
+    message: string;
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.FinalizeCacheEntryUploadRequest
@@ -94,6 +100,12 @@ export interface FinalizeCacheEntryUploadResponse {
      * @generated from protobuf field: int64 entry_id = 2;
      */
     entryId: string;
+    /**
+     * When !ok, this field may contain a human-readable error message used to create an annotation
+     *
+     * @generated from protobuf field: string message = 3;
+     */
+    message: string;
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.GetCacheEntryDownloadURLRequest
@@ -211,11 +223,12 @@ class CreateCacheEntryResponse$Type extends MessageType<CreateCacheEntryResponse
     constructor() {
         super("github.actions.results.api.v1.CreateCacheEntryResponse", [
             { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "signed_upload_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "signed_upload_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateCacheEntryResponse>): CreateCacheEntryResponse {
-        const message = { ok: false, signedUploadUrl: "" };
+        const message = { ok: false, signedUploadUrl: "", message: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateCacheEntryResponse>(this, message, value);
@@ -231,6 +244,9 @@ class CreateCacheEntryResponse$Type extends MessageType<CreateCacheEntryResponse
                     break;
                 case /* string signed_upload_url */ 2:
                     message.signedUploadUrl = reader.string();
+                    break;
+                case /* string message */ 3:
+                    message.message = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -250,6 +266,9 @@ class CreateCacheEntryResponse$Type extends MessageType<CreateCacheEntryResponse
         /* string signed_upload_url = 2; */
         if (message.signedUploadUrl !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.signedUploadUrl);
+        /* string message = 3; */
+        if (message.message !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.message);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -333,11 +352,12 @@ class FinalizeCacheEntryUploadResponse$Type extends MessageType<FinalizeCacheEnt
     constructor() {
         super("github.actions.results.api.v1.FinalizeCacheEntryUploadResponse", [
             { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "entry_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+            { no: 2, name: "entry_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 3, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<FinalizeCacheEntryUploadResponse>): FinalizeCacheEntryUploadResponse {
-        const message = { ok: false, entryId: "0" };
+        const message = { ok: false, entryId: "0", message: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<FinalizeCacheEntryUploadResponse>(this, message, value);
@@ -353,6 +373,9 @@ class FinalizeCacheEntryUploadResponse$Type extends MessageType<FinalizeCacheEnt
                     break;
                 case /* int64 entry_id */ 2:
                     message.entryId = reader.int64().toString();
+                    break;
+                case /* string message */ 3:
+                    message.message = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -372,6 +395,9 @@ class FinalizeCacheEntryUploadResponse$Type extends MessageType<FinalizeCacheEnt
         /* int64 entry_id = 2; */
         if (message.entryId !== "0")
             writer.tag(2, WireType.Varint).int64(message.entryId);
+        /* string message = 3; */
+        if (message.message !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.message);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
