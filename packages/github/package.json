@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -48,5 +48,8 @@
   },
   "devDependencies": {
     "proxy": "^2.1.1"
+  },
+  "overrides": {
+    "uri-js": "npm:uri-js-replace@^1.0.1"
   }
 }

@@ -37,5 +37,8 @@
   },
   "dependencies": {
     "@actions/io": "^1.0.1"
+  },
+  "overrides": {
+    "uri-js": "npm:uri-js-replace@^1.0.1"
   }
 }

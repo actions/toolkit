@@ -53,6 +53,7 @@
   "overrides": {
     "@octokit/plugin-retry": {
       "@octokit/core": "^5.2.0"
-    }
+    },
+    "uri-js": "npm:uri-js-replace@^1.0.1"
   }
 }
