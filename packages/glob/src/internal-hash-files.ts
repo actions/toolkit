@@ -15,7 +15,7 @@ export async function hashFiles(
   let hasMatch = false
   const githubWorkspace = currentWorkspace
     ? currentWorkspace
-    : process.env['GITHUB_WORKSPACE'] ?? process.cwd()
+    : (process.env['GITHUB_WORKSPACE'] ?? process.cwd())
   const result = crypto.createHash('sha256')
   let count = 0
   for await (const file of globber.globGenerator()) {

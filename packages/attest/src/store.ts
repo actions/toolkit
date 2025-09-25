@@ -29,7 +29,11 @@ export const writeAttestation = async (
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       headers: options.headers,
-      data: {bundle: attestation}
+      bundle: attestation as {
+        mediaType?: string
+        verificationMaterial?: {[key: string]: unknown}
+        dsseEnvelope?: {[key: string]: unknown}
+      }
     })
 
     const data =

@@ -4,7 +4,8 @@
     "baseUrl": "./",
     "outDir": "./lib",
     "declaration": true,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "skipLibCheck": true
   },
   "include": [
     "./src"

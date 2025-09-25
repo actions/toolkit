@@ -1,5 +1,5 @@
 import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
-import {TransferProgressEvent} from '@azure/core-http'
+import {TransferProgressEvent} from '@azure/core-http-compat'
 import {ZipUploadStream} from './zip'
 import {
   getUploadChunkSize,

@@ -242,6 +242,13 @@ test('save with server error should fail', async () => {
       })
     )
 
+  // Mock the FinalizeCacheEntryUpload to succeed (since the error should happen in saveCache)
+  jest
+    .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
+    .mockReturnValue(
+      Promise.resolve({ok: true, entryId: '4', message: 'Success'})
+    )
+
   const createTarMock = jest.spyOn(tar, 'createTar')
 
   // Mock the saveCache call to throw a server error
@@ -273,7 +280,6 @@ test('save with server error should fail', async () => {
     compression
   )
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
-  expect(getCompressionMock).toHaveBeenCalledTimes(1)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 
   // Restore the getCacheServiceVersion mock to its original state

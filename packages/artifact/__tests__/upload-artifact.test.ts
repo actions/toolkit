@@ -108,7 +108,7 @@ describe('upload-artifact', () => {
         fixtures.files.map(file => ({
           sourcePath: path.join(fixtures.uploadDirectory, file.name),
           destinationPath: file.name,
-          stats: new fs.Stats()
+          stats: fs.statSync(path.join(fixtures.uploadDirectory, file.name))
         }))
       )
     jest.spyOn(config, 'getRuntimeToken').mockReturnValue(fixtures.runtimeToken)
