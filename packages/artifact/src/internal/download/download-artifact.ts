@@ -65,7 +65,7 @@ async function streamExtract(
 export async function streamExtractExternal(
   url: string,
   directory: string,
-  opts: { timeout: number } = { timeout: 30 * 1000 }
+  opts: {timeout: number} = {timeout: 30 * 1000}
 ): Promise<StreamExtractResponse> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)

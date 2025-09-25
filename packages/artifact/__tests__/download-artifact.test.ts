@@ -3,7 +3,7 @@ import * as http from 'http'
 import * as net from 'net'
 import * as path from 'path'
 import * as github from '@actions/github'
-import {HttpClient, HttpClientResponse} from '@actions/http-client'
+import {HttpClient} from '@actions/http-client'
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
 import archiver from 'archiver'
 
@@ -621,12 +621,10 @@ describe('download-artifact', () => {
       })
     })
   })
-  
+
   describe('streamExtractExternal', () => {
     it('should fail if the timeout is exceeded', async () => {
-
-      const mockSlowGetArtifact = jest
-        .fn(mockGetArtifactHung)
+      const mockSlowGetArtifact = jest.fn(mockGetArtifactHung)
 
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
@@ -640,10 +638,10 @@ describe('download-artifact', () => {
         await streamExtractExternal(
           fixtures.blobStorageUrl,
           fixtures.workspaceDir,
-          { timeout: 2 }
+          {timeout: 2}
         )
         expect(true).toBe(false) // should not be called
-      } catch (e: any) {
+      } catch (e) {
         expect(e).toBeInstanceOf(Error)
         expect(e.message).toContain('did not respond in 2ms')
         expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
