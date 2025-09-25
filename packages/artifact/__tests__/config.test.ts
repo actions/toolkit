@@ -1,10 +1,14 @@
 import * as config from '../src/internal/shared/config'
 import os from 'os'
 
-// Mock the 'os' module
-jest.mock('os', () => ({
-  cpus: jest.fn()
-}))
+// Mock the `cpus()` function in the `os` module
+jest.mock('os', () => {
+  const osActual = jest.requireActual('os')
+  return {
+    ...osActual,
+    cpus: jest.fn()
+  }
+})
 
 beforeEach(() => {
   jest.resetModules()

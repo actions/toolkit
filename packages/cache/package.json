@@ -1,6 +1,10 @@
 {
   "name": "@actions/cache",
+<<<<<<< HEAD
   "version": "5.0.0",
+=======
+  "version": "4.1.0",
+>>>>>>> origin/main
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
