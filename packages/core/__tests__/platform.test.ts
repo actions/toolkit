@@ -1,5 +1,5 @@
 import os from 'os'
-import {platform} from '../src/core'
+import {platform} from '../src/index'
 
 describe('getInfo', () => {
   it('returns the platform info', async () => {
