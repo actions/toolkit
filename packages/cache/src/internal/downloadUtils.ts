@@ -12,8 +12,6 @@ import {SocketTimeout} from './constants'
 import {DownloadOptions} from '../options'
 import {retryHttpClientResponse} from './requestUtils'
 
-import {AbortController} from '@azure/abort-controller'
-
 /**
  * Pipes the body of a HTTP response to a stream
  *
