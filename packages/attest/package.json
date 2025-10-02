@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
+    "@actions/github": "^6.0.1",
     "@actions/http-client": "^2.2.3",
     "@octokit/plugin-retry": "^6.0.1",
     "@sigstore/bundle": "^3.0.0",
