@@ -204,6 +204,20 @@ async function getDecompressionProgram(
   }
 }
 
+// Get zstd compression level from env var (1-22), defaulting to 3 if invalid
+function getZstdCompressionLevel(): string {
+  const defaultLevel = 3
+  const levelEnv = process.env['CACHE_ZSTD_COMPRESSION_LEVEL']
+
+  // Check if it's a valid positive integer
+  if (!levelEnv || !/^\d+$/.test(levelEnv)) {
+    return `-${defaultLevel}`
+  }
+
+  const level = parseInt(levelEnv, 10)
+  return level >= 1 && level <= 22 ? `-${level}` : `-${defaultLevel}`
+}
+
 // Used for creating the archive
 // -T#: Compress using # working thread. If # is 0, attempt to detect and use the number of physical CPU cores.
 // zstdmt is equivalent to 'zstd -T0'
@@ -219,26 +233,40 @@ async function getCompressionProgram(
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
     IS_WINDOWS
+
+  // Get the compression level for zstd
+  const compressionLevel =
+    compressionMethod === CompressionMethod.Gzip
+      ? ''
+      : getZstdCompressionLevel()
+
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -T0 --long=30 --force -o',
+            `zstd -T0 ${compressionLevel} --long=30 --force -o`,
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
         : [
             '--use-compress-program',
-            IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
+            IS_WINDOWS
+              ? `"zstd -T0 ${compressionLevel} --long=30"`
+              : `zstdmt ${compressionLevel} --long=30`
           ]
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -T0 --force -o',
+            `zstd -T0 ${compressionLevel} --force -o`,
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
-        : ['--use-compress-program', IS_WINDOWS ? '"zstd -T0"' : 'zstdmt']
+        : [
+            '--use-compress-program',
+            IS_WINDOWS
+              ? `"zstd -T0 ${compressionLevel}"`
+              : `zstdmt ${compressionLevel}`
+          ]
     default:
       return ['-z']
   }
