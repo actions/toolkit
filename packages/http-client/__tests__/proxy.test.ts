@@ -196,7 +196,7 @@ describe('proxy', () => {
   })
 
   it('HttpClient does basic http get request through proxy', async () => {
-    process.env['http_proxy'] = _proxyUrl
+    process.env['https_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
       'https://postman-echo.com/get'
