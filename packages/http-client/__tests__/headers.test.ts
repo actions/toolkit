@@ -12,7 +12,7 @@ describe('headers', () => {
   it('preserves existing headers on getJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
     let jsonObj = await _http.getJson<any>(
-      'http://postman-echo.com/get',
+      'https://postman-echo.com/get',
       additionalHeaders
     )
     expect(jsonObj.result.headers[httpm.Headers.Accept]).toBe('foo')
@@ -26,7 +26,7 @@ describe('headers', () => {
         [httpm.Headers.Accept]: 'baz'
       }
     }
-    jsonObj = await httpWithHeaders.getJson<any>('http://postman-echo.com/get')
+    jsonObj = await httpWithHeaders.getJson<any>('https://postman-echo.com/get')
     expect(jsonObj.result.headers[httpm.Headers.Accept]).toBe('baz')
     expect(jsonObj.headers[httpm.Headers.ContentType]).toContain(
       httpm.MediaTypes.ApplicationJson
@@ -36,7 +36,7 @@ describe('headers', () => {
   it('preserves existing headers on postJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
     let jsonObj = await _http.postJson<any>(
-      'http://postman-echo.com/post',
+      'https://postman-echo.com/post',
       {},
       additionalHeaders
     )
@@ -52,7 +52,7 @@ describe('headers', () => {
       }
     }
     jsonObj = await httpWithHeaders.postJson<any>(
-      'http://postman-echo.com/post',
+      'https://postman-echo.com/post',
       {}
     )
     expect(jsonObj.result.headers[httpm.Headers.Accept]).toBe('baz')
@@ -64,7 +64,7 @@ describe('headers', () => {
   it('preserves existing headers on putJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
     let jsonObj = await _http.putJson<any>(
-      'http://postman-echo.com/put',
+      'https://postman-echo.com/put',
       {},
       additionalHeaders
     )
@@ -80,7 +80,7 @@ describe('headers', () => {
       }
     }
     jsonObj = await httpWithHeaders.putJson<any>(
-      'http://postman-echo.com/put',
+      'https://postman-echo.com/put',
       {}
     )
     expect(jsonObj.result.headers[httpm.Headers.Accept]).toBe('baz')
@@ -92,7 +92,7 @@ describe('headers', () => {
   it('preserves existing headers on patchJson', async () => {
     const additionalHeaders = {[httpm.Headers.Accept]: 'foo'}
     let jsonObj = await _http.patchJson<any>(
-      'http://postman-echo.com/patch',
+      'https://postman-echo.com/patch',
       {},
       additionalHeaders
     )
@@ -108,7 +108,7 @@ describe('headers', () => {
       }
     }
     jsonObj = await httpWithHeaders.patchJson<any>(
-      'http://postman-echo.com/patch',
+      'https://postman-echo.com/patch',
       {}
     )
     expect(jsonObj.result.headers[httpm.Headers.Accept]).toBe('baz')
