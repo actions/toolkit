@@ -103,6 +103,7 @@ Configured to check for updates daily for all packages in the monorepo.
 
 ## 📚 Additional Resources
 
+- [Complete GitHub Configuration Guide](../docs/github-configuration-guide.md) - Detailed guide on using all configurations
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [Code of Conduct](../CODE_OF_CONDUCT.md)

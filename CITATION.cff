@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: GitHub Actions Toolkit
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: GitHub, Inc.
+    website: 'https://github.com'
+repository-code: 'https://github.com/actions/toolkit'
+url: 'https://github.com/actions/toolkit'
+abstract: >-
+  The GitHub Actions ToolKit provides a set of packages to make
+  creating actions easier. It includes packages for core functionality,
+  file operations, HTTP requests, GitHub API interactions, caching,
+  artifacts, and more.
+keywords:
+  - github-actions
+  - javascript
+  - typescript
+  - automation
+  - ci-cd
+  - toolkit
+license: MIT
+version: 6.0.0
+date-released: '2024-01-01'
