@@ -1,0 +1,76 @@
+# Repository settings for use with probot/settings app
+# https://probot.github.io/apps/settings/
+
+repository:
+  # See https://docs.github.com/en/rest/reference/repos#update-a-repository for all available settings.
+
+  # The name of the repository. Changing this will rename the repository
+  # name: toolkit
+
+  # A short description of the repository that will show up on GitHub
+  description: The GitHub Actions ToolKit provides a set of packages to make creating actions easier
+
+  # A URL with more information about the repository
+  homepage: https://github.com/actions/toolkit
+
+  # A comma-separated list of topics to set on the repository
+  topics: github, actions, toolkit, javascript, typescript
+
+  # Either `true` to make the repository private, or `false` to make it public.
+  private: false
+
+  # Either `true` to enable issues for this repository, `false` to disable them.
+  has_issues: true
+
+  # Either `true` to enable projects for this repository, or `false` to disable them.
+  # If projects are disabled for the organization, passing `true` will cause an API error.
+  has_projects: true
+
+  # Either `true` to enable the wiki for this repository, `false` to disable it.
+  has_wiki: false
+
+  # Either `true` to enable downloads for this repository, `false` to disable them.
+  has_downloads: true
+
+  # Updates the default branch for this repository.
+  default_branch: main
+
+  # Either `true` to allow squash-merging pull requests, or `false` to prevent
+  # squash-merging.
+  allow_squash_merge: true
+
+  # Either `true` to allow merging pull requests with a merge commit, or `false`
+  # to prevent merging pull requests with merge commits.
+  allow_merge_commit: false
+
+  # Either `true` to allow rebase-merging pull requests, or `false` to prevent
+  # rebase-merging.
+  allow_rebase_merge: true
+
+  # Either `true` to enable automatic deletion of branches on merge, or `false` to disable
+  delete_branch_on_merge: true
+
+  # Either `true` to enable automated security fixes, or `false` to disable
+  # automated security fixes.
+  enable_automated_security_fixes: true
+
+  # Either `true` to enable vulnerability alerts, or `false` to disable
+  # vulnerability alerts.
+  enable_vulnerability_alerts: true
+
+# Labels: define labels for Issues and Pull Requests
+# See labels.yml for detailed label configuration
+
+# Milestones: define milestones for Issues and Pull Requests
+# milestones:
+#   - title: v1.0.0
+#     description: First major release
+#     state: open
+
+# Collaborators: give specific users access to this repository.
+# collaborators:
+#   - username: user1
+#     permission: push
+
+# Note: Branch protection rules should be configured in the GitHub UI or via API
+# as they require admin access and may vary based on organization policies.
