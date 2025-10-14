@@ -1,0 +1,86 @@
+# Labels configuration for the repository
+# This file can be used with tools like github-label-sync
+
+- name: "bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+
+- name: "breaking change"
+  color: "b60205"
+  description: "Introduces a breaking change"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Pull requests that update a dependency file"
+
+- name: "github_actions"
+  color: "000000"
+  description: "Related to GitHub Actions"
+
+- name: "security"
+  color: "ee0701"
+  description: "Security-related issue or improvement"
+
+- name: "performance"
+  color: "1d76db"
+  description: "Performance improvement"
+
+- name: "needs triage"
+  color: "fbca04"
+  description: "Needs initial review and triage"
+
+- name: "priority: high"
+  color: "d93f0b"
+  description: "High priority issue"
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "Medium priority issue"
+
+- name: "priority: low"
+  color: "0e8a16"
+  description: "Low priority issue"
+
+- name: "status: in progress"
+  color: "c5def5"
+  description: "Work in progress"
+
+- name: "status: blocked"
+  color: "b60205"
+  description: "Blocked by another issue or external factor"
+
+- name: "status: waiting for response"
+  color: "fef2c0"
+  description: "Waiting for response from issue author"

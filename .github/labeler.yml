@@ -1,0 +1,67 @@
+# Configuration for auto-labeling pull requests
+# See https://github.com/actions/labeler for configuration options
+
+# Label PRs that modify documentation
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.md', 'docs/**/*']
+
+# Label PRs that modify dependencies
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: ['package*.json', '**/package*.json', 'lerna.json']
+
+# Label PRs that modify GitHub Actions workflows
+github_actions:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/workflows/**/*', '.github/actions/**/*']
+
+# Label PRs that modify the artifact package
+artifact:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/artifact/**/*']
+
+# Label PRs that modify the cache package
+cache:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/cache/**/*']
+
+# Label PRs that modify the core package
+core:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/core/**/*']
+
+# Label PRs that modify the exec package
+exec:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/exec/**/*']
+
+# Label PRs that modify the glob package
+glob:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/glob/**/*']
+
+# Label PRs that modify the github package
+github:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/github/**/*']
+
+# Label PRs that modify the http-client package
+http-client:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/http-client/**/*']
+
+# Label PRs that modify the io package
+io:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/io/**/*']
+
+# Label PRs that modify the tool-cache package
+tool-cache:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/tool-cache/**/*']
+
+# Label PRs that modify the attest package
+attest:
+  - changed-files:
+    - any-glob-to-any-file: ['packages/attest/**/*']

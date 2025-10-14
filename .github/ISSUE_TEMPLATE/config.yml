@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Community Discussion
+    url: https://github.com/orgs/community/discussions/categories/actions
+    about: Please ask and answer questions here.
+  - name: 🔒 Security Issue
+    url: https://hackerone.com/github
+    about: Please report security vulnerabilities here.
+  - name: 📚 GitHub Actions Documentation
+    url: https://docs.github.com/en/actions
+    about: Official GitHub Actions documentation.
+  - name: 🐛 GitHub Support
+    url: https://support.github.com
+    about: Contact GitHub support for account and platform issues.
