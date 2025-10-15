@@ -38,5 +38,8 @@
   "dependencies": {
     "@actions/exec": "^1.1.1",
     "@actions/http-client": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.112"
   }
 }

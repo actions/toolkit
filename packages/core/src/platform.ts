@@ -76,8 +76,8 @@ export async function getDetails(): Promise<{
     ...(await (isWindows
       ? getWindowsInfo()
       : isMacOS
-        ? getMacOsInfo()
-        : getLinuxInfo())),
+      ? getMacOsInfo()
+      : getLinuxInfo())),
     platform,
     arch,
     isWindows,
