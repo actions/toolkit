@@ -42,7 +42,7 @@
     "@actions/glob": "^0.1.0",
     "@protobuf-ts/runtime-rpc": "^2.11.1",
     "@actions/http-client": "^2.1.1",
-    "@actions/io": "^1.0.1",
+    "@actions/io": "^2.0.0",
     "@azure/abort-controller": "^1.1.0",
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
