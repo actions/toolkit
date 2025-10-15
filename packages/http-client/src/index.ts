@@ -628,6 +628,13 @@ export class HttpClient {
     return lowercaseKeys(headers || {})
   }
 
+  /**
+   * Gets an existing header value or returns a default.
+   * Handles converting number header values to strings since HTTP headers must be strings.
+   * Note: This returns string | string[] since some headers can have multiple values.
+   * For headers that must always be a single string (like Content-Type), use the
+   * specialized _getExistingOrDefaultContentTypeHeader method instead.
+   */
   private _getExistingOrDefaultHeader(
     additionalHeaders: http.OutgoingHttpHeaders,
     header: string,
@@ -657,6 +664,13 @@ export class HttpClient {
     return _default
   }
 
+  /**
+   * Specialized version of _getExistingOrDefaultHeader for Content-Type header.
+   * Always returns a single string (not an array) since Content-Type should be a single value.
+   * Converts arrays to comma-separated strings and numbers to strings to ensure type safety.
+   * This was split from _getExistingOrDefaultHeader to provide stricter typing for callers
+   * that assign the result to places expecting a string (e.g., additionalHeaders[Headers.ContentType]).
+   */
   private _getExistingOrDefaultContentTypeHeader(
     additionalHeaders: http.OutgoingHttpHeaders,
     _default: string
