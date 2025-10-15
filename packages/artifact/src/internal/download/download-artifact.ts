@@ -64,7 +64,8 @@ async function streamExtract(
 
 export async function streamExtractExternal(
   url: string,
-  directory: string
+  directory: string,
+  opts: {timeout: number} = {timeout: 30 * 1000}
 ): Promise<StreamExtractResponse> {
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
@@ -74,16 +75,17 @@ export async function streamExtractExternal(
     )
   }
 
-  const timeout = 30 * 1000 // 30 seconds
   let sha256Digest: string | undefined = undefined
 
   return new Promise((resolve, reject) => {
     const timerFn = (): void => {
-      response.message.destroy(
-        new Error(`Blob storage chunk did not respond in ${timeout}ms`)
+      const timeoutError = new Error(
+        `Blob storage chunk did not respond in ${opts.timeout}ms`
       )
+      response.message.destroy(timeoutError)
+      reject(timeoutError)
     }
-    const timer = setTimeout(timerFn, timeout)
+    const timer = setTimeout(timerFn, opts.timeout)
 
     const hashStream = crypto.createHash('sha256').setEncoding('hex')
     const passThrough = new stream.PassThrough()

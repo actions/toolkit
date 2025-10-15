@@ -111,6 +111,16 @@ const mockGetArtifactSuccess = jest.fn(() => {
   }
 })
 
+const mockGetArtifactHung = jest.fn(() => {
+  const message = new http.IncomingMessage(new net.Socket())
+  message.statusCode = 200
+  // Don't push any data or call push(null) to end the stream
+  // This creates a stream that hangs and never completes
+  return {
+    message
+  }
+})
+
 const mockGetArtifactFailure = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 500
@@ -609,6 +619,34 @@ describe('download-artifact', () => {
         ...fixtures.backendIds,
         name: fixtures.artifactName
       })
+    })
+  })
+
+  describe('streamExtractExternal', () => {
+    it('should fail if the timeout is exceeded', async () => {
+      const mockSlowGetArtifact = jest.fn(mockGetArtifactHung)
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockSlowGetArtifact
+          }
+        }
+      )
+
+      try {
+        await streamExtractExternal(
+          fixtures.blobStorageUrl,
+          fixtures.workspaceDir,
+          {timeout: 2}
+        )
+        expect(true).toBe(false) // should not be called
+      } catch (e) {
+        expect(e).toBeInstanceOf(Error)
+        expect(e.message).toContain('did not respond in 2ms')
+        expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+        expect(mockSlowGetArtifact).toHaveBeenCalledTimes(1)
+      }
     })
   })
 })
