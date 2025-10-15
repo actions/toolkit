@@ -28,7 +28,8 @@ export async function readlink(fsPath: string): Promise<string> {
   // Only on Windows, ensure directory symlinks end with a backslash
   if (IS_WINDOWS) {
     try {
-      const stats = await fs.promises.lstat(result)
+      // Use stat on the target to check if it's a directory (result is already resolved)
+      const stats = await fs.promises.stat(result)
       if (stats.isDirectory() && !result.endsWith('\\')) {
         return `${result}\\`
       }
