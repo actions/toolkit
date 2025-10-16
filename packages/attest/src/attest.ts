@@ -102,8 +102,7 @@ function toAttestation(bundle: Bundle, attestationID?: string): Attestation {
       throw new Error('Bundle must contain an x509 certificate')
   }
 
-  // Convert Buffer to Uint8Array for Node.js 24 compatibility
-  const signingCert = new X509Certificate(new Uint8Array(certBytes))
+  const signingCert = new X509Certificate(certBytes)
 
   // Collect transparency log ID if available
   const tlogEntries = bundle.verificationMaterial.tlogEntries
