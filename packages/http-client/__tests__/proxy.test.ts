@@ -196,16 +196,16 @@ describe('proxy', () => {
   })
 
   it('HttpClient does basic http get request through proxy', async () => {
-    process.env['http_proxy'] = _proxyUrl
+    process.env['https_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://postman-echo.com/get')
-    expect(_proxyConnects).toEqual(['postman-echo.com:80'])
+    expect(obj.url).toBe('https://postman-echo.com/get')
+    expect(_proxyConnects).toEqual(['postman-echo.com:443'])
   })
 
   it('HttpClient does basic http get request when bypass proxy', async () => {
@@ -213,12 +213,12 @@ describe('proxy', () => {
     process.env['no_proxy'] = 'postman-echo.com'
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
     expect(_proxyConnects).toHaveLength(0)
   })
 
@@ -228,12 +228,12 @@ describe('proxy', () => {
     process.env['https_proxy'] = _proxyUrl
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
     expect(_proxyConnects).toEqual(['postman-echo.com:443'])
   })
   */
@@ -243,12 +243,12 @@ describe('proxy', () => {
     process.env['no_proxy'] = 'postman-echo.com'
     const httpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await httpClient.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
     expect(_proxyConnects).toHaveLength(0)
   })
 

@@ -1,6 +1,6 @@
 {
   "name": "@actions/http-client",
-  "version": "2.2.3",
+  "version": "3.0.0",
   "description": "Actions Http Client",
   "keywords": [
     "github",
@@ -39,7 +39,7 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "devDependencies": {
-    "@types/node": "20.7.1",
+    "@types/node": "24.1.0",
     "@types/tunnel": "0.0.3",
     "proxy": "^2.1.1",
     "@types/proxy": "^1.0.1"
@@ -47,5 +47,8 @@
   "dependencies": {
     "tunnel": "^0.0.6",
     "undici": "^5.28.5"
+  },
+  "overrides": {
+    "uri-js": "npm:uri-js-replace@^1.0.1"
   }
 }

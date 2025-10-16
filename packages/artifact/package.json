@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "2.3.3",
+  "version": "3.0.0",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -61,5 +61,9 @@
     "typedoc": "^0.28.13",
     "typedoc-plugin-markdown": "^3.17.1",
     "typescript": "^5.2.2"
+  },
+  "overrides": {
+    "uri-js": "npm:uri-js-replace@^1.0.1",
+    "node-fetch": "^3.3.2"
   }
 }

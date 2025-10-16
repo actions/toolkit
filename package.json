@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "private": true,
+  "private": true, 
   "scripts": {
     "audit-all": "lerna run audit-moderate",
     "bootstrap": "lerna exec -- npm install",
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.4",
-    "@types/node": "^20.5.7",
+    "@types/node": "^24.1.0",
     "@types/signale": "^1.4.1",
     "concurrently": "^6.1.0",
     "eslint": "^8.0.1",
@@ -32,5 +32,19 @@
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
+  },
+  "overrides": {
+    "semver": "^7.6.0",
+    "tar": "^6.2.1",
+    "@octokit/plugin-paginate-rest": "^9.2.2",
+    "@octokit/request": "^8.4.1",
+    "@octokit/request-error": "^5.1.1",
+    "@octokit/core": "^5.0.3",
+    "tmp": "^0.2.4",
+    "@types/node": "^24.1.0",
+    "brace-expansion": "^2.0.2",
+    "form-data": "^4.0.4",
+    "uri-js": "npm:uri-js-replace@^1.0.1",
+    "node-fetch": "^3.3.2"
   }
 }

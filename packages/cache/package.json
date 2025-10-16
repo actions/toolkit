@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "4.1.0",
+  "version": "5.0.0",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -49,9 +49,13 @@
     "semver": "^6.3.1"
   },
   "devDependencies": {
-    "@types/node": "^22.13.9",
+    "@types/node": "^24.1.0",
     "@types/semver": "^6.0.0",
     "@protobuf-ts/plugin": "^2.9.4",
     "typescript": "^5.2.2"
+  },
+  "overrides": {
+    "uri-js": "npm:uri-js-replace@^1.0.1",
+    "node-fetch": "^3.3.2"
   }
 }

@@ -643,8 +643,11 @@ describe('rmRF', () => {
       })
     ).toBe('test file content')
     if (os.platform() === 'win32') {
-      expect(await fs.readlink(symlinkLevel2Directory)).toBe(
-        `${symlinkDirectory}\\`
+      // Node.js 24 changed behavior - fs.readlink no longer includes trailing backslash
+      // Accept both formats for compatibility
+      const linkPath = await fs.readlink(symlinkLevel2Directory)
+      expect(linkPath.replace(/\\+$/, '')).toBe(
+        symlinkDirectory.replace(/\\+$/, '')
       )
     } else {
       expect(await fs.readlink(symlinkLevel2Directory)).toBe(symlinkDirectory)
@@ -1201,9 +1204,8 @@ describe('which', () => {
       const originalPath = process.env['PATH']
       try {
         // modify PATH
-        process.env[
-          'PATH'
-        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+        process.env['PATH'] =
+          `${process.env['PATH']}${path.delimiter}${testPath}`
 
         // find each file
         for (const fileName of Object.keys(files)) {
@@ -1274,9 +1276,8 @@ describe('which', () => {
       await fs.writeFile(notExpectedFilePath, '')
       const originalPath = process.env['PATH']
       try {
-        process.env[
-          'PATH'
-        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+        process.env['PATH'] =
+          `${process.env['PATH']}${path.delimiter}${testPath}`
         expect(await io.which(fileName)).toBe(expectedFilePath)
       } finally {
         process.env['PATH'] = originalPath
@@ -1438,9 +1439,8 @@ describe('findInPath', () => {
     try {
       // update the PATH
       for (const testPath of testPaths) {
-        process.env[
-          'PATH'
-        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+        process.env['PATH'] =
+          `${process.env['PATH']}${path.delimiter}${testPath}`
       }
       // exact file names
       expect(await io.findInPath(fileName)).toEqual(filePaths)

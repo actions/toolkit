@@ -22,12 +22,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
-    - name: Set Node.js 20.x
-      uses: actions/setup-node@v4
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
       with:
-        node-version: 20.x
+        node-version: 24.x
 
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
@@ -47,7 +47,7 @@ jobs:
         echo -n 'hello from file 2' > artifact-path/second.txt
 
     - name: Upload Artifacts
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const {default: artifact} = require('./packages/artifact/lib/artifact')
@@ -77,12 +77,12 @@ jobs:
     needs: [upload]
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
-    - name: Set Node.js 20.x
-      uses: actions/setup-node@v4
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
       with:
-        node-version: 20.x
+        node-version: 24.x
 
     # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
     # without these to just compile the artifacts package
@@ -96,7 +96,7 @@ jobs:
       working-directory: packages/artifact
 
     - name: List and Download Artifacts
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const {default: artifactClient} = require('./packages/artifact/lib/artifact')
@@ -165,7 +165,7 @@ jobs:
             }
           }
     - name: Delete Artifacts
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const {default: artifactClient} = require('./packages/artifact/lib/artifact')

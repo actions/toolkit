@@ -15,7 +15,7 @@ describe('auth', () => {
       bh
     ])
     const res: httpm.HttpClientResponse = await http.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
@@ -26,7 +26,7 @@ describe('auth', () => {
       'base64'
     ).toString()
     expect(creds).toBe('johndoe:password')
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
   })
 
   it('does basic http get request with pat token auth', async () => {
@@ -38,7 +38,7 @@ describe('auth', () => {
       ph
     ])
     const res: httpm.HttpClientResponse = await http.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
@@ -49,7 +49,7 @@ describe('auth', () => {
       'base64'
     ).toString()
     expect(creds).toBe(`PAT:${token}`)
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
   })
 
   it('does basic http get request with pat token auth', async () => {
@@ -60,13 +60,13 @@ describe('auth', () => {
       ph
     ])
     const res: httpm.HttpClientResponse = await http.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     const auth: string = obj.headers.authorization
     expect(auth).toBe(`Bearer ${token}`)
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
   })
 })

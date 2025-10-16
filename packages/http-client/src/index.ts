@@ -275,11 +275,11 @@ export class HttpClient {
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.ContentType,
-      MediaTypes.ApplicationJson
-    )
+    additionalHeaders[Headers.ContentType] =
+      this._getExistingOrDefaultContentTypeHeader(
+        additionalHeaders,
+        MediaTypes.ApplicationJson
+      )
     const res: HttpClientResponse = await this.post(
       requestUrl,
       data,
@@ -299,11 +299,11 @@ export class HttpClient {
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.ContentType,
-      MediaTypes.ApplicationJson
-    )
+    additionalHeaders[Headers.ContentType] =
+      this._getExistingOrDefaultContentTypeHeader(
+        additionalHeaders,
+        MediaTypes.ApplicationJson
+      )
     const res: HttpClientResponse = await this.put(
       requestUrl,
       data,
@@ -323,11 +323,11 @@ export class HttpClient {
       Headers.Accept,
       MediaTypes.ApplicationJson
     )
-    additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(
-      additionalHeaders,
-      Headers.ContentType,
-      MediaTypes.ApplicationJson
-    )
+    additionalHeaders[Headers.ContentType] =
+      this._getExistingOrDefaultContentTypeHeader(
+        additionalHeaders,
+        MediaTypes.ApplicationJson
+      )
     const res: HttpClientResponse = await this.patch(
       requestUrl,
       data,
@@ -628,16 +628,87 @@ export class HttpClient {
     return lowercaseKeys(headers || {})
   }
 
+  /**
+   * Gets an existing header value or returns a default.
+   * Handles converting number header values to strings since HTTP headers must be strings.
+   * Note: This returns string | string[] since some headers can have multiple values.
+   * For headers that must always be a single string (like Content-Type), use the
+   * specialized _getExistingOrDefaultContentTypeHeader method instead.
+   */
   private _getExistingOrDefaultHeader(
     additionalHeaders: http.OutgoingHttpHeaders,
     header: string,
     _default: string
-  ): string | number | string[] {
+  ): string | string[] {
+    let clientHeader: string | string[] | undefined
+    if (this.requestOptions && this.requestOptions.headers) {
+      const headerValue = lowercaseKeys(this.requestOptions.headers)[header]
+      if (headerValue) {
+        clientHeader =
+          typeof headerValue === 'number' ? headerValue.toString() : headerValue
+      }
+    }
+
+    const additionalValue = additionalHeaders[header]
+
+    if (additionalValue !== undefined) {
+      return typeof additionalValue === 'number'
+        ? additionalValue.toString()
+        : additionalValue
+    }
+
+    if (clientHeader !== undefined) {
+      return clientHeader
+    }
+
+    return _default
+  }
+
+  /**
+   * Specialized version of _getExistingOrDefaultHeader for Content-Type header.
+   * Always returns a single string (not an array) since Content-Type should be a single value.
+   * Converts arrays to comma-separated strings and numbers to strings to ensure type safety.
+   * This was split from _getExistingOrDefaultHeader to provide stricter typing for callers
+   * that assign the result to places expecting a string (e.g., additionalHeaders[Headers.ContentType]).
+   */
+  private _getExistingOrDefaultContentTypeHeader(
+    additionalHeaders: http.OutgoingHttpHeaders,
+    _default: string
+  ): string {
     let clientHeader: string | undefined
     if (this.requestOptions && this.requestOptions.headers) {
-      clientHeader = lowercaseKeys(this.requestOptions.headers)[header]
+      const headerValue = lowercaseKeys(this.requestOptions.headers)[
+        Headers.ContentType
+      ]
+      if (headerValue) {
+        if (typeof headerValue === 'number') {
+          clientHeader = String(headerValue)
+        } else if (Array.isArray(headerValue)) {
+          clientHeader = headerValue.join(', ')
+        } else {
+          clientHeader = headerValue
+        }
+      }
     }
-    return additionalHeaders[header] || clientHeader || _default
+
+    const additionalValue = additionalHeaders[Headers.ContentType]
+
+    // Return the first non-undefined value, converting numbers or arrays to strings if necessary
+    if (additionalValue !== undefined) {
+      if (typeof additionalValue === 'number') {
+        return String(additionalValue)
+      } else if (Array.isArray(additionalValue)) {
+        return additionalValue.join(', ')
+      } else {
+        return additionalValue
+      }
+    }
+
+    if (clientHeader !== undefined) {
+      return clientHeader
+    }
+
+    return _default
   }
 
   private _getAgent(parsedUrl: URL): http.Agent {

@@ -28,15 +28,15 @@ jobs:
 
     steps:
       - name: setup repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
 
-      - name: Set Node.js 20.x
-        uses: actions/setup-node@v4
+      - name: Set Node.js 24.x
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
 
       - name: npm install
         run: npm install
