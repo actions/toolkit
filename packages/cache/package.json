@@ -46,11 +46,11 @@
     "@azure/abort-controller": "^1.1.0",
     "@azure/ms-rest-js": "^2.6.0",
     "@azure/storage-blob": "^12.13.0",
-    "semver": "^6.3.1"
+    "semver": "^7.7.3"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
-    "@types/semver": "^6.0.0",
+    "@types/semver": "^7.7.1",
     "@protobuf-ts/plugin": "^2.9.4",
     "typescript": "^5.2.2"
   },
