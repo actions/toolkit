@@ -11,8 +11,8 @@ import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ListArtifactsRequest, Timestamp} from '../../generated'
 
-// Limiting to 1000 for perf reasons
-const maximumArtifactCount = 1000
+// Limiting to 2000 for perf reasons
+const maximumArtifactCount = 2000
 const paginationCount = 100
 const maxNumberOfPages = maximumArtifactCount / paginationCount
 
@@ -59,7 +59,7 @@ export async function listArtifactsPublic(
   const totalArtifactCount = listArtifactResponse.total_count
   if (totalArtifactCount > maximumArtifactCount) {
     warning(
-      `Workflow run ${workflowRunId} has more than 1000 artifacts. Results will be incomplete as only the first ${maximumArtifactCount} artifacts will be returned`
+      `Workflow run ${workflowRunId} has more than ${maximumArtifactCount} artifacts. Results will be incomplete as only the first ${maximumArtifactCount} artifacts will be returned`
     )
     numberOfPages = maxNumberOfPages
   }
