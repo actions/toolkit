@@ -59,7 +59,7 @@ export async function listArtifactsPublic(
   const totalArtifactCount = listArtifactResponse.total_count
   if (totalArtifactCount > maximumArtifactCount) {
     warning(
-      `Workflow run ${workflowRunId} has more than ${maximumArtifactCount} artifacts. Results will be incomplete as only the first ${maximumArtifactCount} artifacts will be returned`
+      `Workflow run ${workflowRunId} has ${totalArtifactCount} artifacts, exceeding the limit of ${maximumArtifactCount}. Results will be incomplete as only the first ${maximumArtifactCount} artifacts will be returned`
     )
     numberOfPages = maxNumberOfPages
   }
