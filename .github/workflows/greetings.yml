@@ -1,0 +1,31 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            👋 Thank you for opening your first issue in the Actions Toolkit!
+
+            A maintainer will be with you shortly. In the meantime, please make sure you've provided all the necessary information and that your issue follows the guidelines in our [Contributing Guide](.github/CONTRIBUTING.md).
+
+            If you have questions about writing workflows or action files, please visit the [GitHub Community Forum's Actions Board](https://github.community/t5/GitHub-Actions/bd-p/actions).
+          pr-message: |
+            🎉 Thank you for opening your first pull request in the Actions Toolkit!
+
+            A maintainer will review your changes shortly. Please make sure:
+            - [ ] All tests pass (`npm test`)
+            - [ ] Code is properly formatted (`npm run format`)
+            - [ ] Code passes linting (`npm run lint`)
+            - [ ] You've updated any relevant documentation
+
+            Thank you for contributing to the project! 🚀

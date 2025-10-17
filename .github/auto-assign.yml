@@ -1,0 +1,33 @@
+# Configuration for auto-assign bot
+# Set to true to add reviewers to pull requests
+addReviewers: true
+
+# Set to true to add assignees to pull requests
+addAssignees: false
+
+# A list of reviewers to be added to pull requests (GitHub user name)
+reviewers:
+  - actions/actions-runtime
+
+# A number of reviewers added to the pull request
+# Set 0 to add all the reviewers (default: 0)
+numberOfReviewers: 0
+
+# A list of assignees, overrides reviewers if set
+# assignees:
+#   - assigneeA
+
+# A number of assignees to add to the pull request
+# Set to 0 to add all of the assignees.
+# Uses numberOfReviewers if unset.
+# numberOfAssignees: 2
+
+# A list of keywords to be skipped the process that add reviewers if pull requests include it
+# skipKeywords:
+#   - wip
+
+# Set to true to filter out the pull request author from the reviewers list
+filterAuthor: true
+
+# Set to true to use the pull request author as the assignee
+useAssigneeAsReviewer: false
