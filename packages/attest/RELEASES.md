@@ -1,5 +1,12 @@
 # @actions/attest Releases
 
+### 2.0.0
+
+- Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
+- Bump @sigstore/bundle from 3.0.0 to 3.1.0
+- Bump @sigstore/sign from 3.0.0 to 3.1.0
+- Bump jose from 5.2.3 to 5.10.0
+
 ### 1.6.0
 
 - Update `buildSLSAProvenancePredicate` to populate `workflow.ref` field from the `ref` claim in the OIDC token [#1969](https://github.com/actions/toolkit/pull/1969)
