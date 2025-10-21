@@ -9,12 +9,12 @@ import {retry} from '@octokit/plugin-retry'
 import {OctokitOptions} from '@octokit/core/dist-types/types'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
 import {getBackendIdsFromToken} from '../shared/util'
+import {getMaxArtifactListCount} from '../shared/config'
 import {ListArtifactsRequest, Timestamp} from '../../generated'
 
-// Limiting to 2000 for perf reasons
-const maximumArtifactCount = 2000
+const maximumArtifactCount = getMaxArtifactListCount()
 const paginationCount = 100
-const maxNumberOfPages = maximumArtifactCount / paginationCount
+const maxNumberOfPages = Math.ceil(maximumArtifactCount / paginationCount)
 
 export async function listArtifactsPublic(
   workflowRunId: number,
@@ -81,7 +81,7 @@ export async function listArtifactsPublic(
   // Iterate over any remaining pages
   for (
     currentPageNumber;
-    currentPageNumber < numberOfPages;
+    currentPageNumber <= numberOfPages;
     currentPageNumber++
   ) {
     debug(`Fetching page ${currentPageNumber} of artifact list`)
