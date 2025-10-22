@@ -2,7 +2,6 @@
 
 ## 3.0.0
 - Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
-- Bump undici from 5.28.5 to 5.28.5
 
 ## 2.2.3
 - Fixed an issue where proxy username and password were not handled correctly [#1799](https://github.com/actions/toolkit/pull/1799)
