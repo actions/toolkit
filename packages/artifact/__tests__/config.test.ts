@@ -124,20 +124,26 @@ describe('getMaxArtifactListCount', () => {
     process.env.ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT = 'abc'
     expect(() => {
       config.getMaxArtifactListCount()
-    }).toThrow('Invalid value set for ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT env variable')
+    }).toThrow(
+      'Invalid value set for ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT env variable'
+    )
   })
 
   it('should throw if ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT is < 1', () => {
     process.env.ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT = '0'
     expect(() => {
       config.getMaxArtifactListCount()
-    }).toThrow('Invalid value set for ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT env variable')
+    }).toThrow(
+      'Invalid value set for ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT env variable'
+    )
   })
 
   it('should throw if ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT is negative', () => {
     process.env.ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT = '-100'
     expect(() => {
       config.getMaxArtifactListCount()
-    }).toThrow('Invalid value set for ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT env variable')
+    }).toThrow(
+      'Invalid value set for ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT env variable'
+    )
   })
 })
