@@ -102,9 +102,6 @@ export function getUploadChunkTimeout(): number {
 // Defaults to 1000 as a safeguard for rate limiting.
 export function getMaxArtifactListCount(): number {
   const maxCountVar = process.env['ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT'] || 1000
-  if (!maxCountVar) {
-    return 1000
-  }
 
   const maxCount = parseInt(maxCountVar)
   if (isNaN(maxCount) || maxCount < 1) {
