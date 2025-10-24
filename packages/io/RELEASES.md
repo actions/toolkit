@@ -1,5 +1,9 @@
 # @actions/io Releases
 
+### 2.0.0
+- Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
+- Ensures consistent behavior for paths on Node 24 with Windows
+
 ### 1.1.3
 - Replace `child_process.exec` with `fs.rm` in `rmRF` for all OS implementations [#1373](https://github.com/actions/toolkit/pull/1373)
 
