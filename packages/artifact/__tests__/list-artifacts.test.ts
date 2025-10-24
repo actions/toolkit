@@ -170,6 +170,126 @@ describe('list-artifact', () => {
         )
       ).rejects.toThrow('boom')
     })
+
+    it('should handle pagination correctly when fetching multiple pages', async () => {
+      const mockRequest = github.getOctokit(fixtures.token)
+        .request as MockedRequest
+
+      const manyArtifacts = Array.from({length: 150}, (_, i) => ({
+        id: i + 1,
+        name: `artifact-${i + 1}`,
+        size: 100,
+        createdAt: new Date('2023-12-01')
+      }))
+
+      mockRequest
+        .mockResolvedValueOnce({
+          status: 200,
+          headers: {},
+          url: '',
+          data: {
+            ...artifactsToListResponse(manyArtifacts.slice(0, 100)),
+            total_count: 150
+          }
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          headers: {},
+          url: '',
+          data: {
+            ...artifactsToListResponse(manyArtifacts.slice(100, 150)),
+            total_count: 150
+          }
+        })
+
+      const response = await listArtifactsPublic(
+        fixtures.runId,
+        fixtures.owner,
+        fixtures.repo,
+        fixtures.token,
+        false
+      )
+
+      // Verify that both API calls were made
+      expect(mockRequest).toHaveBeenCalledTimes(2)
+
+      // Should return all 150 artifacts across both pages
+      expect(response.artifacts).toHaveLength(150)
+
+      // Verify we got artifacts from both pages
+      expect(response.artifacts[0].name).toBe('artifact-1')
+      expect(response.artifacts[99].name).toBe('artifact-100')
+      expect(response.artifacts[100].name).toBe('artifact-101')
+      expect(response.artifacts[149].name).toBe('artifact-150')
+    })
+
+    it('should respect ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT environment variable', async () => {
+      const originalEnv = process.env.ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT
+      process.env.ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT = '150'
+
+      jest.resetModules()
+
+      try {
+        const {listArtifactsPublic: listArtifactsPublicReloaded} = await import(
+          '../src/internal/find/list-artifacts'
+        )
+        const githubReloaded = await import('@actions/github')
+
+        const mockRequest = (githubReloaded.getOctokit as jest.Mock)(
+          fixtures.token
+        ).request as MockedRequest
+
+        const manyArtifacts = Array.from({length: 200}, (_, i) => ({
+          id: i + 1,
+          name: `artifact-${i + 1}`,
+          size: 100,
+          createdAt: new Date('2023-12-01')
+        }))
+
+        mockRequest
+          .mockResolvedValueOnce({
+            status: 200,
+            headers: {},
+            url: '',
+            data: {
+              ...artifactsToListResponse(manyArtifacts.slice(0, 100)),
+              total_count: 200
+            }
+          })
+          .mockResolvedValueOnce({
+            status: 200,
+            headers: {},
+            url: '',
+            data: {
+              ...artifactsToListResponse(manyArtifacts.slice(100, 150)),
+              total_count: 200
+            }
+          })
+
+        const response = await listArtifactsPublicReloaded(
+          fixtures.runId,
+          fixtures.owner,
+          fixtures.repo,
+          fixtures.token,
+          false
+        )
+
+        // Should only return 150 artifacts due to the limit
+        expect(response.artifacts).toHaveLength(150)
+        expect(response.artifacts[0].name).toBe('artifact-1')
+        expect(response.artifacts[149].name).toBe('artifact-150')
+      } finally {
+        // Restore original environment variable
+        if (originalEnv !== undefined) {
+          process.env.ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT = originalEnv
+        } else {
+          delete process.env.ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT
+        }
+
+        // Reset modules again to restore original state
+        jest.resetModules()
+      }
+    })
   })
 
   describe('internal', () => {
