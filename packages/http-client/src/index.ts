@@ -10,6 +10,7 @@ import {ProxyAgent} from 'undici'
 
 export enum HttpCodes {
   OK = 200,
+  Accepted = 202,
   MultipleChoices = 300,
   MovedPermanently = 301,
   ResourceMoved = 302,
