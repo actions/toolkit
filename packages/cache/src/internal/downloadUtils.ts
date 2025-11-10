@@ -208,10 +208,13 @@ export async function downloadCacheHttpClient(
  *
  * @param archiveLocation the URL for the cache
  * @param archivePath the local path where the cache is saved
+ * @param contentLength
+ * @param options
  */
 export async function downloadCacheHttpClientConcurrent(
   archiveLocation: string,
   archivePath: fs.PathLike,
+  contentLength: number,
   options: DownloadOptions
 ): Promise<void> {
   const archiveDescriptor = await fs.promises.open(archivePath, 'w')
@@ -220,29 +223,14 @@ export async function downloadCacheHttpClientConcurrent(
     keepAlive: true
   })
   try {
-    const res = await retryHttpClientResponse(
-      'downloadCacheMetadata',
-      async () => await httpClient.request('HEAD', archiveLocation, null, {})
-    )
-
-    const lengthHeader = res.message.headers['content-length']
-    if (lengthHeader === undefined || lengthHeader === null) {
-      throw new Error('Content-Length not found on blob response')
-    }
-
-    const length = parseInt(lengthHeader)
-    if (Number.isNaN(length)) {
-      throw new Error(`Could not interpret Content-Length: ${length}`)
-    }
-
     const downloads: {
       offset: number
       promiseGetter: () => Promise<DownloadSegment>
     }[] = []
     const blockSize = 4 * 1024 * 1024
 
-    for (let offset = 0; offset < length; offset += blockSize) {
-      const count = Math.min(blockSize, length - offset)
+    for (let offset = 0; offset < contentLength; offset += blockSize) {
+      const count = Math.min(blockSize, contentLength - offset)
       downloads.push({
         offset,
         promiseGetter: async () => {
@@ -260,7 +248,7 @@ export async function downloadCacheHttpClientConcurrent(
     downloads.reverse()
     let actives = 0
     let bytesDownloaded = 0
-    const progress = new DownloadProgress(length)
+    const progress = new DownloadProgress(contentLength)
     progress.startDisplayTimer()
     const progressFn = progress.onProgress()
 
