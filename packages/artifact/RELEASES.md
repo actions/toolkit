@@ -1,5 +1,12 @@
 # @actions/artifact Releases
 
+### 4.0.0
+
+- Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
+- Fix: artifact pagination bugs and configurable artifact count limits [#2165](https://github.com/actions/toolkit/pull/2165)
+- Fix: reject the promise on timeout [#2124](https://github.com/actions/toolkit/pull/2124)
+- Update dependency versions
+
 ### 2.3.3
 
 - Dependency updates [#2049](https://github.com/actions/toolkit/pull/2049)
