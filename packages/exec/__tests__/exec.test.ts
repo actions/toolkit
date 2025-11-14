@@ -8,8 +8,6 @@ import * as path from 'path'
 import * as stream from 'stream'
 import * as io from '@actions/io'
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 const IS_WINDOWS = process.platform === 'win32'
 
 let outstream: stream.Writable
@@ -53,7 +51,9 @@ describe('@actions/exec', () => {
       expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toHaveBeenCalledWith(Buffer.from(`hello${os.EOL}`))
+      expect(outstream.write).toHaveBeenCalledWith(
+        Buffer.from(`hello${os.EOL}`)
+      )
     } else {
       expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
@@ -83,7 +83,9 @@ describe('@actions/exec', () => {
       expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toHaveBeenCalledWith(Buffer.from(`hello${os.EOL}`))
+      expect(outstream.write).toHaveBeenCalledWith(
+        Buffer.from(`hello${os.EOL}`)
+      )
     } else {
       expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
@@ -113,7 +115,9 @@ describe('@actions/exec', () => {
       expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toHaveBeenCalledWith(Buffer.from(`hello${os.EOL}`))
+      expect(outstream.write).toHaveBeenCalledWith(
+        Buffer.from(`hello${os.EOL}`)
+      )
     } else {
       expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`

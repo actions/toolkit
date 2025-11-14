@@ -9,7 +9,7 @@ import {Globber} from './glob'
 export async function hashFiles(
   globber: Globber,
   currentWorkspace: string,
-  verbose: Boolean = false
+  verbose = false
 ): Promise<string> {
   const writeDelegate = verbose ? core.info : core.debug
   let hasMatch = false

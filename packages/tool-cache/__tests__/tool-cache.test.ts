@@ -11,7 +11,6 @@ const tempPath = path.join(__dirname, 'TEMP')
 process.env['RUNNER_TEMP'] = tempPath
 process.env['RUNNER_TOOL_CACHE'] = cachePath
 
-// eslint-disable-next-line import/first
 import * as tc from '../src/tool-cache'
 
 const IS_WINDOWS = process.platform === 'win32'
