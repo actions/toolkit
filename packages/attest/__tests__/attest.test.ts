@@ -8,7 +8,7 @@ describe('attest', () => {
         predicate: {bar: 'baz'},
         token: 'token'
       }
-      expect(attest(options)).rejects.toThrowError(
+      expect(attest(options)).rejects.toThrow(
         'Must provide either subjectName and subjectDigest or subjects'
       )
     })

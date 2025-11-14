@@ -192,7 +192,7 @@ describe('artifact-http-client', () => {
         name: 'artifact',
         version: 4
       })
-    }).rejects.toThrowError(
+    }).rejects.toThrow(
       'Failed to make request after 5 attempts: Failed request: (500) Internal Server Error'
     )
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
@@ -227,7 +227,7 @@ describe('artifact-http-client', () => {
         name: 'artifact',
         version: 4
       })
-    }).rejects.toThrowError(
+    }).rejects.toThrow(
       'Received non-retryable error: Failed request: (401) Unauthorized'
     )
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
@@ -271,7 +271,7 @@ describe('artifact-http-client', () => {
         name: 'artifact',
         version: 4
       })
-    }).rejects.toThrowError(
+    }).rejects.toThrow(
       'Failed to CreateArtifact: Received non-retryable error: Failed request: (409) Conflict: an artifact with this name already exists on the workflow run'
     )
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
@@ -306,7 +306,7 @@ describe('artifact-http-client', () => {
         name: 'artifact',
         version: 4
       })
-    }).rejects.toThrowError(new NetworkError('ENOTFOUND').message)
+    }).rejects.toThrow(new NetworkError('ENOTFOUND').message)
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
     expect(mockPost).toHaveBeenCalledTimes(1)
   })
@@ -341,7 +341,7 @@ describe('artifact-http-client', () => {
         name: 'artifact',
         version: 4
       })
-    }).rejects.toThrowError(new UsageError().message)
+    }).rejects.toThrow(new UsageError().message)
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
     expect(mockPost).toHaveBeenCalledTimes(1)
   })
