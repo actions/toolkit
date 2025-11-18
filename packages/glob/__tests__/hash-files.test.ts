@@ -13,7 +13,7 @@ const ORIGINAL_GITHUB_WORKSPACE = process.env['GITHUB_WORKSPACE']
 describe('globber', () => {
   beforeAll(async () => {
     await io.rmRF(getTestTemp())
-    process.env['GITHUB_WORKSPACE'] = process.cwd()
+    process.env['GITHUB_WORKSPACE'] = __dirname
   })
 
   afterAll(async () => {
