@@ -24,11 +24,23 @@ if (!filePath) {
 
 const waitScript = path.join(__dirname, 'wait-for-file.js')
 const waitArgs = [waitScript, `file=${filePath}`]
-const waitProcess = childProcess.spawn(process.execPath, waitArgs, {
-  stdio: 'inherit',
-  detached: false
-})
 
+// Spawn with inherited stdio and detached on Unix, non-detached on Windows
+// This keeps the streams open after parent exits
+const isWindows = process.platform === 'win32'
+const spawnOptions = {
+  stdio: 'inherit',
+  detached: !isWindows
+}
+
+// On Windows, we need to hide the window
+if (isWindows) {
+  spawnOptions.windowsHide = true
+}
+
+const waitProcess = childProcess.spawn(process.execPath, waitArgs, spawnOptions)
+
+// Unref so parent doesn't wait for child
 waitProcess.unref()
 
 if (args.stderr === 'true') {
