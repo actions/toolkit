@@ -11,6 +11,11 @@ import * as io from '@actions/io'
 /* eslint-disable @typescript-eslint/unbound-method */
 
 const IS_WINDOWS = process.platform === 'win32'
+const SPAWN_WAIT_FOR_FILE = path.join(
+  __dirname,
+  'scripts',
+  'spawn-wait-for-file.js'
+)
 
 let outstream: stream.Writable
 let errstream: stream.Writable
@@ -365,35 +370,18 @@ describe('@actions/exec', () => {
     fs.writeFileSync(semaphorePath, '')
 
     const nodePath = await io.which('node', true)
-    const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
     const _testExecOptions = getExecOptions()
     _testExecOptions.delay = 500
-    _testExecOptions.windowsVerbatimArguments = true
     _testExecOptions.listeners = {
       debug: (data: string) => {
         debugList.push(data)
       }
     }
 
-    let exitCode: number
-    if (IS_WINDOWS) {
-      const toolName: string = await io.which('cmd.exe', true)
-      const args = [
-        '/D', // Disable execution of AutoRun commands from registry.
-        '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
-        '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
-        '/S', // Will cause first and last quote after /C to be stripped.
-        '/C',
-        `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`
-      ]
-      exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
-    } else {
-      const toolName: string = await io.which('bash', true)
-      const args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' &`]
+    const args = [SPAWN_WAIT_FOR_FILE, `file=${semaphorePath}`]
 
-      exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
-    }
+    const exitCode = await exec.exec(`"${nodePath}"`, args, _testExecOptions)
 
     expect(exitCode).toBe(0)
     expect(
@@ -411,36 +399,19 @@ describe('@actions/exec', () => {
     fs.writeFileSync(semaphorePath, '')
 
     const nodePath = await io.which('node', true)
-    const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
     const _testExecOptions = getExecOptions()
     _testExecOptions.delay = 500
-    _testExecOptions.windowsVerbatimArguments = true
     _testExecOptions.listeners = {
       debug: (data: string) => {
         debugList.push(data)
       }
     }
 
-    let toolName: string
-    let args: string[]
-    if (IS_WINDOWS) {
-      toolName = await io.which('cmd.exe', true)
-      args = [
-        '/D', // Disable execution of AutoRun commands from registry.
-        '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
-        '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
-        '/S', // Will cause first and last quote after /C to be stripped.
-        '/C',
-        `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}"" & exit /b 123`
-      ]
-    } else {
-      toolName = await io.which('bash', true)
-      args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' & exit 123`]
-    }
+    const args = [SPAWN_WAIT_FOR_FILE, `file=${semaphorePath}`, 'exitCode=123']
 
     await exec
-      .exec(`"${toolName}"`, args, _testExecOptions)
+      .exec(`"${nodePath}"`, args, _testExecOptions)
       .then(() => {
         throw new Error('Should not have succeeded')
       })
@@ -465,40 +436,20 @@ describe('@actions/exec', () => {
     fs.writeFileSync(semaphorePath, '')
 
     const nodePath = await io.which('node', true)
-    const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
     const _testExecOptions = getExecOptions()
     _testExecOptions.delay = 500
     _testExecOptions.failOnStdErr = true
-    _testExecOptions.windowsVerbatimArguments = true
     _testExecOptions.listeners = {
       debug: (data: string) => {
         debugList.push(data)
       }
     }
 
-    let toolName: string
-    let args: string[]
-    if (IS_WINDOWS) {
-      toolName = await io.which('cmd.exe', true)
-      args = [
-        '/D', // Disable execution of AutoRun commands from registry.
-        '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
-        '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
-        '/S', // Will cause first and last quote after /C to be stripped.
-        '/C',
-        `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}"" & echo hi 1>&2`
-      ]
-    } else {
-      toolName = await io.which('bash', true)
-      args = [
-        '-c',
-        `node '${scriptPath}' 'file=${semaphorePath}' & echo hi 1>&2`
-      ]
-    }
+    const args = [SPAWN_WAIT_FOR_FILE, `file=${semaphorePath}`, 'stderr=true']
 
     await exec
-      .exec(`"${toolName}"`, args, _testExecOptions)
+      .exec(`"${nodePath}"`, args, _testExecOptions)
       .then(() => {
         throw new Error('Should not have succeeded')
       })
