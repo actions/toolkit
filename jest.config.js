@@ -5,7 +5,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/__tests__/*.test.ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': ['ts-jest', {isolatedModules: true, diagnostics: {warnOnly: true}}]
   },
   verbose: true
 }
