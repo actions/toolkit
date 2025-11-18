@@ -281,7 +281,7 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent: any = httpClient.getAgent('https://some-url')
-    // eslint-disable-next-line no-console
+
     console.log(agent)
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
@@ -292,7 +292,7 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://user:password@127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent: any = httpClient.getAgent('https://some-url')
-    // eslint-disable-next-line no-console
+
     console.log(agent)
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
@@ -303,7 +303,7 @@ describe('proxy', () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent = httpClient.getAgentDispatcher('https://some-url')
-    // eslint-disable-next-line no-console
+
     console.log(agent)
     expect(agent instanceof ProxyAgent).toBe(true)
   })
@@ -313,7 +313,7 @@ describe('proxy', () => {
       'http://user%40github.com:p%40ssword@127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
     const agent: any = httpClient.getAgent('https://some-url')
-    // eslint-disable-next-line no-console
+
     console.log(agent)
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')

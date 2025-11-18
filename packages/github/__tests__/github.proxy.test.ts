@@ -6,7 +6,6 @@ import {createProxy} from 'proxy'
 const proxyUrl = 'http://127.0.0.1:8081'
 const originalProxyUrl = process.env['https_proxy']
 process.env['https_proxy'] = proxyUrl
-// eslint-disable-next-line import/first
 import {getOctokit} from '../src/github'
 
 describe('@actions/github', () => {
@@ -97,7 +96,6 @@ describe('@actions/github', () => {
   function getToken(): string {
     const token = process.env['GITHUB_TOKEN'] || ''
     if (!token && first) {
-      /* eslint-disable-next-line no-console */
       console.warn(
         'Skipping GitHub tests. Set $GITHUB_TOKEN to run REST client and GraphQL client tests'
       )

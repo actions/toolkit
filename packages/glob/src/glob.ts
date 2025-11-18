@@ -30,7 +30,7 @@ export async function hashFiles(
   patterns: string,
   currentWorkspace = '',
   options?: HashFileOptions,
-  verbose: Boolean = false
+  verbose = false
 ): Promise<string> {
   let followSymbolicLinks = true
   if (options && typeof options.followSymbolicLinks === 'boolean') {

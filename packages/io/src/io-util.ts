@@ -102,7 +102,6 @@ export async function tryGetExecutablePath(
     stats = await stat(filePath)
   } catch (err) {
     if (err.code !== 'ENOENT') {
-      // eslint-disable-next-line no-console
       console.log(
         `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
       )
@@ -132,7 +131,6 @@ export async function tryGetExecutablePath(
       stats = await stat(filePath)
     } catch (err) {
       if (err.code !== 'ENOENT') {
-        // eslint-disable-next-line no-console
         console.log(
           `Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`
         )
@@ -152,7 +150,6 @@ export async function tryGetExecutablePath(
             }
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.log(
             `Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`
           )

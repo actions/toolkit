@@ -1,5 +1,5 @@
 import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
-import {TransferProgressEvent} from '@azure/core-http-compat'
+import {TransferProgressEvent} from '@azure/core-rest-pipeline'
 import {ZipUploadStream} from './zip'
 import {
   getUploadChunkSize,
@@ -85,9 +85,10 @@ export async function uploadZipToBlobStorage(
       ),
       chunkTimer(getUploadChunkTimeout())
     ])
-  } catch (error) {
-    if (NetworkError.isNetworkErrorCode(error?.code)) {
-      throw new NetworkError(error?.code)
+  } catch (error: unknown) {
+    const err = error as {code?: string}
+    if (err.code && NetworkError.isNetworkErrorCode(err.code)) {
+      throw new NetworkError(err.code)
     }
     throw error
   } finally {
