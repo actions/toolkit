@@ -113,6 +113,31 @@ export interface DownloadArtifactOptions {
    * matches the expected hash.
    */
   expectedHash?: string
+
+  /**
+   * Whether to unzip the artifact after download. Default to true.
+   */
+  unzip?: boolean
+  /**
+   * Artifact Name to download. Currently only used when `unzip` is set to false. (default to 'artifact')
+   */
+  artifactName?: string
+}
+
+export interface StreamExtractOptions {
+  /**
+   * The timeout in milliseconds for inactivity on the stream
+   */
+  timeout?: number
+  /**
+   * Whether to unzip the artifact after download. Default to true.
+   */
+  unzip?: boolean
+  /**
+   * Artifact Name to download. Currently only used when `unzip` is set to false. (default to 'artifact')
+   */
+  artifactName?: string
+
 }
 
 export interface StreamExtractResponse {

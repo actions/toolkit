@@ -87,6 +87,15 @@ const expectExtractedArchive = async (dir: string): Promise<void> => {
   }
 }
 
+const expectArchive = async (dir: string): Promise<void> => {
+  const filePath = path.join(dir, `${fixtures.artifactName}.zip`)
+  expect(fs.existsSync(filePath)).toBe(true)
+  const stats = fs.statSync(filePath)
+  expect(stats.isFile()).toBe(true)
+  expect(stats.isDirectory()).toBe(false)
+  expect(stats.size).toBeGreaterThan(0)
+}
+
 const setup = async (): Promise<void> => {
   noopLogs()
   await fs.promises.mkdir(testDir, {recursive: true})
@@ -447,6 +456,51 @@ describe('download-artifact', () => {
       expect(mockGetArtifactSuccess).toHaveBeenCalledTimes(1)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     }, 28000)
+
+    it('should be able to keep an artifact zipped', async () => {
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {
+          location: fixtures.blobStorageUrl
+        },
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactSuccess
+          }
+        }
+      )
+
+      const response = await downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token,
+        { unzip: false, artifactName: fixtures.artifactName }
+      )
+
+      expect(downloadArtifactMock).toHaveBeenCalledWith({
+        owner: fixtures.repositoryOwner,
+        repo: fixtures.repositoryName,
+        artifact_id: fixtures.artifactID,
+        archive_format: 'zip',
+        request: {
+          redirect: 'manual'
+        }
+      })
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockGetArtifactSuccess).toHaveBeenCalledWith(
+        fixtures.blobStorageUrl
+      )
+      await expectArchive(fixtures.workspaceDir)
+      expect(response.downloadPath).toBe(fixtures.workspaceDir)
+    })
   })
 
   describe('internal', () => {
@@ -608,6 +662,53 @@ describe('download-artifact', () => {
       await expect(
         downloadArtifactInternal(fixtures.artifactID)
       ).rejects.toBeInstanceOf(Error)
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      expect(mockListArtifacts).toHaveBeenCalledWith({
+        idFilter: {
+          value: fixtures.artifactID.toString()
+        },
+        ...fixtures.backendIds
+      })
+      expect(mockGetSignedArtifactURL).toHaveBeenCalledWith({
+        ...fixtures.backendIds,
+        name: fixtures.artifactName
+      })
+    })
+
+    it('should be able to keep an artifact zipped', async () => {
+      const mockListArtifacts = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: [
+            {
+              ...fixtures.backendIds,
+              databaseId: fixtures.artifactID.toString(),
+              name: fixtures.artifactName,
+              size: fixtures.artifactSize.toString()
+            }
+          ]
+        })
+
+      const mockGetSignedArtifactURL = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'GetSignedArtifactURL')
+        .mockReturnValue(
+          Promise.resolve({
+            signedUrl: fixtures.blobStorageUrl
+          })
+        )
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactSuccess
+          }
+        }
+      )
+
+      const response = await downloadArtifactInternal(fixtures.artifactID, {unzip: false, artifactName: fixtures.artifactName})
+
+      await expectArchive(fixtures.workspaceDir)
+      expect(response.downloadPath).toBe(fixtures.workspaceDir)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
         idFilter: {
