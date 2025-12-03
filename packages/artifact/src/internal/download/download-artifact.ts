@@ -24,7 +24,7 @@ import {
 } from '../../generated'
 import {getBackendIdsFromToken} from '../shared/util'
 import {ArtifactNotFoundError} from '../shared/errors'
-import { basename, join } from 'path'
+import { join } from 'path'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -107,7 +107,7 @@ export async function streamExtractExternal(
       outputStream = unzip.Extract({ path: directory });
     } else {
       const fileName = `${options?.artifactName ?? 'artifact'}.zip`;
-      outputStream = fsStream.createWriteStream(`${directory}/${fileName}`);
+      outputStream = fsStream.createWriteStream(join(directory, fileName));
     }
 
     extractStream
@@ -149,8 +149,8 @@ export async function downloadArtifactPublic(
   const api = github.getOctokit(token)
 
   let digestMismatch = false
-  
-  const { expectedHash, path, ...streamExtractOptions} = options || {}
+
+  const { expectedHash, path, ...streamExtractOptions } = options || {}
 
   core.info(
     `Downloading artifact '${artifactId}' from '${repositoryOwner}/${repositoryName}'`
@@ -205,7 +205,7 @@ export async function downloadArtifactInternal(
 
   const artifactClient = internalArtifactTwirpClient()
 
-  const { expectedHash, path, ...streamExtractOptions} = options ?? {}
+  const { expectedHash, path, ...streamExtractOptions } = options ?? {}
 
   let digestMismatch = false
 

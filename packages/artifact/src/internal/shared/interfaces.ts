@@ -112,7 +112,7 @@ export interface DownloadArtifactOptions {
    * will provide a digestMismatch property indicating whether the hash of the downloaded artifact
    * matches the expected hash.
    */
-  expectedHash?: string,
+  expectedHash?: string
 
   /**
    * Whenever to unzip the artifact after download. Default to true.
@@ -128,7 +128,7 @@ export interface StreamExtractOptions {
   /**
    * The timeout in milliseconds for inactivity on the stream
    */
-  timeout: number
+  timeout?: number
   /**
    * Whenever to unzip the artifact after download. Default to true.
    */
@@ -137,7 +137,7 @@ export interface StreamExtractOptions {
    * Artifact Name to download. Currently only used when `unzip` is set to false.
    */
   artifactName?: string
-  
+
 }
 
 export interface StreamExtractResponse {

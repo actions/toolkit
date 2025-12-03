@@ -498,7 +498,7 @@ describe('download-artifact', () => {
       expect(mockGetArtifactSuccess).toHaveBeenCalledWith(
         fixtures.blobStorageUrl
       )
-      expectArchive(fixtures.workspaceDir)
+      await expectArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
     })
   })
@@ -707,7 +707,7 @@ describe('download-artifact', () => {
 
       const response = await downloadArtifactInternal(fixtures.artifactID, {unzip: false, artifactName: fixtures.artifactName})
 
-      expectArchive(fixtures.workspaceDir)
+      await expectArchive(fixtures.workspaceDir)
       expect(response.downloadPath).toBe(fixtures.workspaceDir)
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       expect(mockListArtifacts).toHaveBeenCalledWith({
