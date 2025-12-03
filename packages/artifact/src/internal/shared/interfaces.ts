@@ -115,7 +115,7 @@ export interface DownloadArtifactOptions {
   expectedHash?: string,
 
   /**
-   * Whenever to unzip the artifact after download.
+   * Whenever to unzip the artifact after download. Default to true.
    */
   unzip?: boolean
   /**
@@ -130,7 +130,7 @@ export interface StreamExtractOptions {
    */
   timeout: number
   /**
-   * Whenever to unzip the artifact after download.
+   * Whenever to unzip the artifact after download. Default to true.
    */
   unzip?: boolean
   /**

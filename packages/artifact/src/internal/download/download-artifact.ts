@@ -103,7 +103,7 @@ export async function streamExtractExternal(
 
     let outputStream: NodeJS.WritableStream;
 
-    if (options?.unzip) {
+    if (options?.unzip ?? true) {
       outputStream = unzip.Extract({ path: directory });
     } else {
       const fileName = `${options?.artifactName ?? 'artifact'}.zip`;
