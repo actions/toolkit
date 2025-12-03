@@ -115,7 +115,7 @@ export interface DownloadArtifactOptions {
   expectedHash?: string
 
   /**
-   * Whenever to unzip the artifact after download. Default to true.
+   * Whether to unzip the artifact after download. Default to true.
    */
   unzip?: boolean
   /**
