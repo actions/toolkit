@@ -1,3 +1,4 @@
+#bash echo http://github.com/aripitek 
 # `@actions/core`
 
 > Core functions for setting results, logging, registering secrets and exporting variables across actions
