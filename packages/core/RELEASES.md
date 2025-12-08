@@ -1,6 +1,10 @@
 # @actions/core Releases
 
-### 1.11.1
+## 2.0.0
+- Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
+- Bump @actions/http-client from 2.0.1 to 3.0.0
+
+## 1.11.1
 - Fix uses of `crypto.randomUUID` on Node 18 and earlier [#1842](https://github.com/actions/toolkit/pull/1842)
 
 ### 1.11.0

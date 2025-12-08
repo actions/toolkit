@@ -4,6 +4,7 @@ import {hashFiles} from '../src/glob'
 import {promises as fs} from 'fs'
 
 const IS_WINDOWS = process.platform === 'win32'
+const ORIGINAL_GITHUB_WORKSPACE = process.env['GITHUB_WORKSPACE']
 
 /**
  * These test focus on the ability of globber to find files
@@ -11,6 +12,16 @@ const IS_WINDOWS = process.platform === 'win32'
  */
 describe('globber', () => {
   beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+    process.env['GITHUB_WORKSPACE'] = __dirname
+  })
+
+  afterAll(async () => {
+    if (ORIGINAL_GITHUB_WORKSPACE) {
+      process.env['GITHUB_WORKSPACE'] = ORIGINAL_GITHUB_WORKSPACE
+    } else {
+      delete process.env['GITHUB_WORKSPACE']
+    }
     await io.rmRF(getTestTemp())
   })
 
