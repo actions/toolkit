@@ -15,7 +15,7 @@ export type ArtifactParams = {
 export type PackageRegistryParams = {
   registryUrl: string
   artifactUrl?: string
-  registryRepo?: string
+  repo?: string
   path?: string
 }
 
@@ -33,28 +33,20 @@ export type WriteOptions = {
  * @returns The ID of the storage record.
  * @throws Error if the storage record fails to persist.
  */
-export const createStorageRecord = async (
+export async function createStorageRecord(
   artifactParams: ArtifactParams,
   packageRegistryParams: PackageRegistryParams,
   token: string,
   options: WriteOptions = {}
-): Promise<Array<string>> => {
+): Promise<Array<string>> {
   const retries = options.retry ?? DEFAULT_RETRY_COUNT
   const octokit = github.getOctokit(token, {retry: {retries}}, retry)
 
   try {
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
       owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
       headers: options.headers,
-      artifact_digest: artifactParams.digest,
-      artifact_name: artifactParams.name,
-      artifact_status: artifactParams.status,
-      artifact_url: packageRegistryParams.artifactUrl,
-      artifact_version: artifactParams.version,
-      path: packageRegistryParams.path,
-      registry_repo: packageRegistryParams.registryRepo,
-      registry_url: packageRegistryParams.registryUrl,
+      ...buildRequestParams(artifactParams, packageRegistryParams),
     })
 
     const data =
@@ -66,5 +58,16 @@ export const createStorageRecord = async (
   } catch (err) {
     const message = err instanceof Error ? err.message : err
     throw new Error(`Failed to persist storage record: ${message}`)
+  }
+}
+
+const buildRequestParams = (artifactParams: ArtifactParams, registryParams: PackageRegistryParams) => {
+  const { registryUrl, artifactUrl, ...rest } = registryParams
+  return {
+    ...artifactParams,
+    ...rest,
+    // rename parameters to match API expectations
+    artifact_url: artifactUrl,
+    registry_url: registryUrl,
   }
 }

@@ -1,5 +1,5 @@
 import {MockAgent, setGlobalDispatcher} from 'undici'
-import {createStorageRecord} from '../src/attest'
+import {createStorageRecord} from '../src/artifact-metadata'
 
 describe('createStorageRecord', () => {
   const originalEnv = process.env
@@ -12,7 +12,7 @@ describe('createStorageRecord', () => {
     digest: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
   }
   const registryParams = {
-    registry_url: "https://my-registry.org",
+    registryUrl: 'https://my-registry.org',
   }
 
 
@@ -89,7 +89,7 @@ describe('createStorageRecord', () => {
           path: '/repos/foo/bar/attestations',
           method: 'POST',
           headers: {authorization: `token ${token}`},
-          body: JSON.stringify({...artifactParams, ...registryParams})
+          body: JSON.stringify({...artifactParams, registry_url: registryParams.registryUrl})
         })
         .reply(500, 'oops')
         .times(1)
@@ -101,7 +101,7 @@ describe('createStorageRecord', () => {
           headers: {authorization: `token ${token}`},
           body: JSON.stringify({})
         })
-        .reply(201, {id: '123'})
+        .reply(201, {storage_records: [{id: '123'}, {id: '456'}]})
         .times(1)
     })
 
