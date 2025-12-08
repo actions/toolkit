@@ -38,7 +38,7 @@ export const createStorageRecord = async (
   packageRegistryParams: PackageRegistryParams,
   token: string,
   options: WriteOptions = {}
-): Promise<string> => {
+): Promise<Array<string>> => {
   const retries = options.retry ?? DEFAULT_RETRY_COUNT
   const octokit = github.getOctokit(token, {retry: {retries}}, retry)
 
@@ -47,21 +47,22 @@ export const createStorageRecord = async (
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       headers: options.headers,
-      artifact_name: artifactParams.name,
       artifact_digest: artifactParams.digest,
-      artifact_version: artifactParams.version,
+      artifact_name: artifactParams.name,
       artifact_status: artifactParams.status,
-      registry_url: packageRegistryParams.registryUrl,
       artifact_url: packageRegistryParams.artifactUrl,
+      artifact_version: artifactParams.version,
+      path: packageRegistryParams.path,
       registry_repo: packageRegistryParams.registryRepo,
-      path: packageRegistryParams.path
+      registry_url: packageRegistryParams.registryUrl,
     })
 
     const data =
       typeof response.data == 'string'
         ? JSON.parse(response.data)
         : response.data
-    return data?.id
+
+    return data?.storage_records.map((r: { id: any }) => r.id)
   } catch (err) {
     const message = err instanceof Error ? err.message : err
     throw new Error(`Failed to persist storage record: ${message}`)
