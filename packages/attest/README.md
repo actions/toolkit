@@ -173,6 +173,13 @@ export type Attestation = {
 For details about the Sigstore bundle format, see the [Bundle protobuf
 specification](https://github.com/sigstore/protobuf-specs/blob/main/protos/sigstore_bundle.proto).
 
+### createStorageRecord
+
+The `createStorageRecord` function accepts parameters defining artifact
+and package registry details and creates a storage record on behalf of the artifact.
+The storage record contains metadata about where the artifact is stored on a given
+package registry.
+
 ## Sigstore Instance
 
 When generating the signed attestation there are two different Sigstore
