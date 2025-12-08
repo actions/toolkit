@@ -106,7 +106,7 @@ describe('createStorageRecord', () => {
     })
 
     it('persists the attestation', async () => {
-      await expect(createStorageRecord(artifactParams, registryParams, token)).resolves.toEqual('123')
+      await expect(createStorageRecord(artifactParams, registryParams, token)).resolves.toEqual(['123', '456'])
     })
   })
 })
