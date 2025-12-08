@@ -19,9 +19,14 @@ if (!filePath) {
 // This creates a grandchild process that holds the stdio handles open
 // after this process (the child) exits
 const waitScript = path.join(__dirname, 'wait-for-file.js')
+const isWindows = process.platform === 'win32'
+
+// On Windows, use detached:true to properly keep streams open
+// On Unix, detached:true also works and creates a new process group
 const child = childProcess.spawn(process.execPath, [waitScript, `file=${filePath}`], {
   stdio: ['ignore', 'inherit', 'inherit'],
-  detached: process.platform !== 'win32'
+  detached: true,
+  windowsHide: true
 })
 
 // Don't wait for child to exit
