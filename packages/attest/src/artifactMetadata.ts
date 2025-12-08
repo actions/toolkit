@@ -70,3 +70,13 @@ export async function createStorageRecord(options: StorageRecordOptions): Promis
     throw new Error(`Failed to persist storage record: ${message}`)
   }
 }
+
+const buildRequestParams = (options: StorageRecordOptions) => {
+  const { registryUrl, artifactUrl, ...rest } = options.packageRegistryOptions
+  return {
+    ...options.artifactOptions,
+    registry_url: registryUrl,
+    artifact_url: artifactUrl,
+    ...rest,
+  }
+}
