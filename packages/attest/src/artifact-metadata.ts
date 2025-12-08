@@ -5,22 +5,37 @@ import {RequestHeaders} from '@octokit/types'
 const CREATE_STORAGE_RECORD_REQUEST = 'POST /orgs/{owner}/artifacts/metadata/storage-record'
 const DEFAULT_RETRY_COUNT = 5
 
+export type ArtifactParams = {
+  name: string
+  digest: string
+  version?: string
+  status?: string
+}
+
+export type PackageRegistryParams = {
+  registryUrl: string
+  artifactUrl?: string
+  registryRepo?: string
+  path?: string
+}
+
 export type WriteOptions = {
   retry?: number
   headers?: RequestHeaders
 }
 
 /**
- * Writes a storage record on behalf of an artifact
- * @param artifactName - The name of the artifact.
- * @param artifactDigest - The digest of the artifact.
+ * Writes a storage record on behalf of an artifact that has been attested
+ * @param artifactParams - parameters for the artifact.
+ * @param packageRegistryParams - parameters for the package registry.
  * @param token - The GitHub token for authentication.
+ * @param options - Optional parameters for the write operation.
  * @returns The ID of the storage record.
  * @throws Error if the storage record fails to persist.
  */
 export const createStorageRecord = async (
-  artifactName: string,
-  artifactDigest: string,
+  artifactParams: ArtifactParams,
+  packageRegistryParams: PackageRegistryParams,
   token: string,
   options: WriteOptions = {}
 ): Promise<string> => {
@@ -32,8 +47,14 @@ export const createStorageRecord = async (
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       headers: options.headers,
-      artifact_name: artifactName,
-      artifact_digest: artifactDigest,
+      artifact_name: artifactParams.name,
+      artifact_digest: artifactParams.digest,
+      artifact_version: artifactParams.version,
+      artifact_status: artifactParams.status,
+      registry_url: packageRegistryParams.registryUrl,
+      artifact_url: packageRegistryParams.artifactUrl,
+      registry_repo: packageRegistryParams.registryRepo,
+      path: packageRegistryParams.path
     })
 
     const data =
