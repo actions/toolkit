@@ -1,8 +1,6 @@
 import * as command from '../src/command'
 import * as os from 'os'
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 let originalWriteFunction: (str: string) => boolean
 
 describe('@actions/core/src/command', () => {

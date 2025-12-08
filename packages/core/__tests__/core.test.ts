@@ -5,8 +5,6 @@ import * as core from '../src/core'
 import {HttpClient} from '@actions/http-client'
 import {toCommandProperties} from '../src/utils'
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 const testEnvVars = {
   'my var': '',
   'special char var \r\n];': '',
