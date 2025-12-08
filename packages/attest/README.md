@@ -15,6 +15,14 @@ initiated.
 See [Using artifact attestations to establish provenance for builds](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
 for more information on artifact attestations.
 
+## Table of Contents
+- [Usage](#usage)
+  - [attest](#attest)
+  - [attestProvenance](#attest-provenance)
+  - [Attestation](#attestation)
+- [Sigstore Instance](#sigstore-instance)
+- [Storage](#storage)
+
 ## Usage
 
 ### `attest`
