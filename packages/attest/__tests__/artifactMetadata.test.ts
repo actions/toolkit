@@ -6,13 +6,18 @@ describe('createStorageRecord', () => {
   const attestation = {foo: 'bar '}
   const token = 'token'
   const headers = {'X-GitHub-Foo': 'true'}
-  const artifactOptions = {
-    name: "my-lib",
-    version: "1.0.0",
-    digest: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-  }
-  const registryOptions = {
-    registryUrl: 'https://my-registry.org',
+
+  const options = {
+    artifactOptions: {
+      name: "my-lib",
+      version: "1.0.0",
+      digest: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    },
+    packageRegistryOptions: {
+      registryUrl: 'https://my-registry.org',
+    },
+    token,
+    writeOptions: {headers},
   }
 
   const mockAgent = new MockAgent()
@@ -49,12 +54,7 @@ describe('createStorageRecord', () => {
 
     it('persists the storage record', async () => {
       await expect(
-        createStorageRecord({
-          artifactOptions: artifactOptions,
-          packageRegistryOptions: registryOptions,
-          token,
-          writeOptions: {headers},
-        })
+        createStorageRecord(options)
       ).resolves.toEqual(['123', '456'])
     })
   })
@@ -80,9 +80,7 @@ describe('createStorageRecord', () => {
     it('throws an error', async () => {
       await expect(
         createStorageRecord({
-          artifactOptions: artifactOptions,
-          packageRegistryOptions: registryOptions,
-          token,
+          ...options,
           writeOptions: {retry: 0},
         })
       ).rejects.toThrow(/oops/)
@@ -95,32 +93,34 @@ describe('createStorageRecord', () => {
 
       pool
         .intercept({
-          path: '/repos/foo/bar/attestations',
+          path: '/orgs/foo/artifacts/metadata/storage-record',
           method: 'POST',
           headers: {authorization: `token ${token}`},
-          body: JSON.stringify({...artifactOptions, registry_url: registryOptions.registryUrl})
+          body: JSON.stringify({
+            ...options.artifactOptions,
+            registry_url: options.packageRegistryOptions.registryUrl,
+          })
         })
         .reply(500, 'oops')
         .times(1)
 
       pool
         .intercept({
-          path: '/repos/foo/bar/attestations',
+          path: '/orgs/foo/artifacts/metadata/storage-record',
           method: 'POST',
           headers: {authorization: `token ${token}`},
-          body: JSON.stringify({})
+          body: JSON.stringify({
+            ...options.artifactOptions,
+            registry_url: options.packageRegistryOptions.registryUrl,
+          })
         })
         .reply(201, {storage_records: [{id: '123'}, {id: '456'}]})
         .times(1)
     })
 
     it('persists the attestation', async () => {
-      const { registryUrl, ...rest } = registryOptions
       await expect(createStorageRecord({
-        ...artifactOptions,
-        ...rest,
-        registry_url: registryUrl,
-        token,
+        ...options,
         writeOptions: {},
       })).resolves.toEqual(['123', '456'])
     })

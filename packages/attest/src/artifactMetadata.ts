@@ -56,7 +56,7 @@ export async function createStorageRecord(options: StorageRecordOptions): Promis
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
       owner: github.context.repo.owner,
       headers: options.writeOptions.headers,
-      ...buildRequestParams(options.artifactOptions, options.packageRegistryOptions),
+      ...buildRequestParams(options),
     })
 
     const data =
