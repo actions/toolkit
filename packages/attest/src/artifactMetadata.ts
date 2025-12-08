@@ -5,23 +5,41 @@ import {RequestHeaders} from '@octokit/types'
 const CREATE_STORAGE_RECORD_REQUEST = 'POST /orgs/{owner}/artifacts/metadata/storage-record'
 const DEFAULT_RETRY_COUNT = 5
 
-export type ArtifactParams = {
-  name: string
-  digest: string
-  version?: string
-  status?: string
-}
-
-export type PackageRegistryParams = {
-  registryUrl: string
-  artifactUrl?: string
-  repo?: string
-  path?: string
-}
-
-export type WriteOptions = {
-  retry?: number
-  headers?: RequestHeaders
+/**
+ * Options for creating a storage record for an attested artifact.
+ */
+export type StorageRecordOptions = {
+  // Includes details about the attested artifact
+  artifactOptions: {
+    // The name of the artifact
+    name: string
+    // The digest of the artifact
+    digest: string
+    // The version of the artifact
+    version?: string
+    // The status of the artifact
+    status?: string
+  },
+  // Includes details about the package registry the artifact was published to
+  packageRegistryOptions: {
+    // The URL of the package registry
+    registryUrl: string
+    // The URL of the artifact in the package registry
+    artifactUrl?: string
+    // The package registry repository the artifact was published to.
+    repo?: string
+    // The path of the artifact in the package registry repository.
+    path?: string
+  },
+  // GitHub token for writing attestations.
+  token: string
+  // Optional parameters for the write operation.
+  writeOptions: {
+    // The number of times to retry the request.
+    retry?: number
+  // HTTP headers to include in request to Artifact Metadata API.
+    headers?: RequestHeaders
+  }
 }
 
 /**
@@ -33,20 +51,15 @@ export type WriteOptions = {
  * @returns The ID of the storage record.
  * @throws Error if the storage record fails to persist.
  */
-export async function createStorageRecord(
-  artifactParams: ArtifactParams,
-  packageRegistryParams: PackageRegistryParams,
-  token: string,
-  options: WriteOptions = {}
-): Promise<Array<string>> {
-  const retries = options.retry ?? DEFAULT_RETRY_COUNT
-  const octokit = github.getOctokit(token, {retry: {retries}}, retry)
+export async function createStorageRecord(options: StorageRecordOptions): Promise<Array<string>> {
+  const retries = options.writeOptions.retry ?? DEFAULT_RETRY_COUNT
+  const octokit = github.getOctokit(options.token, {retry: {retries}}, retry)
 
   try {
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
       owner: github.context.repo.owner,
-      headers: options.headers,
-      ...buildRequestParams(artifactParams, packageRegistryParams),
+      headers: options.writeOptions.headers,
+      ...buildRequestParams(options.artifactOptions, options.packageRegistryOptions),
     })
 
     const data =

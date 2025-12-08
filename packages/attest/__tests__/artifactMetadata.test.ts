@@ -15,7 +15,6 @@ describe('createStorageRecord', () => {
     registryUrl: 'https://my-registry.org',
   }
 
-
   const mockAgent = new MockAgent()
   setGlobalDispatcher(mockAgent)
 
@@ -50,7 +49,12 @@ describe('createStorageRecord', () => {
 
     it('persists the storage record', async () => {
       await expect(
-        createStorageRecord(artifactParams, registryParams, token, {headers})
+        createStorageRecord({
+          artifactOptions: artifactParams,
+          packageRegistryOptions: registryParams,
+          token,
+          writeOptions: {headers},
+        })
       ).resolves.toEqual(['123', '456'])
     })
   })
@@ -75,7 +79,12 @@ describe('createStorageRecord', () => {
 
     it('throws an error', async () => {
       await expect(
-        createStorageRecord(artifactParams, registryParams, token, {retry: 0})
+        createStorageRecord({
+          artifactOptions: artifactParams,
+          packageRegistryOptions: registryParams,
+          token,
+          writeOptions: {retry: 0},
+        })
       ).rejects.toThrow(/oops/)
     })
   })
@@ -106,7 +115,12 @@ describe('createStorageRecord', () => {
     })
 
     it('persists the attestation', async () => {
-      await expect(createStorageRecord(artifactParams, registryParams, token)).resolves.toEqual(['123', '456'])
+      await expect(createStorageRecord({
+        artifactOptions: artifactParams,
+        packageRegistryOptions: registryParams,
+        token,
+        writeOptions: {},
+      })).resolves.toEqual(['123', '456'])
     })
   })
 })
