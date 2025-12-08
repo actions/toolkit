@@ -6,12 +6,12 @@ describe('createStorageRecord', () => {
   const attestation = {foo: 'bar '}
   const token = 'token'
   const headers = {'X-GitHub-Foo': 'true'}
-  const artifactParams = {
+  const artifactOptions = {
     name: "my-lib",
     version: "1.0.0",
     digest: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
   }
-  const registryParams = {
+  const registryOptions = {
     registryUrl: 'https://my-registry.org',
   }
 
@@ -50,8 +50,8 @@ describe('createStorageRecord', () => {
     it('persists the storage record', async () => {
       await expect(
         createStorageRecord({
-          artifactOptions: artifactParams,
-          packageRegistryOptions: registryParams,
+          artifactOptions: artifactOptions,
+          packageRegistryOptions: registryOptions,
           token,
           writeOptions: {headers},
         })
@@ -80,8 +80,8 @@ describe('createStorageRecord', () => {
     it('throws an error', async () => {
       await expect(
         createStorageRecord({
-          artifactOptions: artifactParams,
-          packageRegistryOptions: registryParams,
+          artifactOptions: artifactOptions,
+          packageRegistryOptions: registryOptions,
           token,
           writeOptions: {retry: 0},
         })
@@ -98,7 +98,7 @@ describe('createStorageRecord', () => {
           path: '/repos/foo/bar/attestations',
           method: 'POST',
           headers: {authorization: `token ${token}`},
-          body: JSON.stringify({...artifactParams, registry_url: registryParams.registryUrl})
+          body: JSON.stringify({...artifactOptions, registry_url: registryOptions.registryUrl})
         })
         .reply(500, 'oops')
         .times(1)
@@ -115,9 +115,11 @@ describe('createStorageRecord', () => {
     })
 
     it('persists the attestation', async () => {
+      const { registryUrl, ...rest } = registryOptions
       await expect(createStorageRecord({
-        artifactOptions: artifactParams,
-        packageRegistryOptions: registryParams,
+        ...artifactOptions,
+        ...rest,
+        registry_url: registryUrl,
         token,
         writeOptions: {},
       })).resolves.toEqual(['123', '456'])

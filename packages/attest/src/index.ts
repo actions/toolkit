@@ -1,4 +1,4 @@
-export {createStorageRecord} from '.artifactMetadata'
+export {createStorageRecord} from './artifactMetadata'
 export {AttestOptions, attest} from './attest'
 export {
   AttestProvenanceOptions,

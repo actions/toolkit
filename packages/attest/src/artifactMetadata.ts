@@ -44,10 +44,7 @@ export type StorageRecordOptions = {
 
 /**
  * Writes a storage record on behalf of an artifact that has been attested
- * @param artifactParams - parameters for the artifact.
- * @param packageRegistryParams - parameters for the package registry.
- * @param token - The GitHub token for authentication.
- * @param options - Optional parameters for the write operation.
+ * @param StorageRecordOptions - parameters for the storage record API request.
  * @returns The ID of the storage record.
  * @throws Error if the storage record fails to persist.
  */
@@ -71,16 +68,5 @@ export async function createStorageRecord(options: StorageRecordOptions): Promis
   } catch (err) {
     const message = err instanceof Error ? err.message : err
     throw new Error(`Failed to persist storage record: ${message}`)
-  }
-}
-
-const buildRequestParams = (artifactParams: ArtifactParams, registryParams: PackageRegistryParams) => {
-  const { registryUrl, artifactUrl, ...rest } = registryParams
-  return {
-    ...artifactParams,
-    ...rest,
-    // rename parameters to match API expectations
-    artifact_url: artifactUrl,
-    registry_url: registryUrl,
   }
 }
