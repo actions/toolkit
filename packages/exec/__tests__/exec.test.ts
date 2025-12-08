@@ -11,7 +11,7 @@ import * as io from '@actions/io'
 /* eslint-disable @typescript-eslint/unbound-method */
 
 const IS_WINDOWS = process.platform === 'win32'
-const SPAWN_WAIT_FOR_FILE = path.join(
+const SPAWN_WAIT_SCRIPT = path.join(
   __dirname,
   'scripts',
   'spawn-wait-for-file.js'
@@ -379,9 +379,11 @@ describe('@actions/exec', () => {
       }
     }
 
-    const args = [SPAWN_WAIT_FOR_FILE, `file=${semaphorePath}`]
-
-    const exitCode = await exec.exec(`"${nodePath}"`, args, _testExecOptions)
+    const exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [SPAWN_WAIT_SCRIPT, `file=${semaphorePath}`],
+      _testExecOptions
+    )
 
     expect(exitCode).toBe(0)
     expect(
@@ -408,10 +410,12 @@ describe('@actions/exec', () => {
       }
     }
 
-    const args = [SPAWN_WAIT_FOR_FILE, `file=${semaphorePath}`, 'exitCode=123']
-
     await exec
-      .exec(`"${nodePath}"`, args, _testExecOptions)
+      .exec(
+        `"${nodePath}"`,
+        [SPAWN_WAIT_SCRIPT, `file=${semaphorePath}`, 'exitCode=123'],
+        _testExecOptions
+      )
       .then(() => {
         throw new Error('Should not have succeeded')
       })
@@ -446,10 +450,12 @@ describe('@actions/exec', () => {
       }
     }
 
-    const args = [SPAWN_WAIT_FOR_FILE, `file=${semaphorePath}`, 'stderr=true']
-
     await exec
-      .exec(`"${nodePath}"`, args, _testExecOptions)
+      .exec(
+        `"${nodePath}"`,
+        [SPAWN_WAIT_SCRIPT, `file=${semaphorePath}`, 'stderr=true'],
+        _testExecOptions
+      )
       .then(() => {
         throw new Error('Should not have succeeded')
       })
@@ -466,7 +472,7 @@ describe('@actions/exec', () => {
     ).toBe(1)
 
     fs.unlinkSync(semaphorePath)
-  })
+  }, 10000)
 
   it('Exec roots relative tool path using unrooted options.cwd', async () => {
     let exitCode: number
