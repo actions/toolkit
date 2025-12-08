@@ -1,5 +1,5 @@
 import {MockAgent, setGlobalDispatcher} from 'undici'
-import {createStorageRecord} from '../src/artifact-metadata'
+import {createStorageRecord} from '../src/artifactMetadata'
 
 describe('createStorageRecord', () => {
   const originalEnv = process.env
