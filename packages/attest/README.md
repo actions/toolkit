@@ -18,7 +18,7 @@ for more information on artifact attestations.
 ## Table of Contents
 - [Usage](#usage)
   - [attest](#attest)
-  - [attestProvenance](#attest-provenance)
+  - [attestProvenance](#attestprovenance)
   - [Attestation](#attestation)
 - [Sigstore Instance](#sigstore-instance)
 - [Storage](#storage)
