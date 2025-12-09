@@ -37,7 +37,7 @@ export type PackageRegistryOptions = {
  * @param artifactOptions - parameters for the storage record API request.
  * @param packageRegistryOptions - parameters for the package registry API request.
  * @param token - GitHub token used to authenticate the request.
- * @param retry - The number of retries to attempt if the request fails.
+ * @param retryAttempts - The number of retries to attempt if the request fails.
  * @param headers - Additional headers to include in the request.
  * 
  * @returns The ID of the storage record.
@@ -47,10 +47,10 @@ export async function createStorageRecord(
   artifactOptions: ArtifactOptions,
   packageRegistryOptions: PackageRegistryOptions,
   token: string,
-  customRetry?: number,
+  retryAttempts?: number,
   headers?: RequestHeaders
 ): Promise<number[]> {
-  const retries = customRetry ?? DEFAULT_RETRY_COUNT
+  const retries = retryAttempts ?? DEFAULT_RETRY_COUNT
   const octokit = github.getOctokit(token, {retry: {retries}}, retry)
   try {
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
