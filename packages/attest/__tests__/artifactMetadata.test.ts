@@ -3,21 +3,20 @@ import {createStorageRecord} from '../src/artifactMetadata'
 
 describe('createStorageRecord', () => {
   const originalEnv = process.env
-  const attestation = {foo: 'bar '}
   const token = 'token'
   const headers = {'X-GitHub-Foo': 'true'}
 
   const options = {
     artifactOptions: {
-      name: "my-lib",
-      version: "1.0.0",
-      digest: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      name: 'my-lib',
+      version: '1.0.0',
+      digest: `sha256:${'a'.repeat(64)}`
     },
     packageRegistryOptions: {
-      registryUrl: 'https://my-registry.org',
+      registryUrl: 'https://my-registry.org'
     },
     token,
-    writeOptions: {headers},
+    writeOptions: {headers}
   }
 
   const mockAgent = new MockAgent()
@@ -43,19 +42,20 @@ describe('createStorageRecord', () => {
           method: 'POST',
           headers: {authorization: `token ${token}`, ...headers},
           body: JSON.stringify({
-            name: "my-lib",
-            version: "1.0.0",
-            digest: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-            registry_url: "https://my-registry.org"
+            name: 'my-lib',
+            version: '1.0.0',
+            digest: `sha256:${'a'.repeat(64)}`,
+            registry_url: 'https://my-registry.org'
           })
         })
         .reply(201, {storage_records: [{id: '123'}, {id: '456'}]})
     })
 
     it('persists the storage record', async () => {
-      await expect(
-        createStorageRecord(options)
-      ).resolves.toEqual(['123', '456'])
+      await expect(createStorageRecord(options)).resolves.toEqual([
+        '123',
+        '456'
+      ])
     })
   })
 
@@ -68,10 +68,10 @@ describe('createStorageRecord', () => {
           method: 'POST',
           headers: {authorization: `token ${token}`},
           body: JSON.stringify({
-            name: "my-lib",
-            version: "1.0.0",
-            digest: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-            registry_url: "https://my-registry.org"
+            name: 'my-lib',
+            version: '1.0.0',
+            digest: `sha256:${'a'.repeat(64)}`,
+            registry_url: 'https://my-registry.org'
           })
         })
         .reply(500, 'oops')
@@ -81,7 +81,7 @@ describe('createStorageRecord', () => {
       await expect(
         createStorageRecord({
           ...options,
-          writeOptions: {retry: 0},
+          writeOptions: {retry: 0}
         })
       ).rejects.toThrow(/oops/)
     })
@@ -98,7 +98,7 @@ describe('createStorageRecord', () => {
           headers: {authorization: `token ${token}`},
           body: JSON.stringify({
             ...options.artifactOptions,
-            registry_url: options.packageRegistryOptions.registryUrl,
+            registry_url: options.packageRegistryOptions.registryUrl
           })
         })
         .reply(500, 'oops')
@@ -111,18 +111,20 @@ describe('createStorageRecord', () => {
           headers: {authorization: `token ${token}`},
           body: JSON.stringify({
             ...options.artifactOptions,
-            registry_url: options.packageRegistryOptions.registryUrl,
+            registry_url: options.packageRegistryOptions.registryUrl
           })
         })
         .reply(201, {storage_records: [{id: '123'}, {id: '456'}]})
         .times(1)
     })
 
-    it('persists the attestation', async () => {
-      await expect(createStorageRecord({
-        ...options,
-        writeOptions: {},
-      })).resolves.toEqual(['123', '456'])
+    it('persists the storage record', async () => {
+      await expect(
+        createStorageRecord({
+          ...options,
+          writeOptions: {}
+        })
+      ).resolves.toEqual(['123', '456'])
     })
   })
 })

@@ -2,7 +2,8 @@ import * as github from '@actions/github'
 import {retry} from '@octokit/plugin-retry'
 import {RequestHeaders} from '@octokit/types'
 
-const CREATE_STORAGE_RECORD_REQUEST = 'POST /orgs/{owner}/artifacts/metadata/storage-record'
+const CREATE_STORAGE_RECORD_REQUEST =
+  'POST /orgs/{owner}/artifacts/metadata/storage-record'
 const DEFAULT_RETRY_COUNT = 5
 
 /**
@@ -19,7 +20,7 @@ export type StorageRecordOptions = {
     version?: string
     // The status of the artifact
     status?: string
-  },
+  }
   // Includes details about the package registry the artifact was published to
   packageRegistryOptions: {
     // The URL of the package registry
@@ -30,14 +31,14 @@ export type StorageRecordOptions = {
     repo?: string
     // The path of the artifact in the package registry repository.
     path?: string
-  },
+  }
   // GitHub token for writing attestations.
   token: string
   // Optional parameters for the write operation.
   writeOptions: {
     // The number of times to retry the request.
     retry?: number
-  // HTTP headers to include in request to Artifact Metadata API.
+    // HTTP headers to include in request to Artifact Metadata API.
     headers?: RequestHeaders
   }
 }
@@ -48,7 +49,9 @@ export type StorageRecordOptions = {
  * @returns The ID of the storage record.
  * @throws Error if the storage record fails to persist.
  */
-export async function createStorageRecord(options: StorageRecordOptions): Promise<Array<string>> {
+export async function createStorageRecord(
+  options: StorageRecordOptions
+): Promise<string[]> {
   const retries = options.writeOptions.retry ?? DEFAULT_RETRY_COUNT
   const octokit = github.getOctokit(options.token, {retry: {retries}}, retry)
 
@@ -56,7 +59,7 @@ export async function createStorageRecord(options: StorageRecordOptions): Promis
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
       owner: github.context.repo.owner,
       headers: options.writeOptions.headers,
-      ...buildRequestParams(options),
+      ...buildRequestParams(options)
     })
 
     const data =
@@ -64,19 +67,19 @@ export async function createStorageRecord(options: StorageRecordOptions): Promis
         ? JSON.parse(response.data)
         : response.data
 
-    return data?.storage_records.map((r: { id: any }) => r.id)
+    return data?.storage_records.map((r: {id: number}) => String(r.id))
   } catch (err) {
     const message = err instanceof Error ? err.message : err
     throw new Error(`Failed to persist storage record: ${message}`)
   }
 }
 
-const buildRequestParams = (options: StorageRecordOptions) => {
-  const { registryUrl, artifactUrl, ...rest } = options.packageRegistryOptions
+function buildRequestParams(options: StorageRecordOptions): Object {
+  const {registryUrl, artifactUrl, ...rest} = options.packageRegistryOptions
   return {
     ...options.artifactOptions,
     registry_url: registryUrl,
     artifact_url: artifactUrl,
-    ...rest,
+    ...rest
   }
 }
