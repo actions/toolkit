@@ -1,5 +1,15 @@
 # @actions/cache Releases
 
+### 5.0.0
+
+- Bump `@actions/core` from `^1.11.1` to `^2.0.0`
+- Bump `@actions/exec` from `^1.0.1` to `^2.0.0`
+- Bump `@actions/glob` from `^0.1.0` to `^0.5.0`
+- Bump `@actions/http-client` from `^2.1.1` to `^3.0.0`
+- Bump `@actions/io` from `^1.0.1` to `^2.0.0`
+- Add support for Node.js 24 [#2110](https://github.com/actions/toolkit/pull/2110)
+- Add `node-fetch` override to resolve audit vulnerabilities [#2110](https://github.com/actions/toolkit/pull/2110)
+
 ### 4.1.0
 
 - Remove client side 10GiB cache size limit check & update twirp client [#2118](https://github.com/actions/toolkit/pull/2118)
