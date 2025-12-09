@@ -163,7 +163,9 @@ export function getInput(name: string, options?: InputOptions): string {
 }
 
 /**
- * Gets the values of an multiline input.  Each value is also trimmed.
+ * Gets the values of an multiline input.
+ * Unless trimWhitespace is set to false in InputOptions, each value is also trimmed.
+ * Returns an empty array if the value is not defined.
  *
  * @param     name     name of the input to get
  * @param     options  optional. See InputOptions.
