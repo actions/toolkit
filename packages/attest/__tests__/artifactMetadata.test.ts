@@ -52,10 +52,7 @@ describe('createStorageRecord', () => {
     })
 
     it('persists the storage record', async () => {
-      await expect(createStorageRecord(options)).resolves.toEqual([
-        123,
-        456
-      ])
+      await expect(createStorageRecord(options)).resolves.toEqual([123, 456])
     })
   })
 
