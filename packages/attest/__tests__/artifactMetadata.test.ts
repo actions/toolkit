@@ -48,7 +48,15 @@ describe('createStorageRecord', () => {
     })
 
     it('persists the storage record', async () => {
-      await expect(createStorageRecord(artifactOptions, packageRegistryOptions, token, undefined, headers)).resolves.toEqual([123, 456])
+      await expect(
+        createStorageRecord(
+          artifactOptions,
+          packageRegistryOptions,
+          token,
+          undefined,
+          headers
+        )
+      ).resolves.toEqual([123, 456])
     })
   })
 

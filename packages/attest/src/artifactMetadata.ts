@@ -20,7 +20,7 @@ export type ArtifactOptions = {
   // The status of the artifact
   status?: string
 }
-  // Includes details about the package registry the artifact was published to
+// Includes details about the package registry the artifact was published to
 export type PackageRegistryOptions = {
   // The URL of the package registry
   registryUrl: string
@@ -39,7 +39,7 @@ export type PackageRegistryOptions = {
  * @param token - GitHub token used to authenticate the request.
  * @param retryAttempts - The number of retries to attempt if the request fails.
  * @param headers - Additional headers to include in the request.
- * 
+ *
  * @returns The ID of the storage record.
  * @throws Error if the storage record fails to persist.
  */
@@ -55,7 +55,7 @@ export async function createStorageRecord(
   try {
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
       owner: github.context.repo.owner,
-      headers: headers,
+      headers,
       ...buildRequestParams(artifactOptions, packageRegistryOptions)
     })
 
