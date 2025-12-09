@@ -190,10 +190,14 @@ async function run() {
     const ghToken = core.getInput('gh-token');
 
     const record = await createStorageRecord({
-        name: 'my-artifact-name',
-        digest: { 'sha256': '36ab4667...'},
-        version: "v1.0.0",
-        registry_url: "https://my-fave-pkg-registry.com",
+        artifactOptions: {
+            name: 'my-artifact-name',
+            digest: { 'sha256': '36ab4667...'},
+            version: "v1.0.0"
+        },
+        packageRegistryOptions: {
+            registryUrl: "https://my-fave-pkg-registry.com"
+        },
         token: ghToken
     });
 
