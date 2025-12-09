@@ -236,7 +236,7 @@ export type PackageRegistryOptions = {
 token: string
 // Optional parameters for the write operation.
 // The number of times to retry the request.
-cusomtRetry?: number
+customRetry?: number
 // HTTP headers to include in request to Artifact Metadata API.
 headers?: RequestHeaders
 ```
