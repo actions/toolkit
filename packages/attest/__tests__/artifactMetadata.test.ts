@@ -6,17 +6,13 @@ describe('createStorageRecord', () => {
   const token = 'token'
   const headers = {'X-GitHub-Foo': 'true'}
 
-  const options = {
-    artifactOptions: {
-      name: 'my-lib',
-      version: '1.0.0',
-      digest: `sha256:${'a'.repeat(64)}`
-    },
-    packageRegistryOptions: {
-      registryUrl: 'https://my-registry.org'
-    },
-    token,
-    writeOptions: {headers}
+  const artifactOptions = {
+    name: 'my-lib',
+    version: '1.0.0',
+    digest: `sha256:${'a'.repeat(64)}`
+  }
+  const packageRegistryOptions = {
+    registryUrl: 'https://my-registry.org'
   }
 
   const mockAgent = new MockAgent()
@@ -52,7 +48,15 @@ describe('createStorageRecord', () => {
     })
 
     it('persists the storage record', async () => {
-      await expect(createStorageRecord(options)).resolves.toEqual([123, 456])
+      await expect(
+        createStorageRecord(
+          artifactOptions,
+          packageRegistryOptions,
+          token,
+          undefined,
+          headers
+        )
+      ).resolves.toEqual([123, 456])
     })
   })
 
@@ -76,10 +80,13 @@ describe('createStorageRecord', () => {
 
     it('throws an error', async () => {
       await expect(
-        createStorageRecord({
-          ...options,
-          writeOptions: {retry: 0}
-        })
+        createStorageRecord(
+          artifactOptions,
+          packageRegistryOptions,
+          token,
+          0,
+          headers
+        )
       ).rejects.toThrow(/oops/)
     })
   })
@@ -94,8 +101,8 @@ describe('createStorageRecord', () => {
           method: 'POST',
           headers: {authorization: `token ${token}`},
           body: JSON.stringify({
-            ...options.artifactOptions,
-            registry_url: options.packageRegistryOptions.registryUrl
+            ...artifactOptions,
+            registry_url: packageRegistryOptions.registryUrl
           })
         })
         .reply(500, 'oops')
@@ -107,8 +114,8 @@ describe('createStorageRecord', () => {
           method: 'POST',
           headers: {authorization: `token ${token}`},
           body: JSON.stringify({
-            ...options.artifactOptions,
-            registry_url: options.packageRegistryOptions.registryUrl
+            ...artifactOptions,
+            registry_url: packageRegistryOptions.registryUrl
           })
         })
         .reply(200, {storage_records: [{id: 123}, {id: 456}]})
@@ -117,10 +124,13 @@ describe('createStorageRecord', () => {
 
     it('persists the storage record', async () => {
       await expect(
-        createStorageRecord({
-          ...options,
-          writeOptions: {}
-        })
+        createStorageRecord(
+          artifactOptions,
+          packageRegistryOptions,
+          token,
+          undefined,
+          headers
+        )
       ).resolves.toEqual([123, 456])
     })
   })

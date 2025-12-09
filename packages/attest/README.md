@@ -189,7 +189,7 @@ async function run() {
     // repository write permissions.
     const ghToken = core.getInput('gh-token');
 
-    const record = await createStorageRecord({
+    const record = await createStorageRecord(
         artifactOptions: {
             name: 'my-artifact-name',
             digest: { 'sha256': '36ab4667...'},
@@ -199,7 +199,7 @@ async function run() {
             registryUrl: "https://my-fave-pkg-registry.com"
         },
         token: ghToken
-    });
+    );
 
     console.log(record);
 }
@@ -210,39 +210,35 @@ run();
 The `createStorageRecord` function supports the following options:
 
 ```typescript
-export type StorageRecordOptions = {
-  // Includes details about the attested artifact
-  artifactOptions: {
-    // The name of the artifact
-    name: string
-    // The digest of the artifact
-    digest: string
-    // The version of the artifact
-    version?: string
-    // The status of the artifact
-    status?: string
-  },
-  // Includes details about the package registry the artifact was published to
-  packageRegistryOptions: {
-    // The URL of the package registry
-    registryUrl: string
-    // The URL of the artifact in the package registry
-    artifactUrl?: string
-    // The package registry repository the artifact was published to.
-    repo?: string
-    // The path of the artifact in the package registry repository.
-    path?: string
-  },
-  // GitHub token for writing attestations.
-  token: string
-  // Optional parameters for the write operation.
-  writeOptions: {
-    // The number of times to retry the request.
-    retry?: number
-  // HTTP headers to include in request to Artifact Metadata API.
-    headers?: RequestHeaders
-  }
+// Artifact details to associate the record with
+export type ArtifactOptions = {
+  // The name of the artifact
+  name: string
+  // The digest of the artifact
+  digest: string
+  // The version of the artifact
+  version?: string
+  // The status of the artifact
+  status?: string
 }
+// Includes details about the package registry the artifact was published to
+export type PackageRegistryOptions = {
+  // The URL of the package registry
+  registryUrl: string
+  // The URL of the artifact in the package registry
+  artifactUrl?: string
+  // The package registry repository the artifact was published to.
+  repo?: string
+  // The path of the artifact in the package registry repository.
+  path?: string
+}
+// GitHub token for writing attestations.
+token: string
+// Optional parameters for the write operation.
+// The number of times to retry the request.
+retryAttempts?: number
+// HTTP headers to include in request to Artifact Metadata API.
+headers?: RequestHeaders
 ```
 
 ## Sigstore Instance
