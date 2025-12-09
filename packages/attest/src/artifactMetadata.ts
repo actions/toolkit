@@ -74,7 +74,7 @@ export async function createStorageRecord(
   }
 }
 
-function buildRequestParams(options: StorageRecordOptions): Object {
+function buildRequestParams(options: StorageRecordOptions): Record<string, unknown> {
   const {registryUrl, artifactUrl, ...rest} = options.packageRegistryOptions
   return {
     ...options.artifactOptions,
