@@ -9,57 +9,54 @@ const DEFAULT_RETRY_COUNT = 5
 /**
  * Options for creating a storage record for an attested artifact.
  */
-export type StorageRecordOptions = {
+export type ArtifactOptions = {
   // Includes details about the attested artifact
-  artifactOptions: {
-    // The name of the artifact
-    name: string
-    // The digest of the artifact
-    digest: string
-    // The version of the artifact
-    version?: string
-    // The status of the artifact
-    status?: string
-  }
+  // The name of the artifact
+  name: string
+  // The digest of the artifact
+  digest: string
+  // The version of the artifact
+  version?: string
+  // The status of the artifact
+  status?: string
+}
   // Includes details about the package registry the artifact was published to
-  packageRegistryOptions: {
-    // The URL of the package registry
-    registryUrl: string
-    // The URL of the artifact in the package registry
-    artifactUrl?: string
-    // The package registry repository the artifact was published to.
-    repo?: string
-    // The path of the artifact in the package registry repository.
-    path?: string
-  }
-  // GitHub token for writing attestations.
-  token: string
-  // Optional parameters for the write operation.
-  writeOptions: {
-    // The number of times to retry the request.
-    retry?: number
-    // HTTP headers to include in request to Artifact Metadata API.
-    headers?: RequestHeaders
-  }
+export type PackageRegistryOptions = {
+  // The URL of the package registry
+  registryUrl: string
+  // The URL of the artifact in the package registry
+  artifactUrl?: string
+  // The package registry repository the artifact was published to.
+  repo?: string
+  // The path of the artifact in the package registry repository.
+  path?: string
 }
 
 /**
  * Writes a storage record on behalf of an artifact that has been attested
- * @param StorageRecordOptions - parameters for the storage record API request.
+ * @param artifactOptions - parameters for the storage record API request.
+ * @param packageRegistryOptions - parameters for the package registry API request.
+ * @param token - GitHub token used to authenticate the request.
+ * @param retry - The number of retries to attempt if the request fails.
+ * @param headers - Additional headers to include in the request.
+ * 
  * @returns The ID of the storage record.
  * @throws Error if the storage record fails to persist.
  */
 export async function createStorageRecord(
-  options: StorageRecordOptions
+  artifactOptions: ArtifactOptions,
+  packageRegistryOptions: PackageRegistryOptions,
+  token: string,
+  customRetry?: number,
+  headers?: RequestHeaders
 ): Promise<number[]> {
-  const retries = options.writeOptions.retry ?? DEFAULT_RETRY_COUNT
-  const octokit = github.getOctokit(options.token, {retry: {retries}}, retry)
-
+  const retries = customRetry ?? DEFAULT_RETRY_COUNT
+  const octokit = github.getOctokit(token, {retry: {retries}}, retry)
   try {
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
       owner: github.context.repo.owner,
-      headers: options.writeOptions.headers,
-      ...buildRequestParams(options)
+      headers: headers,
+      ...buildRequestParams(artifactOptions, packageRegistryOptions)
     })
 
     const data =
@@ -75,11 +72,12 @@ export async function createStorageRecord(
 }
 
 function buildRequestParams(
-  options: StorageRecordOptions
+  artifactOptions: ArtifactOptions,
+  packageRegistryOptions: PackageRegistryOptions
 ): Record<string, unknown> {
-  const {registryUrl, artifactUrl, ...rest} = options.packageRegistryOptions
+  const {registryUrl, artifactUrl, ...rest} = packageRegistryOptions
   return {
-    ...options.artifactOptions,
+    ...artifactOptions,
     registry_url: registryUrl,
     artifact_url: artifactUrl,
     ...rest
