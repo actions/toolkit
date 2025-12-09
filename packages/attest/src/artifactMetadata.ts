@@ -51,7 +51,7 @@ export type StorageRecordOptions = {
  */
 export async function createStorageRecord(
   options: StorageRecordOptions
-): Promise<string[]> {
+): Promise<number[]> {
   const retries = options.writeOptions.retry ?? DEFAULT_RETRY_COUNT
   const octokit = github.getOctokit(options.token, {retry: {retries}}, retry)
 
@@ -67,7 +67,7 @@ export async function createStorageRecord(
         ? JSON.parse(response.data)
         : response.data
 
-    return data?.storage_records.map((r: {id: number}) => String(r.id))
+    return data?.storage_records.map((r: {id: number}) => r.id)
   } catch (err) {
     const message = err instanceof Error ? err.message : err
     throw new Error(`Failed to persist storage record: ${message}`)

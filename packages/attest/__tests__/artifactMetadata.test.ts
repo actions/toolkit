@@ -48,13 +48,13 @@ describe('createStorageRecord', () => {
             registry_url: 'https://my-registry.org'
           })
         })
-        .reply(201, {storage_records: [{id: '123'}, {id: '456'}]})
+        .reply(200, {storage_records: [{id: 123}, {id: 456}]})
     })
 
     it('persists the storage record', async () => {
       await expect(createStorageRecord(options)).resolves.toEqual([
-        '123',
-        '456'
+        123,
+        456
       ])
     })
   })
@@ -114,7 +114,7 @@ describe('createStorageRecord', () => {
             registry_url: options.packageRegistryOptions.registryUrl
           })
         })
-        .reply(201, {storage_records: [{id: '123'}, {id: '456'}]})
+        .reply(200, {storage_records: [{id: 123}, {id: 456}]})
         .times(1)
     })
 
@@ -124,7 +124,7 @@ describe('createStorageRecord', () => {
           ...options,
           writeOptions: {}
         })
-      ).resolves.toEqual(['123', '456'])
+      ).resolves.toEqual([123, 456])
     })
   })
 })
