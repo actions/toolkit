@@ -1,6 +1,6 @@
 /**
  * Test to validate that glob works correctly on Windows with backslash paths
- * This test validates the fix for: https://github.com/actions/toolkit/issues/<issue_number>
+ * This test validates the fix for glob not working on GitHub's Windows runners
  */
 
 import * as path from 'path'
@@ -69,7 +69,7 @@ describe('Windows path matching', () => {
       return
     }
 
-    const currentDrive = process.cwd().substr(0, 2)
+    const currentDrive = process.cwd().substring(0, 2)
     const pattern = new Pattern(`${currentDrive}\\**\\*.txt`)
     
     // Should match .txt files at any depth
