@@ -74,11 +74,6 @@ jobs:
         with:
           name: ${{ github.event.inputs.package }}
 
-      - name: setup authentication
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
-        env:
-          NPM_TOKEN: ${{ secrets.TOKEN }}
-
       - name: publish
         run: npm publish --provenance *.tgz
 
