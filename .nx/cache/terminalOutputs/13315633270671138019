@@ -1,0 +1,42 @@
+
+> @actions/tool-cache@2.0.2 tsc
+> tsc
+
+src/manifest.ts(1,25): error TS2307: Cannot find module 'semver' or its corresponding type declarations.
+src/manifest.ts(2,21): error TS2307: Cannot find module '@actions/core' or its corresponding type declarations.
+src/manifest.ts(7,21): error TS2307: Cannot find module 'os' or its corresponding type declarations.
+src/manifest.ts(8,21): error TS2307: Cannot find module 'child_process' or its corresponding type declarations.
+src/manifest.ts(9,21): error TS2307: Cannot find module 'fs' or its corresponding type declarations.
+src/manifest.ts(89,29): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/manifest.ts(133,25): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/retry-helper.ts(1,23): error TS2307: Cannot find module '@actions/core' or its corresponding type declarations.
+src/tool-cache.ts(1,23): error TS2307: Cannot find module '@actions/core' or its corresponding type declarations.
+src/tool-cache.ts(2,21): error TS2307: Cannot find module '@actions/io' or its corresponding type declarations.
+src/tool-cache.ts(3,25): error TS2307: Cannot find module 'crypto' or its corresponding type declarations.
+src/tool-cache.ts(4,21): error TS2307: Cannot find module 'fs' or its corresponding type declarations.
+src/tool-cache.ts(6,21): error TS2307: Cannot find module 'os' or its corresponding type declarations.
+src/tool-cache.ts(7,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/tool-cache.ts(8,24): error TS2307: Cannot find module '@actions/http-client' or its corresponding type declarations.
+src/tool-cache.ts(9,25): error TS2307: Cannot find module 'semver' or its corresponding type declarations.
+src/tool-cache.ts(10,25): error TS2307: Cannot find module 'stream' or its corresponding type declarations.
+src/tool-cache.ts(11,23): error TS2307: Cannot find module 'util' or its corresponding type declarations.
+src/tool-cache.ts(12,18): error TS2307: Cannot find module 'assert' or its corresponding type declarations.
+src/tool-cache.ts(13,35): error TS2307: Cannot find module 'http' or its corresponding type declarations.
+src/tool-cache.ts(14,20): error TS2307: Cannot find module '@actions/exec/lib/exec' or its corresponding type declarations.
+src/tool-cache.ts(15,27): error TS2307: Cannot find module '@actions/exec/lib/interfaces' or its corresponding type declarations.
+src/tool-cache.ts(25,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(26,16): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(164,23): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(165,3): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(181,7): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(185,13): error TS2304: Cannot find name '__dirname'.
+src/tool-cache.ts(208,7): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(242,22): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(243,22): error TS2580: Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(257,32): error TS2339: Property 'includes' does not exist on type 'string | string[]'.
+  Property 'includes' does not exist on type 'string[]'.
+src/tool-cache.ts(657,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tool-cache.ts(747,26): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(756,25): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/tool-cache.ts(766,18): error TS2304: Cannot find name 'global'.
