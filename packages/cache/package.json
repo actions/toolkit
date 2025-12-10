@@ -44,7 +44,7 @@
     "@actions/http-client": "^2.1.1",
     "@actions/io": "^1.0.1",
     "@azure/abort-controller": "^1.1.0",
-    "@azure/ms-rest-js": "^2.6.0",
+    "@azure/core-rest-pipeline": "^1.22.0",
     "@azure/storage-blob": "^12.13.0",
     "semver": "^6.3.1"
   },
