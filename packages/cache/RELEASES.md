@@ -2,6 +2,9 @@
 
 ### 5.0.0
 
+- Remove `@azure/ms-rest-js` dependency to fix Node.js 24+ punycode deprecation warning
+  - The `TransferProgressEvent` type is now imported from `@azure/core-rest-pipeline` instead of `@azure/ms-rest-js`
+  - This fixes: `(node:2110) [DEP0040] DeprecationWarning: The punycode module is deprecated`
 - Bump `@actions/core` from `^1.11.1` to `^2.0.0`
 - Bump `@actions/exec` from `^1.0.1` to `^2.0.0`
 - Bump `@actions/glob` from `^0.1.0` to `^0.5.0`

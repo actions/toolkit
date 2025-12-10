@@ -1,5 +1,5 @@
 import * as uploadUtils from '../src/internal/uploadUtils'
-import {TransferProgressEvent} from '@azure/ms-rest-js'
+import {TransferProgressEvent} from '@azure/core-rest-pipeline'
 
 test('upload progress tracked correctly', () => {
   const progress = new uploadUtils.UploadProgress(1000)

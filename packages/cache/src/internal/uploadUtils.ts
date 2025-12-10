@@ -5,7 +5,7 @@ import {
   BlockBlobClient,
   BlockBlobParallelUploadOptions
 } from '@azure/storage-blob'
-import {TransferProgressEvent} from '@azure/ms-rest-js'
+import {TransferProgressEvent} from '@azure/core-rest-pipeline'
 import {InvalidResponseError} from './shared/errors'
 import {UploadOptions} from '../options'
 
