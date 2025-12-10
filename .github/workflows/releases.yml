@@ -69,6 +69,11 @@ jobs:
       id-token: write
     steps:
 
+      - name: Set Node.js 24.x
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+
       - name: download artifact
         uses: actions/download-artifact@v4
         with:
