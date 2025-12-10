@@ -156,6 +156,12 @@ export class Pattern {
       itemPath = pathHelper.safeTrimTrailingSeparator(itemPath)
     }
 
+    // Convert to forward slashes on Windows before matching with minimatch
+    // since the pattern was converted to forward slashes in the constructor
+    if (IS_WINDOWS) {
+      itemPath = itemPath.replace(/\\/g, '/')
+    }
+
     // Match
     if (this.minimatch.match(itemPath)) {
       return this.trailingSeparator ? MatchKind.Directory : MatchKind.All
@@ -176,8 +182,13 @@ export class Pattern {
       return this.rootRegExp.test(itemPath)
     }
 
+    // Convert to forward slashes on Windows to match the pattern format used by minimatch
+    if (IS_WINDOWS) {
+      itemPath = itemPath.replace(/\\/g, '/')
+    }
+
     return this.minimatch.matchOne(
-      itemPath.split(IS_WINDOWS ? /\\+/ : /\/+/),
+      itemPath.split(/\/+/),
       this.minimatch.set[0],
       true
     )
