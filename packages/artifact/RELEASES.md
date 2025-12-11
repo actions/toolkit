@@ -1,5 +1,11 @@
 # @actions/artifact Releases
 
+### 5.0.0
+
+- Dependency updates for Node.js 24 runtime support
+- Update `@actions/core` to v2
+- Update `@actions/http-client` to v3
+
 ### 4.0.0
 
 - Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
