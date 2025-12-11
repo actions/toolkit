@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 6.1.0
+
+- Update undici to v7 [#TBD](https://github.com/actions/toolkit/pull/TBD)
+- Update @actions/http-client to v3.1.0 [#TBD](https://github.com/actions/toolkit/pull/TBD)
+
 ### 6.0.1
 
 - Dependency updates [#2043](https://github.com/actions/toolkit/pull/2043)
