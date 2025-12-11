@@ -1,6 +1,6 @@
 {
   "name": "@actions/attest",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Actions attestation lib",
   "keywords": [
     "github",
@@ -39,7 +39,7 @@
     "@sigstore/rekor-types": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.6",
     "nock": "^13.5.1",
-    "undici": "^6.20.0"
+    "undici": "^7.0.0"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",

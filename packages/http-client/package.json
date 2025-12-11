@@ -1,6 +1,6 @@
 {
   "name": "@actions/http-client",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Actions Http Client",
   "keywords": [
     "github",
@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "tunnel": "^0.0.6",
-    "undici": "^5.28.5"
+    "undici": "^7.0.0"
   },
   "overrides": {
     "uri-js": "npm:uri-js-replace@^1.0.1"

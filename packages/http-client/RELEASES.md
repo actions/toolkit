@@ -1,5 +1,8 @@
 ## Releases
 
+## 3.1.0
+- Update undici to v7 [#TBD](https://github.com/actions/toolkit/pull/TBD)
+
 ## 3.0.0
 - Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
 
