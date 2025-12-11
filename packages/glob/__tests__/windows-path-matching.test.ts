@@ -3,7 +3,6 @@
  * This test validates the fix for glob not working on GitHub's Windows runners
  */
 
-import * as path from 'path'
 import {MatchKind} from '../src/internal-match-kind'
 import {Pattern} from '../src/internal-pattern'
 
