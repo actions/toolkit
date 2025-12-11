@@ -1,5 +1,8 @@
 # @actions/core Releases
 
+## 2.0.1
+- Bump @actions/exec from 1.1.1 to 2.0.0 [#2199](https://github.com/actions/toolkit/pull/2199)
+
 ## 2.0.0
 - Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
 - Bump @actions/http-client from 2.0.1 to 3.0.0
