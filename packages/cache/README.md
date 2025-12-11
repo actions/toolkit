@@ -8,17 +8,19 @@ Note that GitHub will remove any cache entries that have not been accessed in ov
 
 ## ⚠️ Important changes
 
+### Node.js 24 Support
+
+Version `5.0.0` adds support for Node.js 24 and updates all `@actions/*` dependencies to their latest major versions.
+
+### Cache Service v2
+
 The cache backend service has been rewritten from the ground up for improved performance and reliability. The [@actions/cache](https://github.com/actions/toolkit/tree/main/packages/cache) package now integrates with the new cache service (v2) APIs.
 
-The new service will gradually roll out as of **February 1st, 2025**. The legacy service will also be sunset on the same date. Changes in this release are **fully backward compatible**.
+The new service rolled out as of **February 1st, 2025**. The legacy service was also sunset on the same date. Changes in version `4.0.0` are **fully backward compatible**.
 
-**All previous versions of this package will be deprecated**. We recommend upgrading to version `4.0.0` as soon as possible before **February 1st, 2025.**
+**All versions prior to 4.0.0 are deprecated**. We recommend upgrading to version `5.0.0` for the latest features and Node.js 24 support.
 
-If you do not upgrade, all workflow runs using any of the deprecated [@actions/cache](https://github.com/actions/toolkit/tree/main/packages/cache) packages will fail.
-
-Upgrading to the recommended version should not break or require any changes to your workflows beyond updating your `package.json` to version `4.0.0`.
-
-Read more about the change & access the migration guide: [reference to the announcement](https://github.com/actions/toolkit/discussions/1890).
+Read more about the cache service v2 change & access the migration guide: [reference to the announcement](https://github.com/actions/toolkit/discussions/1890).
 
 ## Usage
 
