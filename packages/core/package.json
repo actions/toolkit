@@ -1,6 +1,6 @@
 {
   "name": "@actions/core",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Actions core lib",
   "keywords": [
     "github",
@@ -36,7 +36,7 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/exec": "^1.1.1",
+    "@actions/exec": "^2.0.0",
     "@actions/http-client": "^3.0.0"
   },
   "devDependencies": {
