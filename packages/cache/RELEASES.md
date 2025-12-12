@@ -1,5 +1,10 @@
 # @actions/cache Releases
 
+### 5.0.1
+
+- Fix Node.js 24 punycode deprecation warning by updating `@azure/storage-blob` from `^12.13.0` to `^12.29.1` [#2213](https://github.com/actions/toolkit/pull/2213)
+- Newer storage-blob uses `@azure/core-rest-pipeline` instead of deprecated `@azure/core-http`, which eliminates the transitive dependency on `node-fetch@2` → `whatwg-url@5` → `tr46@0.0.3` that used the deprecated punycode module
+
 ### 5.0.0
 
 - Remove `@azure/ms-rest-js` dependency [#2197](https://github.com/actions/toolkit/pull/2197)
