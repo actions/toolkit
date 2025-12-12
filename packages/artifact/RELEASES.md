@@ -2,7 +2,7 @@
 
 ### 5.0.1
 
-- Fix Node.js 24 punycode deprecation warning by updating `@azure/storage-blob` from `^12.15.0` to `^12.29.1`
+- Fix Node.js 24 punycode deprecation warning by updating `@azure/storage-blob` from `^12.15.0` to `^12.29.1` [#2211](https://github.com/actions/toolkit/pull/2211)
 - Removed direct `@azure/core-http` dependency (now uses `@azure/core-rest-pipeline` via storage-blob)
 
 ### 5.0.0
