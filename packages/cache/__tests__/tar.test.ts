@@ -11,8 +11,7 @@ import {
 } from '../src/internal/constants'
 import * as tar from '../src/internal/tar'
 import * as utils from '../src/internal/cacheUtils'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import fs = require('fs')
+import fs from 'fs'
 
 jest.mock('@actions/exec')
 jest.mock('@actions/io')
@@ -233,13 +232,16 @@ test('zstd create tar', async () => {
       .concat(IS_MAC ? ['--delay-directory-restore'] : [])
       .concat([
         '--use-compress-program',
-        IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
+        IS_WINDOWS ? '"zstd -T0 --long=30 -6"' : 'zstdmt --long=30 -6'
       ])
       .join(' '),
     undefined, // args
     {
       cwd: archiveFolder,
-      env: expect.objectContaining(defaultEnv)
+      env: expect.objectContaining({
+        ...defaultEnv,
+        ZSTD_CLEVEL: '6'
+      })
     }
   )
 })
@@ -285,21 +287,27 @@ test('zstd create tar with windows BSDtar', async () => {
       undefined, // args
       {
         cwd: archiveFolder,
-        env: expect.objectContaining(defaultEnv)
+        env: expect.objectContaining({
+          ...defaultEnv,
+          ZSTD_CLEVEL: '6'
+        })
       }
     )
 
     expect(execMock).toHaveBeenNthCalledWith(
       2,
       [
-        'zstd -T0 --long=30 --force -o',
+        'zstd -T0 --long=30 --force -6 -o',
         CacheFilename.Zstd.replace(/\\/g, '/'),
         TarFilename.replace(/\\/g, '/')
       ].join(' '),
       undefined, // args
       {
         cwd: archiveFolder,
-        env: expect.objectContaining(defaultEnv)
+        env: expect.objectContaining({
+          ...defaultEnv,
+          ZSTD_CLEVEL: '6'
+        })
       }
     )
   }
@@ -340,9 +348,116 @@ test('gzip create tar', async () => {
     undefined, // args
     {
       cwd: archiveFolder,
-      env: expect.objectContaining(defaultEnv)
+      env: expect.objectContaining({
+        ...defaultEnv,
+        GZIP: '-6'
+      })
     }
   )
+})
+
+test('compression level controls zstd archive size', async () => {
+  const sourceDirectories = ['a']
+
+  const runAndGetSize = async (
+    level: number,
+    folder: string
+  ): Promise<{size: number; env?: NodeJS.ProcessEnv}> => {
+    await fs.promises.mkdir(folder, {recursive: true})
+
+    let capturedEnv: NodeJS.ProcessEnv | undefined
+    const execMock = jest
+      .spyOn(exec, 'exec')
+      .mockImplementation(async (_cmd, _args, options) => {
+        capturedEnv = options?.env
+        const target = path.join(
+          options?.cwd ?? '',
+          utils.getCacheFileName(CompressionMethod.Zstd)
+        )
+        const size = Math.max(1, 2000 - level * 100)
+        await fs.promises.writeFile(target, Buffer.alloc(size, 1))
+        return 0
+      })
+
+    await tar.createTar(
+      folder,
+      sourceDirectories,
+      CompressionMethod.Zstd,
+      level
+    )
+    execMock.mockRestore()
+    const {size} = await fs.promises.stat(
+      path.join(folder, utils.getCacheFileName(CompressionMethod.Zstd))
+    )
+
+    return {size, env: capturedEnv}
+  }
+
+  const {size: size0, env: env0} = await runAndGetSize(
+    0,
+    path.join(getTempDir(), 'zstd-0')
+  )
+  const {size: size9, env: env9} = await runAndGetSize(
+    9,
+    path.join(getTempDir(), 'zstd-9')
+  )
+
+  expect(size0).toBe(2000)
+  expect(size9).toBe(1100)
+  expect(env0?.ZSTD_CLEVEL).toBe('1')
+  expect(env9?.ZSTD_CLEVEL).toBe('9')
+})
+
+test('compression level controls gzip archive size', async () => {
+  const sourceDirectories = ['a']
+
+  const runAndGetSize = async (
+    level: number,
+    folder: string
+  ): Promise<{size: number; env?: NodeJS.ProcessEnv}> => {
+    await fs.promises.mkdir(folder, {recursive: true})
+
+    let capturedEnv: NodeJS.ProcessEnv | undefined
+    const execMock = jest
+      .spyOn(exec, 'exec')
+      .mockImplementation(async (_cmd, _args, options) => {
+        capturedEnv = options?.env
+        const target = path.join(
+          options?.cwd ?? '',
+          utils.getCacheFileName(CompressionMethod.Gzip)
+        )
+        const size = Math.max(1, 2000 - level * 100)
+        await fs.promises.writeFile(target, Buffer.alloc(size, 1))
+        return 0
+      })
+
+    await tar.createTar(
+      folder,
+      sourceDirectories,
+      CompressionMethod.Gzip,
+      level
+    )
+    execMock.mockRestore()
+    const {size} = await fs.promises.stat(
+      path.join(folder, utils.getCacheFileName(CompressionMethod.Gzip))
+    )
+
+    return {size, env: capturedEnv}
+  }
+
+  const {size: size0, env: env0} = await runAndGetSize(
+    0,
+    path.join(getTempDir(), 'gzip-0')
+  )
+  const {size: size9, env: env9} = await runAndGetSize(
+    9,
+    path.join(getTempDir(), 'gzip-9')
+  )
+
+  expect(size0).toBe(2000)
+  expect(size9).toBe(1100)
+  expect(env0?.GZIP).toBe('-0')
+  expect(env9?.GZIP).toBe('-9')
 })
 
 test('zstd list tar', async () => {

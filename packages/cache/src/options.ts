@@ -25,6 +25,14 @@ export interface UploadOptions {
    */
   uploadChunkSize?: number
   /**
+   * Compression level to use when creating the cache archive
+   *
+   * Range: 0 (no compression) to 9 (maximum compression)
+   *
+   * @default 6
+   */
+  compressionLevel?: number
+  /**
    * Archive size in bytes
    */
   archiveSizeBytes?: number
@@ -92,7 +100,8 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
   const result: UploadOptions = {
     useAzureSdk: false,
     uploadConcurrency: 4,
-    uploadChunkSize: 32 * 1024 * 1024
+    uploadChunkSize: 32 * 1024 * 1024,
+    compressionLevel: 6
   }
 
   if (copy) {
@@ -106,6 +115,10 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
 
     if (typeof copy.uploadChunkSize === 'number') {
       result.uploadChunkSize = copy.uploadChunkSize
+    }
+
+    if (typeof copy.compressionLevel === 'number') {
+      result.compressionLevel = copy.compressionLevel
     }
   }
 
@@ -128,9 +141,21 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
       )
     : result.uploadChunkSize
 
+  // Clamp the compression level between 0 and 9
+  const envCompressionLevel = Number(process.env['CACHE_COMPRESSION_LEVEL'])
+  if (!isNaN(envCompressionLevel)) {
+    result.compressionLevel = envCompressionLevel
+  }
+  const normalizedCompressionLevel = Math.min(
+    9,
+    Math.max(0, Math.floor(result.compressionLevel ?? 6))
+  )
+  result.compressionLevel = normalizedCompressionLevel
+
   core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
   core.debug(`Upload concurrency: ${result.uploadConcurrency}`)
   core.debug(`Upload chunk size: ${result.uploadChunkSize}`)
+  core.debug(`Compression level: ${result.compressionLevel}`)
 
   return result
 }

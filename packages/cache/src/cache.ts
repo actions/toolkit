@@ -4,7 +4,7 @@ import * as utils from './internal/cacheUtils'
 import * as cacheHttpClient from './internal/cacheHttpClient'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
 import {getCacheServiceVersion, isGhes} from './internal/config'
-import {DownloadOptions, UploadOptions} from './options'
+import {DownloadOptions, UploadOptions, getUploadOptions} from './options'
 import {createTar, extractTar, listTar} from './internal/tar'
 import {
   CreateCacheEntryRequest,
@@ -337,7 +337,7 @@ async function restoreCacheV2(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
+      // Suppress all non-validation cache related errors because caching should be optional
       // Log server errors (5xx) as errors, all other errors as warnings
       if (
         typedError instanceof HttpClientError &&
@@ -406,6 +406,7 @@ async function saveCacheV1(
   enableCrossOsArchive = false
 ): Promise<number> {
   const compressionMethod = await utils.getCompressionMethod()
+  const uploadOptions = getUploadOptions(options)
   let cacheId = -1
 
   const cachePaths = await utils.resolvePaths(paths)
@@ -427,7 +428,12 @@ async function saveCacheV1(
   core.debug(`Archive Path: ${archivePath}`)
 
   try {
-    await createTar(archiveFolder, cachePaths, compressionMethod)
+    await createTar(
+      archiveFolder,
+      cachePaths,
+      compressionMethod,
+      uploadOptions.compressionLevel
+    )
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
@@ -471,7 +477,7 @@ async function saveCacheV1(
     }
 
     core.debug(`Saving Cache (ID: ${cacheId})`)
-    await cacheHttpClient.saveCache(cacheId, archivePath, '', options)
+    await cacheHttpClient.saveCache(cacheId, archivePath, '', uploadOptions)
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
@@ -520,12 +526,12 @@ async function saveCacheV2(
   // Override UploadOptions to force the use of Azure
   // ...options goes first because we want to override the default values
   // set in UploadOptions with these specific figures
-  options = {
+  const uploadOptions = getUploadOptions({
     ...options,
     uploadChunkSize: 64 * 1024 * 1024, // 64 MiB
     uploadConcurrency: 8, // 8 workers for parallel upload
     useAzureSdk: true
-  }
+  })
   const compressionMethod = await utils.getCompressionMethod()
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
   let cacheId = -1
@@ -549,7 +555,12 @@ async function saveCacheV2(
   core.debug(`Archive Path: ${archivePath}`)
 
   try {
-    await createTar(archiveFolder, cachePaths, compressionMethod)
+    await createTar(
+      archiveFolder,
+      cachePaths,
+      compressionMethod,
+      uploadOptions.compressionLevel
+    )
     if (core.isDebug()) {
       await listTar(archivePath, compressionMethod)
     }
@@ -558,7 +569,7 @@ async function saveCacheV2(
     core.debug(`File Size: ${archiveFileSize}`)
 
     // Set the archive size in the options, will be used to display the upload progress
-    options.archiveSizeBytes = archiveFileSize
+    uploadOptions.archiveSizeBytes = archiveFileSize
 
     core.debug('Reserving Cache')
     const version = utils.getCacheVersion(
@@ -594,7 +605,7 @@ async function saveCacheV2(
       cacheId,
       archivePath,
       signedUploadUrl,
-      options
+      uploadOptions
     )
 
     const finalizeRequest: FinalizeCacheEntryUploadRequest = {

@@ -13,6 +13,15 @@ import {
 } from './constants'
 
 const IS_WINDOWS = process.platform === 'win32'
+const DEFAULT_COMPRESSION_LEVEL = 6
+
+function normalizeCompressionLevel(level?: number): number {
+  if (typeof level !== 'number' || !isFinite(level)) {
+    return DEFAULT_COMPRESSION_LEVEL
+  }
+
+  return Math.min(9, Math.max(0, Math.floor(level)))
+}
 
 // Returns tar path and type: BSD or GNU
 async function getTarPath(): Promise<ArchiveTool> {
@@ -61,7 +70,7 @@ async function getTarArgs(
   const cacheFileName = utils.getCacheFileName(compressionMethod)
   const tarFile = 'cache.tar'
   const workingDirectory = getWorkingDirectory()
-  // Speficic args for BSD tar on windows for workaround
+  // Specific args for BSD tar on windows for workaround
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
@@ -128,9 +137,12 @@ async function getTarArgs(
 async function getCommands(
   compressionMethod: CompressionMethod,
   type: string,
-  archivePath = ''
+  archivePath = '',
+  compressionLevel = DEFAULT_COMPRESSION_LEVEL
 ): Promise<string[]> {
   let args
+
+  const normalizedCompressionLevel = normalizeCompressionLevel(compressionLevel)
 
   const tarPath = await getTarPath()
   const tarArgs = await getTarArgs(
@@ -142,7 +154,11 @@ async function getCommands(
   const compressionArgs =
     type !== 'create'
       ? await getDecompressionProgram(tarPath, compressionMethod, archivePath)
-      : await getCompressionProgram(tarPath, compressionMethod)
+      : await getCompressionProgram(
+          tarPath,
+          compressionMethod,
+          normalizedCompressionLevel
+        )
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
@@ -212,9 +228,12 @@ async function getDecompressionProgram(
 // Long range mode is added to zstd in v1.3.2 release, so we will not use --long in older version of zstd.
 async function getCompressionProgram(
   tarPath: ArchiveTool,
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  compressionLevel = DEFAULT_COMPRESSION_LEVEL
 ): Promise<string[]> {
   const cacheFileName = utils.getCacheFileName(compressionMethod)
+  const normalizedCompressionLevel = normalizeCompressionLevel(compressionLevel)
+  const zstdCompressionLevel = Math.max(1, normalizedCompressionLevel)
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&
@@ -223,34 +242,49 @@ async function getCompressionProgram(
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -T0 --long=30 --force -o',
+            `zstd -T0 --long=30 --force -${zstdCompressionLevel} -o`,
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
         : [
             '--use-compress-program',
-            IS_WINDOWS ? '"zstd -T0 --long=30"' : 'zstdmt --long=30'
+            IS_WINDOWS
+              ? `"zstd -T0 --long=30 -${zstdCompressionLevel}"`
+              : `zstdmt --long=30 -${zstdCompressionLevel}`
           ]
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
         ? [
-            'zstd -T0 --force -o',
+            `zstd -T0 --force -${zstdCompressionLevel} -o`,
             cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
             TarFilename
           ]
-        : ['--use-compress-program', IS_WINDOWS ? '"zstd -T0"' : 'zstdmt']
+        : [
+            '--use-compress-program',
+            IS_WINDOWS
+              ? `"zstd -T0 -${zstdCompressionLevel}"`
+              : `zstdmt -${zstdCompressionLevel}`
+          ]
     default:
       return ['-z']
   }
 }
 
 // Executes all commands as separate processes
-async function execCommands(commands: string[], cwd?: string): Promise<void> {
+async function execCommands(
+  commands: string[],
+  cwd?: string,
+  extraEnv?: NodeJS.ProcessEnv
+): Promise<void> {
   for (const command of commands) {
     try {
       await exec(command, undefined, {
         cwd,
-        env: {...(process.env as object), MSYS: 'winsymlinks:nativestrict'}
+        env: {
+          ...(process.env as object),
+          MSYS: 'winsymlinks:nativestrict',
+          ...extraEnv
+        }
       })
     } catch (error) {
       throw new Error(
@@ -285,13 +319,39 @@ export async function extractTar(
 export async function createTar(
   archiveFolder: string,
   sourceDirectories: string[],
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  compressionLevel = DEFAULT_COMPRESSION_LEVEL
 ): Promise<void> {
+  const normalizedCompressionLevel = normalizeCompressionLevel(compressionLevel)
   // Write source directories to manifest.txt to avoid command length limits
   writeFileSync(
     path.join(archiveFolder, ManifestFilename),
     sourceDirectories.join('\n')
   )
-  const commands = await getCommands(compressionMethod, 'create')
-  await execCommands(commands, archiveFolder)
+  const commands = await getCommands(
+    compressionMethod,
+    'create',
+    '',
+    normalizedCompressionLevel
+  )
+  const compressionEnv = getCompressionEnv(
+    compressionMethod,
+    normalizedCompressionLevel
+  )
+  await execCommands(commands, archiveFolder, compressionEnv)
+}
+
+function getCompressionEnv(
+  compressionMethod: CompressionMethod,
+  compressionLevel: number
+): NodeJS.ProcessEnv | undefined {
+  switch (compressionMethod) {
+    case CompressionMethod.Gzip:
+      return {GZIP: `-${compressionLevel}`}
+    case CompressionMethod.Zstd:
+    case CompressionMethod.ZstdWithoutLong:
+      return {ZSTD_CLEVEL: `${Math.max(1, compressionLevel)}`}
+    default:
+      return undefined
+  }
 }

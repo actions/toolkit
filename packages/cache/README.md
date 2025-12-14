@@ -24,9 +24,9 @@ Read more about the change & access the migration guide: [reference to the annou
 
 This package is used by the v2+ versions of our first party cache action. You can find an example implementation in the cache repo [here](https://github.com/actions/cache).
 
-#### Save Cache
+### Save Cache
 
-Saves a cache containing the files in `paths` using the `key` provided. The files would be compressed using zstandard compression algorithm if zstd is installed, otherwise gzip is used. Function returns the cache id if the cache was saved succesfully and throws an error if cache upload fails.
+Saves a cache containing the files in `paths` using the `key` provided. The files would be compressed using zstandard compression algorithm if zstd is installed, otherwise gzip is used. Function returns the cache id if the cache was saved successfully and throws an error if cache upload fails.
 
 ```js
 const cache = require('@actions/cache');
@@ -38,7 +38,13 @@ const key = 'npm-foobar-d5ea0750'
 const cacheId = await cache.saveCache(paths, key)
 ```
 
-#### Restore Cache
+You can control archive compression when saving. Provide `compressionLevel` in `UploadOptions` (0 = no compression, 9 = maximum, default = 6) or set the `CACHE_COMPRESSION_LEVEL` environment variable:
+
+```js
+const cacheId = await cache.saveCache(paths, key, {compressionLevel: 3})
+```
+
+### Restore Cache
 
 Restores a cache based on `key` and `restoreKeys` to the `paths` provided. Function returns the cache key for cache hit and returns undefined if cache not found.
 
@@ -56,7 +62,7 @@ const restoreKeys = [
 const cacheKey = await cache.restoreCache(paths, key, restoreKeys)
 ```
 
-##### Cache segment restore timeout
+### Cache segment restore timeout
 
 A cache gets downloaded in multiple segments of fixed sizes (now `128MB` to fail-fast, previously `1GB` for a `32-bit` runner and `2GB` for a `64-bit` runner were used). Sometimes, a segment download gets stuck which causes the workflow job to be stuck forever and fail. Version `v3.0.4` of cache package introduces a segment download timeout. The segment download timeout will allow the segment download to get aborted and hence allow the job to proceed with a cache miss.
 
