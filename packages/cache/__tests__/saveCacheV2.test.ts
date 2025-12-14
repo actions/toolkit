@@ -143,7 +143,8 @@ test('save cache fails if a signedUploadURL was not passed', async () => {
     archiveSizeBytes: archiveFileSize, // These should always match
     useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
-    uploadConcurrency: 8
+    uploadConcurrency: 8,
+    compressionLevel: 6
   }
 
   const createCacheEntryMock = jest
@@ -178,7 +179,8 @@ test('save cache fails if a signedUploadURL was not passed', async () => {
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
 
   expect(saveCacheMock).toHaveBeenCalledWith(
@@ -201,7 +203,8 @@ test('finalize save cache failure', async () => {
     archiveSizeBytes: archiveFileSize, // These should always match
     useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
-    uploadConcurrency: 8
+    uploadConcurrency: 8,
+    compressionLevel: 6
   }
 
   const createCacheEntryMock = jest
@@ -241,7 +244,8 @@ test('finalize save cache failure', async () => {
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
 
   expect(saveCacheMock).toHaveBeenCalledWith(
@@ -275,7 +279,8 @@ test('save with valid inputs uploads a cache', async () => {
     archiveSizeBytes: archiveFileSize, // These should always match
     useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
-    uploadConcurrency: 8
+    uploadConcurrency: 8,
+    compressionLevel: 6
   }
 
   jest
@@ -316,7 +321,8 @@ test('save with valid inputs uploads a cache', async () => {
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
 
   expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
@@ -341,7 +347,8 @@ test('save with extremely large cache should succeed in v2 (no size limit)', asy
     archiveSizeBytes: archiveFileSize,
     useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
-    uploadConcurrency: 8
+    uploadConcurrency: 8,
+    compressionLevel: 6
   }
 
   jest
@@ -382,7 +389,8 @@ test('save with extremely large cache should succeed in v2 (no size limit)', asy
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
 
   expect(finalizeCacheEntryMock).toHaveBeenCalledWith({
@@ -446,7 +454,8 @@ test('save with finalize cache entry failure and specific error message', async 
     archiveSizeBytes: archiveFileSize,
     useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
-    uploadConcurrency: 8
+    uploadConcurrency: 8,
+    compressionLevel: 6
   }
 
   const createCacheEntryMock = jest
@@ -488,7 +497,8 @@ test('save with finalize cache entry failure and specific error message', async 
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
 
   expect(saveCacheMock).toHaveBeenCalledWith(
@@ -521,7 +531,8 @@ test('save with multiple large caches should succeed in v2 (testing 50GB)', asyn
     archiveSizeBytes: archiveFileSize,
     useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
-    uploadConcurrency: 8
+    uploadConcurrency: 8,
+    compressionLevel: 6
   }
 
   jest
@@ -562,7 +573,8 @@ test('save with multiple large caches should succeed in v2 (testing 50GB)', asyn
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
 
   expect(finalizeCacheEntryMock).toHaveBeenCalledWith({

@@ -10,7 +10,8 @@ import * as util from 'util'
 import {
   CacheFilename,
   CompressionMethod,
-  GnuTarPathOnWindows
+  GnuTarPathOnWindows,
+  TarFilename
 } from './constants'
 
 const versionSalt = '1.0'
@@ -98,8 +99,30 @@ async function getVersion(
   return versionOutput
 }
 
-// Use zstandard if possible to maximize cache performance
-export async function getCompressionMethod(): Promise<CompressionMethod> {
+function normalizeCompressionLevel(level?: number): number {
+  if (typeof level === 'number' && isFinite(level)) {
+    return Math.min(9, Math.max(0, Math.floor(level)))
+  }
+
+  const envCompressionLevel = Number(process.env['CACHE_COMPRESSION_LEVEL'])
+  if (!isNaN(envCompressionLevel)) {
+    return Math.min(9, Math.max(0, Math.floor(envCompressionLevel)))
+  }
+
+  return 6
+}
+
+// Use zstandard if possible to maximize cache performance. When compression
+// level is explicitly 0, skip compression and create a plain tar archive.
+export async function getCompressionMethod(
+  compressionLevel?: number
+): Promise<CompressionMethod> {
+  const normalizedCompressionLevel = normalizeCompressionLevel(compressionLevel)
+  if (normalizedCompressionLevel === 0) {
+    core.debug('Compression level 0 detected; using uncompressed tar')
+    return CompressionMethod.Tar
+  }
+
   const versionOutput = await getVersion('zstd', ['--quiet'])
   const version = semver.clean(versionOutput)
   core.debug(`zstd version: ${version}`)
@@ -112,9 +135,13 @@ export async function getCompressionMethod(): Promise<CompressionMethod> {
 }
 
 export function getCacheFileName(compressionMethod: CompressionMethod): string {
-  return compressionMethod === CompressionMethod.Gzip
-    ? CacheFilename.Gzip
-    : CacheFilename.Zstd
+  if (compressionMethod === CompressionMethod.Gzip) {
+    return CacheFilename.Gzip
+  }
+  if (compressionMethod === CompressionMethod.Tar) {
+    return TarFilename
+  }
+  return CacheFilename.Zstd
 }
 
 export async function getGnuTarPathOnWindows(): Promise<string> {

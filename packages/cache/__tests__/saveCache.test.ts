@@ -75,7 +75,8 @@ test('save with large cache outputs should fail', async () => {
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
@@ -127,7 +128,8 @@ test('save with large cache outputs should fail in GHES with error message', asy
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
@@ -175,7 +177,8 @@ test('save with large cache outputs should fail in GHES without error message', 
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
@@ -277,7 +280,8 @@ test('save with server error should fail', async () => {
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
@@ -324,14 +328,20 @@ test('save with valid inputs uploads a cache', async () => {
   expect(createTarMock).toHaveBeenCalledWith(
     archiveFolder,
     cachePaths,
-    compression
+    compression,
+    6
   )
   expect(saveCacheMock).toHaveBeenCalledTimes(1)
   expect(saveCacheMock).toHaveBeenCalledWith(
     cacheId,
     archiveFile,
     '',
-    undefined
+    expect.objectContaining({
+      useAzureSdk: false,
+      uploadConcurrency: 4,
+      uploadChunkSize: 32 * 1024 * 1024,
+      compressionLevel: 6
+    })
   )
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })

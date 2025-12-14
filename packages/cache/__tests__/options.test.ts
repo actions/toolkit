@@ -11,6 +11,14 @@ const downloadConcurrency = 8
 const timeoutInMs = 30000
 const segmentTimeoutInMs = 600000
 const lookupOnly = false
+const compressionLevel = 6
+
+afterEach(() => {
+  delete process.env.CACHE_UPLOAD_CONCURRENCY
+  delete process.env.CACHE_UPLOAD_CHUNK_SIZE
+  delete process.env.CACHE_COMPRESSION_LEVEL
+  delete process.env.SEGMENT_DOWNLOAD_TIMEOUT_MINS
+})
 
 test('getDownloadOptions sets defaults', async () => {
   const actualOptions = getDownloadOptions()
@@ -44,7 +52,8 @@ test('getUploadOptions sets defaults', async () => {
   const expectedOptions: UploadOptions = {
     uploadConcurrency: 4,
     uploadChunkSize: 32 * 1024 * 1024,
-    useAzureSdk: false
+    useAzureSdk: false,
+    compressionLevel
   }
   const actualOptions = getUploadOptions()
 
@@ -55,7 +64,8 @@ test('getUploadOptions overrides all settings', async () => {
   const expectedOptions: UploadOptions = {
     uploadConcurrency: 2,
     uploadChunkSize: 16 * 1024 * 1024,
-    useAzureSdk: true
+    useAzureSdk: true,
+    compressionLevel: 3
   }
 
   const actualOptions = getUploadOptions(expectedOptions)
@@ -67,11 +77,13 @@ test('env variables override all getUploadOptions settings', async () => {
   const expectedOptions: UploadOptions = {
     uploadConcurrency: 16,
     uploadChunkSize: 64 * 1024 * 1024,
-    useAzureSdk: true
+    useAzureSdk: true,
+    compressionLevel: 8
   }
 
   process.env.CACHE_UPLOAD_CONCURRENCY = '16'
   process.env.CACHE_UPLOAD_CHUNK_SIZE = '64'
+  process.env.CACHE_COMPRESSION_LEVEL = '8'
 
   const actualOptions = getUploadOptions(expectedOptions)
   expect(actualOptions).toEqual(expectedOptions)
@@ -81,13 +93,29 @@ test('env variables override all getUploadOptions settings but do not exceed cap
   const expectedOptions: UploadOptions = {
     uploadConcurrency: 32,
     uploadChunkSize: 128 * 1024 * 1024,
-    useAzureSdk: true
+    useAzureSdk: true,
+    compressionLevel: 9
   }
 
   process.env.CACHE_UPLOAD_CONCURRENCY = '64'
   process.env.CACHE_UPLOAD_CHUNK_SIZE = '256'
+  process.env.CACHE_COMPRESSION_LEVEL = '12'
 
   const actualOptions = getUploadOptions(expectedOptions)
+  expect(actualOptions).toEqual(expectedOptions)
+})
+
+test('compression level clamps and floors values', async () => {
+  const expectedOptions: UploadOptions = {
+    uploadConcurrency: 4,
+    uploadChunkSize: 32 * 1024 * 1024,
+    useAzureSdk: false,
+    compressionLevel: 0
+  }
+
+  process.env.CACHE_COMPRESSION_LEVEL = '-1.7'
+
+  const actualOptions = getUploadOptions()
   expect(actualOptions).toEqual(expectedOptions)
 })
 
