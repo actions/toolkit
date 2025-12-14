@@ -237,6 +237,8 @@ async function getCompressionProgram(
 ): Promise<string[]> {
   const cacheFileName = utils.getCacheFileName(compressionMethod)
   const normalizedCompressionLevel = normalizeCompressionLevel(compressionLevel)
+  // zstd treats level 0 as invalid (gzip supports it), so clamp zstd to 1+ to avoid errors
+  // See: https://github.com/facebook/zstd/issues/1680
   const zstdCompressionLevel = Math.max(1, normalizedCompressionLevel)
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
