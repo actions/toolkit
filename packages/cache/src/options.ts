@@ -142,15 +142,17 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
     : result.uploadChunkSize
 
   // Clamp the compression level between 0 and 9
-  const envCompressionLevel = Number(process.env['CACHE_COMPRESSION_LEVEL'])
-  if (!isNaN(envCompressionLevel)) {
-    result.compressionLevel = envCompressionLevel
-  }
-  const normalizedCompressionLevel = Math.min(
-    9,
-    Math.max(0, Math.floor(result.compressionLevel ?? 6))
+  result.compressionLevel = !isNaN(
+    Number(process.env['CACHE_COMPRESSION_LEVEL'])
   )
-  result.compressionLevel = normalizedCompressionLevel
+    ? Math.min(
+        9,
+        Math.max(
+          0,
+          Math.floor(Number(process.env['CACHE_COMPRESSION_LEVEL']))
+        )
+      )
+    : Math.min(9, Math.max(0, Math.floor(result.compressionLevel ?? 6)))
 
   core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
   core.debug(`Upload concurrency: ${result.uploadConcurrency}`)
