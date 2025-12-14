@@ -38,7 +38,7 @@ const key = 'npm-foobar-d5ea0750'
 const cacheId = await cache.saveCache(paths, key)
 ```
 
-You can control archive compression when saving. Provide `compressionLevel` in `UploadOptions` (0 = no compression, 9 = maximum, default = 6) or set the `CACHE_COMPRESSION_LEVEL` environment variable:
+You can control archive compression when saving. Provide `compressionLevel` in `UploadOptions` (0 = no compression/plain tar, 9 = maximum, default = 6) or set the `CACHE_COMPRESSION_LEVEL` environment variable:
 
 ```js
 const cacheId = await cache.saveCache(paths, key, {compressionLevel: 3})

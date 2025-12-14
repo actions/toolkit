@@ -405,8 +405,10 @@ async function saveCacheV1(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
-  const compressionMethod = await utils.getCompressionMethod()
   const uploadOptions = getUploadOptions(options)
+  const compressionMethod = await utils.getCompressionMethod(
+    uploadOptions.compressionLevel
+  )
   let cacheId = -1
 
   const cachePaths = await utils.resolvePaths(paths)
@@ -532,7 +534,9 @@ async function saveCacheV2(
     uploadConcurrency: 8, // 8 workers for parallel upload
     useAzureSdk: true
   })
-  const compressionMethod = await utils.getCompressionMethod()
+  const compressionMethod = await utils.getCompressionMethod(
+    uploadOptions.compressionLevel
+  )
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
   let cacheId = -1
 

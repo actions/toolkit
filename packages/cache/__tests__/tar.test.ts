@@ -356,6 +356,50 @@ test('gzip create tar', async () => {
   )
 })
 
+test('tar create without compression', async () => {
+  const execMock = jest.spyOn(exec, 'exec')
+
+  const archiveFolder = getTempDir()
+  const workspace = process.env['GITHUB_WORKSPACE']
+  const sourceDirectories = ['~/.npm/cache', `${workspace}/dist`]
+
+  await fs.promises.mkdir(archiveFolder, {recursive: true})
+
+  await tar.createTar(
+    archiveFolder,
+    sourceDirectories,
+    CompressionMethod.Tar,
+    0
+  )
+
+  const tarPath = IS_WINDOWS ? GnuTarPathOnWindows : defaultTarPath
+
+  expect(execMock).toHaveBeenCalledTimes(1)
+  expect(execMock).toHaveBeenCalledWith(
+    [
+      `"${tarPath}"`,
+      '--posix',
+      '-cf',
+      TarFilename.replace(/\\/g, '/'),
+      '--exclude',
+      TarFilename.replace(/\\/g, '/'),
+      '-P',
+      '-C',
+      IS_WINDOWS ? workspace?.replace(/\\/g, '/') : workspace,
+      '--files-from',
+      ManifestFilename
+    ]
+      .concat(IS_WINDOWS ? ['--force-local'] : [])
+      .concat(IS_MAC ? ['--delay-directory-restore'] : [])
+      .join(' '),
+    undefined,
+    {
+      cwd: archiveFolder,
+      env: expect.objectContaining(defaultEnv)
+    }
+  )
+})
+
 test('compression level controls zstd archive size', async () => {
   const sourceDirectories = ['a']
 

@@ -73,8 +73,9 @@ async function getTarArgs(
   // Specific args for BSD tar on windows for workaround
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
-    compressionMethod !== CompressionMethod.Gzip &&
-    IS_WINDOWS
+    IS_WINDOWS &&
+    (compressionMethod === CompressionMethod.Zstd ||
+      compressionMethod === CompressionMethod.ZstdWithoutLong)
 
   // Method specific args
   switch (type) {
@@ -140,8 +141,6 @@ async function getCommands(
   archivePath = '',
   compressionLevel = DEFAULT_COMPRESSION_LEVEL
 ): Promise<string[]> {
-  let args
-
   const normalizedCompressionLevel = normalizeCompressionLevel(compressionLevel)
 
   const tarPath = await getTarPath()
@@ -161,20 +160,22 @@ async function getCommands(
         )
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
-    compressionMethod !== CompressionMethod.Gzip &&
-    IS_WINDOWS
+    IS_WINDOWS &&
+    (compressionMethod === CompressionMethod.Zstd ||
+      compressionMethod === CompressionMethod.ZstdWithoutLong)
 
-  if (BSD_TAR_ZSTD && type !== 'create') {
-    args = [[...compressionArgs].join(' '), [...tarArgs].join(' ')]
-  } else {
-    args = [[...tarArgs].join(' '), [...compressionArgs].join(' ')]
-  }
+  const commandParts =
+    BSD_TAR_ZSTD && type !== 'create'
+      ? [[...compressionArgs].join(' '), [...tarArgs].join(' ')]
+      : [[...tarArgs].join(' '), [...compressionArgs].join(' ')]
+
+  const commands = commandParts.filter(part => part.trim().length > 0)
 
   if (BSD_TAR_ZSTD) {
-    return args
+    return commands
   }
 
-  return [args.join(' ')]
+  return [commands.join(' ')]
 }
 
 function getWorkingDirectory(): string {
@@ -193,8 +194,9 @@ async function getDecompressionProgram(
   // Using 30 here because we also support 32-bit self-hosted runners.
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
-    compressionMethod !== CompressionMethod.Gzip &&
-    IS_WINDOWS
+    IS_WINDOWS &&
+    (compressionMethod === CompressionMethod.Zstd ||
+      compressionMethod === CompressionMethod.ZstdWithoutLong)
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
@@ -215,6 +217,8 @@ async function getDecompressionProgram(
             archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
           ]
         : ['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd']
+    case CompressionMethod.Tar:
+      return []
     default:
       return ['-z']
   }
@@ -265,6 +269,8 @@ async function getCompressionProgram(
               ? `"zstd -T0 -${zstdCompressionLevel}"`
               : `zstdmt -${zstdCompressionLevel}`
           ]
+    case CompressionMethod.Tar:
+      return []
     default:
       return ['-z']
   }
@@ -351,6 +357,8 @@ function getCompressionEnv(
     case CompressionMethod.Zstd:
     case CompressionMethod.ZstdWithoutLong:
       return {ZSTD_CLEVEL: `${Math.max(1, compressionLevel)}`}
+    case CompressionMethod.Tar:
+      return undefined
     default:
       return undefined
   }
