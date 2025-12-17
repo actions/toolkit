@@ -49,7 +49,7 @@
     "semver": "^6.3.1"
   },
   "devDependencies": {
-    "@types/node": "^24.1.0",
+    "@types/node": "^25.0.3",
     "@types/semver": "^6.0.0",
     "@protobuf-ts/plugin": "^2.9.4",
     "typescript": "^5.2.2"
