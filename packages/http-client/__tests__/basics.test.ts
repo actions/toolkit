@@ -159,6 +159,18 @@ describe('basics', () => {
     expect(obj.url).toBe('https://postman-echo.com/get')
   })
 
+  it('does basic get request with hostname and relative redirects', async () => {
+    const res: httpm.HttpClientResponse = await _http.get(
+      `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
+        'https://www.postman-echo.com/redirect-to?url=get'
+      )}`
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    expect(obj.url).toBe('https://www.postman-echo.com/get')
+  })
+
   it('does basic get request with redirects (303)', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
       `https://postman-echo.com/redirect-to?url=${encodeURIComponent(
