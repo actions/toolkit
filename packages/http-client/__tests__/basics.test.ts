@@ -21,7 +21,10 @@ describe('basics', () => {
     _http = new httpm.HttpClient('http-client-tests')
   })
 
-  afterEach(() => {})
+  afterEach(() => {
+    // Clean up environment variable to prevent test pollution
+    delete process.env['ACTIONS_ORCHESTRATION_ID']
+  })
 
   it('constructs', () => {
     const http: httpm.HttpClient = new httpm.HttpClient('thttp-client-tests')
@@ -389,8 +392,6 @@ describe('basics', () => {
     expect(obj.headers['user-agent']).toBe(
       `http-client-tests actions_orchestration_id/${orchId}`
     )
-
-    delete process.env['ACTIONS_ORCHESTRATION_ID']
   })
 
   it('sanitizes invalid characters in orchestration ID', async () => {
@@ -408,8 +409,6 @@ describe('basics', () => {
     expect(obj.headers['user-agent']).toBe(
       'http-client-tests actions_orchestration_id/test__with__special_chars'
     )
-
-    delete process.env['ACTIONS_ORCHESTRATION_ID']
   })
 
   it('does not modify user-agent when ACTIONS_ORCHESTRATION_ID is not set', async () => {
@@ -423,5 +422,21 @@ describe('basics', () => {
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.headers['user-agent']).toBe('http-client-tests')
+  })
+
+  it('uses default user-agent with orchestration ID when no custom user-agent provided', async () => {
+    const orchId = 'test-default-id-12345'
+    process.env['ACTIONS_ORCHESTRATION_ID'] = orchId
+
+    const http: httpm.HttpClient = new httpm.HttpClient()
+    const res: httpm.HttpClientResponse = await http.get(
+      'https://postman-echo.com/get'
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    expect(obj.headers['user-agent']).toBe(
+      `actions/http-client actions_orchestration_id/${orchId}`
+    )
   })
 })
