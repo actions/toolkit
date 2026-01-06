@@ -387,7 +387,26 @@ describe('basics', () => {
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.headers['user-agent']).toBe(
-      `http-client-tests (gh_orch_id:${orchId})`
+      `http-client-tests github_orchestration_id/${orchId}`
+    )
+
+    delete process.env['ACTIONS_ORCHESTRATION_ID']
+  })
+
+  it('sanitizes invalid characters in orchestration ID', async () => {
+    const orchId = 'test (with) special/chars'
+    process.env['ACTIONS_ORCHESTRATION_ID'] = orchId
+
+    const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests')
+    const res: httpm.HttpClientResponse = await http.get(
+      'https://postman-echo.com/get'
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    // Spaces, parentheses, and slashes should be replaced with underscores
+    expect(obj.headers['user-agent']).toBe(
+      'http-client-tests github_orchestration_id/test__with__special_chars'
     )
 
     delete process.env['ACTIONS_ORCHESTRATION_ID']
