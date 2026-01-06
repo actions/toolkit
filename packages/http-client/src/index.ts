@@ -821,9 +821,9 @@ export class HttpClient {
   private _getUserAgentWithOrchestrationId(userAgent: string): string {
     const orchId = process.env['ACTIONS_ORCHESTRATION_ID']
     if (orchId) {
-      // Sanitize the orchestration ID to ensure it contains only valid token characters
-      // Valid characters: alphanumeric, !, #, $, %, &, ', *, +, -, ., ^, _, `, |, ~
-      const sanitizedId = orchId.replace(/[^a-zA-Z0-9!#$%&'*+.^_`|~-]/g, '_')
+      // Sanitize the orchestration ID to ensure it contains only valid characters
+      // Valid characters: 0-9, a-z, _, -, .
+      const sanitizedId = orchId.replace(/[^a-z0-9_.\-]/gi, '_')
       return `${userAgent} actions_orchestration_id/${sanitizedId}`
     }
     return userAgent
