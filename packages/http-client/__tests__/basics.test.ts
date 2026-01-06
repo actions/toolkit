@@ -387,7 +387,7 @@ describe('basics', () => {
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.headers['user-agent']).toBe(
-      `http-client-tests github_orchestration_id/${orchId}`
+      `http-client-tests actions_orchestration_id/${orchId}`
     )
 
     delete process.env['ACTIONS_ORCHESTRATION_ID']
@@ -406,7 +406,7 @@ describe('basics', () => {
     const obj = JSON.parse(body)
     // Spaces, parentheses, and slashes should be replaced with underscores
     expect(obj.headers['user-agent']).toBe(
-      'http-client-tests github_orchestration_id/test__with__special_chars'
+      'http-client-tests actions_orchestration_id/test__with__special_chars'
     )
 
     delete process.env['ACTIONS_ORCHESTRATION_ID']

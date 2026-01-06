@@ -823,7 +823,7 @@ export class HttpClient {
       // Sanitize the orchestration ID to ensure it contains only valid token characters
       // Valid characters: alphanumeric, !, #, $, %, &, ', *, +, -, ., ^, _, `, |, ~
       const sanitizedId = orchId.replace(/[^a-zA-Z0-9!#$%&'*+.^_`|~-]/g, '_')
-      return `${userAgent} github_orchestration_id/${sanitizedId}`
+      return `${userAgent} actions_orchestration_id/${sanitizedId}`
     }
     return userAgent
   }
