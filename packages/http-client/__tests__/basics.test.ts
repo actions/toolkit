@@ -378,7 +378,7 @@ describe('basics', () => {
   it('appends orchestration ID to user-agent when ACTIONS_ORCHESTRATION_ID is set', async () => {
     const orchId = 'test-orch-id-12345'
     process.env['ACTIONS_ORCHESTRATION_ID'] = orchId
-    
+
     const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests')
     const res: httpm.HttpClientResponse = await http.get(
       'https://postman-echo.com/get'
@@ -389,13 +389,13 @@ describe('basics', () => {
     expect(obj.headers['user-agent']).toBe(
       `http-client-tests (gh_orch_id:${orchId})`
     )
-    
+
     delete process.env['ACTIONS_ORCHESTRATION_ID']
   })
 
   it('does not modify user-agent when ACTIONS_ORCHESTRATION_ID is not set', async () => {
     delete process.env['ACTIONS_ORCHESTRATION_ID']
-    
+
     const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests')
     const res: httpm.HttpClientResponse = await http.get(
       'https://postman-echo.com/get'
