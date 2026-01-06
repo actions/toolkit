@@ -60,7 +60,7 @@ describe('basics', () => {
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.url).toBe('https://postman-echo.com/get')
-    expect(obj.headers['user-agent']).toBeFalsy()
+    expect(obj.headers['user-agent']).toBe('actions/http-client')
   })
 
   /* TODO write a mock rather then relying on a third party
