@@ -822,7 +822,7 @@ export class HttpClient {
     if (orchId) {
       // Sanitize the orchestration ID to ensure it contains only valid characters
       // Valid characters: 0-9, a-z, _, -, .
-      const sanitizedId = orchId.replace(/[^a-z0-9_.\-]/gi, '_')
+      const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, '_')
       return `${baseUserAgent} actions_orchestration_id/${sanitizedId}`
     }
     return baseUserAgent
