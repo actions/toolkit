@@ -148,6 +148,8 @@ export class HttpClient {
     requestOptions?: ifm.RequestOptions
   ) {
     this.userAgent = userAgent
+      ? this._getUserAgentWithOrchestrationId(userAgent)
+      : undefined
     this.handlers = handlers || []
     this.requestOptions = requestOptions
     if (requestOptions) {
@@ -599,8 +601,7 @@ export class HttpClient {
     info.options.method = method
     info.options.headers = this._mergeHeaders(headers)
     if (this.userAgent != null) {
-      info.options.headers['user-agent'] =
-        this._getUserAgentWithOrchestrationId(this.userAgent)
+      info.options.headers['user-agent'] = this.userAgent
     }
 
     info.options.agent = this._getAgent(info.parsedUrl)
