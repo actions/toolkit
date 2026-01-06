@@ -599,7 +599,7 @@ export class HttpClient {
     info.options.method = method
     info.options.headers = this._mergeHeaders(headers)
     if (this.userAgent != null) {
-      info.options.headers['user-agent'] = this.userAgent
+      info.options.headers['user-agent'] = this._getUserAgentWithOrchestrationId(this.userAgent)
     }
 
     info.options.agent = this._getAgent(info.parsedUrl)
@@ -814,6 +814,14 @@ export class HttpClient {
     }
 
     return proxyAgent
+  }
+
+  private _getUserAgentWithOrchestrationId(userAgent: string): string {
+    const orchId = process.env['ACTIONS_ORCHESTRATION_ID']
+    if (orchId) {
+      return `${userAgent} (gh_orch_id:${orchId})`
+    }
+    return userAgent
   }
 
   private async _performExponentialBackoff(retryNumber: number): Promise<void> {
