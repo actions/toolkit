@@ -147,9 +147,7 @@ export class HttpClient {
     handlers?: ifm.RequestHandler[],
     requestOptions?: ifm.RequestOptions
   ) {
-    this.userAgent = userAgent
-      ? this._getUserAgentWithOrchestrationId(userAgent)
-      : undefined
+    this.userAgent = this._getUserAgentWithOrchestrationId(userAgent)
     this.handlers = handlers || []
     this.requestOptions = requestOptions
     if (requestOptions) {
@@ -818,7 +816,12 @@ export class HttpClient {
     return proxyAgent
   }
 
-  private _getUserAgentWithOrchestrationId(userAgent: string): string {
+  private _getUserAgentWithOrchestrationId(
+    userAgent?: string
+  ): string | undefined {
+    if (!userAgent) {
+      return undefined
+    }
     const orchId = process.env['ACTIONS_ORCHESTRATION_ID']
     if (orchId) {
       // Sanitize the orchestration ID to ensure it contains only valid characters
