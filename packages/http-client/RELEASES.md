@@ -1,6 +1,6 @@
 ## Releases
 
-## 3.1.0
+## 3.0.1
 - Add support for ACTIONS_ORCHESTRATION_ID in user-agent [#2229](https://github.com/actions/toolkit/pull/2229)
 - Add default user-agent when none is provided [#2229](https://github.com/actions/toolkit/pull/2229)
 
