@@ -147,7 +147,7 @@ export class HttpClient {
     handlers?: ifm.RequestHandler[],
     requestOptions?: ifm.RequestOptions
   ) {
-    this.userAgent = userAgent
+    this.userAgent = this._getUserAgentWithOrchestrationId(userAgent)
     this.handlers = handlers || []
     this.requestOptions = requestOptions
     if (requestOptions) {
@@ -814,6 +814,18 @@ export class HttpClient {
     }
 
     return proxyAgent
+  }
+
+  private _getUserAgentWithOrchestrationId(userAgent?: string): string {
+    const baseUserAgent = userAgent || 'actions/http-client'
+    const orchId = process.env['ACTIONS_ORCHESTRATION_ID']
+    if (orchId) {
+      // Sanitize the orchestration ID to ensure it contains only valid characters
+      // Valid characters: 0-9, a-z, _, -, .
+      const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, '_')
+      return `${baseUserAgent} actions_orchestration_id/${sanitizedId}`
+    }
+    return baseUserAgent
   }
 
   private async _performExponentialBackoff(retryNumber: number): Promise<void> {
