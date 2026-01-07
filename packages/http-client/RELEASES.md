@@ -1,5 +1,9 @@
 ## Releases
 
+## 3.1.0
+- Add support for ACTIONS_ORCHESTRATION_ID in user-agent [#2229](https://github.com/actions/toolkit/pull/2229)
+- Add default user-agent when none is provided [#2229](https://github.com/actions/toolkit/pull/2229)
+
 ## 3.0.0
 - Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
 
