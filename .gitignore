@@ -5,4 +5,3 @@ packages/*/__tests__/_temp/
 .DS_Store
 *.xar
 packages/*/audit.json
-.nx/
