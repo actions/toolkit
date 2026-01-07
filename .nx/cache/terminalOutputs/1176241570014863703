@@ -1,0 +1,38 @@
+
+> @actions/glob@0.5.0 tsc
+> tsc
+
+error TS2318: Cannot find global type 'AsyncIterableIterator'.
+node_modules/@actions/core/lib/platform.d.ts(1,23): error TS2688: Cannot find type definition file for 'node'.
+node_modules/@actions/core/lib/platform.d.ts(2,32): error TS2503: Cannot find namespace 'NodeJS'.
+src/internal-globber.ts(2,21): error TS2307: Cannot find module 'fs' or its corresponding type declarations.
+src/internal-globber.ts(4,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/internal-globber.ts(11,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-globber.ts(41,20): error TS2583: Cannot find name 'AsyncGenerator'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2018' or later.
+src/internal-globber.ts(66,27): error TS2583: Cannot find name 'AsyncGenerator'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2018' or later.
+src/internal-hash-files.ts(1,25): error TS2307: Cannot find module 'crypto' or its corresponding type declarations.
+src/internal-hash-files.ts(3,21): error TS2307: Cannot find module 'fs' or its corresponding type declarations.
+src/internal-hash-files.ts(4,25): error TS2307: Cannot find module 'stream' or its corresponding type declarations.
+src/internal-hash-files.ts(5,23): error TS2307: Cannot find module 'util' or its corresponding type declarations.
+src/internal-hash-files.ts(6,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/internal-hash-files.ts(18,8): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-hash-files.ts(18,43): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-path-helper.ts(1,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/internal-path-helper.ts(2,20): error TS2307: Cannot find module 'assert' or its corresponding type declarations.
+src/internal-path-helper.ts(4,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-path-helper.ts(60,17): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-path-helper.ts(89,19): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-path.ts(1,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/internal-path.ts(3,20): error TS2307: Cannot find module 'assert' or its corresponding type declarations.
+src/internal-path.ts(5,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-pattern-helper.ts(5,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-pattern.ts(1,21): error TS2307: Cannot find module 'os' or its corresponding type declarations.
+src/internal-pattern.ts(2,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/internal-pattern.ts(4,20): error TS2307: Cannot find module 'assert' or its corresponding type declarations.
+src/internal-pattern.ts(9,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-pattern.ts(224,36): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/internal-pattern.ts(231,36): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/internal-pattern.ts(234,36): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/internal-pattern.ts(261,28): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.

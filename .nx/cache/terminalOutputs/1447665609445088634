@@ -1,0 +1,18 @@
+
+> @actions/io@2.0.0 tsc
+> tsc
+
+src/io-util.ts(1,21): error TS2307: Cannot find module 'fs' or its corresponding type declarations.
+src/io-util.ts(2,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/io-util.ts(19,27): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io-util.ts(194,7): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io-util.ts(195,21): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io-util.ts(197,7): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io-util.ts(198,21): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io-util.ts(204,10): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io.ts(1,18): error TS2307: Cannot find module 'assert' or its corresponding type declarations.
+src/io.ts(2,23): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/io.ts(200,28): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io.ts(201,29): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io.ts(232,7): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/io.ts(233,21): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
