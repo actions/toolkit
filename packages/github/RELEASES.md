@@ -1,5 +1,9 @@
 # @actions/github Releases
 
+### 7.0.0
+
+- Update to v3.0.1 of `@actions/http-client`
+
 ### 6.0.1
 
 - Dependency updates [#2043](https://github.com/actions/toolkit/pull/2043)

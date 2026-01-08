@@ -1,5 +1,12 @@
 # @actions/tool-cache Releases
 
+### 3.0.0
+
+- Update to v2.0.1 of `@actions/core`
+- Update to v2.0.0 of `@actions/exec`
+- Update to v3.0.1 of `@actions/http-client`
+- Update to v2.0.0 of `@actions/io`
+
 ### 2.0.2
 
 - Update `@actions/core` to v1.11.1 [#1872](https://github.com/actions/toolkit/pull/1872)
