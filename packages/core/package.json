@@ -1,6 +1,6 @@
 {
   "name": "@actions/core",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Actions core lib",
   "keywords": [
     "github",
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@actions/exec": "^2.0.0",
-    "@actions/http-client": "^3.0.0"
+    "@actions/http-client": "^3.0.1"
   },
   "devDependencies": {
     "@types/node": "^16.18.112"
