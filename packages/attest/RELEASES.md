@@ -1,6 +1,6 @@
 # @actions/attest Releases
 
-### 3.0.0
+### 2.2.0
 
 - Bump @actions/core from 1.11.1 to 2.0.2
 - Bump @actions/github from 6.0.0 to 7.0.0
