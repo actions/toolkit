@@ -1,5 +1,11 @@
 # @actions/attest Releases
 
+### 2.2.0
+
+- Bump @actions/core from 1.11.1 to 2.0.2
+- Bump @actions/github from 6.0.0 to 7.0.0
+- Bump @actions/http-client from 2.2.3 to 3.0.1
+
 ### 2.0.0
 
 - Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
