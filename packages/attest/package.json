@@ -1,6 +1,6 @@
 {
   "name": "@actions/attest",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Actions attestation lib",
   "keywords": [
     "github",
@@ -42,9 +42,9 @@
     "undici": "^6.20.0"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
-    "@actions/http-client": "^2.2.3",
+    "@actions/core": "^2.0.2",
+    "@actions/github": "^7.0.0",
+    "@actions/http-client": "^3.0.1",
     "@octokit/plugin-retry": "^6.0.1",
     "@sigstore/bundle": "^3.1.0",
     "@sigstore/sign": "^3.1.0",
