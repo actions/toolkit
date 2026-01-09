@@ -188,7 +188,7 @@ export class Pattern {
    */
   static globEscape(s: string): string {
     return (IS_WINDOWS ? s : s.replace(/\\/g, '\\\\')) // escape '\' on Linux/macOS
-      .replace(/(\[)(?=[^/]+\])/g, '[[]') // escape '[' when ']' follows within the path segment
+      .replace(/(\[)(?!\[{500})([^/]+\])/g, '[[]$2') // escape '[' when ']' follows within the path segment
       .replace(/\?/g, '[?]') // escape '?'
       .replace(/\*/g, '[*]') // escape '*'
   }
