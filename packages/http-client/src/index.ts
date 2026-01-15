@@ -800,18 +800,14 @@ export class HttpClient {
         token: `Basic ${Buffer.from(
           `${proxyUrl.username}:${proxyUrl.password}`
         ).toString('base64')}`
+      }),
+      ...(usingSsl && this._ignoreSslError && {
+        requestTls: {
+          rejectUnauthorized: false
+        }
       })
     })
     this._proxyAgentDispatcher = proxyAgent
-
-    if (usingSsl && this._ignoreSslError) {
-      // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
-      // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
-      // we have to cast it to any and change it directly
-      proxyAgent.options = Object.assign(proxyAgent.options.requestTls || {}, {
-        rejectUnauthorized: false
-      })
-    }
 
     return proxyAgent
   }
