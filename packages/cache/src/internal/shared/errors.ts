@@ -70,3 +70,10 @@ export class UsageError extends Error {
     return msg.includes('insufficient usage')
   }
 }
+
+export class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'RateLimitError'
+  }
+}

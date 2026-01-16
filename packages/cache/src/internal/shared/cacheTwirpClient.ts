@@ -1,6 +1,6 @@
-import {info, debug} from '@actions/core'
+import {info, debug, warning} from '@actions/core'
 import {getUserAgentString} from './user-agent'
-import {NetworkError, UsageError} from './errors'
+import {NetworkError, RateLimitError, UsageError} from './errors'
 import {getCacheServiceURL} from '../config'
 import {getRuntimeToken} from '../cacheUtils'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
@@ -109,12 +109,31 @@ class CacheServiceClient implements Rpc {
 
           errorMessage = `${errorMessage}: ${body.msg}`
         }
+
+        // Handle rate limiting - don't retry, just warn and exit
+        // For more info, see https://docs.github.com/en/actions/reference/limits
+        if (statusCode === HttpCodes.TooManyRequests) {
+          const retryAfterHeader = response.message.headers['retry-after']
+          if (retryAfterHeader) {
+            const parsedSeconds = parseInt(retryAfterHeader, 10)
+            if (!isNaN(parsedSeconds) && parsedSeconds > 0) {
+              warning(
+                `You've hit a rate limit, your rate limit will reset in ${parsedSeconds} seconds`
+              )
+            }
+          }
+          throw new RateLimitError(`Rate limited: ${errorMessage}`)
+        }
       } catch (error) {
         if (error instanceof SyntaxError) {
           debug(`Raw Body: ${rawBody}`)
         }
 
         if (error instanceof UsageError) {
+          throw error
+        }
+
+        if (error instanceof RateLimitError) {
           throw error
         }
 
@@ -162,8 +181,7 @@ class CacheServiceClient implements Rpc {
       HttpCodes.BadGateway,
       HttpCodes.GatewayTimeout,
       HttpCodes.InternalServerError,
-      HttpCodes.ServiceUnavailable,
-      HttpCodes.TooManyRequests
+      HttpCodes.ServiceUnavailable
     ]
 
     return retryableStatusCodes.includes(statusCode)
