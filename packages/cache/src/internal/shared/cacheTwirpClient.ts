@@ -111,6 +111,7 @@ class CacheServiceClient implements Rpc {
         }
 
         // Handle rate limiting - don't retry, just warn and exit
+        // For more info, see https://docs.github.com/en/actions/reference/limits
         if (statusCode === HttpCodes.TooManyRequests) {
           const retryAfterHeader = response.message.headers['retry-after']
           if (retryAfterHeader) {
