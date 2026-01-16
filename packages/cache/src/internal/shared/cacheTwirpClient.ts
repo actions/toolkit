@@ -136,6 +136,11 @@ class CacheServiceClient implements Rpc {
           throw new NetworkError(error?.code)
         }
 
+        // Re-throw rate limit errors without retry
+        if (error.message?.startsWith('Rate limited:')) {
+          throw error
+        }
+
         isRetryable = true
         errorMessage = error.message
       }

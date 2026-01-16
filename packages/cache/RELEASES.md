@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+### 5.0.2
+
+Fail cache saves on rate limit errors from the cache service to prevent slowing down impacted runs
+
 ### 5.0.1
 
 - Fix Node.js 24 punycode deprecation warning by updating `@azure/storage-blob` from `^12.13.0` to `^12.29.1` [#2213](https://github.com/actions/toolkit/pull/2213)
