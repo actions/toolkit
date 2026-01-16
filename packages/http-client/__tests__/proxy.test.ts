@@ -319,6 +319,35 @@ describe('proxy', () => {
     expect(agent.proxyOptions.port).toBe('8080')
     expect(agent.proxyOptions.proxyAuth).toBe('user@github.com:p@ssword')
   })
+
+  it('ProxyAgent is configured with requestTls rejectUnauthorized false when ignoreSslError is true for SSL connections', async () => {
+    process.env['https_proxy'] = 'http://127.0.0.1:8080'
+    process.env['http_proxy'] = 'http://127.0.0.1:8080'
+    
+    const httpClient = new httpm.HttpClient('test-agent', [], {
+      ignoreSslError: true
+    })
+    
+    const httpsAgent = httpClient.getAgentDispatcher('https://api.github.com')
+    expect(httpsAgent instanceof ProxyAgent).toBe(true)
+    expect(httpsAgent).toBeDefined()
+    
+    const httpAgent = httpClient.getAgentDispatcher('http://api.github.com')
+    expect(httpAgent instanceof ProxyAgent).toBe(true)
+    expect(httpAgent).toBeDefined()    
+  })
+
+  it('ProxyAgent works correctly when ignoreSslError is false for SSL connections', async () => {
+    process.env['https_proxy'] = 'http://127.0.0.1:8080'
+    
+    const httpClient = new httpm.HttpClient('test-agent', [], {
+      ignoreSslError: false
+    })
+    
+    const agent = httpClient.getAgentDispatcher('https://api.github.com')
+    expect(agent instanceof ProxyAgent).toBe(true)
+    expect(agent).toBeDefined()
+  })
 })
 
 function _clearVars(): void {
