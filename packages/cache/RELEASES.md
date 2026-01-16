@@ -1,6 +1,6 @@
 # @actions/cache Releases
 
-### 5.0.2
+### 5.0.3
 
 Fail cache saves on rate limit errors from the cache service to prevent slowing down impacted runs
 
