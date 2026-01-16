@@ -1,6 +1,6 @@
 import {info, debug, warning} from '@actions/core'
 import {getUserAgentString} from './user-agent'
-import {NetworkError, UsageError} from './errors'
+import {NetworkError, RateLimitError, UsageError} from './errors'
 import {getCacheServiceURL} from '../config'
 import {getRuntimeToken} from '../cacheUtils'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
@@ -121,7 +121,7 @@ class CacheServiceClient implements Rpc {
               )
             }
           }
-          throw new Error(`Rate limited: ${errorMessage}`)
+          throw new RateLimitError(`Rate limited: ${errorMessage}`)
         }
       } catch (error) {
         if (error instanceof SyntaxError) {
@@ -132,13 +132,12 @@ class CacheServiceClient implements Rpc {
           throw error
         }
 
-        if (NetworkError.isNetworkErrorCode(error?.code)) {
-          throw new NetworkError(error?.code)
+        if (error instanceof RateLimitError) {
+          throw error
         }
 
-        // Re-throw rate limit errors without retry
-        if (error.message?.startsWith('Rate limited:')) {
-          throw error
+        if (NetworkError.isNetworkErrorCode(error?.code)) {
+          throw new NetworkError(error?.code)
         }
 
         isRetryable = true

@@ -2,7 +2,7 @@
 
 ### 5.0.3
 
-Fail cache saves on rate limit errors from the cache service to prevent slowing down impacted runs [2243](https://github.com/actions/toolkit/pull/2243).
+Fail cache operations on rate limit errors from the cache service to prevent slowing down impacted runs [2243](https://github.com/actions/toolkit/pull/2243).
 
 ### 5.0.1
 
