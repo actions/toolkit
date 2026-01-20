@@ -23,8 +23,27 @@ describe('provenance functions', () => {
     repository: 'owner/repo',
     ref: 'refs/heads/main',
     sha: 'babca52ab0c93ae16539e5923cb0d7403b9a093b',
-    job_workflow_ref: 'owner/workflows/.github/workflows/publish.yml@main',
-    workflow_ref: 'owner/repo/.github/workflows/main.yml@main',
+    job_workflow_ref:
+      'owner/workflows/.github/workflows/publish.yml@refs/heads/main',
+    workflow_ref: 'owner/repo/.github/workflows/main.yml@refs/heads/main',
+    event_name: 'push',
+    repository_id: 'repo-id',
+    repository_owner_id: 'owner-id',
+    run_id: 'run-id',
+    run_attempt: 'run-attempt',
+    runner_environment: 'github-hosted'
+  }
+
+  const orgEnforcedclaims = {
+    iss: issuer,
+    aud: 'nobody',
+    repository: 'owner/repo',
+    ref: 'refs/heads/main',
+    sha: 'babca52ab0c93ae16539e5923cb0d7403b9a093b',
+    job_workflow_ref:
+      'enterprise/org-workflows/.github/workflows/enforce.yml@refs/heads/vetted',
+    workflow_ref:
+      'enterprise/org-workflows/.github/workflows/enforce.yml@refs/heads/vetted',
     event_name: 'push',
     repository_id: 'repo-id',
     repository_owner_id: 'owner-id',
@@ -73,7 +92,14 @@ describe('provenance functions', () => {
   describe('buildSLSAProvenancePredicate', () => {
     it('returns a provenance hydrated from an OIDC token', async () => {
       const predicate = await buildSLSAProvenancePredicate()
-      expect(predicate).toMatchSnapshot()
+      expect(predicate).toMatchSnapshot('provenance with OIDC token')
+    })
+
+    it('returns a provenance from an org required workflow', async () => {
+      nock.cleanAll()
+      await mockIssuer(orgEnforcedclaims)
+      const predicate = await buildSLSAProvenancePredicate()
+      expect(predicate).toMatchSnapshot('provenance from org required workflow')
     })
   })
 

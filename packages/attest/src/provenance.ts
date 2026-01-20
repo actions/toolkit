@@ -27,12 +27,15 @@ export const buildSLSAProvenancePredicate = async (
   const serverURL = process.env.GITHUB_SERVER_URL
   const claims = await getIDTokenClaims(issuer)
 
-  // Split just the path and ref from the workflow string.
-  // owner/repo/.github/workflows/main.yml@main =>
-  //   .github/workflows/main.yml, main
-  const [workflowPath] = claims.workflow_ref
-    .replace(`${claims.repository}/`, '')
-    .split('@')
+  // Split up the repo, path and ref from the workflow string.
+  // owner/repo/.github/workflows/main.yml@refs/heads/main =>
+  //   owner/repo, .github/workflows/main.yml, main
+  const workflowRef = claims.workflow_ref
+  const pathStart = workflowRef.indexOf('/.github/')
+  const refStart = workflowRef.lastIndexOf('@')
+  const workflowRepo = workflowRef.substring(0, pathStart)
+  const workflowPath = workflowRef.substring(pathStart + 1, refStart)
+  const workflowGitRef = workflowRef.substring(refStart + 1)
 
   return {
     type: SLSA_PREDICATE_V1_TYPE,
@@ -41,8 +44,8 @@ export const buildSLSAProvenancePredicate = async (
         buildType: GITHUB_BUILD_TYPE,
         externalParameters: {
           workflow: {
-            ref: claims.ref,
-            repository: `${serverURL}/${claims.repository}`,
+            ref: workflowGitRef,
+            repository: `${serverURL}/${workflowRepo}`,
             path: workflowPath
           }
         },
