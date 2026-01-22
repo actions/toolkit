@@ -431,11 +431,18 @@ export async function cacheDir(
 
   // Create the tool dir
   const destPath: string = await _createToolPath(tool, version, arch)
-  // copy each child item. do not move. move can fail on Windows
-  // due to anti-virus software having an open handle on a file.
-  for (const itemName of fs.readdirSync(sourceDir)) {
-    const s = path.join(sourceDir, itemName)
-    await io.cp(s, destPath, {recursive: true})
+  if (IS_WINDOWS) {
+    // copy each child item. do not move. move can fail on Windows
+    // due to anti-virus software having an open handle on a file.
+    for (const itemName of fs.readdirSync(sourceDir)) {
+      const s = path.join(sourceDir, itemName)
+      await io.cp(s, destPath, {recursive: true})
+    }
+  } else {
+    for (const itemName of fs.readdirSync(sourceDir)) {
+      const s = path.join(sourceDir, itemName)
+      await io.mv(s, destPath, {recursive: true})
+    }
   }
 
   // write .complete
@@ -473,11 +480,16 @@ export async function cacheFile(
   // create the tool dir
   const destFolder: string = await _createToolPath(tool, version, arch)
 
-  // copy instead of move. move can fail on Windows due to
-  // anti-virus software having an open handle on a file.
   const destPath: string = path.join(destFolder, targetFile)
   core.debug(`destination file ${destPath}`)
-  await io.cp(sourceFile, destPath)
+
+  if (IS_WINDOWS) {
+    // copy instead of move. move can fail on Windows due to
+    // anti-virus software having an open handle on a file.
+    await io.cp(sourceFile, destPath)
+  } else {
+    await io.mv(sourceFile, destPath)
+  }
 
   // write .complete
   _completeToolPath(tool, version, arch)
