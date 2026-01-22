@@ -1,5 +1,15 @@
 # @actions/github Releases
 
+### 8.0.0
+
+- Update @octokit dependencies 
+  - `@octokit/core` ^7.0.6
+  - `@octokit/plugin-paginate-rest` ^14.0.0
+  - `@octokit/plugin-rest-endpoint-methods` ^17.0.0
+  - `@octokit/request` ^10.0.7
+  - `@octokit/request-error` ^7.1.0
+- **Breaking change**: Minimum Node.js version is now 20 (previously 18)
+
 ### 7.0.0
 
 - Update to v3.0.1 of `@actions/http-client`

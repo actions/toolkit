@@ -5,7 +5,17 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/__tests__/*.test.ts'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', {isolatedModules: true, diagnostics: {warnOnly: true}}]
+    '^.+\\.(ts|js)$': ['ts-jest', {
+      isolatedModules: true,
+      diagnostics: {warnOnly: true},
+      tsconfig: {
+        allowJs: true,
+        esModuleInterop: true
+      }
+    }]
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(@octokit|universal-user-agent|before-after-hook)/)'
+  ],
   verbose: true
 }
