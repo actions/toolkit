@@ -555,6 +555,8 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
         if (fs.existsSync(fullPath) && fs.existsSync(`${fullPath}.complete`)) {
           versions.push(child)
         }
+      } else {
+        core.debug(`Skipping ${child} as it is not an explicit version.`)
       }
     }
   }
