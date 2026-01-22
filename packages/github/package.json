@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "7.0.0",
+  "version": "8.0.0",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -39,11 +39,11 @@
   },
   "dependencies": {
     "@actions/http-client": "^3.0.1",
-    "@octokit/core": "^5.0.1",
-    "@octokit/plugin-paginate-rest": "^9.2.2",
-    "@octokit/plugin-rest-endpoint-methods": "^10.4.0",
-    "@octokit/request": "^8.4.1",
-    "@octokit/request-error": "^5.1.1",
+    "@octokit/core": "^7.0.6",
+    "@octokit/plugin-paginate-rest": "^14.0.0",
+    "@octokit/plugin-rest-endpoint-methods": "^17.0.0",
+    "@octokit/request": "^10.0.7",
+    "@octokit/request-error": "^7.1.0",
     "undici": "^5.28.5"
   },
   "devDependencies": {
