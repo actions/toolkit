@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@actions/core": "^2.0.0",
-    "@actions/github": "^6.0.1",
+    "@actions/github": "^7.0.0",
     "@actions/http-client": "^3.0.1",
     "@azure/storage-blob": "^12.29.1",
     "@octokit/core": "^5.2.1",
