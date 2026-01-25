@@ -184,7 +184,7 @@ await artifact.uploadArtifact('my-massive-artifact', ['big_file.bin'], {
   compressionLevel: 0
 })
 ```
-
+p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM
 ## Additional Resources
 
 - [Releases](./RELEASES.md)
