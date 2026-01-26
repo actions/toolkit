@@ -93,7 +93,9 @@ export async function streamExtractExternal(
     /filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?/i
   )
   if (filenameMatch && filenameMatch[1]) {
-    fileName = decodeURIComponent(filenameMatch[1].trim())
+    // Sanitize fileName to prevent path traversal attacks
+    // Use path.basename to extract only the filename component
+    fileName = path.basename(decodeURIComponent(filenameMatch[1].trim()))
   }
 
   core.debug(`Content-Type: ${contentType}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`)
