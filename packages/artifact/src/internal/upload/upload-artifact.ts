@@ -32,7 +32,7 @@ export async function uploadArtifact(
 ): Promise<UploadArtifactResponse> {
   let artifactFileName = `${name}.zip`
   if (options?.skipArchive) {
-    if (files.length > 1){
+    if (files.length > 1) {
       throw new Error(
         'skipArchive option is only supported when uploading a single file'
       )
@@ -86,7 +86,7 @@ export async function uploadArtifact(
     )
   }
 
-  let stream : WaterMarkedUploadStream
+  let stream: WaterMarkedUploadStream
 
   if (options?.skipArchive) {
     // Upload raw file without archiving
@@ -101,10 +101,10 @@ export async function uploadArtifact(
 
   core.info(`Uploading artifact: ${artifactFileName}`)
   const uploadResult = await uploadToBlobStorage(
-      createArtifactResp.signedUploadUrl,
-      stream,
-      contentType
-    )
+    createArtifactResp.signedUploadUrl,
+    stream,
+    contentType
+  )
 
   // finalize the artifact
   const finalizeArtifactReq: FinalizeArtifactRequest = {

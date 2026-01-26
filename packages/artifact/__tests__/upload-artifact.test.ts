@@ -392,7 +392,6 @@ describe('upload-artifact', () => {
         .mockRestore()
 
       const singleFile = path.join(fixtures.uploadDirectory, 'file1.txt')
-      const expectedFileName = 'file1.txt'
       const expectedContent = 'test 1 file content'
 
       jest
