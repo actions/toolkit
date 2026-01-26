@@ -687,7 +687,8 @@ describe('download-artifact', () => {
         const message = new http.IncomingMessage(new net.Socket())
         message.statusCode = 200
         message.headers['content-type'] = 'text/plain'
-        message.headers['content-disposition'] = `attachment; filename="${rawFileName}"`
+        message.headers['content-disposition'] =
+          `attachment; filename="${rawFileName}"`
         message.push(Buffer.from(rawFileContent))
         message.push(null)
         return {
@@ -753,13 +754,16 @@ describe('download-artifact', () => {
     it('should not attempt to unzip when content-type is image/png', async () => {
       const pngFileName = 'screenshot.png'
       // Simple PNG header bytes for testing
-      const pngContent = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+      const pngContent = Buffer.from([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+      ])
 
       const mockGetPngFile = jest.fn(() => {
         const message = new http.IncomingMessage(new net.Socket())
         message.statusCode = 200
         message.headers['content-type'] = 'image/png'
-        message.headers['content-disposition'] = `attachment; filename="${pngFileName}"`
+        message.headers['content-disposition'] =
+          `attachment; filename="${pngFileName}"`
         message.push(pngContent)
         message.push(null)
         return {
@@ -851,7 +855,8 @@ describe('download-artifact', () => {
         const message = new http.IncomingMessage(new net.Socket())
         message.statusCode = 200
         message.headers['content-type'] = 'text/plain'
-        message.headers['content-disposition'] = `attachment; filename="${maliciousFileName}"`
+        message.headers['content-disposition'] =
+          `attachment; filename="${maliciousFileName}"`
         message.push(Buffer.from(rawFileContent))
         message.push(null)
         return {
@@ -880,7 +885,10 @@ describe('download-artifact', () => {
       expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
 
       // Verify the file was NOT written outside the workspace directory
-      const maliciousPath = path.resolve(fixtures.workspaceDir, maliciousFileName)
+      const maliciousPath = path.resolve(
+        fixtures.workspaceDir,
+        maliciousFileName
+      )
       expect(fs.existsSync(maliciousPath)).toBe(false)
     })
 
@@ -893,7 +901,8 @@ describe('download-artifact', () => {
         const message = new http.IncomingMessage(new net.Socket())
         message.statusCode = 200
         message.headers['content-type'] = 'application/octet-stream'
-        message.headers['content-disposition'] = `attachment; filename="${encodedMaliciousFileName}"`
+        message.headers['content-disposition'] =
+          `attachment; filename="${encodedMaliciousFileName}"`
         message.push(Buffer.from(rawFileContent))
         message.push(null)
         return {
