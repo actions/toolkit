@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import * as path from 'path'
 import {
   UploadArtifactOptions,
   UploadArtifactResponse
@@ -12,14 +13,16 @@ import {
   validateRootDirectory
 } from './upload-zip-specification.js'
 import {getBackendIdsFromToken} from '../shared/util.js'
-import {uploadZipToBlobStorage} from './blob-upload.js'
+import {uploadToBlobStorage} from './blob-upload.js'
 import {createZipUploadStream} from './zip.js'
+import {createRawFileUploadStream, WaterMarkedUploadStream} from './stream.js'
 import {
   CreateArtifactRequest,
   FinalizeArtifactRequest,
   StringValue
 } from '../../generated/index.js'
 import {FilesNotFoundError, InvalidResponseError} from '../shared/errors.js'
+import {getMimeType} from './types.js'
 
 export async function uploadArtifact(
   name: string,
@@ -27,6 +30,18 @@ export async function uploadArtifact(
   rootDirectory: string,
   options?: UploadArtifactOptions | undefined
 ): Promise<UploadArtifactResponse> {
+  let artifactFileName = `${name}.zip`
+  if (options?.skipArchive) {
+    if (files.length > 1){
+      throw new Error(
+        'skipArchive option is only supported when uploading a single file'
+      )
+    }
+
+    artifactFileName = path.basename(files[0])
+    name = artifactFileName
+  }
+
   validateArtifactName(name)
   validateRootDirectory(rootDirectory)
 
@@ -34,11 +49,13 @@ export async function uploadArtifact(
     files,
     rootDirectory
   )
-  if (zipSpecification.length === 0) {
+
+  if (!options?.skipArchive && zipSpecification.length === 0) {
     throw new FilesNotFoundError(
       zipSpecification.flatMap(s => (s.sourcePath ? [s.sourcePath] : []))
     )
   }
+  const contentType = getMimeType(artifactFileName)
 
   // get the IDs needed for the artifact creation
   const backendIds = getBackendIdsFromToken()
@@ -50,8 +67,9 @@ export async function uploadArtifact(
   const createArtifactReq: CreateArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name,
-    version: 4
+    name: name,
+    mimeType: StringValue.create({value: contentType}),
+    version: 7
   }
 
   // if there is a retention period, add it to the request
@@ -68,22 +86,31 @@ export async function uploadArtifact(
     )
   }
 
-  const zipUploadStream = await createZipUploadStream(
-    zipSpecification,
-    options?.compressionLevel
-  )
+  let stream : WaterMarkedUploadStream
 
-  // Upload zip to blob storage
-  const uploadResult = await uploadZipToBlobStorage(
-    createArtifactResp.signedUploadUrl,
-    zipUploadStream
-  )
+  if (options?.skipArchive) {
+    // Upload raw file without archiving
+    stream = await createRawFileUploadStream(files[0])
+  } else {
+    // Create and upload zip archive
+    stream = await createZipUploadStream(
+      zipSpecification,
+      options?.compressionLevel
+    )
+  }
+
+  core.info(`Uploading artifact: ${artifactFileName}`)
+  const uploadResult = await uploadToBlobStorage(
+      createArtifactResp.signedUploadUrl,
+      stream,
+      contentType
+    )
 
   // finalize the artifact
   const finalizeArtifactReq: FinalizeArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name,
+    name: name,
     size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
   }
 
@@ -105,7 +132,7 @@ export async function uploadArtifact(
 
   const artifactId = BigInt(finalizeArtifactResp.artifactId)
   core.info(
-    `Artifact ${name}.zip successfully finalized. Artifact ID ${artifactId}`
+    `Artifact ${name} successfully finalized. Artifact ID ${artifactId}`
   )
 
   return {

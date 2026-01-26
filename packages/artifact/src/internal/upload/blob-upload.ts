@@ -1,6 +1,6 @@
 import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/core-http-compat'
-import {ZipUploadStream} from './zip.js'
+import {WaterMarkedUploadStream} from './stream.js'
 import {
   getUploadChunkSize,
   getConcurrency,
@@ -23,9 +23,10 @@ export interface BlobUploadResponse {
   sha256Hash?: string
 }
 
-export async function uploadZipToBlobStorage(
+export async function uploadToBlobStorage(
   authenticatedUploadURL: string,
-  zipUploadStream: ZipUploadStream
+  uploadStream: WaterMarkedUploadStream,
+  contentType: string
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
   let lastProgressTime = Date.now()
@@ -51,7 +52,7 @@ export async function uploadZipToBlobStorage(
   const blockBlobClient = blobClient.getBlockBlobClient()
 
   core.debug(
-    `Uploading artifact zip to blob storage with maxConcurrency: ${maxConcurrency}, bufferSize: ${bufferSize}`
+    `Uploading artifact to blob storage with maxConcurrency: ${maxConcurrency}, bufferSize: ${bufferSize}, contentType: ${contentType}`
   )
 
   const uploadCallback = (progress: TransferProgressEvent): void => {
@@ -61,24 +62,24 @@ export async function uploadZipToBlobStorage(
   }
 
   const options: BlockBlobUploadStreamOptions = {
-    blobHTTPHeaders: {blobContentType: 'zip'},
+    blobHTTPHeaders: {blobContentType: contentType},
     onProgress: uploadCallback,
     abortSignal: abortController.signal
   }
 
   let sha256Hash: string | undefined = undefined
-  const uploadStream = new stream.PassThrough()
+  const blobUploadStream = new stream.PassThrough()
   const hashStream = crypto.createHash('sha256')
 
-  zipUploadStream.pipe(uploadStream) // This stream is used for the upload
-  zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
+  uploadStream.pipe(blobUploadStream) // This stream is used for the upload
+  uploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the content for integrity check
 
   core.info('Beginning upload of artifact content to blob storage')
 
   try {
     await Promise.race([
       blockBlobClient.uploadStream(
-        uploadStream,
+        blobUploadStream,
         bufferSize,
         maxConcurrency,
         options
@@ -98,7 +99,7 @@ export async function uploadZipToBlobStorage(
 
   hashStream.end()
   sha256Hash = hashStream.read() as string
-  core.info(`SHA256 digest of uploaded artifact zip is ${sha256Hash}`)
+  core.info(`SHA256 digest of uploaded artifact is ${sha256Hash}`)
 
   if (uploadByteCount === 0) {
     core.warning(
