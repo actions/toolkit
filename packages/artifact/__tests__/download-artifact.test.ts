@@ -651,7 +651,8 @@ describe('download-artifact', () => {
           {timeout: 2}
         )
         expect(true).toBe(false) // should not be called
-      } catch (e : any) {
+      } catch (error: unknown) {
+        const e = error as Error
         expect(e).toBeInstanceOf(Error)
         expect(e.message).toContain('did not respond in 2ms')
         expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
