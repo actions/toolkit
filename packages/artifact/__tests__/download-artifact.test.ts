@@ -841,5 +841,84 @@ describe('download-artifact', () => {
       const originalZipContent = fs.readFileSync(fixtures.exampleArtifact.path)
       expect(savedContent).toEqual(originalZipContent)
     })
+
+    it('should sanitize path traversal attempts in Content-Disposition filename', async () => {
+      const rawFileContent = 'malicious content'
+      const maliciousFileName = '../../../etc/passwd'
+
+      const mockGetMaliciousFile = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'text/plain'
+        message.headers['content-disposition'] = `attachment; filename="${maliciousFileName}"`
+        message.push(Buffer.from(rawFileContent))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetMaliciousFile
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify file was saved with sanitized name (just 'passwd', not the full path)
+      const sanitizedFileName = 'passwd'
+      const savedFilePath = path.join(fixtures.workspaceDir, sanitizedFileName)
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+
+      // Verify the file was NOT written outside the workspace directory
+      const maliciousPath = path.resolve(fixtures.workspaceDir, maliciousFileName)
+      expect(fs.existsSync(maliciousPath)).toBe(false)
+    })
+
+    it('should handle encoded path traversal attempts in Content-Disposition filename', async () => {
+      const rawFileContent = 'encoded malicious content'
+      // URL encoded version of ../../../etc/passwd
+      const encodedMaliciousFileName = '..%2F..%2F..%2Fetc%2Fpasswd'
+
+      const mockGetEncodedMaliciousFile = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'application/octet-stream'
+        message.headers['content-disposition'] = `attachment; filename="${encodedMaliciousFileName}"`
+        message.push(Buffer.from(rawFileContent))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetEncodedMaliciousFile
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // After decoding and sanitizing, should just be 'passwd'
+      const sanitizedFileName = 'passwd'
+      const savedFilePath = path.join(fixtures.workspaceDir, sanitizedFileName)
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+    })
   })
 })
