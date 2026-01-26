@@ -23,7 +23,6 @@ import {
 } from '../../generated/index.js'
 import {getBackendIdsFromToken} from '../shared/util.js'
 import {ArtifactNotFoundError} from '../shared/errors.js'
-import { on } from 'events'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
