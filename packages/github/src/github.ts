@@ -2,7 +2,7 @@ import * as Context from './context'
 import {GitHub, getOctokitOptions} from './utils'
 
 // octokit + plugins
-import {OctokitOptions, OctokitPlugin} from '@octokit/core/dist-types/types'
+import {OctokitOptions, OctokitPlugin} from '@octokit/core/types'
 
 export const context = new Context.Context()
 

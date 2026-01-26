@@ -2,8 +2,7 @@ import * as Context from './context'
 import * as Utils from './internal/utils'
 
 // octokit + plugins
-import {Octokit} from '@octokit/core'
-import {OctokitOptions} from '@octokit/core/dist-types/types'
+import {Octokit, type OctokitOptions} from '@octokit/core'
 import {restEndpointMethods} from '@octokit/plugin-rest-endpoint-methods'
 import {paginateRest} from '@octokit/plugin-paginate-rest'
 
