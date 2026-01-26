@@ -67,7 +67,7 @@ export async function uploadArtifact(
   const createArtifactReq: CreateArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name: name,
+    name,
     mimeType: StringValue.create({value: contentType}),
     version: 7
   }
@@ -110,7 +110,7 @@ export async function uploadArtifact(
   const finalizeArtifactReq: FinalizeArtifactRequest = {
     workflowRunBackendId: backendIds.workflowRunBackendId,
     workflowJobRunBackendId: backendIds.workflowJobRunBackendId,
-    name: name,
+    name,
     size: uploadResult.uploadSize ? uploadResult.uploadSize.toString() : '0'
   }
 
