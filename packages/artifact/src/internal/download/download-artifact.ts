@@ -99,8 +99,12 @@ export async function streamExtractExternal(
     fileName = path.basename(decodeURIComponent(filenameMatch[1].trim()))
   }
 
-  core.debug(`Content-Type: ${contentType}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`)
-  core.debug(`Content-Disposition: ${contentDisposition}, fileName: ${fileName}`)
+  core.debug(
+    `Content-Type: ${contentType}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`
+  )
+  core.debug(
+    `Content-Disposition: ${contentDisposition}, fileName: ${fileName}`
+  )
 
   let sha256Digest: string | undefined = undefined
 
@@ -115,18 +119,16 @@ export async function streamExtractExternal(
     const timer = setTimeout(timerFn, timeout)
 
     const onError = (error: Error): void => {
-      core.debug(
-        `response.message: Artifact download failed: ${error.message}`
-      )
+      core.debug(`response.message: Artifact download failed: ${error.message}`)
       clearTimeout(timer)
       reject(error)
     }
 
     const hashStream = crypto.createHash('sha256').setEncoding('hex')
-    const passThrough = new stream.PassThrough() 
+    const passThrough = new stream.PassThrough()
       .on('data', () => {
-          timer.refresh()
-        })
+        timer.refresh()
+      })
       .on('error', onError)
 
     response.message.pipe(passThrough)
@@ -144,7 +146,10 @@ export async function streamExtractExternal(
 
     if (isZip && !skipDecompress) {
       // Extract zip file
-      passThrough.pipe(unzip.Extract({path: directory})).on('close', onClose).on('error', onError)
+      passThrough
+        .pipe(unzip.Extract({path: directory}))
+        .on('close', onClose)
+        .on('error', onError)
     } else {
       // Save raw file without extracting
       const filePath = path.join(directory, fileName)
