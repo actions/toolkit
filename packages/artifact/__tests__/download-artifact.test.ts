@@ -815,5 +815,31 @@ describe('download-artifact', () => {
       // Verify files were extracted
       await expectExtractedArchive(fixtures.workspaceDir)
     })
+
+    it('should skip decompression when skipDecompress option is true even for zip content-type', async () => {
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactSuccess
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {skipDecompress: true}
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify zip was saved as-is, not extracted
+      // When skipDecompress is true, the file should be saved with default name 'artifact'
+      const savedFilePath = path.join(fixtures.workspaceDir, 'artifact')
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      // The saved file should be the raw zip content
+      const savedContent = fs.readFileSync(savedFilePath)
+      const originalZipContent = fs.readFileSync(fixtures.exampleArtifact.path)
+      expect(savedContent).toEqual(originalZipContent)
+    })
   })
 })
