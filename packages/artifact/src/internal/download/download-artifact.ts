@@ -123,10 +123,10 @@ export async function streamExtractExternal(
 
     const hashStream = crypto.createHash('sha256').setEncoding('hex')
     const passThrough = new stream.PassThrough() 
-    .on('data', () => {
-        timer.refresh()
-      })
-    .on('error', onError)
+      .on('data', () => {
+          timer.refresh()
+        })
+      .on('error', onError)
 
     response.message.pipe(passThrough)
     passThrough.pipe(hashStream)
