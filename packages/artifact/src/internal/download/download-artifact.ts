@@ -1,6 +1,8 @@
 import fs from 'fs/promises'
+import * as fsSync from 'fs'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
+import * as path from 'path'
 
 import * as github from '@actions/github'
 import * as core from '@actions/core'
@@ -21,6 +23,7 @@ import {
 } from '../../generated/index.js'
 import {getBackendIdsFromToken} from '../shared/util.js'
 import {ArtifactNotFoundError} from '../shared/errors.js'
+import { on } from 'events'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
@@ -75,6 +78,26 @@ export async function streamExtractExternal(
     )
   }
 
+  const contentType = response.message.headers['content-type'] || ''
+  const isZip =
+    contentType === 'application/zip' ||
+    contentType === 'application/x-zip-compressed' ||
+    contentType === 'zip'
+
+  // Extract filename from Content-Disposition header
+  const contentDisposition =
+    response.message.headers['content-disposition'] || ''
+  let fileName = 'artifact'
+  const filenameMatch = contentDisposition.match(
+    /filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?/i
+  )
+  if (filenameMatch && filenameMatch[1]) {
+    fileName = decodeURIComponent(filenameMatch[1].trim())
+  }
+
+  core.debug(`Content-Type: ${contentType}, isZip: ${isZip}`)
+  core.debug(`Content-Disposition: ${contentDisposition}, fileName: ${fileName}`)
+
   let sha256Digest: string | undefined = undefined
 
   return new Promise((resolve, reject) => {
@@ -87,37 +110,45 @@ export async function streamExtractExternal(
     }
     const timer = setTimeout(timerFn, opts.timeout)
 
+    const onError = (error: Error): void => {
+      core.debug(
+        `response.message: Artifact download failed: ${error.message}`
+      )
+      clearTimeout(timer)
+      reject(error)
+    }
+
     const hashStream = crypto.createHash('sha256').setEncoding('hex')
-    const passThrough = new stream.PassThrough()
+    const passThrough = new stream.PassThrough() 
+    .on('data', () => {
+        timer.refresh()
+      })
+    .on('error', onError)
 
     response.message.pipe(passThrough)
     passThrough.pipe(hashStream)
-    const extractStream = passThrough
 
-    extractStream
-      .on('data', () => {
-        timer.refresh()
-      })
-      .on('error', (error: Error) => {
-        core.debug(
-          `response.message: Artifact download failed: ${error.message}`
-        )
-        clearTimeout(timer)
-        reject(error)
-      })
-      .pipe(unzip.Extract({path: directory}))
-      .on('close', () => {
-        clearTimeout(timer)
-        if (hashStream) {
-          hashStream.end()
-          sha256Digest = hashStream.read() as string
-          core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
-        }
-        resolve({sha256Digest: `sha256:${sha256Digest}`})
-      })
-      .on('error', (error: Error) => {
-        reject(error)
-      })
+    const onClose = (): void => {
+      clearTimeout(timer)
+      if (hashStream) {
+        hashStream.end()
+        sha256Digest = hashStream.read() as string
+        core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
+      }
+      resolve({sha256Digest: `sha256:${sha256Digest}`})
+    }
+
+    if (isZip) {
+      // Extract zip file
+      passThrough.pipe(unzip.Extract({path: directory})).on('close', onClose).on('error', onError)
+    } else {
+      // Save raw file without extracting
+      const filePath = path.join(directory, fileName)
+      const writeStream = fsSync.createWriteStream(filePath)
+
+      core.info(`Downloading raw file (non-zip) to: ${filePath}`)
+      passThrough.pipe(writeStream).on('close', onClose).on('error', onError)
+    }
   })
 }
 
