@@ -1,4 +1,3 @@
-import * as stream from 'stream'
 import {realpath} from 'fs/promises'
 import archiver from 'archiver'
 import * as core from '@actions/core'

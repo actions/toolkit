@@ -35,7 +35,9 @@ export async function createRawFileUploadStream(
   }
 
   // Create a read stream from the file and pipe it to the upload stream
-  const fileStream = fs.createReadStream(sourcePath, {highWaterMark: bufferSize})
+  const fileStream = fs.createReadStream(sourcePath, {
+    highWaterMark: bufferSize
+  })
 
   fileStream.on('error', error => {
     core.error('An error has occurred while reading the file for upload')
