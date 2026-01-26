@@ -80,10 +80,11 @@ export async function streamExtractExternal(
   }
 
   const contentType = response.message.headers['content-type'] || ''
+  const mimeType = contentType.split(';', 1)[0].trim().toLowerCase()
   const isZip =
-    contentType === 'application/zip' ||
-    contentType === 'application/x-zip-compressed' ||
-    contentType === 'zip'
+    mimeType === 'application/zip' ||
+    mimeType === 'application/x-zip-compressed' ||
+    mimeType === 'zip'
 
   // Extract filename from Content-Disposition header
   const contentDisposition =
