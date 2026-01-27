@@ -44,7 +44,7 @@
     "@octokit/plugin-rest-endpoint-methods": "^17.0.0",
     "@octokit/request": "^10.0.7",
     "@octokit/request-error": "^7.1.0",
-    "undici": "^5.28.5"
+    "undici": "^6.23.0"
   },
   "devDependencies": {
     "proxy": "^2.1.1"
