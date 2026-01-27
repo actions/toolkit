@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 8.0.1
+
+- Update `undici` to `6.23.0`
+- Update `@actions/http-client` to `3.0.2`
+
 ### 8.0.0
 
 - Update @octokit dependencies 
