@@ -1,5 +1,12 @@
 # @actions/github Releases
 
+### 9.0.0
+
+- **Breaking change**: Package is now ESM-only
+  - CommonJS consumers must use dynamic `import()` instead of `require()`
+  - Example: `const { getOctokit, context } = await import('@actions/github')`
+- Fix TypeScript compilation by migrating to ESM, enabling proper imports from `@octokit/core/types`
+
 ### 8.0.1
 
 - Update `undici` to `6.23.0`

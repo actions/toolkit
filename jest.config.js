@@ -4,6 +4,9 @@ module.exports = {
   roots: ['<rootDir>/packages'],
   testEnvironment: 'node',
   testMatch: ['**/__tests__/*.test.ts'],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  },
   transform: {
     '^.+\\.(ts|js)$': ['ts-jest', {
       isolatedModules: true,
