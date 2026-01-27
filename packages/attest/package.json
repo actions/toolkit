@@ -1,6 +1,6 @@
 {
   "name": "@actions/attest",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Actions attestation lib",
   "keywords": [
     "github",
@@ -39,20 +39,15 @@
     "@sigstore/rekor-types": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.6",
     "nock": "^13.5.1",
-    "undici": "^6.20.0"
+    "undici": "^6.23.0"
   },
   "dependencies": {
     "@actions/core": "^2.0.2",
-    "@actions/github": "^7.0.0",
-    "@actions/http-client": "^3.0.1",
-    "@octokit/plugin-retry": "^6.0.1",
+    "@actions/github": "^8.0.1",
+    "@actions/http-client": "^3.0.2",
+    "@octokit/plugin-retry": "^8.0.3",
     "@sigstore/bundle": "^3.1.0",
     "@sigstore/sign": "^3.1.0",
     "jose": "^5.10.0"
-  },
-  "overrides": {
-    "@octokit/plugin-retry": {
-      "@octokit/core": "^5.2.0"
-    }
   }
 }

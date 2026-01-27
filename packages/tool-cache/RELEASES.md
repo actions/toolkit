@@ -1,5 +1,9 @@
 # @actions/tool-cache Releases
 
+### 3.0.1
+
+- Bump `@actions/http-client` to `3.0.2`
+
 ### 3.0.0
 
 - Update to v2.0.1 of `@actions/core`

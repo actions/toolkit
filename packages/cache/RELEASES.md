@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+### 5.0.4
+
+- Bump `@actions/http-client` to `3.0.2`
+
 ### 5.0.3
 
 Prevent retries for rate limited cache operations [2243](https://github.com/actions/toolkit/pull/2243).
