@@ -84,7 +84,7 @@ export async function streamExtractExternal(
   const isZip =
     mimeType === 'application/zip' ||
     mimeType === 'application/x-zip-compressed' ||
-    mimeType === 'zip'
+    mimeType === 'application/zip-compressed'
 
   // Extract filename from Content-Disposition header
   const contentDisposition =
