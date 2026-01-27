@@ -1,6 +1,6 @@
 {
   "name": "@actions/tool-cache",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Actions tool-cache lib",
   "keywords": [
     "github",
@@ -38,7 +38,7 @@
   "dependencies": {
     "@actions/core": "^2.0.1",
     "@actions/exec": "^2.0.0",
-    "@actions/http-client": "^3.0.1",
+    "@actions/http-client": "^3.0.2",
     "@actions/io": "^2.0.0",
     "semver": "^6.1.0"
   },

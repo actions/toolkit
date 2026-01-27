@@ -1,5 +1,9 @@
 # @actions/core Releases
 
+## 2.0.3
+
+- Bump `@actions/http-client` to `3.0.2`
+
 ## 2.0.1
 - Bump @actions/exec from 1.1.1 to 2.0.0 [#2199](https://github.com/actions/toolkit/pull/2199)
 
