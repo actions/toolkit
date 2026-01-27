@@ -2,11 +2,8 @@
 
 ### 2.2.1
 
-- Bump `@actions/github` to `v8.0.1`
 - Bump `@actions/http-client` to `3.0.2`
 - Bump `undici` to `6.23.0`
-- Bump `@octokit/plugin-retry` to `8.0.3`
-- Remove `@octokit` overrides
 
 ### 2.2.0
 
