@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+### 5.0.5
+
+- Bump `@actions/glob` to `0.5.1`
+
 ### 5.0.4
 
 - Bump `@actions/http-client` to `3.0.2`
