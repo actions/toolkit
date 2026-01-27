@@ -1,5 +1,9 @@
 # @actions/glob Releases
 
+### 0.5.1
+
+- Bump `@actions/core` to `2.0.3`
+
 ### 0.5.0
 - Added `excludeHiddenFiles` option, which is disabled by default to preserve existing behavior [#1791: Add glob option to ignore hidden files](https://github.com/actions/toolkit/pull/1791)
 
