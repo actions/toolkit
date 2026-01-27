@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "8.0.1",
+  "version": "9.0.0",
   "description": "Actions github lib",
   "keywords": [
     "github",
@@ -8,8 +8,19 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/github",
   "license": "MIT",
+  "type": "module",
   "main": "lib/github.js",
   "types": "lib/github.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/github.d.ts",
+      "import": "./lib/github.js"
+    },
+    "./lib/utils": {
+      "types": "./lib/utils.d.ts",
+      "import": "./lib/utils.js"
+    }
+  },
   "directories": {
     "lib": "lib",
     "test": "__tests__"
