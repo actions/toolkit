@@ -929,6 +929,19 @@ describe('download-artifact', () => {
       const savedFilePath = path.join(fixtures.workspaceDir, sanitizedFileName)
       expect(fs.existsSync(savedFilePath)).toBe(true)
       expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+
+      // Verify the file was NOT written outside the workspace directory
+      const maliciousPathEncoded = path.resolve(
+        fixtures.workspaceDir,
+        encodedMaliciousFileName
+      )
+      expect(fs.existsSync(maliciousPathEncoded)).toBe(false)
+
+      const maliciousPath = path.resolve(
+        fixtures.workspaceDir,
+        "../../../etc/passwd"
+      )
+      expect(fs.existsSync(maliciousPath)).toBe(false)
     })
   })
 })
