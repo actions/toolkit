@@ -1,5 +1,9 @@
 # @actions/io Releases
 
+## 3.0.1
+
+- Fix: export `@actions/io/lib/io-util`
+
 ## 3.0.0
 
 - **Breaking change**: Package is now ESM-only
@@ -16,7 +20,7 @@
 
 ## 1.1.2
 
-- Update `lockfileVersion` to `v2` in `package-lock.json [#1020](https://github.com/actions/toolkit/pull/1020) 
+- Update `lockfileVersion` to `v2` in `package-lock.json [#1020](https://github.com/actions/toolkit/pull/1020)
 
 ## 1.1.1
 
