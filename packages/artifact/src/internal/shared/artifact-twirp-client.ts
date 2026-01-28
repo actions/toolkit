@@ -1,11 +1,11 @@
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {info, debug} from '@actions/core'
-import {ArtifactServiceClientJSON} from '../../generated'
-import {getResultsServiceUrl, getRuntimeToken} from './config'
-import {getUserAgentString} from './user-agent'
-import {NetworkError, UsageError} from './errors'
-import {maskSecretUrls} from './util'
+import {ArtifactServiceClientJSON} from '../../generated/index.js'
+import {getResultsServiceUrl, getRuntimeToken} from './config.js'
+import {getUserAgentString} from './user-agent.js'
+import {NetworkError, UsageError} from './errors.js'
+import {maskSecretUrls} from './util.js'
 
 // The twirp http client must implement this interface
 interface Rpc {

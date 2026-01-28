@@ -1,5 +1,5 @@
 import {warning} from '@actions/core'
-import {isGhes} from './shared/config'
+import {isGhes} from './shared/config.js'
 import {
   UploadArtifactOptions,
   UploadArtifactResponse,
@@ -10,19 +10,19 @@ import {
   DownloadArtifactResponse,
   FindOptions,
   DeleteArtifactResponse
-} from './shared/interfaces'
-import {uploadArtifact} from './upload/upload-artifact'
+} from './shared/interfaces.js'
+import {uploadArtifact} from './upload/upload-artifact.js'
 import {
   downloadArtifactPublic,
   downloadArtifactInternal
-} from './download/download-artifact'
+} from './download/download-artifact.js'
 import {
   deleteArtifactPublic,
   deleteArtifactInternal
-} from './delete/delete-artifact'
-import {getArtifactPublic, getArtifactInternal} from './find/get-artifact'
-import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts'
-import {GHESNotSupportedError} from './shared/errors'
+} from './delete/delete-artifact.js'
+import {getArtifactPublic, getArtifactInternal} from './find/get-artifact.js'
+import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts.js'
+import {GHESNotSupportedError} from './shared/errors.js'
 
 /**
  * Generic interface for the artifact client.
@@ -117,9 +117,9 @@ export class DefaultArtifactClient implements ArtifactClient {
     options?: UploadArtifactOptions
   ): Promise<UploadArtifactResponse> {
     try {
-      if (isGhes()) {
-        throw new GHESNotSupportedError()
-      }
+      // if (isGhes()) {
+      //   throw new GHESNotSupportedError()
+      // }
 
       return uploadArtifact(name, files, rootDirectory, options)
     } catch (error) {
@@ -140,9 +140,9 @@ If the error persists, please check whether Actions is operating normally at [ht
     options?: DownloadArtifactOptions & FindOptions
   ): Promise<DownloadArtifactResponse> {
     try {
-      if (isGhes()) {
-        throw new GHESNotSupportedError()
-      }
+      // if (isGhes()) {
+      //   throw new GHESNotSupportedError()
+      // }
 
       if (options?.findBy) {
         const {
@@ -177,9 +177,9 @@ If the error persists, please check whether Actions and API requests are operati
     options?: ListArtifactsOptions & FindOptions
   ): Promise<ListArtifactsResponse> {
     try {
-      if (isGhes()) {
-        throw new GHESNotSupportedError()
-      }
+      // if (isGhes()) {
+      //   throw new GHESNotSupportedError()
+      // }
 
       if (options?.findBy) {
         const {
@@ -214,9 +214,9 @@ If the error persists, please check whether Actions and API requests are operati
     options?: FindOptions
   ): Promise<GetArtifactResponse> {
     try {
-      if (isGhes()) {
-        throw new GHESNotSupportedError()
-      }
+      // if (isGhes()) {
+      //   throw new GHESNotSupportedError()
+      // }
 
       if (options?.findBy) {
         const {
@@ -250,9 +250,9 @@ If the error persists, please check whether Actions and API requests are operati
     options?: FindOptions
   ): Promise<DeleteArtifactResponse> {
     try {
-      if (isGhes()) {
-        throw new GHESNotSupportedError()
-      }
+      // if (isGhes()) {
+      //   throw new GHESNotSupportedError()
+      // }
 
       if (options?.findBy) {
         const {

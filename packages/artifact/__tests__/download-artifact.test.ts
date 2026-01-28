@@ -11,12 +11,12 @@ import {
   downloadArtifactInternal,
   downloadArtifactPublic,
   streamExtractExternal
-} from '../src/internal/download/download-artifact'
-import {getUserAgentString} from '../src/internal/shared/user-agent'
-import {noopLogs} from './common'
-import * as config from '../src/internal/shared/config'
-import {ArtifactServiceClientJSON} from '../src/generated'
-import * as util from '../src/internal/shared/util'
+} from '../src/internal/download/download-artifact.js'
+import {getUserAgentString} from '../src/internal/shared/user-agent.js'
+import {noopLogs} from './common.js'
+import * as config from '../src/internal/shared/config.js'
+import {ArtifactServiceClientJSON} from '../src/generated/index.js'
+import * as util from '../src/internal/shared/util.js'
 
 type MockedDownloadArtifact = jest.MockedFunction<
   RestEndpointMethods['actions']['downloadArtifact']

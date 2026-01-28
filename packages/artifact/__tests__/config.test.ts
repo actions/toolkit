@@ -1,4 +1,4 @@
-import * as config from '../src/internal/shared/config'
+import * as config from '../src/internal/shared/config.js'
 import os from 'os'
 
 // Mock the `cpus()` function in the `os` module

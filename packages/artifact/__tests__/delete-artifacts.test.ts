@@ -4,11 +4,11 @@ import type {RequestInterface} from '@octokit/types'
 import {
   deleteArtifactInternal,
   deleteArtifactPublic
-} from '../src/internal/delete/delete-artifact'
-import * as config from '../src/internal/shared/config'
-import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
-import * as util from '../src/internal/shared/util'
-import {noopLogs} from './common'
+} from '../src/internal/delete/delete-artifact.js'
+import * as config from '../src/internal/shared/config.js'
+import {ArtifactServiceClientJSON, Timestamp} from '../src/generated/index.js'
+import * as util from '../src/internal/shared/util.js'
+import {noopLogs} from './common.js'
 
 type MockedRequest = jest.MockedFunction<RequestInterface<object>>
 

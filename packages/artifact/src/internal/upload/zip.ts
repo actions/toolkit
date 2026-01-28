@@ -2,8 +2,8 @@ import * as stream from 'stream'
 import {realpath} from 'fs/promises'
 import * as archiver from 'archiver'
 import * as core from '@actions/core'
-import {UploadZipSpecification} from './upload-zip-specification'
-import {getUploadChunkSize} from '../shared/config'
+import {UploadZipSpecification} from './upload-zip-specification.js'
+import {getUploadChunkSize} from '../shared/config.js'
 
 export const DEFAULT_COMPRESSION_LEVEL = 6
 

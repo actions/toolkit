@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import {getRuntimeToken} from './config'
-import jwt_decode from 'jwt-decode'
+import {getRuntimeToken} from './config.js'
+import {jwtDecode} from 'jwt-decode'
 import {debug, setSecret} from '@actions/core'
 
 export interface BackendIds {
@@ -20,7 +20,7 @@ const InvalidJwtError = new Error(
 // workflow run and workflow job run backend ids
 export function getBackendIdsFromToken(): BackendIds {
   const token = getRuntimeToken()
-  const decoded = jwt_decode<ActionsToken>(token)
+  const decoded = jwtDecode<ActionsToken>(token)
   if (!decoded.scp) {
     throw InvalidJwtError
   }

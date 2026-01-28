@@ -1,5 +1,5 @@
-import {Timestamp} from '../src/generated'
-import * as retention from '../src/internal/upload/retention'
+import {Timestamp} from '../src/generated/index.js'
+import * as retention from '../src/internal/upload/retention.js'
 
 describe('retention', () => {
   beforeEach(() => {
