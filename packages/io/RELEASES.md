@@ -1,5 +1,9 @@
 # @actions/io Releases
 
+## 3.0.2
+
+- Fix: update lock file version
+
 ## 3.0.1
 
 - Fix: export `@actions/io/lib/io-util`
