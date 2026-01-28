@@ -6,7 +6,7 @@
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as os from 'os'
-import {toCommandValue} from './utils'
+import {toCommandValue} from './utils.js'
 
 export function issueFileCommand(command: string, message: any): void {
   const filePath = process.env[`GITHUB_${command}`]
