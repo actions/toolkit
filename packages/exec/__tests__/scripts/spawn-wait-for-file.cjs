@@ -15,10 +15,10 @@ if (!filePath) {
   throw new Error('file is not specified')
 }
 
-// Spawn wait-for-file.js with inherited stdio
+// Spawn wait-for-file.cjs with inherited stdio
 // This creates a grandchild process that holds the stdio handles open
 // after this process (the child) exits
-const waitScript = path.join(__dirname, 'wait-for-file.js')
+const waitScript = path.join(__dirname, 'wait-for-file.cjs')
 const isWindows = process.platform === 'win32'
 
 // On Windows, use detached:true to properly keep streams open
