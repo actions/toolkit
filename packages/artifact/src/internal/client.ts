@@ -117,9 +117,9 @@ export class DefaultArtifactClient implements ArtifactClient {
     options?: UploadArtifactOptions
   ): Promise<UploadArtifactResponse> {
     try {
-      // if (isGhes()) {
-      //   throw new GHESNotSupportedError()
-      // }
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
 
       return uploadArtifact(name, files, rootDirectory, options)
     } catch (error) {
@@ -140,9 +140,9 @@ If the error persists, please check whether Actions is operating normally at [ht
     options?: DownloadArtifactOptions & FindOptions
   ): Promise<DownloadArtifactResponse> {
     try {
-      // if (isGhes()) {
-      //   throw new GHESNotSupportedError()
-      // }
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
 
       if (options?.findBy) {
         const {
@@ -177,9 +177,9 @@ If the error persists, please check whether Actions and API requests are operati
     options?: ListArtifactsOptions & FindOptions
   ): Promise<ListArtifactsResponse> {
     try {
-      // if (isGhes()) {
-      //   throw new GHESNotSupportedError()
-      // }
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
 
       if (options?.findBy) {
         const {
@@ -214,9 +214,9 @@ If the error persists, please check whether Actions and API requests are operati
     options?: FindOptions
   ): Promise<GetArtifactResponse> {
     try {
-      // if (isGhes()) {
-      //   throw new GHESNotSupportedError()
-      // }
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
 
       if (options?.findBy) {
         const {
@@ -250,9 +250,9 @@ If the error persists, please check whether Actions and API requests are operati
     options?: FindOptions
   ): Promise<DeleteArtifactResponse> {
     try {
-      // if (isGhes()) {
-      //   throw new GHESNotSupportedError()
-      // }
+      if (isGhes()) {
+        throw new GHESNotSupportedError()
+      }
 
       if (options?.findBy) {
         const {
