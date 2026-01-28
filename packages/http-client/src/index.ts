@@ -2,9 +2,9 @@
 
 import * as http from 'http'
 import * as https from 'https'
-import * as ifm from './interfaces'
+import * as ifm from './interfaces.js'
 import * as net from 'net'
-import * as pm from './proxy'
+import * as pm from './proxy.js'
 import * as tunnel from 'tunnel'
 import {ProxyAgent} from 'undici'
 

@@ -1,6 +1,6 @@
 {
   "name": "@actions/http-client",
-  "version": "3.0.2",
+  "version": "4.0.0",
   "description": "Actions Http Client",
   "keywords": [
     "github",
@@ -9,8 +9,19 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/http-client",
   "license": "MIT",
+  "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    },
+    "./lib/auth": {
+      "types": "./lib/auth.d.ts",
+      "import": "./lib/auth.js"
+    }
+  },
   "directories": {
     "lib": "lib",
     "test": "__tests__"
