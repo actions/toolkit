@@ -1,6 +1,6 @@
 {
   "name": "@actions/io",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Actions io lib",
   "keywords": [
     "github",
@@ -16,6 +16,10 @@
     ".": {
       "types": "./lib/io.d.ts",
       "import": "./lib/io.js"
+    },
+    "./lib/io-util": {
+      "types": "./lib/io-util.d.ts",
+      "import": "./lib/io-util.js"
     }
   },
   "directories": {
