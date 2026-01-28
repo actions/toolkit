@@ -1,6 +1,6 @@
 import * as path from 'path'
 
-import {toPlatformPath, toPosixPath, toWin32Path} from '../src/path-utils'
+import {toPlatformPath, toPosixPath, toWin32Path} from '../src/path-utils.js'
 
 describe('#toPosixPath', () => {
   const cases: {
