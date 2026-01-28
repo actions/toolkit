@@ -1,6 +1,6 @@
 import {StringDecoder} from 'string_decoder'
-import {ExecOptions, ExecOutput, ExecListeners} from './interfaces'
-import * as tr from './toolrunner'
+import {ExecOptions, ExecOutput, ExecListeners} from './interfaces.js'
+import * as tr from './toolrunner.js'
 
 export {ExecOptions, ExecOutput, ExecListeners}
 

@@ -1,5 +1,5 @@
-import * as exec from '../src/exec'
-import * as im from '../src/interfaces'
+import * as exec from '../src/exec.js'
+import * as im from '../src/interfaces.js'
 
 import * as childProcess from 'child_process'
 import * as fs from 'fs'
@@ -14,7 +14,7 @@ const IS_WINDOWS = process.platform === 'win32'
 const SPAWN_WAIT_SCRIPT = path.join(
   __dirname,
   'scripts',
-  'spawn-wait-for-file.js'
+  'spawn-wait-for-file.cjs'
 )
 
 let outstream: stream.Writable
@@ -196,7 +196,7 @@ describe('@actions/exec', () => {
     const scriptPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -218,7 +218,7 @@ describe('@actions/exec', () => {
     const scriptPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -255,12 +255,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutput.js'
+      'stdoutoutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
     let stdoutCalled = false
@@ -295,7 +295,7 @@ describe('@actions/exec', () => {
     const stdlinePath: string = path.join(
       __dirname,
       'scripts',
-      'stdlineoutput.js'
+      'stdlineoutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -344,7 +344,7 @@ describe('@actions/exec', () => {
     const waitForInput: string = path.join(
       __dirname,
       'scripts',
-      'wait-for-input.js'
+      'wait-for-input.cjs'
     )
 
     const _testExecOptions = getExecOptions()
@@ -622,12 +622,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutput.js'
+      'stdoutoutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -653,12 +653,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutput.js'
+      'stdoutoutput.cjs'
     )
 
     const nodePath: string = await io.which('node', true)
@@ -703,12 +703,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutputlarge.js'
+      'stdoutoutputlarge.cjs'
     )
 
     const nodePath: string = await io.which('node', true)
@@ -753,7 +753,7 @@ describe('@actions/exec', () => {
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutputspecial.js'
+      'stdoutputspecial.cjs'
     )
 
     const nodePath: string = await io.which('node', true)

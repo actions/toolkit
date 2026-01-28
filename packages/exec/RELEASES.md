@@ -1,10 +1,17 @@
 # @actions/exec Releases
 
-### 2.0.0
+## 3.0.0
+
+- **Breaking change**: Package is now ESM-only
+  - CommonJS consumers must use dynamic `import()` instead of `require()`
+
+## 2.0.0
+
 - Add support for Node 24 [#2110](https://github.com/actions/toolkit/pull/2110)
 - Bump @actions/io dependency from ^1.0.1 to ^2.0.0
 
-### 1.1.1
+## 1.1.1
+
 - Update `lockfileVersion` to `v2` in `package-lock.json [#1024](https://github.com/actions/toolkit/pull/1024) 
 
 ### 1.1.0
