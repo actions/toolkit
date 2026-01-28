@@ -12,9 +12,9 @@
 
 ## 1.1.1
 
-- Update `lockfileVersion` to `v2` in `package-lock.json [#1024](https://github.com/actions/toolkit/pull/1024) 
+- Update `lockfileVersion` to `v2` in `package-lock.json` [#1024](https://github.com/actions/toolkit/pull/1024)
 
-### 1.1.0
+## 1.1.0
 
 - [Fix stdline dropping large output](https://github.com/actions/toolkit/pull/773)
 - [Add getExecOutput function](https://github.com/actions/toolkit/pull/814)
