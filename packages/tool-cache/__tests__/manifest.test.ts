@@ -1,5 +1,5 @@
-import * as tc from '../src/tool-cache'
-import * as mm from '../src/manifest' // --> OFF
+import * as tc from '../src/tool-cache.js'
+import * as mm from '../src/manifest.js'
 
 // needs to be require for core node modules to be mocked
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -36,7 +36,7 @@ describe('@actions/tool-cache-manifest', () => {
     archSpy.mockImplementation(() => os.arch)
 
     execSpy = jest.spyOn(cp, 'execSync')
-    readLsbSpy = jest.spyOn(mm, '_readLinuxVersionFile')
+    readLsbSpy = jest.spyOn(mm._internal, 'readLinuxVersionFile')
 
     getSpy = jest.spyOn(tc, 'getManifestFromRepo')
     getSpy.mockImplementation(() => <mm.IToolRelease[]>manifestData)
