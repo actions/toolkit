@@ -1,18 +1,20 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import * as utils from './internal/cacheUtils'
-import * as cacheHttpClient from './internal/cacheHttpClient'
-import * as cacheTwirpClient from './internal/shared/cacheTwirpClient'
-import {getCacheServiceVersion, isGhes} from './internal/config'
-import {DownloadOptions, UploadOptions} from './options'
-import {createTar, extractTar, listTar} from './internal/tar'
+import * as utils from './internal/cacheUtils.js'
+import * as cacheHttpClient from './internal/cacheHttpClient.js'
+import * as cacheTwirpClient from './internal/shared/cacheTwirpClient.js'
+import {getCacheServiceVersion, isGhes} from './internal/config.js'
+import {DownloadOptions, UploadOptions} from './options.js'
+import {createTar, extractTar, listTar} from './internal/tar.js'
 import {
   CreateCacheEntryRequest,
   FinalizeCacheEntryUploadRequest,
   FinalizeCacheEntryUploadResponse,
   GetCacheEntryDownloadURLRequest
-} from './generated/results/api/v1/cache'
+} from './generated/results/api/v1/cache.js'
 import {HttpClientError} from '@actions/http-client'
+
+export type {DownloadOptions, UploadOptions}
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)

@@ -7,8 +7,8 @@ import {
 } from '@actions/http-client/lib/interfaces'
 import * as fs from 'fs'
 import {URL} from 'url'
-import * as utils from './cacheUtils'
-import {uploadCacheArchiveSDK} from './uploadUtils'
+import * as utils from './cacheUtils.js'
+import {uploadCacheArchiveSDK} from './uploadUtils.js'
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
@@ -17,25 +17,25 @@ import {
   ReserveCacheResponse,
   ITypedResponseWithError,
   ArtifactCacheList
-} from './contracts'
+} from './contracts.js'
 import {
   downloadCacheHttpClient,
   downloadCacheHttpClientConcurrent,
   downloadCacheStorageSDK
-} from './downloadUtils'
+} from './downloadUtils.js'
 import {
   DownloadOptions,
   UploadOptions,
   getDownloadOptions,
   getUploadOptions
-} from '../options'
+} from '../options.js'
 import {
   isSuccessStatusCode,
   retryHttpClientResponse,
   retryTypedResponse
-} from './requestUtils'
-import {getCacheServiceURL} from './config'
-import {getUserAgentString} from './shared/user-agent'
+} from './requestUtils.js'
+import {getCacheServiceURL} from './config.js'
+import {getUserAgentString} from './shared/user-agent.js'
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string = getCacheServiceURL()

@@ -55,10 +55,8 @@ jobs:
       shell: bash
       run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
 
-    # We're using node -e to call the functions directly available in the @actions/cache package
     - name: Save cache using saveCache()
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+      run: node packages/cache/__tests__/save-cache.mjs ${{ runner.os }} ${{ github.run_id }}
 
     - name: Delete cache folders before restoring
       shell: bash
@@ -67,8 +65,7 @@ jobs:
         rm -rf ~/test-cache
 
     - name: Restore cache using restoreCache() with http-client
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}))"
+      run: node packages/cache/__tests__/restore-cache.mjs ${{ runner.os }} ${{ github.run_id }} false
 
     - name: Verify cache restored with http-client
       shell: bash
@@ -83,8 +80,7 @@ jobs:
         rm -rf ~/test-cache
 
     - name: Restore cache using restoreCache() with Azure SDK
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+      run: node packages/cache/__tests__/restore-cache.mjs ${{ runner.os }} ${{ github.run_id }} true
 
     - name: Verify cache restored with Azure SDK
       shell: bash

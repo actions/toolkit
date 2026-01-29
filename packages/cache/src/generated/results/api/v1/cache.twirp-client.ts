@@ -5,7 +5,7 @@ import {
     FinalizeCacheEntryUploadResponse,
     GetCacheEntryDownloadURLRequest,
     GetCacheEntryDownloadURLResponse,
-  } from "./cache";
+  } from "./cache.js";
   
   //==================================//
   //          Client Code             //

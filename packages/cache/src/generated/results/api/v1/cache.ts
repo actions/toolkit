@@ -12,7 +12,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
-import { CacheMetadata } from "../../entities/v1/cachemetadata";
+import { CacheMetadata } from "../../entities/v1/cachemetadata.js";
 /**
  * @generated from protobuf message github.actions.results.api.v1.CreateCacheEntryRequest
  */

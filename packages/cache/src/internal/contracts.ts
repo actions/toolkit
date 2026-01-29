@@ -1,4 +1,4 @@
-import {CompressionMethod} from './constants'
+import {CompressionMethod} from './constants.js'
 import {TypedResponse} from '@actions/http-client/lib/interfaces'
 import {HttpClientError} from '@actions/http-client'
 
