@@ -1,4 +1,4 @@
-import {Predicate, Subject} from './shared.types'
+import {Predicate, Subject} from './shared.types.js'
 
 const INTOTO_STATEMENT_V1_TYPE = 'https://in-toto.io/Statement/v1'
 

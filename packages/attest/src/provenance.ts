@@ -1,6 +1,6 @@
-import {attest, AttestOptions} from './attest'
-import {getIDTokenClaims} from './oidc'
-import type {Attestation, Predicate} from './shared.types'
+import {attest, AttestOptions} from './attest.js'
+import {getIDTokenClaims} from './oidc.js'
+import type {Attestation, Predicate} from './shared.types.js'
 
 const SLSA_PREDICATE_V1_TYPE = 'https://slsa.dev/provenance/v1'
 const GITHUB_BUILD_TYPE = 'https://actions.github.io/buildtypes/workflow/v1'
