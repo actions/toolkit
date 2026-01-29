@@ -15,12 +15,11 @@ module.exports = {
     '^@actions/http-client/lib/interfaces$': '<rootDir>/packages/http-client/lib/interfaces.js',
     '^@actions/github$': '<rootDir>/packages/github/lib/github.js',
     '^@actions/github/lib/utils$': '<rootDir>/packages/github/lib/utils.js',
-    '^@actions/glob$': '<rootDir>/packages/glob/lib/glob.js'
+    '^@actions/glob$': '<rootDir>/packages/glob/lib/glob.js',
     '^@actions/tool-cache$': '<rootDir>/packages/tool-cache/lib/tool-cache.js'
   },
   transform: {
     '^.+\\.(ts|js)$': ['ts-jest', {
-      isolatedModules: true,
       diagnostics: {warnOnly: true},
       tsconfig: {
         allowJs: true,
