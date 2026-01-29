@@ -1,9 +1,9 @@
-import * as io from '../../io/src/io'
+import * as io from '../../io/src/io.js'
 import * as os from 'os'
 import * as path from 'path'
-import {MatchKind} from '../src/internal-match-kind'
+import {MatchKind} from '../src/internal-match-kind.js'
 import {promises as fs} from 'fs'
-import {Pattern} from '../src/internal-pattern'
+import {Pattern} from '../src/internal-pattern.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 

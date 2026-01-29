@@ -1,6 +1,6 @@
-import * as pathHelper from './internal-path-helper'
-import {MatchKind} from './internal-match-kind'
-import {Pattern} from './internal-pattern'
+import * as pathHelper from './internal-path-helper.js'
+import {MatchKind} from './internal-match-kind.js'
+import {Pattern} from './internal-pattern.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 

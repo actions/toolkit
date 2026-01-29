@@ -1,5 +1,5 @@
 import * as path from 'path'
-import * as pathHelper from './internal-path-helper'
+import * as pathHelper from './internal-path-helper.js'
 import assert from 'assert'
 
 const IS_WINDOWS = process.platform === 'win32'

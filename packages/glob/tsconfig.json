@@ -3,7 +3,9 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./lib",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "module": "node16",
+    "moduleResolution": "node16"
   },
   "include": [
     "./src"

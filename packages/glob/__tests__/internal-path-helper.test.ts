@@ -1,4 +1,4 @@
-import * as pathHelper from '../src/internal-path-helper'
+import * as pathHelper from '../src/internal-path-helper.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 

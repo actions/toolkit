@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import * as stream from 'stream'
 import * as util from 'util'
 import * as path from 'path'
-import {Globber} from './glob'
+import {Globber} from './glob.js'
 
 export async function hashFiles(
   globber: Globber,
