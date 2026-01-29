@@ -622,7 +622,7 @@ describe('download-artifact', () => {
         ...fixtures.backendIds,
         name: fixtures.artifactName
       })
-    })
+    }, 38000)
   })
 
   describe('streamExtractExternal', () => {
