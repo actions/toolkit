@@ -1,15 +1,15 @@
 import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
 import {TransferProgressEvent} from '@azure/core-http-compat'
-import {ZipUploadStream} from './zip'
+import {ZipUploadStream} from './zip.js'
 import {
   getUploadChunkSize,
   getConcurrency,
   getUploadChunkTimeout
-} from '../shared/config'
+} from '../shared/config.js'
 import * as core from '@actions/core'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
-import {NetworkError} from '../shared/errors'
+import {NetworkError} from '../shared/errors.js'
 
 export interface BlobUploadResponse {
   /**

@@ -3,12 +3,12 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 import {
   listArtifactsInternal,
   listArtifactsPublic
-} from '../src/internal/find/list-artifacts'
-import * as config from '../src/internal/shared/config'
-import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
-import * as util from '../src/internal/shared/util'
-import {noopLogs} from './common'
-import {Artifact} from '../src/internal/shared/interfaces'
+} from '../src/internal/find/list-artifacts.js'
+import * as config from '../src/internal/shared/config.js'
+import {ArtifactServiceClientJSON, Timestamp} from '../src/generated/index.js'
+import * as util from '../src/internal/shared/util.js'
+import {noopLogs} from './common.js'
+import {Artifact} from '../src/internal/shared/interfaces.js'
 import {RequestInterface} from '@octokit/types'
 
 type MockedRequest = jest.MockedFunction<RequestInterface<object>>

@@ -2,24 +2,24 @@ import * as core from '@actions/core'
 import {
   UploadArtifactOptions,
   UploadArtifactResponse
-} from '../shared/interfaces'
-import {getExpiration} from './retention'
-import {validateArtifactName} from './path-and-artifact-name-validation'
-import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
+} from '../shared/interfaces.js'
+import {getExpiration} from './retention.js'
+import {validateArtifactName} from './path-and-artifact-name-validation.js'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client.js'
 import {
   UploadZipSpecification,
   getUploadZipSpecification,
   validateRootDirectory
-} from './upload-zip-specification'
-import {getBackendIdsFromToken} from '../shared/util'
-import {uploadZipToBlobStorage} from './blob-upload'
-import {createZipUploadStream} from './zip'
+} from './upload-zip-specification.js'
+import {getBackendIdsFromToken} from '../shared/util.js'
+import {uploadZipToBlobStorage} from './blob-upload.js'
+import {createZipUploadStream} from './zip.js'
 import {
   CreateArtifactRequest,
   FinalizeArtifactRequest,
   StringValue
-} from '../../generated'
-import {FilesNotFoundError, InvalidResponseError} from '../shared/errors'
+} from '../../generated/index.js'
+import {FilesNotFoundError, InvalidResponseError} from '../shared/errors.js'
 
 export async function uploadArtifact(
   name: string,

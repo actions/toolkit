@@ -12,9 +12,9 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
-import { Int64Value } from "../../../google/protobuf/wrappers";
-import { StringValue } from "../../../google/protobuf/wrappers";
-import { Timestamp } from "../../../google/protobuf/timestamp";
+import { Int64Value } from "../../../google/protobuf/wrappers.js";
+import { StringValue } from "../../../google/protobuf/wrappers.js";
+import { Timestamp } from "../../../google/protobuf/timestamp.js";
 /**
  * @generated from protobuf message github.actions.results.api.v1.MigrateArtifactRequest
  */

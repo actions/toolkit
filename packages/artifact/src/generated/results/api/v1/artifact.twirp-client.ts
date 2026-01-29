@@ -9,7 +9,7 @@ import {
   GetSignedArtifactURLResponse,
   DeleteArtifactRequest,
   DeleteArtifactResponse,
-} from "./artifact";
+} from "./artifact.js";
 
 //==================================//
 //          Client Code             //

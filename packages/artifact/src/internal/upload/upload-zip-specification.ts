@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import {info} from '@actions/core'
 import {normalize, resolve} from 'path'
-import {validateFilePath} from './path-and-artifact-name-validation'
+import {validateFilePath} from './path-and-artifact-name-validation.js'
 
 export interface UploadZipSpecification {
   /**

@@ -10,17 +10,17 @@ import {
   DownloadArtifactOptions,
   DownloadArtifactResponse,
   StreamExtractResponse
-} from '../shared/interfaces'
-import {getUserAgentString} from '../shared/user-agent'
-import {getGitHubWorkspaceDir} from '../shared/config'
-import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
+} from '../shared/interfaces.js'
+import {getUserAgentString} from '../shared/user-agent.js'
+import {getGitHubWorkspaceDir} from '../shared/config.js'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client.js'
 import {
   GetSignedArtifactURLRequest,
   Int64Value,
   ListArtifactsRequest
-} from '../../generated'
-import {getBackendIdsFromToken} from '../shared/util'
-import {ArtifactNotFoundError} from '../shared/errors'
+} from '../../generated/index.js'
+import {getBackendIdsFromToken} from '../shared/util.js'
+import {ArtifactNotFoundError} from '../shared/errors.js'
 
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)

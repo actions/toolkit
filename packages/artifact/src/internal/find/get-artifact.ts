@@ -1,16 +1,20 @@
 import {getOctokit} from '@actions/github'
 import {retry} from '@octokit/plugin-retry'
 import * as core from '@actions/core'
-import {OctokitOptions} from '@octokit/core/dist-types/types'
+import type {OctokitOptions} from '@octokit/core/types'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
-import {getRetryOptions} from './retry-options'
+import {getRetryOptions} from './retry-options.js'
 import {requestLog} from '@octokit/plugin-request-log'
-import {GetArtifactResponse} from '../shared/interfaces'
-import {getBackendIdsFromToken} from '../shared/util'
-import {getUserAgentString} from '../shared/user-agent'
-import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
-import {ListArtifactsRequest, StringValue, Timestamp} from '../../generated'
-import {ArtifactNotFoundError, InvalidResponseError} from '../shared/errors'
+import {GetArtifactResponse} from '../shared/interfaces.js'
+import {getBackendIdsFromToken} from '../shared/util.js'
+import {getUserAgentString} from '../shared/user-agent.js'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client.js'
+import {
+  ListArtifactsRequest,
+  StringValue,
+  Timestamp
+} from '../../generated/index.js'
+import {ArtifactNotFoundError, InvalidResponseError} from '../shared/errors.js'
 
 export async function getArtifactPublic(
   artifactName: string,
