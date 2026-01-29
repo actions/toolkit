@@ -1,5 +1,9 @@
 # @actions/glob Releases
 
+## 0.6.1
+
+- Fix a bad import for `minimatch`
+
 ## 0.6.0
 
 - **Breaking change**: Package is now ESM-only
