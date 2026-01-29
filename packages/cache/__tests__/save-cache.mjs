@@ -15,5 +15,10 @@ const paths = ['test-cache', '~/test-cache']
 console.log(`Saving cache with key: ${key}`)
 console.log(`Paths: ${paths.join(', ')}`)
 
-const cacheId = await cache.saveCache(paths, key)
-console.log(`Cache saved with ID: ${cacheId}`)
+try {
+  const cacheId = await cache.saveCache(paths, key)
+  console.log(`Cache saved with ID: ${cacheId}`)
+} catch (error) {
+  console.error('Error saving cache:', error)
+  process.exit(1)
+}

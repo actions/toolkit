@@ -17,11 +17,16 @@ console.log(`Restoring cache with key: ${key}`)
 console.log(`Paths: ${paths.join(', ')}`)
 console.log(`Using Azure SDK: ${options.useAzureSdk}`)
 
-const restoredKey = await cache.restoreCache(paths, key, [], options)
+try {
+  const restoredKey = await cache.restoreCache(paths, key, [], options)
 
-if (restoredKey) {
-  console.log(`Cache restored with key: ${restoredKey}`)
-} else {
-  console.error('Cache not found')
+  if (restoredKey) {
+    console.log(`Cache restored with key: ${restoredKey}`)
+  } else {
+    console.error('Cache not found')
+    process.exit(1)
+  }
+} catch (error) {
+  console.error('Error restoring cache:', error)
   process.exit(1)
 }
