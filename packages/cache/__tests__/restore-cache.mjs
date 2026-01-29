@@ -17,16 +17,29 @@ console.log(`Restoring cache with key: ${key}`)
 console.log(`Paths: ${paths.join(', ')}`)
 console.log(`Using Azure SDK: ${options.useAzureSdk}`)
 
-try {
-  const restoredKey = await cache.restoreCache(paths, key, [], options)
+const maxRetries = 3
+const retryDelayMs = 5000
 
-  if (restoredKey) {
-    console.log(`Cache restored with key: ${restoredKey}`)
-  } else {
-    console.error('Cache not found')
-    process.exit(1)
+for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  try {
+    console.log(`Attempt ${attempt} of ${maxRetries}`)
+    const restoredKey = await cache.restoreCache(paths, key, [], options)
+
+    if (restoredKey) {
+      console.log(`Cache restored with key: ${restoredKey}`)
+      process.exit(0)
+    } else {
+      console.log('Cache not found on this attempt')
+    }
+  } catch (error) {
+    console.error(`Error on attempt ${attempt}:`, error.message)
   }
-} catch (error) {
-  console.error('Error restoring cache:', error)
-  process.exit(1)
+
+  if (attempt < maxRetries) {
+    console.log(`Waiting ${retryDelayMs / 1000}s before retry...`)
+    await new Promise(resolve => setTimeout(resolve, retryDelayMs))
+  }
 }
+
+console.error(`Failed to restore cache after ${maxRetries} attempts`)
+process.exit(1)
