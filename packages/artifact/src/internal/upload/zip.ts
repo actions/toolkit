@@ -1,6 +1,6 @@
 import * as stream from 'stream'
 import {realpath} from 'fs/promises'
-import * as archiver from 'archiver'
+import archiver from 'archiver'
 import * as core from '@actions/core'
 import {UploadZipSpecification} from './upload-zip-specification.js'
 import {getUploadChunkSize} from '../shared/config.js'
