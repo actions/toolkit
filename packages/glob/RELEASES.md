@@ -23,7 +23,7 @@
 
 ## 0.2.1
 
-- Update `lockfileVersion` to `v2` in `package-lock.json [#1023](https://github.com/actions/toolkit/pull/1023)
+- Update `lockfileVersion` to `v2` in `package-lock.json` [#1023](https://github.com/actions/toolkit/pull/1023)
 
 ## 0.2.0
 
