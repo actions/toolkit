@@ -973,7 +973,7 @@ describe('download-artifact', () => {
 
       const maliciousPath = path.resolve(
         fixtures.workspaceDir,
-        "../../../etc/passwd"
+        '../../../etc/passwd'
       )
       expect(fs.existsSync(maliciousPath)).toBe(false)
     })
