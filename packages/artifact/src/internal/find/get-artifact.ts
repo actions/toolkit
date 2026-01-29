@@ -1,7 +1,7 @@
 import {getOctokit} from '@actions/github'
 import {retry} from '@octokit/plugin-retry'
 import * as core from '@actions/core'
-import {OctokitOptions} from '@octokit/core'
+import type {OctokitOptions} from '@octokit/core/types'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
 import {getRetryOptions} from './retry-options.js'
 import {requestLog} from '@octokit/plugin-request-log'

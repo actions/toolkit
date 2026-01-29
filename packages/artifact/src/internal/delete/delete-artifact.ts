@@ -6,7 +6,7 @@ import {getRetryOptions} from '../find/retry-options.js'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
-import {OctokitOptions} from '@octokit/core'
+import type {OctokitOptions} from '@octokit/core/types'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client.js'
 import {getBackendIdsFromToken} from '../shared/util.js'
 import {
