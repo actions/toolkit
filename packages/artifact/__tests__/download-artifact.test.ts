@@ -821,6 +821,40 @@ describe('download-artifact', () => {
       await expectExtractedArchive(fixtures.workspaceDir)
     })
 
+    it('should extract zip when URL ends with .zip even if content-type is not application/zip', async () => {
+      const blobUrlWithZipExtension =
+        'https://blob-storage.local/artifact.zip?sig=abc123'
+
+      const mockGetZipByUrl = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        // Azure Blob Storage may return a generic content-type
+        message.headers['content-type'] = 'application/octet-stream'
+        message.push(fs.readFileSync(fixtures.exampleArtifact.path))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetZipByUrl
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        blobUrlWithZipExtension,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify files were extracted based on URL .zip extension
+      await expectExtractedArchive(fixtures.workspaceDir)
+    })
+
     it('should skip decompression when skipDecompress option is true even for zip content-type', async () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {

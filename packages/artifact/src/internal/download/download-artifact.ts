@@ -81,10 +81,16 @@ export async function streamExtractExternal(
 
   const contentType = response.message.headers['content-type'] || ''
   const mimeType = contentType.split(';', 1)[0].trim().toLowerCase()
+
+  // Check if the URL path ends with .zip (ignoring query parameters)
+  const urlPath = new URL(url).pathname.toLowerCase()
+  const urlEndsWithZip = urlPath.endsWith('.zip')
+
   const isZip =
     mimeType === 'application/zip' ||
     mimeType === 'application/x-zip-compressed' ||
-    mimeType === 'application/zip-compressed'
+    mimeType === 'application/zip-compressed' ||
+    urlEndsWithZip
 
   // Extract filename from Content-Disposition header
   const contentDisposition =
@@ -100,7 +106,7 @@ export async function streamExtractExternal(
   }
 
   core.debug(
-    `Content-Type: ${contentType}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`
+    `Content-Type: ${contentType}, mimeType: ${mimeType}, urlEndsWithZip: ${urlEndsWithZip}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`
   )
   core.debug(
     `Content-Disposition: ${contentDisposition}, fileName: ${fileName}`
