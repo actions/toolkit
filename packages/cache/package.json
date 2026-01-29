@@ -45,7 +45,7 @@
   "dependencies": {
     "@actions/core": "^3.0.0",
     "@actions/exec": "^3.0.0",
-    "@actions/glob": "^0.6.0",
+    "@actions/glob": "^0.6.1",
     "@actions/http-client": "^4.0.0",
     "@actions/io": "^3.0.0",
     "@azure/core-rest-pipeline": "^1.22.0",
