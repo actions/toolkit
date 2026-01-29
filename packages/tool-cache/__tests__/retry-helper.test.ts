@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {RetryHelper} from '../src/retry-helper'
+import {RetryHelper} from '../src/retry-helper.js'
 
 let info: string[]
 let retryHelper: RetryHelper
