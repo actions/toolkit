@@ -1,21 +1,21 @@
 import {info, debug} from '@actions/core'
 import {getOctokit} from '@actions/github'
-import {DeleteArtifactResponse} from '../shared/interfaces'
-import {getUserAgentString} from '../shared/user-agent'
-import {getRetryOptions} from '../find/retry-options'
+import {DeleteArtifactResponse} from '../shared/interfaces.js'
+import {getUserAgentString} from '../shared/user-agent.js'
+import {getRetryOptions} from '../find/retry-options.js'
 import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
 import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
-import {OctokitOptions} from '@octokit/core/dist-types/types'
-import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client'
-import {getBackendIdsFromToken} from '../shared/util'
+import type {OctokitOptions} from '@octokit/core/types'
+import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client.js'
+import {getBackendIdsFromToken} from '../shared/util.js'
 import {
   DeleteArtifactRequest,
   ListArtifactsRequest,
   StringValue
-} from '../../generated'
-import {getArtifactPublic} from '../find/get-artifact'
-import {ArtifactNotFoundError, InvalidResponseError} from '../shared/errors'
+} from '../../generated/index.js'
+import {getArtifactPublic} from '../find/get-artifact.js'
+import {ArtifactNotFoundError, InvalidResponseError} from '../shared/errors.js'
 
 export async function deleteArtifactPublic(
   artifactName: string,

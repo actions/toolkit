@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {OctokitOptions} from '@octokit/core/dist-types/types'
+import type {OctokitOptions} from '@octokit/core/types'
 import {RequestRequestOptions} from '@octokit/types'
 
 export type RetryOptions = {

@@ -1,5 +1,5 @@
 import {warning} from '@actions/core'
-import {isGhes} from './shared/config'
+import {isGhes} from './shared/config.js'
 import {
   UploadArtifactOptions,
   UploadArtifactResponse,
@@ -10,19 +10,22 @@ import {
   DownloadArtifactResponse,
   FindOptions,
   DeleteArtifactResponse
-} from './shared/interfaces'
-import {uploadArtifact} from './upload/upload-artifact'
+} from './shared/interfaces.js'
+import {uploadArtifact} from './upload/upload-artifact.js'
 import {
   downloadArtifactPublic,
   downloadArtifactInternal
-} from './download/download-artifact'
+} from './download/download-artifact.js'
 import {
   deleteArtifactPublic,
   deleteArtifactInternal
-} from './delete/delete-artifact'
-import {getArtifactPublic, getArtifactInternal} from './find/get-artifact'
-import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts'
-import {GHESNotSupportedError} from './shared/errors'
+} from './delete/delete-artifact.js'
+import {getArtifactPublic, getArtifactInternal} from './find/get-artifact.js'
+import {
+  listArtifactsPublic,
+  listArtifactsInternal
+} from './find/list-artifacts.js'
+import {GHESNotSupportedError} from './shared/errors.js'
 
 /**
  * Generic interface for the artifact client.

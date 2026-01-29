@@ -3,15 +3,15 @@ import type {RequestInterface} from '@octokit/types'
 import {
   getArtifactInternal,
   getArtifactPublic
-} from '../src/internal/find/get-artifact'
-import * as config from '../src/internal/shared/config'
-import {ArtifactServiceClientJSON, Timestamp} from '../src/generated'
-import * as util from '../src/internal/shared/util'
-import {noopLogs} from './common'
+} from '../src/internal/find/get-artifact.js'
+import * as config from '../src/internal/shared/config.js'
+import {ArtifactServiceClientJSON, Timestamp} from '../src/generated/index.js'
+import * as util from '../src/internal/shared/util.js'
+import {noopLogs} from './common.js'
 import {
   ArtifactNotFoundError,
   InvalidResponseError
-} from '../src/internal/shared/errors'
+} from '../src/internal/shared/errors.js'
 
 type MockedRequest = jest.MockedFunction<RequestInterface<object>>
 

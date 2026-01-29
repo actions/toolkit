@@ -4,8 +4,8 @@ import {promises as fs} from 'fs'
 import {
   getUploadZipSpecification,
   validateRootDirectory
-} from '../src/internal/upload/upload-zip-specification'
-import {noopLogs} from './common'
+} from '../src/internal/upload/upload-zip-specification.js'
+import {noopLogs} from './common.js'
 
 const root = path.join(__dirname, '_temp', 'upload-specification')
 const goodItem1Path = path.join(

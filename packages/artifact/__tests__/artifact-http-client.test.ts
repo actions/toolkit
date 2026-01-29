@@ -1,10 +1,10 @@
 import * as http from 'http'
 import * as net from 'net'
 import {HttpClient} from '@actions/http-client'
-import * as config from '../src/internal/shared/config'
-import {internalArtifactTwirpClient} from '../src/internal/shared/artifact-twirp-client'
-import {noopLogs} from './common'
-import {NetworkError, UsageError} from '../src/internal/shared/errors'
+import * as config from '../src/internal/shared/config.js'
+import {internalArtifactTwirpClient} from '../src/internal/shared/artifact-twirp-client.js'
+import {noopLogs} from './common.js'
+import {NetworkError, UsageError} from '../src/internal/shared/errors.js'
 
 jest.mock('@actions/http-client')
 
