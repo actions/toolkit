@@ -1,12 +1,12 @@
 import {info, debug, warning} from '@actions/core'
-import {getUserAgentString} from './user-agent'
-import {NetworkError, RateLimitError, UsageError} from './errors'
-import {getCacheServiceURL} from '../config'
-import {getRuntimeToken} from '../cacheUtils'
+import {getUserAgentString} from './user-agent.js'
+import {NetworkError, RateLimitError, UsageError} from './errors.js'
+import {getCacheServiceURL} from '../config.js'
+import {getRuntimeToken} from '../cacheUtils.js'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
-import {CacheServiceClientJSON} from '../../generated/results/api/v1/cache.twirp-client'
-import {maskSecretUrls} from './util'
+import {CacheServiceClientJSON} from '../../generated/results/api/v1/cache.twirp-client.js'
+import {maskSecretUrls} from './util.js'
 
 // The twirp http client must implement this interface
 interface Rpc {

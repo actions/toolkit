@@ -11,7 +11,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
-import { CacheScope } from "./cachescope";
+import { CacheScope } from "./cachescope.js";
 /**
  * @generated from protobuf message github.actions.results.entities.v1.CacheMetadata
  */
