@@ -55,7 +55,7 @@ jobs:
     # We're using node -e to call the functions directly available in the @actions/cache package
     - name: Save cache using saveCache()
       run: |
-        node -e "(async () => { const cache = await import('./packages/cache/lib/cache.js'); await cache.saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'); })()"
+        node -e "(async () => { const cache = await import('./packages/cache/lib/cache.js'); await cache.saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'); })().catch(e => { console.error(e); process.exit(1); })"
 
     - name: Delete cache folders before restoring
       shell: bash
@@ -65,7 +65,7 @@ jobs:
 
     - name: Restore cache using restoreCache() with http-client
       run: |
-        node -e "(async () => { const cache = await import('./packages/cache/lib/cache.js'); await cache.restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}); })()"
+        node -e "(async () => { const cache = await import('./packages/cache/lib/cache.js'); await cache.restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}); })().catch(e => { console.error(e); process.exit(1); })"
 
     - name: Verify cache restored with http-client
       shell: bash
@@ -81,7 +81,7 @@ jobs:
 
     - name: Restore cache using restoreCache() with Azure SDK
       run: |
-        node -e "(async () => { const cache = await import('./packages/cache/lib/cache.js'); await cache.restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'); })()"
+        node -e "(async () => { const cache = await import('./packages/cache/lib/cache.js'); await cache.restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'); })().catch(e => { console.error(e); process.exit(1); })"
 
     - name: Verify cache restored with Azure SDK
       shell: bash
