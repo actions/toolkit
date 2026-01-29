@@ -13,6 +13,8 @@ import {
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache.js'
 import {HttpClientError} from '@actions/http-client'
+
+export type {DownloadOptions, UploadOptions}
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
