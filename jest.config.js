@@ -17,7 +17,8 @@ module.exports = {
     '^@actions/github/lib/utils$': '<rootDir>/packages/github/lib/utils.js',
     '^@actions/glob$': '<rootDir>/packages/glob/lib/glob.js',
     '^@actions/tool-cache$': '<rootDir>/packages/tool-cache/lib/tool-cache.js',
-    '^@actions/cache$': '<rootDir>/packages/cache/lib/cache.js'
+    '^@actions/cache$': '<rootDir>/packages/cache/lib/cache.js',
+    '^@actions/attest$': '<rootDir>/packages/attest/lib/index.js'
   },
   transform: {
     '^.+\\.(ts|js)$': ['ts-jest', {
@@ -31,7 +32,7 @@ module.exports = {
     }]
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(@octokit|@actions/github|@actions/http-client|@actions/io|@actions/exec|@actions/core|@actions/glob|@actions/tool-cache|@actions/cache|universal-user-agent|before-after-hook)/)'
+    '/node_modules/(?!(@octokit|@actions/github|@actions/http-client|@actions/io|@actions/exec|@actions/core|@actions/glob|@actions/tool-cache|@actions/cache|@actions/attest|universal-user-agent|before-after-hook)/)'
   ],
   verbose: true
 }
