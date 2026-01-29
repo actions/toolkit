@@ -1,4 +1,13 @@
-* @actions/actions-runtime
+# .github/workflows/restyled.yml
+
+name: Restyled
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true* @actions/actions-runtime
 
 /packages/artifact/   @actions/artifacts-actions
 /packages/cache/      @actions/actions-cache
