@@ -1,6 +1,6 @@
-import * as io from '../../io/src/io'
+import * as io from '../../io/src/io.js'
 import * as path from 'path'
-import {hashFiles} from '../src/glob'
+import {hashFiles} from '../src/glob.js'
 import {promises as fs} from 'fs'
 
 const IS_WINDOWS = process.platform === 'win32'

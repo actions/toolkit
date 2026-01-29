@@ -1,9 +1,9 @@
 import * as child from 'child_process'
-import * as io from '../../io/src/io'
+import * as io from '../../io/src/io.js'
 import * as os from 'os'
 import * as path from 'path'
-import {Globber, DefaultGlobber} from '../src/internal-globber'
-import {GlobOptions} from '../src/internal-glob-options'
+import {Globber, DefaultGlobber} from '../src/internal-globber.js'
+import {GlobOptions} from '../src/internal-glob-options.js'
 import {promises as fs} from 'fs'
 
 const IS_WINDOWS = process.platform === 'win32'

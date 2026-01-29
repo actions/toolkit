@@ -14,7 +14,8 @@ module.exports = {
     '^@actions/http-client/lib/auth$': '<rootDir>/packages/http-client/lib/auth.js',
     '^@actions/http-client/lib/interfaces$': '<rootDir>/packages/http-client/lib/interfaces.js',
     '^@actions/github$': '<rootDir>/packages/github/lib/github.js',
-    '^@actions/github/lib/utils$': '<rootDir>/packages/github/lib/utils.js'
+    '^@actions/github/lib/utils$': '<rootDir>/packages/github/lib/utils.js',
+    '^@actions/glob$': '<rootDir>/packages/glob/lib/glob.js'
   },
   transform: {
     '^.+\\.(ts|js)$': ['ts-jest', {
@@ -29,7 +30,7 @@ module.exports = {
     }]
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(@octokit|@actions/github|@actions/http-client|@actions/io|@actions/exec|@actions/core|universal-user-agent|before-after-hook)/)'
+    '/node_modules/(?!(@octokit|@actions/github|@actions/http-client|@actions/io|@actions/exec|@actions/core|@actions/glob|universal-user-agent|before-after-hook)/)'
   ],
   verbose: true
 }
