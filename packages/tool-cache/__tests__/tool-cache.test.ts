@@ -12,7 +12,7 @@ process.env['RUNNER_TEMP'] = tempPath
 process.env['RUNNER_TOOL_CACHE'] = cachePath
 
 // eslint-disable-next-line import/first
-import * as tc from '../src/tool-cache'
+import * as tc from '../src/tool-cache.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 const IS_MAC = process.platform === 'darwin'
