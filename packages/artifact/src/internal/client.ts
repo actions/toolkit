@@ -21,7 +21,10 @@ import {
   deleteArtifactInternal
 } from './delete/delete-artifact.js'
 import {getArtifactPublic, getArtifactInternal} from './find/get-artifact.js'
-import {listArtifactsPublic, listArtifactsInternal} from './find/list-artifacts.js'
+import {
+  listArtifactsPublic,
+  listArtifactsInternal
+} from './find/list-artifacts.js'
 import {GHESNotSupportedError} from './shared/errors.js'
 
 /**
