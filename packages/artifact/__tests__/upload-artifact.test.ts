@@ -132,7 +132,7 @@ describe('upload-artifact', () => {
       fixtures.inputs.files,
       fixtures.inputs.rootDirectory
     )
-    await expect(uploadResp).rejects.toThrowError(FilesNotFoundError)
+    await expect(uploadResp).rejects.toThrow(FilesNotFoundError)
   })
 
   it('should reject if no backend IDs are found', async () => {
