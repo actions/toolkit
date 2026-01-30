@@ -24,7 +24,7 @@ on:
 
 jobs:
   test:
-    runs-on: macos-latest-large
+    runs-on: ubuntu-latest
 
     steps:
       - name: setup repo
@@ -61,7 +61,7 @@ jobs:
           path: packages/${{ github.event.inputs.package }}/*.tgz
 
   publish:
-    runs-on: macos-latest-large
+    runs-on: ubuntu-slim
     needs: test
     environment: npm-publish
     permissions:
