@@ -1,6 +1,8 @@
 import fs from 'fs/promises'
+import * as fsSync from 'fs'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
+import * as path from 'path'
 
 import * as github from '@actions/github'
 import * as core from '@actions/core'
@@ -43,12 +45,13 @@ async function exists(path: string): Promise<boolean> {
 
 async function streamExtract(
   url: string,
-  directory: string
+  directory: string,
+  skipDecompress?: boolean
 ): Promise<StreamExtractResponse> {
   let retryCount = 0
   while (retryCount < 5) {
     try {
-      return await streamExtractExternal(url, directory)
+      return await streamExtractExternal(url, directory, {skipDecompress})
     } catch (error) {
       retryCount++
       core.debug(
@@ -65,8 +68,9 @@ async function streamExtract(
 export async function streamExtractExternal(
   url: string,
   directory: string,
-  opts: {timeout: number} = {timeout: 30 * 1000}
+  opts: {timeout?: number; skipDecompress?: boolean} = {}
 ): Promise<StreamExtractResponse> {
+  const {timeout = 30 * 1000, skipDecompress = false} = opts
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
   if (response.message.statusCode !== 200) {
@@ -75,49 +79,91 @@ export async function streamExtractExternal(
     )
   }
 
+  const contentType = response.message.headers['content-type'] || ''
+  const mimeType = contentType.split(';', 1)[0].trim().toLowerCase()
+
+  // Check if the URL path ends with .zip (ignoring query parameters)
+  const urlPath = new URL(url).pathname.toLowerCase()
+  const urlEndsWithZip = urlPath.endsWith('.zip')
+
+  const isZip =
+    mimeType === 'application/zip' ||
+    mimeType === 'application/x-zip-compressed' ||
+    mimeType === 'application/zip-compressed' ||
+    urlEndsWithZip
+
+  // Extract filename from Content-Disposition header
+  const contentDisposition =
+    response.message.headers['content-disposition'] || ''
+  let fileName = 'artifact'
+  const filenameMatch = contentDisposition.match(
+    /filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?/i
+  )
+  if (filenameMatch && filenameMatch[1]) {
+    // Sanitize fileName to prevent path traversal attacks
+    // Use path.basename to extract only the filename component
+    fileName = path.basename(decodeURIComponent(filenameMatch[1].trim()))
+  }
+
+  core.debug(
+    `Content-Type: ${contentType}, mimeType: ${mimeType}, urlEndsWithZip: ${urlEndsWithZip}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`
+  )
+  core.debug(
+    `Content-Disposition: ${contentDisposition}, fileName: ${fileName}`
+  )
+
   let sha256Digest: string | undefined = undefined
 
   return new Promise((resolve, reject) => {
     const timerFn = (): void => {
       const timeoutError = new Error(
-        `Blob storage chunk did not respond in ${opts.timeout}ms`
+        `Blob storage chunk did not respond in ${timeout}ms`
       )
       response.message.destroy(timeoutError)
       reject(timeoutError)
     }
-    const timer = setTimeout(timerFn, opts.timeout)
+    const timer = setTimeout(timerFn, timeout)
+
+    const onError = (error: Error): void => {
+      core.debug(`response.message: Artifact download failed: ${error.message}`)
+      clearTimeout(timer)
+      reject(error)
+    }
 
     const hashStream = crypto.createHash('sha256').setEncoding('hex')
     const passThrough = new stream.PassThrough()
-
-    response.message.pipe(passThrough)
-    passThrough.pipe(hashStream)
-    const extractStream = passThrough
-
-    extractStream
       .on('data', () => {
         timer.refresh()
       })
-      .on('error', (error: Error) => {
-        core.debug(
-          `response.message: Artifact download failed: ${error.message}`
-        )
-        clearTimeout(timer)
-        reject(error)
-      })
-      .pipe(unzip.Extract({path: directory}))
-      .on('close', () => {
-        clearTimeout(timer)
-        if (hashStream) {
-          hashStream.end()
-          sha256Digest = hashStream.read() as string
-          core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
-        }
-        resolve({sha256Digest: `sha256:${sha256Digest}`})
-      })
-      .on('error', (error: Error) => {
-        reject(error)
-      })
+      .on('error', onError)
+
+    response.message.pipe(passThrough)
+    passThrough.pipe(hashStream)
+
+    const onClose = (): void => {
+      clearTimeout(timer)
+      if (hashStream) {
+        hashStream.end()
+        sha256Digest = hashStream.read() as string
+        core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
+      }
+      resolve({sha256Digest: `sha256:${sha256Digest}`})
+    }
+
+    if (isZip && !skipDecompress) {
+      // Extract zip file
+      passThrough
+        .pipe(unzip.Extract({path: directory}))
+        .on('close', onClose)
+        .on('error', onError)
+    } else {
+      // Save raw file without extracting
+      const filePath = path.join(directory, fileName)
+      const writeStream = fsSync.createWriteStream(filePath)
+
+      core.info(`Downloading raw file (non-zip) to: ${filePath}`)
+      passThrough.pipe(writeStream).on('close', onClose).on('error', onError)
+    }
   })
 }
 
@@ -163,7 +209,11 @@ export async function downloadArtifactPublic(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    const extractResponse = await streamExtract(location, downloadPath)
+    const extractResponse = await streamExtract(
+      location,
+      downloadPath,
+      options?.skipDecompress
+    )
     core.info(`Artifact download completed successfully.`)
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {
@@ -224,7 +274,11 @@ export async function downloadArtifactInternal(
 
   try {
     core.info(`Starting download of artifact to: ${downloadPath}`)
-    const extractResponse = await streamExtract(signedUrl, downloadPath)
+    const extractResponse = await streamExtract(
+      signedUrl,
+      downloadPath,
+      options?.skipDecompress
+    )
     core.info(`Artifact download completed successfully.`)
     if (options?.expectedHash) {
       if (options?.expectedHash !== extractResponse.sha256Digest) {

@@ -113,6 +113,12 @@ export interface DownloadArtifactOptions {
    * matches the expected hash.
    */
   expectedHash?: string
+
+  /**
+   * If true, the downloaded artifact will not be automatically extracted/decompressed.
+   * The artifact will be saved as-is to the destination path.
+   */
+  skipDecompress?: boolean
 }
 
 export interface StreamExtractResponse {

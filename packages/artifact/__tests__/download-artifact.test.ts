@@ -104,6 +104,7 @@ const cleanup = async (): Promise<void> => {
 const mockGetArtifactSuccess = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 200
+  message.headers['content-type'] = 'application/zip'
   message.push(fs.readFileSync(fixtures.exampleArtifact.path))
   message.push(null)
   return {
@@ -114,6 +115,7 @@ const mockGetArtifactSuccess = jest.fn(() => {
 const mockGetArtifactHung = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 200
+  message.headers['content-type'] = 'application/zip'
   // Don't push any data or call push(null) to end the stream
   // This creates a stream that hangs and never completes
   return {
@@ -134,6 +136,7 @@ const mockGetArtifactFailure = jest.fn(() => {
 const mockGetArtifactMalicious = jest.fn(() => {
   const message = new http.IncomingMessage(new net.Socket())
   message.statusCode = 200
+  message.headers['content-type'] = 'application/zip'
   message.push(fs.readFileSync(path.join(__dirname, 'fixtures', 'evil.zip'))) // evil.zip contains files that are formatted x/../../etc/hosts
   message.push(null)
   return {
@@ -619,10 +622,17 @@ describe('download-artifact', () => {
         ...fixtures.backendIds,
         name: fixtures.artifactName
       })
-    })
+    }, 38000)
   })
 
   describe('streamExtractExternal', () => {
+    beforeEach(async () => {
+      await setup()
+      // Create workspace directory for streamExtractExternal tests
+      await fs.promises.mkdir(fixtures.workspaceDir, {recursive: true})
+    })
+    afterEach(cleanup)
+
     it('should fail if the timeout is exceeded', async () => {
       const mockSlowGetArtifact = jest.fn(mockGetArtifactHung)
 
@@ -641,12 +651,331 @@ describe('download-artifact', () => {
           {timeout: 2}
         )
         expect(true).toBe(false) // should not be called
-      } catch (e) {
+      } catch (error: unknown) {
+        const e = error as Error
         expect(e).toBeInstanceOf(Error)
         expect(e.message).toContain('did not respond in 2ms')
         expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
         expect(mockSlowGetArtifact).toHaveBeenCalledTimes(1)
       }
+    })
+
+    it('should extract zip file when content-type is application/zip', async () => {
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactSuccess
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify files were extracted (not saved as a single file)
+      await expectExtractedArchive(fixtures.workspaceDir)
+    })
+
+    it('should save raw file without extracting when content-type is not a zip', async () => {
+      const rawFileContent = 'This is a raw text file, not a zip'
+      const rawFileName = 'my-artifact.txt'
+
+      const mockGetRawFile = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'text/plain'
+        message.headers['content-disposition'] =
+          `attachment; filename="${rawFileName}"`
+        message.push(Buffer.from(rawFileContent))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetRawFile
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify file was saved as-is, not extracted
+      const savedFilePath = path.join(fixtures.workspaceDir, rawFileName)
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+    })
+
+    it('should save raw file with default name when content-disposition is missing', async () => {
+      const rawFileContent = 'Binary content here'
+
+      const mockGetRawFileNoDisposition = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'application/octet-stream'
+        // No content-disposition header
+        message.push(Buffer.from(rawFileContent))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetRawFileNoDisposition
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify file was saved with default name 'artifact'
+      const savedFilePath = path.join(fixtures.workspaceDir, 'artifact')
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+    })
+
+    it('should not attempt to unzip when content-type is image/png', async () => {
+      const pngFileName = 'screenshot.png'
+      // Simple PNG header bytes for testing
+      const pngContent = Buffer.from([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a
+      ])
+
+      const mockGetPngFile = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'image/png'
+        message.headers['content-disposition'] =
+          `attachment; filename="${pngFileName}"`
+        message.push(pngContent)
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetPngFile
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify PNG was saved as-is
+      const savedFilePath = path.join(fixtures.workspaceDir, pngFileName)
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      expect(fs.readFileSync(savedFilePath)).toEqual(pngContent)
+    })
+
+    it('should extract when content-type is application/x-zip-compressed', async () => {
+      const mockGetZipCompressed = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'application/x-zip-compressed'
+        message.push(fs.readFileSync(fixtures.exampleArtifact.path))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetZipCompressed
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify files were extracted
+      await expectExtractedArchive(fixtures.workspaceDir)
+    })
+
+    it('should extract zip when URL ends with .zip even if content-type is not application/zip', async () => {
+      const blobUrlWithZipExtension =
+        'https://blob-storage.local/artifact.zip?sig=abc123'
+
+      const mockGetZipByUrl = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        // Azure Blob Storage may return a generic content-type
+        message.headers['content-type'] = 'application/octet-stream'
+        message.push(fs.readFileSync(fixtures.exampleArtifact.path))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetZipByUrl
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        blobUrlWithZipExtension,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify files were extracted based on URL .zip extension
+      await expectExtractedArchive(fixtures.workspaceDir)
+    })
+
+    it('should skip decompression when skipDecompress option is true even for zip content-type', async () => {
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetArtifactSuccess
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {skipDecompress: true}
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify zip was saved as-is, not extracted
+      // When skipDecompress is true, the file should be saved with default name 'artifact'
+      const savedFilePath = path.join(fixtures.workspaceDir, 'artifact')
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      // The saved file should be the raw zip content
+      const savedContent = fs.readFileSync(savedFilePath)
+      const originalZipContent = fs.readFileSync(fixtures.exampleArtifact.path)
+      expect(savedContent).toEqual(originalZipContent)
+    })
+
+    it('should sanitize path traversal attempts in Content-Disposition filename', async () => {
+      const rawFileContent = 'malicious content'
+      const maliciousFileName = '../../../etc/passwd'
+
+      const mockGetMaliciousFile = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'text/plain'
+        message.headers['content-disposition'] =
+          `attachment; filename="${maliciousFileName}"`
+        message.push(Buffer.from(rawFileContent))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetMaliciousFile
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // Verify file was saved with sanitized name (just 'passwd', not the full path)
+      const sanitizedFileName = 'passwd'
+      const savedFilePath = path.join(fixtures.workspaceDir, sanitizedFileName)
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+
+      // Verify the file was NOT written outside the workspace directory
+      const maliciousPath = path.resolve(
+        fixtures.workspaceDir,
+        maliciousFileName
+      )
+      expect(fs.existsSync(maliciousPath)).toBe(false)
+    })
+
+    it('should handle encoded path traversal attempts in Content-Disposition filename', async () => {
+      const rawFileContent = 'encoded malicious content'
+      // URL encoded version of ../../../etc/passwd
+      const encodedMaliciousFileName = '..%2F..%2F..%2Fetc%2Fpasswd'
+
+      const mockGetEncodedMaliciousFile = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'application/octet-stream'
+        message.headers['content-disposition'] =
+          `attachment; filename="${encodedMaliciousFileName}"`
+        message.push(Buffer.from(rawFileContent))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+        () => {
+          return {
+            get: mockGetEncodedMaliciousFile
+          }
+        }
+      )
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+      // After decoding and sanitizing, should just be 'passwd'
+      const sanitizedFileName = 'passwd'
+      const savedFilePath = path.join(fixtures.workspaceDir, sanitizedFileName)
+      expect(fs.existsSync(savedFilePath)).toBe(true)
+      expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+
+      // Verify the file was NOT written outside the workspace directory
+      const maliciousPathEncoded = path.resolve(
+        fixtures.workspaceDir,
+        encodedMaliciousFileName
+      )
+      expect(fs.existsSync(maliciousPathEncoded)).toBe(false)
+
+      const maliciousPath = path.resolve(
+        fixtures.workspaceDir,
+        '../../../etc/passwd'
+      )
+      expect(fs.existsSync(maliciousPath)).toBe(false)
     })
   })
 })
