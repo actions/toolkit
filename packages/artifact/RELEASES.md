@@ -1,5 +1,14 @@
 # @actions/artifact Releases
 
+## 6.1.0
+
+- Support downloading non-zip artifacts. Zipped artifacts will be decompressed automatically (with an optional override). Un-zipped artifacts will be downloaded as-is.
+
+## 6.0.0
+
+- **Breaking change**: Package is now ESM-only
+  - CommonJS consumers must use dynamic `import()` instead of `require()`
+
 ## 5.0.3
 
 - Bump `@actions/http-client` to `3.0.2`
