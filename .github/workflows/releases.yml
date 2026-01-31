@@ -25,6 +25,8 @@ on:
 jobs:
   test:
     runs-on: macos-latest-large
+    permissions:
+      contents: read
 
     steps:
       - name: setup repo
