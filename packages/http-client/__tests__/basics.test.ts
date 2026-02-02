@@ -238,6 +238,8 @@ describe('basics', () => {
       'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
+    // Consume the response to close the socket
+    res.message.destroy()
   })
 
   it('does basic http delete request', async () => {
