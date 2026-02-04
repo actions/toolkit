@@ -21,12 +21,12 @@
       "types": "./lib/auth.d.ts",
       "import": "./lib/auth.js"
     },
-    "./lib/proxy": {  
-      "types": "./lib/proxy.d.ts",  
+    "./lib/proxy": {
+      "types": "./lib/proxy.d.ts",
       "import": "./lib/proxy.js"
     },
-    "./lib/interfaces": {  
-      "types": "./lib/interfaces.d.ts",  
+    "./lib/interfaces": {
+      "types": "./lib/interfaces.d.ts",
       "import": "./lib/interfaces.js"
     }
   },
@@ -59,13 +59,13 @@
   },
   "devDependencies": {
     "@types/node": "24.1.0",
+    "@types/proxy": "^1.0.1",
     "@types/tunnel": "0.0.3",
-    "proxy": "^2.1.1",
-    "@types/proxy": "^1.0.1"
+    "proxy": "^2.1.1"
   },
   "dependencies": {
     "tunnel": "^0.0.6",
-    "undici": "^6.23.0"
+    "undici": "7.20.0"
   },
   "overrides": {
     "uri-js": "npm:uri-js-replace@^1.0.1"
