@@ -170,6 +170,22 @@ export interface AnnotationProperties {
 }
 ```
 
+Example:
+
+```js
+core.error(
+  'This is a bad error seen in file.',
+  {
+    title: 'Unexpected Error',
+    file: 'path/to/errored-file.js',
+    startLine: 1,
+    endLine: 2,
+    startColumn: 1,
+    endColumn: 10,
+  }
+)
+```
+
 #### Styling output
 
 Colored output is supported in the Action logs via standard [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code). 3/4 bit, 8 bit and 24 bit colors are all supported.
