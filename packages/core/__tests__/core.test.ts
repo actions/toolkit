@@ -677,5 +677,8 @@ describe('oidc-client-tests', () => {
     const http = new HttpClient('actions/oidc-client')
     const res = await http.get(getTokenEndPoint())
     expect(res.message.statusCode).toBe(200)
+    // Consume the response to close the socket
+    await res.readBody()
+    res.message.destroy()
   })
 })
