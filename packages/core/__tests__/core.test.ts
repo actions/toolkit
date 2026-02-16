@@ -634,6 +634,16 @@ describe('@actions/core', () => {
     core.setCommandEcho(false)
     assertWriteCalls([`::echo::off${os.EOL}`])
   })
+
+  it('addMatcher adds a problem matcher', () => {
+    core.addMatcher('my-matcher.json')
+    assertWriteCalls([`::add-matcher::my-matcher.json${os.EOL}`])
+  })
+
+  it('removeMatcher removes a problem matcher', () => {
+    core.removeMatcher('my-matcher-owner')
+    assertWriteCalls([`::remove-matcher owner=my-matcher-owner::${os.EOL}`])
+  })
 })
 
 // Assert that process.stdout.write calls called only with the given arguments.
