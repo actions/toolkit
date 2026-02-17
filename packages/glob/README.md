@@ -91,9 +91,14 @@ With the following behaviors:
 
 Supports basic tilde expansion, for current user HOME replacement only.
 
-Example:
-- `~` may expand to /Users/johndoe
-- `~/foo` may expand to /Users/johndoe/foo
+Example, for user `johndoe` on Unix-like operating systems:
+- `~` will expand to `/Users/johndoe`
+- `~/foo` will expand to `/Users/johndoe/foo`
+
+On Windows, environment variables such as `%HOME%`, `%APPDATA%` or
+`%LOCALAPPDATA%` will not be expanded. `~` can be used as an alternative to
+`%HOME%`, `~\AppData\Roaming` as an alternative to `%APPDATA%`, and
+`~\AppData\Local` as an alternative to `%LOCALAPPDATA%`. 
 
 ### Comments
 
