@@ -47,7 +47,7 @@ describe('pattern', () => {
       expect(pattern.match(path.join(rootPath, 'not-match'))).toBeFalsy()
 
       if (IS_WINDOWS) {
-        const currentDrive = process.cwd().substr(0, 2)
+        const currentDrive = process.cwd().slice(0, 2)
         expect(currentDrive.match(/^[A-Z]:$/i)).toBeTruthy()
 
         // Relative current drive letter, e.g. C:m*
@@ -58,7 +58,7 @@ describe('pattern', () => {
 
         // Relative current drive, e.g. \path\to\cwd\m*
         pattern = new Pattern(
-          `${Pattern.globEscape(process.cwd().substr(2))}\\m*`
+          `${Pattern.globEscape(process.cwd().slice(2))}\\m*`
         )
         expect(pattern.searchPath).toBe(rootPath)
         expect(pattern.match(path.join(rootPath, 'match'))).toBeTruthy()
@@ -167,7 +167,7 @@ describe('pattern', () => {
 
   it('replaces leading relative root', () => {
     if (IS_WINDOWS) {
-      const currentDrive = process.cwd().substr(0, 2)
+      const currentDrive = process.cwd().slice(0, 2)
       expect(currentDrive.match(/^[A-Z]:$/i)).toBeTruthy()
       const otherDrive = currentDrive.toUpperCase().startsWith('C')
         ? 'D:'
@@ -196,7 +196,7 @@ describe('pattern', () => {
       expect(pattern.match(`${otherDrive}\\bar`)).toBeFalsy()
 
       // Pattern is '\\path\\to\\cwd'
-      pattern = new Pattern(`${process.cwd().substr(2)}\\foo`)
+      pattern = new Pattern(`${process.cwd().slice(2)}\\foo`)
       expect(pattern.match(path.join(process.cwd(), 'foo'))).toBeTruthy()
       expect(pattern.match(path.join(process.cwd(), 'bar'))).toBeFalsy()
     }
@@ -206,7 +206,7 @@ describe('pattern', () => {
     const patternStrings = ['!hello.txt', '!**/world.txt']
     const actual = patternStrings.map(x => new Pattern(x))
     const expected = patternStrings
-      .map(x => x.substr(1))
+      .map(x => x.slice(1))
       .map(x => path.join(Pattern.globEscape(process.cwd()), x))
       .map(x => `!${x}`)
       .map(x => new Pattern(x))

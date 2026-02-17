@@ -68,7 +68,7 @@ export function ensureAbsoluteRoot(root: string, itemPath: string): string {
         // Drive only, e.g. C:
         if (itemPath.length === 2) {
           // Preserve specified drive letter case (upper or lower)
-          return `${itemPath[0]}:\\${cwd.substr(3)}`
+          return `${itemPath[0]}:\\${cwd.slice(3)}`
         }
         // Drive + path, e.g. C:foo
         else {
@@ -76,12 +76,12 @@ export function ensureAbsoluteRoot(root: string, itemPath: string): string {
             cwd += '\\'
           }
           // Preserve specified drive letter case (upper or lower)
-          return `${itemPath[0]}:\\${cwd.substr(3)}${itemPath.substr(2)}`
+          return `${itemPath[0]}:\\${cwd.slice(3)}${itemPath.slice(2)}`
         }
       }
       // Different drive
       else {
-        return `${itemPath[0]}:\\${itemPath.substr(2)}`
+        return `${itemPath[0]}:\\${itemPath.slice(2)}`
       }
     }
     // Check for itemPath like \ or \foo
@@ -92,7 +92,7 @@ export function ensureAbsoluteRoot(root: string, itemPath: string): string {
         `Expected current directory to start with an absolute drive root. Actual '${cwd}'`
       )
 
-      return `${cwd[0]}:\\${itemPath.substr(1)}`
+      return `${cwd[0]}:\\${itemPath.slice(1)}`
     }
   }
 
@@ -202,5 +202,5 @@ export function safeTrimTrailingSeparator(p: string): string {
   }
 
   // Otherwise trim trailing slash
-  return p.substr(0, p.length - 1)
+  return p.slice(0, -1)
 }
