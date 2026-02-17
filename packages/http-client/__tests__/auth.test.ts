@@ -1,5 +1,5 @@
-import * as httpm from '../lib'
-import * as am from '../lib/auth'
+import * as httpm from '../src/index'
+import * as am from '../src/auth'
 
 describe('auth', () => {
   beforeEach(() => {})
