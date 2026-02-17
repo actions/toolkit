@@ -220,11 +220,13 @@ async function restoreCacheV1(
       }
     }
   } finally {
-    // Try to delete the archive to save space
-    try {
-      await utils.unlinkFile(archivePath)
-    } catch (error) {
-      core.debug(`Failed to delete archive: ${error}`)
+    if (archivePath) {
+      // Try to delete the archive to save space
+      try {
+        await utils.unlinkFile(archivePath)
+      } catch (error) {
+        core.debug(`Failed to delete archive: ${error}`)
+      }
     }
   }
 
