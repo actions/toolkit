@@ -16,6 +16,11 @@ const SPAWN_WAIT_SCRIPT = path.join(
   'scripts',
   'spawn-wait-for-file.cjs'
 )
+const SELF_TERMINATE_SCRIPT = path.join(
+  __dirname,
+  'scripts',
+  'self-terminate.cjs'
+)
 
 let outstream: stream.Writable
 let errstream: stream.Writable
@@ -190,6 +195,24 @@ describe('@actions/exec', () => {
         `[command]${toolpath} -l non-existent${os.EOL}`
       )
     }
+  })
+
+  it('Fails when process terminates via signal', async () => {
+    if (IS_WINDOWS) {
+      return
+    }
+
+    const nodePath: string = await io.which('node', true)
+    const _testExecOptions = getExecOptions()
+
+    await exec
+      .exec(`"${nodePath}"`, [SELF_TERMINATE_SCRIPT], _testExecOptions)
+      .then(() => {
+        throw new Error('Should not have succeeded')
+      })
+      .catch(err => {
+        expect(err.message).toContain('terminated by signal SIGTERM')
+      })
   })
 
   it('Succeeds on stderr by default', async () => {
