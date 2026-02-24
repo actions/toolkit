@@ -130,10 +130,84 @@ jobs:
 
           console.log(`Successfully uploaded single file artifact ${id}`)
 
+  upload-html-file:
+    name: Upload HTML File (no zip)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
+      with:
+        node-version: 24.x
+
+    - name: Install root npm packages
+      run: npm ci
+
+    - name: Compile artifact package
+      run: |
+        npm ci
+        npm run tsc
+      working-directory: packages/artifact
+
+    - name: Create HTML file
+      run: |
+        cat > report.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Artifact Upload Test Report</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #24292f; }
+            h1 { border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
+            .success { color: #1a7f37; }
+            .info { background: #ddf4ff; border: 1px solid #54aeff; border-radius: 6px; padding: 12px 16px; margin: 16px 0; }
+            table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+            th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+            th { background: #f6f8fa; }
+          </style>
+        </head>
+        <body>
+          <h1>Artifact Upload Test Report</h1>
+          <div class="info">
+            <strong>This HTML file was uploaded as a single un-zipped artifact.</strong>
+            If you can see this in the browser, the feature is working correctly!
+          </div>
+          <table>
+            <tr><th>Property</th><th>Value</th></tr>
+            <tr><td>Upload method</td><td><code>skipArchive: true</code></td></tr>
+            <tr><td>Content-Type</td><td><code>text/html</code></td></tr>
+            <tr><td>File</td><td><code>report.html</code></td></tr>
+          </table>
+          <p class="success">&#10004; Single file upload is working!</p>
+        </body>
+        </html>
+        EOF
+
+    - name: Upload HTML Artifact (skipArchive)
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const {default: artifact} = require('./packages/artifact/lib/artifact')
+
+          const uploadResult = await artifact.uploadArtifact(
+            'test-report',
+            ['report.html'],
+            './',
+            {skipArchive: true}
+          )
+          console.log(uploadResult)
+          console.log(`Successfully uploaded HTML artifact ${uploadResult.id}`)
+          console.log('This artifact is intentionally kept for manual browser verification')
+
   verify:
     name: Verify and Delete
     runs-on: ubuntu-latest
-    needs: [upload, upload-single-file]
+    needs: [upload, upload-single-file, upload-html-file]
     steps:
     - name: Checkout
       uses: actions/checkout@v5
