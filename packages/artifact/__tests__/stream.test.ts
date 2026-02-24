@@ -39,10 +39,7 @@ describe('createRawFileUploadStream', () => {
   })
 
   it('should propagate file read errors through the upload stream', async () => {
-    const unreadableFile = path.join(
-      fixtures.testDirectory,
-      'unreadable.txt'
-    )
+    const unreadableFile = path.join(fixtures.testDirectory, 'unreadable.txt')
     fs.writeFileSync(unreadableFile, 'secret')
     fs.chmodSync(unreadableFile, 0o000)
 
