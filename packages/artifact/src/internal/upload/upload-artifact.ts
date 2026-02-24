@@ -32,6 +32,10 @@ export async function uploadArtifact(
 ): Promise<UploadArtifactResponse> {
   let artifactFileName = `${name}.zip`
   if (options?.skipArchive) {
+    if (files.length === 0) {
+      throw new FilesNotFoundError([])
+    }
+
     if (files.length > 1) {
       throw new Error(
         'skipArchive option is only supported when uploading a single file'

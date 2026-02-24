@@ -373,6 +373,17 @@ describe('upload-artifact', () => {
   })
 
   describe('skipArchive option', () => {
+    it('should throw an error if skipArchive is true and files array is empty', async () => {
+      const uploadResp = uploadArtifact(
+        fixtures.inputs.artifactName,
+        [],
+        fixtures.inputs.rootDirectory,
+        {skipArchive: true}
+      )
+
+      await expect(uploadResp).rejects.toThrow(FilesNotFoundError)
+    })
+
     it('should throw an error if skipArchive is true and multiple files are provided', async () => {
       const uploadResp = uploadArtifact(
         fixtures.inputs.artifactName,
