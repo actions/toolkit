@@ -71,10 +71,69 @@ jobs:
           } catch (err) {
             console.log('Successfully blocked second artifact upload')
           }
+
+  upload-single-file:
+    name: Upload Single File (no zip)
+
+    strategy:
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
+      with:
+        node-version: 24.x
+
+    - name: Install root npm packages
+      run: npm ci
+
+    - name: Compile artifact package
+      run: |
+        npm ci
+        npm run tsc
+      working-directory: packages/artifact
+
+    - name: Create file that will be uploaded
+      run: |
+        echo -n 'hello from single file upload' > single-file-${{ matrix.runs-on }}.txt
+
+    - name: Upload Single File Artifact (skipArchive)
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const {default: artifact} = require('./packages/artifact/lib/artifact')
+
+          const artifactName = 'my-single-file-${{ matrix.runs-on }}'
+          console.log('artifactName: ' + artifactName)
+
+          const uploadResult = await artifact.uploadArtifact(
+            artifactName,
+            ['single-file-${{ matrix.runs-on }}.txt'],
+            './',
+            {skipArchive: true}
+          )
+          console.log(uploadResult)
+
+          const size = uploadResult.size
+          const id = uploadResult.id
+
+          if (!id) {
+            throw new Error('Artifact ID is missing from upload result')
+          }
+
+          console.log(`Successfully uploaded single file artifact ${id}`)
+
   verify:
     name: Verify and Delete
     runs-on: ubuntu-latest
-    needs: [upload]
+    needs: [upload, upload-single-file]
     steps:
     - name: Checkout
       uses: actions/checkout@v5
@@ -164,6 +223,71 @@ jobs:
               }
             }
           }
+
+    - name: Download and Verify Single File Artifacts
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const {default: artifactClient} = require('./packages/artifact/lib/artifact')
+
+          const {readFile} = require('fs/promises')
+          const path = require('path')
+
+          const findBy = {
+            repositoryOwner: process.env.GITHUB_REPOSITORY.split('/')[0],
+            repositoryName: process.env.GITHUB_REPOSITORY.split('/')[1],
+            token: '${{ secrets.GITHUB_TOKEN }}',
+            workflowRunId: process.env.GITHUB_RUN_ID
+          }
+
+          const listResult = await artifactClient.listArtifacts({latest: true, findBy})
+          const expectedSingleFiles = [
+            'single-file-ubuntu-latest.txt',
+            'single-file-windows-latest.txt',
+            'single-file-macos-latest.txt'
+          ]
+
+          // Single file artifacts are named after the file basename
+          const singleFileArtifacts = listResult.artifacts.filter(a =>
+            expectedSingleFiles.includes(a.name)
+          )
+
+          console.log('Found single file artifacts:', singleFileArtifacts.length)
+
+          if (singleFileArtifacts.length !== 3) {
+            console.log('Unexpected single file artifacts:', singleFileArtifacts)
+            throw new Error(
+              `Expected 3 single-file artifacts but found ${singleFileArtifacts.length}`
+            )
+          }
+
+          for (const artifact of singleFileArtifacts) {
+            const downloadDir = `single-file-download-${artifact.id}`
+            const {downloadPath} = await artifactClient.downloadArtifact(artifact.id, {
+              path: downloadDir,
+              findBy
+            })
+
+            console.log('Downloaded single file artifact to:', downloadPath)
+
+            const filePath = path.join(
+              process.env.GITHUB_WORKSPACE,
+              downloadPath,
+              artifact.name
+            )
+
+            console.log('Checking file:', filePath)
+
+            const content = await readFile(filePath, 'utf8')
+            if (content.trim() !== 'hello from single file upload') {
+              throw new Error(
+                `Expected single file to contain 'hello from single file upload' but found '${content}'`
+              )
+            }
+
+            console.log(`Successfully verified single file artifact ${artifact.id}`)
+          }
+
     - name: Delete Artifacts
       uses: actions/github-script@v8
       with:
@@ -173,11 +297,19 @@ jobs:
           const artifactsToDelete = [
             'my-artifact-ubuntu-latest',
             'my-artifact-windows-latest',
-            'my-artifact-macos-latest'
+            'my-artifact-macos-latest',
+            'single-file-ubuntu-latest.txt',
+            'single-file-windows-latest.txt',
+            'single-file-macos-latest.txt'
           ]
 
           for (const artifactName of artifactsToDelete) {
-            const {id} = await artifactClient.deleteArtifact(artifactName)
+            try {
+              const {id} = await artifactClient.deleteArtifact(artifactName)
+              console.log(`Deleted artifact '${artifactName}' (ID: ${id})`)
+            } catch (err) {
+              console.log(`Could not delete artifact '${artifactName}': ${err.message}`)
+            }
           }
 
           const {artifacts} = await artifactClient.listArtifacts({latest: true})
