@@ -39,26 +39,23 @@ describe('createRawFileUploadStream', () => {
   })
 
   it('should propagate file read errors through the upload stream', async () => {
-    const unreadableFile = path.join(fixtures.testDirectory, 'unreadable.txt')
-    fs.writeFileSync(unreadableFile, 'secret')
-    fs.chmodSync(unreadableFile, 0o000)
+    // Use a directory path — createReadStream on a directory fails cross-platform
+    // Mock lstat to return a non-symlink result so we reach createReadStream
+    const dirPath = fixtures.testDirectory
+    jest
+      .spyOn(fs.promises, 'lstat')
+      .mockResolvedValue({isSymbolicLink: () => false} as fs.Stats)
 
-    const uploadStream = await createRawFileUploadStream(unreadableFile)
+    const uploadStream = await createRawFileUploadStream(dirPath)
 
-    try {
-      await expect(
-        new Promise((resolve, reject) => {
-          uploadStream.on('data', resolve)
-          uploadStream.on('end', resolve)
-          uploadStream.on('error', reject)
-        })
-      ).rejects.toThrow(
-        'An error has occurred during file read for the artifact'
-      )
-    } finally {
-      // Restore permissions so cleanup can delete the file
-      fs.chmodSync(unreadableFile, 0o644)
-      fs.unlinkSync(unreadableFile)
-    }
+    await expect(
+      new Promise((resolve, reject) => {
+        uploadStream.on('data', resolve)
+        uploadStream.on('end', resolve)
+        uploadStream.on('error', reject)
+      })
+    ).rejects.toThrow(
+      'An error has occurred during file read for the artifact'
+    )
   })
 })
