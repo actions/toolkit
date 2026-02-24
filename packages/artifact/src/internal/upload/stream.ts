@@ -2,7 +2,7 @@ import * as stream from 'stream'
 import * as fs from 'fs'
 import {realpath} from 'fs/promises'
 import * as core from '@actions/core'
-import {getUploadChunkSize} from '../shared/config'
+import {getUploadChunkSize} from '../shared/config.js'
 
 // Custom stream transformer so we can set the highWaterMark property
 // See https://github.com/nodejs/node/issues/8855
