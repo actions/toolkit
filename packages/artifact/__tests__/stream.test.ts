@@ -54,8 +54,6 @@ describe('createRawFileUploadStream', () => {
         uploadStream.on('end', resolve)
         uploadStream.on('error', reject)
       })
-    ).rejects.toThrow(
-      'An error has occurred during file read for the artifact'
-    )
+    ).rejects.toThrow('An error has occurred during file read for the artifact')
   })
 })
