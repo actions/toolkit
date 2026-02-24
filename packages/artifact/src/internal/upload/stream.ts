@@ -42,7 +42,9 @@ export async function createRawFileUploadStream(
   fileStream.on('error', error => {
     core.error('An error has occurred while reading the file for upload')
     core.info(String(error))
-    throw new Error('An error has occurred during file read for the artifact')
+    uploadStream.destroy(
+      new Error('An error has occurred during file read for the artifact')
+    )
   })
 
   fileStream.pipe(uploadStream)
