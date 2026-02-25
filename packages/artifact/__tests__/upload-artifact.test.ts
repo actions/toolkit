@@ -7,6 +7,7 @@ import * as blobUpload from '../src/internal/upload/blob-upload.js'
 import {uploadArtifact} from '../src/internal/upload/upload-artifact.js'
 import {noopLogs} from './common.js'
 import {FilesNotFoundError} from '../src/internal/shared/errors.js'
+import * as stream from '../src/internal/upload/stream.js'
 import {BlockBlobUploadStreamOptions} from '@azure/storage-blob'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -150,7 +151,7 @@ describe('upload-artifact', () => {
   it('should return false if the creation request fails', async () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
-      .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
+      .mockReturnValue(Promise.resolve(new stream.WaterMarkedUploadStream(1)))
     jest
       .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
       .mockReturnValue(Promise.resolve({ok: false, signedUploadUrl: ''}))
@@ -167,7 +168,7 @@ describe('upload-artifact', () => {
   it('should return false if blob storage upload is unsuccessful', async () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
-      .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
+      .mockReturnValue(Promise.resolve(new stream.WaterMarkedUploadStream(1)))
     jest
       .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
       .mockReturnValue(
@@ -177,7 +178,7 @@ describe('upload-artifact', () => {
         })
       )
     jest
-      .spyOn(blobUpload, 'uploadZipToBlobStorage')
+      .spyOn(blobUpload, 'uploadToBlobStorage')
       .mockReturnValue(Promise.reject(new Error('boom')))
 
     const uploadResp = uploadArtifact(
@@ -192,7 +193,7 @@ describe('upload-artifact', () => {
   it('should reject if finalize artifact fails', async () => {
     jest
       .spyOn(zip, 'createZipUploadStream')
-      .mockReturnValue(Promise.resolve(new zip.ZipUploadStream(1)))
+      .mockReturnValue(Promise.resolve(new stream.WaterMarkedUploadStream(1)))
     jest
       .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
       .mockReturnValue(
@@ -201,7 +202,7 @@ describe('upload-artifact', () => {
           signedUploadUrl: 'https://signed-upload-url.com'
         })
       )
-    jest.spyOn(blobUpload, 'uploadZipToBlobStorage').mockReturnValue(
+    jest.spyOn(blobUpload, 'uploadToBlobStorage').mockReturnValue(
       Promise.resolve({
         uploadSize: 1234,
         sha256Hash: 'test-sha256-hash'
@@ -369,5 +370,285 @@ describe('upload-artifact', () => {
     )
 
     await expect(uploadResp).rejects.toThrow('Upload progress stalled.')
+  })
+
+  describe('skipArchive option', () => {
+    it('should throw an error if skipArchive is true and files array is empty', async () => {
+      const uploadResp = uploadArtifact(
+        fixtures.inputs.artifactName,
+        [],
+        fixtures.inputs.rootDirectory,
+        {skipArchive: true}
+      )
+
+      await expect(uploadResp).rejects.toThrow(FilesNotFoundError)
+    })
+
+    it('should throw an error if skipArchive is true and multiple files are provided', async () => {
+      const uploadResp = uploadArtifact(
+        fixtures.inputs.artifactName,
+        fixtures.inputs.files,
+        fixtures.inputs.rootDirectory,
+        {skipArchive: true}
+      )
+
+      await expect(uploadResp).rejects.toThrow(
+        'skipArchive option is only supported when uploading a single file'
+      )
+    })
+
+    it('should upload a single file without archiving when skipArchive is true', async () => {
+      jest
+        .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
+        .mockRestore()
+
+      const singleFile = path.join(fixtures.uploadDirectory, 'file1.txt')
+      const expectedContent = 'test 1 file content'
+
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            signedUploadUrl: 'https://signed-upload-url.local'
+          })
+        )
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            artifactId: '1'
+          })
+        )
+
+      let uploadedContent = ''
+      let loadedBytes = 0
+      uploadStreamMock.mockImplementation(
+        async (
+          stream: NodeJS.ReadableStream,
+          bufferSize?: number,
+          maxConcurrency?: number,
+          options?: BlockBlobUploadStreamOptions
+        ) => {
+          const {onProgress} = options || {}
+
+          onProgress?.({loadedBytes: 0})
+          return new Promise((resolve, reject) => {
+            stream.on('data', chunk => {
+              loadedBytes += chunk.length
+              uploadedContent += chunk.toString()
+              onProgress?.({loadedBytes})
+            })
+            stream.on('end', () => {
+              onProgress?.({loadedBytes})
+              resolve({})
+            })
+            stream.on('error', err => {
+              reject(err)
+            })
+          })
+        }
+      )
+
+      const {id, size, digest} = await uploadArtifact(
+        fixtures.inputs.artifactName,
+        [singleFile],
+        fixtures.uploadDirectory,
+        {skipArchive: true}
+      )
+
+      expect(id).toBe(1)
+      expect(size).toBe(loadedBytes)
+      expect(digest).toBeDefined()
+      expect(digest).toHaveLength(64)
+      // Verify the uploaded content is the raw file, not a zip
+      expect(uploadedContent).toBe(expectedContent)
+    })
+
+    it('should use the correct MIME type when skipArchive is true', async () => {
+      jest
+        .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
+        .mockRestore()
+
+      const singleFile = path.join(fixtures.uploadDirectory, 'file1.txt')
+
+      const createArtifactSpy = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            signedUploadUrl: 'https://signed-upload-url.local'
+          })
+        )
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            artifactId: '1'
+          })
+        )
+
+      uploadStreamMock.mockImplementation(
+        async (
+          stream: NodeJS.ReadableStream,
+          bufferSize?: number,
+          maxConcurrency?: number,
+          options?: BlockBlobUploadStreamOptions
+        ) => {
+          const {onProgress} = options || {}
+          onProgress?.({loadedBytes: 0})
+          return new Promise((resolve, reject) => {
+            stream.on('data', chunk => {
+              onProgress?.({loadedBytes: chunk.length})
+            })
+            stream.on('end', () => {
+              resolve({})
+            })
+            stream.on('error', err => {
+              reject(err)
+            })
+          })
+        }
+      )
+
+      await uploadArtifact(
+        fixtures.inputs.artifactName,
+        [singleFile],
+        fixtures.uploadDirectory,
+        {skipArchive: true}
+      )
+
+      // Verify CreateArtifact was called with the correct MIME type for .txt file
+      expect(createArtifactSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mimeType: expect.objectContaining({value: 'text/plain'})
+        })
+      )
+    })
+
+    it('should use application/zip MIME type when skipArchive is false', async () => {
+      jest
+        .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
+        .mockRestore()
+
+      const createArtifactSpy = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            signedUploadUrl: 'https://signed-upload-url.local'
+          })
+        )
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            artifactId: '1'
+          })
+        )
+
+      uploadStreamMock.mockImplementation(
+        async (
+          stream: NodeJS.ReadableStream,
+          bufferSize?: number,
+          maxConcurrency?: number,
+          options?: BlockBlobUploadStreamOptions
+        ) => {
+          const {onProgress} = options || {}
+          onProgress?.({loadedBytes: 0})
+          return new Promise((resolve, reject) => {
+            stream.on('data', chunk => {
+              onProgress?.({loadedBytes: chunk.length})
+            })
+            stream.on('end', () => {
+              resolve({})
+            })
+            stream.on('error', err => {
+              reject(err)
+            })
+          })
+        }
+      )
+
+      await uploadArtifact(
+        fixtures.inputs.artifactName,
+        fixtures.files.map(file =>
+          path.join(fixtures.uploadDirectory, file.name)
+        ),
+        fixtures.uploadDirectory
+      )
+
+      // Verify CreateArtifact was called with application/zip MIME type
+      expect(createArtifactSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mimeType: expect.objectContaining({value: 'application/zip'})
+        })
+      )
+    })
+
+    it('should use the file basename as artifact name when skipArchive is true', async () => {
+      jest
+        .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
+        .mockRestore()
+
+      const singleFile = path.join(fixtures.uploadDirectory, 'file1.txt')
+
+      const createArtifactSpy = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            signedUploadUrl: 'https://signed-upload-url.local'
+          })
+        )
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            artifactId: '1'
+          })
+        )
+
+      uploadStreamMock.mockImplementation(
+        async (
+          stream: NodeJS.ReadableStream,
+          bufferSize?: number,
+          maxConcurrency?: number,
+          options?: BlockBlobUploadStreamOptions
+        ) => {
+          const {onProgress} = options || {}
+          onProgress?.({loadedBytes: 0})
+          return new Promise((resolve, reject) => {
+            stream.on('data', chunk => {
+              onProgress?.({loadedBytes: chunk.length})
+            })
+            stream.on('end', () => {
+              resolve({})
+            })
+            stream.on('error', err => {
+              reject(err)
+            })
+          })
+        }
+      )
+
+      await uploadArtifact(
+        'original-name',
+        [singleFile],
+        fixtures.uploadDirectory,
+        {skipArchive: true}
+      )
+
+      // Verify CreateArtifact was called with the file basename, not the original name
+      expect(createArtifactSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'file1.txt'
+        })
+      )
+    })
   })
 })

@@ -1,31 +1,16 @@
-import * as stream from 'stream'
 import {realpath} from 'fs/promises'
 import archiver from 'archiver'
 import * as core from '@actions/core'
 import {UploadZipSpecification} from './upload-zip-specification.js'
 import {getUploadChunkSize} from '../shared/config.js'
+import {WaterMarkedUploadStream} from './stream.js'
 
 export const DEFAULT_COMPRESSION_LEVEL = 6
-
-// Custom stream transformer so we can set the highWaterMark property
-// See https://github.com/nodejs/node/issues/8855
-export class ZipUploadStream extends stream.Transform {
-  constructor(bufferSize: number) {
-    super({
-      highWaterMark: bufferSize
-    })
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _transform(chunk: any, enc: any, cb: any): void {
-    cb(null, chunk)
-  }
-}
 
 export async function createZipUploadStream(
   uploadSpecification: UploadZipSpecification[],
   compressionLevel: number = DEFAULT_COMPRESSION_LEVEL
-): Promise<ZipUploadStream> {
+): Promise<WaterMarkedUploadStream> {
   core.debug(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
@@ -60,7 +45,7 @@ export async function createZipUploadStream(
   }
 
   const bufferSize = getUploadChunkSize()
-  const zipUploadStream = new ZipUploadStream(bufferSize)
+  const zipUploadStream = new WaterMarkedUploadStream(bufferSize)
 
   core.debug(
     `Zip write high watermark value ${zipUploadStream.writableHighWaterMark}`

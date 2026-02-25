@@ -71,10 +71,143 @@ jobs:
           } catch (err) {
             console.log('Successfully blocked second artifact upload')
           }
+
+  upload-single-file:
+    name: Upload Single File (no zip)
+
+    strategy:
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
+      with:
+        node-version: 24.x
+
+    - name: Install root npm packages
+      run: npm ci
+
+    - name: Compile artifact package
+      run: |
+        npm ci
+        npm run tsc
+      working-directory: packages/artifact
+
+    - name: Create file that will be uploaded
+      run: |
+        echo -n 'hello from single file upload' > single-file-${{ matrix.runs-on }}.txt
+
+    - name: Upload Single File Artifact (skipArchive)
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const {default: artifact} = require('./packages/artifact/lib/artifact')
+
+          const artifactName = 'my-single-file-${{ matrix.runs-on }}'
+          console.log('artifactName: ' + artifactName)
+
+          const uploadResult = await artifact.uploadArtifact(
+            artifactName,
+            ['single-file-${{ matrix.runs-on }}.txt'],
+            './',
+            {skipArchive: true}
+          )
+          console.log(uploadResult)
+
+          const size = uploadResult.size
+          const id = uploadResult.id
+
+          if (!id) {
+            throw new Error('Artifact ID is missing from upload result')
+          }
+
+          console.log(`Successfully uploaded single file artifact ${id}`)
+
+  upload-html-file:
+    name: Upload HTML File (no zip)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
+      with:
+        node-version: 24.x
+
+    - name: Install root npm packages
+      run: npm ci
+
+    - name: Compile artifact package
+      run: |
+        npm ci
+        npm run tsc
+      working-directory: packages/artifact
+
+    - name: Create HTML file
+      run: |
+        cat > report.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Artifact Upload Test Report</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #24292f; }
+            h1 { border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
+            .success { color: #1a7f37; }
+            .info { background: #ddf4ff; border: 1px solid #54aeff; border-radius: 6px; padding: 12px 16px; margin: 16px 0; }
+            table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+            th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+            th { background: #f6f8fa; }
+          </style>
+        </head>
+        <body>
+          <h1>Artifact Upload Test Report</h1>
+          <div class="info">
+            <strong>This HTML file was uploaded as a single un-zipped artifact.</strong>
+            If you can see this in the browser, the feature is working correctly!
+          </div>
+          <table>
+            <tr><th>Property</th><th>Value</th></tr>
+            <tr><td>Upload method</td><td><code>skipArchive: true</code></td></tr>
+            <tr><td>Content-Type</td><td><code>text/html</code></td></tr>
+            <tr><td>File</td><td><code>report.html</code></td></tr>
+          </table>
+          <p class="success">&#10004; Single file upload is working!</p>
+        </body>
+        </html>
+        EOF
+
+    - name: Upload HTML Artifact (skipArchive)
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const {default: artifact} = require('./packages/artifact/lib/artifact')
+
+          const uploadResult = await artifact.uploadArtifact(
+            'test-report',
+            ['report.html'],
+            './',
+            {skipArchive: true}
+          )
+          console.log(uploadResult)
+          console.log(`Successfully uploaded HTML artifact ${uploadResult.id}`)
+          console.log('This artifact is intentionally kept for manual browser verification')
+
   verify:
     name: Verify and Delete
     runs-on: ubuntu-latest
-    needs: [upload]
+    needs: [upload, upload-single-file, upload-html-file]
     steps:
     - name: Checkout
       uses: actions/checkout@v5
@@ -164,6 +297,71 @@ jobs:
               }
             }
           }
+
+    - name: Download and Verify Single File Artifacts
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const {default: artifactClient} = require('./packages/artifact/lib/artifact')
+
+          const {readFile} = require('fs/promises')
+          const path = require('path')
+
+          const findBy = {
+            repositoryOwner: process.env.GITHUB_REPOSITORY.split('/')[0],
+            repositoryName: process.env.GITHUB_REPOSITORY.split('/')[1],
+            token: '${{ secrets.GITHUB_TOKEN }}',
+            workflowRunId: process.env.GITHUB_RUN_ID
+          }
+
+          const listResult = await artifactClient.listArtifacts({latest: true, findBy})
+          const expectedSingleFiles = [
+            'single-file-ubuntu-latest.txt',
+            'single-file-windows-latest.txt',
+            'single-file-macos-latest.txt'
+          ]
+
+          // Single file artifacts are named after the file basename
+          const singleFileArtifacts = listResult.artifacts.filter(a =>
+            expectedSingleFiles.includes(a.name)
+          )
+
+          console.log('Found single file artifacts:', singleFileArtifacts.length)
+
+          if (singleFileArtifacts.length !== 3) {
+            console.log('Unexpected single file artifacts:', singleFileArtifacts)
+            throw new Error(
+              `Expected 3 single-file artifacts but found ${singleFileArtifacts.length}`
+            )
+          }
+
+          for (const artifact of singleFileArtifacts) {
+            const downloadDir = `single-file-download-${artifact.id}`
+            const {downloadPath} = await artifactClient.downloadArtifact(artifact.id, {
+              path: downloadDir,
+              findBy
+            })
+
+            console.log('Downloaded single file artifact to:', downloadPath)
+
+            const filePath = path.join(
+              process.env.GITHUB_WORKSPACE,
+              downloadPath,
+              artifact.name
+            )
+
+            console.log('Checking file:', filePath)
+
+            const content = await readFile(filePath, 'utf8')
+            if (content.trim() !== 'hello from single file upload') {
+              throw new Error(
+                `Expected single file to contain 'hello from single file upload' but found '${content}'`
+              )
+            }
+
+            console.log(`Successfully verified single file artifact ${artifact.id}`)
+          }
+
     - name: Delete Artifacts
       uses: actions/github-script@v8
       with:
@@ -173,11 +371,19 @@ jobs:
           const artifactsToDelete = [
             'my-artifact-ubuntu-latest',
             'my-artifact-windows-latest',
-            'my-artifact-macos-latest'
+            'my-artifact-macos-latest',
+            'single-file-ubuntu-latest.txt',
+            'single-file-windows-latest.txt',
+            'single-file-macos-latest.txt'
           ]
 
           for (const artifactName of artifactsToDelete) {
-            const {id} = await artifactClient.deleteArtifact(artifactName)
+            try {
+              const {id} = await artifactClient.deleteArtifact(artifactName)
+              console.log(`Deleted artifact '${artifactName}' (ID: ${id})`)
+            } catch (err) {
+              console.log(`Could not delete artifact '${artifactName}': ${err.message}`)
+            }
           }
 
           const {artifacts} = await artifactClient.listArtifacts({latest: true})

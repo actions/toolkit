@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+## 6.2.0
+
+- Support uploading single un-archived files (not zipped). Direct uploads are only supported for artifacts version 7+ (based on the major version of `actions/upload-artifact`). Callers must pass the `skipArchive` option to `uploadArtifact`. Only single files can be uploaded at a time right now. Default behavior should remain unchanged if `skipArchive = false`. When `skipArchive = true`, the name of the file is used as the name of the artifact for consistency with the downloads: you upload `artifact.txt`, you download `artifact.txt`.
+
 ## 6.1.0
 
 - Support downloading non-zip artifacts. Zipped artifacts will be decompressed automatically (with an optional override). Un-zipped artifacts will be downloaded as-is.

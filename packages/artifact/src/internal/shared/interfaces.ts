@@ -50,6 +50,13 @@ export interface UploadArtifactOptions {
    * For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
    */
   compressionLevel?: number
+  /**
+   * If true, the artifact will be uploaded without being archived (zipped).
+   * This is only supported when uploading a single file.
+   * When using this option, the artifact will not be compressed.
+   * When using this option, the name parameter passed to the upload is ignored. Instead, the name of the file is used as the name of the artifact.
+   */
+  skipArchive?: boolean
 }
 
 /**
