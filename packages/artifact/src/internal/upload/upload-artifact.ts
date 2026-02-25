@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import * as fs from 'fs'
 import * as path from 'path'
 import {
   UploadArtifactOptions,
@@ -42,6 +43,10 @@ export async function uploadArtifact(
       )
     }
 
+    if (!fs.existsSync(files[0])) {
+      throw new FilesNotFoundError(files)
+    }
+
     artifactFileName = path.basename(files[0])
     name = artifactFileName
   }
@@ -49,16 +54,18 @@ export async function uploadArtifact(
   validateArtifactName(name)
   validateRootDirectory(rootDirectory)
 
-  const zipSpecification: UploadZipSpecification[] = getUploadZipSpecification(
-    files,
-    rootDirectory
-  )
+  let zipSpecification: UploadZipSpecification[] = []
 
-  if (!options?.skipArchive && zipSpecification.length === 0) {
-    throw new FilesNotFoundError(
-      zipSpecification.flatMap(s => (s.sourcePath ? [s.sourcePath] : []))
-    )
+  if (!options?.skipArchive) {
+    zipSpecification = getUploadZipSpecification(files, rootDirectory)
+
+    if (zipSpecification.length === 0) {
+      throw new FilesNotFoundError(
+        zipSpecification.flatMap(s => (s.sourcePath ? [s.sourcePath] : []))
+      )
+    }
   }
+
   const contentType = getMimeType(artifactFileName)
 
   // get the IDs needed for the artifact creation
