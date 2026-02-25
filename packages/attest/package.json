@@ -1,6 +1,6 @@
 {
   "name": "@actions/attest",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Actions attestation lib",
   "keywords": [
     "github",
@@ -36,7 +36,7 @@
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc"
+    "tsc": "tsc && cp src/package-version.cjs lib/"
   },
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"

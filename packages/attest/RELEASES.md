@@ -1,5 +1,9 @@
 # @actions/attest Releases
 
+## 3.1.0
+
+- Add support for `ACTIONS_ORCHESTRATION_ID` in user-agent [#2320](https://github.com/actions/toolkit/pull/2320)
+
 ## 3.0.0
 
 - **Breaking change**: Package is now ESM-only
