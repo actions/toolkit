@@ -54,6 +54,7 @@ export interface UploadArtifactOptions {
    * If true, the artifact will be uploaded without being archived (zipped).
    * This is only supported when uploading a single file.
    * When using this option, the artifact will not be compressed.
+   * When using this option, the name parameter passed to the upload is ignored. Instead, the name of the file is used as the name of the artifact.
    */
   skipArchive?: boolean
 }
