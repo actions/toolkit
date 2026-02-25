@@ -1,5 +1,9 @@
 # @actions/attest Releases
 
+## 3.2.0
+
+- Add custom user-agent for more API calls [#2321](https://github.com/actions/toolkit/pull/2321)
+
 ## 3.1.0
 
 - Add support for `ACTIONS_ORCHESTRATION_ID` in user-agent [#2320](https://github.com/actions/toolkit/pull/2320)
