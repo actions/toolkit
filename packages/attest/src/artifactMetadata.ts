@@ -55,7 +55,7 @@ export async function createStorageRecord(
   const octokit = github.getOctokit(token, {retry: {retries}}, retry)
 
   const headersWithUserAgent = {
-    'user-agent': getUserAgent(),
+    'User-Agent': getUserAgent(),
     ...headers
   }
 
