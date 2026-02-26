@@ -1,6 +1,7 @@
 import * as github from '@actions/github'
 import {retry} from '@octokit/plugin-retry'
 import {RequestHeaders} from '@octokit/types'
+import {getUserAgent} from './internal/utils.js'
 
 const CREATE_STORAGE_RECORD_REQUEST =
   'POST /orgs/{owner}/artifacts/metadata/storage-record'
@@ -52,10 +53,16 @@ export async function createStorageRecord(
 ): Promise<number[]> {
   const retries = retryAttempts ?? DEFAULT_RETRY_COUNT
   const octokit = github.getOctokit(token, {retry: {retries}}, retry)
+
+  const headersWithUserAgent = {
+    'User-Agent': getUserAgent(),
+    ...headers
+  }
+
   try {
     const response = await octokit.request(CREATE_STORAGE_RECORD_REQUEST, {
       owner: github.context.repo.owner,
-      headers,
+      headers: headersWithUserAgent,
       ...buildRequestParams(artifactOptions, packageRegistryOptions)
     })
 
