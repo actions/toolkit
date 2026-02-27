@@ -262,6 +262,15 @@ var pid = core.getState("pidToKill");
 
 process.kill(pid);
 ```
+#### Environment
+
+To check whether action runs on [GitHub Enterprise Server](https://docs.github.com/en/enterprise-server@3.10/admin/overview/about-github-enterprise-server) you can use isGhes helper:
+
+```js
+const core = require('@actions/core')
+
+const isGithubEnterpriseServer = core.isGhes()
+```
 
 #### OIDC Token
 
