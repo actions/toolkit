@@ -22,12 +22,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
 
-    - name: Set Node.js 12.x
-      uses: actions/setup-node@v1
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
       with:
-        node-version: 12.x
+        node-version: 24.x
 
     # In order to save & restore cache from a shell script, certain env variables need to be set that are only available in the
     # node context. This runs a local action that gets and sets the necessary env variables that are needed
@@ -39,9 +39,11 @@ jobs:
     - name: Install root npm packages
       run: npm ci
 
+    # We need to install only runtime dependencies (omit dev dependencies) to verify that what we're shipping is all
+    # that is needed
     - name: Compile cache package
       run: |
-        npm ci
+        npm ci --omit=dev
         npm run tsc
       working-directory: packages/cache
     
@@ -53,10 +55,8 @@ jobs:
       shell: bash
       run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
 
-    # We're using node -e to call the functions directly available in the @actions/cache package
     - name: Save cache using saveCache()
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').saveCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+      run: node packages/cache/__tests__/save-cache.mjs ${{ runner.os }} ${{ github.run_id }}
 
     - name: Delete cache folders before restoring
       shell: bash
@@ -65,8 +65,7 @@ jobs:
         rm -rf ~/test-cache
 
     - name: Restore cache using restoreCache() with http-client
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}',[],{useAzureSdk: false}))"
+      run: node packages/cache/__tests__/restore-cache.mjs ${{ runner.os }} ${{ github.run_id }} false
 
     - name: Verify cache restored with http-client
       shell: bash
@@ -81,8 +80,7 @@ jobs:
         rm -rf ~/test-cache
 
     - name: Restore cache using restoreCache() with Azure SDK
-      run: |
-        node -e "Promise.resolve(require('./packages/cache/lib/cache').restoreCache(['test-cache','~/test-cache'],'test-${{ runner.os }}-${{ github.run_id }}'))"
+      run: node packages/cache/__tests__/restore-cache.mjs ${{ runner.os }} ${{ github.run_id }} true
 
     - name: Verify cache restored with Azure SDK
       shell: bash

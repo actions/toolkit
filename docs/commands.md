@@ -50,7 +50,18 @@ function setSecret(secret: string): void {}
 
 Now, future logs containing BAR will be masked. E.g. running `echo "Hello FOO BAR World"` will now print `Hello FOO **** World`.
 
-**WARNING** The add-mask and setSecret  commands only support single line secrets. To register a multiline secrets you must register each line individually otherwise it will not be masked.
+**WARNING** The add-mask and setSecret commands only support single-line
+secrets or multi-line secrets that have been escaped. `@actions/core`
+`setSecret` will escape the string you provide by default. When an escaped
+multi-line string is provided the whole string and each of its lines
+individually will be masked. For example you can mask `first\nsecond\r\nthird`
+using:
+
+```sh
+echo "::add-mask::first%0Asecond%0D%0Athird"
+```
+
+This will mask `first%0Asecond%0D%0Athird`, `first`, `second` and `third`.
 
 **WARNING** Do **not** mask short values if you can avoid it, it could render your output unreadable (and future steps' output as well).
 For example, if you mask the letter `l`, running `echo "Hello FOO BAR World"` will now print `He*********o FOO BAR Wor****d`
@@ -100,8 +111,11 @@ There are several commands to emit different levels of log output:
 | log level | example usage |
 |---|---|
 | [debug](action-debugging.md)  | `echo "::debug::My debug message"` |
+| notice | `echo "::notice::My notice message"` |
 | warning | `echo "::warning::My warning message"` |
 | error | `echo "::error::My error message"` |
+
+Additional syntax options are described at [the workflow command documentation](https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-a-debug-message).
 
 ### Command Echoing
 

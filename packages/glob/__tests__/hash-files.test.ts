@@ -1,9 +1,10 @@
-import * as io from '../../io/src/io'
+import * as io from '../../io/src/io.js'
 import * as path from 'path'
-import {hashFiles} from '../src/glob'
+import {hashFiles} from '../src/glob.js'
 import {promises as fs} from 'fs'
 
 const IS_WINDOWS = process.platform === 'win32'
+const ORIGINAL_GITHUB_WORKSPACE = process.env['GITHUB_WORKSPACE']
 
 /**
  * These test focus on the ability of globber to find files
@@ -11,6 +12,16 @@ const IS_WINDOWS = process.platform === 'win32'
  */
 describe('globber', () => {
   beforeAll(async () => {
+    await io.rmRF(getTestTemp())
+    process.env['GITHUB_WORKSPACE'] = __dirname
+  })
+
+  afterAll(async () => {
+    if (ORIGINAL_GITHUB_WORKSPACE) {
+      process.env['GITHUB_WORKSPACE'] = ORIGINAL_GITHUB_WORKSPACE
+    } else {
+      delete process.env['GITHUB_WORKSPACE']
+    }
     await io.rmRF(getTestTemp())
   })
 
@@ -51,6 +62,7 @@ describe('globber', () => {
     )
   })
 
+  const emptyDirectory = ''
   it('followSymbolicLinks set to true', async () => {
     const root = path.join(getTestTemp(), 'set-to-true')
     await fs.mkdir(path.join(root, 'realdir'), {recursive: true})
@@ -60,7 +72,9 @@ describe('globber', () => {
       path.join(root, 'symDir')
     )
     const testPath = path.join(root, `symDir`)
-    const hash = await hashFiles(testPath, {followSymbolicLinks: true})
+    const hash = await hashFiles(testPath, emptyDirectory, {
+      followSymbolicLinks: true
+    })
     expect(hash).toEqual(
       'd8a411e8f8643821bed189e627ff57151918aa554c00c10b31c693ab2dded273'
     )
@@ -80,7 +94,9 @@ describe('globber', () => {
       path.join(root, 'symDir')
     )
     const testPath = path.join(root, 'symdir')
-    const hash = await hashFiles(testPath, {followSymbolicLinks: false})
+    const hash = await hashFiles(testPath, emptyDirectory, {
+      followSymbolicLinks: false
+    })
     expect(hash).toEqual('')
   })
 

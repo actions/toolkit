@@ -1,11 +1,11 @@
-import {issue, issueCommand} from './command'
-import {issueCommand as issueFileCommand} from './file-command'
-import {toCommandProperties, toCommandValue} from './utils'
+import {issue, issueCommand} from './command.js'
+import {issueFileCommand, prepareKeyValueMessage} from './file-command.js'
+import {toCommandProperties, toCommandValue} from './utils.js'
 
 import * as os from 'os'
 import * as path from 'path'
 
-import {OidcClient} from './oidc-utils'
+import {OidcClient} from './oidc-utils.js'
 
 /**
  * Interface for getInput options
@@ -34,7 +34,7 @@ export enum ExitCode {
 }
 
 /**
- * Optional properties that can be sent with annotatation commands (notice, error, and warning)
+ * Optional properties that can be sent with annotation commands (notice, error, and warning)
  * See: https://docs.github.com/en/rest/reference/checks#create-a-check-run for more information about annotations.
  */
 export interface AnnotationProperties {
@@ -64,7 +64,7 @@ export interface AnnotationProperties {
   startColumn?: number
 
   /**
-   * The start column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
+   * The end column for the annotation. Cannot be sent when `startLine` and `endLine` are different values.
    * Defaults to `startColumn` when `startColumn` is provided.
    */
   endColumn?: number
@@ -86,17 +86,40 @@ export function exportVariable(name: string, val: any): void {
 
   const filePath = process.env['GITHUB_ENV'] || ''
   if (filePath) {
-    const delimiter = '_GitHubActionsFileCommandDelimeter_'
-    const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`
-    issueFileCommand('ENV', commandValue)
-  } else {
-    issueCommand('set-env', {name}, convertedVal)
+    return issueFileCommand('ENV', prepareKeyValueMessage(name, val))
   }
+
+  issueCommand('set-env', {name}, convertedVal)
 }
 
 /**
  * Registers a secret which will get masked from logs
- * @param secret value of the secret
+ *
+ * @param secret - Value of the secret to be masked
+ * @remarks
+ * This function instructs the Actions runner to mask the specified value in any
+ * logs produced during the workflow run. Once registered, the secret value will
+ * be replaced with asterisks (***) whenever it appears in console output, logs,
+ * or error messages.
+ *
+ * This is useful for protecting sensitive information such as:
+ * - API keys
+ * - Access tokens
+ * - Authentication credentials
+ * - URL parameters containing signatures (SAS tokens)
+ *
+ * Note that masking only affects future logs; any previous appearances of the
+ * secret in logs before calling this function will remain unmasked.
+ *
+ * @example
+ * ```typescript
+ * // Register an API token as a secret
+ * const apiToken = "abc123xyz456";
+ * setSecret(apiToken);
+ *
+ * // Now any logs containing this value will show *** instead
+ * console.log(`Using token: ${apiToken}`); // Outputs: "Using token: ***"
+ * ```
  */
 export function setSecret(secret: string): void {
   issueCommand('add-mask', {}, secret)
@@ -155,7 +178,11 @@ export function getMultilineInput(
     .split('\n')
     .filter(x => x !== '')
 
-  return inputs
+  if (options && options.trimWhitespace === false) {
+    return inputs
+  }
+
+  return inputs.map(input => input.trim())
 }
 
 /**
@@ -188,8 +215,13 @@ export function getBooleanInput(name: string, options?: InputOptions): boolean {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function setOutput(name: string, value: any): void {
+  const filePath = process.env['GITHUB_OUTPUT'] || ''
+  if (filePath) {
+    return issueFileCommand('OUTPUT', prepareKeyValueMessage(name, value))
+  }
+
   process.stdout.write(os.EOL)
-  issueCommand('set-output', {name}, value)
+  issueCommand('set-output', {name}, toCommandValue(value))
 }
 
 /**
@@ -343,7 +375,12 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function saveState(name: string, value: any): void {
-  issueCommand('save-state', {name}, value)
+  const filePath = process.env['GITHUB_STATE'] || ''
+  if (filePath) {
+    return issueFileCommand('STATE', prepareKeyValueMessage(name, value))
+  }
+
+  issueCommand('save-state', {name}, toCommandValue(value))
 }
 
 /**
@@ -361,6 +398,21 @@ export async function getIDToken(aud?: string): Promise<string> {
 }
 
 /**
- * Markdown summary exports
+ * Summary exports
  */
-export {markdownSummary} from './markdown-summary'
+export {summary} from './summary.js'
+
+/**
+ * @deprecated use core.summary
+ */
+export {markdownSummary} from './summary.js'
+
+/**
+ * Path exports
+ */
+export {toPosixPath, toWin32Path, toPlatformPath} from './path-utils.js'
+
+/**
+ * Platform utilities exports
+ */
+export * as platform from './platform.js'

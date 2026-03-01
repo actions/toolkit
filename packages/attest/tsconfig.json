@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./lib",
+    "declaration": true,
+    "rootDir": "./src",
+    "module": "node16",
+    "moduleResolution": "node16"
+  },
+  "include": [
+    "./src"
+  ]
+}

@@ -1,10 +1,14 @@
 import * as os from 'os'
 import * as path from 'path'
-import * as pathHelper from './internal-path-helper'
+import * as pathHelper from './internal-path-helper.js'
 import assert from 'assert'
-import {Minimatch, IMinimatch, IOptions as IMinimatchOptions} from 'minimatch'
-import {MatchKind} from './internal-match-kind'
-import {Path} from './internal-path'
+import minimatch from 'minimatch'
+import {MatchKind} from './internal-match-kind.js'
+import {Path} from './internal-path.js'
+
+type IMinimatch = minimatch.IMinimatch
+type IMinimatchOptions = minimatch.IOptions
+const {Minimatch} = minimatch
 
 const IS_WINDOWS = process.platform === 'win32'
 

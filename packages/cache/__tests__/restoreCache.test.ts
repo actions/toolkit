@@ -6,6 +6,8 @@ import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import {ArtifactCacheEntry} from '../src/internal/contracts'
 import * as tar from '../src/internal/tar'
+import {HttpClientError} from '@actions/http-client'
+import {CacheServiceClientJSON} from '../src/generated/results/api/v1/cache.twirp-client'
 
 jest.mock('../src/internal/cacheHttpClient')
 jest.mock('../src/internal/cacheUtils')
@@ -73,14 +75,28 @@ test('restore with no cache found', async () => {
 test('restore with server error should fail', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
+  const logErrorMock = jest.spyOn(core, 'error')
 
-  jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(() => {
-    throw new Error('HTTP Error Occurred')
-  })
+  // Set cache service to V2 to test error logging for server errors
+  process.env['ACTIONS_CACHE_SERVICE_V2'] = 'true'
+  process.env['ACTIONS_RESULTS_URL'] = 'https://results.local/'
 
-  await expect(restoreCache(paths, key)).rejects.toThrowError(
-    'HTTP Error Occurred'
+  jest
+    .spyOn(CacheServiceClientJSON.prototype, 'GetCacheEntryDownloadURL')
+    .mockImplementation(() => {
+      throw new HttpClientError('HTTP Error Occurred', 500)
+    })
+
+  const cacheKey = await restoreCache(paths, key)
+  expect(cacheKey).toBe(undefined)
+  expect(logErrorMock).toHaveBeenCalledTimes(1)
+  expect(logErrorMock).toHaveBeenCalledWith(
+    'Failed to restore: HTTP Error Occurred'
   )
+
+  // Clean up environment
+  delete process.env['ACTIONS_CACHE_SERVICE_V2']
+  delete process.env['ACTIONS_RESULTS_URL']
 })
 
 test('restore with restore keys and no cache found', async () => {
@@ -138,7 +154,8 @@ test('restore with gzip compressed cache found', async () => {
 
   expect(cacheKey).toBe(key)
   expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
-    compressionMethod: compression
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
@@ -197,7 +214,8 @@ test('restore with zstd compressed cache found', async () => {
 
   expect(cacheKey).toBe(key)
   expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
-    compressionMethod: compression
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
@@ -254,7 +272,8 @@ test('restore with cache found for restore key', async () => {
 
   expect(cacheKey).toBe(restoreKey)
   expect(getCacheMock).toHaveBeenCalledWith([key, restoreKey], paths, {
-    compressionMethod: compression
+    compressionMethod: compression,
+    enableCrossOsArchive: false
   })
   expect(createTempDirectoryMock).toHaveBeenCalledTimes(1)
   expect(downloadCacheMock).toHaveBeenCalledWith(
@@ -268,4 +287,40 @@ test('restore with cache found for restore key', async () => {
   expect(extractTarMock).toHaveBeenCalledTimes(1)
   expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
+test('restore with dry run', async () => {
+  const paths = ['node_modules']
+  const key = 'node-test'
+  const options = {lookupOnly: true}
+
+  const cacheEntry: ArtifactCacheEntry = {
+    cacheKey: key,
+    scope: 'refs/heads/main',
+    archiveLocation: 'www.actionscache.test/download'
+  }
+  const getCacheMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
+  getCacheMock.mockImplementation(async () => {
+    return Promise.resolve(cacheEntry)
+  })
+
+  const createTempDirectoryMock = jest.spyOn(cacheUtils, 'createTempDirectory')
+  const downloadCacheMock = jest.spyOn(cacheHttpClient, 'downloadCache')
+
+  const compression = CompressionMethod.Gzip
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValue(Promise.resolve(compression))
+
+  const cacheKey = await restoreCache(paths, key, undefined, options)
+
+  expect(cacheKey).toBe(key)
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+  expect(getCacheMock).toHaveBeenCalledWith([key], paths, {
+    compressionMethod: compression,
+    enableCrossOsArchive: false
+  })
+  // creating a tempDir and downloading the cache are skipped
+  expect(createTempDirectoryMock).toHaveBeenCalledTimes(0)
+  expect(downloadCacheMock).toHaveBeenCalledTimes(0)
 })

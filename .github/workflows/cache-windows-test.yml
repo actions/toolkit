@@ -1,0 +1,86 @@
+name: cache-windows-bsd-unit-tests
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - shell: bash
+      run: |
+        rm "C:\Program Files\Git\usr\bin\tar.exe"
+
+    - name: Set Node.js 24.x
+      uses: actions/setup-node@v5
+      with:
+        node-version: 24.x
+
+    # In order to save & restore cache from a shell script, certain env variables need to be set that are only available in the
+    # node context. This runs a local action that gets and sets the necessary env variables that are needed
+    - name: Set env variables
+      uses: ./packages/cache/__tests__/__fixtures__/
+
+    # Need root node_modules because certain npm packages like jest are configured for the entire repository and it won't be possible
+    # without these to just compile the cache package
+    - name: Install root npm packages
+      run: npm ci
+
+    - name: Compile cache package
+      run: |
+        npm ci
+        npm run tsc
+      working-directory: packages/cache
+    
+    - name: Generate files in working directory
+      shell: bash
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} test-cache
+
+    - name: Generate files outside working directory
+      shell: bash
+      run: packages/cache/__tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
+
+    - name: Save cache using saveCache()
+      run: node packages/cache/__tests__/save-cache.mjs ${{ runner.os }} ${{ github.run_id }}
+
+    - name: Delete cache folders before restoring
+      shell: bash
+      run: |
+        rm -rf test-cache
+        rm -rf ~/test-cache
+
+    - name: Restore cache using restoreCache() with http-client
+      run: node packages/cache/__tests__/restore-cache.mjs ${{ runner.os }} ${{ github.run_id }} false
+
+    - name: Verify cache restored with http-client
+      shell: bash
+      run: |
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache
+
+    - name: Delete cache folders before restoring
+      shell: bash
+      run: |
+        rm -rf test-cache
+        rm -rf ~/test-cache
+
+    - name: Restore cache using restoreCache() with Azure SDK
+      run: node packages/cache/__tests__/restore-cache.mjs ${{ runner.os }} ${{ github.run_id }} true
+
+    - name: Verify cache restored with Azure SDK
+      shell: bash
+      run: |
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+        packages/cache/__tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache

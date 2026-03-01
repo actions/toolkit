@@ -2,6 +2,10 @@ import {promises as fs} from 'fs'
 import * as path from 'path'
 import * as cacheUtils from '../src/internal/cacheUtils'
 
+beforeEach(() => {
+  jest.resetModules()
+})
+
 test('getArchiveFileSizeInBytes returns file size', () => {
   const filePath = path.join(__dirname, '__fixtures__', 'helloWorld.txt')
 
@@ -31,4 +35,10 @@ test('assertDefined throws if undefined', () => {
 
 test('assertDefined returns value', () => {
   expect(cacheUtils.assertDefined('test', 5)).toBe(5)
+})
+
+test('resolvePaths works on github workspace directory', async () => {
+  const workspace = process.env['GITHUB_WORKSPACE'] ?? '.'
+  const paths = await cacheUtils.resolvePaths([workspace])
+  expect(paths.length).toBeGreaterThan(0)
 })

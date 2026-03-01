@@ -1,19 +1,18 @@
 import * as core from '@actions/core'
 import * as io from '@actions/io'
+import * as crypto from 'crypto'
 import * as fs from 'fs'
-import * as mm from './manifest'
+import * as mm from './manifest.js'
 import * as os from 'os'
 import * as path from 'path'
 import * as httpm from '@actions/http-client'
 import * as semver from 'semver'
 import * as stream from 'stream'
 import * as util from 'util'
-import uuidV4 from 'uuid/v4'
-import {exec} from '@actions/exec/lib/exec'
-import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {ok} from 'assert'
-import {RetryHelper} from './retry-helper'
-import {IHeaders} from '@actions/http-client/interfaces'
+import {OutgoingHttpHeaders} from 'http'
+import {exec, ExecOptions} from '@actions/exec'
+import {RetryHelper} from './retry-helper.js'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -39,9 +38,9 @@ export async function downloadTool(
   url: string,
   dest?: string,
   auth?: string,
-  headers?: IHeaders
+  headers?: OutgoingHttpHeaders
 ): Promise<string> {
-  dest = dest || path.join(_getTempDirectory(), uuidV4())
+  dest = dest || path.join(_getTempDirectory(), crypto.randomUUID())
   await io.mkdirP(path.dirname(dest))
   core.debug(`Downloading ${url}`)
   core.debug(`Destination ${dest}`)
@@ -82,7 +81,7 @@ async function downloadToolAttempt(
   url: string,
   dest: string,
   auth?: string,
-  headers?: IHeaders
+  headers?: OutgoingHttpHeaders
 ): Promise<string> {
   if (fs.existsSync(dest)) {
     throw new Error(`Destination file path ${dest} already exists`)
@@ -596,7 +595,7 @@ export async function getManifestFromRepo(
   const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
 
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
-  const headers: IHeaders = {}
+  const headers: OutgoingHttpHeaders = {}
   if (auth) {
     core.debug('set auth')
     headers.authorization = auth
@@ -651,7 +650,7 @@ export async function findFromManifest(
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(_getTempDirectory(), uuidV4())
+    dest = path.join(_getTempDirectory(), crypto.randomUUID())
   }
   await io.mkdirP(dest)
   return dest

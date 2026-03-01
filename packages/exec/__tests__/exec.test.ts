@@ -1,5 +1,5 @@
-import * as exec from '../src/exec'
-import * as im from '../src/interfaces'
+import * as exec from '../src/exec.js'
+import * as im from '../src/interfaces.js'
 
 import * as childProcess from 'child_process'
 import * as fs from 'fs'
@@ -11,6 +11,11 @@ import * as io from '@actions/io'
 /* eslint-disable @typescript-eslint/unbound-method */
 
 const IS_WINDOWS = process.platform === 'win32'
+const SPAWN_WAIT_SCRIPT = path.join(
+  __dirname,
+  'scripts',
+  'spawn-wait-for-file.cjs'
+)
 
 let outstream: stream.Writable
 let errstream: stream.Writable
@@ -191,7 +196,7 @@ describe('@actions/exec', () => {
     const scriptPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -213,7 +218,7 @@ describe('@actions/exec', () => {
     const scriptPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -250,12 +255,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutput.js'
+      'stdoutoutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
     let stdoutCalled = false
@@ -290,7 +295,7 @@ describe('@actions/exec', () => {
     const stdlinePath: string = path.join(
       __dirname,
       'scripts',
-      'stdlineoutput.js'
+      'stdlineoutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -339,7 +344,7 @@ describe('@actions/exec', () => {
     const waitForInput: string = path.join(
       __dirname,
       'scripts',
-      'wait-for-input.js'
+      'wait-for-input.cjs'
     )
 
     const _testExecOptions = getExecOptions()
@@ -357,7 +362,7 @@ describe('@actions/exec', () => {
     expect(exitCode).toBe(0)
   })
 
-  it('Handles child process holding streams open', async function() {
+  it('Handles child process holding streams open', async function () {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -365,35 +370,20 @@ describe('@actions/exec', () => {
     fs.writeFileSync(semaphorePath, '')
 
     const nodePath = await io.which('node', true)
-    const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
     const _testExecOptions = getExecOptions()
     _testExecOptions.delay = 500
-    _testExecOptions.windowsVerbatimArguments = true
     _testExecOptions.listeners = {
       debug: (data: string) => {
         debugList.push(data)
       }
     }
 
-    let exitCode: number
-    if (IS_WINDOWS) {
-      const toolName: string = await io.which('cmd.exe', true)
-      const args = [
-        '/D', // Disable execution of AutoRun commands from registry.
-        '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
-        '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
-        '/S', // Will cause first and last quote after /C to be stripped.
-        '/C',
-        `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}""`
-      ]
-      exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
-    } else {
-      const toolName: string = await io.which('bash', true)
-      const args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' &`]
-
-      exitCode = await exec.exec(`"${toolName}"`, args, _testExecOptions)
-    }
+    const exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [SPAWN_WAIT_SCRIPT, `file=${semaphorePath}`],
+      _testExecOptions
+    )
 
     expect(exitCode).toBe(0)
     expect(
@@ -403,7 +393,7 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
-  it('Handles child process holding streams open and non-zero exit code', async function() {
+  it('Handles child process holding streams open and non-zero exit code', async function () {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -411,36 +401,21 @@ describe('@actions/exec', () => {
     fs.writeFileSync(semaphorePath, '')
 
     const nodePath = await io.which('node', true)
-    const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
     const _testExecOptions = getExecOptions()
     _testExecOptions.delay = 500
-    _testExecOptions.windowsVerbatimArguments = true
     _testExecOptions.listeners = {
       debug: (data: string) => {
         debugList.push(data)
       }
     }
 
-    let toolName: string
-    let args: string[]
-    if (IS_WINDOWS) {
-      toolName = await io.which('cmd.exe', true)
-      args = [
-        '/D', // Disable execution of AutoRun commands from registry.
-        '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
-        '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
-        '/S', // Will cause first and last quote after /C to be stripped.
-        '/C',
-        `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}"" & exit /b 123`
-      ]
-    } else {
-      toolName = await io.which('bash', true)
-      args = ['-c', `node '${scriptPath}' 'file=${semaphorePath}' & exit 123`]
-    }
-
     await exec
-      .exec(`"${toolName}"`, args, _testExecOptions)
+      .exec(
+        `"${nodePath}"`,
+        [SPAWN_WAIT_SCRIPT, `file=${semaphorePath}`, 'exitCode=123'],
+        _testExecOptions
+      )
       .then(() => {
         throw new Error('Should not have succeeded')
       })
@@ -457,7 +432,7 @@ describe('@actions/exec', () => {
     fs.unlinkSync(semaphorePath)
   }, 10000) // this was timing out on some slower hosted macOS runs at default 5s
 
-  it('Handles child process holding streams open and stderr', async function() {
+  it('Handles child process holding streams open and stderr', async function () {
     const semaphorePath = path.join(
       getTestTemp(),
       'child-process-semaphore.txt'
@@ -465,40 +440,22 @@ describe('@actions/exec', () => {
     fs.writeFileSync(semaphorePath, '')
 
     const nodePath = await io.which('node', true)
-    const scriptPath = path.join(__dirname, 'scripts', 'wait-for-file.js')
     const debugList: string[] = []
     const _testExecOptions = getExecOptions()
     _testExecOptions.delay = 500
     _testExecOptions.failOnStdErr = true
-    _testExecOptions.windowsVerbatimArguments = true
     _testExecOptions.listeners = {
       debug: (data: string) => {
         debugList.push(data)
       }
     }
 
-    let toolName: string
-    let args: string[]
-    if (IS_WINDOWS) {
-      toolName = await io.which('cmd.exe', true)
-      args = [
-        '/D', // Disable execution of AutoRun commands from registry.
-        '/E:ON', // Enable command extensions. Note, command extensions are enabled by default, unless disabled via registry.
-        '/V:OFF', // Disable delayed environment expansion. Note, delayed environment expansion is disabled by default, unless enabled via registry.
-        '/S', // Will cause first and last quote after /C to be stripped.
-        '/C',
-        `"start "" /B "${nodePath}" "${scriptPath}" "file=${semaphorePath}"" & echo hi 1>&2`
-      ]
-    } else {
-      toolName = await io.which('bash', true)
-      args = [
-        '-c',
-        `node '${scriptPath}' 'file=${semaphorePath}' & echo hi 1>&2`
-      ]
-    }
-
     await exec
-      .exec(`"${toolName}"`, args, _testExecOptions)
+      .exec(
+        `"${nodePath}"`,
+        [SPAWN_WAIT_SCRIPT, `file=${semaphorePath}`, 'stderr=true'],
+        _testExecOptions
+      )
       .then(() => {
         throw new Error('Should not have succeeded')
       })
@@ -515,7 +472,7 @@ describe('@actions/exec', () => {
     ).toBe(1)
 
     fs.unlinkSync(semaphorePath)
-  })
+  }, 10000)
 
   it('Exec roots relative tool path using unrooted options.cwd', async () => {
     let exitCode: number
@@ -665,12 +622,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutput.js'
+      'stdoutoutput.cjs'
     )
     const nodePath: string = await io.which('node', true)
 
@@ -696,12 +653,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutput.js'
+      'stdoutoutput.cjs'
     )
 
     const nodePath: string = await io.which('node', true)
@@ -746,12 +703,12 @@ describe('@actions/exec', () => {
     const stdErrPath: string = path.join(
       __dirname,
       'scripts',
-      'stderroutput.js'
+      'stderroutput.cjs'
     )
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutoutputlarge.js'
+      'stdoutoutputlarge.cjs'
     )
 
     const nodePath: string = await io.which('node', true)
@@ -796,7 +753,7 @@ describe('@actions/exec', () => {
     const stdOutPath: string = path.join(
       __dirname,
       'scripts',
-      'stdoutputspecial.js'
+      'stdoutputspecial.cjs'
     )
 
     const nodePath: string = await io.which('node', true)

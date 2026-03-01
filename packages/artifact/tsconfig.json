@@ -3,7 +3,18 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./lib",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "paths": {
+      "@actions/core": [
+        "../core"
+      ],
+      "@actions/http-client": [
+        "../http-client"
+      ]
+    },
+    "useUnknownInCatchVariables": false,
   },
   "include": [
     "./src"

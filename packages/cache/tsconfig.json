@@ -4,7 +4,13 @@
     "baseUrl": "./",
     "outDir": "./lib",
     "rootDir": "./src",
-    "lib": ["es6", "dom"]
+    "module": "node16",
+    "moduleResolution": "node16",
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "useUnknownInCatchVariables": false
   },
   "include": [
     "./src"

@@ -1,18 +1,57 @@
 # @actions/tool-cache Releases
 
+## 4.0.0
+
+- **Breaking change**: Package is now ESM-only
+  - CommonJS consumers must use dynamic `import()` instead of `require()`
+
+### 3.0.1
+
+- Bump `@actions/http-client` to `3.0.2`
+
+### 3.0.0
+
+- Update to v2.0.1 of `@actions/core`
+- Update to v2.0.0 of `@actions/exec`
+- Update to v3.0.1 of `@actions/http-client`
+- Update to v2.0.0 of `@actions/io`
+
+### 2.0.2
+
+- Update `@actions/core` to v1.11.1 [#1872](https://github.com/actions/toolkit/pull/1872)
+- Remove dependency on `uuid` package [#1824](https://github.com/actions/toolkit/pull/1824), [#1842](https://github.com/actions/toolkit/pull/1842)
+
+### 2.0.1
+
+- Update to v2.0.1 of `@actions/http-client` [#1087](https://github.com/actions/toolkit/pull/1087)
+
+### 2.0.0
+
+- Update to v2.0.0 of `@actions/http-client`
+- The type of the `headers` parameter in the exported function `downloadTool` has been narrowed from `{ [header: string]: any }` to `{ [header: string]: number | string | string[] | undefined; }` (that is, `http.OutgoingHttpHeaders`).
+    This is strictly a compile-time change for TypeScript consumers. Previous attempts to use a header value of a type other than those now accepted would have resulted in an error at run time.
+
+### 1.7.2
+
+- Update `lockfileVersion` to `v2` in `package-lock.json` [#1025](https://github.com/actions/toolkit/pull/1025)
+
 ### 1.7.1
+
 - [Fallback to os-releases file to get linux version](https://github.com/actions/toolkit/pull/594)
 - [Update to latest @actions/io verison](https://github.com/actions/toolkit/pull/838)
 
 ### 1.7.0
+
 - [Allow arbirtary headers when downloading tools to the tc](https://github.com/actions/toolkit/pull/530)
-- [Export `isExplicitVersion` and `evaluateVersions` functions](https://github.com/actions/toolkit/pull/796) 
+- [Export `isExplicitVersion` and `evaluateVersions` functions](https://github.com/actions/toolkit/pull/796)
 - [Force overwrite on default when extracted compressed files](https://github.com/actions/toolkit/pull/807)
 
 ### 1.6.1
+
 - [Update @actions/core version](https://github.com/actions/toolkit/pull/636)
 
 ### 1.6.0
+
 - [Add extractXar function to extract XAR files](https://github.com/actions/toolkit/pull/207)
 
 ### 1.3.5

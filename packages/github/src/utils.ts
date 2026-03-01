@@ -1,19 +1,20 @@
-import * as Context from './context'
-import * as Utils from './internal/utils'
+import * as Context from './context.js'
+import * as Utils from './internal/utils.js'
+import type {OctokitOptions} from '@octokit/core/types'
 
 // octokit + plugins
 import {Octokit} from '@octokit/core'
-import {OctokitOptions} from '@octokit/core/dist-types/types'
 import {restEndpointMethods} from '@octokit/plugin-rest-endpoint-methods'
 import {paginateRest} from '@octokit/plugin-paginate-rest'
 
 export const context = new Context.Context()
 
 const baseUrl = Utils.getApiBaseUrl()
-const defaults = {
+export const defaults: OctokitOptions = {
   baseUrl,
   request: {
-    agent: Utils.getProxyAgent(baseUrl)
+    agent: Utils.getProxyAgent(baseUrl),
+    fetch: Utils.getProxyFetch(baseUrl)
   }
 }
 

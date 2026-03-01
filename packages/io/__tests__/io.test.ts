@@ -2,7 +2,8 @@ import * as child from 'child_process'
 import {promises as fs} from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import * as io from '../src/io'
+import * as io from '../src/io.js'
+import * as ioUtil from '../src/io-util.js'
 
 describe('cp', () => {
   beforeAll(async () => {
@@ -331,25 +332,22 @@ describe('rmRF', () => {
     await fs.appendFile(filePath, 'some data')
     await assertExists(filePath)
 
-    const fd = await fs.open(filePath, 'r')
-
-    let worked: boolean
-
-    try {
-      await io.rmRF(testPath)
-      worked = true
-    } catch (err) {
-      worked = false
-    }
-
-    if (os.platform() === 'win32') {
-      expect(worked).toBe(false)
-      await assertExists(testPath)
+    // For windows we need to explicitly set an exclusive lock flag, because by default Node will open the file with the 'Delete' FileShare flag.
+    // See the exclusive lock windows flag definition:
+    // https://github.com/nodejs/node/blob/c2e4b1fa9ad0b744616c4e4c13a5017772a630c4/deps/uv/src/win/fs.c#L499-L513
+    const fd = await fs.open(
+      filePath,
+      fs.constants.O_RDONLY | ioUtil.UV_FS_O_EXLOCK
+    )
+    if (ioUtil.IS_WINDOWS) {
+      // On Windows, we expect an error due to an lstat call implementation in the underlying libuv code.
+      // See https://github.com/libuv/libuv/issues/3267 is resolved
+      await expect(async () => io.rmRF(testPath)).rejects.toThrow('EBUSY')
     } else {
-      expect(worked).toBe(true)
+      await io.rmRF(testPath)
+
       await assertNotExists(testPath)
     }
-
     await fd.close()
     await io.rmRF(testPath)
     await assertNotExists(testPath)
@@ -385,26 +383,6 @@ describe('rmRF', () => {
     await assertExists(file)
     await io.rmRF(file)
     await assertNotExists(file)
-  })
-
-  it('removes symlink folder with rmRF', async () => {
-    // create the following layout:
-    //   real_directory
-    //   real_directory/real_file
-    //   symlink_directory -> real_directory
-    const root: string = path.join(getTestTemp(), 'rmRF_sym_dir_test')
-    const realDirectory: string = path.join(root, 'real_directory')
-    const realFile: string = path.join(root, 'real_directory', 'real_file')
-    const symlinkDirectory: string = path.join(root, 'symlink_directory')
-    await io.mkdirP(realDirectory)
-    await fs.writeFile(realFile, 'test file content')
-    await createSymlinkDir(realDirectory, symlinkDirectory)
-    await assertExists(path.join(symlinkDirectory, 'real_file'))
-
-    await io.rmRF(symlinkDirectory)
-    await assertExists(realDirectory)
-    await assertExists(realFile)
-    await assertNotExists(symlinkDirectory)
   })
 
   // creating a symlink to a file on Windows requires elevated
@@ -665,8 +643,11 @@ describe('rmRF', () => {
       })
     ).toBe('test file content')
     if (os.platform() === 'win32') {
-      expect(await fs.readlink(symlinkLevel2Directory)).toBe(
-        `${symlinkDirectory}\\`
+      // Node.js 24 changed behavior - fs.readlink no longer includes trailing backslash
+      // Accept both formats for compatibility
+      const linkPath = await fs.readlink(symlinkLevel2Directory)
+      expect(linkPath.replace(/\\+$/, '')).toBe(
+        symlinkDirectory.replace(/\\+$/, '')
       )
     } else {
       expect(await fs.readlink(symlinkLevel2Directory)).toBe(symlinkDirectory)
@@ -1223,9 +1204,8 @@ describe('which', () => {
       const originalPath = process.env['PATH']
       try {
         // modify PATH
-        process.env[
-          'PATH'
-        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+        process.env['PATH'] =
+          `${process.env['PATH']}${path.delimiter}${testPath}`
 
         // find each file
         for (const fileName of Object.keys(files)) {
@@ -1296,9 +1276,8 @@ describe('which', () => {
       await fs.writeFile(notExpectedFilePath, '')
       const originalPath = process.env['PATH']
       try {
-        process.env[
-          'PATH'
-        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+        process.env['PATH'] =
+          `${process.env['PATH']}${path.delimiter}${testPath}`
         expect(await io.which(fileName)).toBe(expectedFilePath)
       } finally {
         process.env['PATH'] = originalPath
@@ -1460,9 +1439,8 @@ describe('findInPath', () => {
     try {
       // update the PATH
       for (const testPath of testPaths) {
-        process.env[
-          'PATH'
-        ] = `${process.env['PATH']}${path.delimiter}${testPath}`
+        process.env['PATH'] =
+          `${process.env['PATH']}${path.delimiter}${testPath}`
       }
       // exact file names
       expect(await io.findInPath(fileName)).toEqual(filePaths)

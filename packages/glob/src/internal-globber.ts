@@ -1,12 +1,12 @@
 import * as core from '@actions/core'
 import * as fs from 'fs'
-import * as globOptionsHelper from './internal-glob-options-helper'
+import * as globOptionsHelper from './internal-glob-options-helper.js'
 import * as path from 'path'
-import * as patternHelper from './internal-pattern-helper'
-import {GlobOptions} from './internal-glob-options'
-import {MatchKind} from './internal-match-kind'
-import {Pattern} from './internal-pattern'
-import {SearchState} from './internal-search-state'
+import * as patternHelper from './internal-pattern-helper.js'
+import {GlobOptions} from './internal-glob-options.js'
+import {MatchKind} from './internal-match-kind.js'
+import {Pattern} from './internal-pattern.js'
+import {SearchState} from './internal-search-state.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -125,6 +125,11 @@ export class DefaultGlobber implements Globber {
 
       // Broken symlink, or symlink cycle detected, or no longer exists
       if (!stats) {
+        continue
+      }
+
+      // Hidden file or directory?
+      if (options.excludeHiddenFiles && path.basename(item.path).match(/^\./)) {
         continue
       }
 

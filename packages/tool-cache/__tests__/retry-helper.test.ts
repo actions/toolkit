@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {RetryHelper} from '../src/retry-helper'
+import {RetryHelper} from '../src/retry-helper.js'
 
 let info: string[]
 let retryHelper: RetryHelper
@@ -68,7 +68,7 @@ describe('retry-helper tests', () => {
 
   it('all attempts fail', async () => {
     let attempts = 0
-    let error: Error = (null as unknown) as Error
+    let error: Error = null as unknown as Error
     try {
       await retryHelper.execute(() => {
         throw new Error(`some error ${++attempts}`)
@@ -87,7 +87,7 @@ describe('retry-helper tests', () => {
 
   it('checks retryable after first attempt', async () => {
     let attempts = 0
-    let error: Error = (null as unknown) as Error
+    let error: Error = null as unknown as Error
     try {
       await retryHelper.execute(
         async () => {
@@ -105,7 +105,7 @@ describe('retry-helper tests', () => {
 
   it('checks retryable after second attempt', async () => {
     let attempts = 0
-    let error: Error = (null as unknown) as Error
+    let error: Error = null as unknown as Error
     try {
       await retryHelper.execute(
         async () => {
