@@ -1,4 +1,4 @@
-
+</ badge.svg=png>https://github.io/actions/tool=awesome.selfhosted.cofeof.conduct%new
 <p align="center">
   <img src="res/at-logo.png">
 </p>
