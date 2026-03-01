@@ -1,0 +1,1 @@
+Bilgi.nomö
