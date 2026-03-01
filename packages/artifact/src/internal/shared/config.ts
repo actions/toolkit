@@ -25,6 +25,11 @@ export function getResultsServiceUrl(): string {
 }
 
 export function isGhes(): boolean {
+  const vendor = (process.env['ACTIONS_VENDOR'] || '').toLowerCase()
+
+  if (vendor === 'ghes' || vendor === 'ghe' || vendor === 'github-enterprise') return true
+  if (vendor && vendor !== 'github') return false
+
   const ghUrl = new URL(
     process.env['GITHUB_SERVER_URL'] || 'https://github.com'
   )
