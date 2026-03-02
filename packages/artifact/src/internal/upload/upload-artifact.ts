@@ -23,9 +23,11 @@ import {
   StringValue
 } from '../../generated/index.js'
 import {FilesNotFoundError, InvalidResponseError} from '../shared/errors.js'
-import {getMimeType, isMimeTypeValidationError} from './types.js'
-
-const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
+import {
+  getMimeType,
+  isMimeTypeValidationError,
+  DEFAULT_CONTENT_TYPE
+} from './types.js'
 
 export async function uploadArtifact(
   name: string,
