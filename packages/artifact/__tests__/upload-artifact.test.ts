@@ -372,6 +372,121 @@ describe('upload-artifact', () => {
     await expect(uploadResp).rejects.toThrow('Upload progress stalled.')
   })
 
+  describe('CreateArtifact MIME fallback', () => {
+    it('should preserve detected MIME type when CreateArtifact succeeds', async () => {
+      const singleFile = path.join(fixtures.uploadDirectory, 'file1.txt')
+
+      const createArtifactSpy = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockResolvedValue({
+          ok: true,
+          signedUploadUrl: 'https://signed-upload-url.local'
+        })
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
+        .mockResolvedValue({
+          ok: true,
+          artifactId: '1'
+        })
+      const uploadToBlobStorageSpy = jest
+        .spyOn(blobUpload, 'uploadToBlobStorage')
+        .mockResolvedValue({
+          uploadSize: 1234,
+          sha256Hash: 'test-sha256-hash'
+        })
+      jest
+        .spyOn(stream, 'createRawFileUploadStream')
+        .mockResolvedValue(new stream.WaterMarkedUploadStream(1))
+
+      await uploadArtifact(
+        fixtures.inputs.artifactName,
+        [singleFile],
+        fixtures.uploadDirectory,
+        {skipArchive: true}
+      )
+
+      expect(createArtifactSpy).toHaveBeenCalledTimes(1)
+      expect(createArtifactSpy.mock.calls[0][0].mimeType?.value).toBe(
+        'text/plain'
+      )
+      expect(uploadToBlobStorageSpy).toHaveBeenCalledWith(
+        'https://signed-upload-url.local',
+        expect.any(stream.WaterMarkedUploadStream),
+        'text/plain'
+      )
+    })
+
+    it('should retry once with application/octet-stream when CreateArtifact rejects MIME type', async () => {
+      const singleFile = path.join(fixtures.uploadDirectory, 'file1.txt')
+
+      const createArtifactSpy = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockRejectedValueOnce(
+          new Error(
+            'Failed to CreateArtifact: Received non-retryable error: Failed request: (400) Bad Request: mime_type a valid mime_type is required for this artifact version'
+          )
+        )
+        .mockResolvedValueOnce({
+          ok: true,
+          signedUploadUrl: 'https://signed-upload-url.local'
+        })
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
+        .mockResolvedValue({
+          ok: true,
+          artifactId: '1'
+        })
+      jest
+        .spyOn(stream, 'createRawFileUploadStream')
+        .mockResolvedValue(new stream.WaterMarkedUploadStream(1))
+      const uploadToBlobStorageSpy = jest
+        .spyOn(blobUpload, 'uploadToBlobStorage')
+        .mockResolvedValue({
+          uploadSize: 1234,
+          sha256Hash: 'test-sha256-hash'
+        })
+
+      await uploadArtifact(
+        fixtures.inputs.artifactName,
+        [singleFile],
+        fixtures.inputs.rootDirectory,
+        {skipArchive: true}
+      )
+
+      expect(createArtifactSpy).toHaveBeenCalledTimes(2)
+      expect(createArtifactSpy.mock.calls[0][0].mimeType?.value).toBe(
+        'text/plain'
+      )
+      expect(createArtifactSpy.mock.calls[1][0].mimeType?.value).toBe(
+        'application/octet-stream'
+      )
+      expect(uploadToBlobStorageSpy).toHaveBeenCalledWith(
+        'https://signed-upload-url.local',
+        expect.any(stream.WaterMarkedUploadStream),
+        'application/octet-stream'
+      )
+    })
+
+    it('should not retry for non-MIME CreateArtifact errors', async () => {
+      const createArtifactSpy = jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockRejectedValue(
+          new Error(
+            'Failed to CreateArtifact: Received non-retryable error: Failed request: (400) Bad Request: name already exists'
+          )
+        )
+
+      const uploadResp = uploadArtifact(
+        fixtures.inputs.artifactName,
+        fixtures.inputs.files,
+        fixtures.inputs.rootDirectory
+      )
+
+      await expect(uploadResp).rejects.toThrow('name already exists')
+      expect(createArtifactSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+
   describe('skipArchive option', () => {
     it('should throw an error if skipArchive is true and files array is empty', async () => {
       const uploadResp = uploadArtifact(
