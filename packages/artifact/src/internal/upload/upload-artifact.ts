@@ -25,6 +25,38 @@ import {
 import {FilesNotFoundError, InvalidResponseError} from '../shared/errors.js'
 import {getMimeType} from './types.js'
 
+const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
+
+function isMimeTypeValidationError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  const message = error.message.toLowerCase()
+
+  const isCreateArtifactError = message.includes('failed to createartifact')
+  const isClientValidationStatus =
+    message.includes('(400)') || message.includes('(422)')
+  const hasMimeToken =
+    message.includes('mime_type') ||
+    message.includes('mime type') ||
+    message.includes('content type') ||
+    message.includes('media type')
+  const hasValidationToken =
+    message.includes('invalid') ||
+    message.includes('valid') ||
+    message.includes('required') ||
+    message.includes('unsupported') ||
+    message.includes('not allowed')
+
+  return (
+    isCreateArtifactError &&
+    isClientValidationStatus &&
+    hasMimeToken &&
+    hasValidationToken
+  )
+}
+
 export async function uploadArtifact(
   name: string,
   files: string[],
@@ -66,7 +98,7 @@ export async function uploadArtifact(
     }
   }
 
-  const contentType = getMimeType(artifactFileName)
+  let contentType = getMimeType(artifactFileName)
 
   // get the IDs needed for the artifact creation
   const backendIds = getBackendIdsFromToken()
@@ -89,8 +121,30 @@ export async function uploadArtifact(
     createArtifactReq.expiresAt = expiresAt
   }
 
-  const createArtifactResp =
-    await artifactClient.CreateArtifact(createArtifactReq)
+  let createArtifactResp
+  try {
+    createArtifactResp = await artifactClient.CreateArtifact(createArtifactReq)
+  } catch (error) {
+    if (
+      contentType !== DEFAULT_CONTENT_TYPE &&
+      isMimeTypeValidationError(error)
+    ) {
+      core.warning(
+        `CreateArtifact rejected mime type '${contentType}', retrying with '${DEFAULT_CONTENT_TYPE}'.`
+      )
+      contentType = DEFAULT_CONTENT_TYPE
+      const retryCreateArtifactReq: CreateArtifactRequest = {
+        ...createArtifactReq,
+        mimeType: StringValue.create({value: contentType})
+      }
+      createArtifactResp = await artifactClient.CreateArtifact(
+        retryCreateArtifactReq
+      )
+    } else {
+      throw error
+    }
+  }
+
   if (!createArtifactResp.ok) {
     throw new InvalidResponseError(
       'CreateArtifact: response from backend was not ok'
