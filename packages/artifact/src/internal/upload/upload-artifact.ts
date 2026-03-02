@@ -23,39 +23,9 @@ import {
   StringValue
 } from '../../generated/index.js'
 import {FilesNotFoundError, InvalidResponseError} from '../shared/errors.js'
-import {getMimeType} from './types.js'
+import {getMimeType, isMimeTypeValidationError} from './types.js'
 
 const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
-
-function isMimeTypeValidationError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false
-  }
-
-  const message = error.message.toLowerCase()
-
-  const isCreateArtifactError = message.includes('failed to createartifact')
-  const isClientValidationStatus =
-    message.includes('(400)') || message.includes('(422)')
-  const hasMimeToken =
-    message.includes('mime_type') ||
-    message.includes('mime type') ||
-    message.includes('content type') ||
-    message.includes('media type')
-  const hasValidationToken =
-    message.includes('invalid') ||
-    message.includes('valid') ||
-    message.includes('required') ||
-    message.includes('unsupported') ||
-    message.includes('not allowed')
-
-  return (
-    isCreateArtifactError &&
-    isClientValidationStatus &&
-    hasMimeToken &&
-    hasValidationToken
-  )
-}
 
 export async function uploadArtifact(
   name: string,

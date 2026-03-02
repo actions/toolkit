@@ -1,5 +1,8 @@
 import * as path from 'path'
 
+/** Default MIME type for unknown file types and fallbacks */
+export const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
+
 /**
  * Maps file extensions to MIME types
  */
@@ -78,5 +81,38 @@ const mimeTypes: Record<string, string> = {
  */
 export function getMimeType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase()
-  return mimeTypes[ext] || 'application/octet-stream'
+  return mimeTypes[ext] || DEFAULT_CONTENT_TYPE
+}
+
+/**
+ * Checks if an error is related to MIME type validation
+ */
+export function isMimeTypeValidationError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  const message = error.message.toLowerCase()
+
+  const isCreateArtifactError = message.includes('failed to createartifact')
+  const isClientValidationStatus =
+    message.includes('(400)') || message.includes('(422)')
+  const hasMimeToken =
+    message.includes('mime_type') ||
+    message.includes('mime type') ||
+    message.includes('content type') ||
+    message.includes('media type')
+  const hasValidationToken =
+    message.includes('invalid') ||
+    message.includes('valid') ||
+    message.includes('required') ||
+    message.includes('unsupported') ||
+    message.includes('not allowed')
+
+  return (
+    isCreateArtifactError &&
+    isClientValidationStatus &&
+    hasMimeToken &&
+    hasValidationToken
+  )
 }
