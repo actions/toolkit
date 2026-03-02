@@ -19,6 +19,7 @@ import {createZipUploadStream} from './zip.js'
 import {createRawFileUploadStream, WaterMarkedUploadStream} from './stream.js'
 import {
   CreateArtifactRequest,
+  CreateArtifactResponse,
   FinalizeArtifactRequest,
   StringValue
 } from '../../generated/index.js'
@@ -93,7 +94,7 @@ export async function uploadArtifact(
     createArtifactReq.expiresAt = expiresAt
   }
 
-  let createArtifactResp
+  let createArtifactResp: CreateArtifactResponse
   try {
     createArtifactResp = await artifactClient.CreateArtifact(createArtifactReq)
   } catch (error) {
