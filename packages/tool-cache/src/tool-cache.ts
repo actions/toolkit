@@ -626,8 +626,11 @@ export async function getManifestFromRepo(
       core.debug('Invalid json')
     }
   }
-
-  return releases
+  if (!releases.hasOwnProperty('documentation_url')) {
+    return releases
+  } else {
+    throw new Error('github API rate limiting response in JSON format')
+  }
 }
 
 export async function findFromManifest(
