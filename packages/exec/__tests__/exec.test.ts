@@ -211,7 +211,7 @@ describe('@actions/exec', () => {
         throw new Error('Should not have succeeded')
       })
       .catch(err => {
-        expect(err.message).toContain('terminated by signal SIGTERM')
+        expect(err.message).toContain('failed due to signal SIGTERM')
       })
   })
 
