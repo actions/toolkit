@@ -93,16 +93,22 @@ export async function streamExtractExternal(
     urlEndsWithZip
 
   // Extract filename from Content-Disposition header
+  // Prefer filename* (RFC 5987) which supports UTF-8 encoded filenames,
+  // fall back to filename which may contain ASCII-only replacements
   const contentDisposition =
     response.message.headers['content-disposition'] || ''
   let fileName = 'artifact'
-  const filenameMatch = contentDisposition.match(
-    /filename\*?=['"]?(?:UTF-\d['"]*)?([^;\r\n"']*)['"]?/i
+  const filenameStar = contentDisposition.match(
+    /filename\*\s*=\s*UTF-8''([^;\r\n]*)/i
   )
-  if (filenameMatch && filenameMatch[1]) {
+  const filenamePlain = contentDisposition.match(
+    /(?<!\*)filename\s*=\s*['"]?([^;\r\n"']*)['"]?/i
+  )
+  const rawName = filenameStar?.[1] || filenamePlain?.[1]
+  if (rawName) {
     // Sanitize fileName to prevent path traversal attacks
     // Use path.basename to extract only the filename component
-    fileName = path.basename(decodeURIComponent(filenameMatch[1].trim()))
+    fileName = path.basename(decodeURIComponent(rawName.trim()))
   }
 
   core.debug(
