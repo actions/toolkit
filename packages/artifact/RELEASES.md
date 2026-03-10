@@ -2,7 +2,7 @@
 
 ## 6.2.1
 
-- Support the RFC 5987 `filename*` field in the `content-disposition` header. This allows us to correctly upload and download files and artifacts with Chinese/Japanese/Korean (among other) characters in their name.
+- Support the RFC 5987 `filename*` field in the `content-disposition` header. This allows us to correctly download files and artifacts with Chinese/Japanese/Korean (among other) characters in their name.
 
 ## 6.2.0
 

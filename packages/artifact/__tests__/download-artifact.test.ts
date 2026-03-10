@@ -1020,15 +1020,14 @@ describe('download-artifact', () => {
       // Simulate Azure Blob Storage URL with rscd containing Chinese filename
       const chineseArtifactName = 'probe-土-x'
       const asciiArtifactName = 'probe-_-x'
-      const blobUrlWithChineseName =
-        `https://blob-storage.local/artifact.zip?rscd=${encodeURIComponent(`attachment; filename="${asciiArtifactName}.zip"; filename*=UTF-8''${encodeURIComponent(chineseArtifactName + '.zip')}`)}&rsct=application%2Fzip&sig=abc123`
+      const blobUrlWithChineseName = `https://blob-storage.local/artifact.zip?rscd=${encodeURIComponent(`attachment; filename="${asciiArtifactName}.zip"; filename*=UTF-8''${encodeURIComponent(`${chineseArtifactName}.zip`)}`)}&rsct=application%2Fzip&sig=abc123`
 
       const mockGetZip = jest.fn(() => {
         const message = new http.IncomingMessage(new net.Socket())
         message.statusCode = 200
         message.headers['content-type'] = 'application/zip'
         message.headers['content-disposition'] =
-          `attachment; filename="${asciiArtifactName}.zip"; filename*=UTF-8''${encodeURIComponent(chineseArtifactName + '.zip')}`
+          `attachment; filename="${asciiArtifactName}.zip"; filename*=UTF-8''${encodeURIComponent(`${chineseArtifactName}.zip`)}`
         message.push(fs.readFileSync(fixtures.exampleArtifact.path))
         message.push(null)
         return {
@@ -1044,10 +1043,7 @@ describe('download-artifact', () => {
         }
       )
 
-      await streamExtractExternal(
-        blobUrlWithChineseName,
-        fixtures.workspaceDir
-      )
+      await streamExtractExternal(blobUrlWithChineseName, fixtures.workspaceDir)
 
       expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
       // Zip should be extracted normally regardless of Chinese artifact name
@@ -1055,48 +1051,51 @@ describe('download-artifact', () => {
     })
 
     it.each([
-      ['土', '_', 'U+571F - known to cause 400 errors'],
-      ['日', '_', 'U+65E5 - reported to work fine'],
-      ['中文测试', '____', 'multiple Chinese characters'],
-      ['文件-2026年', '__-2026_', 'mixed Chinese and numbers'],
-      ['データ', '___', 'Japanese katakana'],
-      ['테스트', '___', 'Korean characters']
-    ])('should prefer filename* over filename for non-ASCII character %s (%s)', async (chars, asciiReplacement, _description) => {
-      const rawFileContent = `content for ${chars}`
-      const expectedFileName = `artifact-${chars}.txt`
-      const asciiFileName = `artifact-${asciiReplacement}.txt`
+      ['土', '_'],    // U+571F - known to cause 400 errors
+      ['日', '_'],    // U+65E5 - reported to work fine
+      ['中文测试', '____'],  // multiple Chinese characters
+      ['文件-2026年', '__-2026_'],  // mixed Chinese and numbers
+      ['データ', '___'],  // Japanese katakana
+      ['테스트', '___']   // Korean characters
+    ])(
+      'should prefer filename* over filename for non-ASCII character %s (%s)',
+      async (chars, asciiReplacement) => {
+        const rawFileContent = `content for ${chars}`
+        const expectedFileName = `artifact-${chars}.txt`
+        const asciiFileName = `artifact-${asciiReplacement}.txt`
 
-      const mockGetFile = jest.fn(() => {
-        const message = new http.IncomingMessage(new net.Socket())
-        message.statusCode = 200
-        message.headers['content-type'] = 'text/plain'
-        // Server sends filename with _ replacing non-ASCII, filename* with proper encoding
-        message.headers['content-disposition'] =
-          `attachment; filename="${asciiFileName}"; filename*=UTF-8''${encodeURIComponent(expectedFileName)}`
-        message.push(Buffer.from(rawFileContent, 'utf8'))
-        message.push(null)
-        return {
-          message
-        }
-      })
-
-      const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
-        () => {
+        const mockGetFile = jest.fn(() => {
+          const message = new http.IncomingMessage(new net.Socket())
+          message.statusCode = 200
+          message.headers['content-type'] = 'text/plain'
+          // Server sends filename with _ replacing non-ASCII, filename* with proper encoding
+          message.headers['content-disposition'] =
+            `attachment; filename="${asciiFileName}"; filename*=UTF-8''${encodeURIComponent(expectedFileName)}`
+          message.push(Buffer.from(rawFileContent, 'utf8'))
+          message.push(null)
           return {
-            get: mockGetFile
+            message
           }
-        }
-      )
+        })
 
-      await streamExtractExternal(
-        fixtures.blobStorageUrl,
-        fixtures.workspaceDir
-      )
+        const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
+          () => {
+            return {
+              get: mockGetFile
+            }
+          }
+        )
 
-      expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
-      const savedFilePath = path.join(fixtures.workspaceDir, expectedFileName)
-      expect(fs.existsSync(savedFilePath)).toBe(true)
-      expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
-    })
+        await streamExtractExternal(
+          fixtures.blobStorageUrl,
+          fixtures.workspaceDir
+        )
+
+        expect(mockHttpClient).toHaveBeenCalledWith(getUserAgentString())
+        const savedFilePath = path.join(fixtures.workspaceDir, expectedFileName)
+        expect(fs.existsSync(savedFilePath)).toBe(true)
+        expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
+      }
+    )
   })
 })
