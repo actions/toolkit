@@ -1051,12 +1051,12 @@ describe('download-artifact', () => {
     })
 
     it.each([
-      ['土', '_'],    // U+571F - known to cause 400 errors
-      ['日', '_'],    // U+65E5 - reported to work fine
-      ['中文测试', '____'],  // multiple Chinese characters
-      ['文件-2026年', '__-2026_'],  // mixed Chinese and numbers
-      ['データ', '___'],  // Japanese katakana
-      ['테스트', '___']   // Korean characters
+      ['土', '_'], // U+571F - known to cause 400 errors
+      ['日', '_'], // U+65E5 - reported to work fine
+      ['中文测试', '____'], // multiple Chinese characters
+      ['文件-2026年', '__-2026_'], // mixed Chinese and numbers
+      ['データ', '___'], // Japanese katakana
+      ['테스트', '___'] // Korean characters
     ])(
       'should prefer filename* over filename for non-ASCII character %s (%s)',
       async (chars, asciiReplacement) => {
