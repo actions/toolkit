@@ -1,5 +1,9 @@
 # @actions/artifact Releases
 
+## 6.2.1
+
+- Support the RFC 5987 `filename*` field in the `content-disposition` header. This allows us to correctly download files and artifacts with Chinese/Japanese/Korean (among other) characters in their name.
+
 ## 6.2.0
 
 - Support uploading single un-archived files (not zipped). Direct uploads are only supported for artifacts version 7+ (based on the major version of `actions/upload-artifact`). Callers must pass the `skipArchive` option to `uploadArtifact`. Only single files can be uploaded at a time right now. Default behavior should remain unchanged if `skipArchive = false`. When `skipArchive = true`, the name of the file is used as the name of the artifact for consistency with the downloads: you upload `artifact.txt`, you download `artifact.txt`.
