@@ -134,8 +134,9 @@ export class Pattern {
       noext: true,
       nonegate: true
     }
-    pattern = IS_WINDOWS ? pattern.replace(/\\/g, '/') : pattern
-    this.minimatch = new Minimatch(pattern, minimatchOptions)
+    // Convert to a Minimatch-friendly form using POSIX separators
+    const minimatchPattern = pathHelper.toMinimatchPath(pattern)
+    this.minimatch = new Minimatch(minimatchPattern, minimatchOptions)
   }
 
   /**
@@ -160,8 +161,11 @@ export class Pattern {
       itemPath = pathHelper.safeTrimTrailingSeparator(itemPath)
     }
 
+    // Convert to a Minimatch-friendly form using POSIX separators
+    const itemPathForMatch = pathHelper.toMinimatchPath(itemPath)
+
     // Match
-    if (this.minimatch.match(itemPath)) {
+    if (this.minimatch.match(itemPathForMatch)) {
       return this.trailingSeparator ? MatchKind.Directory : MatchKind.All
     }
 
@@ -180,8 +184,9 @@ export class Pattern {
       return this.rootRegExp.test(itemPath)
     }
 
+    const mmItem = pathHelper.toMinimatchPath(itemPath)
     return this.minimatch.matchOne(
-      itemPath.split(IS_WINDOWS ? /\\+/ : /\/+/),
+      mmItem.split(/\/+/),
       this.minimatch.set[0],
       true
     )
