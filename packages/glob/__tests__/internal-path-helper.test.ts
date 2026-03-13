@@ -125,7 +125,7 @@ describe('path-helper', () => {
 
   it('ensureAbsoluteRoot roots paths', () => {
     if (IS_WINDOWS) {
-      const currentDrive = process.cwd().substr(0, 2)
+      const currentDrive = process.cwd().slice(0, 2)
       expect(currentDrive.match(/^[A-Z]:$/i)).toBeTruthy()
       const otherDrive = currentDrive.toUpperCase().startsWith('C')
         ? 'D:'
