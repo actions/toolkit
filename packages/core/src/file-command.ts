@@ -15,13 +15,24 @@ export function issueFileCommand(command: string, message: any): void {
       `Unable to find environment variable for file command ${command}`
     )
   }
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Missing file at path: ${filePath}`)
-  }
 
-  fs.appendFileSync(filePath, `${toCommandValue(message)}${os.EOL}`, {
-    encoding: 'utf8'
-  })
+  // do not use appendFileSync() because of CodeQL js/file-system-race
+  let fd
+  try {
+    fd = fs.openSync(filePath, 'a')
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      throw new Error(`Missing file at path: ${filePath}`)
+    } else {
+      throw err
+    }
+  }
+  
+  try {
+    fs.writeSync(fd, `${toCommandValue(message)}${os.EOL}`, null, 'utf8')
+  } finally {
+    fs.closeSync(fd)
+  }
 }
 
 export function prepareKeyValueMessage(key: string, value: any): string {
