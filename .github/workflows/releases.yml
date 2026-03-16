@@ -29,7 +29,7 @@ on:
         type: string
         required: false
         default: 'latest'
-        description: 'npm dist-tag for the release. Use "latest" for main branch releases. For non-main branches, use the package major version (e.g. "v5") to avoid overwriting the latest tag.'
+        description: 'npm dist-tag for the release. Use "latest" for main branch releases. For non-main branches, use a non-semver tag like "v1-longlived". Semver values (e.g. "5.0.0") are not valid dist-tags and will be rejected by npm.'
       test-all:
         type: boolean
         required: false
