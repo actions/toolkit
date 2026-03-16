@@ -1,6 +1,6 @@
 name: Publish NPM
 
-run-name: Publish NPM - ${{ github.event.inputs.package }}
+run-name: Publish NPM - ${{ inputs.package }} from ${{ inputs.branch }}
 
 on:
   workflow_dispatch:
@@ -20,7 +20,16 @@ on:
           - http-client
           - io
           - tool-cache
-          
+      branch:
+        type: string
+        required: false
+        default: 'main'
+        description: 'Branch to release from'
+      npm-tag:
+        type: string
+        required: false
+        default: 'latest'
+        description: 'npm dist-tag for the release. Use "latest" for main branch releases. For non-main branches, use the package major version (e.g. "v5") to avoid overwriting the latest tag.'
 
 jobs:
   test:
@@ -28,13 +37,15 @@ jobs:
 
     steps:
       - name: setup repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
 
       - name: Set Node.js 24.x
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
 
@@ -55,7 +66,7 @@ jobs:
         working-directory: packages/${{ github.event.inputs.package }}
 
       - name: upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.inputs.package }}
           path: packages/${{ github.event.inputs.package }}/*.tgz
@@ -70,29 +81,35 @@ jobs:
     steps:
 
       - name: Set Node.js 24.x
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
 
       - name: download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
-          name: ${{ github.event.inputs.package }}
+          name: ${{ inputs.package }}
+
+      - name: guard against publishing latest from non-main branch
+        if: inputs.branch != 'main' && inputs.npm-tag == 'latest'
+        run: |
+          echo "::error::Publishing with the 'latest' dist-tag from a non-main branch ('${{ inputs.branch }}') is not allowed. Use the package major version as the tag (e.g. v5)."
+          exit 1
 
       - name: publish
-        run: npm publish --provenance *.tgz
+        run: npm publish --provenance --tag "${{ inputs.npm-tag }}" *.tgz
 
       - name: notify slack on failure
         if: failure()
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ inputs.package }} from ${{ inputs.branch }} (tag: ${{ inputs.npm-tag }})"}' $SLACK_WEBHOOK
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK }}
 
       - name: notify slack on success
         if: success()
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ inputs.package }} from ${{ inputs.branch }} (tag: ${{ inputs.npm-tag }})"}' $SLACK_WEBHOOK
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK }}
 
