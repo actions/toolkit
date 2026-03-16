@@ -30,7 +30,7 @@ test('unlinkFile unlinks file', async () => {
 })
 
 test('assertDefined throws if undefined', () => {
-  expect(() => cacheUtils.assertDefined('test', undefined)).toThrowError()
+  expect(() => cacheUtils.assertDefined('test', undefined)).toThrow()
 })
 
 test('assertDefined returns value', () => {
