@@ -30,6 +30,10 @@ npm dist-tags control which version users get when they `npm install @actions/<p
 Examples of **valid** dist-tags: `latest`, `next`, `beta`, `v1-longlived`
 Examples of **invalid** dist-tags: `5.0.0`, `1.2.3`, `6.0.0-rc.1` (these are semver and will be rejected)
 
+| ![Screenshot showcasing the npm distribution tags](assets/npm-dist-tags.png) |
+|---|
+| npm distribution tags |
+
 ### Safety guard
 
 The workflow **blocks** publishing with the `latest` dist-tag from any branch other than `main`. This prevents accidentally overwriting `latest` with a version from an older or experimental branch. If you're releasing from a non-main branch, use the package's major version as the tag (e.g. `v5`).
