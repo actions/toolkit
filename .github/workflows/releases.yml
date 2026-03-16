@@ -1,6 +1,6 @@
 name: Publish NPM
 
-run-name: Publish NPM - ${{ inputs.package }}@${{ inputs.npm-tag }} from ${{ inputs.branch }}
+run-name: Publish NPM - ${{ inputs.package }} from ${{ inputs.branch }}
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ on:
         type: string
         required: false
         default: 'latest'
-        description: 'npm dist-tag to publish under (e.g. latest, next, beta)'
+        description: 'npm dist-tag for the release. Use "latest" for main branch releases. For non-main branches, use the package major version (e.g. "v5") to avoid overwriting the latest tag.'
 
 jobs:
   test:
@@ -93,7 +93,7 @@ jobs:
       - name: guard against publishing latest from non-main branch
         if: inputs.branch != 'main' && inputs.npm-tag == 'latest'
         run: |
-          echo "::error::Publishing with the 'latest' dist-tag from a non-main branch ('${{ inputs.branch }}') is not allowed. Use a different npm-tag (e.g. next, beta)."
+          echo "::error::Publishing with the 'latest' dist-tag from a non-main branch ('${{ inputs.branch }}') is not allowed. Use the package major version as the tag (e.g. v5)."
           exit 1
 
       - name: publish
