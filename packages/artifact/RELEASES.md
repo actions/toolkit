@@ -99,3 +99,7 @@
 
 - Update 403 Forbidden error matching for GHES uploads [#1522](https://github.com/actions/toolkit/pull/1522)
 - Update vulnerable dependencies [#1480](https://github.com/actions/toolkit/pull/1480)
+
+### 1.1.3
+
+- Bump `tmp` from 0.2.1 to 0.2.5 to remove transitive dependency on `rimraf`
