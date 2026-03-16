@@ -30,6 +30,11 @@ on:
         required: false
         default: 'latest'
         description: 'npm dist-tag for the release. Use "latest" for main branch releases. For non-main branches, use the package major version (e.g. "v5") to avoid overwriting the latest tag.'
+      test-all:
+        type: boolean
+        required: false
+        default: false
+        description: 'Run tests for all packages instead of only the package being published'
 
 jobs:
   test:
@@ -59,7 +64,12 @@ jobs:
         run: npm run build
 
       - name: test
-        run: npm run test
+        run: |
+          if [ "${{ inputs.test-all }}" = "true" ]; then
+            npm run test
+          else
+            npm run test -- --testPathPattern="packages/${{ inputs.package }}"
+          fi
 
       - name: pack
         run: npm pack
