@@ -15,13 +15,21 @@ export function issueFileCommand(command: string, message: any): void {
       `Unable to find environment variable for file command ${command}`
     )
   }
-  if (!fs.existsSync(filePath)) {
+
+  let fileDescriptor: number | undefined
+  try {
+    fileDescriptor = fs.openSync(filePath, fs.constants.O_APPEND | fs.constants.O_WRONLY)
+  } catch (err) {
     throw new Error(`Missing file at path: ${filePath}`)
   }
 
-  fs.appendFileSync(filePath, `${toCommandValue(message)}${os.EOL}`, {
-    encoding: 'utf8'
-  })
+  try {
+    fs.appendFileSync(fileDescriptor, `${toCommandValue(message)}${os.EOL}`, {
+      encoding: 'utf8'
+    })
+  } finally {
+    fs.closeSync(fileDescriptor)
+  }
 }
 
 export function prepareKeyValueMessage(key: string, value: any): string {
