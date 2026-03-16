@@ -501,15 +501,21 @@ export class ToolRunner extends events.EventEmitter {
         state.CheckComplete()
       })
 
-      cp.on('exit', (code: number) => {
+      cp.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
         state.processExitCode = code
+        state.processSignal = signal
         state.processExited = true
-        this._debug(`Exit code ${code} received from tool '${this.toolPath}'`)
+        if (signal) {
+          this._debug(`Signal ${signal} received from tool '${this.toolPath}'`)
+        } else {
+          this._debug(`Exit code ${code} received from tool '${this.toolPath}'`)
+        }
         state.CheckComplete()
       })
 
-      cp.on('close', (code: number) => {
+      cp.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
         state.processExitCode = code
+        state.processSignal = signal
         state.processExited = true
         state.processClosed = true
         this._debug(`STDIO streams have closed for tool '${this.toolPath}'`)
@@ -625,7 +631,8 @@ class ExecState extends events.EventEmitter {
 
   processClosed = false // tracks whether the process has exited and stdio is closed
   processError = ''
-  processExitCode = 0
+  processExitCode: number | null = 0
+  processSignal: NodeJS.Signals | null = null
   processExited = false // tracks whether the process has exited
   processStderr = false // tracks whether stderr was written to
   private delay = 10000 // 10 seconds
@@ -657,6 +664,10 @@ class ExecState extends events.EventEmitter {
       if (this.processError) {
         error = new Error(
           `There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`
+        )
+      } else if (this.processSignal) {
+        error = new Error(
+          `The process '${this.toolPath}' failed due to signal ${this.processSignal}`
         )
       } else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
         error = new Error(
