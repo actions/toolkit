@@ -303,7 +303,7 @@ describe('pattern', () => {
     expect(pattern.match(`${root}foo/bar/baz`)).toBeFalsy()
     pattern = new Pattern(`${root}foo/b[!]r/b*`)
     expect(pattern.searchPath).toBe(`${root}foo${path.sep}b!r`)
-    expect(pattern.match(`${root}foo/b!r/baz`)).toBeTruthy()
+    expect(pattern.match(`${root}foo/b!r/baz`)).toBeFalsy()
     pattern = new Pattern(`${root}foo/b[[]ar/b*`)
     expect(pattern.searchPath).toBe(`${root}foo${path.sep}b[ar`)
     expect(pattern.match(`${root}foo/b[ar/baz`)).toBeTruthy()
@@ -340,9 +340,11 @@ describe('pattern', () => {
       pattern = new Pattern('C:/foo/b\\[a]r/b*')
       expect(pattern.searchPath).toBe(`C:\\foo\\b\\ar`)
       expect(pattern.match('C:/foo/b/ar/baz')).toBeTruthy()
+
+      // Regression testing for minimatch v3
       pattern = new Pattern('C:/foo/b[\\!]r/b*')
       expect(pattern.searchPath).toBe('C:\\foo\\b[\\!]r')
-      expect(pattern.match('C:/foo/b[undefined/!]r/baz')).toBeTruthy() // Note, "undefined" substr to accommodate a bug in Minimatch when nocase=true
+      expect(pattern.match('C:/foo/b[undefined/!]r/baz')).toBeFalsy()
     }
   })
 })
