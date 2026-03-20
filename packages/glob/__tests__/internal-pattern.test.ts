@@ -342,6 +342,13 @@ describe('pattern', () => {
       expect(pattern.match('C:/foo/b/ar/baz')).toBeTruthy()
 
       // Regression testing for minimatch v3
+      // Historically, minimatch/glob had a bug when parsing a character class
+      // containing an escaped '!' (e.g. `[\\!]`). In some cases, the internal
+      // pattern construction would incorrectly insert the literal string
+      // "undefined" into the generated pattern/segment, which could make a
+      // pattern intended to match `b[\\!]r` also match a path segment like
+      // `b[undefined/!]r`. This test ensures that a pattern with a literal
+      // `[\\!]` in the directory name does *not* match such malformed paths.
       pattern = new Pattern('C:/foo/b[\\!]r/b*')
       expect(pattern.searchPath).toBe('C:\\foo\\b[\\!]r')
       expect(pattern.match('C:/foo/b[undefined/!]r/baz')).toBeFalsy()
