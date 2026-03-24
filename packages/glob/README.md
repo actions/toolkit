@@ -78,7 +78,7 @@ for await (const file of globber.globGenerator()) {
 
 ## Hashing files (`hashFiles`)
 
-`hashFiles` computes a deterministic hash of files matched by glob patterns.
+`hashFiles` computes a hash of files matched by glob patterns.
 
 By default, only files under the workspace (`GITHUB_WORKSPACE`) are eligible to be hashed.
 

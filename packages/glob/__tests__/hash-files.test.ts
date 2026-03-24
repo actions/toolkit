@@ -174,7 +174,7 @@ describe('globber', () => {
     expect(defaultSkip).toEqual(insideOnly)
   })
 
-  it('allows files outside roots if opted-in (hash changes + deterministic)', async () => {
+  it('allows files outside roots if opted-in (hash changes)', async () => {
     const root = path.join(getTestTemp(), 'allow-outside-roots')
     const dir1 = path.join(root, 'dir1')
     const outsideDir = path.join(root, 'outsideDir')

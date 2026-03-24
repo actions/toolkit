@@ -29,6 +29,11 @@ type ExcludeMatcher = {
   workspaceRelativeMatcher: IMinimatch
 }
 
+type OutsideRootFile = {
+  matched: string
+  resolved: string
+}
+
 // Checks if resolvedFile is inside any of resolvedRoots.
 function isInResolvedRoots(
   resolvedFile: string,
@@ -70,13 +75,13 @@ function buildExcludeMatchers(excludePatterns: string[]): ExcludeMatcher[] {
 function isExcluded(
   resolvedFile: string,
   excludeMatchers: ExcludeMatcher[],
-  githubWorkspace: string
+  workspaceForRelativeMatch: string
 ): boolean {
   if (excludeMatchers.length === 0) return false
   const absolutePath = path.resolve(resolvedFile)
   const absolutePathForMatch = normalizeForMatch(absolutePath)
   const workspaceRelativePathForMatch = normalizeForMatch(
-    path.relative(githubWorkspace, absolutePath)
+    path.relative(workspaceForRelativeMatch, absolutePath)
   )
   return excludeMatchers.some(
     m =>
@@ -95,6 +100,18 @@ export async function hashFiles(
   const githubWorkspace = currentWorkspace
     ? currentWorkspace
     : (process.env['GITHUB_WORKSPACE'] ?? process.cwd())
+
+  // Resolve the workspace so workspace-relative exclude matching is consistent.
+  // This avoids mismatches when resolvedFile is a realpath but the workspace path contains symlinks.
+  let resolvedWorkspace = githubWorkspace
+  try {
+    resolvedWorkspace = fs.realpathSync(githubWorkspace)
+  } catch (err) {
+    writeDelegate(
+      `Could not resolve workspace '${githubWorkspace}', falling back to original path. Details: ${err}`
+    )
+  }
+
   const allowOutside = options?.allowFilesOutsideWorkspace ?? false
   const excludeMatchers = buildExcludeMatchers(options?.exclude ?? [])
 
@@ -114,7 +131,7 @@ export async function hashFiles(
     return ''
   }
 
-  const outsideRootFiles: string[] = []
+  const outsideRootFiles: OutsideRootFile[] = []
   const result = crypto.createHash('sha256')
   const pipeline = util.promisify(stream.pipeline)
   let hasMatch = false
@@ -135,14 +152,14 @@ export async function hashFiles(
     }
 
     // Exclude matching patterns (apply to resolved path for symlink-safety)
-    if (isExcluded(resolvedFile, excludeMatchers, githubWorkspace)) {
+    if (isExcluded(resolvedFile, excludeMatchers, resolvedWorkspace)) {
       writeDelegate(`Exclude '${file}' (exclude pattern match).`)
       continue
     }
 
     // Check if in resolved roots
     if (!isInResolvedRoots(resolvedFile, resolvedRoots)) {
-      outsideRootFiles.push(file)
+      outsideRootFiles.push({matched: file, resolved: resolvedFile})
       if (allowOutside) {
         writeDelegate(
           `Including '${file}' since it is outside the allowed root(s) and 'allowFilesOutsideWorkspace' is enabled.`
@@ -170,11 +187,15 @@ export async function hashFiles(
   if (!allowOutside && outsideRootFiles.length > 0) {
     const shown = outsideRootFiles.slice(0, MAX_WARNED_FILES)
     const remaining = outsideRootFiles.length - shown.length
-    const fileList = shown.map(f => `- ${f}`).join('\n')
+    const fileList = shown
+      .map(f => `- ${f.matched} -> ${f.resolved}`)
+      .join('\n')
+
     const suffix =
       remaining > 0
         ? `\n  ...and ${remaining} more file(s). Enable debug logging to see all.`
         : ''
+
     core.warning(
       `Some matched files are outside the allowed root(s) and were skipped:\n${fileList}${suffix}\n` +
         `To include them, set 'allowFilesOutsideWorkspace: true' in your options.`
