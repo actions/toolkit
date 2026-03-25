@@ -1,11 +1,15 @@
 import {BlobClient, BlockBlobUploadStreamOptions} from '@azure/storage-blob'
-import {TransferProgressEvent} from '@azure/core-http'
-import {ZipUploadStream} from './zip'
-import {getUploadChunkSize, getConcurrency} from '../shared/config'
+import {TransferProgressEvent} from '@azure/core-http-compat'
+import {WaterMarkedUploadStream} from './stream.js'
+import {
+  getUploadChunkSize,
+  getConcurrency,
+  getUploadChunkTimeout
+} from '../shared/config.js'
 import * as core from '@actions/core'
 import * as crypto from 'crypto'
 import * as stream from 'stream'
-import {NetworkError} from '../shared/errors'
+import {NetworkError} from '../shared/errors.js'
 
 export interface BlobUploadResponse {
   /**
@@ -19,87 +23,83 @@ export interface BlobUploadResponse {
   sha256Hash?: string
 }
 
-export async function uploadZipToBlobStorage(
+export async function uploadToBlobStorage(
   authenticatedUploadURL: string,
-  zipUploadStream: ZipUploadStream
+  uploadStream: WaterMarkedUploadStream,
+  contentType: string
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
   let lastProgressTime = Date.now()
-  let timeoutId: NodeJS.Timeout | undefined
+  const abortController = new AbortController()
 
-  const chunkTimer = (timeout: number): NodeJS.Timeout => {
-    // clear the previous timeout
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
+  const chunkTimer = async (interval: number): Promise<void> =>
+    new Promise((resolve, reject) => {
+      const timer = setInterval(() => {
+        if (Date.now() - lastProgressTime > interval) {
+          reject(new Error('Upload progress stalled.'))
+        }
+      }, interval)
 
-    timeoutId = setTimeout(() => {
-      const now = Date.now()
-      // if there's been more than 30 seconds since the
-      // last progress event, then we'll consider the upload stalled
-      if (now - lastProgressTime > timeout) {
-        throw new Error('Upload progress stalled.')
-      }
-    }, timeout)
-    return timeoutId
-  }
+      abortController.signal.addEventListener('abort', () => {
+        clearInterval(timer)
+        resolve()
+      })
+    })
+
   const maxConcurrency = getConcurrency()
   const bufferSize = getUploadChunkSize()
   const blobClient = new BlobClient(authenticatedUploadURL)
   const blockBlobClient = blobClient.getBlockBlobClient()
-  const timeoutDuration = 300000 // 30 seconds
 
   core.debug(
-    `Uploading artifact zip to blob storage with maxConcurrency: ${maxConcurrency}, bufferSize: ${bufferSize}`
+    `Uploading artifact to blob storage with maxConcurrency: ${maxConcurrency}, bufferSize: ${bufferSize}, contentType: ${contentType}`
   )
 
   const uploadCallback = (progress: TransferProgressEvent): void => {
     core.info(`Uploaded bytes ${progress.loadedBytes}`)
     uploadByteCount = progress.loadedBytes
-    chunkTimer(timeoutDuration)
     lastProgressTime = Date.now()
   }
 
   const options: BlockBlobUploadStreamOptions = {
-    blobHTTPHeaders: {blobContentType: 'zip'},
-    onProgress: uploadCallback
+    blobHTTPHeaders: {blobContentType: contentType},
+    onProgress: uploadCallback,
+    abortSignal: abortController.signal
   }
 
   let sha256Hash: string | undefined = undefined
-  const uploadStream = new stream.PassThrough()
+  const blobUploadStream = new stream.PassThrough()
   const hashStream = crypto.createHash('sha256')
 
-  zipUploadStream.pipe(uploadStream) // This stream is used for the upload
-  zipUploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the zip content that gets used. Integrity check
+  uploadStream.pipe(blobUploadStream) // This stream is used for the upload
+  uploadStream.pipe(hashStream).setEncoding('hex') // This stream is used to compute a hash of the content for integrity check
 
   core.info('Beginning upload of artifact content to blob storage')
 
   try {
-    // Start the chunk timer
-    timeoutId = chunkTimer(timeoutDuration)
-    await blockBlobClient.uploadStream(
-      uploadStream,
-      bufferSize,
-      maxConcurrency,
-      options
-    )
+    await Promise.race([
+      blockBlobClient.uploadStream(
+        blobUploadStream,
+        bufferSize,
+        maxConcurrency,
+        options
+      ),
+      chunkTimer(getUploadChunkTimeout())
+    ])
   } catch (error) {
     if (NetworkError.isNetworkErrorCode(error?.code)) {
       throw new NetworkError(error?.code)
     }
     throw error
   } finally {
-    // clear the timeout whether or not the upload completes
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
+    abortController.abort()
   }
 
   core.info('Finished uploading artifact content to blob storage!')
 
   hashStream.end()
   sha256Hash = hashStream.read() as string
-  core.info(`SHA256 hash of uploaded artifact zip is ${sha256Hash}`)
+  core.info(`SHA256 digest of uploaded artifact is ${sha256Hash}`)
 
   if (uploadByteCount === 0) {
     core.warning(

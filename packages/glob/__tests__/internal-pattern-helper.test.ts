@@ -1,8 +1,8 @@
 import * as path from 'path'
-import * as patternHelper from '../src/internal-pattern-helper'
-import {MatchKind} from '../src/internal-match-kind'
-import {IS_WINDOWS} from '../../io/src/io-util'
-import {Pattern} from '../src/internal-pattern'
+import * as patternHelper from '../src/internal-pattern-helper.js'
+import {MatchKind} from '../src/internal-match-kind.js'
+import {IS_WINDOWS} from '../../io/src/io-util.js'
+import {Pattern} from '../src/internal-pattern.js'
 
 describe('pattern-helper', () => {
   it('getSearchPaths omits negate search paths', () => {

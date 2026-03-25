@@ -1,18 +1,16 @@
 import * as core from '@actions/core'
 import {HttpClient, HttpClientResponse} from '@actions/http-client'
 import {BlockBlobClient} from '@azure/storage-blob'
-import {TransferProgressEvent} from '@azure/ms-rest-js'
+import {TransferProgressEvent} from '@azure/core-rest-pipeline'
 import * as buffer from 'buffer'
 import * as fs from 'fs'
 import * as stream from 'stream'
 import * as util from 'util'
 
-import * as utils from './cacheUtils'
-import {SocketTimeout} from './constants'
-import {DownloadOptions} from '../options'
-import {retryHttpClientResponse} from './requestUtils'
-
-import {AbortController} from '@azure/abort-controller'
+import * as utils from './cacheUtils.js'
+import {SocketTimeout} from './constants.js'
+import {DownloadOptions} from '../options.js'
+import {retryHttpClientResponse} from './requestUtils.js'
 
 /**
  * Pipes the body of a HTTP response to a stream

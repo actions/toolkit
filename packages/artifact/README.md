@@ -4,7 +4,6 @@ Interact programmatically with [Actions Artifacts](https://docs.github.com/en/ac
 
 This is the core library that powers the [`@actions/upload-artifact`](https://github.com/actions/upload-artifact) and [`@actions/download-artifact`](https://github.com/actions/download-artifact) actions.
 
-
 - [`@actions/artifact`](#actionsartifact)
   - [v2 - What's New](#v2---whats-new)
     - [Improvements](#improvements)

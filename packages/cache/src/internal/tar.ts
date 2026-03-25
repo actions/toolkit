@@ -2,15 +2,15 @@ import {exec} from '@actions/exec'
 import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
-import * as utils from './cacheUtils'
-import {ArchiveTool} from './contracts'
+import * as utils from './cacheUtils.js'
+import {ArchiveTool} from './contracts.js'
 import {
   CompressionMethod,
   SystemTarPathOnWindows,
   ArchiveToolType,
   TarFilename,
   ManifestFilename
-} from './constants'
+} from './constants.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 

@@ -1,6 +1,6 @@
 {
   "name": "@actions/io",
-  "version": "1.1.3",
+  "version": "3.0.2",
   "description": "Actions io lib",
   "keywords": [
     "github",
@@ -9,8 +9,19 @@
   ],
   "homepage": "https://github.com/actions/toolkit/tree/main/packages/io",
   "license": "MIT",
+  "type": "module",
   "main": "lib/io.js",
   "types": "lib/io.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/io.d.ts",
+      "import": "./lib/io.js"
+    },
+    "./lib/io-util": {
+      "types": "./lib/io-util.d.ts",
+      "import": "./lib/io-util.js"
+    }
+  },
   "directories": {
     "lib": "lib",
     "test": "__tests__"

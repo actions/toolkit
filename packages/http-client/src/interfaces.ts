@@ -1,6 +1,6 @@
 import * as http from 'http'
 import * as https from 'https'
-import {HttpClientResponse} from './index'
+import {HttpClientResponse} from './index.js'
 
 export interface HttpClient {
   options(

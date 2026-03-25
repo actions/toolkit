@@ -45,7 +45,8 @@ describe('getIDTokenClaims', () => {
       sha: 'sha',
       repository: 'repo',
       event_name: 'push',
-      workflow_ref: 'main',
+      job_workflow_ref: 'job_workflow_ref',
+      workflow_ref: 'workflow',
       repository_id: '1',
       repository_owner_id: '1',
       runner_environment: 'github-hosted',
@@ -64,6 +65,55 @@ describe('getIDTokenClaims', () => {
     it('returns the ID token claims', async () => {
       const result = await getIDTokenClaims(issuer)
       expect(result).toEqual(claims)
+    })
+  })
+
+  describe('when ID token is valid (w/ enterprise slug)', () => {
+    const claims = {
+      iss: `${issuer}/foo-bar`,
+      aud: audience,
+      ref: 'ref',
+      sha: 'sha',
+      repository: 'repo',
+      event_name: 'push',
+      job_workflow_ref: 'job_workflow_ref',
+      workflow_ref: 'workflow',
+      repository_id: '1',
+      repository_owner_id: '1',
+      runner_environment: 'github-hosted',
+      run_id: '1',
+      run_attempt: '1'
+    }
+
+    beforeEach(async () => {
+      const jwt = await new jose.SignJWT(claims)
+        .setProtectedHeader({alg: 'PS256'})
+        .sign(key.privateKey)
+
+      nock(issuer).get(tokenPath).query({audience}).reply(200, {value: jwt})
+    })
+
+    it('returns the ID token claims', async () => {
+      const result = await getIDTokenClaims(issuer)
+      expect(result).toEqual(claims)
+    })
+  })
+
+  describe('when ID token is missing the "iss" claim', () => {
+    const claims = {
+      aud: audience
+    }
+
+    beforeEach(async () => {
+      const jwt = await new jose.SignJWT(claims)
+        .setProtectedHeader({alg: 'PS256'})
+        .sign(key.privateKey)
+
+      nock(issuer).get(tokenPath).query({audience}).reply(200, {value: jwt})
+    })
+
+    it('throws an error', async () => {
+      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/missing "iss"/i)
     })
   })
 
@@ -98,7 +148,9 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throws an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/issuer invalid/)
+      await expect(getIDTokenClaims(issuer)).rejects.toThrow(
+        /unexpected "iss"/i
+      )
     })
   })
 
@@ -114,7 +166,7 @@ describe('getIDTokenClaims', () => {
     })
 
     it('throw an error', async () => {
-      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/audience invalid/)
+      await expect(getIDTokenClaims(issuer)).rejects.toThrow(/unexpected "aud"/)
     })
   })
 

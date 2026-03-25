@@ -1,8 +1,6 @@
 import * as path from 'path'
-import {Context} from '../src/context'
-
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-var-requires */
+import {readFileSync} from 'fs'
+import {Context} from '../src/context.js'
 
 describe('@actions/context', () => {
   let context: Context
@@ -14,7 +12,10 @@ describe('@actions/context', () => {
   })
 
   it('returns the payload object', () => {
-    expect(context.payload).toEqual(require('./payload.json'))
+    const payload = JSON.parse(
+      readFileSync(path.join(__dirname, 'payload.json'), 'utf8')
+    )
+    expect(context.payload).toEqual(payload)
   })
 
   it('returns an empty payload if the GITHUB_EVENT_PATH environment variable is falsey', () => {

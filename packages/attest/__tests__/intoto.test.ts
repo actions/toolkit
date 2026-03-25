@@ -17,7 +17,7 @@ describe('buildIntotoStatement', () => {
   }
 
   it('returns an intoto statement', () => {
-    const statement = buildIntotoStatement(subject, predicate)
+    const statement = buildIntotoStatement([subject], predicate)
     expect(statement).toMatchSnapshot()
   })
 })

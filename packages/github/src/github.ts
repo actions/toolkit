@@ -1,8 +1,7 @@
-import * as Context from './context'
-import {GitHub, getOctokitOptions} from './utils'
-
+import * as Context from './context.js'
+import {GitHub, getOctokitOptions} from './utils.js'
 // octokit + plugins
-import {OctokitOptions, OctokitPlugin} from '@octokit/core/dist-types/types'
+import type {OctokitOptions, OctokitPlugin} from '@octokit/core/types'
 
 export const context = new Context.Context()
 

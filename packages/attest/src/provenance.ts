@@ -1,14 +1,9 @@
-import {attest, AttestOptions} from './attest'
-import {getIDTokenClaims} from './oidc'
-import type {Attestation, Predicate} from './shared.types'
+import {attest, AttestOptions} from './attest.js'
+import {getIDTokenClaims} from './oidc.js'
+import type {Attestation, Predicate} from './shared.types.js'
 
 const SLSA_PREDICATE_V1_TYPE = 'https://slsa.dev/provenance/v1'
-
-const GITHUB_BUILDER_ID_PREFIX = 'https://github.com/actions/runner'
-const GITHUB_BUILD_TYPE =
-  'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'
-
-const DEFAULT_ISSUER = 'https://token.actions.githubusercontent.com'
+const GITHUB_BUILD_TYPE = 'https://actions.github.io/buildtypes/workflow/v1'
 
 export type AttestProvenanceOptions = Omit<
   AttestOptions,
@@ -27,7 +22,7 @@ export type AttestProvenanceOptions = Omit<
  * @returns The SLSA provenance predicate.
  */
 export const buildSLSAProvenancePredicate = async (
-  issuer: string = DEFAULT_ISSUER
+  issuer?: string
 ): Promise<Predicate> => {
   const serverURL = process.env.GITHUB_SERVER_URL
   const claims = await getIDTokenClaims(issuer)
@@ -35,7 +30,7 @@ export const buildSLSAProvenancePredicate = async (
   // Split just the path and ref from the workflow string.
   // owner/repo/.github/workflows/main.yml@main =>
   //   .github/workflows/main.yml, main
-  const [workflowPath, workflowRef] = claims.workflow_ref
+  const [workflowPath] = claims.workflow_ref
     .replace(`${claims.repository}/`, '')
     .split('@')
 
@@ -46,7 +41,7 @@ export const buildSLSAProvenancePredicate = async (
         buildType: GITHUB_BUILD_TYPE,
         externalParameters: {
           workflow: {
-            ref: workflowRef,
+            ref: claims.ref,
             repository: `${serverURL}/${claims.repository}`,
             path: workflowPath
           }
@@ -55,7 +50,8 @@ export const buildSLSAProvenancePredicate = async (
           github: {
             event_name: claims.event_name,
             repository_id: claims.repository_id,
-            repository_owner_id: claims.repository_owner_id
+            repository_owner_id: claims.repository_owner_id,
+            runner_environment: claims.runner_environment
           }
         },
         resolvedDependencies: [
@@ -69,7 +65,7 @@ export const buildSLSAProvenancePredicate = async (
       },
       runDetails: {
         builder: {
-          id: `${GITHUB_BUILDER_ID_PREFIX}/${claims.runner_environment}`
+          id: `${serverURL}/${claims.job_workflow_ref}`
         },
         metadata: {
           invocationId: `${serverURL}/${claims.repository}/actions/runs/${claims.run_id}/attempts/${claims.run_attempt}`

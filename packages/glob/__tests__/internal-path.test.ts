@@ -1,5 +1,5 @@
 import * as path from 'path'
-import {Path} from '../src/internal-path'
+import {Path} from '../src/internal-path.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 

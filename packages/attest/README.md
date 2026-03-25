@@ -15,6 +15,14 @@ initiated.
 See [Using artifact attestations to establish provenance for builds](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
 for more information on artifact attestations.
 
+## Table of Contents
+- [Usage](#usage)
+  - [attest](#attest)
+  - [attestProvenance](#attestprovenance)
+  - [Attestation](#attestation)
+- [Sigstore Instance](#sigstore-instance)
+- [Storage](#storage)
+
 ## Usage
 
 ### `attest`
@@ -32,8 +40,7 @@ async function run() {
     const ghToken = core.getInput('gh-token');
 
     const attestation = await attest({
-        subjectName: 'my-artifact-name',
-        subjectDigest: { 'sha256': '36ab4667...'},
+        subjects: [{name: 'my-artifact-name', digest: { 'sha256': '36ab4667...'}}],
         predicateType: 'https://in-toto.io/attestation/release',
         predicate: { . . . },
         token: ghToken
@@ -49,11 +56,12 @@ The `attest` function supports the following options:
 
 ```typescript
 export type AttestOptions = {
-  // The name of the subject to be attested.
-  subjectName: string
-  // The digest of the subject to be attested. Should be a map of digest
-  // algorithms to their hex-encoded values.
-  subjectDigest: Record<string, string>
+  // Deprecated. Use 'subjects' instead.
+  subjectName?: string
+  // Deprecated. Use 'subjects' instead.
+  subjectDigest?: Record<string, string>
+  // Collection of subjects to be attested
+  subjects?: Subject[]
   // URI identifying the content type of the predicate being attested.
   predicateType: string
   // Predicate to be attested.
@@ -63,8 +71,17 @@ export type AttestOptions = {
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: 'public-good' | 'github'
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
+}
+
+export type Subject = {
+   // Name of the subject.
+  name: string
+   // Digests of the subject. Should be a map of digest algorithms to their hex-encoded values.
+  digest: Record<string, string>
 }
 ```
 
@@ -103,16 +120,19 @@ The `attestProvenance` function supports the following options:
 
 ```typescript
 export type AttestProvenanceOptions = {
-  // The name of the subject to be attested.
-  subjectName: string
-  // The digest of the subject to be attested. Should be a map of digest
-  // algorithms to their hex-encoded values.
-  subjectDigest: Record<string, string>
-  // GitHub token for writing attestations.
+  // Deprecated. Use 'subjects' instead.
+  subjectName?: string
+  // Deprecated. Use 'subjects' instead.
+  subjectDigest?: Record<string, string>
+  // Collection of subjects to be attested
+  subjects?: Subject[]
+  // URI identifying the content type of the predicate being attested.
   token: string
   // Sigstore instance to use for signing. Must be one of "public-good" or
   // "github".
   sigstore?: 'public-good' | 'github'
+  // HTTP headers to include in request to attestations API.
+  headers?: {[header: string]: string | number | undefined}
   // Whether to skip writing the attestation to the GH attestations API.
   skipWrite?: boolean
   // Issuer URL responsible for minting the OIDC token from which the
@@ -152,6 +172,74 @@ export type Attestation = {
 
 For details about the Sigstore bundle format, see the [Bundle protobuf
 specification](https://github.com/sigstore/protobuf-specs/blob/main/protos/sigstore_bundle.proto).
+
+### createStorageRecord
+
+The `createStorageRecord` function creates an
+[artifact metadata storage record](https://docs.github.com/en/rest/orgs/artifact-metadata?apiVersion=2022-11-28#create-artifact-metadata-storage-record)
+on behalf of an attested artifact. It accepts parameters defining artifact
+and package registry details. The storage record contains metadata about where the artifact is stored on a given package registry.
+
+```js
+const { createStorageRecord } = require('@actions/attest');
+const core = require('@actions/core');
+
+async function run() {
+    // In order to persist attestations to the repo, this should be a token with
+    // repository write permissions.
+    const ghToken = core.getInput('gh-token');
+
+    const record = await createStorageRecord(
+        artifactOptions: {
+            name: 'my-artifact-name',
+            digest: { 'sha256': '36ab4667...'},
+            version: "v1.0.0"
+        },
+        packageRegistryOptions: {
+            registryUrl: "https://my-fave-pkg-registry.com"
+        },
+        token: ghToken
+    );
+
+    console.log(record);
+}
+
+run();
+```
+
+The `createStorageRecord` function supports the following options:
+
+```typescript
+// Artifact details to associate the record with
+export type ArtifactOptions = {
+  // The name of the artifact
+  name: string
+  // The digest of the artifact
+  digest: string
+  // The version of the artifact
+  version?: string
+  // The status of the artifact
+  status?: string
+}
+// Includes details about the package registry the artifact was published to
+export type PackageRegistryOptions = {
+  // The URL of the package registry
+  registryUrl: string
+  // The URL of the artifact in the package registry
+  artifactUrl?: string
+  // The package registry repository the artifact was published to.
+  repo?: string
+  // The path of the artifact in the package registry repository.
+  path?: string
+}
+// GitHub token for writing attestations.
+token: string
+// Optional parameters for the write operation.
+// The number of times to retry the request.
+retryAttempts?: number
+// HTTP headers to include in request to Artifact Metadata API.
+headers?: RequestHeaders
+```
 
 ## Sigstore Instance
 

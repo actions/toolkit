@@ -1,7 +1,8 @@
 import * as core from '@actions/core'
 import * as io from '@actions/io'
+import * as crypto from 'crypto'
 import * as fs from 'fs'
-import * as mm from './manifest'
+import * as mm from './manifest.js'
 import * as os from 'os'
 import * as path from 'path'
 import * as httpm from '@actions/http-client'
@@ -10,10 +11,8 @@ import * as stream from 'stream'
 import * as util from 'util'
 import {ok} from 'assert'
 import {OutgoingHttpHeaders} from 'http'
-import uuidV4 from 'uuid/v4'
-import {exec} from '@actions/exec/lib/exec'
-import {ExecOptions} from '@actions/exec/lib/interfaces'
-import {RetryHelper} from './retry-helper'
+import {exec, ExecOptions} from '@actions/exec'
+import {RetryHelper} from './retry-helper.js'
 
 export class HTTPError extends Error {
   constructor(readonly httpStatusCode: number | undefined) {
@@ -41,7 +40,7 @@ export async function downloadTool(
   auth?: string,
   headers?: OutgoingHttpHeaders
 ): Promise<string> {
-  dest = dest || path.join(_getTempDirectory(), uuidV4())
+  dest = dest || path.join(_getTempDirectory(), crypto.randomUUID())
   await io.mkdirP(path.dirname(dest))
   core.debug(`Downloading ${url}`)
   core.debug(`Destination ${dest}`)
@@ -651,7 +650,7 @@ export async function findFromManifest(
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(_getTempDirectory(), uuidV4())
+    dest = path.join(_getTempDirectory(), crypto.randomUUID())
   }
   await io.mkdirP(dest)
   return dest

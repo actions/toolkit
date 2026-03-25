@@ -40,4 +40,4 @@
 
 #### Defined in
 
-[src/artifact.ts:7](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/artifact.ts#L7)
+[src/artifact.ts:7](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/artifact.ts#L7)

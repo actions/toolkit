@@ -4,8 +4,8 @@ import {
   HttpClientError,
   HttpClientResponse
 } from '@actions/http-client'
-import {DefaultRetryDelay, DefaultRetryAttempts} from './constants'
-import {ITypedResponseWithError} from './contracts'
+import {DefaultRetryDelay, DefaultRetryAttempts} from './constants.js'
+import {ITypedResponseWithError} from './contracts.js'
 
 export function isSuccessStatusCode(statusCode?: number): boolean {
   if (!statusCode) {

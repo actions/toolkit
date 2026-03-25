@@ -41,3 +41,4 @@ Any easy way to test changes for the official upload/download actions is to fork
    1. In the locally cloned fork, link to your local toolkit changes: `npm link @actions/artifact`
    2. Then, compile your changes with: `npm run release`. The local `dist/index.js` should be updated with your changes.
    3. Commit and push to your fork, you can then test with a `uses:` in your workflow pointed at your fork.
+   4. The format for the above is `<username>/<repository-name>/@<ref>`, i.e. `me/myrepo/@HEAD`

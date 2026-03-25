@@ -36,3 +36,5 @@ export const SystemTarPathOnWindows = `${process.env['SYSTEMDRIVE']}\\Windows\\S
 export const TarFilename = 'cache.tar'
 
 export const ManifestFilename = 'manifest.txt'
+
+export const CacheFileSizeLimit = 10 * Math.pow(1024, 3) // 10GiB per repository

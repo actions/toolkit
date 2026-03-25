@@ -50,7 +50,7 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:42](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L42)
+[src/internal/shared/errors.ts:42](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/errors.ts#L42)
 
 ## Properties
 
@@ -60,7 +60,7 @@ Error.constructor
 
 #### Defined in
 
-[src/internal/shared/errors.ts:40](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L40)
+[src/internal/shared/errors.ts:40](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/errors.ts#L40)
 
 ___
 
@@ -198,4 +198,4 @@ ___
 
 #### Defined in
 
-[src/internal/shared/errors.ts:49](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/errors.ts#L49)
+[src/internal/shared/errors.ts:49](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/errors.ts#L49)

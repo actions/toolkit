@@ -20,4 +20,4 @@ The path where the artifact was downloaded to
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:88](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L88)
+[src/internal/shared/interfaces.ts:93](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L93)

@@ -1,27 +1,58 @@
 name: Publish NPM
 
+run-name: Publish NPM - ${{ inputs.package }} from ${{ inputs.branch }}
+
 on:
   workflow_dispatch:
     inputs:
       package:
+        type: choice
         required: true
-        description: 'core, artifact, cache, exec, github, glob, http-client, io, tool-cache, attest'
+        description: 'Which package to release'
+        options:
+          - artifact
+          - attest
+          - cache
+          - core
+          - exec
+          - github
+          - glob
+          - http-client
+          - io
+          - tool-cache
+      branch:
+        type: string
+        required: false
+        default: 'main'
+        description: 'Branch to release from'
+      npm-tag:
+        type: string
+        required: false
+        default: 'latest'
+        description: 'npm dist-tag for the release. Use "latest" for main branch releases. For non-main branches, use a non-semver tag like "v1-longlived". Semver values (e.g. "5.0.0") are not valid dist-tags and will be rejected by npm.'
+      test-all:
+        type: boolean
+        required: false
+        default: false
+        description: 'Run tests for all packages instead of only the package being published'
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: setup repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
 
       - name: verify package exists
         run: ls packages/${{ github.event.inputs.package }}
 
-      - name: Set Node.js 20.x
-        uses: actions/setup-node@v4
+      - name: Set Node.js 24.x
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.x
+          node-version: 24.x
 
       - name: npm install
         run: npm install
@@ -33,20 +64,25 @@ jobs:
         run: npm run build
 
       - name: test
-        run: npm run test
+        run: |
+          if [ "${{ inputs.test-all }}" = "true" ]; then
+            npm run test
+          else
+            npm run test -- --testPathPattern="packages/${{ inputs.package }}"
+          fi
 
       - name: pack
         run: npm pack
         working-directory: packages/${{ github.event.inputs.package }}
 
       - name: upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.inputs.package }}
           path: packages/${{ github.event.inputs.package }}/*.tgz
 
   publish:
-    runs-on: macos-latest
+    runs-on: ubuntu-slim
     needs: test
     environment: npm-publish
     permissions:
@@ -54,30 +90,36 @@ jobs:
       id-token: write
     steps:
 
-      - name: download artifact
-        uses: actions/download-artifact@v4
+      - name: Set Node.js 24.x
+        uses: actions/setup-node@v6
         with:
-          name: ${{ github.event.inputs.package }}
+          node-version: 24.x
 
-      - name: setup authentication
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
-        env:
-          NPM_TOKEN: ${{ secrets.TOKEN }}
+      - name: download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.package }}
+
+      - name: guard against publishing latest from non-main branch
+        if: inputs.branch != 'main' && inputs.npm-tag == 'latest'
+        run: |
+          echo "::error::Publishing with the 'latest' dist-tag from a non-main branch ('${{ inputs.branch }}') is not allowed. Use the package major version as the tag (e.g. v5)."
+          exit 1
 
       - name: publish
-        run: npm publish --provenance *.tgz
+        run: npm publish --provenance --tag "${{ inputs.npm-tag }}" *.tgz
 
       - name: notify slack on failure
         if: failure()
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":pb__failed: Failed to publish a new version of ${{ inputs.package }} from ${{ inputs.branch }} (tag: ${{ inputs.npm-tag }})"}' $SLACK_WEBHOOK
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK }}
 
       - name: notify slack on success
         if: success()
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ github.event.inputs.package }}"}' $SLACK_WEBHOOK
+          curl -X POST -H 'Content-type: application/json' --data '{"text":":dance: Successfully published a new version of ${{ inputs.package }} from ${{ inputs.branch }} (tag: ${{ inputs.npm-tag }})"}' $SLACK_WEBHOOK
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK }}
 

@@ -1,4 +1,4 @@
-import {Timestamp} from '../../generated'
+import {Timestamp} from '../../generated/index.js'
 import * as core from '@actions/core'
 
 export function getExpiration(retentionDays?: number): Timestamp | undefined {

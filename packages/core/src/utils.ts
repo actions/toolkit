@@ -1,8 +1,8 @@
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {AnnotationProperties} from './core'
-import {CommandProperties} from './command'
+import {AnnotationProperties} from './core.js'
+import {CommandProperties} from './command.js'
 
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely

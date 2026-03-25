@@ -1,12 +1,25 @@
 import * as semver from 'semver'
 import {debug} from '@actions/core'
+import * as os from 'os'
+import * as cp from 'child_process'
+import * as fs from 'fs'
 
-// needs to be require for core node modules to be mocked
-/* eslint @typescript-eslint/no-require-imports: 0 */
+// Internal object for testability (allows mocking in ESM)
+export const _internal = {
+  readLinuxVersionFile(): string {
+    const lsbReleaseFile = '/etc/lsb-release'
+    const osReleaseFile = '/etc/os-release'
+    let contents = ''
 
-import os = require('os')
-import cp = require('child_process')
-import fs = require('fs')
+    if (fs.existsSync(lsbReleaseFile)) {
+      contents = fs.readFileSync(lsbReleaseFile).toString()
+    } else if (fs.existsSync(osReleaseFile)) {
+      contents = fs.readFileSync(osReleaseFile).toString()
+    }
+
+    return contents
+  }
+}
 
 /*
 NOTE: versions must be sorted descending by version in the manifest
@@ -86,7 +99,7 @@ export async function _findMatch(
 
         let chk = item.arch === archFilter && item.platform === platFilter
         if (chk && item.platform_version) {
-          const osVersion = module.exports._getOsVersion()
+          const osVersion = _getOsVersion()
 
           if (osVersion === item.platform_version) {
             chk = true
@@ -130,7 +143,7 @@ export function _getOsVersion(): string {
     // DISTRIB_RELEASE=18.04
     // DISTRIB_CODENAME=bionic
     // DISTRIB_DESCRIPTION="Ubuntu 18.04.4 LTS"
-    const lsbContents = module.exports._readLinuxVersionFile()
+    const lsbContents = _internal.readLinuxVersionFile()
     if (lsbContents) {
       const lines = lsbContents.split('\n')
       for (const line of lines) {
@@ -150,16 +163,7 @@ export function _getOsVersion(): string {
   return version
 }
 
+// Alias for backwards compatibility
 export function _readLinuxVersionFile(): string {
-  const lsbReleaseFile = '/etc/lsb-release'
-  const osReleaseFile = '/etc/os-release'
-  let contents = ''
-
-  if (fs.existsSync(lsbReleaseFile)) {
-    contents = fs.readFileSync(lsbReleaseFile).toString()
-  } else if (fs.existsSync(osReleaseFile)) {
-    contents = fs.readFileSync(osReleaseFile).toString()
-  }
-
-  return contents
+  return _internal.readLinuxVersionFile()
 }

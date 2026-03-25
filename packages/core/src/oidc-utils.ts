@@ -3,7 +3,7 @@ import * as actions_http_client from '@actions/http-client'
 import {RequestOptions} from '@actions/http-client/lib/interfaces'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {debug, setSecret} from './core'
+import {debug, setSecret} from './core.js'
 interface TokenResponse {
   value?: string
 }

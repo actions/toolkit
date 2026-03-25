@@ -1,9 +1,9 @@
 import * as child from 'child_process'
-import * as io from '../../io/src/io'
+import * as io from '../../io/src/io.js'
 import * as os from 'os'
 import * as path from 'path'
-import {Globber, DefaultGlobber} from '../src/internal-globber'
-import {GlobOptions} from '../src/internal-glob-options'
+import {Globber, DefaultGlobber} from '../src/internal-globber.js'
+import {GlobOptions} from '../src/internal-glob-options.js'
 import {promises as fs} from 'fs'
 
 const IS_WINDOWS = process.platform === 'win32'
@@ -708,7 +708,7 @@ describe('globber', () => {
     expect(itemPaths).toEqual([])
   })
 
-  it('returns hidden files', async () => {
+  it('returns hidden files by default', async () => {
     // Create the following layout:
     //   <root>
     //   <root>/.emptyFolder
@@ -732,6 +732,26 @@ describe('globber', () => {
       path.join(root, '.folder'),
       path.join(root, '.folder', 'file')
     ])
+  })
+
+  it('ignores hidden files when excludeHiddenFiles is set', async () => {
+    // Create the following layout:
+    //   <root>
+    //   <root>/.emptyFolder
+    //   <root>/.file
+    //   <root>/.folder
+    //   <root>/.folder/file
+    const root = path.join(getTestTemp(), 'ignores-hidden-files')
+    await createHiddenDirectory(path.join(root, '.emptyFolder'))
+    await createHiddenDirectory(path.join(root, '.folder'))
+    await createHiddenFile(path.join(root, '.file'), 'test .file content')
+    await fs.writeFile(
+      path.join(root, '.folder', 'file'),
+      'test .folder/file content'
+    )
+
+    const itemPaths = await glob(root, {excludeHiddenFiles: true})
+    expect(itemPaths).toEqual([root])
   })
 
   it('returns normalized paths', async () => {

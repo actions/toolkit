@@ -20,4 +20,4 @@ Denotes where the artifact will be downloaded to. If not specified then the arti
 
 #### Defined in
 
-[src/internal/shared/interfaces.ts:98](https://github.com/actions/toolkit/blob/daf23ba/packages/artifact/src/internal/shared/interfaces.ts#L98)
+[src/internal/shared/interfaces.ts:103](https://github.com/actions/toolkit/blob/f522fdf/packages/artifact/src/internal/shared/interfaces.ts#L103)

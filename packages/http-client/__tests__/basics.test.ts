@@ -21,7 +21,10 @@ describe('basics', () => {
     _http = new httpm.HttpClient('http-client-tests')
   })
 
-  afterEach(() => {})
+  afterEach(() => {
+    // Clean up environment variable to prevent test pollution
+    delete process.env['ACTIONS_ORCHESTRATION_ID']
+  })
 
   it('constructs', () => {
     const http: httpm.HttpClient = new httpm.HttpClient('thttp-client-tests')
@@ -42,27 +45,28 @@ describe('basics', () => {
 
   it('does basic http get request', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
     expect(obj.headers['user-agent']).toBeTruthy()
   })
 
   it('does basic http get request with no user agent', async () => {
     const http: httpm.HttpClient = new httpm.HttpClient()
     const res: httpm.HttpClientResponse = await http.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
-    expect(obj.url).toBe('http://postman-echo.com/get')
-    expect(obj.headers['user-agent']).toBeFalsy()
+    expect(obj.url).toBe('https://postman-echo.com/get')
+    expect(obj.headers['user-agent']).toBe('actions/http-client')
   })
 
+  /* TODO write a mock rather then relying on a third party
   it('does basic https get request', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
       'https://postman-echo.com/get'
@@ -72,7 +76,7 @@ describe('basics', () => {
     const obj = JSON.parse(body)
     expect(obj.url).toBe('https://postman-echo.com/get')
   })
-
+*/
   it('does basic http get request with default headers', async () => {
     const http: httpm.HttpClient = new httpm.HttpClient(
       'http-client-tests',
@@ -85,14 +89,14 @@ describe('basics', () => {
       }
     )
     const res: httpm.HttpClientResponse = await http.get(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.headers.accept).toBe('application/json')
     expect(obj.headers['content-type']).toBe('application/json')
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
   })
 
   it('does basic http get request with merged headers', async () => {
@@ -107,7 +111,7 @@ describe('basics', () => {
       }
     )
     const res: httpm.HttpClientResponse = await http.get(
-      'http://postman-echo.com/get',
+      'https://postman-echo.com/get',
       {
         'content-type': 'application/x-www-form-urlencoded'
       }
@@ -119,7 +123,7 @@ describe('basics', () => {
     expect(obj.headers['content-type']).toBe(
       'application/x-www-form-urlencoded'
     )
-    expect(obj.url).toBe('http://postman-echo.com/get')
+    expect(obj.url).toBe('https://postman-echo.com/get')
   })
 
   it('pipes a get request', async () => {
@@ -231,14 +235,16 @@ describe('basics', () => {
 
   it('does basic head request', async () => {
     const res: httpm.HttpClientResponse = await _http.head(
-      'http://postman-echo.com/get'
+      'https://postman-echo.com/get'
     )
     expect(res.message.statusCode).toBe(200)
+    // Consume the response to close the socket
+    res.message.destroy()
   })
 
   it('does basic http delete request', async () => {
     const res: httpm.HttpClientResponse = await _http.del(
-      'http://postman-echo.com/delete'
+      'https://postman-echo.com/delete'
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
@@ -248,32 +254,32 @@ describe('basics', () => {
   it('does basic http post request', async () => {
     const b = 'Hello World!'
     const res: httpm.HttpClientResponse = await _http.post(
-      'http://postman-echo.com/post',
+      'https://postman-echo.com/post',
       b
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.data).toBe(b)
-    expect(obj.url).toBe('http://postman-echo.com/post')
+    expect(obj.url).toBe('https://postman-echo.com/post')
   })
 
   it('does basic http patch request', async () => {
     const b = 'Hello World!'
     const res: httpm.HttpClientResponse = await _http.patch(
-      'http://postman-echo.com/patch',
+      'https://postman-echo.com/patch',
       b
     )
     expect(res.message.statusCode).toBe(200)
     const body: string = await res.readBody()
     const obj = JSON.parse(body)
     expect(obj.data).toBe(b)
-    expect(obj.url).toBe('http://postman-echo.com/patch')
+    expect(obj.url).toBe('https://postman-echo.com/patch')
   })
 
   it('does basic http options request', async () => {
     const res: httpm.HttpClientResponse = await _http.options(
-      'http://postman-echo.com'
+      'https://postman-echo.com'
     )
     expect(res.message.statusCode).toBe(200)
     await res.readBody()
@@ -281,7 +287,7 @@ describe('basics', () => {
 
   it('returns 404 for not found get request', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
-      'http://postman-echo.com/status/404'
+      'https://postman-echo.com/status/404'
     )
     expect(res.message.statusCode).toBe(404)
     await res.readBody()
@@ -371,6 +377,68 @@ describe('basics', () => {
     )
     expect(restRes.headers['content-type']).toContain(
       httpm.MediaTypes.ApplicationJson
+    )
+  })
+
+  it('appends orchestration ID to user-agent when ACTIONS_ORCHESTRATION_ID is set', async () => {
+    const orchId = 'test-orch-id-12345'
+    process.env['ACTIONS_ORCHESTRATION_ID'] = orchId
+
+    const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests')
+    const res: httpm.HttpClientResponse = await http.get(
+      'https://postman-echo.com/get'
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    expect(obj.headers['user-agent']).toBe(
+      `http-client-tests actions_orchestration_id/${orchId}`
+    )
+  })
+
+  it('sanitizes invalid characters in orchestration ID', async () => {
+    const orchId = 'test (with) special/chars'
+    process.env['ACTIONS_ORCHESTRATION_ID'] = orchId
+
+    const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests')
+    const res: httpm.HttpClientResponse = await http.get(
+      'https://postman-echo.com/get'
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    // Spaces, parentheses, and slashes should be replaced with underscores
+    expect(obj.headers['user-agent']).toBe(
+      'http-client-tests actions_orchestration_id/test__with__special_chars'
+    )
+  })
+
+  it('does not modify user-agent when ACTIONS_ORCHESTRATION_ID is not set', async () => {
+    delete process.env['ACTIONS_ORCHESTRATION_ID']
+
+    const http: httpm.HttpClient = new httpm.HttpClient('http-client-tests')
+    const res: httpm.HttpClientResponse = await http.get(
+      'https://postman-echo.com/get'
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    expect(obj.headers['user-agent']).toBe('http-client-tests')
+  })
+
+  it('uses default user-agent with orchestration ID when no custom user-agent provided', async () => {
+    const orchId = 'test-default-id-12345'
+    process.env['ACTIONS_ORCHESTRATION_ID'] = orchId
+
+    const http: httpm.HttpClient = new httpm.HttpClient()
+    const res: httpm.HttpClientResponse = await http.get(
+      'https://postman-echo.com/get'
+    )
+    expect(res.message.statusCode).toBe(200)
+    const body: string = await res.readBody()
+    const obj = JSON.parse(body)
+    expect(obj.headers['user-agent']).toBe(
+      `actions/http-client actions_orchestration_id/${orchId}`
     )
   })
 })

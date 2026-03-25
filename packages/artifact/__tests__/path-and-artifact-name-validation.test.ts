@@ -1,9 +1,9 @@
 import {
   validateArtifactName,
   validateFilePath
-} from '../src/internal/upload/path-and-artifact-name-validation'
+} from '../src/internal/upload/path-and-artifact-name-validation.js'
 
-import {noopLogs} from './common'
+import {noopLogs} from './common.js'
 
 describe('Path and artifact name validation', () => {
   beforeAll(() => {

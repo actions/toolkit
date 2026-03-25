@@ -12,6 +12,11 @@ export interface UploadArtifactResponse {
    * This ID can be used as input to other APIs to download, delete or get more information about an artifact: https://docs.github.com/en/rest/actions/artifacts
    */
   id?: number
+
+  /**
+   * The SHA256 digest of the artifact that was created. Not provided if no artifact was uploaded
+   */
+  digest?: string
 }
 
 /**
@@ -45,6 +50,13 @@ export interface UploadArtifactOptions {
    * For large files that are not easily compressed, a value of 0 is recommended for significantly faster uploads.
    */
   compressionLevel?: number
+  /**
+   * If true, the artifact will be uploaded without being archived (zipped).
+   * This is only supported when uploading a single file.
+   * When using this option, the artifact will not be compressed.
+   * When using this option, the name parameter passed to the upload is ignored. Instead, the name of the file is used as the name of the artifact.
+   */
+  skipArchive?: boolean
 }
 
 /**
@@ -86,6 +98,11 @@ export interface DownloadArtifactResponse {
    * The path where the artifact was downloaded to
    */
   downloadPath?: string
+
+  /**
+   * Returns true if the digest of the downloaded artifact does not match the expected hash
+   */
+  digestMismatch?: boolean
 }
 
 /**
@@ -96,6 +113,26 @@ export interface DownloadArtifactOptions {
    * Denotes where the artifact will be downloaded to. If not specified then the artifact is download to GITHUB_WORKSPACE
    */
   path?: string
+
+  /**
+   * The hash that was computed for the artifact during upload. If provided, the outcome of the download
+   * will provide a digestMismatch property indicating whether the hash of the downloaded artifact
+   * matches the expected hash.
+   */
+  expectedHash?: string
+
+  /**
+   * If true, the downloaded artifact will not be automatically extracted/decompressed.
+   * The artifact will be saved as-is to the destination path.
+   */
+  skipDecompress?: boolean
+}
+
+export interface StreamExtractResponse {
+  /**
+   * The SHA256 hash of the downloaded file
+   */
+  sha256Digest?: string
 }
 
 /**
@@ -121,6 +158,11 @@ export interface Artifact {
    * The time when the artifact was created
    */
   createdAt?: Date
+
+  /**
+   * The digest of the artifact, computed at time of upload.
+   */
+  digest?: string
 }
 
 // FindOptions are for fetching Artifact(s) out of the scope of the current run.

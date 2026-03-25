@@ -1,5 +1,36 @@
 # @actions/github Releases
 
+### 9.0.0
+
+- **Breaking change**: Package is now ESM-only
+  - CommonJS consumers must use dynamic `import()` instead of `require()`
+  - Example: `const { getOctokit, context } = await import('@actions/github')`
+- Fix TypeScript compilation by migrating to ESM, enabling proper imports from `@octokit/core/types`
+
+### 8.0.1
+
+- Update `undici` to `6.23.0`
+- Update `@actions/http-client` to `3.0.2`
+
+### 8.0.0
+
+- Update @octokit dependencies 
+  - `@octokit/core` ^7.0.6
+  - `@octokit/plugin-paginate-rest` ^14.0.0
+  - `@octokit/plugin-rest-endpoint-methods` ^17.0.0
+  - `@octokit/request` ^10.0.7
+  - `@octokit/request-error` ^7.1.0
+- **Breaking change**: Minimum Node.js version is now 20 (previously 18)
+
+### 7.0.0
+
+- Update to v3.0.1 of `@actions/http-client`
+
+### 6.0.1
+
+- Dependency updates [#2043](https://github.com/actions/toolkit/pull/2043)
+- Add `context.runAttempt` [#1588](https://github.com/actions/toolkit/pull/1588)
+
 ### 6.0.0 
 - Support the latest Octokit in @actions/github [#1553](https://github.com/actions/toolkit/pull/1553)
   - Drop support of NodeJS v14, v16

@@ -1,6 +1,6 @@
 import * as http from 'http'
 import * as httpClient from '@actions/http-client'
-import {OctokitOptions} from '@octokit/core/dist-types/types'
+import type {OctokitOptions} from '@octokit/core/types'
 import {ProxyAgent, fetch} from 'undici'
 
 export function getAuthString(

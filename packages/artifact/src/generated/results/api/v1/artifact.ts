@@ -12,9 +12,9 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
-import { Int64Value } from "../../../google/protobuf/wrappers";
-import { StringValue } from "../../../google/protobuf/wrappers";
-import { Timestamp } from "../../../google/protobuf/timestamp";
+import { Int64Value } from "../../../google/protobuf/wrappers.js";
+import { StringValue } from "../../../google/protobuf/wrappers.js";
+import { Timestamp } from "../../../google/protobuf/timestamp.js";
 /**
  * @generated from protobuf message github.actions.results.api.v1.CreateArtifactRequest
  */
@@ -39,6 +39,10 @@ export interface CreateArtifactRequest {
      * @generated from protobuf field: int32 version = 5;
      */
     version: number;
+    /**
+     * @generated from protobuf field: google.protobuf.StringValue mime_type = 6;
+     */
+    mimeType?: StringValue; // optional
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.CreateArtifactResponse
@@ -169,6 +173,12 @@ export interface ListArtifactsResponse_MonolithArtifact {
      * @generated from protobuf field: google.protobuf.Timestamp created_at = 6;
      */
     createdAt?: Timestamp;
+    /**
+     * The SHA-256 digest of the artifact, calculated on upload for upload-artifact v4 & newer
+     *
+     * @generated from protobuf field: google.protobuf.StringValue digest = 7;
+     */
+    digest?: StringValue;
 }
 /**
  * @generated from protobuf message github.actions.results.api.v1.GetSignedArtifactURLRequest
@@ -234,7 +244,8 @@ class CreateArtifactRequest$Type extends MessageType<CreateArtifactRequest> {
             { no: 2, name: "workflow_job_run_backend_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "expires_at", kind: "message", T: () => Timestamp },
-            { no: 5, name: "version", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 5, name: "version", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 6, name: "mime_type", kind: "message", T: () => StringValue }
         ]);
     }
     create(value?: PartialMessage<CreateArtifactRequest>): CreateArtifactRequest {
@@ -264,6 +275,9 @@ class CreateArtifactRequest$Type extends MessageType<CreateArtifactRequest> {
                 case /* int32 version */ 5:
                     message.version = reader.int32();
                     break;
+                case /* google.protobuf.StringValue mime_type */ 6:
+                    message.mimeType = StringValue.internalBinaryRead(reader, reader.uint32(), options, message.mimeType);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -291,6 +305,9 @@ class CreateArtifactRequest$Type extends MessageType<CreateArtifactRequest> {
         /* int32 version = 5; */
         if (message.version !== 0)
             writer.tag(5, WireType.Varint).int32(message.version);
+        /* google.protobuf.StringValue mime_type = 6; */
+        if (message.mimeType)
+            StringValue.internalBinaryWrite(message.mimeType, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -556,7 +573,7 @@ export const ListArtifactsRequest = new ListArtifactsRequest$Type();
 class ListArtifactsResponse$Type extends MessageType<ListArtifactsResponse> {
     constructor() {
         super("github.actions.results.api.v1.ListArtifactsResponse", [
-            { no: 1, name: "artifacts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ListArtifactsResponse_MonolithArtifact }
+            { no: 1, name: "artifacts", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => ListArtifactsResponse_MonolithArtifact }
         ]);
     }
     create(value?: PartialMessage<ListArtifactsResponse>): ListArtifactsResponse {
@@ -608,7 +625,8 @@ class ListArtifactsResponse_MonolithArtifact$Type extends MessageType<ListArtifa
             { no: 3, name: "database_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
             { no: 4, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "size", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 6, name: "created_at", kind: "message", T: () => Timestamp }
+            { no: 6, name: "created_at", kind: "message", T: () => Timestamp },
+            { no: 7, name: "digest", kind: "message", T: () => StringValue }
         ]);
     }
     create(value?: PartialMessage<ListArtifactsResponse_MonolithArtifact>): ListArtifactsResponse_MonolithArtifact {
@@ -641,6 +659,9 @@ class ListArtifactsResponse_MonolithArtifact$Type extends MessageType<ListArtifa
                 case /* google.protobuf.Timestamp created_at */ 6:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
                     break;
+                case /* google.protobuf.StringValue digest */ 7:
+                    message.digest = StringValue.internalBinaryRead(reader, reader.uint32(), options, message.digest);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -671,6 +692,9 @@ class ListArtifactsResponse_MonolithArtifact$Type extends MessageType<ListArtifa
         /* google.protobuf.Timestamp created_at = 6; */
         if (message.createdAt)
             Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.StringValue digest = 7; */
+        if (message.digest)
+            StringValue.internalBinaryWrite(message.digest, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

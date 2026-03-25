@@ -8,7 +8,6 @@ export const {
   mkdir,
   open,
   readdir,
-  readlink,
   rename,
   rm,
   rmdir,
@@ -18,6 +17,30 @@ export const {
 } = fs.promises
 // export const {open} = 'fs'
 export const IS_WINDOWS = process.platform === 'win32'
+
+/**
+ * Custom implementation of readlink to ensure Windows junctions
+ * maintain trailing backslash for backward compatibility with Node.js < 24
+ *
+ * In Node.js 20, Windows junctions (directory symlinks) always returned paths
+ * with trailing backslashes. Node.js 24 removed this behavior, which breaks
+ * code that relied on this format for path operations.
+ *
+ * This implementation restores the Node 20 behavior by adding a trailing
+ * backslash to all junction results on Windows.
+ */
+export async function readlink(fsPath: string): Promise<string> {
+  const result = await fs.promises.readlink(fsPath)
+
+  // On Windows, restore Node 20 behavior: add trailing backslash to all results
+  // since junctions on Windows are always directory links
+  if (IS_WINDOWS && !result.endsWith('\\')) {
+    return `${result}\\`
+  }
+
+  return result
+}
+
 // See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
 export const UV_FS_O_EXLOCK = 0x10000000
 export const READONLY = fs.constants.O_RDONLY

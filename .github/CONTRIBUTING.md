@@ -57,3 +57,8 @@ This will ask you some questions about the new package. Start with `0.0.0` as th
 ```
 
 3. Start developing 😄.
+
+## Releasing Packages
+
+For information on how packages are published to npm, including workflow inputs, dist-tags, and safety guards, see the [release documentation](../docs/release.md).
+
