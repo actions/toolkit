@@ -107,23 +107,41 @@ export async function hashFiles(
   try {
     resolvedWorkspace = fs.realpathSync(githubWorkspace)
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
     writeDelegate(
-      `Could not resolve workspace '${githubWorkspace}', falling back to original path. Details: ${err}`
+      `Could not resolve workspace '${githubWorkspace}', falling back to original path. Details: ${msg}`
     )
   }
 
   const allowOutside = options?.allowFilesOutsideWorkspace ?? false
   const excludeMatchers = buildExcludeMatchers(options?.exclude ?? [])
 
-  // Resolve roots up front; warn and skip any that fail to resolve
-  const resolvedRoots: string[] = []
-  for (const root of options?.roots ?? [githubWorkspace]) {
+  // Resolve roots up front; warn and skip any that fail to resolve.
+  // If allowFilesOutsideWorkspace is not enabled, roots are restricted to the resolved workspace.
+  const resolvedRootsSet = new Set<string>()
+  const roots = options?.roots ?? [resolvedWorkspace]
+
+  for (const root of roots) {
     try {
-      resolvedRoots.push(fs.realpathSync(root))
+      const resolvedRoot =
+        root === resolvedWorkspace ? root : fs.realpathSync(root)
+
+      if (
+        !allowOutside &&
+        !isInResolvedRoots(resolvedRoot, [resolvedWorkspace])
+      ) {
+        writeDelegate(`Skipping root outside workspace: ${resolvedRoot}`)
+        continue
+      }
+
+      resolvedRootsSet.add(resolvedRoot)
     } catch (err) {
-      core.warning(`Could not resolve root '${root}': ${err}`)
+      const msg = err instanceof Error ? err.message : String(err)
+      writeDelegate(`Skipping unresolved root '${root}'. Details: ${msg}`)
     }
   }
+
+  const resolvedRoots = Array.from(resolvedRootsSet)
   if (resolvedRoots.length === 0) {
     core.warning(
       `Could not resolve any allowed root(s); no files will be considered for hashing.`
@@ -145,8 +163,9 @@ export async function hashFiles(
     try {
       resolvedFile = fs.realpathSync(file)
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
       core.warning(
-        `Could not read "${file}". Please check symlinks and file access. Details: ${err}`
+        `Could not read "${file}". Please check symlinks and file access. Details: ${msg}`
       )
       continue
     }
