@@ -3,7 +3,7 @@ import * as actions_http_client from '@actions/http-client'
 import {RequestOptions} from '@actions/http-client/lib/interfaces'
 import {HttpClient} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {debug, setSecret} from './core.js'
+import {debug, setSecret} from './api.js'
 interface TokenResponse {
   value?: string
 }
@@ -81,4 +81,8 @@ export class OidcClient {
       throw new Error(`Error message: ${error.message}`)
     }
   }
+}
+
+export async function getIDToken(aud?: string): Promise<string> {
+  return await OidcClient.getIDToken(aud)
 }

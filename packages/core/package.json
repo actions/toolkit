@@ -12,6 +12,7 @@
   "type": "module",
   "main": "lib/core.js",
   "types": "lib/core.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./lib/core.d.ts",
