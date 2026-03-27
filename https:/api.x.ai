@@ -1,0 +1,23 @@
+import os
+
+from xai_sdk import Client
+from xai_sdk.chat import user
+from xai_sdk.tools import web_search, x_search, code_execution
+
+client = Client(api_key=os.getenv("XAI_API_KEY"))
+chat = client.chat.create(
+    model="grok-4-1-fast-reasoning",
+    tools=[
+        web_search(),
+        x_search(),
+        code_execution(),
+    ],
+)
+
+chat.append(user("What are the latest updates from xAI?"))
+
+for response, chunk in chat.stream():
+    if chunk.content:
+        print(chunk.content, end="", flush=True)
+
+print("\nCitations:", response.citations)
