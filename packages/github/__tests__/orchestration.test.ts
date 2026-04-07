@@ -73,9 +73,7 @@ describe('orchestration ID support', () => {
     it('sets userAgent when ACTIONS_ORCHESTRATION_ID is set', () => {
       process.env['ACTIONS_ORCHESTRATION_ID'] = 'test-orch-id'
       const opts = getOctokitOptions('fake-token')
-      expect(opts.userAgent).toBe(
-        'actions_orchestration_id/test-orch-id'
-      )
+      expect(opts.userAgent).toBe('actions_orchestration_id/test-orch-id')
     })
 
     it('does not set userAgent when ACTIONS_ORCHESTRATION_ID is not set', () => {
@@ -110,9 +108,7 @@ describe('orchestration ID support', () => {
     it('sanitizes special characters through getOctokitOptions', () => {
       process.env['ACTIONS_ORCHESTRATION_ID'] = 'bad chars here!'
       const opts = getOctokitOptions('fake-token')
-      expect(opts.userAgent).toBe(
-        'actions_orchestration_id/bad_chars_here_'
-      )
+      expect(opts.userAgent).toBe('actions_orchestration_id/bad_chars_here_')
     })
   })
 })
