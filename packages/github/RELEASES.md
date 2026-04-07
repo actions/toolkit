@@ -1,5 +1,10 @@
 # @actions/github Releases
 
+### 9.1.0
+
+- Append `actions_orchestration_id` to user-agent when `ACTIONS_ORCHESTRATION_ID` environment variable is set
+- Export `getUserAgentWithOrchestrationId` from `@actions/github/lib/utils` for downstream consumers
+
 ### 9.0.0
 
 - **Breaking change**: Package is now ESM-only
