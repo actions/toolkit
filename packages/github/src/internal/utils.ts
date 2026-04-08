@@ -49,8 +49,10 @@ export function getUserAgentWithOrchestrationId(
   const orchId = process.env['ACTIONS_ORCHESTRATION_ID']?.trim()
   if (orchId) {
     const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, '_')
+    const tag = `actions_orchestration_id/${sanitizedId}`
+    if (baseUserAgent?.includes(tag)) return baseUserAgent
     const ua = baseUserAgent ? `${baseUserAgent} ` : ''
-    return `${ua}actions_orchestration_id/${sanitizedId}`
+    return `${ua}${tag}`
   }
   return baseUserAgent
 }

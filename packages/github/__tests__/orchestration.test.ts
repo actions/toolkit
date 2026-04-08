@@ -59,6 +59,14 @@ describe('orchestration ID support', () => {
       process.env['ACTIONS_ORCHESTRATION_ID'] = '   '
       expect(getUserAgentWithOrchestrationId('my-app')).toBe('my-app')
     })
+
+    it('does not duplicate orchestration ID if already present in base', () => {
+      process.env['ACTIONS_ORCHESTRATION_ID'] = 'abc-123'
+      const alreadyTagged = 'my-app actions_orchestration_id/abc-123'
+      expect(getUserAgentWithOrchestrationId(alreadyTagged)).toBe(
+        alreadyTagged
+      )
+    })
   })
 
   describe('public re-export', () => {
@@ -109,6 +117,16 @@ describe('orchestration ID support', () => {
       process.env['ACTIONS_ORCHESTRATION_ID'] = 'bad chars here!'
       const opts = getOctokitOptions('fake-token')
       expect(opts.userAgent).toBe('actions_orchestration_id/bad_chars_here_')
+    })
+
+    it('does not duplicate orchestration ID when caller already applied it', () => {
+      process.env['ACTIONS_ORCHESTRATION_ID'] = 'test-orch-id'
+      const opts = getOctokitOptions('fake-token', {
+        userAgent: 'my-app actions_orchestration_id/test-orch-id'
+      })
+      expect(opts.userAgent).toBe(
+        'my-app actions_orchestration_id/test-orch-id'
+      )
     })
   })
 })
