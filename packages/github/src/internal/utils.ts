@@ -42,3 +42,17 @@ export function getProxyFetch(destinationUrl): typeof fetch {
 export function getApiBaseUrl(): string {
   return process.env['GITHUB_API_URL'] || 'https://api.github.com'
 }
+
+export function getUserAgentWithOrchestrationId(
+  baseUserAgent?: string
+): string | undefined {
+  const orchId = process.env['ACTIONS_ORCHESTRATION_ID']?.trim()
+  if (orchId) {
+    const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, '_')
+    const tag = `actions_orchestration_id/${sanitizedId}`
+    if (baseUserAgent?.includes(tag)) return baseUserAgent
+    const ua = baseUserAgent ? `${baseUserAgent} ` : ''
+    return `${ua}${tag}`
+  }
+  return baseUserAgent
+}
