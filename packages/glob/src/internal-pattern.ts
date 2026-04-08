@@ -2,13 +2,9 @@ import * as os from 'os'
 import * as path from 'path'
 import * as pathHelper from './internal-path-helper.js'
 import assert from 'assert'
-import minimatch from 'minimatch'
+import {Minimatch, type MinimatchOptions} from 'minimatch'
 import {MatchKind} from './internal-match-kind.js'
 import {Path} from './internal-path.js'
-
-type IMinimatch = minimatch.IMinimatch
-type IMinimatchOptions = minimatch.IOptions
-const {Minimatch} = minimatch
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -38,7 +34,7 @@ export class Pattern {
   /**
    * The Minimatch object used for matching
    */
-  private readonly minimatch: IMinimatch
+  private readonly minimatch: Minimatch
 
   /**
    * Used to workaround a limitation with Minimatch when determining a partial
@@ -126,7 +122,7 @@ export class Pattern {
     this.isImplicitPattern = isImplicitPattern
 
     // Create minimatch
-    const minimatchOptions: IMinimatchOptions = {
+    const minimatchOptions: MinimatchOptions = {
       dot: true,
       nobrace: true,
       nocase: IS_WINDOWS,
