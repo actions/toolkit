@@ -63,9 +63,7 @@ describe('orchestration ID support', () => {
     it('does not duplicate orchestration ID if already present in base', () => {
       process.env['ACTIONS_ORCHESTRATION_ID'] = 'abc-123'
       const alreadyTagged = 'my-app actions_orchestration_id/abc-123'
-      expect(getUserAgentWithOrchestrationId(alreadyTagged)).toBe(
-        alreadyTagged
-      )
+      expect(getUserAgentWithOrchestrationId(alreadyTagged)).toBe(alreadyTagged)
     })
   })
 
