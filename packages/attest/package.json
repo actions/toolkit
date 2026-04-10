@@ -46,7 +46,7 @@
     "@sigstore/rekor-types": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.6",
     "nock": "^13.5.1",
-    "undici": "^6.23.0"
+    "undici": "^6.24.1"
   },
   "dependencies": {
     "@actions/core": "^3.0.0",
