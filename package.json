@@ -35,16 +35,18 @@
   },
   "overrides": {
     "semver": "^7.6.0",
-    "tar": "^6.2.1",
+    "tar": "^7.5.11",
     "@octokit/plugin-paginate-rest": "^14.0.0",
     "@octokit/request": "^10.0.7",
     "@octokit/request-error": "^7.1.0",
     "@octokit/core": "^7.0.6",
     "tmp": "^0.2.4",
     "@types/node": "^24.1.0",
-    "brace-expansion": "^2.0.2",
+    "brace-expansion": "^2.0.3",
     "form-data": "^4.0.4",
     "uri-js": "npm:uri-js-replace@^1.0.1",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "@tootallnate/once": "^3.0.1",
+    "js-yaml": "^4.1.1"
   }
 }
