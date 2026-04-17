@@ -20,6 +20,17 @@ async function getTarPath(): Promise<ArchiveTool> {
     case 'win32': {
       const gnuTar = await utils.getGnuTarPathOnWindows()
       const systemTar = SystemTarPathOnWindows
+      // Opt-in: prefer BSD tar (libarchive, shipped as
+      // C:\Windows\System32\tar.exe on Windows 10+). Benchmarks on hosted
+      // runners show ~4x faster extract on many-small-files payloads
+      // compared to Git for Windows' MSYS GNU tar, because bsdtar makes
+      // native Win32 syscalls and has zstd built in (no external
+      // zstd.exe fork-per-file). See actions/cache#752 for context.
+      const preferBsdTar =
+        process.env['ACTIONS_CACHE_PREFER_BSD_TAR_ON_WINDOWS'] === 'true'
+      if (preferBsdTar && existsSync(systemTar)) {
+        return <ArchiveTool>{path: systemTar, type: ArchiveToolType.BSD}
+      }
       if (gnuTar) {
         // Use GNUtar as default on windows
         return <ArchiveTool>{path: gnuTar, type: ArchiveToolType.GNU}

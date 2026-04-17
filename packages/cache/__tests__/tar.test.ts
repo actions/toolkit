@@ -134,6 +134,62 @@ test('zstd extract tar with windows BSDtar', async () => {
   }
 })
 
+test('zstd extract tar prefers BSDtar when opt-in env var set', async () => {
+  if (IS_WINDOWS) {
+    const mkdirMock = jest.spyOn(io, 'mkdirP')
+    const execMock = jest.spyOn(exec, 'exec')
+    // GNU tar still available — without the env var this would take the GNU path.
+    jest
+      .spyOn(utils, 'getGnuTarPathOnWindows')
+      .mockReturnValue(Promise.resolve(GnuTarPathOnWindows))
+    process.env['ACTIONS_CACHE_PREFER_BSD_TAR_ON_WINDOWS'] = 'true'
+
+    try {
+      const archivePath = `${process.env['windir']}\\fakepath\\cache.tar`
+      const workspace = process.env['GITHUB_WORKSPACE']
+      const tarPath = SystemTarPathOnWindows
+
+      await tar.extractTar(archivePath, CompressionMethod.Zstd)
+
+      expect(mkdirMock).toHaveBeenCalledWith(workspace)
+      expect(execMock).toHaveBeenCalledTimes(2)
+
+      expect(execMock).toHaveBeenNthCalledWith(
+        1,
+        [
+          'zstd -d --long=30 --force -o',
+          TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+          archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+        ].join(' '),
+        undefined,
+        {
+          cwd: undefined,
+          env: expect.objectContaining(defaultEnv)
+        }
+      )
+
+      expect(execMock).toHaveBeenNthCalledWith(
+        2,
+        [
+          `"${tarPath}"`,
+          '-xf',
+          TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+          '-P',
+          '-C',
+          workspace?.replace(/\\/g, '/')
+        ].join(' '),
+        undefined,
+        {
+          cwd: undefined,
+          env: expect.objectContaining(defaultEnv)
+        }
+      )
+    } finally {
+      delete process.env['ACTIONS_CACHE_PREFER_BSD_TAR_ON_WINDOWS']
+    }
+  }
+})
+
 test('gzip extract tar', async () => {
   const mkdirMock = jest.spyOn(io, 'mkdirP')
   const execMock = jest.spyOn(exec, 'exec')
