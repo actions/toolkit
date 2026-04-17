@@ -15,7 +15,9 @@
   "exports": {
     ".": {
       "types": "./lib/exec.d.ts",
-      "import": "./lib/exec.js"
+      "import": "./lib/exec.js",
+      "require": "./lib/exec.js",
+      "default": "./lib/exec.js"
     }
   },
   "directories": {
