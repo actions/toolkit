@@ -15,7 +15,9 @@
   "exports": {
     ".": {
       "types": "./lib/tool-cache.d.ts",
-      "import": "./lib/tool-cache.js"
+      "import": "./lib/tool-cache.js",
+      "require": "./lib/tool-cache.js",
+      "default": "./lib/tool-cache.js"
     }
   },
   "directories": {
