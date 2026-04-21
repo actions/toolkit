@@ -1,6 +1,6 @@
 {
   "name": "@actions/github",
-  "version": "9.0.0",
+  "version": "9.1.0",
   "description": "Actions github lib",
   "keywords": [
     "github",

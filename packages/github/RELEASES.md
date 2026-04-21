@@ -1,5 +1,9 @@
 # @actions/github Releases
 
+### 9.1.0
+
+- Append `actions_orchestration_id` to user-agent when the `ACTIONS_ORCHESTRATION_ID` environment variable is set [#2364](https://github.com/actions/toolkit/pull/2364)
+
 ### 9.0.0
 
 - **Breaking change**: Package is now ESM-only
