@@ -138,6 +138,8 @@ test('zstd extract tar prefers BSDtar when opt-in env var set', async () => {
   if (IS_WINDOWS) {
     const mkdirMock = jest.spyOn(io, 'mkdirP')
     const execMock = jest.spyOn(exec, 'exec')
+    const previousPreferBsdTar =
+      process.env['ACTIONS_CACHE_PREFER_BSD_TAR_ON_WINDOWS']
     // GNU tar still available — without the env var this would take the GNU path.
     jest
       .spyOn(utils, 'getGnuTarPathOnWindows')
@@ -185,7 +187,12 @@ test('zstd extract tar prefers BSDtar when opt-in env var set', async () => {
         }
       )
     } finally {
-      delete process.env['ACTIONS_CACHE_PREFER_BSD_TAR_ON_WINDOWS']
+      if (previousPreferBsdTar === undefined) {
+        delete process.env['ACTIONS_CACHE_PREFER_BSD_TAR_ON_WINDOWS']
+      } else {
+        process.env['ACTIONS_CACHE_PREFER_BSD_TAR_ON_WINDOWS'] =
+          previousPreferBsdTar
+      }
     }
   }
 })
