@@ -29,7 +29,7 @@ beforeAll(() => {
 test('restore with no path should fail', async () => {
   const paths: string[] = []
   const key = 'node-test'
-  await expect(restoreCache(paths, key)).rejects.toThrowError(
+  await expect(restoreCache(paths, key)).rejects.toThrow(
     `Path Validation Error: At least one directory or file path is required`
   )
 })
@@ -38,7 +38,7 @@ test('restore with too many keys should fail', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
   const restoreKeys = [...Array(20).keys()].map(x => x.toString())
-  await expect(restoreCache(paths, key, restoreKeys)).rejects.toThrowError(
+  await expect(restoreCache(paths, key, restoreKeys)).rejects.toThrow(
     `Key Validation Error: Keys are limited to a maximum of 10.`
   )
 })
@@ -46,7 +46,7 @@ test('restore with too many keys should fail', async () => {
 test('restore with large key should fail', async () => {
   const paths = ['node_modules']
   const key = 'foo'.repeat(512) // Over the 512 character limit
-  await expect(restoreCache(paths, key)).rejects.toThrowError(
+  await expect(restoreCache(paths, key)).rejects.toThrow(
     `Key Validation Error: ${key} cannot be larger than 512 characters.`
   )
 })
@@ -54,7 +54,7 @@ test('restore with large key should fail', async () => {
 test('restore with invalid key should fail', async () => {
   const paths = ['node_modules']
   const key = 'comma,comma'
-  await expect(restoreCache(paths, key)).rejects.toThrowError(
+  await expect(restoreCache(paths, key)).rejects.toThrow(
     `Key Validation Error: ${key} cannot contain commas.`
   )
 })
