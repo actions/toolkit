@@ -56,7 +56,7 @@ export function getUploadZipSpecification(
 
   /*
      Example
-     
+
      Input:
        rootDirectory: '/home/user/files/plz-upload'
        artifactFiles: [
@@ -64,7 +64,7 @@ export function getUploadZipSpecification(
          '/home/user/files/plz-upload/file2.txt',
          '/home/user/files/plz-upload/dir/file3.txt'
        ]
-     
+
      Output:
        specifications: [
          ['/home/user/files/plz-upload/file1.txt', '/file1.txt'],
