@@ -1,5 +1,9 @@
 # Releases
 
+## 4.0.1
+
+- Bump `undici` from `6.23.0` to `6.24.0` [#2347](https://github.com/actions/toolkit/pull/2347)
+
 ## 4.0.0
 
 - **Breaking change**: Package is now ESM-only

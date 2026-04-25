@@ -1,5 +1,9 @@
 # @actions/github Releases
 
+### 9.1.1
+
+- Bump `undici` from `6.23.0` to `6.24.0` [#2346](https://github.com/actions/toolkit/pull/2346)
+
 ### 9.1.0
 
 - Append `actions_orchestration_id` to user-agent when the `ACTIONS_ORCHESTRATION_ID` environment variable is set [#2364](https://github.com/actions/toolkit/pull/2364)
