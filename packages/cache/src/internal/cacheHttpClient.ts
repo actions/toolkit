@@ -150,26 +150,21 @@ export async function downloadCache(
   const archiveUrl = new URL(archiveLocation)
   const downloadOptions = getDownloadOptions(options)
 
-  if (archiveUrl.hostname.endsWith('.blob.core.windows.net')) {
-    if (downloadOptions.useAzureSdk) {
-      // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-      await downloadCacheStorageSDK(
-        archiveLocation,
-        archivePath,
-        downloadOptions
-      )
-    } else if (downloadOptions.concurrentBlobDownloads) {
-      // Use concurrent implementation with HttpClient to work around blob SDK issue
-      await downloadCacheHttpClientConcurrent(
-        archiveLocation,
-        archivePath,
-        downloadOptions
-      )
-    } else {
-      // Otherwise, download using the Actions http-client.
-      await downloadCacheHttpClient(archiveLocation, archivePath)
-    }
+  if (downloadOptions.useAzureSdk) {
+    // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
+    await downloadCacheStorageSDK(archiveLocation, archivePath, downloadOptions)
+  } else if (
+    downloadOptions.concurrentBlobDownloads &&
+    archiveUrl.hostname.endsWith('.blob.core.windows.net')
+  ) {
+    // Use concurrent implementation with HttpClient to work around blob SDK issue
+    await downloadCacheHttpClientConcurrent(
+      archiveLocation,
+      archivePath,
+      downloadOptions
+    )
   } else {
+    // Otherwise, download using the Actions http-client.
     await downloadCacheHttpClient(archiveLocation, archivePath)
   }
 }
