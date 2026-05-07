@@ -470,7 +470,7 @@ In addition to job summary content, there are utility functions for interfacing 
 ```typescript
 
 // Empties the summary buffer AND wipes the summary file on disk
-core.summary.clear()
+await core.summary.clear()
 
 // Returns the current summary buffer as a string
 core.summary.stringify()
@@ -482,5 +482,5 @@ core.summary.isEmptyBuffer()
 core.summary.emptyBuffer()
 
 // Writes text in the buffer to the summary buffer file and empties the buffer, optionally overwriting all existing content in the summary file with buffer contents. Defaults to false.
-core.summary.write({overwrite: true})
+await core.summary.write({overwrite: true})
 ```
