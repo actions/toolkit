@@ -230,9 +230,8 @@ describe('list-artifact', () => {
       jest.resetModules()
 
       try {
-        const {listArtifactsPublic: listArtifactsPublicReloaded} = await import(
-          '../src/internal/find/list-artifacts'
-        )
+        const {listArtifactsPublic: listArtifactsPublicReloaded} =
+          await import('../src/internal/find/list-artifacts')
         const githubReloaded = await import('@actions/github')
 
         const mockRequest = (githubReloaded.getOctokit as jest.Mock)(
