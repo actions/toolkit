@@ -14,7 +14,7 @@ const repo = 'some-tool'
 const fakeToken = 'notrealtoken'
 
 // just loading data and require handles BOMs etc.
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const manifestData = require('./data/versions-manifest.json')
 
 describe('@actions/tool-cache-manifest', () => {
