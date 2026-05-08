@@ -40,7 +40,7 @@ beforeAll(() => {
 test('save with missing input should fail', async () => {
   const paths: string[] = []
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
-  await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
+  await expect(saveCache(paths, primaryKey)).rejects.toThrow(
     `Path Validation Error: At least one directory or file path is required`
   )
 })
@@ -342,7 +342,7 @@ test('save with non existing path should not save cache', async () => {
   jest.spyOn(cacheUtils, 'resolvePaths').mockImplementation(async () => {
     return []
   })
-  await expect(saveCache([path], primaryKey)).rejects.toThrowError(
+  await expect(saveCache([path], primaryKey)).rejects.toThrow(
     `Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`
   )
 })

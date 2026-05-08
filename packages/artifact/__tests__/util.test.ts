@@ -26,7 +26,7 @@ describe('get-backend-ids-from-token', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NwIjoiQWN0aW9ucy5FeGFtcGxlIEFjdGlvbnMuQW5vdGhlckV4YW1wbGU6dGVzdCIsImlhdCI6MTUxNjIzOTAyMn0.K0IEoULZteGevF38G94xiaA8zcZ5UlKWfGfqE6q3dhw'
       )
 
-    expect(util.getBackendIdsFromToken).toThrowError(
+    expect(util.getBackendIdsFromToken).toThrow(
       'Failed to get backend IDs: The provided JWT token is invalid'
     )
   })
@@ -38,7 +38,7 @@ describe('get-backend-ids-from-token', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NwIjoiQWN0aW9ucy5FeGFtcGxlIEFjdGlvbnMuQW5vdGhlckV4YW1wbGU6dGVzdCBBY3Rpb25zLlJlc3VsdHM6Y2U3ZjU0YzctNjFjNy00YWFlLTg4N2YtMzBkYTQ3NWY1ZjFhIiwiaWF0IjoxNTE2MjM5MDIyfQ.7D0_LRfRFRZFImHQ7GxH2S6ZyFjjZ5U0ujjGCfle1XE'
       )
 
-    expect(util.getBackendIdsFromToken).toThrowError(
+    expect(util.getBackendIdsFromToken).toThrow(
       'Failed to get backend IDs: The provided JWT token is invalid'
     )
   })
@@ -46,7 +46,7 @@ describe('get-backend-ids-from-token', () => {
   it('should throw an error when the token is in an invalid format', () => {
     jest.spyOn(config, 'getRuntimeToken').mockReturnValue('token')
 
-    expect(util.getBackendIdsFromToken).toThrowError('Invalid token specified')
+    expect(util.getBackendIdsFromToken).toThrow('Invalid token specified')
   })
 
   it("should throw an error when the token doesn't have the right field", () => {
@@ -56,7 +56,7 @@ describe('get-backend-ids-from-token', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
       )
 
-    expect(util.getBackendIdsFromToken).toThrowError(
+    expect(util.getBackendIdsFromToken).toThrow(
       'Failed to get backend IDs: The provided JWT token is invalid'
     )
   })
