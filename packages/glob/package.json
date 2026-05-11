@@ -16,7 +16,9 @@
   "exports": {
     ".": {
       "types": "./lib/glob.d.ts",
-      "import": "./lib/glob.js"
+      "import": "./lib/glob.js",
+      "require": "./lib/glob.js",
+      "default": "./lib/glob.js"
     }
   },
   "directories": {
