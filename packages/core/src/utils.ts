@@ -1,7 +1,7 @@
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {AnnotationProperties} from './core.js'
+import {AnnotationProperties} from './annotation.js'
 import {CommandProperties} from './command.js'
 
 /**
