@@ -55,7 +55,8 @@ async function getTarArgs(
   tarPath: ArchiveTool,
   compressionMethod: CompressionMethod,
   type: string,
-  archivePath = ''
+  archivePath = '',
+  paths: string[] = [],
 ): Promise<string[]> {
   const args = [`"${tarPath.path}"`]
   const cacheFileName = utils.getCacheFileName(compressionMethod)
@@ -95,7 +96,8 @@ async function getTarArgs(
           : archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
         '-C',
-        workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+        workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        ...paths,
       )
       break
     case 'list':
@@ -128,7 +130,8 @@ async function getTarArgs(
 async function getCommands(
   compressionMethod: CompressionMethod,
   type: string,
-  archivePath = ''
+  archivePath = '',
+  paths: string[] = [],
 ): Promise<string[]> {
   let args
 
@@ -137,7 +140,8 @@ async function getCommands(
     tarPath,
     compressionMethod,
     type,
-    archivePath
+    archivePath,
+    paths,
   )
   const compressionArgs =
     type !== 'create'
@@ -272,12 +276,13 @@ export async function listTar(
 // Extract a tar
 export async function extractTar(
   archivePath: string,
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  paths?: string[],
 ): Promise<void> {
   // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
-  const commands = await getCommands(compressionMethod, 'extract', archivePath)
+  const commands = await getCommands(compressionMethod, 'extract', archivePath, paths)
   await execCommands(commands)
 }
 

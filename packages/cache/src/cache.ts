@@ -198,7 +198,7 @@ async function restoreCacheV1(
       )} MB (${archiveFileSize} B)`
     )
 
-    await extractTar(archivePath, compressionMethod)
+    await extractTar(archivePath, compressionMethod, paths)
     core.info('Cache restored successfully')
 
     return cacheEntry.cacheKey
@@ -330,7 +330,7 @@ async function restoreCacheV2(
       await listTar(archivePath, compressionMethod)
     }
 
-    await extractTar(archivePath, compressionMethod)
+    await extractTar(archivePath, compressionMethod, paths)
     core.info('Cache restored successfully')
 
     return response.matchedKey
