@@ -128,6 +128,36 @@ describe('pattern-helper', () => {
     ])
   })
 
+  it('matches when itemPath uses Windows separators', () => {
+    if (!IS_WINDOWS) return
+    const root = 'C\\\\'
+    const patterns = [
+      `${root}**/*.proj`,
+      `${root}**/README.txt`,
+      `!${root}**/solution2/**`,
+      `${root}**/*.sln`,
+      `!${root}**/proj2/README.txt`
+    ].map(x => new Pattern(x))
+    expect(
+      patternHelper.match(
+        patterns,
+        path.join(root, 'solution1', 'proj1', 'proj1.proj')
+      )
+    ).toBe(MatchKind.All)
+    expect(
+      patternHelper.match(
+        patterns,
+        path.join(root, 'solution1', 'proj2', 'README.txt')
+      )
+    ).toBe(MatchKind.All)
+    expect(
+      patternHelper.match(
+        patterns,
+        path.join(root, 'solution2', 'proj1', 'README.txt')
+      )
+    ).toBe(MatchKind.None)
+  })
+
   it('partialMatch skips negate patterns', () => {
     const root = IS_WINDOWS ? 'C:\\' : '/'
     const patterns = [

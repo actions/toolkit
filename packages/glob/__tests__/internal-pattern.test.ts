@@ -101,6 +101,17 @@ describe('pattern', () => {
     )
   })
 
+  it('matches when itemPath uses Windows separators', () => {
+    if (!IS_WINDOWS) return
+    const root = 'C\\\\'
+    const pattern = new Pattern(`${root}Foo/**/Baz`)
+    // itemPath uses '\\' separators; toMinimatchPath should normalize
+    expect(pattern.match(path.join(root, 'Foo', 'Baz'))).toBe(MatchKind.All)
+    expect(pattern.match(path.join(root, 'Foo', 'bar', 'bAZ'))).toBe(
+      MatchKind.All
+    )
+  })
+
   it('is case insensitive partial match on Windows', () => {
     const root = IS_WINDOWS ? 'C:\\' : '/'
     const pattern = new Pattern(`${root}Foo/Bar/**/Baz`)
