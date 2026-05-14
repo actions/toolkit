@@ -193,10 +193,12 @@ describe('@actions/core', () => {
 
   it('getInput gets non-required input', () => {
     expect(core.getInput('my input')).toBe('val')
+    expect(core.getInput('my-input')).toBe('val')
   })
 
   it('getInput gets required input', () => {
     expect(core.getInput('my input', {required: true})).toBe('val')
+    expect(core.getInput('my-input', {required: true})).toBe('val')
   })
 
   it('getInput throws on missing required input', () => {
