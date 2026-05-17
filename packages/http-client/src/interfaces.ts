@@ -82,6 +82,8 @@ export interface RequestOptions {
   // Allows retries only on Read operations (since writes may not be idempotent)
   allowRetries?: boolean
   maxRetries?: number
+  retryCodes?: number[]
+  noRetryCodes?: number[]
 }
 
 export interface TypedResponse<T> {
