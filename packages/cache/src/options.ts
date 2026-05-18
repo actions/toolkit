@@ -80,6 +80,32 @@ export interface DownloadOptions {
    * @default false
    */
   lookupOnly?: boolean
+
+  /**
+   * Whether to validate that every entry in the downloaded cache archive
+   * resolves to a path under one of the declared cache `paths` before
+   * extraction. Symlink and hardlink targets are also validated.
+   *
+   * - 'off' (default): no validation, identical to legacy behavior.
+   * - 'warn': validate before extraction; log a single aggregated
+   *           `core.warning()` summary (with full per-entry detail in
+   *           `core.debug()`) if violations are found, then extract anyway.
+   * - 'error': validate before extraction; throw `CacheIntegrityError`
+   *            (with `code: 'PATH_VIOLATION'`) on any violation. Extraction
+   *            does not run when this throws.
+   *
+   * Parse / decompression failures encountered while validating are
+   * handled per-mode:
+   * - 'warn': logged via `core.warning()`; validation is skipped and
+   *           extraction proceeds (the system `tar` invoked for the actual
+   *           extraction is more lenient than the validator and may still
+   *           succeed).
+   * - 'error': surfaced as `CacheIntegrityError` with `code: 'PARSE_ERROR'`
+   *            and extraction does not run.
+   *
+   * @default 'off'
+   */
+  pathValidation?: 'off' | 'warn' | 'error'
 }
 
 /**
@@ -147,7 +173,8 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     downloadConcurrency: 8,
     timeoutInMs: 30000,
     segmentTimeoutInMs: 600000,
-    lookupOnly: false
+    lookupOnly: false,
+    pathValidation: 'off'
   }
 
   if (copy) {
@@ -174,6 +201,14 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
     if (typeof copy.lookupOnly === 'boolean') {
       result.lookupOnly = copy.lookupOnly
     }
+
+    if (
+      copy.pathValidation === 'off' ||
+      copy.pathValidation === 'warn' ||
+      copy.pathValidation === 'error'
+    ) {
+      result.pathValidation = copy.pathValidation
+    }
   }
   const segmentDownloadTimeoutMins =
     process.env['SEGMENT_DOWNLOAD_TIMEOUT_MINS']
@@ -193,6 +228,7 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
   )
   core.debug(`Segment download timeout (ms): ${result.segmentTimeoutInMs}`)
   core.debug(`Lookup only: ${result.lookupOnly}`)
+  core.debug(`Path validation: ${result.pathValidation}`)
 
   return result
 }

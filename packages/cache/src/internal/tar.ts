@@ -1,4 +1,5 @@
 import {exec} from '@actions/exec'
+import * as core from '@actions/core'
 import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
 import * as path from 'path'
@@ -11,6 +12,14 @@ import {
   TarFilename,
   ManifestFilename
 } from './constants.js'
+import {CacheIntegrityError} from './cacheIntegrityError.js'
+import {listAndValidate} from './listAndValidate.js'
+import {
+  PathValidationMode,
+  PathValidationViolation,
+  deriveAllowedRoots,
+  formatViolationSummary
+} from './pathValidation.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -272,13 +281,105 @@ export async function listTar(
 // Extract a tar
 export async function extractTar(
   archivePath: string,
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  options?: {
+    declaredPaths?: string[]
+    pathValidation?: PathValidationMode
+  }
 ): Promise<void> {
-  // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
+  const pathValidation: PathValidationMode = options?.pathValidation ?? 'off'
+
+  // Run path validation BEFORE creating the extraction directory or invoking
+  // system tar. In 'error' mode, a CacheIntegrityError thrown here means no
+  // bytes are ever written to the workspace. In 'warn' mode, violations are
+  // logged and extraction proceeds.
+  if (pathValidation !== 'off') {
+    const declaredPaths = options?.declaredPaths ?? []
+    let allowedRoots = deriveAllowedRoots(declaredPaths, workingDirectory)
+    // Fail-safe: if the caller didn't supply any declared paths (or all
+    // supplied paths were empty/negations), fall back to the workspace
+    // root as the sole allowed root. This still catches archives that try
+    // to escape the workspace via `..` or absolute paths.
+    if (allowedRoots.length === 0) {
+      allowedRoots = [workingDirectory]
+    }
+    let violations: PathValidationViolation[] | undefined
+    try {
+      violations = await listAndValidate(
+        archivePath,
+        compressionMethod,
+        allowedRoots,
+        workingDirectory
+      )
+    } catch (error) {
+      // Parse / decompression failure encountered while validating. The
+      // validator's tar parser is stricter than the system `tar` that
+      // performs the actual extraction, so an archive can fail validation
+      // here yet still extract cleanly. Honor the caller's mode:
+      //   - 'error': hard-fail; do not extract.
+      //   - 'warn': log a warning, skip validation, and let system tar
+      //             have a go. This preserves the legacy behavior where a
+      //             quirky-but-extractable archive doesn't break the build
+      //             just because the user opted into validation.
+      const message = `Cache archive integrity check failed: ${
+        (error as Error).message
+      }`
+      if (pathValidation === 'error') {
+        throw new CacheIntegrityError('PARSE_ERROR', message)
+      }
+      core.warning(
+        `${message}\nSkipping path validation and proceeding with extraction because pathValidation is 'warn'.`
+      )
+    }
+    if (violations && violations.length > 0) {
+      reportViolations(violations, pathValidation)
+      if (pathValidation === 'error') {
+        throw new CacheIntegrityError(
+          'PATH_VIOLATION',
+          `Cache archive contains ${violations.length} entr${
+            violations.length === 1 ? 'y' : 'ies'
+          } that resolve outside the declared cache paths. ` +
+            `Refusing to extract because pathValidation is 'error'.`,
+          violations
+        )
+      }
+    }
+  }
+
+  // Create directory to extract tar into
   await io.mkdirP(workingDirectory)
   const commands = await getCommands(compressionMethod, 'extract', archivePath)
   await execCommands(commands)
+}
+
+function reportViolations(
+  violations: PathValidationViolation[],
+  mode: PathValidationMode
+): void {
+  const header =
+    mode === 'error'
+      ? `Cache archive failed integrity check (${violations.length} violation${
+          violations.length === 1 ? '' : 's'
+        }).`
+      : `Cache archive contains ${violations.length} entr${
+          violations.length === 1 ? 'y' : 'ies'
+        } that resolve outside the declared cache paths.`
+  // One-line warning so the Actions log surfaces a single attention-grabbing
+  // entry. The truncated, human-readable list goes to `core.info` so users see
+  // it at default verbosity without us emitting multi-line warnings (which
+  // some log surfaces collapse). Full per-violation details still go to
+  // `core.debug` for triage of large archives.
+  core.warning(header)
+  core.info(formatViolationSummary(violations))
+  for (const v of violations) {
+    core.debug(
+      `path-validation: code=${v.code} type=${v.entryType} path=${v.path}` +
+        (v.linkpath ? ` linkpath=${v.linkpath}` : '') +
+        ` resolved=${v.resolved}` +
+        ` reason=${v.reason}`
+    )
+  }
 }
 
 // Create a tar

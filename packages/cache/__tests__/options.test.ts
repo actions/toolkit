@@ -11,6 +11,7 @@ const downloadConcurrency = 8
 const timeoutInMs = 30000
 const segmentTimeoutInMs = 600000
 const lookupOnly = false
+const pathValidation = 'off'
 
 test('getDownloadOptions sets defaults', async () => {
   const actualOptions = getDownloadOptions()
@@ -21,7 +22,8 @@ test('getDownloadOptions sets defaults', async () => {
     downloadConcurrency,
     timeoutInMs,
     segmentTimeoutInMs,
-    lookupOnly
+    lookupOnly,
+    pathValidation
   })
 })
 
@@ -32,7 +34,8 @@ test('getDownloadOptions overrides all settings', async () => {
     downloadConcurrency: 14,
     timeoutInMs: 20000,
     segmentTimeoutInMs: 3600000,
-    lookupOnly: true
+    lookupOnly: true,
+    pathValidation: 'error'
   }
 
   const actualOptions = getDownloadOptions(expectedOptions)
