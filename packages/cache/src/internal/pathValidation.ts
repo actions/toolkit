@@ -202,26 +202,34 @@ function deriveRoot(declaredPath: string, extractCwd: string): string {
  * True if `seg` contains a glob metacharacter that isn't part of an
  * env-var reference. Strips `${VAR}`, `$VAR`, and `%VAR%` first so the
  * curly braces in `${VAR}` aren't misread as a brace-glob.
+ *
+ * The patterns `\$\{[^}]+\}` and `%[^%]+%` are O(n²) on pathological
+ * input (e.g. a long run of `${` with no closing `}`). That is not a
+ * security concern here: `seg` originates from the calling workflow's
+ * own declared cache `paths:`, so a hostile value would only DoS the
+ * same workflow that supplied it — it doesn't cross a trust boundary.
+ * The `lgtm` comments below suppress CodeQL's `js/polynomial-redos`
+ * alert on that basis.
  */
 function segmentHasGlob(seg: string): boolean {
   const stripped = seg
-    .replace(/\$\{[^}]+\}/g, '')
+    .replace(/\$\{[^}]+\}/g, '') // lgtm[js/polynomial-redos]
     .replace(/\$[A-Za-z_][A-Za-z0-9_]*/g, '')
-    .replace(/%[^%]+%/g, '')
+    .replace(/%[^%]+%/g, '') // lgtm[js/polynomial-redos]
   return GLOB_CHAR_REGEX.test(stripped)
 }
 
 function expandEnvVars(input: string): string {
   let result = input
-  // ${VAR}
-  result = result.replace(/\$\{([^}]+)\}/g, (_, name) => process.env[name] ?? '')
+  // ${VAR} — see segmentHasGlob for the polynomial-redos rationale.
+  result = result.replace(/\$\{([^}]+)\}/g, (_, name) => process.env[name] ?? '') // lgtm[js/polynomial-redos]
   // $VAR (POSIX-style identifier)
   result = result.replace(
     /\$([A-Za-z_][A-Za-z0-9_]*)/g,
     (_, name) => process.env[name] ?? ''
   )
   // %VAR% (Windows-style)
-  result = result.replace(/%([^%]+)%/g, (_, name) => process.env[name] ?? '')
+  result = result.replace(/%([^%]+)%/g, (_, name) => process.env[name] ?? '') // lgtm[js/polynomial-redos]
   return result
 }
 
