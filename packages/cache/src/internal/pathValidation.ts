@@ -217,14 +217,14 @@ function deriveRoot(declaredPath: string, extractCwd: string): string {
  * security concern here: `seg` originates from the calling workflow's
  * own declared cache `paths:`, so a hostile value would only DoS the
  * same workflow that supplied it — it doesn't cross a trust boundary.
- * The `lgtm` comments below suppress CodeQL's `js/polynomial-redos`
- * alert on that basis.
+ * CodeQL flags this as `js/polynomial-redos`; the alert should be
+ * dismissed in the Security tab with this comment as the rationale.
  */
 function segmentHasGlob(seg: string): boolean {
   const stripped = seg
-    .replace(/\$\{[^}]+\}/g, '') // lgtm[js/polynomial-redos]
+    .replace(/\$\{[^}]+\}/g, '')
     .replace(/\$[A-Za-z_][A-Za-z0-9_]*/g, '')
-    .replace(/%[^%]+%/g, '') // lgtm[js/polynomial-redos]
+    .replace(/%[^%]+%/g, '')
   return GLOB_CHAR_REGEX.test(stripped)
 }
 
@@ -234,14 +234,14 @@ function expandEnvVars(input: string): string {
   result = result.replace(
     /\$\{([^}]+)\}/g,
     (_, name) => process.env[name] ?? ''
-  ) // lgtm[js/polynomial-redos]
+  )
   // $VAR (POSIX-style identifier)
   result = result.replace(
     /\$([A-Za-z_][A-Za-z0-9_]*)/g,
     (_, name) => process.env[name] ?? ''
   )
   // %VAR% (Windows-style)
-  result = result.replace(/%([^%]+)%/g, (_, name) => process.env[name] ?? '') // lgtm[js/polynomial-redos]
+  result = result.replace(/%([^%]+)%/g, (_, name) => process.env[name] ?? '')
   return result
 }
 
