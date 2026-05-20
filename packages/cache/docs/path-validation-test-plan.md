@@ -37,7 +37,7 @@ integrity failures from ordinary cache-miss/network errors.
 | [`src/options.ts`](../src/options.ts) (new `pathValidation` field) | [`__tests__/options.test.ts`](../__tests__/options.test.ts) |
 | [`src/cache.ts`](../src/cache.ts) (forwarding + error re-throw) | [`__tests__/restoreCache.test.ts`](../__tests__/restoreCache.test.ts), [`__tests__/restoreCacheV2.test.ts`](../__tests__/restoreCacheV2.test.ts) |
 
-## Unit tests — pure logic (`pathValidation.test.ts`, 86 cases)
+## Unit tests — pure logic (`pathValidation.test.ts`)
 
 These exercise the platform-agnostic validation logic with no filesystem or
 network. The suite is split into two groups.
@@ -84,12 +84,22 @@ and platform-specific behavior:
   UNC long-path prefix `\\?\C:\...`
 - **NUL byte attacks**: NUL in path, NUL in symlink target
 - **Symlink attacks**:
-  - Absolute symlink target
-  - Symlink target with `..` traversal
+  - **Syntactic link-target rejects** (these fire before the containment check,
+    on the same allow-list as entry-path syntax): POSIX absolute (`/etc/passwd`),
+    Windows absolute (`C:\Windows\…`), Windows drive-relative (`C:foo` — has
+    per-drive-CWD semantics on Windows), backslash UNC (`\\srv\share\x`),
+    forward-slash UNC (`//srv/share/x`), UNC long-path prefix (`\\?\C:\…`)
+  - **Absolute target that nominally lands under an allowed root is still
+    rejected** — defense-in-depth regression: `path.resolve` agreeing with
+    the allowed root at validation time isn't trusted, because Windows
+    extract-time resolution semantics can differ
+  - Symlink target with `..` traversal (rejected as `LINK_OUTSIDE_ROOTS`)
   - **Symlink-then-write-through-link** (the critical TOCTOU-style attack:
     archive declares `cache/link → /tmp/evil` followed by `cache/link/file`)
   - Self-referential symlink to `.`
-- **Hardlink attacks**: absolute target, `..` traversal
+- **Hardlink attacks**:
+  - Syntactic link-target rejects: POSIX absolute, Windows absolute, UNC
+  - `..` traversal (rejected as `LINK_OUTSIDE_ROOTS`)
 - **Unsupported entry types**: `CharacterDevice`, `BlockDevice`, `FIFO`
 - **Header-only types accepted unconditionally** (these carry no path content):
   `GlobalExtendedHeader`, `ExtendedHeader`, `NextFileHasLongPath`, `NextFileHasLongLinkpath`
@@ -100,7 +110,7 @@ and platform-specific behavior:
 - Shows up to N items verbatim
 - Truncates the tail with a `(... and N more)` summary line
 
-## Integration tests — real archives (`listAndValidate.test.ts`, 14 cases)
+## Integration tests — real archives (`listAndValidate.test.ts`)
 
 These build small tar archives in memory using `tar.Header`, write them to disk,
 and run them through the production parser. They cover the gzip and zstd
@@ -126,7 +136,7 @@ Skipped on hosts without `zstd` installed.
 - Traversal in zstd archive → 1 violation
 - `ZstdWithoutLong` compression method also works
 
-## Integration tests — mocked downstream (`tarPathValidation.test.ts`, 15 cases)
+## Integration tests — mocked downstream (`tarPathValidation.test.ts`)
 
 These mock `listAndValidate` so the test can deterministically inject "violation
 lists" and observe `extractTar`'s reaction. They mock `@actions/exec`,
@@ -194,6 +204,3 @@ npx jest --testTimeout 70000 \
   packages/cache/__tests__/listAndValidate.test.ts \
   packages/cache/__tests__/tarPathValidation.test.ts
 ```
-
-Total path-validation test cases: **115** (86 unit + 14 real-archive + 15 mocked).
-Combined with the regression updates, the cache package runs **237 tests** total.

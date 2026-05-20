@@ -105,8 +105,16 @@ const HEADER_ONLY_ENTRY_TYPES = new Set([
  * Characters that signal a glob portion of a declared cache path. Anything to
  * the right of the first segment containing one of these is stripped when
  * deriving the longest non-glob prefix.
+ *
+ * `!` is intentionally NOT included here:
+ * - As a leading character it indicates pattern negation, which is handled
+ *   separately by `deriveAllowedRoots` (whole pattern is dropped).
+ * - In any other position it has no special meaning to `@actions/glob`
+ *   (minimatch is invoked with extglobs disabled), so treating it as a
+ *   metachar would truncate prefixes for legitimate paths containing `!`
+ *   (e.g. `cache/my!dir/data`), silently broadening the allowed root.
  */
-const GLOB_CHAR_REGEX = /[*?[\]{}!]/
+const GLOB_CHAR_REGEX = /[*?[\]{}]/
 
 /**
  * Returns the working directory used for cache extraction. Mirrors the value
@@ -199,9 +207,10 @@ function deriveRoot(declaredPath: string, extractCwd: string): string {
 }
 
 /**
- * True if `seg` contains a glob metacharacter that isn't part of an
- * env-var reference. Strips `${VAR}`, `$VAR`, and `%VAR%` first so the
- * curly braces in `${VAR}` aren't misread as a brace-glob.
+ * True if `seg` contains a glob metacharacter (per {@link GLOB_CHAR_REGEX})
+ * that isn't part of an env-var reference. Strips `${VAR}`, `$VAR`, and
+ * `%VAR%` first so the curly braces in `${VAR}` aren't misread as a
+ * brace-glob.
  *
  * The patterns `\$\{[^}]+\}` and `%[^%]+%` are O(n²) on pathological
  * input (e.g. a long run of `${` with no closing `}`). That is not a
@@ -310,50 +319,15 @@ export function validateEntry(
     }
   }
 
-  // Reject NUL bytes anywhere in the path.
-  if (entryPath.includes('\0')) {
+  // Apply syntactic rejections (NUL byte, UNC, Windows absolute /
+  // drive-relative, POSIX absolute) to the entry path itself.
+  const entrySyntaxError = checkPathSyntax(entryPath, 'entry path')
+  if (entrySyntaxError) {
     return {
       ok: false,
-      code: 'NUL_BYTE',
+      code: entrySyntaxError.code,
       resolved: resolvedEntry,
-      reason: 'NUL byte in entry path'
-    }
-  }
-
-  // Reject UNC paths. Check the original string before separator normalization
-  // because UNC is identified by leading `\\` or `//`.
-  if (
-    entryPath.startsWith('\\\\') ||
-    entryPath.startsWith('//') ||
-    /^[\\/]{2}\?[\\/]/.test(entryPath)
-  ) {
-    return {
-      ok: false,
-      code: 'UNC_PATH',
-      resolved: resolvedEntry,
-      reason: `UNC path not allowed: ${entryPath}`
-    }
-  }
-
-  // Reject Windows-style absolute paths and drive-relative paths (`C:foo`).
-  // These can be present in archives created on Windows even when extracted
-  // on POSIX, so we reject them on every platform.
-  if (/^[a-zA-Z]:/.test(entryPath)) {
-    return {
-      ok: false,
-      code: 'ABSOLUTE_PATH',
-      resolved: resolvedEntry,
-      reason: `absolute or drive-relative path not allowed: ${entryPath}`
-    }
-  }
-
-  // Reject POSIX absolute paths.
-  if (entryPath.startsWith('/') || entryPath.startsWith('\\')) {
-    return {
-      ok: false,
-      code: 'ABSOLUTE_PATH',
-      resolved: resolvedEntry,
-      reason: `absolute path not allowed: ${entryPath}`
+      reason: entrySyntaxError.reason
     }
   }
 
@@ -382,12 +356,21 @@ export function validateEntry(
       // Hardlink targets are resolved relative to the extraction CWD.
       resolvedLink = path.resolve(extractCwd, linkPath)
     }
-    if (linkPath.includes('\0')) {
+    // Apply the same syntactic rejections to the link target. Even if a
+    // special-form link target happens to land under an allowed root after
+    // `path.resolve`, its semantics at actual extraction time can differ
+    // — most notably on Windows, where `C:foo` resolves against the
+    // per-drive working directory rather than the entry's directory, and
+    // UNC targets bypass the extraction root entirely. Rejecting these
+    // syntactic forms outright is defense-in-depth on top of the
+    // containment check below.
+    const linkSyntaxError = checkPathSyntax(linkPath, 'link target')
+    if (linkSyntaxError) {
       return {
         ok: false,
-        code: 'NUL_BYTE',
+        code: linkSyntaxError.code,
         resolved: resolvedLink,
-        reason: 'NUL byte in link target'
+        reason: linkSyntaxError.reason
       }
     }
     if (!isUnderAnyPreparedRoot(resolvedLink, prepared)) {
@@ -401,6 +384,69 @@ export function validateEntry(
   }
 
   return {ok: true}
+}
+
+/**
+ * Categorization of a syntactically-unsafe path string. Returned by
+ * {@link checkPathSyntax} when a path/link target fails one of the
+ * pre-resolution syntactic checks.
+ */
+interface PathSyntaxError {
+  code: 'NUL_BYTE' | 'UNC_PATH' | 'ABSOLUTE_PATH'
+  reason: string
+}
+
+/**
+ * Reject paths whose syntactic form is unsafe regardless of where they
+ * nominally resolve: NUL bytes, UNC paths (`\\server\share`, `//srv/x`,
+ * `\\?\…`), Windows absolute / drive-relative paths (`C:\…`, `C:foo`),
+ * and POSIX absolute paths (`/foo`, `\foo`).
+ *
+ * Applied to BOTH archive entry paths and link targets. A link target
+ * with a special-form path can mean something completely different at
+ * extract time than its `path.resolve(...)` output suggests at
+ * validation time — for example, on Windows `C:foo` resolves against
+ * the per-drive working directory rather than the link's containing
+ * directory — so we reject these forms outright even if they would
+ * happen to land under an allowed root.
+ *
+ * `kind` is woven into the reason string so the violation message tells
+ * the user whether the rejected path was an entry path or a link target.
+ */
+function checkPathSyntax(
+  p: string,
+  kind: 'entry path' | 'link target'
+): PathSyntaxError | undefined {
+  // Reject NUL bytes anywhere in the path.
+  if (p.includes('\0')) {
+    return {code: 'NUL_BYTE', reason: `NUL byte in ${kind}`}
+  }
+  // Reject UNC paths. Check the original string before any separator
+  // normalization because UNC is identified by leading `\\` or `//`.
+  if (
+    p.startsWith('\\\\') ||
+    p.startsWith('//') ||
+    /^[\\/]{2}\?[\\/]/.test(p)
+  ) {
+    return {code: 'UNC_PATH', reason: `UNC ${kind} not allowed: ${p}`}
+  }
+  // Reject Windows-style absolute paths and drive-relative paths (`C:foo`).
+  // These can be present in archives created on Windows even when extracted
+  // on POSIX, so we reject them on every platform.
+  if (/^[a-zA-Z]:/.test(p)) {
+    return {
+      code: 'ABSOLUTE_PATH',
+      reason: `absolute or drive-relative ${kind} not allowed: ${p}`
+    }
+  }
+  // Reject POSIX absolute paths.
+  if (p.startsWith('/') || p.startsWith('\\')) {
+    return {
+      code: 'ABSOLUTE_PATH',
+      reason: `absolute ${kind} not allowed: ${p}`
+    }
+  }
+  return undefined
 }
 
 function resolveEntry(entryPath: string, extractCwd: string): string {

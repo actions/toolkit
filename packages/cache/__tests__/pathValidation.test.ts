@@ -74,6 +74,22 @@ describe('deriveAllowedRoots', () => {
       const negated = IS_WINDOWS ? '!C:\\foo\\secret' : '!/foo/secret'
       expect(deriveAllowedRoots([allowed, negated], cwd)).toEqual([allowed])
     })
+
+    test('non-leading ! is treated as a literal path character, not a glob', () => {
+      // Regression: an earlier implementation included `!` in the glob
+      // metachar set, so a declared path like `cache/my!dir/data` would
+      // truncate to `cache/`, silently broadening the allowed root.
+      // `@actions/glob`/minimatch treats `!` literally except as a leading
+      // negation (handled by the case above), so non-leading `!` must be
+      // preserved verbatim in the derived root.
+      const input = IS_WINDOWS
+        ? 'C:\\cache\\my!dir\\data'
+        : '/cache/my!dir/data'
+      const expected = IS_WINDOWS
+        ? 'C:\\cache\\my!dir\\data'
+        : '/cache/my!dir/data'
+      expect(deriveAllowedRoots([input], cwd)).toEqual([expected])
+    })
   })
 
   describe('path expansion', () => {
@@ -588,7 +604,7 @@ describe('validateEntry', () => {
   })
 
   describe('symlink/hardlink attacks (must reject)', () => {
-    test('symlink with absolute target', () => {
+    test('symlink with POSIX absolute target', () => {
       const r = validateEntry(
         'node_modules/link',
         '/etc/passwd',
@@ -597,7 +613,72 @@ describe('validateEntry', () => {
         cwd
       )
       expect(r.ok).toBe(false)
-      if (!r.ok) expect(r.code).toBe('LINK_OUTSIDE_ROOTS')
+      // Syntactic rejection fires before the containment check.
+      if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
+    })
+
+    test('symlink with Windows absolute target', () => {
+      const r = validateEntry(
+        'node_modules/link',
+        'C:\\Windows\\System32\\drivers\\etc\\hosts',
+        'SymbolicLink',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
+    })
+
+    test('symlink with Windows drive-relative target', () => {
+      // `C:foo` resolves against the per-drive working directory on Windows,
+      // not the symlink's containing directory — so even if it happens to
+      // land under an allowed root after `path.resolve`, its extract-time
+      // semantics are different. Reject the syntactic form outright.
+      const r = validateEntry(
+        'node_modules/link',
+        'C:foo',
+        'SymbolicLink',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
+    })
+
+    test('symlink with UNC target', () => {
+      const r = validateEntry(
+        'node_modules/link',
+        '\\\\attacker\\share\\payload',
+        'SymbolicLink',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('UNC_PATH')
+    })
+
+    test('symlink with UNC long-path prefix target', () => {
+      const r = validateEntry(
+        'node_modules/link',
+        '\\\\?\\C:\\foo',
+        'SymbolicLink',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('UNC_PATH')
+    })
+
+    test('symlink with forward-slash UNC target', () => {
+      const r = validateEntry(
+        'node_modules/link',
+        '//attacker/share/payload',
+        'SymbolicLink',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('UNC_PATH')
     })
 
     test('symlink with .. traversal', () => {
@@ -612,7 +693,7 @@ describe('validateEntry', () => {
       if (!r.ok) expect(r.code).toBe('LINK_OUTSIDE_ROOTS')
     })
 
-    test('hardlink with absolute target', () => {
+    test('hardlink with POSIX absolute target', () => {
       const r = validateEntry(
         'node_modules/dup',
         '/etc/passwd',
@@ -621,7 +702,31 @@ describe('validateEntry', () => {
         cwd
       )
       expect(r.ok).toBe(false)
-      if (!r.ok) expect(r.code).toBe('LINK_OUTSIDE_ROOTS')
+      if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
+    })
+
+    test('hardlink with Windows absolute target', () => {
+      const r = validateEntry(
+        'node_modules/dup',
+        'C:\\Windows\\System32\\drivers\\etc\\hosts',
+        'Link',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
+    })
+
+    test('hardlink with UNC target', () => {
+      const r = validateEntry(
+        'node_modules/dup',
+        '\\\\attacker\\share\\payload',
+        'Link',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('UNC_PATH')
     })
 
     test('hardlink with .. traversal', () => {
@@ -641,9 +746,11 @@ describe('validateEntry', () => {
       //   Entry 1: node_modules/x → /etc (a symlink target outside allowed roots)
       //   Entry 2: node_modules/x/payload (which extracts THROUGH entry 1's link
       //            and lands at /etc/payload)
-      // We must reject Entry 1 because its target is outside the allowed roots.
-      // Entry 2's nominal path looks safe, so we cannot rely on per-entry path
-      // validation alone — we must catch the symlink target.
+      // We must reject Entry 1. The absolute syntactic form `/etc` is now
+      // rejected up-front (ABSOLUTE_PATH) before the containment check, which
+      // is strictly stronger than the previous LINK_OUTSIDE_ROOTS reject
+      // (the entry never gets the chance to be "absolute but happens to
+      // resolve under a root").
       const r = validateEntry(
         'node_modules/x',
         '/etc',
@@ -652,7 +759,28 @@ describe('validateEntry', () => {
         cwd
       )
       expect(r.ok).toBe(false)
-      if (!r.ok) expect(r.code).toBe('LINK_OUTSIDE_ROOTS')
+      if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
+    })
+
+    test('symlink with absolute target that nominally lands under an allowed root is still rejected', () => {
+      // Before the syntactic fix, a symlink whose absolute target happened
+      // to resolve under an allowed root (e.g. POSIX `/workspace/.cache/x`
+      // when /workspace/.cache is allowed) would pass validation. With the
+      // syntactic reject, the absolute form alone is enough to fail — we
+      // don't trust that extract-time resolution will match what
+      // `path.resolve` says at validation time.
+      const absoluteUnderRoot = IS_WINDOWS
+        ? 'C:\\workspace\\.cache\\x'
+        : '/workspace/.cache/x'
+      const r = validateEntry(
+        'node_modules/link',
+        absoluteUnderRoot,
+        'SymbolicLink',
+        allowedRoots,
+        cwd
+      )
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
     })
 
     test('symlink with empty target is allowed (filtered as undefined linkpath)', () => {
