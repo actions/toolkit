@@ -8,7 +8,8 @@ import {
 } from '../src/internal/pathValidation'
 
 const IS_WINDOWS = process.platform === 'win32'
-const CASE_INSENSITIVE = process.platform === 'win32' || process.platform === 'darwin'
+const CASE_INSENSITIVE =
+  process.platform === 'win32' || process.platform === 'darwin'
 
 describe('deriveAllowedRoots', () => {
   const cwd = IS_WINDOWS ? 'C:\\workspace' : '/workspace'
@@ -63,9 +64,7 @@ describe('deriveAllowedRoots', () => {
 
   describe('negation handling', () => {
     test('negation pattern (! prefix) is dropped from allowed roots', () => {
-      const input = IS_WINDOWS
-        ? ['!C:\\foo\\secret']
-        : ['!/foo/secret']
+      const input = IS_WINDOWS ? ['!C:\\foo\\secret'] : ['!/foo/secret']
       expect(deriveAllowedRoots(input, cwd)).toEqual([])
     })
 
@@ -107,9 +106,9 @@ describe('deriveAllowedRoots', () => {
       process.env['CACHE_TEST_ROOT'] = IS_WINDOWS ? 'C:\\envroot' : '/envroot'
       try {
         const expected = IS_WINDOWS ? 'C:\\envroot\\sub' : '/envroot/sub'
-        expect(
-          deriveAllowedRoots(['${CACHE_TEST_ROOT}/sub'], cwd)
-        ).toEqual([expected])
+        expect(deriveAllowedRoots(['${CACHE_TEST_ROOT}/sub'], cwd)).toEqual([
+          expected
+        ])
       } finally {
         if (original === undefined) delete process.env['CACHE_TEST_ROOT']
         else process.env['CACHE_TEST_ROOT'] = original
@@ -132,12 +131,14 @@ describe('deriveAllowedRoots', () => {
 
     test('%VAR% Windows-style expands an environment variable', () => {
       const original = process.env['CACHE_TEST_WIN_ROOT']
-      process.env['CACHE_TEST_WIN_ROOT'] = IS_WINDOWS ? 'C:\\winroot' : '/winroot'
+      process.env['CACHE_TEST_WIN_ROOT'] = IS_WINDOWS
+        ? 'C:\\winroot'
+        : '/winroot'
       try {
         const expected = IS_WINDOWS ? 'C:\\winroot\\sub' : '/winroot/sub'
-        expect(
-          deriveAllowedRoots(['%CACHE_TEST_WIN_ROOT%/sub'], cwd)
-        ).toEqual([expected])
+        expect(deriveAllowedRoots(['%CACHE_TEST_WIN_ROOT%/sub'], cwd)).toEqual([
+          expected
+        ])
       } finally {
         if (original === undefined) delete process.env['CACHE_TEST_WIN_ROOT']
         else process.env['CACHE_TEST_WIN_ROOT'] = original
@@ -170,9 +171,9 @@ describe('deriveAllowedRoots', () => {
         const expected = IS_WINDOWS
           ? 'C:\\envroot*odd\\sub'
           : '/envroot*odd/sub'
-        expect(
-          deriveAllowedRoots(['${CACHE_TEST_ROOT}/sub'], cwd)
-        ).toEqual([expected])
+        expect(deriveAllowedRoots(['${CACHE_TEST_ROOT}/sub'], cwd)).toEqual([
+          expected
+        ])
       } finally {
         if (original === undefined) delete process.env['CACHE_TEST_ROOT']
         else process.env['CACHE_TEST_ROOT'] = original
@@ -290,7 +291,7 @@ describe('validateEntry', () => {
 
     test('deeply nested file', () => {
       const r = validateEntry(
-        'node_modules/' + Array(50).fill('sub').join('/') + '/foo.js',
+        `node_modules/${Array(50).fill('sub').join('/')}/foo.js`,
         undefined,
         'File',
         allowedRoots,
@@ -379,7 +380,7 @@ describe('validateEntry', () => {
     test('filename containing .. as substring (not segment)', () => {
       for (const name of ['..hidden', 'file..txt', 'a..b/c']) {
         const r = validateEntry(
-          'node_modules/' + name,
+          `node_modules/${name}`,
           undefined,
           'File',
           allowedRoots,
@@ -529,13 +530,7 @@ describe('validateEntry', () => {
     })
 
     test('Windows drive-relative (no slash)', () => {
-      const r = validateEntry(
-        'C:foo',
-        undefined,
-        'File',
-        allowedRoots,
-        cwd
-      )
+      const r = validateEntry('C:foo', undefined, 'File', allowedRoots, cwd)
       expect(r.ok).toBe(false)
       if (!r.ok) expect(r.code).toBe('ABSOLUTE_PATH')
     })
@@ -1069,10 +1064,7 @@ describe('formatViolationSummary', () => {
   })
 
   test('shows up to maxShown items verbatim', () => {
-    const out = formatViolationSummary(
-      [v('a'), v('b'), v('c')],
-      5
-    )
+    const out = formatViolationSummary([v('a'), v('b'), v('c')], 5)
     expect(out).toContain('  - a')
     expect(out).toContain('  - b')
     expect(out).toContain('  - c')

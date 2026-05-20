@@ -374,10 +374,9 @@ function reportViolations(
   core.info(formatViolationSummary(violations))
   for (const v of violations) {
     core.debug(
-      `path-validation: code=${v.code} type=${v.entryType} path=${v.path}` +
-        (v.linkpath ? ` linkpath=${v.linkpath}` : '') +
-        ` resolved=${v.resolved}` +
-        ` reason=${v.reason}`
+      `path-validation: code=${v.code} type=${v.entryType} path=${v.path}${
+        v.linkpath ? ` linkpath=${v.linkpath}` : ''
+      } resolved=${v.resolved} reason=${v.reason}`
     )
   }
 }

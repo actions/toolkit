@@ -203,9 +203,7 @@ describe('extractTar path validation integration', () => {
     })
 
     test('clean archive: no throw, extraction proceeds normally', async () => {
-      jest
-        .spyOn(listAndValidate, 'listAndValidate')
-        .mockResolvedValue([])
+      jest.spyOn(listAndValidate, 'listAndValidate').mockResolvedValue([])
       const warnSpy = jest.spyOn(core, 'warning').mockImplementation()
       const execMock = jest.spyOn(exec, 'exec').mockResolvedValue(0)
 
@@ -234,9 +232,7 @@ describe('extractTar path validation integration', () => {
       } catch (err) {
         expect(err).toBeInstanceOf(CacheIntegrityError)
         expect((err as CacheIntegrityError).code).toBe('PARSE_ERROR')
-        expect((err as CacheIntegrityError).message).toMatch(
-          /tar parse error/
-        )
+        expect((err as CacheIntegrityError).message).toMatch(/tar parse error/)
       }
       expect(execMock).not.toHaveBeenCalled()
       expect(mkdirMock).not.toHaveBeenCalled()
@@ -341,9 +337,7 @@ describe('extractTar path validation integration', () => {
         pathValidation: 'warn'
       })
 
-      expect(listMock.mock.calls[0][1]).toBe(
-        CompressionMethod.ZstdWithoutLong
-      )
+      expect(listMock.mock.calls[0][1]).toBe(CompressionMethod.ZstdWithoutLong)
     })
   })
 })

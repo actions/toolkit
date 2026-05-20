@@ -55,7 +55,7 @@ export type ValidationResult =
  */
 export interface PreparedAllowedRoots {
   readonly caseInsensitive: boolean
-  readonly roots: ReadonlyArray<PreparedRoot>
+  readonly roots: readonly PreparedRoot[]
 }
 
 interface PreparedRoot {
@@ -231,7 +231,10 @@ function segmentHasGlob(seg: string): boolean {
 function expandEnvVars(input: string): string {
   let result = input
   // ${VAR} — see segmentHasGlob for the polynomial-redos rationale.
-  result = result.replace(/\$\{([^}]+)\}/g, (_, name) => process.env[name] ?? '') // lgtm[js/polynomial-redos]
+  result = result.replace(
+    /\$\{([^}]+)\}/g,
+    (_, name) => process.env[name] ?? ''
+  ) // lgtm[js/polynomial-redos]
   // $VAR (POSIX-style identifier)
   result = result.replace(
     /\$([A-Za-z_][A-Za-z0-9_]*)/g,
@@ -454,13 +457,6 @@ function resolveEntry(entryPath: string, extractCwd: string): string {
   // produces the right thing on Windows.
   const native = entryPath.split(/[\\/]/).join(path.sep)
   return path.resolve(extractCwd, native)
-}
-
-function isUnderAnyRoot(resolved: string, roots: string[]): boolean {
-  for (const root of roots) {
-    if (isUnderRoot(resolved, root)) return true
-  }
-  return false
 }
 
 /**

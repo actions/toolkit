@@ -172,9 +172,7 @@ async function streamArchiveTo(
         const tail = stderrTruncated ? ' (stderr truncated)' : ''
         reject(
           new Error(
-            `zstd ${cause}${
-              zstdStderr ? `: ${zstdStderr.trim()}` : ''
-            }${tail}`
+            `zstd ${cause}${zstdStderr ? `: ${zstdStderr.trim()}` : ''}${tail}`
           )
         )
       }

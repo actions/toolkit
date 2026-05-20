@@ -17,9 +17,7 @@ import {HttpClientError} from '@actions/http-client'
 
 export type {DownloadOptions, UploadOptions}
 export {CacheIntegrityError}
-export type {
-  CacheIntegrityErrorCode
-} from './internal/cacheIntegrityError.js'
+export type {CacheIntegrityErrorCode} from './internal/cacheIntegrityError.js'
 export type {
   PathValidationMode,
   PathValidationViolation

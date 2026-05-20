@@ -125,10 +125,7 @@ describe('listAndValidate (real archives)', () => {
       const archive = buildTarArchive([
         {path: 'cache/file.txt', type: 'File', body: Buffer.from('hi')}
       ])
-      const archivePath = writeArchive(
-        'clean.tar.gz',
-        zlib.gzipSync(archive)
-      )
+      const archivePath = writeArchive('clean.tar.gz', zlib.gzipSync(archive))
       const violations = await listAndValidate(
         archivePath,
         CompressionMethod.Gzip,
@@ -259,10 +256,7 @@ describe('listAndValidate (real archives)', () => {
         },
         {path: 'cache/sub/c.txt', type: 'File', body: Buffer.from('4')}
       ])
-      const archivePath = writeArchive(
-        'mixed.tar.gz',
-        zlib.gzipSync(archive)
-      )
+      const archivePath = writeArchive('mixed.tar.gz', zlib.gzipSync(archive))
       const violations = await listAndValidate(
         archivePath,
         CompressionMethod.Gzip,
@@ -277,10 +271,7 @@ describe('listAndValidate (real archives)', () => {
       const archive = buildTarArchive([
         {path: 'cache/dev', type: 'CharacterDevice'}
       ])
-      const archivePath = writeArchive(
-        'chardev.tar.gz',
-        zlib.gzipSync(archive)
-      )
+      const archivePath = writeArchive('chardev.tar.gz', zlib.gzipSync(archive))
       const violations = await listAndValidate(
         archivePath,
         CompressionMethod.Gzip,
@@ -295,10 +286,7 @@ describe('listAndValidate (real archives)', () => {
       const archive = buildTarArchive([
         {path: 'cache/tiny.txt', type: 'File', body: Buffer.from('1')}
       ])
-      const archivePath = writeArchive(
-        'single.tar.gz',
-        zlib.gzipSync(archive)
-      )
+      const archivePath = writeArchive('single.tar.gz', zlib.gzipSync(archive))
       const violations = await listAndValidate(
         archivePath,
         CompressionMethod.Gzip,
