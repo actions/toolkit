@@ -152,8 +152,8 @@ lists" and observe `extractTar`'s reaction. They mock `@actions/exec`,
 - Clean archive → no warning, no throw, extraction proceeds
 - `listAndValidate` throws → wrapped as `CacheIntegrityError(PARSE_ERROR)`,
   system tar not invoked
-- Parse failure in `'warn'` mode → still wrapped as `CacheIntegrityError(PARSE_ERROR)`
-  and surfaced (we can't trust the archive when we can't even read it)
+- Parse failure in `'warn'` mode → warning is logged, validation is skipped,
+  and extraction still proceeds
 
 ### Plumbing
 
