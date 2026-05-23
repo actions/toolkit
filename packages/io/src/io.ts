@@ -141,6 +141,15 @@ export async function rmRF(inputPath: string): Promise<void> {
  */
 export async function mkdirP(fsPath: string): Promise<void> {
   ok(fsPath, 'a path argument must be provided')
+  // don't call mkdirP for root paths (e.g. C:\) on Windows. This leads to
+  // 'EPERM: operation not permitted' error when drive already exists.
+  if (
+    ioUtil.IS_WINDOWS &&
+    path.parse(fsPath).root === fsPath &&
+    (await ioUtil.exists(fsPath))
+  ) {
+    return
+  }
   await ioUtil.mkdir(fsPath, {recursive: true})
 }
 
