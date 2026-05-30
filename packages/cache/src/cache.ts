@@ -39,6 +39,26 @@ export class FinalizeCacheError extends Error {
   }
 }
 
+/**
+ * Resilient check for one of the error types above that survives both JS
+ * minification and duplicate copies of this module in a dependency tree.
+ *
+ * `instanceof` covers the common single-bundle case (and keeps working under
+ * minification because each error sets its prototype explicitly), while the
+ * `name` comparison covers errors thrown from a different copy/realm of
+ * @actions/cache where `instanceof` would fail. The `name` argument must be a
+ * string literal: comparing against `ctor.name` breaks under name-mangling
+ * minifiers (the class binding gets renamed while the constructor's
+ * `this.name = '...'` literal does not), which is the bug this guards against.
+ */
+function isErrorOfType<T extends Error>(
+  error: Error,
+  ctor: new (...args: never[]) => T,
+  name: string
+): boolean {
+  return error instanceof ctor || error.name === name
+}
+
 function checkPaths(paths: string[]): void {
   if (!paths || paths.length === 0) {
     throw new ValidationError(
@@ -204,7 +224,7 @@ async function restoreCacheV1(
     return cacheEntry.cacheKey
   } catch (error) {
     const typedError = error as Error
-    if (typedError.name === ValidationError.name) {
+    if (isErrorOfType(typedError, ValidationError, 'ValidationError')) {
       throw error
     } else {
       // warn on cache restore failure and continue build
@@ -336,7 +356,7 @@ async function restoreCacheV2(
     return response.matchedKey
   } catch (error) {
     const typedError = error as Error
-    if (typedError.name === ValidationError.name) {
+    if (isErrorOfType(typedError, ValidationError, 'ValidationError')) {
       throw error
     } else {
       // Supress all non-validation cache related errors because caching should be optional
@@ -476,9 +496,11 @@ async function saveCacheV1(
     await cacheHttpClient.saveCache(cacheId, archivePath, '', options)
   } catch (error) {
     const typedError = error as Error
-    if (typedError.name === ValidationError.name) {
+    if (isErrorOfType(typedError, ValidationError, 'ValidationError')) {
       throw error
-    } else if (typedError.name === ReserveCacheError.name) {
+    } else if (
+      isErrorOfType(typedError, ReserveCacheError, 'ReserveCacheError')
+    ) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
       // Log server errors (5xx) as errors, all other errors as warnings
@@ -621,11 +643,15 @@ async function saveCacheV2(
     cacheId = parseInt(finalizeResponse.entryId)
   } catch (error) {
     const typedError = error as Error
-    if (typedError.name === ValidationError.name) {
+    if (isErrorOfType(typedError, ValidationError, 'ValidationError')) {
       throw error
-    } else if (typedError.name === ReserveCacheError.name) {
+    } else if (
+      isErrorOfType(typedError, ReserveCacheError, 'ReserveCacheError')
+    ) {
       core.info(`Failed to save: ${typedError.message}`)
-    } else if (typedError.name === FinalizeCacheError.name) {
+    } else if (
+      isErrorOfType(typedError, FinalizeCacheError, 'FinalizeCacheError')
+    ) {
       core.warning(typedError.message)
     } else {
       // Log server errors (5xx) as errors, all other errors as warnings

@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import {saveCache} from '../src/cache'
+import {saveCache, ReserveCacheError} from '../src/cache'
 import * as cacheHttpClient from '../src/internal/cacheHttpClient'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import * as config from '../src/internal/config'
@@ -219,6 +219,59 @@ test('save with reserve cache failure should fail', async () => {
   expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(saveCacheMock).toHaveBeenCalledTimes(0)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
+// Regression test for a minification-fragility bug: the catch block classified
+// errors with `typedError.name === ReserveCacheError.name`. A name-mangling
+// minifier (esbuild/terser/rolldown without keep-names) rewrites the class
+// binding, so `ReserveCacheError.name` becomes a short mangled string while
+// instances still carry the literal `this.name = 'ReserveCacheError'` from the
+// constructor. The comparison then never matches, routing a benign reserve race
+// (common in a build matrix sharing one cache key) to core.warning instead of
+// core.info. We simulate the minifier by mangling the class's runtime name and
+// assert the classification still holds.
+test('save with reserve cache failure is logged as info even when the class name is mangled (minification-safe)', async () => {
+  const paths = ['node_modules']
+  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const logInfoMock = jest.spyOn(core, 'info')
+  const logWarningMock = jest.spyOn(core, 'warning')
+
+  // Simulate what a name-mangling minifier does to the class identifier.
+  const originalNameDescriptor = Object.getOwnPropertyDescriptor(
+    ReserveCacheError,
+    'name'
+  )
+  Object.defineProperty(ReserveCacheError, 'name', {
+    value: 'r',
+    configurable: true
+  })
+
+  try {
+    jest.spyOn(cacheHttpClient, 'reserveCache').mockImplementation(async () => {
+      const response: TypedResponse<ReserveCacheResponse> = {
+        statusCode: 500,
+        result: null,
+        headers: {}
+      }
+      return response
+    })
+    jest
+      .spyOn(cacheUtils, 'getCompressionMethod')
+      .mockReturnValueOnce(Promise.resolve(CompressionMethod.Zstd))
+
+    const cacheId = await saveCache(paths, primaryKey)
+
+    expect(cacheId).toBe(-1)
+    // A benign reserve race must be info, never a warning annotation.
+    expect(logInfoMock).toHaveBeenCalledWith(
+      `Failed to save: Unable to reserve cache with key ${primaryKey}, another job may be creating this cache. More details: undefined`
+    )
+    expect(logWarningMock).not.toHaveBeenCalled()
+  } finally {
+    if (originalNameDescriptor) {
+      Object.defineProperty(ReserveCacheError, 'name', originalNameDescriptor)
+    }
+  }
 })
 
 test('save with server error should fail', async () => {
