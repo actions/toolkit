@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as path from 'path'
-import {saveCache} from '../src/cache'
+import {saveCache, FinalizeCacheError} from '../src/cache'
 import * as cacheUtils from '../src/internal/cacheUtils'
 import {CacheFilename, CompressionMethod} from '../src/internal/constants'
 import * as config from '../src/internal/config'
@@ -507,6 +507,80 @@ test('save with finalize cache entry failure and specific error message', async 
 
   expect(cacheId).toBe(-1)
   expect(logWarningMock).toHaveBeenCalledWith(errorMessage)
+})
+
+// Regression test for the minification-fragility bug on the v2 path. saveCacheV2
+// classifies a FinalizeCacheError with
+// `isErrorOfType(typedError, FinalizeCacheError, 'FinalizeCacheError')`. A
+// name-mangling minifier (esbuild/terser/rolldown without keep-names) rewrites
+// the FinalizeCacheError class binding, so the pre-fix
+// `typedError.name === FinalizeCacheError.name` check would miss it and fall
+// through to the generic else branch — logging
+// `core.warning('Failed to save: <msg>')` instead of the FinalizeCacheError
+// branch's bare `core.warning('<msg>')`. We simulate the minifier by mangling
+// the class's runtime name and assert the FinalizeCacheError branch still fires.
+test('finalize cache failure is classified correctly even when the class name is mangled (minification-safe, v2)', async () => {
+  const paths = 'node_modules'
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const logWarningMock = jest.spyOn(core, 'warning')
+  const signedUploadURL = 'https://blob-storage.local?signed=true'
+  const archiveFileSize = 1024
+  const errorMessage =
+    'Cache entry finalization failed due to concurrent access'
+  const options: UploadOptions = {
+    archiveSizeBytes: archiveFileSize,
+    useAzureSdk: true,
+    uploadChunkSize: 64 * 1024 * 1024,
+    uploadConcurrency: 8
+  }
+
+  // Simulate what a name-mangling minifier does to the class identifier.
+  const originalNameDescriptor = Object.getOwnPropertyDescriptor(
+    FinalizeCacheError,
+    'name'
+  )
+  Object.defineProperty(FinalizeCacheError, 'name', {
+    value: 'f',
+    configurable: true
+  })
+
+  try {
+    jest
+      .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+      .mockReturnValue(
+        Promise.resolve({
+          ok: true,
+          signedUploadUrl: signedUploadURL,
+          message: ''
+        })
+      )
+    jest.spyOn(cacheHttpClient, 'saveCache').mockResolvedValue()
+    jest
+      .spyOn(cacheUtils, 'getCompressionMethod')
+      .mockReturnValueOnce(Promise.resolve(CompressionMethod.Zstd))
+    jest
+      .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+      .mockReturnValueOnce(archiveFileSize)
+    jest
+      .spyOn(CacheServiceClientJSON.prototype, 'FinalizeCacheEntryUpload')
+      .mockReturnValue(
+        Promise.resolve({ok: false, entryId: '', message: errorMessage})
+      )
+
+    const cacheId = await saveCache([paths], key, options)
+
+    expect(cacheId).toBe(-1)
+    // The FinalizeCacheError branch logs the bare message; the generic else
+    // branch prefixes it with "Failed to save:". Assert the former fired.
+    expect(logWarningMock).toHaveBeenCalledWith(errorMessage)
+    expect(logWarningMock).not.toHaveBeenCalledWith(
+      `Failed to save: ${errorMessage}`
+    )
+  } finally {
+    if (originalNameDescriptor) {
+      Object.defineProperty(FinalizeCacheError, 'name', originalNameDescriptor)
+    }
+  }
 })
 
 test('save with multiple large caches should succeed in v2 (testing 50GB)', async () => {
