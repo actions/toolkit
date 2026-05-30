@@ -50,6 +50,15 @@ export class FinalizeCacheError extends Error {
  * string literal: comparing against `ctor.name` breaks under name-mangling
  * minifiers (the class binding gets renamed while the constructor's
  * `this.name = '...'` literal does not), which is the bug this guards against.
+ *
+ * Two signature choices are load-bearing — do not "simplify" them:
+ * - It returns `boolean`, not a type predicate (`error is T`). These error
+ *   classes are structurally identical to `Error`, so a predicate narrows
+ *   `typedError` to `never` in the `else` branches and breaks the downstream
+ *   `instanceof HttpClientError` / `.statusCode` checks.
+ * - The generic `<T extends Error>` is required. With a concrete
+ *   `ctor: ... => Error`, `error instanceof ctor` narrows `error` to `never` on
+ *   the right side of the `||`, breaking the `error.name` access.
  */
 function isErrorOfType<T extends Error>(
   error: Error,
