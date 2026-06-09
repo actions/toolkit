@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "6.0.1",
+  "version": "6.1.0",
   "description": "Actions cache lib",
   "keywords": [
     "github",
@@ -15,7 +15,8 @@
   "exports": {
     ".": {
       "types": "./lib/cache.d.ts",
-      "import": "./lib/cache.js"
+      "import": "./lib/cache.js",
+      "default": "./lib/cache.js"
     }
   },
   "directories": {
@@ -42,6 +43,9 @@
   "bugs": {
     "url": "https://github.com/actions/toolkit/issues"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@actions/core": "^3.0.1",
     "@actions/exec": "^3.0.0",
@@ -51,7 +55,8 @@
     "@azure/core-rest-pipeline": "^1.23.0",
     "@azure/storage-blob": "^12.31.0",
     "@protobuf-ts/runtime-rpc": "^2.11.1",
-    "semver": "^7.7.4"
+    "semver": "^7.7.4",
+    "tar": "^7.5.15"
   },
   "devDependencies": {
     "@protobuf-ts/plugin": "^2.11.1",

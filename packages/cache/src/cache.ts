@@ -6,6 +6,7 @@ import * as cacheTwirpClient from './internal/shared/cacheTwirpClient.js'
 import {getCacheServiceVersion, isGhes} from './internal/config.js'
 import {DownloadOptions, UploadOptions} from './options.js'
 import {createTar, extractTar, listTar} from './internal/tar.js'
+import {CacheIntegrityError} from './internal/cacheIntegrityError.js'
 import {
   CreateCacheEntryRequest,
   FinalizeCacheEntryUploadRequest,
@@ -15,6 +16,12 @@ import {
 import {HttpClientError} from '@actions/http-client'
 
 export type {DownloadOptions, UploadOptions}
+export {CacheIntegrityError}
+export type {CacheIntegrityErrorCode} from './internal/cacheIntegrityError.js'
+export type {
+  PathValidationMode,
+  PathValidationViolation
+} from './internal/pathValidation.js'
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message)
@@ -90,6 +97,10 @@ export function isFeatureAvailable(): boolean {
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
+ * @throws {ValidationError} If paths is empty, any key is longer than 512 characters or contains a comma,
+ * or more than 10 keys are provided.
+ * @throws {CacheIntegrityError} If options.pathValidation is 'error' and a parse error or path violation
+ * is detected in the cache archive before extraction.
  */
 export async function restoreCache(
   paths: string[],
@@ -133,6 +144,10 @@ export async function restoreCache(
  * @param options cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on Windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
+ * @throws {ValidationError} If paths is empty, any key is longer than 512 characters or contains a comma,
+ * or more than 10 keys are provided.
+ * @throws {CacheIntegrityError} If options.pathValidation is 'error' and a parse error or path violation
+ * is detected in the cache archive before extraction.
  */
 async function restoreCacheV1(
   paths: string[],
@@ -198,13 +213,21 @@ async function restoreCacheV1(
       )} MB (${archiveFileSize} B)`
     )
 
-    await extractTar(archivePath, compressionMethod)
+    await extractTar(archivePath, compressionMethod, {
+      declaredPaths: paths,
+      pathValidation: options?.pathValidation
+    })
     core.info('Cache restored successfully')
 
     return cacheEntry.cacheKey
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
+      throw error
+    } else if (typedError instanceof CacheIntegrityError) {
+      // Integrity errors are surfaced to the caller (e.g. the cache action)
+      // so it can choose to fail the step rather than silently treating the
+      // restore as a cache miss.
       throw error
     } else {
       // warn on cache restore failure and continue build
@@ -240,6 +263,10 @@ async function restoreCacheV1(
  * @param downloadOptions cache download options
  * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
  * @returns string returns the key for the cache hit, otherwise returns undefined
+ * @throws {ValidationError} If paths is empty, any key is longer than 512 characters or contains a comma,
+ * or more than 10 keys are provided.
+ * @throws {CacheIntegrityError} If options.pathValidation is 'error' and a parse error or path violation
+ * is detected in the cache archive before extraction.
  */
 async function restoreCacheV2(
   paths: string[],
@@ -330,13 +357,21 @@ async function restoreCacheV2(
       await listTar(archivePath, compressionMethod)
     }
 
-    await extractTar(archivePath, compressionMethod)
+    await extractTar(archivePath, compressionMethod, {
+      declaredPaths: paths,
+      pathValidation: options?.pathValidation
+    })
     core.info('Cache restored successfully')
 
     return response.matchedKey
   } catch (error) {
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
+      throw error
+    } else if (typedError instanceof CacheIntegrityError) {
+      // Integrity errors are surfaced to the caller (e.g. the cache action)
+      // so it can choose to fail the step rather than silently treating the
+      // restore as a cache miss.
       throw error
     } else {
       // Supress all non-validation cache related errors because caching should be optional
