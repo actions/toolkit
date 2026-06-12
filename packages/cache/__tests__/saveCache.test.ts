@@ -265,6 +265,7 @@ test('save with reserve cache denied by read-only token logs warning (not info)'
     `Failed to save: Unable to reserve cache with key ${primaryKey}. More details: ${deniedMessage}`
   )
 
+  expect(logWarningMock).toHaveBeenCalledTimes(1)
   expect(reserveCacheMock).toHaveBeenCalledTimes(1)
   expect(createTarMock).toHaveBeenCalledTimes(1)
   expect(saveCacheMock).toHaveBeenCalledTimes(0)

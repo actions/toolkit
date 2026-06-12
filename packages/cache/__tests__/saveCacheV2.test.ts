@@ -154,6 +154,7 @@ test('create cache entry denied by read-only token logs single warning and skips
     `Failed to save: Unable to reserve cache with key ${key}. More details: ${deniedMessage}`
   )
 
+  expect(warningLogMock).toHaveBeenCalledTimes(1)
   expect(createCacheEntryMock).toHaveBeenCalledWith({
     key,
     version: cacheVersion

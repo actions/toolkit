@@ -45,8 +45,9 @@ export const CACHE_WRITE_DENIED_PREFIX = 'cache write denied:'
  * Raised when the cache backend refuses to reserve a writable cache entry
  * because the JWT issued for this run was scoped read-only (for example, the
  * run was triggered by an event the repository administrator classified as
- * untrusted). The error message is forwarded verbatim from the receiver and
- * always begins with `cache write denied:`.
+ * untrusted). The receiver-supplied detail message always begins with
+ * `cache write denied:` (the full error message includes additional context
+ * like the cache key).
  *
  * Extends ReserveCacheError for source-compatibility: existing
  * `instanceof ReserveCacheError` checks and `typedError.name ===
