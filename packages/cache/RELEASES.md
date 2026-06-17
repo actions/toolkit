@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+## 6.1.0
+
+- Handle cache write error due to read-only token: detect the `cache write denied:` prefix on cache reservation failures and surface it as a `core.warning` (without failing the run).
+
 ## 6.0.1
 
 - Bump dependency versions ([#2393](https://github.com/actions/toolkit/pull/2393)):
@@ -262,11 +266,11 @@ Read more about the change & access the migration guide: [reference to the annou
 ## 0.2.1
 
 - Fix to await async function getCompressionMethod
-  
+
 ## 0.2.0
 
 - Fixes issues with the zstd compression algorithm on Windows and Ubuntu 16.04 [#469](https://github.com/actions/toolkit/pull/469)
-  
+
 ## 0.1.0
 
 - Initial release
