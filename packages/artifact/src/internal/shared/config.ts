@@ -34,7 +34,21 @@ export function isGhes(): boolean {
   const isGheHost = hostname.endsWith('.GHE.COM')
   const isLocalHost = hostname.endsWith('.LOCALHOST')
 
-  return !isGitHubHost && !isGheHost && !isLocalHost
+  const hostnameLooksLikeGhes =
+    !isGitHubHost && !isGheHost && !isLocalHost
+
+  // GHES 3.13+ ships the artifact-storage-v2 backend that the v4+
+  // artifact client requires. The runner exposes the backend's
+  // presence via ACTIONS_RESULTS_URL (which getResultsServiceUrl()
+  // already requires for upload/download/list to function). When
+  // that env var is set we know the backend is reachable, so an
+  // unrecognised hostname does not need to short-circuit into a
+  // GHESNotSupportedError.
+  if (hostnameLooksLikeGhes && process.env['ACTIONS_RESULTS_URL']) {
+    return false
+  }
+
+  return hostnameLooksLikeGhes
 }
 
 export function getGitHubWorkspaceDir(): string {

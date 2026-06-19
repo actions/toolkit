@@ -15,6 +15,11 @@ beforeEach(() => {
 })
 
 describe('isGhes', () => {
+  beforeEach(() => {
+    delete process.env.GITHUB_SERVER_URL
+    delete process.env.ACTIONS_RESULTS_URL
+  })
+
   it('should return false when the request domain is github.com', () => {
     process.env.GITHUB_SERVER_URL = 'https://github.com'
     expect(config.isGhes()).toBe(false)
@@ -35,9 +40,21 @@ describe('isGhes', () => {
     expect(config.isGhes()).toBe(false)
   })
 
-  it('should return false when the request domain is specific to an enterprise', () => {
+  it('should return true on a self-hosted enterprise hostname when ACTIONS_RESULTS_URL is unset', () => {
     process.env.GITHUB_SERVER_URL = 'https://my-enterprise.github.com'
     expect(config.isGhes()).toBe(true)
+  })
+
+  it('should return false on a self-hosted enterprise hostname when ACTIONS_RESULTS_URL is set (v2 backend available)', () => {
+    process.env.GITHUB_SERVER_URL = 'https://my-enterprise.github.com'
+    process.env.ACTIONS_RESULTS_URL = 'https://results.example.com/'
+    expect(config.isGhes()).toBe(false)
+  })
+
+  it('should ignore ACTIONS_RESULTS_URL on github.com (already returns false there)', () => {
+    process.env.GITHUB_SERVER_URL = 'https://github.com'
+    process.env.ACTIONS_RESULTS_URL = 'https://results.example.com/'
+    expect(config.isGhes()).toBe(false)
   })
 })
 
