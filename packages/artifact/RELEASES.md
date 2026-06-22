@@ -1,5 +1,17 @@
 # @actions/artifact Releases
 
+## 6.2.2
+
+- Bump dependency versions ([#2393](https://github.com/actions/toolkit/pull/2393)):
+  - `@actions/core` to `^3.0.1`
+  - `@actions/github` to `^9.1.1`
+  - `@actions/http-client` to `^4.0.1`
+  - `@azure/storage-blob` to `^12.31.0`
+  - `@octokit/plugin-retry` to `^8.1.0`
+  - `@octokit/request` to `^10.0.8`
+  - `@protobuf-ts/runtime` to `^2.11.1`
+- Move `@protobuf-ts/plugin` to `devDependencies`
+
 ## 6.2.1
 
 - Support the RFC 5987 `filename*` field in the `content-disposition` header. This allows us to correctly download files and artifacts with Chinese/Japanese/Korean (among other) characters in their name.

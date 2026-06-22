@@ -221,6 +221,57 @@ test('save with reserve cache failure should fail', async () => {
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
+test('save with reserve cache denied by read-only token logs warning (not info)', async () => {
+  // V1 path: when the legacy ReserveCache REST call returns an error message
+  // starting with the stable `cache write denied:` prefix, the toolkit must
+  // surface it as a `core.warning` (not the usual `core.info` used for the
+  // generic "another job may be creating this cache" contention case).
+  const paths = ['node_modules']
+  const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const deniedMessage =
+    'cache write denied: read-only token issued for untrusted trigger'
+  const logInfoMock = jest.spyOn(core, 'info')
+  const logWarningMock = jest.spyOn(core, 'warning')
+
+  const reserveCacheMock = jest
+    .spyOn(cacheHttpClient, 'reserveCache')
+    .mockImplementation(async () => {
+      const response: ITypedResponseWithError<ReserveCacheResponse> = {
+        statusCode: 403,
+        result: null,
+        headers: {},
+        error: new HttpClientError(deniedMessage, 403)
+      }
+      return response
+    })
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
+  const compression = CompressionMethod.Zstd
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockReturnValueOnce(Promise.resolve(compression))
+
+  const cacheId = await saveCache(paths, primaryKey)
+  expect(cacheId).toBe(-1)
+
+  // The generic "another job may be creating this cache" info log MUST NOT
+  // fire — this is a policy denial, not a contention case.
+  expect(logInfoMock).not.toHaveBeenCalledWith(
+    expect.stringContaining('another job may be creating this cache')
+  )
+  // A single warning carrying the stable prefix is what the customer sees.
+  expect(logWarningMock).toHaveBeenCalledWith(
+    `Failed to save: Unable to reserve cache with key ${primaryKey}. More details: ${deniedMessage}`
+  )
+
+  expect(logWarningMock).toHaveBeenCalledTimes(1)
+  expect(reserveCacheMock).toHaveBeenCalledTimes(1)
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(saveCacheMock).toHaveBeenCalledTimes(0)
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+})
+
 test('save with server error should fail', async () => {
   const filePath = 'node_modules'
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'

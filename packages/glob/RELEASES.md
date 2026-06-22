@@ -1,5 +1,11 @@
 # @actions/glob Releases
 
+## 0.7.0
+
+- Bump `minimatch` from `^3.0.4` to `^10.2.5` [#2355](https://github.com/actions/toolkit/pull/2355)
+- Bump `undici` from `6.23.0` to `6.24.0` [#2345](https://github.com/actions/toolkit/pull/2345)
+- Bump `brace-expansion` in `/packages/glob` [#2369](https://github.com/actions/toolkit/pull/2369)
+
 ## 0.6.1
 
 - Fix a bad import for `minimatch`

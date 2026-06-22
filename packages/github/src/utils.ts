@@ -23,6 +23,8 @@ export const GitHub = Octokit.plugin(
   paginateRest
 ).defaults(defaults)
 
+export {getUserAgentWithOrchestrationId} from './internal/utils.js'
+
 /**
  * Convience function to correctly format Octokit Options to pass into the constructor.
  *
@@ -39,6 +41,14 @@ export function getOctokitOptions(
   const auth = Utils.getAuthString(token, opts)
   if (auth) {
     opts.auth = auth
+  }
+
+  // Orchestration ID
+  const userAgent = Utils.getUserAgentWithOrchestrationId(
+    opts.userAgent as string | undefined
+  )
+  if (userAgent) {
+    opts.userAgent = userAgent
   }
 
   return opts

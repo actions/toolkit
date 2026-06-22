@@ -100,6 +100,71 @@ test('create cache entry failure on non-ok response', async () => {
   expect(saveCacheMock).toHaveBeenCalledTimes(0)
 })
 
+test('create cache entry denied by read-only token logs single warning and skips inner warning', async () => {
+  // When the receiver signals a policy-driven write denial (token was
+  // downgraded to read-only), the toolkit should:
+  //   1. Suppress the inner `Cache reservation failed: ...` warning so the
+  //      runner log is not noisy with duplicate messages.
+  //   2. Emit a single outer `Failed to save: Unable to reserve cache with
+  //      key ${key}. More details: cache write denied: ...` at `warning`
+  //      level (not `info`), so the customer can see why caching stopped.
+  const paths = ['node_modules']
+  const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
+  const deniedMessage =
+    'cache write denied: read-only token issued for untrusted trigger'
+  const infoLogMock = jest.spyOn(core, 'info')
+  const warningLogMock = jest.spyOn(core, 'warning')
+
+  const createCacheEntryMock = jest
+    .spyOn(CacheServiceClientJSON.prototype, 'CreateCacheEntry')
+    .mockResolvedValue({ok: false, signedUploadUrl: '', message: deniedMessage})
+
+  const createTarMock = jest.spyOn(tar, 'createTar')
+  const finalizeCacheEntryMock = jest.spyOn(
+    CacheServiceClientJSON.prototype,
+    'FinalizeCacheEntryUpload'
+  )
+  const compression = CompressionMethod.Zstd
+  const getCompressionMock = jest
+    .spyOn(cacheUtils, 'getCompressionMethod')
+    .mockResolvedValueOnce(compression)
+  const archiveFileSize = 1024
+  jest
+    .spyOn(cacheUtils, 'getArchiveFileSizeInBytes')
+    .mockReturnValueOnce(archiveFileSize)
+  const cacheVersion = cacheUtils.getCacheVersion(paths, compression)
+  const saveCacheMock = jest.spyOn(cacheHttpClient, 'saveCache')
+
+  const cacheId = await saveCache(paths, key)
+  expect(cacheId).toBe(-1)
+
+  // No "another job may be creating this cache" info log: this is the
+  // policy-denial path, not a contention path.
+  expect(infoLogMock).not.toHaveBeenCalledWith(
+    `Failed to save: Unable to reserve cache with key ${key}, another job may be creating this cache.`
+  )
+  // No inner "Cache reservation failed:" warning either: the outer arm owns
+  // the customer-facing message in this scenario.
+  expect(warningLogMock).not.toHaveBeenCalledWith(
+    `Cache reservation failed: ${deniedMessage}`
+  )
+  // One outer warning that includes the stable "cache write denied:" prefix
+  // so the runner UI and post-action consumers can dispatch on it.
+  expect(warningLogMock).toHaveBeenCalledWith(
+    `Failed to save: Unable to reserve cache with key ${key}. More details: ${deniedMessage}`
+  )
+
+  expect(warningLogMock).toHaveBeenCalledTimes(1)
+  expect(createCacheEntryMock).toHaveBeenCalledWith({
+    key,
+    version: cacheVersion
+  })
+  expect(createTarMock).toHaveBeenCalledTimes(1)
+  expect(getCompressionMock).toHaveBeenCalledTimes(1)
+  expect(finalizeCacheEntryMock).toHaveBeenCalledTimes(0)
+  expect(saveCacheMock).toHaveBeenCalledTimes(0)
+})
+
 test('create cache entry fails on rejected promise', async () => {
   const paths = ['node_modules']
   const key = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
