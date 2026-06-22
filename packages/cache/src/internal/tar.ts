@@ -1,6 +1,9 @@
 import {exec} from '@actions/exec'
+import * as core from '@actions/core'
 import * as io from '@actions/io'
-import {existsSync, writeFileSync} from 'fs'
+import {existsSync, writeFileSync, unlinkSync} from 'fs'
+import * as os from 'os'
+import * as crypto from 'crypto'
 import * as path from 'path'
 import * as utils from './cacheUtils.js'
 import {ArchiveTool} from './contracts.js'
@@ -11,6 +14,15 @@ import {
   TarFilename,
   ManifestFilename
 } from './constants.js'
+import {CacheIntegrityError} from './cacheIntegrityError.js'
+import {listAndValidate} from './listAndValidate.js'
+import {
+  PathValidationMode,
+  PathValidationViolation,
+  deriveAllowedRoots,
+  formatViolationSummary,
+  getWorkingDirectory
+} from './pathValidation.js'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -55,7 +67,8 @@ async function getTarArgs(
   tarPath: ArchiveTool,
   compressionMethod: CompressionMethod,
   type: string,
-  archivePath = ''
+  archivePath = '',
+  allowListPath = ''
 ): Promise<string[]> {
   const args = [`"${tarPath.path}"`]
   const cacheFileName = utils.getCacheFileName(compressionMethod)
@@ -97,6 +110,34 @@ async function getTarArgs(
         '-C',
         workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       )
+      // When an extraction allow-list is supplied (pathValidation: 'error'
+      // with a clean archive), restrict extraction to exactly the members the
+      // validator approved, matched by the names node-tar derived from the
+      // same bytes. This makes the extraction parser's view of any
+      // path-channel parser differential a no-op: a member system tar would
+      // place at a different path than node-tar simply isn't on the list.
+      //
+      // `--null` MUST precede `-T` on GNU tar (otherwise the list is read
+      // newline-delimited with stray NULs). `--no-recursion` stops an
+      // approved directory from implicitly pulling in unapproved children.
+      // The `--no-wildcards*` / `--anchored` flags are GNU-only defence in
+      // depth; bsdtar lacks them but glob metacharacters are already rejected
+      // during validation, so its `fnmatch()`-based `-T` matching degrades to
+      // exact-name matching.
+      if (allowListPath) {
+        args.push('--null', '--no-recursion')
+        if (tarPath.type === ArchiveToolType.GNU) {
+          args.push(
+            '--no-wildcards',
+            '--no-wildcards-match-slash',
+            '--anchored'
+          )
+        }
+        args.push(
+          '-T',
+          `"${allowListPath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')}"`
+        )
+      }
       break
     case 'list':
       args.push(
@@ -128,7 +169,8 @@ async function getTarArgs(
 async function getCommands(
   compressionMethod: CompressionMethod,
   type: string,
-  archivePath = ''
+  archivePath = '',
+  allowListPath = ''
 ): Promise<string[]> {
   let args
 
@@ -137,7 +179,8 @@ async function getCommands(
     tarPath,
     compressionMethod,
     type,
-    archivePath
+    archivePath,
+    allowListPath
   )
   const compressionArgs =
     type !== 'create'
@@ -159,10 +202,6 @@ async function getCommands(
   }
 
   return [args.join(' ')]
-}
-
-function getWorkingDirectory(): string {
-  return process.env['GITHUB_WORKSPACE'] ?? process.cwd()
 }
 
 // Common function for extractTar and listTar to get the compression method
@@ -272,13 +311,172 @@ export async function listTar(
 // Extract a tar
 export async function extractTar(
   archivePath: string,
-  compressionMethod: CompressionMethod
+  compressionMethod: CompressionMethod,
+  options?: {
+    declaredPaths?: string[]
+    pathValidation?: PathValidationMode
+  }
 ): Promise<void> {
-  // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
+  const pathValidation: PathValidationMode = options?.pathValidation ?? 'off'
+
+  // Names approved for extraction by the validator. When pathValidation is
+  // 'error' and the archive is clean, system tar is restricted to exactly
+  // these members via a NUL-separated `-T` allow-list (see below).
+  let approvedNames: string[] | undefined
+
+  // Run path validation BEFORE creating the extraction directory or invoking
+  // system tar. In 'error' mode, a CacheIntegrityError thrown here means no
+  // bytes are ever written to the workspace. In 'warn' mode, violations are
+  // logged and extraction proceeds.
+  if (pathValidation !== 'off') {
+    const declaredPaths = options?.declaredPaths ?? []
+    let allowedRoots = deriveAllowedRoots(declaredPaths, workingDirectory)
+    // Fail-safe: if the caller didn't supply any declared paths (or all
+    // supplied paths were empty/negations), fall back to the workspace
+    // root as the sole allowed root. This still catches archives that try
+    // to escape the workspace via `..` or absolute paths.
+    if (allowedRoots.length === 0) {
+      allowedRoots = [workingDirectory]
+    }
+    let violations: PathValidationViolation[] | undefined
+    try {
+      const result = await listAndValidate(
+        archivePath,
+        compressionMethod,
+        allowedRoots,
+        workingDirectory
+      )
+      violations = result.violations
+      approvedNames = result.approvedNames
+    } catch (error) {
+      // Parse / decompression failure encountered while validating. The
+      // validator's tar parser is stricter than the system `tar` that
+      // performs the actual extraction, so an archive can fail validation
+      // here yet still extract cleanly. Honor the caller's mode:
+      //   - 'error': hard-fail; do not extract.
+      //   - 'warn': log a warning, skip validation, and let system tar
+      //             have a go. This preserves the legacy behavior where a
+      //             quirky-but-extractable archive doesn't break the build
+      //             just because the user opted into validation.
+      const message = `Cache archive integrity check failed: ${
+        (error as Error).message
+      }`
+      if (pathValidation === 'error') {
+        throw new CacheIntegrityError('PARSE_ERROR', message)
+      }
+      core.warning(
+        `${message}\nSkipping path validation and proceeding with extraction because pathValidation is 'warn'.`
+      )
+    }
+    if (violations && violations.length > 0) {
+      reportViolations(violations, pathValidation)
+      if (pathValidation === 'error') {
+        throw new CacheIntegrityError(
+          'PATH_VIOLATION',
+          `Cache archive contains ${violations.length} entr${
+            violations.length === 1 ? 'y' : 'ies'
+          } that resolve outside the declared cache paths. ` +
+            `Refusing to extract because pathValidation is 'error'.`,
+          violations
+        )
+      }
+      // In 'warn' mode a violation means we must NOT restrict extraction to
+      // the (possibly incomplete) approved list — fall back to extracting
+      // everything, matching legacy behavior.
+      approvedNames = undefined
+    }
+  }
+
+  // Create directory to extract tar into
   await io.mkdirP(workingDirectory)
-  const commands = await getCommands(compressionMethod, 'extract', archivePath)
-  await execCommands(commands)
+
+  // In 'error' mode with a clean archive, write the approved member names to a
+  // NUL-separated allow-list and restrict system tar to exactly those members.
+  // This closes path-channel parser differentials: a member tar would extract
+  // to an escaped path is not on the list, so it is never extracted.
+  let allowListPath = ''
+  if (pathValidation === 'error' && approvedNames !== undefined) {
+    allowListPath = writeAllowList(approvedNames)
+  }
+
+  try {
+    const commands = await getCommands(
+      compressionMethod,
+      'extract',
+      archivePath,
+      allowListPath
+    )
+    await execCommands(commands)
+  } finally {
+    if (allowListPath) {
+      try {
+        unlinkSync(allowListPath)
+      } catch {
+        // best-effort cleanup of the temporary allow-list file
+      }
+    }
+  }
+}
+
+/**
+ * Write the approved member names to a temporary NUL-separated file suitable
+ * for `tar --null -T`. Returns the absolute path to the written file. The
+ * caller is responsible for unlinking it.
+ */
+function writeAllowList(approvedNames: string[]): string {
+  const allowListPath = path.join(
+    os.tmpdir(),
+    `cache-allow-${process.pid}-${Date.now()}-${crypto
+      .randomBytes(8)
+      .toString('hex')}.lst`
+  )
+  // Write each approved name exactly as node-tar derived it from the archive
+  // bytes. That is the same name system tar reads from the archive header, so
+  // an anchored `-T` match succeeds for every member without us second-guessing
+  // tar's name handling. In particular we must NOT strip a leading `./`: GNU
+  // tar matches `-T` names anchored and exact and keeps the `./`, so a
+  // `cache/f` pattern does not match a `./cache/f` member (it fails with
+  // "Not found in archive", exit code 2) whereas the verbatim `./cache/f`
+  // matches and extracts to `cache/f`.
+  const payload = Buffer.concat(
+    approvedNames.flatMap(name => [Buffer.from(name, 'utf8'), Buffer.from([0])])
+  )
+  // `flag: 'wx'` (O_CREAT | O_EXCL | O_WRONLY) makes the open fail if the path
+  // already exists, so a file or symlink pre-planted at the (randomized) temp
+  // path on a shared/self-hosted runner cannot redirect or capture the write.
+  // mode 0o600 keeps the list readable only by the current user. Both options
+  // behave consistently on Windows, macOS and Linux.
+  writeFileSync(allowListPath, payload, {mode: 0o600, flag: 'wx'})
+  return allowListPath
+}
+
+function reportViolations(
+  violations: PathValidationViolation[],
+  mode: PathValidationMode
+): void {
+  const header =
+    mode === 'error'
+      ? `Cache archive failed integrity check (${violations.length} violation${
+          violations.length === 1 ? '' : 's'
+        }).`
+      : `Cache archive contains ${violations.length} entr${
+          violations.length === 1 ? 'y' : 'ies'
+        } that resolve outside the declared cache paths.`
+  // One-line warning so the Actions log surfaces a single attention-grabbing
+  // entry. The truncated, human-readable list goes to `core.info` so users see
+  // it at default verbosity without us emitting multi-line warnings (which
+  // some log surfaces collapse). Full per-violation details still go to
+  // `core.debug` for triage of large archives.
+  core.warning(header)
+  core.info(formatViolationSummary(violations))
+  for (const v of violations) {
+    core.debug(
+      `path-validation: code=${v.code} type=${v.entryType} path=${v.path}${
+        v.linkpath ? ` linkpath=${v.linkpath}` : ''
+      } resolved=${v.resolved} reason=${v.reason}`
+    )
+  }
 }
 
 // Create a tar

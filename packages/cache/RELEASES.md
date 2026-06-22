@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+## 6.2.0
+
+- Add opt-in cache-archive path validation during restore via `DownloadOptions.pathValidation` (`'off' | 'warn' | 'error'`). When enabled, downloaded archives are streamed through an in-process `node-tar` validator before extraction; entries (and link targets) that escape the declared cache `paths` are reported as warnings or rejected with a `CacheIntegrityError`. In `'error'` mode on a clean archive, system `tar` extraction is additionally restricted to the validator-approved members, and parser-differential defenses (length-correct PAX re-parsing, unsafe-character / glob-metacharacter / unknown-PAX-key rejection) guard against listing-vs-extraction bypasses.
+
 ## 6.1.0
 
 - Handle cache write error due to read-only token: detect the `cache write denied:` prefix on cache reservation failures and surface it as a `core.warning` (without failing the run).
