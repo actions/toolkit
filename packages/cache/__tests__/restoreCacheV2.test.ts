@@ -113,18 +113,13 @@ test('restore with server error should fail', async () => {
 })
 
 test('restore denied by read-only token logs warning and reports cache miss', async () => {
-  // When the receiver refuses the download URL because the run's token has no
-  // readable cache scopes, it returns a twirp PermissionDenied (HTTP 403).
-  // The twirp client wraps that 403 into a generic Error, so the stable
-  // `cache read denied:` prefix arrives embedded in the message (not at the
-  // start). The toolkit must dispatch on that prefix, log a single warning
-  // (not an error, even though the underlying status is 403), and report a
-  // cache miss so the workflow continues.
+  // The receiver returns twirp PermissionDenied (403) when the run's token has
+  // no readable cache scopes; the client wraps it so the `cache read denied:`
+  // prefix arrives embedded. Expect a single warning (not error) and a miss.
   const paths = ['node_modules']
   const key = 'node-test'
   const logErrorMock = jest.spyOn(core, 'error')
   const logWarningMock = jest.spyOn(core, 'warning')
-  // Realistic wrapped shape produced by cacheTwirpClient for a 403 response.
   const wrappedDeniedMessage =
     'Failed to GetCacheEntryDownloadURL: Received non-retryable error: ' +
     'Failed request: (403) Forbidden: cache read denied: token has no readable scopes'
@@ -137,10 +132,7 @@ test('restore denied by read-only token logs warning and reports cache miss', as
 
   const cacheKey = await restoreCache(paths, key)
   expect(cacheKey).toBe(undefined)
-  // 403 must not be logged as an error.
   expect(logErrorMock).not.toHaveBeenCalled()
-  // A single warning that carries the stable `cache read denied:` prefix so
-  // the runner UI and consumers can dispatch on it.
   expect(logWarningMock).toHaveBeenCalledWith(
     `Failed to restore: ${wrappedDeniedMessage}`
   )

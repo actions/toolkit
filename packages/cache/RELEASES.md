@@ -1,5 +1,9 @@
 # @actions/cache Releases
 
+## 6.2.0
+
+- Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures and surface it as a `core.warning` (without failing the run).
+
 ## 6.1.0
 
 - Handle cache write error due to read-only token: detect the `cache write denied:` prefix on cache reservation failures and surface it as a `core.warning` (without failing the run).

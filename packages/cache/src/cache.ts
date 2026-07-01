@@ -62,33 +62,15 @@ export class CacheWriteDeniedError extends ReserveCacheError {
   }
 }
 
-/**
- * Stable prefix the receiver embeds in the twirp error it returns from
- * GetCacheEntryDownloadURL when the issuer scoped the run's token so that it
- * has no readable cache scopes (a policy read denial). restoreCacheV2
- * dispatches on this prefix to re-classify the failure as a
- * CacheReadDeniedError so it can surface a policy-specific warning instead of
- * a generic restore failure.
- *
- * Note: unlike the write path, GetCacheEntryDownloadURLResponse has no
- * `message` field, so the receiver signals the denial as a twirp
- * PermissionDenied (HTTP 403). The twirp client wraps that 403 in a generic
- * Error, so this prefix appears embedded in the thrown error's message rather
- * than at the very start -- match with `includes`, not `startsWith`.
- */
+// Prefix the receiver embeds in the twirp error from GetCacheEntryDownloadURL
+// when the run's token has no readable cache scopes. Match with `includes`,
+// not `startsWith`: the 403 is wrapped by the twirp client, so the prefix ends
+// up embedded in the message.
 export const CACHE_READ_DENIED_PREFIX = 'cache read denied:'
 
-/**
- * Raised when the cache backend refuses to return a cache download URL because
- * the JWT issued for this run has no readable cache scopes (for example, the
- * run was triggered by an event the repository administrator classified as
- * untrusted). The receiver-supplied detail message contains
- * `cache read denied:` (the full error message includes additional context).
- *
- * Caching is best-effort, so restoreCacheV2 does not rethrow this to
- * consumers; it logs a policy-specific warning and reports a cache miss so the
- * workflow continues.
- */
+// Raised when the cache backend denies a download URL because the run's token
+// has no readable cache scopes. Caching is best-effort, so restoreCacheV2 logs
+// a warning and reports a cache miss rather than rethrowing this.
 export class CacheReadDeniedError extends Error {
   constructor(message: string) {
     super(message)
@@ -405,12 +387,8 @@ async function restoreCacheV2(
     if (typedError.name === ValidationError.name) {
       throw error
     } else if (typedError.message?.includes(CACHE_READ_DENIED_PREFIX)) {
-      // The receiver returns a twirp PermissionDenied (HTTP 403) when the
-      // run's token has no readable cache scopes. The twirp client wraps that
-      // 403 in a generic Error, so the stable `cache read denied:` prefix is
-      // embedded in the message rather than at the start. Surface a
-      // policy-specific warning and treat it as a cache miss so the workflow
-      // continues.
+      // Read denied by policy (token has no readable cache scopes). Warn and
+      // treat as a cache miss so the workflow continues.
       const readDeniedError = new CacheReadDeniedError(typedError.message)
       core.warning(`Failed to restore: ${readDeniedError.message}`)
     } else {
