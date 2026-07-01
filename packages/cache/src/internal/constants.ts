@@ -38,3 +38,8 @@ export const TarFilename = 'cache.tar'
 export const ManifestFilename = 'manifest.txt'
 
 export const CacheFileSizeLimit = 10 * Math.pow(1024, 3) // 10GiB per repository
+
+// Prefix the cache backend embeds in a read-denial message (v2 twirp
+// GetCacheEntryDownloadURL error or the GHES v1 `_apis/artifactcache` 403 body).
+// Shared so cache.ts and cacheHttpClient.ts match the same contract value.
+export const CacheReadDeniedMessagePrefix = 'cache read denied:'

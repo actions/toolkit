@@ -13,6 +13,7 @@ import {
   GetCacheEntryDownloadURLRequest
 } from './generated/results/api/v1/cache.js'
 import {HttpClientError} from '@actions/http-client'
+import {CacheReadDeniedMessagePrefix} from './internal/constants.js'
 
 export type {DownloadOptions, UploadOptions}
 export class ValidationError extends Error {
@@ -62,11 +63,9 @@ export class CacheWriteDeniedError extends ReserveCacheError {
   }
 }
 
-// Prefix the receiver embeds in a cache read denial: the v2 twirp
-// GetCacheEntryDownloadURL error, or the GHES v1 `_apis/artifactcache` 403
-// body. Match with `includes`, not `startsWith`: the message is wrapped by
-// the transport, so the prefix ends up embedded rather than leading.
-export const CACHE_READ_DENIED_PREFIX = 'cache read denied:'
+// Re-exported from constants so consumers keep referencing it here; the shared
+// value also drives detection in cacheHttpClient without duplicating the string.
+export const CACHE_READ_DENIED_PREFIX = CacheReadDeniedMessagePrefix
 
 // Raised when the cache backend denies a download URL because the run's token
 // has no readable cache scopes. Caching is best-effort, so restoreCache logs a
