@@ -331,7 +331,19 @@ async function restoreCacheV2(
       )
     }
 
-    const response = await twirpClient.GetCacheEntryDownloadURL(request)
+    let response
+    try {
+      response = await twirpClient.GetCacheEntryDownloadURL(request)
+    } catch (error) {
+      // The receiver returns twirp PermissionDenied (403) when the run's token
+      // has no readable cache scopes. The client wraps that 403, so the stable
+      // prefix is embedded in the message rather than leading it.
+      const errorMessage = (error as Error)?.message ?? ''
+      if (errorMessage.includes(CACHE_READ_DENIED_PREFIX)) {
+        throw new CacheReadDeniedError(errorMessage)
+      }
+      throw error
+    }
 
     if (!response.ok) {
       core.debug(
@@ -386,11 +398,10 @@ async function restoreCacheV2(
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
-    } else if (typedError.message?.includes(CACHE_READ_DENIED_PREFIX)) {
+    } else if (typedError.name === CacheReadDeniedError.name) {
       // Read denied by policy (token has no readable cache scopes). Warn and
       // treat as a cache miss so the workflow continues.
-      const readDeniedError = new CacheReadDeniedError(typedError.message)
-      core.warning(`Failed to restore: ${readDeniedError.message}`)
+      core.warning(`Failed to restore: ${typedError.message}`)
     } else {
       // Supress all non-validation cache related errors because caching should be optional
       // Log server errors (5xx) as errors, all other errors as warnings
