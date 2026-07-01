@@ -101,12 +101,13 @@ export async function getCacheEntry(
     return null
   }
   if (!isSuccessStatusCode(response.statusCode)) {
-    // Surface the receiver's error message (e.g. a `cache read denied:` policy
-    // denial) so callers can dispatch on it, falling back to the status code.
-    throw new Error(
-      response.error?.message ??
-        `Cache service responded with ${response.statusCode}`
-    )
+    // Only surface the receiver's body for a `cache read denied:` policy denial
+    // so callers can dispatch on it; keep the generic message otherwise.
+    const errorMessage = response.error?.message
+    if (errorMessage?.includes('cache read denied:')) {
+      throw new Error(errorMessage)
+    }
+    throw new Error(`Cache service responded with ${response.statusCode}`)
   }
 
   const cacheResult = response.result
