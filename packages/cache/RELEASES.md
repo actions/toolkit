@@ -2,7 +2,7 @@
 
 ## 6.2.0
 
-- Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures and surface it as a `core.warning` (without failing the run).
+- Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures (both the v2 twirp path and the v1 `_apis/artifactcache` path) and surface it as a `core.warning` (without failing the run).
 
 ## 6.1.0
 

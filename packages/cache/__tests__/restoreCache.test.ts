@@ -99,6 +99,30 @@ test('restore with server error should fail', async () => {
   delete process.env['ACTIONS_RESULTS_URL']
 })
 
+test('restore denied by read-only token logs warning and reports cache miss', async () => {
+  // The GHES v1 artifact cache service returns HTTP 403 with a
+  // `cache read denied:` body when the token has no readable scopes.
+  // getCacheEntry surfaces that message; expect a single warning (not error)
+  // and a cache miss.
+  const paths = ['node_modules']
+  const key = 'node-test'
+  const logErrorMock = jest.spyOn(core, 'error')
+  const logWarningMock = jest.spyOn(core, 'warning')
+  const deniedMessage = 'cache read denied: token has no readable scopes'
+
+  jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
+    throw new Error(deniedMessage)
+  })
+
+  const cacheKey = await restoreCache(paths, key)
+  expect(cacheKey).toBe(undefined)
+  expect(logErrorMock).not.toHaveBeenCalled()
+  expect(logWarningMock).toHaveBeenCalledWith(
+    `Failed to restore: ${deniedMessage}`
+  )
+  expect(logWarningMock).toHaveBeenCalledTimes(1)
+})
+
 test('restore with restore keys and no cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'

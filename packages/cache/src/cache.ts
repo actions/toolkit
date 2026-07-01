@@ -62,15 +62,15 @@ export class CacheWriteDeniedError extends ReserveCacheError {
   }
 }
 
-// Prefix the receiver embeds in the twirp error from GetCacheEntryDownloadURL
-// when the run's token has no readable cache scopes. Match with `includes`,
-// not `startsWith`: the 403 is wrapped by the twirp client, so the prefix ends
-// up embedded in the message.
+// Prefix the receiver embeds in a cache read denial: the v2 twirp
+// GetCacheEntryDownloadURL error, or the GHES v1 `_apis/artifactcache` 403
+// body. Match with `includes`, not `startsWith`: the message is wrapped by
+// the transport, so the prefix ends up embedded rather than leading.
 export const CACHE_READ_DENIED_PREFIX = 'cache read denied:'
 
 // Raised when the cache backend denies a download URL because the run's token
-// has no readable cache scopes. Caching is best-effort, so restoreCacheV2 logs
-// a warning and reports a cache miss rather than rethrowing this.
+// has no readable cache scopes. Caching is best-effort, so restoreCache logs a
+// warning and reports a cache miss rather than rethrowing this.
 export class CacheReadDeniedError extends Error {
   constructor(message: string) {
     super(message)
@@ -208,10 +208,23 @@ async function restoreCacheV1(
   let archivePath = ''
   try {
     // path are needed to compute version
-    const cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
-      compressionMethod,
-      enableCrossOsArchive
-    })
+    let cacheEntry
+    try {
+      cacheEntry = await cacheHttpClient.getCacheEntry(keys, paths, {
+        compressionMethod,
+        enableCrossOsArchive
+      })
+    } catch (error) {
+      // The GHES v1 artifact cache service returns HTTP 403 with a
+      // `cache read denied:` body when the run's token has no readable cache
+      // scopes. getCacheEntry surfaces that body message, so re-classify it
+      // here to mirror the read-denied handling on the v2 path.
+      const errorMessage = (error as Error)?.message ?? ''
+      if (errorMessage.includes(CACHE_READ_DENIED_PREFIX)) {
+        throw new CacheReadDeniedError(errorMessage)
+      }
+      throw error
+    }
     if (!cacheEntry?.archiveLocation) {
       // Cache not found
       return undefined
@@ -254,6 +267,10 @@ async function restoreCacheV1(
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
+    } else if (typedError.name === CacheReadDeniedError.name) {
+      // Read denied by policy (token has no readable cache scopes). Warn and
+      // treat as a cache miss so the workflow continues.
+      core.warning(`Failed to restore: ${typedError.message}`)
     } else {
       // warn on cache restore failure and continue build
       // Log server errors (5xx) as errors, all other errors as warnings
