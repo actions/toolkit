@@ -4,18 +4,14 @@ import * as fs from 'fs'
 import * as stream from 'stream'
 import * as util from 'util'
 import * as path from 'path'
-import minimatch from 'minimatch'
+import {Minimatch, type MinimatchOptions} from 'minimatch'
 import {Globber} from './glob.js'
 import {HashFileOptions} from './internal-hash-file-options.js'
-
-type IMinimatch = minimatch.IMinimatch
-type IMinimatchOptions = minimatch.IOptions
-const {Minimatch} = minimatch
 
 const IS_WINDOWS = process.platform === 'win32'
 const MAX_WARNED_FILES = 10
 
-const MINIMATCH_OPTIONS: IMinimatchOptions = {
+const MINIMATCH_OPTIONS: MinimatchOptions = {
   dot: true,
   nobrace: true,
   nocase: IS_WINDOWS,
@@ -25,8 +21,8 @@ const MINIMATCH_OPTIONS: IMinimatchOptions = {
 }
 
 type ExcludeMatcher = {
-  absolutePathMatcher: IMinimatch
-  workspaceRelativeMatcher: IMinimatch
+  absolutePathMatcher: Minimatch
+  relativePathMatcher: Minimatch
 }
 
 type OutsideRootFile = {
@@ -63,11 +59,11 @@ function buildExcludeMatchers(excludePatterns: string[]): ExcludeMatcher[] {
       absolutePathMatcher: new Minimatch(normalizedPattern, {
         ...MINIMATCH_OPTIONS,
         matchBase: false
-      } as IMinimatchOptions),
-      workspaceRelativeMatcher: new Minimatch(normalizedPattern, {
+      }),
+      relativePathMatcher: new Minimatch(normalizedPattern, {
         ...MINIMATCH_OPTIONS,
         matchBase: isBasenamePattern
-      } as IMinimatchOptions)
+      })
     }
   })
 }
@@ -75,18 +71,19 @@ function buildExcludeMatchers(excludePatterns: string[]): ExcludeMatcher[] {
 function isExcluded(
   resolvedFile: string,
   excludeMatchers: ExcludeMatcher[],
-  workspaceForRelativeMatch: string
+  rootsForRelativeMatch: string[]
 ): boolean {
   if (excludeMatchers.length === 0) return false
   const absolutePath = path.resolve(resolvedFile)
   const absolutePathForMatch = normalizeForMatch(absolutePath)
-  const workspaceRelativePathForMatch = normalizeForMatch(
-    path.relative(workspaceForRelativeMatch, absolutePath)
+  // Match relative patterns against every allowed root (and the workspace).
+  const relativePathsForMatch = rootsForRelativeMatch.map(root =>
+    normalizeForMatch(path.relative(root, absolutePath))
   )
   return excludeMatchers.some(
     m =>
       m.absolutePathMatcher.match(absolutePathForMatch) ||
-      m.workspaceRelativeMatcher.match(workspaceRelativePathForMatch)
+      relativePathsForMatch.some(rel => m.relativePathMatcher.match(rel))
   )
 }
 
@@ -107,9 +104,8 @@ export async function hashFiles(
   try {
     resolvedWorkspace = fs.realpathSync(githubWorkspace)
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
     writeDelegate(
-      `Could not resolve workspace '${githubWorkspace}', falling back to original path. Details: ${msg}`
+      `Could not resolve workspace '${githubWorkspace}', falling back to original path. Details: ${err.message}`
     )
   }
 
@@ -136,8 +132,7 @@ export async function hashFiles(
 
       resolvedRootsSet.add(resolvedRoot)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      writeDelegate(`Skipping unresolved root '${root}'. Details: ${msg}`)
+      writeDelegate(`Skipping unresolved root '${root}'. Details: ${err.message}`)
     }
   }
 
@@ -148,6 +143,11 @@ export async function hashFiles(
     )
     return ''
   }
+
+  // Workspace + every allowed root, used to evaluate relative exclude patterns.
+  const rootsForRelativeMatch = Array.from(
+    new Set([resolvedWorkspace, ...resolvedRoots])
+  )
 
   const outsideRootFiles: OutsideRootFile[] = []
   const result = crypto.createHash('sha256')
@@ -163,15 +163,14 @@ export async function hashFiles(
     try {
       resolvedFile = fs.realpathSync(file)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
       core.warning(
-        `Could not read "${file}". Please check symlinks and file access. Details: ${msg}`
+        `Could not read "${file}". Please check symlinks and file access. Details: ${err.message}`
       )
       continue
     }
 
     // Exclude matching patterns (apply to resolved path for symlink-safety)
-    if (isExcluded(resolvedFile, excludeMatchers, resolvedWorkspace)) {
+    if (isExcluded(resolvedFile, excludeMatchers, rootsForRelativeMatch)) {
       writeDelegate(`Exclude '${file}' (exclude pattern match).`)
       continue
     }
