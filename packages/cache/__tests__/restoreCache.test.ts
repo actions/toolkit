@@ -123,6 +123,29 @@ test('restore denied by read-only token logs warning and reports cache miss', as
   expect(logWarningMock).toHaveBeenCalledTimes(1)
 })
 
+test('restore surfaces a non-read-denied getCacheEntry error as a normal warning', async () => {
+  // Guards the inner catch in restoreCacheV1: only `cache read denied:` errors
+  // are re-classified; every other getCacheEntry failure must pass through and
+  // be logged normally (not swallowed or mislabeled as a read denial).
+  const paths = ['node_modules']
+  const key = 'node-test'
+  const logErrorMock = jest.spyOn(core, 'error')
+  const logWarningMock = jest.spyOn(core, 'warning')
+  const genericMessage = 'Cache service responded with 400'
+
+  jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
+    throw new Error(genericMessage)
+  })
+
+  const cacheKey = await restoreCache(paths, key)
+  expect(cacheKey).toBe(undefined)
+  expect(logErrorMock).not.toHaveBeenCalled()
+  expect(logWarningMock).toHaveBeenCalledWith(
+    `Failed to restore: ${genericMessage}`
+  )
+  expect(logWarningMock).toHaveBeenCalledTimes(1)
+})
+
 test('restore with restore keys and no cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'
