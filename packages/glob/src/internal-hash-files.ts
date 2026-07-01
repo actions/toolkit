@@ -132,7 +132,9 @@ export async function hashFiles(
 
       resolvedRootsSet.add(resolvedRoot)
     } catch (err) {
-      writeDelegate(`Skipping unresolved root '${root}'. Details: ${err.message}`)
+      writeDelegate(
+        `Skipping unresolved root '${root}'. Details: ${err.message}`
+      )
     }
   }
 
