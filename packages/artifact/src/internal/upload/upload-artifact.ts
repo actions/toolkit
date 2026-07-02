@@ -48,7 +48,6 @@ export async function uploadArtifact(
     }
 
     artifactFileName = path.basename(files[0])
-    name = artifactFileName
   }
 
   validateArtifactName(name)
