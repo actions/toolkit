@@ -147,14 +147,20 @@ test('restore surfaces a non-read-denied getCacheEntry error as a normal warning
 })
 
 describe('restore cache-mode gating', () => {
-  const original = process.env.ACTIONS_CACHE_MODE
+  const originalMode = process.env.ACTIONS_CACHE_MODE
+  const originalV2 = process.env.ACTIONS_CACHE_SERVICE_V2
+
+  const restoreEnv = (key: string, value: string | undefined): void => {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
 
   afterEach(() => {
-    if (original === undefined) {
-      delete process.env.ACTIONS_CACHE_MODE
-    } else {
-      process.env.ACTIONS_CACHE_MODE = original
-    }
+    restoreEnv('ACTIONS_CACHE_MODE', originalMode)
+    restoreEnv('ACTIONS_CACHE_SERVICE_V2', originalV2)
   })
 
   test.each(['none', 'write-only'])(
@@ -168,13 +174,35 @@ describe('restore cache-mode gating', () => {
 
       expect(cacheKey).toBe(undefined)
       expect(getCacheEntryMock).not.toHaveBeenCalled()
+      expect(logInfoMock).toHaveBeenCalledTimes(1)
       expect(logInfoMock).toHaveBeenCalledWith(
         `Cache restore skipped: the effective cache-mode '${mode}' does not permit reads.`
       )
     }
   )
 
-  test.each(['read', 'write', ''])(
+  // The skip short-circuits before v1/v2 dispatch, so it applies regardless of
+  // the ACTIONS_CACHE_SERVICE_V2 feature flag.
+  test.each([
+    ['none', undefined],
+    ['none', 'true'],
+    ['write-only', undefined],
+    ['write-only', 'true']
+  ])(
+    "mode '%s' skips restore with ACTIONS_CACHE_SERVICE_V2=%s",
+    async (mode, v2) => {
+      process.env.ACTIONS_CACHE_MODE = mode
+      restoreEnv('ACTIONS_CACHE_SERVICE_V2', v2)
+      const getCacheEntryMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
+
+      const cacheKey = await restoreCache(['node_modules'], 'node-test')
+
+      expect(cacheKey).toBe(undefined)
+      expect(getCacheEntryMock).not.toHaveBeenCalled()
+    }
+  )
+
+  test.each(['read', 'write', '', 'garbage'])(
     "mode '%s' does not skip restore",
     async mode => {
       if (mode === '') {

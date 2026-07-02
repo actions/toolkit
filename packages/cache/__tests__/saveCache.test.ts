@@ -58,14 +58,20 @@ test('save with missing input should fail', async () => {
 })
 
 describe('save cache-mode gating', () => {
-  const original = process.env.ACTIONS_CACHE_MODE
+  const originalMode = process.env.ACTIONS_CACHE_MODE
+  const originalV2 = process.env.ACTIONS_CACHE_SERVICE_V2
+
+  const restoreEnv = (key: string, value: string | undefined): void => {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
 
   afterEach(() => {
-    if (original === undefined) {
-      delete process.env.ACTIONS_CACHE_MODE
-    } else {
-      process.env.ACTIONS_CACHE_MODE = original
-    }
+    restoreEnv('ACTIONS_CACHE_MODE', originalMode)
+    restoreEnv('ACTIONS_CACHE_SERVICE_V2', originalV2)
   })
 
   test.each(['read', 'none'])(
@@ -79,13 +85,35 @@ describe('save cache-mode gating', () => {
 
       expect(cacheId).toBe(-1)
       expect(resolvePathsMock).not.toHaveBeenCalled()
+      expect(logInfoMock).toHaveBeenCalledTimes(1)
       expect(logInfoMock).toHaveBeenCalledWith(
         `Cache save skipped: the effective cache-mode '${mode}' does not permit writes.`
       )
     }
   )
 
-  test.each(['write', 'write-only', ''])(
+  // The skip short-circuits before v1/v2 dispatch, so it applies regardless of
+  // the ACTIONS_CACHE_SERVICE_V2 feature flag.
+  test.each([
+    ['read', undefined],
+    ['read', 'true'],
+    ['none', undefined],
+    ['none', 'true']
+  ])(
+    "mode '%s' skips save with ACTIONS_CACHE_SERVICE_V2=%s",
+    async (mode, v2) => {
+      process.env.ACTIONS_CACHE_MODE = mode
+      restoreEnv('ACTIONS_CACHE_SERVICE_V2', v2)
+      const resolvePathsMock = jest.spyOn(cacheUtils, 'resolvePaths')
+
+      const cacheId = await saveCache(['node_modules'], 'node-test')
+
+      expect(cacheId).toBe(-1)
+      expect(resolvePathsMock).not.toHaveBeenCalled()
+    }
+  )
+
+  test.each(['write', 'write-only', '', 'garbage'])(
     "mode '%s' does not skip save",
     async mode => {
       if (mode === '') {
