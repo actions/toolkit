@@ -146,6 +146,57 @@ test('restore surfaces a non-read-denied getCacheEntry error as a normal warning
   expect(logWarningMock).toHaveBeenCalledTimes(1)
 })
 
+describe('restore cache-mode gating', () => {
+  const original = process.env.ACTIONS_CACHE_MODE
+
+  afterEach(() => {
+    if (original === undefined) {
+      delete process.env.ACTIONS_CACHE_MODE
+    } else {
+      process.env.ACTIONS_CACHE_MODE = original
+    }
+  })
+
+  test.each(['none', 'write-only'])(
+    "mode '%s' skips restore without touching the cache service",
+    async mode => {
+      process.env.ACTIONS_CACHE_MODE = mode
+      const logInfoMock = jest.spyOn(core, 'info')
+      const getCacheEntryMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
+
+      const cacheKey = await restoreCache(['node_modules'], 'node-test')
+
+      expect(cacheKey).toBe(undefined)
+      expect(getCacheEntryMock).not.toHaveBeenCalled()
+      expect(logInfoMock).toHaveBeenCalledWith(
+        `Cache restore skipped: the effective cache-mode '${mode}' does not permit reads.`
+      )
+    }
+  )
+
+  test.each(['read', 'write', ''])(
+    "mode '%s' does not skip restore",
+    async mode => {
+      if (mode === '') {
+        delete process.env.ACTIONS_CACHE_MODE
+      } else {
+        process.env.ACTIONS_CACHE_MODE = mode
+      }
+      const logInfoMock = jest.spyOn(core, 'info')
+      const getCacheEntryMock = jest
+        .spyOn(cacheHttpClient, 'getCacheEntry')
+        .mockResolvedValue(null as never)
+
+      await restoreCache(['node_modules'], 'node-test')
+
+      expect(getCacheEntryMock).toHaveBeenCalledTimes(1)
+      expect(logInfoMock).not.toHaveBeenCalledWith(
+        expect.stringContaining('Cache restore skipped')
+      )
+    }
+  )
+})
+
 test('restore with restore keys and no cache found', async () => {
   const paths = ['node_modules']
   const key = 'node-test'

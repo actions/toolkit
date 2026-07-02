@@ -35,6 +35,18 @@ beforeAll(() => {
   jest.spyOn(cacheUtils, 'createTempDirectory').mockImplementation(async () => {
     return Promise.resolve('/foo/bar')
   })
+  // config is auto-mocked; use the real cache-mode helpers so gating reflects
+  // ACTIONS_CACHE_MODE and unset stays permissive.
+  const actualConfig = jest.requireActual('../src/internal/config')
+  jest
+    .spyOn(config, 'getCacheMode')
+    .mockImplementation(actualConfig.getCacheMode)
+  jest
+    .spyOn(config, 'isCacheReadable')
+    .mockImplementation(actualConfig.isCacheReadable)
+  jest
+    .spyOn(config, 'isCacheWritable')
+    .mockImplementation(actualConfig.isCacheWritable)
 })
 
 test('save with missing input should fail', async () => {
@@ -42,6 +54,60 @@ test('save with missing input should fail', async () => {
   const primaryKey = 'Linux-node-bb828da54c148048dd17899ba9fda624811cfb43'
   await expect(saveCache(paths, primaryKey)).rejects.toThrowError(
     `Path Validation Error: At least one directory or file path is required`
+  )
+})
+
+describe('save cache-mode gating', () => {
+  const original = process.env.ACTIONS_CACHE_MODE
+
+  afterEach(() => {
+    if (original === undefined) {
+      delete process.env.ACTIONS_CACHE_MODE
+    } else {
+      process.env.ACTIONS_CACHE_MODE = original
+    }
+  })
+
+  test.each(['read', 'none'])(
+    "mode '%s' skips save without touching the cache service",
+    async mode => {
+      process.env.ACTIONS_CACHE_MODE = mode
+      const logInfoMock = jest.spyOn(core, 'info')
+      const resolvePathsMock = jest.spyOn(cacheUtils, 'resolvePaths')
+
+      const cacheId = await saveCache(['node_modules'], 'node-test')
+
+      expect(cacheId).toBe(-1)
+      expect(resolvePathsMock).not.toHaveBeenCalled()
+      expect(logInfoMock).toHaveBeenCalledWith(
+        `Cache save skipped: the effective cache-mode '${mode}' does not permit writes.`
+      )
+    }
+  )
+
+  test.each(['write', 'write-only', ''])(
+    "mode '%s' does not skip save",
+    async mode => {
+      if (mode === '') {
+        delete process.env.ACTIONS_CACHE_MODE
+      } else {
+        process.env.ACTIONS_CACHE_MODE = mode
+      }
+      const logInfoMock = jest.spyOn(core, 'info')
+      const resolvePathsMock = jest.spyOn(cacheUtils, 'resolvePaths')
+
+      try {
+        await saveCache(['node_modules'], 'node-test')
+      } catch {
+        // Downstream client is not fully mocked here; we only assert the guard
+        // let execution proceed past it.
+      }
+
+      expect(resolvePathsMock).toHaveBeenCalled()
+      expect(logInfoMock).not.toHaveBeenCalledWith(
+        expect.stringContaining('Cache save skipped')
+      )
+    }
   )
 })
 

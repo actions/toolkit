@@ -33,6 +33,19 @@ beforeAll(() => {
   // Ensure that we're using v2 for these tests
   jest.spyOn(config, 'getCacheServiceVersion').mockReturnValue('v2')
 
+  // config is auto-mocked; use the real cache-mode helpers so gating reflects
+  // ACTIONS_CACHE_MODE and unset stays permissive.
+  const actualConfig = jest.requireActual('../src/internal/config')
+  jest
+    .spyOn(config, 'getCacheMode')
+    .mockImplementation(actualConfig.getCacheMode)
+  jest
+    .spyOn(config, 'isCacheReadable')
+    .mockImplementation(actualConfig.isCacheReadable)
+  jest
+    .spyOn(config, 'isCacheWritable')
+    .mockImplementation(actualConfig.isCacheWritable)
+
   logDebugMock = jest.spyOn(core, 'debug')
   logInfoMock = jest.spyOn(core, 'info')
 })

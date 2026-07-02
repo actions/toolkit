@@ -3,7 +3,13 @@ import * as path from 'path'
 import * as utils from './internal/cacheUtils.js'
 import * as cacheHttpClient from './internal/cacheHttpClient.js'
 import * as cacheTwirpClient from './internal/shared/cacheTwirpClient.js'
-import {getCacheServiceVersion, isGhes} from './internal/config.js'
+import {
+  getCacheServiceVersion,
+  isGhes,
+  getCacheMode,
+  isCacheReadable,
+  isCacheWritable
+} from './internal/config.js'
 import {DownloadOptions, UploadOptions} from './options.js'
 import {createTar, extractTar, listTar} from './internal/tar.js'
 import {
@@ -149,6 +155,17 @@ export async function restoreCache(
   core.debug(`Cache service version: ${cacheServiceVersion}`)
 
   checkPaths(paths)
+
+  const cacheMode = getCacheMode()
+  if (!isCacheReadable(cacheMode)) {
+    core.info(
+      `Cache restore skipped: the effective cache-mode '${cacheMode}' does not permit reads.`
+    )
+    core.debug(
+      `Skipped restore for paths [${paths.join(', ')}] with primary key '${primaryKey}'.`
+    )
+    return undefined
+  }
 
   switch (cacheServiceVersion) {
     case 'v2':
@@ -463,6 +480,18 @@ export async function saveCache(
   core.debug(`Cache service version: ${cacheServiceVersion}`)
   checkPaths(paths)
   checkKey(key)
+
+  const cacheMode = getCacheMode()
+  if (!isCacheWritable(cacheMode)) {
+    core.info(
+      `Cache save skipped: the effective cache-mode '${cacheMode}' does not permit writes.`
+    )
+    core.debug(
+      `Skipped save for paths [${paths.join(', ')}] with key '${key}'.`
+    )
+    return -1
+  }
+
   switch (cacheServiceVersion) {
     case 'v2':
       return await saveCacheV2(paths, key, options, enableCrossOsArchive)
