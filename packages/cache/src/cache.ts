@@ -370,7 +370,7 @@ async function restoreCacheV2(
     if (typedError.name === ValidationError.name) {
       throw error
     } else {
-      // Supress all non-validation cache related errors because caching should be optional
+      // Suppress all non-validation cache related errors because caching should be optional
       // Log server errors (5xx) as errors, all other errors as warnings
       if (
         typedError instanceof HttpClientError &&

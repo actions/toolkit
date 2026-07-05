@@ -127,7 +127,7 @@ export async function getGnuTarPathOnWindows(): Promise<string> {
 
 export function assertDefined<T>(name: string, value?: T): T {
   if (value === undefined) {
-    throw Error(`Expected ${name} but value was undefiend`)
+    throw Error(`Expected ${name} but value was undefined`)
   }
 
   return value

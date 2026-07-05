@@ -61,7 +61,7 @@ async function getTarArgs(
   const cacheFileName = utils.getCacheFileName(compressionMethod)
   const tarFile = 'cache.tar'
   const workingDirectory = getWorkingDirectory()
-  // Speficic args for BSD tar on windows for workaround
+  // Specific args for BSD tar on windows for workaround
   const BSD_TAR_ZSTD =
     tarPath.type === ArchiveToolType.BSD &&
     compressionMethod !== CompressionMethod.Gzip &&

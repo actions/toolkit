@@ -132,7 +132,7 @@ Read more about the change & access the migration guide: [reference to the annou
 
 ## 3.1.3
 
-- Fix to prevent from setting MYSYS environement variable globally [#1329](https://github.com/actions/toolkit/pull/1329).
+- Fix to prevent from setting MYSYS environment variable globally [#1329](https://github.com/actions/toolkit/pull/1329).
 
 ## 3.1.2
 
