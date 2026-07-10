@@ -19,8 +19,8 @@ export function getCacheServiceVersion(): string {
   return process.env['ACTIONS_CACHE_SERVICE_V2'] ? 'v2' : 'v1'
 }
 
-// The cache-mode lattice (ADR c2c-actions#10264): readable = {read, write},
-// writable = {write, write-only}, none = neither.
+// The cache-mode lattice: readable = {read, write}, writable = {write,
+// write-only}, none = neither.
 const KNOWN_CACHE_MODES = ['none', 'read', 'write', 'write-only']
 
 // The effective cache-mode exported by the runner, or '' when not set.
