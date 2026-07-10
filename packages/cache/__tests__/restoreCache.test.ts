@@ -163,24 +163,6 @@ describe('restore cache-mode gating', () => {
     restoreEnv('ACTIONS_CACHE_SERVICE_V2', originalV2)
   })
 
-  test.each(['none', 'write-only'])(
-    "mode '%s' skips restore without touching the cache service",
-    async mode => {
-      process.env.ACTIONS_CACHE_MODE = mode
-      const logInfoMock = jest.spyOn(core, 'info')
-      const getCacheEntryMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
-
-      const cacheKey = await restoreCache(['node_modules'], 'node-test')
-
-      expect(cacheKey).toBe(undefined)
-      expect(getCacheEntryMock).not.toHaveBeenCalled()
-      expect(logInfoMock).toHaveBeenCalledTimes(1)
-      expect(logInfoMock).toHaveBeenCalledWith(
-        `Cache restore skipped: the effective cache-mode '${mode}' does not permit reads.`
-      )
-    }
-  )
-
   // The skip short-circuits before v1/v2 dispatch, so it applies regardless of
   // the ACTIONS_CACHE_SERVICE_V2 feature flag.
   test.each([
@@ -193,12 +175,17 @@ describe('restore cache-mode gating', () => {
     async (mode, v2) => {
       process.env.ACTIONS_CACHE_MODE = mode
       restoreEnv('ACTIONS_CACHE_SERVICE_V2', v2)
+      const logInfoMock = jest.spyOn(core, 'info')
       const getCacheEntryMock = jest.spyOn(cacheHttpClient, 'getCacheEntry')
 
       const cacheKey = await restoreCache(['node_modules'], 'node-test')
 
       expect(cacheKey).toBe(undefined)
       expect(getCacheEntryMock).not.toHaveBeenCalled()
+      expect(logInfoMock).toHaveBeenCalledTimes(1)
+      expect(logInfoMock).toHaveBeenCalledWith(
+        `Cache restore skipped: the effective cache-mode '${mode}' does not permit reads.`
+      )
     }
   )
 

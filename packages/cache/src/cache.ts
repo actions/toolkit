@@ -231,10 +231,12 @@ async function restoreCacheV1(
         enableCrossOsArchive
       })
     } catch (error) {
-      // The GHES v1 artifact cache service returns HTTP 403 with a
+      // The v1 artifact cache service returns HTTP 403 with a
       // `cache read denied:` body when the run's token has no readable cache
-      // scopes. getCacheEntry surfaces that body message, so re-classify it
-      // here to mirror the read-denied handling on the v2 path.
+      // scopes. getCacheEntry lives in a dependency-free internal module and
+      // cannot import CacheReadDeniedError without a circular dependency, so it
+      // only surfaces the raw denial message; we classify it into the typed
+      // error here so the outer catch and consumers can dispatch on it.
       const errorMessage = (error as Error)?.message ?? ''
       if (errorMessage.includes(CACHE_READ_DENIED_PREFIX)) {
         throw new CacheReadDeniedError(errorMessage)
@@ -283,13 +285,11 @@ async function restoreCacheV1(
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
-    } else if (typedError.name === CacheReadDeniedError.name) {
-      // Read denied by policy (token has no readable cache scopes). Warn and
-      // treat as a cache miss so the workflow continues.
-      core.warning(`Failed to restore: ${typedError.message}`)
     } else {
       // warn on cache restore failure and continue build
-      // Log server errors (5xx) as errors, all other errors as warnings
+      // Log server errors (5xx) as errors, all other errors as warnings.
+      // A read denied by policy (CacheReadDeniedError) is not an HttpClientError
+      // so it falls here and is warned, treated as a cache miss.
       if (
         typedError instanceof HttpClientError &&
         typeof typedError.statusCode === 'number' &&
@@ -431,13 +431,11 @@ async function restoreCacheV2(
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
-    } else if (typedError.name === CacheReadDeniedError.name) {
-      // Read denied by policy (token has no readable cache scopes). Warn and
-      // treat as a cache miss so the workflow continues.
-      core.warning(`Failed to restore: ${typedError.message}`)
     } else {
       // Suppress all non-validation cache related errors because caching should be optional
-      // Log server errors (5xx) as errors, all other errors as warnings
+      // Log server errors (5xx) as errors, all other errors as warnings.
+      // A read denied by policy (CacheReadDeniedError) is not an HttpClientError
+      // so it falls here and is warned, treated as a cache miss.
       if (
         typedError instanceof HttpClientError &&
         typeof typedError.statusCode === 'number' &&

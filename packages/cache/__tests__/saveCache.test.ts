@@ -74,24 +74,6 @@ describe('save cache-mode gating', () => {
     restoreEnv('ACTIONS_CACHE_SERVICE_V2', originalV2)
   })
 
-  test.each(['read', 'none'])(
-    "mode '%s' skips save without touching the cache service",
-    async mode => {
-      process.env.ACTIONS_CACHE_MODE = mode
-      const logInfoMock = jest.spyOn(core, 'info')
-      const resolvePathsMock = jest.spyOn(cacheUtils, 'resolvePaths')
-
-      const cacheId = await saveCache(['node_modules'], 'node-test')
-
-      expect(cacheId).toBe(-1)
-      expect(resolvePathsMock).not.toHaveBeenCalled()
-      expect(logInfoMock).toHaveBeenCalledTimes(1)
-      expect(logInfoMock).toHaveBeenCalledWith(
-        `Cache save skipped: the effective cache-mode '${mode}' does not permit writes.`
-      )
-    }
-  )
-
   // The skip short-circuits before v1/v2 dispatch, so it applies regardless of
   // the ACTIONS_CACHE_SERVICE_V2 feature flag.
   test.each([
@@ -104,12 +86,17 @@ describe('save cache-mode gating', () => {
     async (mode, v2) => {
       process.env.ACTIONS_CACHE_MODE = mode
       restoreEnv('ACTIONS_CACHE_SERVICE_V2', v2)
+      const logInfoMock = jest.spyOn(core, 'info')
       const resolvePathsMock = jest.spyOn(cacheUtils, 'resolvePaths')
 
       const cacheId = await saveCache(['node_modules'], 'node-test')
 
       expect(cacheId).toBe(-1)
       expect(resolvePathsMock).not.toHaveBeenCalled()
+      expect(logInfoMock).toHaveBeenCalledTimes(1)
+      expect(logInfoMock).toHaveBeenCalledWith(
+        `Cache save skipped: the effective cache-mode '${mode}' does not permit writes.`
+      )
     }
   )
 
