@@ -39,12 +39,13 @@ export class ReserveCacheError extends Error {
 }
 
 /**
- * Stable prefix the receiver writes into the cache reservation response when
- * the issuer downgraded the cache token to read-only (for example, because
+ * Stable prefix the cache service writes into the cache reservation response
+ * when the issuer downgraded the cache token to read-only (for example, because
  * the run was triggered by an untrusted event). saveCacheV1 / saveCacheV2
- * dispatch on this prefix to re-classify the failure as a
- * CacheWriteDeniedError so consumers (and the outer catch arm) can
- * distinguish a policy denial from other reservation failures.
+ * dispatch on this prefix to re-classify the failure as a CacheWriteDeniedError
+ * so consumers and tests can distinguish a policy denial from other reservation
+ * failures. Internally it is logged as a non-fatal warning like other
+ * best-effort save failures.
  */
 export const CACHE_WRITE_DENIED_PREFIX = 'cache write denied:'
 
@@ -52,7 +53,7 @@ export const CACHE_WRITE_DENIED_PREFIX = 'cache write denied:'
  * Raised when the cache backend refuses to reserve a writable cache entry
  * because the JWT issued for this run was scoped read-only (for example, the
  * run was triggered by an event the repository administrator classified as
- * untrusted). The receiver-supplied detail message always begins with
+ * untrusted). The service-supplied detail message always begins with
  * `cache write denied:` (the full error message includes additional context
  * like the cache key).
  *
@@ -597,15 +598,13 @@ async function saveCacheV1(
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
-    } else if (typedError.name === CacheWriteDeniedError.name) {
-      // Cache write was denied by policy (read-only token). Surface to the
-      // customer at warning level so it is visible in the workflow log
-      // without failing the run.
-      core.warning(`Failed to save: ${typedError.message}`)
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else {
-      // Log server errors (5xx) as errors, all other errors as warnings
+      // Log server errors (5xx) as errors, all other errors as warnings.
+      // A write denied by policy (CacheWriteDeniedError) is not an
+      // HttpClientError and its name does not match the ReserveCacheError arm,
+      // so it falls here and is warned without failing the run.
       if (
         typedError instanceof HttpClientError &&
         typeof typedError.statusCode === 'number' &&
@@ -759,17 +758,15 @@ async function saveCacheV2(
     const typedError = error as Error
     if (typedError.name === ValidationError.name) {
       throw error
-    } else if (typedError.name === CacheWriteDeniedError.name) {
-      // Cache write was denied by policy (read-only token). Surface to the
-      // customer at warning level so it is visible in the workflow log
-      // without failing the run.
-      core.warning(`Failed to save: ${typedError.message}`)
     } else if (typedError.name === ReserveCacheError.name) {
       core.info(`Failed to save: ${typedError.message}`)
     } else if (typedError.name === FinalizeCacheError.name) {
       core.warning(typedError.message)
     } else {
-      // Log server errors (5xx) as errors, all other errors as warnings
+      // Log server errors (5xx) as errors, all other errors as warnings.
+      // A write denied by policy (CacheWriteDeniedError) is not an
+      // HttpClientError and its name does not match the ReserveCacheError arm,
+      // so it falls here and is warned without failing the run.
       if (
         typedError instanceof HttpClientError &&
         typeof typedError.statusCode === 'number' &&
