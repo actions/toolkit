@@ -99,50 +99,24 @@ test('restore with server error should fail', async () => {
   delete process.env['ACTIONS_RESULTS_URL']
 })
 
-test('restore denied by read-only token logs warning and reports cache miss', async () => {
-  // The GHES v1 artifact cache service returns HTTP 403 with a
-  // `cache read denied:` body when the token has no readable scopes.
-  // getCacheEntry surfaces that message; expect a single warning (not error)
-  // and a cache miss.
+test('restore surfaces a getCacheEntry failure as a warning and reports a cache miss', async () => {
+  // restoreCache treats any getCacheEntry failure (read-denied or otherwise)
+  // as a non-fatal warning and a cache miss so the workflow continues. The
+  // read-denied prefix detection itself is covered in cacheHttpClient.test.ts.
   const paths = ['node_modules']
   const key = 'node-test'
   const logErrorMock = jest.spyOn(core, 'error')
   const logWarningMock = jest.spyOn(core, 'warning')
-  const deniedMessage = 'cache read denied: token has no readable scopes'
+  const message = 'cache read denied: token has no readable scopes'
 
   jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
-    throw new Error(deniedMessage)
+    throw new Error(message)
   })
 
   const cacheKey = await restoreCache(paths, key)
   expect(cacheKey).toBe(undefined)
   expect(logErrorMock).not.toHaveBeenCalled()
-  expect(logWarningMock).toHaveBeenCalledWith(
-    `Failed to restore: ${deniedMessage}`
-  )
-  expect(logWarningMock).toHaveBeenCalledTimes(1)
-})
-
-test('restore surfaces a non-read-denied getCacheEntry error as a normal warning', async () => {
-  // Guards the inner catch in restoreCacheV1: only `cache read denied:` errors
-  // are re-classified; every other getCacheEntry failure must pass through and
-  // be logged normally (not swallowed or mislabeled as a read denial).
-  const paths = ['node_modules']
-  const key = 'node-test'
-  const logErrorMock = jest.spyOn(core, 'error')
-  const logWarningMock = jest.spyOn(core, 'warning')
-  const genericMessage = 'Cache service responded with 400'
-
-  jest.spyOn(cacheHttpClient, 'getCacheEntry').mockImplementation(async () => {
-    throw new Error(genericMessage)
-  })
-
-  const cacheKey = await restoreCache(paths, key)
-  expect(cacheKey).toBe(undefined)
-  expect(logErrorMock).not.toHaveBeenCalled()
-  expect(logWarningMock).toHaveBeenCalledWith(
-    `Failed to restore: ${genericMessage}`
-  )
+  expect(logWarningMock).toHaveBeenCalledWith(`Failed to restore: ${message}`)
   expect(logWarningMock).toHaveBeenCalledTimes(1)
 })
 

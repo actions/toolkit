@@ -60,7 +60,7 @@ test('getCacheVersion with enableCrossOsArchive as false returns version on wind
 })
 
 test('getCacheEntry throws a generic status-code error for non-read-denied failures', async () => {
-  // Regression: a non read-denied failure must NOT leak the receiver's body
+  // Regression: a non read-denied failure must NOT leak the server's body
   // message; it should surface the generic status-code error.
   jest.spyOn(requestUtils, 'retryTypedResponse').mockResolvedValue({
     statusCode: 403,
