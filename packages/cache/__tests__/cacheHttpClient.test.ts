@@ -1,8 +1,10 @@
-import {downloadCache} from '../src/internal/cacheHttpClient'
+import {downloadCache, getCacheEntry} from '../src/internal/cacheHttpClient'
 import {getCacheVersion} from '../src/internal/cacheUtils'
 import {CompressionMethod} from '../src/internal/constants'
 import * as downloadUtils from '../src/internal/downloadUtils'
+import * as requestUtils from '../src/internal/requestUtils'
 import {DownloadOptions, getDownloadOptions} from '../src/options'
+import {HttpClientError} from '@actions/http-client'
 
 jest.mock('../src/internal/downloadUtils')
 
@@ -55,6 +57,37 @@ test('getCacheVersion with enableCrossOsArchive as false returns version on wind
       '2db19d6596dc34f51f0043120148827a264863f5c6ac857569c2af7119bad14e'
     )
   }
+})
+
+test('getCacheEntry throws a generic status-code error for non-read-denied failures', async () => {
+  // Regression: a non read-denied failure must NOT leak the server's body
+  // message; it should surface the generic status-code error.
+  jest.spyOn(requestUtils, 'retryTypedResponse').mockResolvedValue({
+    statusCode: 403,
+    result: null,
+    headers: {},
+    error: new HttpClientError('some other server detail', 403)
+  })
+
+  await expect(getCacheEntry(['key'], ['node_modules'])).rejects.toThrow(
+    'Cache service responded with 403'
+  )
+})
+
+test('getCacheEntry surfaces the body message for a cache read denial', async () => {
+  jest.spyOn(requestUtils, 'retryTypedResponse').mockResolvedValue({
+    statusCode: 403,
+    result: null,
+    headers: {},
+    error: new HttpClientError(
+      'cache read denied: token has no readable scopes',
+      403
+    )
+  })
+
+  await expect(getCacheEntry(['key'], ['node_modules'])).rejects.toThrow(
+    'cache read denied: token has no readable scopes'
+  )
 })
 
 test('downloadCache uses http-client for non-Azure URLs', async () => {

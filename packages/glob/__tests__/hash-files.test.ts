@@ -1,4 +1,5 @@
 import * as io from '../../io/src/io.js'
+import * as os from 'os'
 import * as path from 'path'
 import {hashFiles} from '../src/glob.js'
 import {promises as fs} from 'fs'
@@ -122,6 +123,179 @@ describe('globber', () => {
     expect(hash).toEqual(
       '4e911ea5824830b6a3ec096c7833d5af8381c189ffaa825c3503a5333a73eadc'
     )
+  })
+
+  it('hashes files in allowed roots only', async () => {
+    const root = path.join(getTestTemp(), 'roots-hashfiles')
+    const dir1 = path.join(root, 'dir1')
+    const dir2 = path.join(root, 'dir2')
+    await fs.mkdir(dir1, {recursive: true})
+    await fs.mkdir(dir2, {recursive: true})
+    await fs.writeFile(path.join(dir1, 'file1.txt'), 'test 1 file content')
+    await fs.writeFile(path.join(dir2, 'file2.txt'), 'test 2 file content')
+
+    const broadPattern = `${root}/**`
+
+    const hashDir1Only = await hashFiles(broadPattern, '', {roots: [dir1]})
+    expect(hashDir1Only).not.toEqual('')
+
+    const hashDir2Only = await hashFiles(broadPattern, '', {roots: [dir2]})
+    expect(hashDir2Only).not.toEqual('')
+
+    expect(hashDir1Only).not.toEqual(hashDir2Only)
+
+    const hashBoth = await hashFiles(broadPattern, '', {roots: [dir1, dir2]})
+    expect(hashBoth).not.toEqual(hashDir1Only)
+    expect(hashBoth).not.toEqual(hashDir2Only)
+
+    const hashDir1Again = await hashFiles(broadPattern, '', {roots: [dir1]})
+    expect(hashDir1Again).toEqual(hashDir1Only)
+  })
+
+  it('skips outside-root matches by default (hash unchanged)', async () => {
+    const root = path.join(getTestTemp(), 'default-skip-outside-roots')
+    const dir1 = path.join(root, 'dir1')
+    const outsideDir = path.join(root, 'outsideDir')
+
+    await fs.mkdir(dir1, {recursive: true})
+    await fs.mkdir(outsideDir, {recursive: true})
+
+    await fs.writeFile(path.join(dir1, 'file1.txt'), 'test 1 file content')
+    await fs.writeFile(
+      path.join(outsideDir, 'fileOut.txt'),
+      'test outside file content'
+    )
+
+    const insideOnly = await hashFiles(`${dir1}/*`, '', {roots: [dir1]})
+    expect(insideOnly).not.toEqual('')
+
+    const patterns = `${dir1}/*\n${outsideDir}/*`
+    const defaultSkip = await hashFiles(patterns, '', {roots: [dir1]})
+
+    expect(defaultSkip).toEqual(insideOnly)
+  })
+
+  it('allows files outside roots if opted-in (hash changes)', async () => {
+    const root = path.join(getTestTemp(), 'allow-outside-roots')
+    const dir1 = path.join(root, 'dir1')
+    const outsideDir = path.join(root, 'outsideDir')
+    await fs.mkdir(dir1, {recursive: true})
+    await fs.mkdir(outsideDir, {recursive: true})
+    await fs.writeFile(path.join(dir1, 'file1.txt'), 'test 1 file content')
+    await fs.writeFile(
+      path.join(outsideDir, 'fileOut.txt'),
+      'test outside file content'
+    )
+
+    const insideOnly = await hashFiles(`${dir1}/*`, '', {roots: [dir1]})
+    expect(insideOnly).not.toEqual('')
+
+    const patterns = `${dir1}/*\n${outsideDir}/*`
+    const withOptIn1 = await hashFiles(patterns, '', {
+      roots: [dir1],
+      allowFilesOutsideWorkspace: true
+    })
+    expect(withOptIn1).not.toEqual('')
+    expect(withOptIn1).not.toEqual(insideOnly)
+
+    const withOptIn2 = await hashFiles(patterns, '', {
+      roots: [dir1],
+      allowFilesOutsideWorkspace: true
+    })
+    expect(withOptIn2).toEqual(withOptIn1)
+  })
+
+  it('excludes files matching exclude patterns', async () => {
+    const root = path.join(getTestTemp(), 'exclude-hashfiles')
+    await fs.mkdir(root, {recursive: true})
+    await fs.writeFile(path.join(root, 'file1.txt'), 'test 1 file content')
+    await fs.writeFile(path.join(root, 'file2.log'), 'test 2 file content')
+
+    const all = await hashFiles(`${root}/*`, '', {roots: [root]})
+    expect(all).not.toEqual('')
+
+    // Exclude by exact filename and extension
+    const excluded = await hashFiles(`${root}/*`, '', {
+      roots: [root],
+      exclude: ['file2.log', '*.log']
+    })
+    expect(excluded).not.toEqual('')
+
+    const justIncluded = await hashFiles(
+      `${path.join(root, 'file1.txt')}`,
+      '',
+      {
+        roots: [root]
+      }
+    )
+
+    expect(excluded).toEqual(justIncluded)
+    expect(excluded).not.toEqual(all)
+  })
+
+  it('hashes files outside GITHUB_WORKSPACE only when opted-in', async () => {
+    // Files inside the workspace (GITHUB_WORKSPACE is set to __dirname).
+    const insideRoot = path.join(getTestTemp(), 'outside-workspace-inside')
+    await fs.mkdir(insideRoot, {recursive: true})
+    await fs.writeFile(path.join(insideRoot, 'inside.txt'), 'inside content')
+
+    // Files in a directory outside GITHUB_WORKSPACE (__dirname).
+    const outsideRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-outside-')
+    )
+    try {
+      await fs.writeFile(
+        path.join(outsideRoot, 'outside.txt'),
+        'outside content'
+      )
+
+      const patterns = `${insideRoot}/*\n${outsideRoot}/*`
+
+      const insideOnly = await hashFiles(`${insideRoot}/*`)
+      expect(insideOnly).not.toEqual('')
+
+      // By default, files outside the workspace are skipped (hash unchanged).
+      const defaultSkip = await hashFiles(patterns)
+      expect(defaultSkip).toEqual(insideOnly)
+
+      // With opt-in, files outside the workspace are included (hash changes).
+      const withOptIn = await hashFiles(patterns, '', {
+        allowFilesOutsideWorkspace: true
+      })
+      expect(withOptIn).not.toEqual('')
+      expect(withOptIn).not.toEqual(insideOnly)
+    } finally {
+      await io.rmRF(outsideRoot)
+    }
+  })
+
+  it('applies relative exclude patterns across all allowed roots', async () => {
+    const root = path.join(getTestTemp(), 'exclude-across-roots')
+    const dir1 = path.join(root, 'dir1')
+    const dir2 = path.join(root, 'dir2')
+    await fs.mkdir(path.join(dir1, 'sub'), {recursive: true})
+    await fs.mkdir(path.join(dir2, 'sub'), {recursive: true})
+    await fs.writeFile(path.join(dir1, 'sub', 'secret.txt'), 'secret 1')
+    await fs.writeFile(path.join(dir2, 'sub', 'secret.txt'), 'secret 2')
+    await fs.writeFile(path.join(dir1, 'keep.txt'), 'keep 1')
+    await fs.writeFile(path.join(dir2, 'keep.txt'), 'keep 2')
+
+    const patterns = `${dir1}/**\n${dir2}/**`
+
+    // 'sub/secret.txt' must be excluded under both roots.
+    const excluded = await hashFiles(patterns, '', {
+      roots: [dir1, dir2],
+      exclude: ['sub/secret.txt']
+    })
+    expect(excluded).not.toEqual('')
+
+    // Hashing only the kept files should produce the same hash.
+    const keepOnly = await hashFiles(
+      `${path.join(dir1, 'keep.txt')}\n${path.join(dir2, 'keep.txt')}`,
+      '',
+      {roots: [dir1, dir2]}
+    )
+    expect(excluded).toEqual(keepOnly)
   })
 })
 

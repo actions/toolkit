@@ -19,6 +19,26 @@ export function getCacheServiceVersion(): string {
   return process.env['ACTIONS_CACHE_SERVICE_V2'] ? 'v2' : 'v1'
 }
 
+// The cache-mode lattice: readable = {read, write}, writable = {write,
+// write-only}, none = neither.
+const KNOWN_CACHE_MODES = ['none', 'read', 'write', 'write-only']
+
+// The effective cache-mode exported by the runner, or '' when not set.
+export function getCacheMode(): string {
+  return (process.env['ACTIONS_CACHE_MODE'] || '').trim().toLowerCase()
+}
+
+// Unset or unrecognized modes are permissive so behavior matches today.
+export function isCacheReadable(mode: string): boolean {
+  if (!KNOWN_CACHE_MODES.includes(mode)) return true
+  return mode === 'read' || mode === 'write'
+}
+
+export function isCacheWritable(mode: string): boolean {
+  if (!KNOWN_CACHE_MODES.includes(mode)) return true
+  return mode === 'write' || mode === 'write-only'
+}
+
 export function getCacheServiceURL(): string {
   const version = getCacheServiceVersion()
 

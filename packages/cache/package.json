@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "description": "Actions cache lib",
   "keywords": [
     "github",
