@@ -5,10 +5,11 @@ import {
   RequestOptions,
   TypedResponse
 } from '@actions/http-client/lib/interfaces'
+import {GetObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3'
 import * as fs from 'fs'
-import {URL} from 'url'
+import * as stream from 'stream'
+import * as util from 'util'
 import * as utils from './cacheUtils.js'
-import {uploadCacheArchiveSDK} from './uploadUtils.js'
 import {
   ArtifactCacheEntry,
   InternalCacheOptions,
@@ -18,25 +19,12 @@ import {
   ITypedResponseWithError,
   ArtifactCacheList
 } from './contracts.js'
-import {
-  downloadCacheHttpClient,
-  downloadCacheHttpClientConcurrent,
-  downloadCacheStorageSDK
-} from './downloadUtils.js'
-import {
-  DownloadOptions,
-  UploadOptions,
-  getDownloadOptions,
-  getUploadOptions
-} from '../options.js'
-import {
-  isSuccessStatusCode,
-  retryHttpClientResponse,
-  retryTypedResponse
-} from './requestUtils.js'
+import {DownloadOptions, UploadOptions} from '../options.js'
+import {isSuccessStatusCode, retryTypedResponse} from './requestUtils.js'
 import {getCacheServiceURL} from './config.js'
 import {CacheReadDeniedMessagePrefix} from './constants.js'
 import {getUserAgentString} from './shared/user-agent.js'
+import {getS3CacheConfiguration} from './s3CacheConfig.js'
 
 function getCacheApiUrl(resource: string): string {
   const baseUrl: string = getCacheServiceURL()
@@ -152,32 +140,29 @@ async function printCachesListForDiagnostics(
 export async function downloadCache(
   archiveLocation: string,
   archivePath: string,
-  options?: DownloadOptions
+  _options?: DownloadOptions
 ): Promise<void> {
-  const archiveUrl = new URL(archiveLocation)
-  const downloadOptions = getDownloadOptions(options)
+  void archiveLocation
+  void _options
+  const {bucket, objectKey, s3ClientConfig} = getS3CacheConfiguration()
+  const client = new S3Client(s3ClientConfig)
 
-  if (archiveUrl.hostname.endsWith('.blob.core.windows.net')) {
-    if (downloadOptions.useAzureSdk) {
-      // Use Azure storage SDK to download caches hosted on Azure to improve speed and reliability.
-      await downloadCacheStorageSDK(
-        archiveLocation,
-        archivePath,
-        downloadOptions
+  try {
+    const response = await client.send(
+      new GetObjectCommand({Bucket: bucket, Key: objectKey})
+    )
+    if (!(response.Body instanceof stream.Readable)) {
+      throw new Error(
+        'S3 cache download response did not contain a readable body.'
       )
-    } else if (downloadOptions.concurrentBlobDownloads) {
-      // Use concurrent implementation with HttpClient to work around blob SDK issue
-      await downloadCacheHttpClientConcurrent(
-        archiveLocation,
-        archivePath,
-        downloadOptions
-      )
-    } else {
-      // Otherwise, download using the Actions http-client.
-      await downloadCacheHttpClient(archiveLocation, archivePath)
     }
-  } else {
-    await downloadCacheHttpClient(archiveLocation, archivePath)
+
+    await util.promisify(stream.pipeline)(
+      response.Body,
+      fs.createWriteStream(archivePath)
+    )
+  } finally {
+    client.destroy()
   }
 }
 
@@ -208,115 +193,6 @@ export async function reserveCache(
   return response
 }
 
-function getContentRange(start: number, end: number): string {
-  // Format: `bytes start-end/filesize
-  // start and end are inclusive
-  // filesize can be *
-  // For a 200 byte chunk starting at byte 0:
-  // Content-Range: bytes 0-199/*
-  return `bytes ${start}-${end}/*`
-}
-
-async function uploadChunk(
-  httpClient: HttpClient,
-  resourceUrl: string,
-  openStream: () => NodeJS.ReadableStream,
-  start: number,
-  end: number
-): Promise<void> {
-  core.debug(
-    `Uploading chunk of size ${
-      end - start + 1
-    } bytes at offset ${start} with content range: ${getContentRange(
-      start,
-      end
-    )}`
-  )
-  const additionalHeaders = {
-    'Content-Type': 'application/octet-stream',
-    'Content-Range': getContentRange(start, end)
-  }
-
-  const uploadChunkResponse = await retryHttpClientResponse(
-    `uploadChunk (start: ${start}, end: ${end})`,
-    async () =>
-      httpClient.sendStream(
-        'PATCH',
-        resourceUrl,
-        openStream(),
-        additionalHeaders
-      )
-  )
-
-  if (!isSuccessStatusCode(uploadChunkResponse.message.statusCode)) {
-    throw new Error(
-      `Cache service responded with ${uploadChunkResponse.message.statusCode} during upload chunk.`
-    )
-  }
-}
-
-async function uploadFile(
-  httpClient: HttpClient,
-  cacheId: number,
-  archivePath: string,
-  options?: UploadOptions
-): Promise<void> {
-  // Upload Chunks
-  const fileSize = utils.getArchiveFileSizeInBytes(archivePath)
-  const resourceUrl = getCacheApiUrl(`caches/${cacheId.toString()}`)
-  const fd = fs.openSync(archivePath, 'r')
-  const uploadOptions = getUploadOptions(options)
-
-  const concurrency = utils.assertDefined(
-    'uploadConcurrency',
-    uploadOptions.uploadConcurrency
-  )
-  const maxChunkSize = utils.assertDefined(
-    'uploadChunkSize',
-    uploadOptions.uploadChunkSize
-  )
-
-  const parallelUploads = [...new Array(concurrency).keys()]
-  core.debug('Awaiting all uploads')
-  let offset = 0
-
-  try {
-    await Promise.all(
-      parallelUploads.map(async () => {
-        while (offset < fileSize) {
-          const chunkSize = Math.min(fileSize - offset, maxChunkSize)
-          const start = offset
-          const end = offset + chunkSize - 1
-          offset += maxChunkSize
-
-          await uploadChunk(
-            httpClient,
-            resourceUrl,
-            () =>
-              fs
-                .createReadStream(archivePath, {
-                  fd,
-                  start,
-                  end,
-                  autoClose: false
-                })
-                .on('error', error => {
-                  throw new Error(
-                    `Cache upload failed because file read failed with ${error.message}`
-                  )
-                }),
-            start,
-            end
-          )
-        }
-      })
-    )
-  } finally {
-    fs.closeSync(fd)
-  }
-  return
-}
-
 async function commitCache(
   httpClient: HttpClient,
   cacheId: number,
@@ -334,28 +210,31 @@ async function commitCache(
 export async function saveCache(
   cacheId: number,
   archivePath: string,
-  signedUploadURL?: string,
+  signedUploadUrl?: string,
   options?: UploadOptions
 ): Promise<void> {
-  const uploadOptions = getUploadOptions(options)
+  void options
+  const {bucket, objectKey, s3ClientConfig} = getS3CacheConfiguration()
+  const client = new S3Client(s3ClientConfig)
 
-  if (uploadOptions.useAzureSdk) {
-    // Use Azure storage SDK to upload caches directly to Azure
-    if (!signedUploadURL) {
-      throw new Error(
-        'Azure Storage SDK can only be used when a signed URL is provided.'
-      )
-    }
-    await uploadCacheArchiveSDK(signedUploadURL, archivePath, options)
-  } else {
+  try {
+    core.debug('Upload cache to S3')
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: objectKey,
+        Body: fs.createReadStream(archivePath)
+      })
+    )
+  } finally {
+    client.destroy()
+  }
+
+  // v2 finalizes uploads through Twirp. v1 still requires the legacy commit.
+  if (!signedUploadUrl) {
     const httpClient = createHttpClient()
-
-    core.debug('Upload cache')
-    await uploadFile(httpClient, cacheId, archivePath, options)
-
-    // Commit Cache
-    core.debug('Commiting cache')
     const cacheSize = utils.getArchiveFileSizeInBytes(archivePath)
+    core.debug('Commiting cache')
     core.info(
       `Cache Size: ~${Math.round(
         cacheSize / (1024 * 1024)
