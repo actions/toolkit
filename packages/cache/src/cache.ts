@@ -20,6 +20,10 @@ import {
 } from './generated/results/api/v1/cache.js'
 import {HttpClientError} from '@actions/http-client'
 import {CacheReadDeniedMessagePrefix} from './internal/constants.js'
+export {
+  configureS3Cache,
+  type S3CacheConfiguration
+} from './internal/s3CacheConfig.js'
 
 export type {DownloadOptions, UploadOptions}
 export class ValidationError extends Error {
@@ -330,11 +334,6 @@ async function restoreCacheV2(
   options?: DownloadOptions,
   enableCrossOsArchive = false
 ): Promise<string | undefined> {
-  // Override UploadOptions to force the use of Azure
-  options = {
-    ...options,
-    useAzureSdk: true
-  }
   restoreKeys = restoreKeys || []
   const keys = [primaryKey, ...restoreKeys]
 
@@ -642,14 +641,12 @@ async function saveCacheV2(
   options?: UploadOptions,
   enableCrossOsArchive = false
 ): Promise<number> {
-  // Override UploadOptions to force the use of Azure
   // ...options goes first because we want to override the default values
-  // set in UploadOptions with these specific figures
+  // set in UploadOptions with these specific figures.
   options = {
     ...options,
     uploadChunkSize: 64 * 1024 * 1024, // 64 MiB
-    uploadConcurrency: 8, // 8 workers for parallel upload
-    useAzureSdk: true
+    uploadConcurrency: 8 // 8 workers for parallel upload
   }
   const compressionMethod = await utils.getCompressionMethod()
   const twirpClient = cacheTwirpClient.internalCacheTwirpClient()
