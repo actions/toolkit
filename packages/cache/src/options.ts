@@ -5,9 +5,7 @@ import * as core from '@actions/core'
  */
 export interface UploadOptions {
   /**
-   * Indicates whether to use the Azure Blob SDK to download caches
-   * that are stored on Azure Blob Storage to improve reliability and
-   * performance
+   * @deprecated Retained for source compatibility. Cache transfers always use S3.
    *
    * @default false
    */
@@ -35,31 +33,27 @@ export interface UploadOptions {
  */
 export interface DownloadOptions {
   /**
-   * Indicates whether to use the Azure Blob SDK to download caches
-   * that are stored on Azure Blob Storage to improve reliability and
-   * performance
+   * @deprecated Retained for source compatibility. Cache transfers always use S3.
    *
    * @default true
    */
   useAzureSdk?: boolean
 
   /**
-   * Number of parallel downloads (this option only applies when using
-   * the Azure SDK)
+   * Number of parallel downloads.
    *
    * @default 8
    */
   downloadConcurrency?: number
 
   /**
-   * Indicates whether to use Actions HttpClient with concurrency
-   * for Azure Blob Storage
+   * @deprecated Retained for source compatibility. Cache transfers always use S3.
    */
   concurrentBlobDownloads?: boolean
 
   /**
    * Maximum time for each download request, in milliseconds (this
-   * option only applies when using the Azure SDK)
+   * option is retained for source compatibility)
    *
    * @default 30000
    */
@@ -128,7 +122,6 @@ export function getUploadOptions(copy?: UploadOptions): UploadOptions {
       )
     : result.uploadChunkSize
 
-  core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
   core.debug(`Upload concurrency: ${result.uploadConcurrency}`)
   core.debug(`Upload chunk size: ${result.uploadChunkSize}`)
 
@@ -185,7 +178,6 @@ export function getDownloadOptions(copy?: DownloadOptions): DownloadOptions {
   ) {
     result.segmentTimeoutInMs = Number(segmentDownloadTimeoutMins) * 60 * 1000
   }
-  core.debug(`Use Azure SDK: ${result.useAzureSdk}`)
   core.debug(`Download concurrency: ${result.downloadConcurrency}`)
   core.debug(`Request timeout (ms): ${result.timeoutInMs}`)
   core.debug(
