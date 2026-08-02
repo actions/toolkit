@@ -13,18 +13,6 @@ let logDebugMock: jest.SpyInstance
 
 jest.mock('../src/internal/tar')
 
-const uploadFileMock = jest.fn()
-const blockBlobClientMock = jest.fn().mockImplementation(() => ({
-  uploadFile: uploadFileMock
-}))
-jest.mock('@azure/storage-blob', () => ({
-  BlobClient: jest.fn().mockImplementation(() => {
-    return {
-      getBlockBlobClient: blockBlobClientMock
-    }
-  })
-}))
-
 beforeAll(() => {
   process.env['ACTIONS_RUNTIME_TOKEN'] = 'token'
   jest.spyOn(console, 'log').mockImplementation(() => {})
@@ -206,7 +194,6 @@ test('save cache fails if a signedUploadURL was not passed', async () => {
   const archiveFileSize = 1024
   const options: UploadOptions = {
     archiveSizeBytes: archiveFileSize, // These should always match
-    useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
     uploadConcurrency: 8
   }
@@ -264,7 +251,6 @@ test('finalize save cache failure', async () => {
   const archiveFileSize = 1024
   const options: UploadOptions = {
     archiveSizeBytes: archiveFileSize, // These should always match
-    useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
     uploadConcurrency: 8
   }
@@ -338,7 +324,6 @@ test('save with valid inputs uploads a cache', async () => {
   const archiveFileSize = 1024
   const options: UploadOptions = {
     archiveSizeBytes: archiveFileSize, // These should always match
-    useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
     uploadConcurrency: 8
   }
@@ -404,7 +389,6 @@ test('save with extremely large cache should succeed in v2 (no size limit)', asy
   const archiveFileSize = 20 * 1024 * 1024 * 1024 // 20GB
   const options: UploadOptions = {
     archiveSizeBytes: archiveFileSize,
-    useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
     uploadConcurrency: 8
   }
@@ -509,7 +493,6 @@ test('save with finalize cache entry failure and specific error message', async 
     'Cache entry finalization failed due to concurrent access'
   const options: UploadOptions = {
     archiveSizeBytes: archiveFileSize,
-    useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
     uploadConcurrency: 8
   }
@@ -584,7 +567,6 @@ test('save with multiple large caches should succeed in v2 (testing 50GB)', asyn
   const archiveFileSize = 50 * 1024 * 1024 * 1024 // 50GB
   const options: UploadOptions = {
     archiveSizeBytes: archiveFileSize,
-    useAzureSdk: true,
     uploadChunkSize: 64 * 1024 * 1024,
     uploadConcurrency: 8
   }

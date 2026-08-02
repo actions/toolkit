@@ -1,12 +1,18 @@
-import {downloadCache, getCacheEntry} from '../src/internal/cacheHttpClient'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
+import {Readable} from 'stream'
+import {GetObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3'
+import {
+  downloadCache,
+  getCacheEntry,
+  saveCache
+} from '../src/internal/cacheHttpClient'
 import {getCacheVersion} from '../src/internal/cacheUtils'
 import {CompressionMethod} from '../src/internal/constants'
-import * as downloadUtils from '../src/internal/downloadUtils'
 import * as requestUtils from '../src/internal/requestUtils'
-import {DownloadOptions, getDownloadOptions} from '../src/options'
+import {configureS3Cache} from '../src/cache'
 import {HttpClientError} from '@actions/http-client'
-
-jest.mock('../src/internal/downloadUtils')
 
 test('getCacheVersion does not mutate arguments', async () => {
   const paths = ['node_modules']
@@ -90,118 +96,82 @@ test('getCacheEntry surfaces the body message for a cache read denial', async ()
   )
 })
 
-test('downloadCache uses http-client for non-Azure URLs', async () => {
-  const downloadCacheHttpClientMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheHttpClient'
-  )
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
-
-  const archiveLocation = 'http://www.actionscache.test/download'
-  const archivePath = '/foo/bar'
-
-  await downloadCache(archiveLocation, archivePath)
-
-  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheHttpClientMock).toHaveBeenCalledWith(
-    archiveLocation,
-    archivePath
-  )
-
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
+test('configureS3Cache requires a bucket', () => {
+  expect(() =>
+    configureS3Cache({
+      bucket: '',
+      objectKey: 'cache/archive.tzst',
+      s3ClientConfig: {
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: 'access-key',
+          secretAccessKey: 'secret-key'
+        }
+      }
+    })
+  ).toThrow('S3 cache bucket must be configured.')
 })
 
-test('downloadCache uses storage SDK for Azure storage URLs', async () => {
-  const downloadCacheHttpClientMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheHttpClient'
-  )
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
+function configureCache(): void {
+  configureS3Cache({
+    bucket: 'cache-bucket',
+    objectKey: 'cache/archive.tzst',
+    s3ClientConfig: {
+      region: 'us-east-1',
+      credentials: {
+        accessKeyId: 'access-key',
+        secretAccessKey: 'secret-key'
+      }
+    }
+  })
+}
 
-  const downloadCacheHttpClientConcurrentMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheHttpClientConcurrent'
-  )
+test('downloadCache downloads the configured S3 object', async () => {
+  configureCache()
+  const archivePath = path.join(os.tmpdir(), `cache-${Date.now()}`)
+  const sendMock = jest
+    .spyOn(S3Client.prototype, 'send')
+    .mockResolvedValue({Body: Readable.from('cache content')} as never)
 
-  const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
-  const archivePath = '/foo/bar'
+  try {
+    await downloadCache('https://ignored.example.test/cache', archivePath, {
+      useAzureSdk: true,
+      concurrentBlobDownloads: true
+    })
 
-  await downloadCache(archiveLocation, archivePath)
-
-  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledWith(
-    archiveLocation,
-    archivePath,
-    getDownloadOptions()
-  )
-
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
-  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
-})
-
-test('downloadCache passes options to download methods', async () => {
-  const downloadCacheHttpClientMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheHttpClient'
-  )
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
-
-  const downloadCacheHttpClientConcurrentMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheHttpClientConcurrent'
-  )
-
-  const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
-  const archivePath = '/foo/bar'
-  const options: DownloadOptions = {downloadConcurrency: 4}
-
-  await downloadCache(archiveLocation, archivePath, options)
-
-  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalled()
-  expect(downloadCacheHttpClientConcurrentMock).toHaveBeenCalledWith(
-    archiveLocation,
-    archivePath,
-    getDownloadOptions(options)
-  )
-
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
-  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(0)
-})
-
-test('downloadCache uses http-client when overridden', async () => {
-  const downloadCacheHttpClientMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheHttpClient'
-  )
-  const downloadCacheStorageSDKMock = jest.spyOn(
-    downloadUtils,
-    'downloadCacheStorageSDK'
-  )
-
-  const archiveLocation = 'http://foo.blob.core.windows.net/bar/baz'
-  const archivePath = '/foo/bar'
-  const options: DownloadOptions = {
-    useAzureSdk: false,
-    concurrentBlobDownloads: false
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: {Bucket: 'cache-bucket', Key: 'cache/archive.tzst'}
+      })
+    )
+    expect(sendMock.mock.calls[0][0]).toBeInstanceOf(GetObjectCommand)
+    expect(fs.readFileSync(archivePath, 'utf8')).toBe('cache content')
+  } finally {
+    await fs.promises.rm(archivePath, {force: true})
   }
+})
 
-  await downloadCache(archiveLocation, archivePath, options)
+test('saveCache uploads to the configured S3 object', async () => {
+  configureCache()
+  const archivePath = path.join(os.tmpdir(), `cache-${Date.now()}`)
+  fs.writeFileSync(archivePath, 'cache content')
+  const sendMock = jest
+    .spyOn(S3Client.prototype, 'send')
+    .mockResolvedValue({} as never)
 
-  expect(downloadCacheHttpClientMock).toHaveBeenCalledTimes(1)
-  expect(downloadCacheHttpClientMock).toHaveBeenCalledWith(
-    archiveLocation,
-    archivePath
-  )
+  try {
+    await saveCache(1, archivePath, 'legacy-signature')
 
-  expect(downloadCacheStorageSDKMock).toHaveBeenCalledTimes(0)
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: expect.objectContaining({
+          Bucket: 'cache-bucket',
+          Key: 'cache/archive.tzst'
+        })
+      })
+    )
+    expect(sendMock.mock.calls[0][0]).toBeInstanceOf(PutObjectCommand)
+  } finally {
+    await fs.promises.rm(archivePath, {force: true})
+  }
 })
