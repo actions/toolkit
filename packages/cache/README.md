@@ -24,6 +24,19 @@ Read more about the change & access the migration guide: [reference to the annou
 
 This package is used by the v2+ versions of our first party cache action. You can find an example implementation in the cache repo [here](https://github.com/actions/cache).
 
+#### Preparation
+
+```js
+const cache = require('@actions/cache');
+cache.configureS3Cache({
+  bucket: 'bucket-name',
+  key: 'prefix-key',
+  s3ClientConfig: {
+    ... // configurations for Official AWS S3 Client
+  }
+});
+```
+
 #### Save Cache
 
 Saves a cache containing the files in `paths` using the `key` provided. The files would be compressed using zstandard compression algorithm if zstd is installed, otherwise gzip is used. Function returns the cache id if the cache was saved succesfully and throws an error if cache upload fails.
