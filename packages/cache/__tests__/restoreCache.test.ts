@@ -253,7 +253,7 @@ test('restore with gzip compressed cache found', async () => {
   expect(getArchiveFileSizeInBytesMock).toHaveBeenCalledWith(archivePath)
 
   expect(extractTarMock).toHaveBeenCalledTimes(1)
-  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
+  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression, paths)
 
   expect(unlinkFileMock).toHaveBeenCalledTimes(1)
   expect(unlinkFileMock).toHaveBeenCalledWith(archivePath)
@@ -314,7 +314,7 @@ test('restore with zstd compressed cache found', async () => {
   expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~60 MB (62915000 B)`)
 
   expect(extractTarMock).toHaveBeenCalledTimes(1)
-  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
+  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression, paths)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
@@ -372,7 +372,7 @@ test('restore with cache found for restore key', async () => {
   expect(infoMock).toHaveBeenCalledWith(`Cache Size: ~0 MB (142 B)`)
 
   expect(extractTarMock).toHaveBeenCalledTimes(1)
-  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression)
+  expect(extractTarMock).toHaveBeenCalledWith(archivePath, compression, paths)
   expect(getCompressionMock).toHaveBeenCalledTimes(1)
 })
 
