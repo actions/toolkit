@@ -39,6 +39,15 @@ else {
 }
 ```
 
+the Archive helper can be used as a shortcut for both download and extraction of an archive:
+
+```js
+const {Archive} = require('@actions/tool-cache');
+
+const node12Archive = await Archive.retrieve('https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz')
+const node12ExtractedFolder = await node12Archive.extract('path/to/extract/to')
+```
+
 #### Cache
 
 Finally, you can cache these directories in our tool-cache. This is useful if you want to switch back and forth between versions of a tool, or save a tool between runs for self-hosted runners.
