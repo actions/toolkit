@@ -589,7 +589,7 @@ describe('upload-artifact', () => {
       )
     })
 
-    it('should use the file basename as artifact name when skipArchive is true', async () => {
+    it('should use the artifact name as well when skipArchive is true', async () => {
       jest
         .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
         .mockRestore()
@@ -643,10 +643,10 @@ describe('upload-artifact', () => {
         {skipArchive: true}
       )
 
-      // Verify CreateArtifact was called with the file basename, not the original name
+      // Verify CreateArtifact was called with the original name
       expect(createArtifactSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'file1.txt'
+          name: 'original-name'
         })
       )
     })
