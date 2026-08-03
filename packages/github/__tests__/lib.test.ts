@@ -1,5 +1,6 @@
 import * as path from 'path'
 import {readFileSync} from 'fs'
+import {EOL} from 'os'
 import {Context} from '../src/context.js'
 
 describe('@actions/context', () => {
@@ -23,6 +24,21 @@ describe('@actions/context', () => {
 
     context = new Context()
     expect(context.payload).toEqual({})
+  })
+
+  it('returns an empty payload when the event payload is invalid JSON', () => {
+    process.env.GITHUB_EVENT_PATH = path.join(__dirname, 'invalid-payload.json')
+    const write = jest
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true)
+
+    context = new Context()
+
+    expect(context.payload).toEqual({})
+    expect(write).toHaveBeenCalledWith(
+      `GITHUB_EVENT_PATH ${process.env.GITHUB_EVENT_PATH} contains invalid JSON${EOL}`
+    )
+    write.mockRestore()
   })
 
   it('returns attributes from the GITHUB_REPOSITORY', () => {
