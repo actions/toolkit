@@ -134,7 +134,7 @@ describe('get-artifact', () => {
         fixtures.token
       )
 
-      expect(response).rejects.toThrowError(ArtifactNotFoundError)
+      expect(response).rejects.toThrow(ArtifactNotFoundError)
     })
 
     it('should fail if non-200 response', async () => {
@@ -155,7 +155,7 @@ describe('get-artifact', () => {
         fixtures.token
       )
 
-      expect(response).rejects.toThrowError(InvalidResponseError)
+      expect(response).rejects.toThrow(InvalidResponseError)
     })
   })
 
@@ -223,7 +223,7 @@ describe('get-artifact', () => {
 
       const response = getArtifactInternal(fixtures.artifacts[0].name)
 
-      expect(response).rejects.toThrowError(ArtifactNotFoundError)
+      expect(response).rejects.toThrow(ArtifactNotFoundError)
     })
 
     it('should fail if non-200 response', async () => {
