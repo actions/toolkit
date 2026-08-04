@@ -136,10 +136,16 @@ export async function streamExtractExternal(
       reject(error)
     }
 
+    response.message.on('error', onError)
+
+    const expectedBytes =
+      Number(response.message.headers['content-length']) || undefined
+    let bytesReceived = 0
     const hashStream = crypto.createHash('sha256').setEncoding('hex')
     const passThrough = new stream.PassThrough()
-      .on('data', () => {
+      .on('data', (chunk: Buffer) => {
         timer.refresh()
+        bytesReceived += chunk.length
       })
       .on('error', onError)
 
@@ -148,6 +154,15 @@ export async function streamExtractExternal(
 
     const onClose = (): void => {
       clearTimeout(timer)
+      if (expectedBytes && bytesReceived !== expectedBytes) {
+        reject(
+          new Error(
+            `Incomplete download: received ${bytesReceived} bytes but expected ${expectedBytes}`
+          )
+        )
+        return
+      }
+
       if (hashStream) {
         hashStream.end()
         sha256Digest = hashStream.read() as string
