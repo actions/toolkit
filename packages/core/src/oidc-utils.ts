@@ -78,7 +78,7 @@ export class OidcClient {
       setSecret(id_token)
       return id_token
     } catch (error) {
-      throw new Error(`Error message: ${error.message}`)
+      throw new Error(`Error message: ${(error as Error).message}`)
     }
   }
 }
