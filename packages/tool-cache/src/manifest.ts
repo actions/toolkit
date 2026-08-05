@@ -101,6 +101,9 @@ export async function _findMatch(
         if (chk && item.platform_version) {
           const osVersion = _getOsVersion()
 
+          debug(
+            `${osVersion}===${item.platform_version}`
+          )
           if (osVersion === item.platform_version) {
             chk = true
           } else {
