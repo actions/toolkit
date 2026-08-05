@@ -1,4 +1,25 @@
+// NOTE: isGhes() here is intentionally identical to the artifact package's.
+// On forges this now returns false, so getCacheServiceVersion() honors
+// ACTIONS_CACHE_SERVICE_V2. Forges that set that flag without implementing
+// the cache v2 CacheService Twirp (see gitea#33393) will fail until they
+// implement it or stop setting the flag. The client-side 10GB cap in cache.ts
+// also becomes active on forges. These are accepted tradeoffs of making the
+// vendor flag authoritative.
 export function isGhes(): boolean {
+  // Forge runners (Forgejo, Gitea) self-identify via these flags. They are not
+  // GitHub Enterprise Server and must not be misclassified as GHES.
+  if (process.env['FORGEJO_ACTIONS'] || process.env['GITEA_ACTIONS']) {
+    return false
+  }
+
+  // Optional operator-set vendor override. No runner emits this today; it is an
+  // explicit escape hatch for runners that set neither forge flag.
+  const vendor = (process.env['ACTIONS_VENDOR'] || '').trim().toLowerCase()
+  if (vendor === 'github') return false
+  if (vendor === 'ghes') return true
+  // Unknown/non-empty vendors fall through to the hostname heuristic; they do
+  // NOT auto-disable the GHES block (avoids a typo/spoof silently unblocking).
+
   const ghUrl = new URL(
     process.env['GITHUB_SERVER_URL'] || 'https://github.com'
   )
