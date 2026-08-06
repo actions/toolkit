@@ -28,17 +28,20 @@ const userAgent = 'actions/tool-cache'
 /**
  * Download a tool from an url and stream it into a file
  *
- * @param url       url of tool to download
- * @param dest      path to download tool
- * @param auth      authorization header
- * @param headers   other headers
- * @returns         path to downloaded tool
+ * @param url           url of tool to download
+ * @param dest          path to download tool
+ * @param auth          authorization header
+ * @param headers       other headers
+ * @param expected_hash the expected hash of the downloaded data, as a string consisting of the hash
+ * algorithm, a dash, and the hex-encoded digest (e.g. "sha256-920719e26...")
+ * @returns             path to downloaded tool
  */
 export async function downloadTool(
   url: string,
   dest?: string,
   auth?: string,
-  headers?: OutgoingHttpHeaders
+  headers?: OutgoingHttpHeaders,
+  expected_hash?: string,
 ): Promise<string> {
   dest = dest || path.join(_getTempDirectory(), crypto.randomUUID())
   await io.mkdirP(path.dirname(dest))
@@ -57,7 +60,7 @@ export async function downloadTool(
   const retryHelper = new RetryHelper(maxAttempts, minSeconds, maxSeconds)
   return await retryHelper.execute(
     async () => {
-      return await downloadToolAttempt(url, dest || '', auth, headers)
+      return await downloadToolAttempt(url, dest || '', auth, headers, expected_hash)
     },
     (err: Error) => {
       if (err instanceof HTTPError && err.httpStatusCode) {
@@ -81,7 +84,8 @@ async function downloadToolAttempt(
   url: string,
   dest: string,
   auth?: string,
-  headers?: OutgoingHttpHeaders
+  headers?: OutgoingHttpHeaders,
+  expected_hash?: string,
 ): Promise<string> {
   if (fs.existsSync(dest)) {
     throw new Error(`Destination file path ${dest} already exists`)
@@ -120,6 +124,17 @@ async function downloadToolAttempt(
   try {
     await pipeline(readStream, fs.createWriteStream(dest))
     core.debug('download complete')
+
+    if (expected_hash) {
+      const [algo, expected_hex] = expected_hash.split('-')
+      const hasher = crypto.createHash(algo)
+      await pipeline(fs.createReadStream(dest), hasher)
+      const actual_hex = hasher.digest('hex')
+      if (actual_hex != expected_hex) {
+        throw new Error(`Hash mismatch for file downloaded from "${url}": expected "${expected_hash}", got "${algo}-${actual_hex}"`)
+      }
+    }
+
     succeeded = true
     return dest
   } finally {
