@@ -588,9 +588,13 @@ export class HttpClient {
     const usingSsl: boolean = info.parsedUrl.protocol === 'https:'
     info.httpModule = usingSsl ? https : http
     const defaultPort: number = usingSsl ? 443 : 80
+    const normalizedHostname = this._normalizeHostname(info.parsedUrl.hostname)
 
     info.options = <http.RequestOptions>{}
-    info.options.host = info.parsedUrl.hostname
+    // URL.hostname returns bracketed IPv6 literals (e.g. "[2001:db8::1]").
+    // Node request options expect an unbracketed address for DNS/socket connect.
+    info.options.hostname = normalizedHostname
+    info.options.host = normalizedHostname
     info.options.port = info.parsedUrl.port
       ? parseInt(info.parsedUrl.port)
       : defaultPort
@@ -612,6 +616,14 @@ export class HttpClient {
     }
 
     return info
+  }
+
+  private _normalizeHostname(hostname: string): string {
+    if (hostname.startsWith('[') && hostname.endsWith(']')) {
+      return hostname.slice(1, -1)
+    }
+
+    return hostname
   }
 
   private _mergeHeaders(
