@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as http from 'http'
-import * as httpm from '../lib/'
-import * as pm from '../lib/proxy'
+import * as httpm from '../src/index'
+import * as pm from '../src/proxy'
 import {ProxyAgent} from 'undici'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const proxy = require('proxy')
