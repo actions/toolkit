@@ -364,8 +364,26 @@ export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
 }
 
 //-----------------------------------------------------------------------
-// Wrapper action state
+// Problem Matchers Commands
 //-----------------------------------------------------------------------
+
+/**
+ * Adds a matcher to the process
+ *
+ * @param path   path to the matcher json file
+ */
+export function addMatcher(path: string): void {
+  issueCommand('add-matcher', {}, path)
+}
+
+/**
+ * Removes a matcher from the process
+ *
+ * @param owner   owner of the matcher
+ */
+export function removeMatcher(owner: string): void {
+  issueCommand('remove-matcher', {owner}, '')
+}
 
 /**
  * Saves state for current action, the state can only be retrieved by this action's post job execution.
@@ -392,6 +410,10 @@ export function saveState(name: string, value: any): void {
 export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
 }
+
+//-----------------------------------------------------------------------
+// Wrapper action state
+//-----------------------------------------------------------------------
 
 export async function getIDToken(aud?: string): Promise<string> {
   return await OidcClient.getIDToken(aud)
