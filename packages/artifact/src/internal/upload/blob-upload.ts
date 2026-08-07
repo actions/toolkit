@@ -102,7 +102,7 @@ export async function uploadToBlobStorage(
   core.info(`SHA256 digest of uploaded artifact is ${sha256Hash}`)
 
   if (uploadByteCount === 0) {
-    core.warning(
+    core.debug(
       `No data was uploaded to blob storage. Reported upload byte count is 0.`
     )
   }
