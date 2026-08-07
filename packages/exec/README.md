@@ -24,7 +24,7 @@ await exec.exec('node', ['index.js', 'foo=bar']);
 
 #### Output/options
 
-Capture output or specify [other options](https://github.com/actions/toolkit/blob/d9347d4ab99fd507c0b9104b2cf79fb44fcc827d/packages/exec/src/interfaces.ts#L5):
+Capture output or specify [other options](./src/interfaces.ts#L5):
 
 ```js
 const exec = require('@actions/exec');
