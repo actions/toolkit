@@ -79,4 +79,42 @@ describe('@actions/context', () => {
       repo: 'test'
     })
   })
+
+  describe('refs', () => {
+    const ORIGINAL_ENV = {...process.env}
+
+    beforeEach(() => {
+      process.env = {...ORIGINAL_ENV}
+    })
+
+    afterAll(() => {
+      process.env = ORIGINAL_ENV
+    })
+
+    it.each([
+      'refs/heads/main',
+      'refs/heads/feature-branch',
+      'refs/pull/42/merge',
+      'refs/tags/v2.0.4'
+    ])(`should set context.ref: %s`, ref => {
+      process.env.GITHUB_REF = ref
+
+      expect(new Context()).toHaveProperty(`ref`, ref)
+    })
+
+    it.each([`meh-${Date.now()}`, 'catpants', 'v1.2.3'])(
+      'should set context.refName: %s',
+      refName => {
+        process.env.GITHUB_REF_NAME = refName
+
+        expect(new Context()).toHaveProperty('refName', refName)
+      }
+    )
+
+    it.each(['branch', 'tag'])('should set context.refType: %s', refType => {
+      process.env.GITHUB_REF_TYPE = refType
+
+      expect(new Context()).toHaveProperty('refType', refType)
+    })
+  })
 })
