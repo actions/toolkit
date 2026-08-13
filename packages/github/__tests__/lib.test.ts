@@ -81,6 +81,16 @@ describe('@actions/context', () => {
   })
 
   describe('refs', () => {
+    const ORIGINAL_ENV = {...process.env}
+
+    beforeEach(() => {
+      process.env = {...ORIGINAL_ENV}
+    })
+
+    afterAll(() => {
+      process.env = ORIGINAL_ENV
+    })
+
     it.each([
       'refs/heads/main',
       'refs/heads/feature-branch',
