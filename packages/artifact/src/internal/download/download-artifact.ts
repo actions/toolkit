@@ -72,105 +72,161 @@ export async function streamExtractExternal(
 ): Promise<StreamExtractResponse> {
   const {timeout = 30 * 1000, skipDecompress = false} = opts
   const client = new httpClient.HttpClient(getUserAgentString())
-  const response = await client.get(url)
-  if (response.message.statusCode !== 200) {
-    throw new Error(
-      `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
-    )
+  let responseMessage: stream.Readable | undefined
+  let passThrough: stream.PassThrough | undefined
+  let hashStream: stream.Transform | undefined
+  let outputStream: stream.Writable | undefined
+  let timer: NodeJS.Timeout | undefined
+  let settled = false
+
+  const cleanup = (failed: boolean): boolean => {
+    if (settled) {
+      return false
+    }
+    settled = true
+
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    if (failed) {
+      responseMessage?.unpipe(passThrough)
+      passThrough?.unpipe(hashStream)
+      hashStream?.unpipe(outputStream)
+
+      responseMessage?.destroy()
+      passThrough?.destroy()
+      hashStream?.destroy()
+      outputStream?.destroy()
+    }
+
+    client.dispose()
+    return true
   }
 
-  const contentType = response.message.headers['content-type'] || ''
-  const mimeType = contentType.split(';', 1)[0].trim().toLowerCase()
-
-  // Check if the URL path ends with .zip (ignoring query parameters)
-  const urlPath = new URL(url).pathname.toLowerCase()
-  const urlEndsWithZip = urlPath.endsWith('.zip')
-
-  const isZip =
-    mimeType === 'application/zip' ||
-    mimeType === 'application/x-zip-compressed' ||
-    mimeType === 'application/zip-compressed' ||
-    urlEndsWithZip
-
-  // Extract filename from Content-Disposition header
-  // Prefer filename* (RFC 5987) which supports UTF-8 encoded filenames,
-  // fall back to filename which may contain ASCII-only replacements
-  const contentDisposition =
-    response.message.headers['content-disposition'] || ''
-  let fileName = 'artifact'
-  const filenameStar = contentDisposition.match(
-    /filename\*\s*=\s*UTF-8''([^;\r\n]*)/i
-  )
-  const filenamePlain = contentDisposition.match(
-    /(?<!\*)filename\s*=\s*['"]?([^;\r\n"']*)['"]?/i
-  )
-  const rawName = filenameStar?.[1] || filenamePlain?.[1]
-  if (rawName) {
-    // Sanitize fileName to prevent path traversal attacks
-    // Use path.basename to extract only the filename component
-    fileName = path.basename(decodeURIComponent(rawName.trim()))
-  }
-
-  core.debug(
-    `Content-Type: ${contentType}, mimeType: ${mimeType}, urlEndsWithZip: ${urlEndsWithZip}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`
-  )
-  core.debug(
-    `Content-Disposition: ${contentDisposition}, fileName: ${fileName}`
-  )
-
-  let sha256Digest: string | undefined = undefined
-
-  return new Promise((resolve, reject) => {
-    const timerFn = (): void => {
-      const timeoutError = new Error(
-        `Blob storage chunk did not respond in ${timeout}ms`
+  try {
+    const response = await client.get(url)
+    responseMessage = response.message
+    if (response.message.statusCode !== 200) {
+      throw new Error(
+        `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
       )
-      response.message.destroy(timeoutError)
-      reject(timeoutError)
-    }
-    const timer = setTimeout(timerFn, timeout)
-
-    const onError = (error: Error): void => {
-      core.debug(`response.message: Artifact download failed: ${error.message}`)
-      clearTimeout(timer)
-      reject(error)
     }
 
-    const hashStream = crypto.createHash('sha256').setEncoding('hex')
-    const passThrough = new stream.PassThrough()
-      .on('data', () => {
-        timer.refresh()
-      })
-      .on('error', onError)
+    const contentType = response.message.headers['content-type'] || ''
+    const mimeType = contentType.split(';', 1)[0].trim().toLowerCase()
 
-    response.message.pipe(passThrough)
-    passThrough.pipe(hashStream)
+    // Check if the URL path ends with .zip (ignoring query parameters)
+    const urlPath = new URL(url).pathname.toLowerCase()
+    const urlEndsWithZip = urlPath.endsWith('.zip')
 
-    const onClose = (): void => {
-      clearTimeout(timer)
-      if (hashStream) {
-        hashStream.end()
-        sha256Digest = hashStream.read() as string
-        core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
+    const isZip =
+      mimeType === 'application/zip' ||
+      mimeType === 'application/x-zip-compressed' ||
+      mimeType === 'application/zip-compressed' ||
+      urlEndsWithZip
+
+    // Extract filename from Content-Disposition header
+    // Prefer filename* (RFC 5987) which supports UTF-8 encoded filenames,
+    // fall back to filename which may contain ASCII-only replacements
+    const contentDisposition =
+      response.message.headers['content-disposition'] || ''
+    let fileName = 'artifact'
+    const filenameStar = contentDisposition.match(
+      /filename\*\s*=\s*UTF-8''([^;\r\n]*)/i
+    )
+    const filenamePlain = contentDisposition.match(
+      /(?<!\*)filename\s*=\s*['"]?([^;\r\n"']*)['"]?/i
+    )
+    const rawName = filenameStar?.[1] || filenamePlain?.[1]
+    if (rawName) {
+      // Sanitize fileName to prevent path traversal attacks
+      // Use path.basename to extract only the filename component
+      fileName = path.basename(decodeURIComponent(rawName.trim()))
+    }
+
+    core.debug(
+      `Content-Type: ${contentType}, mimeType: ${mimeType}, urlEndsWithZip: ${urlEndsWithZip}, isZip: ${isZip}, skipDecompress: ${skipDecompress}`
+    )
+    core.debug(
+      `Content-Disposition: ${contentDisposition}, fileName: ${fileName}`
+    )
+
+    const hash = crypto.createHash('sha256')
+
+    return await new Promise((resolve, reject) => {
+      const onError = (error: Error): void => {
+        core.debug(`Artifact download failed: ${error.message}`)
+        if (cleanup(true)) {
+          reject(error)
+        }
       }
-      resolve({sha256Digest: `sha256:${sha256Digest}`})
-    }
 
-    if (isZip && !skipDecompress) {
-      // Extract zip file
-      passThrough
-        .pipe(unzip.Extract({path: directory}))
-        .on('close', onClose)
-        .on('error', onError)
-    } else {
-      // Save raw file without extracting
-      const filePath = path.join(directory, fileName)
-      const writeStream = fsSync.createWriteStream(filePath)
+      const onComplete = (): void => {
+        if (settled) {
+          return
+        }
 
-      core.info(`Downloading raw file (non-zip) to: ${filePath}`)
-      passThrough.pipe(writeStream).on('close', onClose).on('error', onError)
-    }
-  })
+        let sha256Digest: string
+        try {
+          sha256Digest = hash.digest('hex')
+        } catch (error) {
+          onError(error as Error)
+          return
+        }
+
+        if (cleanup(false)) {
+          core.info(`SHA256 digest of downloaded artifact is ${sha256Digest}`)
+          resolve({sha256Digest: `sha256:${sha256Digest}`})
+        }
+      }
+
+      passThrough = new stream.PassThrough().on('data', () => {
+        timer?.refresh()
+      })
+      hashStream = new stream.Transform({
+        transform(chunk, _encoding, callback) {
+          try {
+            hash.update(chunk)
+            callback(null, chunk)
+          } catch (error) {
+            callback(error as Error)
+          }
+        }
+      })
+
+      let attemptOutputStream: stream.Writable
+      if (isZip && !skipDecompress) {
+        attemptOutputStream = unzip.Extract({
+          path: directory
+        }) as stream.Writable
+        attemptOutputStream.once('finish', onComplete)
+      } else {
+        const filePath = path.join(directory, fileName)
+        attemptOutputStream = fsSync.createWriteStream(filePath)
+        attemptOutputStream.once('close', onComplete)
+        core.info(`Downloading raw file (non-zip) to: ${filePath}`)
+      }
+      outputStream = attemptOutputStream
+
+      response.message.once('error', onError)
+      passThrough.once('error', onError)
+      hashStream.once('error', onError)
+      attemptOutputStream.once('error', onError)
+
+      timer = setTimeout(() => {
+        onError(new Error(`Blob storage chunk did not respond in ${timeout}ms`))
+      }, timeout)
+
+      response.message
+        .pipe(passThrough)
+        .pipe(hashStream)
+        .pipe(attemptOutputStream)
+    })
+  } catch (error) {
+    cleanup(true)
+    throw error
+  }
 }
 
 export async function downloadArtifactPublic(

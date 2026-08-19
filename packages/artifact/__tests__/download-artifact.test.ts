@@ -1,7 +1,10 @@
 import fs from 'fs'
+import * as crypto from 'crypto'
 import * as http from 'http'
 import * as net from 'net'
 import * as path from 'path'
+import * as stream from 'stream'
+import {spawn} from 'child_process'
 import * as github from '@actions/github'
 import {HttpClient} from '@actions/http-client'
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
@@ -87,6 +90,41 @@ const expectExtractedArchive = async (dir: string): Promise<void> => {
   }
 }
 
+const runProcessFixture = async (
+  mode: 'success' | 'failure'
+): Promise<{code: number | null; stderr: string}> => {
+  const fixture = path.join(
+    __dirname,
+    'fixtures',
+    'download-attempt-process.mjs'
+  )
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [fixture, mode], {
+      stdio: ['ignore', 'ignore', 'pipe']
+    })
+    let stderr = ''
+    child.stderr.setEncoding('utf8')
+    child.stderr.on('data', chunk => {
+      stderr += chunk
+    })
+
+    const timer = setTimeout(() => {
+      child.kill()
+      reject(new Error(`${mode} fixture retained a handle after completion`))
+    }, 5000)
+
+    child.once('error', error => {
+      clearTimeout(timer)
+      reject(error)
+    })
+    child.once('exit', code => {
+      clearTimeout(timer)
+      resolve({code, stderr})
+    })
+  })
+}
+
 const setup = async (): Promise<void> => {
   noopLogs()
   await fs.promises.mkdir(testDir, {recursive: true})
@@ -96,8 +134,9 @@ const setup = async (): Promise<void> => {
 }
 
 const cleanup = async (): Promise<void> => {
+  jest.useRealTimers()
   jest.restoreAllMocks()
-  await fs.promises.rm(testDir, {recursive: true})
+  await fs.promises.rm(testDir, {recursive: true, force: true})
   delete process.env['GITHUB_WORKSPACE']
 }
 
@@ -145,6 +184,21 @@ const mockGetArtifactMalicious = jest.fn(() => {
 })
 
 describe('download-artifact', () => {
+  describe('process cleanup', () => {
+    it('should exit naturally after a timeout followed by success', async () => {
+      await expect(runProcessFixture('success')).resolves.toEqual({
+        code: 0,
+        stderr: ''
+      })
+    })
+
+    it('should exit nonzero naturally after timeout exhaustion', async () => {
+      const result = await runProcessFixture('failure')
+      expect(result.code).toBe(1)
+      expect(result.stderr).toContain('did not respond in 25ms')
+    })
+  })
+
   describe('public', () => {
     beforeEach(setup)
     afterEach(cleanup)
@@ -164,7 +218,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactSuccess
+            get: mockGetArtifactSuccess,
+            dispose: jest.fn()
           }
         }
       )
@@ -208,7 +263,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactMalicious
+            get: mockGetArtifactMalicious,
+            dispose: jest.fn()
           }
         }
       )
@@ -263,7 +319,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactSuccess
+            get: mockGetArtifactSuccess,
+            dispose: jest.fn()
           }
         }
       )
@@ -342,7 +399,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGet
+            get: mockGet,
+            dispose: jest.fn()
           }
         }
       )
@@ -369,7 +427,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactFailure
+            get: mockGetArtifactFailure,
+            dispose: jest.fn()
           }
         }
       )
@@ -418,7 +477,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifact
+            get: mockGetArtifact,
+            dispose: jest.fn()
           }
         }
       )
@@ -495,7 +555,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactSuccess
+            get: mockGetArtifactSuccess,
+            dispose: jest.fn()
           }
         }
       )
@@ -544,7 +605,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactSuccess
+            get: mockGetArtifactSuccess,
+            dispose: jest.fn()
           }
         }
       )
@@ -603,7 +665,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactFailure
+            get: mockGetArtifactFailure,
+            dispose: jest.fn()
           }
         }
       )
@@ -633,13 +696,327 @@ describe('download-artifact', () => {
     })
     afterEach(cleanup)
 
+    const mockClient = (
+      get: jest.Mock
+    ): {get: jest.Mock; dispose: jest.Mock} => ({
+      get,
+      dispose: jest.fn()
+    })
+
+    const waitForTimer = async (): Promise<void> => {
+      for (let turn = 0; turn < 20; turn++) {
+        if (jest.getTimerCount() > 0) {
+          return
+        }
+        await jest.advanceTimersByTimeAsync(0)
+      }
+      throw new Error('Attempt did not install its timer')
+    }
+
+    it('should dispose a timed-out attempt before a later attempt succeeds', async () => {
+      jest.useFakeTimers()
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {location: fixtures.blobStorageUrl},
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+
+      const clients = [
+        mockClient(jest.fn(mockGetArtifactHung)),
+        mockClient(jest.fn(mockGetArtifactSuccess))
+      ]
+      ;(HttpClient as jest.Mock).mockImplementation(() => clients.shift())
+
+      const download = downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token,
+        {skipDecompress: true}
+      )
+      await waitForTimer()
+      await jest.advanceTimersByTimeAsync(30 * 1000)
+      await waitForTimer()
+      await jest.advanceTimersByTimeAsync(5 * 1000)
+
+      await expect(download).resolves.toMatchObject({
+        downloadPath: fixtures.workspaceDir,
+        digestMismatch: false
+      })
+      expect(HttpClient).toHaveBeenCalledTimes(2)
+      expect(clients).toHaveLength(0)
+      expect(mockGetArtifactHung.mock.results[0].value.message.destroyed).toBe(
+        true
+      )
+      for (const client of (HttpClient as jest.Mock).mock.results) {
+        expect(client.value.dispose).toHaveBeenCalledTimes(1)
+      }
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should dispose every attempt when all attempts time out', async () => {
+      jest.useFakeTimers()
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {location: fixtures.blobStorageUrl},
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+
+      const clients = Array.from({length: 5}, () =>
+        mockClient(jest.fn(mockGetArtifactHung))
+      )
+      const pendingClients = [...clients]
+      ;(HttpClient as jest.Mock).mockImplementation(() =>
+        pendingClients.shift()
+      )
+
+      const outcome = downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token
+      ).catch(error => error as Error)
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await waitForTimer()
+        await jest.advanceTimersByTimeAsync(30 * 1000)
+        await waitForTimer()
+        await jest.advanceTimersByTimeAsync(5 * 1000)
+      }
+
+      await expect(outcome).resolves.toThrow(
+        'Unable to download and extract artifact: Artifact download failed after 5 retries.'
+      )
+      expect(HttpClient).toHaveBeenCalledTimes(5)
+      for (const client of clients) {
+        expect(client.dispose).toHaveBeenCalledTimes(1)
+        expect(client.get.mock.results[0].value.message.destroyed).toBe(true)
+      }
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should clean up a response error before completion', async () => {
+      jest.useFakeTimers()
+      const responseError = new Error('response failed')
+      const message = mockGetArtifactHung().message
+      const client = mockClient(jest.fn(() => ({message})))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      const extraction = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {timeout: 1000}
+      )
+      await waitForTimer()
+      message.destroy(responseError)
+
+      await expect(extraction).rejects.toBe(responseError)
+      expect(message.destroyed).toBe(true)
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should destroy every stream owned by a timed-out attempt', async () => {
+      jest.useFakeTimers()
+      const passThroughDestroy = jest.spyOn(
+        stream.PassThrough.prototype,
+        'destroy'
+      )
+      const transformDestroy = jest.spyOn(stream.Transform.prototype, 'destroy')
+      const message = mockGetArtifactHung().message
+      const client = mockClient(jest.fn(() => ({message})))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      const outcome = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {timeout: 1000}
+      ).catch(error => error as Error)
+      await waitForTimer()
+      await jest.advanceTimersByTimeAsync(1000)
+
+      await expect(outcome).resolves.toBeInstanceOf(Error)
+      expect(message.destroyed).toBe(true)
+      expect(passThroughDestroy).toHaveBeenCalledTimes(1)
+      expect(transformDestroy).toHaveBeenCalledTimes(2)
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should dispose the client and response for a non-200 response', async () => {
+      const response = mockGetArtifactFailure()
+      const client = mockClient(jest.fn(() => response))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      await expect(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir)
+      ).rejects.toThrow('Unexpected HTTP response from blob storage: 500')
+      expect(response.message.destroyed).toBe(true)
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('should clean up an extraction failure', async () => {
+      jest.useFakeTimers()
+      const message = new http.IncomingMessage(new net.Socket())
+      message.statusCode = 200
+      message.headers['content-type'] = 'application/zip'
+      message.push(Buffer.from('not a zip archive'))
+      message.push(null)
+      const client = mockClient(jest.fn(() => ({message})))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      await expect(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir, {
+          timeout: 1000
+        })
+      ).rejects.toBeInstanceOf(Error)
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should clean up an output write failure', async () => {
+      jest.useFakeTimers()
+      const writeError = new Error('write failed')
+      const failingOutput = new stream.Writable({
+        write(_chunk, _encoding, callback) {
+          callback(writeError)
+        }
+      })
+      jest
+        .spyOn(fs, 'createWriteStream')
+        .mockReturnValue(failingOutput as fs.WriteStream)
+
+      const message = new http.IncomingMessage(new net.Socket())
+      message.statusCode = 200
+      message.headers['content-type'] = 'text/plain'
+      message.push(Buffer.from('artifact contents'))
+      message.push(null)
+      const client = mockClient(jest.fn(() => ({message})))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      await expect(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir, {
+          timeout: 1000
+        })
+      ).rejects.toBe(writeError)
+      expect(failingOutput.destroyed).toBe(true)
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should not clean up a successful attempt before output completes', async () => {
+      jest.useFakeTimers()
+      let completeWrite: (() => void) | undefined
+      const controlledOutput = new stream.Writable({
+        write(_chunk, _encoding, callback) {
+          completeWrite = callback
+        }
+      })
+      jest
+        .spyOn(fs, 'createWriteStream')
+        .mockReturnValue(controlledOutput as fs.WriteStream)
+
+      const message = new http.IncomingMessage(new net.Socket())
+      message.statusCode = 200
+      message.headers['content-type'] = 'text/plain'
+      message.push(Buffer.from('artifact contents'))
+      message.push(null)
+      const client = mockClient(jest.fn(() => ({message})))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      const extraction = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {timeout: 1000}
+      )
+      for (let turn = 0; turn < 20 && !completeWrite; turn++) {
+        await jest.advanceTimersByTimeAsync(0)
+      }
+
+      expect(completeWrite).toBeDefined()
+      expect(controlledOutput.destroyed).toBe(false)
+      expect(client.dispose).not.toHaveBeenCalled()
+
+      completeWrite?.()
+      await expect(extraction).resolves.toMatchObject({
+        sha256Digest: expect.stringMatching(/^sha256:[0-9a-f]{64}$/)
+      })
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should clean up a hash failure', async () => {
+      jest.useFakeTimers()
+      const hashPrototype = Object.getPrototypeOf(crypto.createHash('sha256'))
+      jest.spyOn(hashPrototype, 'update').mockImplementationOnce(() => {
+        throw new Error('hash failed')
+      })
+      const client = mockClient(jest.fn(mockGetArtifactSuccess))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      await expect(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir, {
+          timeout: 1000
+        })
+      ).rejects.toThrow('hash failed')
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should settle cleanup once when timeout races response completion', async () => {
+      jest.useFakeTimers()
+      const message = mockGetArtifactHung().message
+      const client = mockClient(jest.fn(() => ({message})))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      const outcome = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {timeout: 1000}
+      ).catch(error => error as Error)
+      await waitForTimer()
+      message.push(fs.readFileSync(fixtures.exampleArtifact.path))
+      message.push(null)
+      await jest.advanceTimersByTimeAsync(1000)
+
+      await expect(outcome).resolves.toBeDefined()
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should settle cleanup once when timeout races a response error', async () => {
+      jest.useFakeTimers()
+      const message = mockGetArtifactHung().message
+      const client = mockClient(jest.fn(() => ({message})))
+      ;(HttpClient as jest.Mock).mockImplementation(() => client)
+
+      const outcome = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {timeout: 1000}
+      ).catch(error => error as Error)
+      await waitForTimer()
+      message.destroy(new Error('response failed during timeout'))
+      await jest.advanceTimersByTimeAsync(1000)
+
+      await expect(outcome).resolves.toBeInstanceOf(Error)
+      expect(client.dispose).toHaveBeenCalledTimes(1)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
     it('should fail if the timeout is exceeded', async () => {
       const mockSlowGetArtifact = jest.fn(mockGetArtifactHung)
 
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockSlowGetArtifact
+            get: mockSlowGetArtifact,
+            dispose: jest.fn()
           }
         }
       )
@@ -664,7 +1041,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactSuccess
+            get: mockGetArtifactSuccess,
+            dispose: jest.fn()
           }
         }
       )
@@ -699,7 +1077,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetRawFile
+            get: mockGetRawFile,
+            dispose: jest.fn()
           }
         }
       )
@@ -734,7 +1113,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetRawFileNoDisposition
+            get: mockGetRawFileNoDisposition,
+            dispose: jest.fn()
           }
         }
       )
@@ -774,7 +1154,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetPngFile
+            get: mockGetPngFile,
+            dispose: jest.fn()
           }
         }
       )
@@ -806,7 +1187,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetZipCompressed
+            get: mockGetZipCompressed,
+            dispose: jest.fn()
           }
         }
       )
@@ -840,7 +1222,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetZipByUrl
+            get: mockGetZipByUrl,
+            dispose: jest.fn()
           }
         }
       )
@@ -859,7 +1242,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetArtifactSuccess
+            get: mockGetArtifactSuccess,
+            dispose: jest.fn()
           }
         }
       )
@@ -901,7 +1285,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetMaliciousFile
+            get: mockGetMaliciousFile,
+            dispose: jest.fn()
           }
         }
       )
@@ -947,7 +1332,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetEncodedMaliciousFile
+            get: mockGetEncodedMaliciousFile,
+            dispose: jest.fn()
           }
         }
       )
@@ -1000,7 +1386,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetRfc5987File
+            get: mockGetRfc5987File,
+            dispose: jest.fn()
           }
         }
       )
@@ -1038,7 +1425,8 @@ describe('download-artifact', () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
           return {
-            get: mockGetZip
+            get: mockGetZip,
+            dispose: jest.fn()
           }
         }
       )
@@ -1081,7 +1469,8 @@ describe('download-artifact', () => {
         const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
           () => {
             return {
-              get: mockGetFile
+              get: mockGetFile,
+              dispose: jest.fn()
             }
           }
         )
