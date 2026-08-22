@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as github from '@actions/github'
 import {HttpClient} from '@actions/http-client'
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
-import archiver from 'archiver'
+import {ZipArchive} from 'archiver'
 
 import {
   downloadArtifactInternal,
@@ -65,7 +65,7 @@ jest.mock('@actions/http-client')
 
 // Create a zip archive with the contents of the example artifact
 const createTestArchive = async (): Promise<void> => {
-  const archive = archiver('zip', {
+  const archive = new ZipArchive({
     zlib: {level: 9}
   })
   for (const file of fixtures.exampleArtifact.files) {
