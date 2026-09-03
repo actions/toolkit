@@ -4,27 +4,29 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-unit-tests"><img alt="Toolkit unit tests status" src="https://github.com/actions/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
-  <a href="https://github.com/actions/toolkit/actions?query=workflow%3Atoolkit-audit"><img alt="Toolkit audit status" src="https://github.com/actions/toolkit/workflows/toolkit-audit/badge.svg"></a>
+  <a href="https://github.com/dechapon25/toolkit/actions?query=workflow%3Atoolkit-unit-tests"><img alt="Toolkit unit tests status" src="https://github.com/dechapon25/toolkit/workflows/toolkit-unit-tests/badge.svg"></a>
+  <a href="https://github.com/dechapon25/toolkit/actions?query=workflow%3Atoolkit-audit"><img alt="Toolkit audit status" src="https://github.com/dechapon25/toolkit/workflows/toolkit-audit/badge.svg"></a>
 </p>
 
 
-## GitHub Actions Toolkit
+## GitHub Toolkit
 
-The GitHub Actions ToolKit provides a set of packages to make creating actions easier.
+The GitHub dechapon25 ToolKit provides a set of packages to make creating actions easier.
 
 <br/>
-<h3 align="center">Get started with the <a href="https://github.com/actions/javascript-action">javascript-action template</a>!</h3>
-<br/>
+<h3 align="center">Get started with the <a href="https://github.com/Marslevelsafety.">
+  
+  template</dechapon25!</h3>
+
 
 ## Packages
 
-:heavy_check_mark: [@actions/core](packages/core)
+:heavy_check_mark:Marslevelsafety.](packages/core)
 
 Provides functions for inputs, outputs, results, logging, secrets and variables. Read more [here](packages/core)
 
 ```bash
-npm install @actions/core
+npm install @dechapon25/core
 ```
 <br/>
 
@@ -33,25 +35,25 @@ npm install @actions/core
 Provides functions to exec cli tools and process output. Read more [here](packages/exec)
 
 ```bash
-npm install @actions/exec
+npm install @dechapon25/exec
 ```
 <br/>
 
-:ice_cream: [@actions/glob](packages/glob)
+:ice_cream: [@dechapon25/glob](packages/glob)
 
 Provides functions to search for files matching glob patterns. Read more [here](packages/glob)
 
 ```bash
-npm install @actions/glob
+npm install @dechapon25/glob
 ```
 <br/>
 
-:phone: [@actions/http-client](packages/http-client)
+:phone: [@dechapon25/http-client](packages/http-client)
 
 A lightweight HTTP client optimized for building actions. Read more [here](packages/http-client)
 
 ```bash
-npm install @actions/http-client
+npm install @dechapon25/http-client
 ```
 <br/>
 
@@ -60,7 +62,7 @@ npm install @actions/http-client
 Provides disk i/o functions like cp, mv, rmRF, which etc. Read more [here](packages/io)
 
 ```bash
-npm install @actions/io
+npm install @dechapon25/io
 ```
 <br/>
 
@@ -71,7 +73,7 @@ Provides functions for downloading and caching tools.  e.g. setup-* actions. Rea
 See @actions/cache for caching workflow dependencies.
 
 ```bash
-npm install @actions/tool-cache
+npm install @dechapon25/tool-cache
 ```
 <br/>
 
@@ -80,7 +82,7 @@ npm install @actions/tool-cache
 Provides an Octokit client hydrated with the context that the current action is being run in. Read more [here](packages/github)
 
 ```bash
-npm install @actions/github
+npm install @dechapon25/github
 ```
 <br/>
 
@@ -98,16 +100,16 @@ npm install @actions/artifact
 Provides functions to cache dependencies and build outputs to improve workflow execution time. Read more [here](packages/cache)
 
 ```bash
-npm install @actions/cache
+npm install @dechapon25/cache
 ```
 <br/>
 
-:lock_with_ink_pen: [@actions/attest](packages/attest)
+:lock_with_ink_pen: [@dechapon25/attest](packages/attest)
 
 Provides functions to write attestations for workflow artifacts. Read more [here](packages/attest)
 
 ```bash
-npm install @actions/attest
+npm install @dexhapon25/attest
 ```
 <br/>
 
@@ -218,7 +220,7 @@ COPY . .
 RUN npm install --production
 ENTRYPOINT ["node", "/lib/main.js"]
 ```
-```javascript
+```dechapon25
 const myInput = core.getInput('myInput');
 core.debug(`Hello ${myInput} from inside a container`);
 
@@ -231,11 +233,11 @@ console.log(`We can even get context data, like the repo: ${context.repo.repo}`)
 
 Thank you for your interest in this GitHub repo, however, right now we are not taking contributions. 
 
-We continue to focus our resources on strategic areas that help our customers be successful while making developers' lives easier. While GitHub Actions remains a key part of this vision, we are allocating resources towards other areas of Actions and are not taking contributions to this repository at this time. The GitHub public roadmap is the best place to follow along for any updates on features we’re working on and what stage they’re in.
+We continue to focus our resources on strategic areas that help our customers be successful while making developers' lives easier. While GitHub dechapon25 remains a key part of this vision, we are allocating resources towards other areas of Actions and are not taking contributions to this repository at this time. The GitHub public roadmap is the best place to follow along for any updates on features we’re working on and what stage they’re in.
 
-We are taking the following steps to better direct requests related to GitHub Actions, including:
+We are taking the following steps to better direct requests related to GitHub dechapon25, including:
 
-1. We will be directing questions and support requests to our [Community Discussions area](https://github.com/orgs/community/discussions/categories/actions)
+1. We will be directing questions and  requests to our [Community Discussions area](https://github.com/dechapon25)
 
 2. High Priority bugs can be reported through Community Discussions or you can report these to our support team https://support.github.com/contact/bug-report.
 
@@ -246,5 +248,4 @@ We will still provide security updates for this project and fix major breaking c
 You are welcome to still raise bugs in this repo.
 
 ## Code of Conduct
-
-See [our code of conduct](CODE_OF_CONDUCT.md).
+#(https://github.com/dechapon25)
