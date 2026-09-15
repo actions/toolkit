@@ -365,6 +365,66 @@ describe('globber', () => {
     expect(hash).toEqual('')
   })
 
+  it('honors explicit roots when every one of them is outside the workspace', async () => {
+    // No in-workspace root to mask the drop: before the fix every root was
+    // discarded and hashFiles returned '' with only a core.debug line.
+    const actionRootA = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-all-outside-a-')
+    )
+    const actionRootB = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-all-outside-b-')
+    )
+    try {
+      await fs.writeFile(path.join(actionRootA, 'a.txt'), 'a content')
+      await fs.writeFile(path.join(actionRootB, 'b.txt'), 'b content')
+
+      const patterns = `${actionRootA}/*\n${actionRootB}/*`
+
+      const hash = await hashFiles(patterns, '', {
+        roots: [actionRootA, actionRootB]
+      })
+      expect(hash).not.toEqual('')
+
+      // Reaching the same files through the opt-in yields the same digest.
+      const withOptIn = await hashFiles(patterns, '', {
+        roots: [actionRootA, actionRootB],
+        allowFilesOutsideWorkspace: true
+      })
+      expect(hash).toEqual(withOptIn)
+    } finally {
+      await io.rmRF(actionRootA)
+      await io.rmRF(actionRootB)
+    }
+  })
+
+  it('honors an explicit root that is a symlink pointing outside the workspace', async () => {
+    const linkParent = path.join(getTestTemp(), 'explicit-root-symlink')
+    await fs.mkdir(linkParent, {recursive: true})
+
+    const realRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-symlink-target-')
+    )
+    try {
+      await fs.writeFile(path.join(realRoot, 'linked.txt'), 'linked content')
+      const linkPath = path.join(linkParent, 'link')
+      await createSymlinkDir(realRoot, linkPath)
+
+      // realpathSync resolves the root to a directory outside the workspace;
+      // the caller named it explicitly, so it is honored.
+      const hash = await hashFiles(`${linkPath}/*`, '', {roots: [linkPath]})
+      expect(hash).not.toEqual('')
+
+      // Containment is still computed on resolved paths, so declaring the
+      // link target directly produces the same digest.
+      const viaRealPath = await hashFiles(`${linkPath}/*`, '', {
+        roots: [realRoot]
+      })
+      expect(hash).toEqual(viaRealPath)
+    } finally {
+      await io.rmRF(realRoot)
+    }
+  })
+
   it('applies relative exclude patterns across all allowed roots', async () => {
     const root = path.join(getTestTemp(), 'exclude-across-roots')
     const dir1 = path.join(root, 'dir1')
