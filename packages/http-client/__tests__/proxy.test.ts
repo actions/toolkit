@@ -184,7 +184,7 @@ describe('proxy', () => {
   })
 
   it('checkBypass matches IP hosts against no_proxy CIDR ranges and skips invalid ones', () => {
-    process.env['no_proxy'] = '10.0.0.0/8,fd00::/8,10.0.0.0/33'
+    process.env['no_proxy'] = '10.0.0.0/8,fd00::/8,11.0.0.0/33,11.0.0.0/8/x'
     expect(pm.checkBypass(new URL('http://10.1.2.3:8088'))).toBeTruthy()
     expect(pm.checkBypass(new URL('http://[fd00::1]'))).toBeTruthy()
     expect(pm.checkBypass(new URL('http://11.1.2.3'))).toBeFalsy()

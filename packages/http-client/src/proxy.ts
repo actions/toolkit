@@ -92,8 +92,8 @@ function isLoopbackAddress(host: string): boolean {
 }
 
 function matchesCidr(ip: string, cidr: string): boolean {
-  const [network, prefix] = cidr.split('/')
-  if (!prefix || !isIP(ip)) return false
+  const [network, prefix, extra] = cidr.split('/')
+  if (!prefix || extra !== undefined || !isIP(ip)) return false
 
   const blockList = new BlockList()
   try {
