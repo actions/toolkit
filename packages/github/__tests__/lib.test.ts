@@ -32,14 +32,16 @@ describe('@actions/context', () => {
       .spyOn(process.stdout, 'write')
       .mockImplementation(() => true)
 
-    context = new Context()
+    try {
+      context = new Context()
 
-    expect(context.payload).toEqual({})
-    expect(write).toHaveBeenCalledWith(
-      `GITHUB_EVENT_PATH ${process.env.GITHUB_EVENT_PATH} contains invalid JSON${EOL}`
-    )
-    write.mockRestore()
-  })
+      expect(context.payload).toEqual({})
+      expect(write).toHaveBeenCalledWith(
+        `GITHUB_EVENT_PATH ${process.env.GITHUB_EVENT_PATH} contains invalid JSON${EOL}`
+      )
+    } finally {
+      write.mockRestore()
+    }
 
   it('returns attributes from the GITHUB_REPOSITORY', () => {
     expect(context.repo).toEqual({owner: 'actions', repo: 'toolkit'})
