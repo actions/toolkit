@@ -1,5 +1,4 @@
 import * as exec from '@actions/exec'
-import * as io from '@actions/io'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as tar from '../src/internal/tar'
@@ -7,10 +6,10 @@ import * as utils from '../src/internal/cacheUtils'
 import {CompressionMethod} from '../src/internal/constants'
 
 jest.mock('@actions/exec')
-jest.mock('@actions/io')
 
 const describeWindows = process.platform === 'win32' ? describe : describe.skip
-type Operation = 'extract' | 'list'
+const readers = {extract: tar.extractTar, list: tar.listTar}
+type Operation = keyof typeof readers
 
 interface Fixture {
   file: string
@@ -25,7 +24,7 @@ describeWindows.each([
     {file: 'first.txt', content: 'first archive'},
     {file: 'second.txt', content: 'second archive'}
   ]
-  const originalWorkspace = process.env['GITHUB_WORKSPACE']
+  const originalEnv = {...process.env}
   let root: string
   let workspace: string
   let archives: string[]
@@ -51,17 +50,12 @@ describeWindows.each([
     listedFiles = []
     failStage = undefined
     afterDecompression = async () => {}
-    process.env['GITHUB_WORKSPACE'] = workspace
+    process.env = {
+      ...originalEnv,
+      GITHUB_WORKSPACE: workspace,
+      RUNNER_TEMP: root
+    }
     jest.spyOn(utils, 'getGnuTarPathOnWindows').mockResolvedValue('')
-    jest.spyOn(utils, 'createTempDirectory').mockImplementation(async () => {
-      return fs.promises.mkdtemp(path.join(root, 'scratch-'))
-    })
-    jest.spyOn(io, 'mkdirP').mockImplementation(async directory => {
-      await fs.promises.mkdir(path.resolve(directory), {recursive: true})
-    })
-    jest.spyOn(io, 'rmRF').mockImplementation(async directory => {
-      await fs.promises.rm(directory, {recursive: true, force: true})
-    })
 
     // Model the filesystem effects of zstd and tar without requiring either
     // program to be installed. The fixture content stands in for archive data.
@@ -82,26 +76,26 @@ describeWindows.each([
             throw new Error('simulated decompression failure')
           }
           await afterDecompression()
-        } else {
-          if (failStage === 'tar') {
-            throw new Error('simulated tar failure')
-          }
-          const extracting = argv.includes('-xf')
-          const source = path.resolve(
-            cwd,
-            argv[argv.indexOf(extracting ? '-xf' : '-tf') + 1]
+          return 0
+        }
+        if (failStage === 'tar') {
+          throw new Error('simulated tar failure')
+        }
+        const extracting = argv.includes('-xf')
+        const source = path.resolve(
+          cwd,
+          argv[argv.indexOf(extracting ? '-xf' : '-tf') + 1]
+        )
+        const fixture: Fixture = JSON.parse(fs.readFileSync(source, 'utf8'))
+        if (extracting) {
+          const destination = path.resolve(cwd, argv[argv.indexOf('-C') + 1])
+          await fs.promises.mkdir(destination, {recursive: true})
+          fs.writeFileSync(
+            path.join(destination, fixture.file),
+            fixture.content
           )
-          const fixture: Fixture = JSON.parse(fs.readFileSync(source, 'utf8'))
-          if (extracting) {
-            const destination = path.resolve(cwd, argv[argv.indexOf('-C') + 1])
-            await fs.promises.mkdir(destination, {recursive: true})
-            fs.writeFileSync(
-              path.join(destination, fixture.file),
-              fixture.content
-            )
-          } else {
-            listedFiles.push(fixture.file)
-          }
+        } else {
+          listedFiles.push(fixture.file)
         }
         return 0
       })
@@ -109,24 +103,9 @@ describeWindows.each([
 
   afterEach(async () => {
     jest.restoreAllMocks()
-    if (originalWorkspace === undefined) {
-      delete process.env['GITHUB_WORKSPACE']
-    } else {
-      process.env['GITHUB_WORKSPACE'] = originalWorkspace
-    }
+    process.env = {...originalEnv}
     await fs.promises.rm(root, {recursive: true, force: true})
   })
-
-  async function readArchive(
-    operation: Operation,
-    archive: string
-  ): Promise<void> {
-    if (operation === 'extract') {
-      await tar.extractTar(archive, compression)
-    } else {
-      await tar.listTar(archive, compression)
-    }
-  }
 
   function expectCleanScratch(): void {
     expect(fs.readdirSync(root).sort()).toEqual([
@@ -166,7 +145,7 @@ describeWindows.each([
     const operations = [first, second]
     await Promise.all(
       operations.map(async (operation, index) => {
-        await readArchive(operation, archives[index])
+        await readers[operation](archives[index], compression)
       })
     )
 
@@ -209,9 +188,9 @@ describeWindows.each([
     async (operation, stage) => {
       failStage = stage
 
-      await expect(readArchive(operation, archives[0])).rejects.toThrow(
-        'simulated'
-      )
+      await expect(
+        readers[operation](archives[0], compression)
+      ).rejects.toThrow('simulated')
 
       expectCleanScratch()
     }
