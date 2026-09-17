@@ -251,29 +251,39 @@ async function getCompressionProgram(
 }
 
 // Executes all commands as separate processes
-async function execCommands(
-  {commands, requiresTempDirectory}: TarCommands,
-  cwd?: string
+async function execCommands(commands: string[], cwd?: string): Promise<void> {
+  for (const command of commands) {
+    try {
+      await exec(command, undefined, {
+        cwd,
+        env: {...(process.env as object), MSYS: 'winsymlinks:nativestrict'}
+      })
+    } catch (error) {
+      throw new Error(
+        `${command.split(' ')[0]} failed with error: ${error?.message}`
+      )
+    }
+  }
+}
+
+async function execReadCommands(
+  archivePath: string,
+  compressionMethod: CompressionMethod,
+  type: 'list' | 'extract'
 ): Promise<void> {
+  const {commands, requiresTempDirectory} = await getCommands(
+    compressionMethod,
+    type,
+    archivePath
+  )
   // The Windows BSD-tar fallback decompresses into cache.tar before reading
   // it. Isolate that intermediate for each list/extract operation, including
-  // debug listings during saves. Creation already has its own archive folder.
+  // debug listings during saves.
   const tempDirectory = requiresTempDirectory
     ? await utils.createTempDirectory()
     : undefined
   try {
-    for (const command of commands) {
-      try {
-        await exec(command, undefined, {
-          cwd: tempDirectory ?? cwd,
-          env: {...(process.env as object), MSYS: 'winsymlinks:nativestrict'}
-        })
-      } catch (error) {
-        throw new Error(
-          `${command.split(' ')[0]} failed with error: ${error?.message}`
-        )
-      }
-    }
+    await execCommands(commands, tempDirectory)
   } finally {
     if (tempDirectory) {
       await io.rmRF(tempDirectory)
@@ -286,8 +296,7 @@ export async function listTar(
   archivePath: string,
   compressionMethod: CompressionMethod
 ): Promise<void> {
-  const commands = await getCommands(compressionMethod, 'list', archivePath)
-  await execCommands(commands)
+  await execReadCommands(archivePath, compressionMethod, 'list')
 }
 
 // Extract a tar
@@ -298,8 +307,7 @@ export async function extractTar(
   // Create directory to extract tar into
   const workingDirectory = getWorkingDirectory()
   await io.mkdirP(workingDirectory)
-  const commands = await getCommands(compressionMethod, 'extract', archivePath)
-  await execCommands(commands)
+  await execReadCommands(archivePath, compressionMethod, 'extract')
 }
 
 // Create a tar
@@ -313,6 +321,6 @@ export async function createTar(
     path.join(archiveFolder, ManifestFilename),
     sourceDirectories.join('\n')
   )
-  const commands = await getCommands(compressionMethod, 'create')
+  const {commands} = await getCommands(compressionMethod, 'create')
   await execCommands(commands, archiveFolder)
 }
