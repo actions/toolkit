@@ -1,4 +1,6 @@
+import * as core from '@actions/core'
 import * as exec from '@actions/exec'
+import * as io from '@actions/io'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as tar from '../src/internal/tar'
@@ -177,6 +179,32 @@ describeWindows.each([
     ).toBe(fixtures[0].content)
     expectCleanScratch()
   })
+
+  test.each<[Operation, boolean]>([
+    ['extract', false],
+    ['extract', true],
+    ['list', false],
+    ['list', true]
+  ])(
+    'preserves the %s result when cleanup fails (command fails=%s)',
+    async (operation, commandFails) => {
+      const debugMock = jest.spyOn(core, 'debug').mockImplementation(() => {})
+      jest
+        .spyOn(io, 'rmRF')
+        .mockRejectedValue(new Error('simulated cleanup failure'))
+      failStage = commandFails ? 'tar' : undefined
+
+      const result = readers[operation](archives[0], compression)
+      if (commandFails) {
+        await expect(result).rejects.toThrow('simulated tar failure')
+      } else {
+        await expect(result).resolves.toBeUndefined()
+      }
+      expect(debugMock).toHaveBeenCalledWith(
+        expect.stringContaining('simulated cleanup failure')
+      )
+    }
+  )
 
   test.each<[Operation, 'decompress' | 'tar']>([
     ['extract', 'decompress'],

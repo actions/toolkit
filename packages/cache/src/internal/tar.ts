@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import {exec} from '@actions/exec'
 import * as io from '@actions/io'
 import {existsSync, writeFileSync} from 'fs'
@@ -286,7 +287,11 @@ async function execReadCommands(
     await execCommands(commands, tempDirectory)
   } finally {
     if (tempDirectory) {
-      await io.rmRF(tempDirectory)
+      try {
+        await io.rmRF(tempDirectory)
+      } catch (error) {
+        core.debug(`Failed to delete temporary tar directory: ${error}`)
+      }
     }
   }
 }
