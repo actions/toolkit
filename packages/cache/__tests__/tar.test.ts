@@ -88,6 +88,8 @@ test('zstd extract tar with windows BSDtar', async () => {
   if (IS_WINDOWS) {
     const mkdirMock = jest.spyOn(io, 'mkdirP')
     const execMock = jest.spyOn(exec, 'exec')
+    const tempDirectory = getTempDir()
+    jest.spyOn(utils, 'createTempDirectory').mockResolvedValue(tempDirectory)
     jest
       .spyOn(utils, 'getGnuTarPathOnWindows')
       .mockReturnValue(Promise.resolve(''))
@@ -106,11 +108,11 @@ test('zstd extract tar with windows BSDtar', async () => {
       [
         'zstd -d --long=30 --force -o',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-        archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+        `"${archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')}"`
       ].join(' '),
       undefined,
       {
-        cwd: undefined,
+        cwd: tempDirectory,
         env: expect.objectContaining(defaultEnv)
       }
     )
@@ -123,11 +125,11 @@ test('zstd extract tar with windows BSDtar', async () => {
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
         '-C',
-        workspace?.replace(/\\/g, '/')
+        `"${workspace?.replace(/\\/g, '/')}"`
       ].join(' '),
       undefined,
       {
-        cwd: undefined,
+        cwd: tempDirectory,
         env: expect.objectContaining(defaultEnv)
       }
     )
@@ -278,7 +280,7 @@ test('zstd create tar with windows BSDtar', async () => {
         TarFilename.replace(/\\/g, '/'),
         '-P',
         '-C',
-        workspace?.replace(/\\/g, '/'),
+        `"${workspace?.replace(/\\/g, '/')}"`,
         '--files-from',
         ManifestFilename
       ].join(' '),
@@ -381,6 +383,8 @@ test('zstd list tar', async () => {
 test('zstd list tar with windows BSDtar', async () => {
   if (IS_WINDOWS) {
     const execMock = jest.spyOn(exec, 'exec')
+    const tempDirectory = getTempDir()
+    jest.spyOn(utils, 'createTempDirectory').mockResolvedValue(tempDirectory)
     jest
       .spyOn(utils, 'getGnuTarPathOnWindows')
       .mockReturnValue(Promise.resolve(''))
@@ -396,11 +400,11 @@ test('zstd list tar with windows BSDtar', async () => {
       [
         'zstd -d --long=30 --force -o',
         TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
-        archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+        `"${archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')}"`
       ].join(' '),
       undefined,
       {
-        cwd: undefined,
+        cwd: tempDirectory,
         env: expect.objectContaining(defaultEnv)
       }
     )
@@ -415,7 +419,7 @@ test('zstd list tar with windows BSDtar', async () => {
       ].join(' '),
       undefined,
       {
-        cwd: undefined,
+        cwd: tempDirectory,
         env: expect.objectContaining(defaultEnv)
       }
     )

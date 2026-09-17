@@ -14,6 +14,11 @@ import {
 
 const IS_WINDOWS = process.platform === 'win32'
 
+interface TarCommands {
+  commands: string[]
+  requiresTempDirectory: boolean
+}
+
 // Returns tar path and type: BSD or GNU
 async function getTarPath(): Promise<ArchiveTool> {
   switch (process.platform) {
@@ -82,7 +87,9 @@ async function getTarArgs(
           : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
         '-C',
-        workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        BSD_TAR_ZSTD
+          ? quoteAbsolutePath(workingDirectory)
+          : workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '--files-from',
         ManifestFilename
       )
@@ -95,7 +102,9 @@ async function getTarArgs(
           : archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
         '-C',
-        workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+        BSD_TAR_ZSTD
+          ? quoteAbsolutePath(workingDirectory)
+          : workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
       )
       break
     case 'list':
@@ -129,7 +138,7 @@ async function getCommands(
   compressionMethod: CompressionMethod,
   type: string,
   archivePath = ''
-): Promise<string[]> {
+): Promise<TarCommands> {
   let args
 
   const tarPath = await getTarPath()
@@ -154,15 +163,18 @@ async function getCommands(
     args = [[...tarArgs].join(' '), [...compressionArgs].join(' ')]
   }
 
-  if (BSD_TAR_ZSTD) {
-    return args
+  return {
+    commands: BSD_TAR_ZSTD ? args : [args.join(' ')],
+    requiresTempDirectory: BSD_TAR_ZSTD && type !== 'create'
   }
-
-  return [args.join(' ')]
 }
 
 function getWorkingDirectory(): string {
   return process.env['GITHUB_WORKSPACE'] ?? process.cwd()
+}
+
+function quoteAbsolutePath(filePath: string): string {
+  return `"${path.resolve(filePath).replace(new RegExp(`\\${path.sep}`, 'g'), '/')}"`
 }
 
 // Common function for extractTar and listTar to get the compression method
@@ -185,7 +197,7 @@ async function getDecompressionProgram(
         ? [
             'zstd -d --long=30 --force -o',
             TarFilename,
-            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+            quoteAbsolutePath(archivePath)
           ]
         : [
             '--use-compress-program',
@@ -193,11 +205,7 @@ async function getDecompressionProgram(
           ]
     case CompressionMethod.ZstdWithoutLong:
       return BSD_TAR_ZSTD
-        ? [
-            'zstd -d --force -o',
-            TarFilename,
-            archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
-          ]
+        ? ['zstd -d --force -o', TarFilename, quoteAbsolutePath(archivePath)]
         : ['--use-compress-program', IS_WINDOWS ? '"zstd -d"' : 'unzstd']
     default:
       return ['-z']
@@ -245,17 +253,32 @@ async function getCompressionProgram(
 }
 
 // Executes all commands as separate processes
-async function execCommands(commands: string[], cwd?: string): Promise<void> {
-  for (const command of commands) {
-    try {
-      await exec(command, undefined, {
-        cwd,
-        env: {...(process.env as object), MSYS: 'winsymlinks:nativestrict'}
-      })
-    } catch (error) {
-      throw new Error(
-        `${command.split(' ')[0]} failed with error: ${error?.message}`
-      )
+async function execCommands(
+  {commands, requiresTempDirectory}: TarCommands,
+  cwd?: string
+): Promise<void> {
+  // The Windows BSD-tar fallback decompresses into cache.tar before reading
+  // it. Isolate that intermediate for each list/extract operation, including
+  // debug listings during saves. Creation already has its own archive folder.
+  const tempDirectory = requiresTempDirectory
+    ? await utils.createTempDirectory()
+    : undefined
+  try {
+    for (const command of commands) {
+      try {
+        await exec(command, undefined, {
+          cwd: tempDirectory ?? cwd,
+          env: {...(process.env as object), MSYS: 'winsymlinks:nativestrict'}
+        })
+      } catch (error) {
+        throw new Error(
+          `${command.split(' ')[0]} failed with error: ${error?.message}`
+        )
+      }
+    }
+  } finally {
+    if (tempDirectory) {
+      await io.rmRF(tempDirectory)
     }
   }
 }
