@@ -19,17 +19,6 @@ interface TarCommands {
   requiresTempDirectory: boolean
 }
 
-function isBsdTarZstd(
-  tarPath: ArchiveTool,
-  compressionMethod: CompressionMethod
-): boolean {
-  return (
-    IS_WINDOWS &&
-    tarPath.type === ArchiveToolType.BSD &&
-    compressionMethod !== CompressionMethod.Gzip
-  )
-}
-
 // Returns tar path and type: BSD or GNU
 async function getTarPath(): Promise<ArchiveTool> {
   switch (process.platform) {
@@ -74,16 +63,14 @@ async function getTarArgs(
   archivePath = ''
 ): Promise<string[]> {
   const args = [`"${tarPath.path}"`]
-  const BSD_TAR_ZSTD = isBsdTarZstd(tarPath, compressionMethod)
-  const tarFile = BSD_TAR_ZSTD
-    ? TarFilename
-    : (type === 'create'
-        ? utils.getCacheFileName(compressionMethod)
-        : archivePath
-      ).replace(new RegExp(`\\${path.sep}`, 'g'), '/')
-  const workingDirectory = BSD_TAR_ZSTD
-    ? quoteAbsolutePath(getWorkingDirectory())
-    : getWorkingDirectory().replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+  const cacheFileName = utils.getCacheFileName(compressionMethod)
+  const tarFile = 'cache.tar'
+  const workingDirectory = getWorkingDirectory()
+  // Speficic args for BSD tar on windows for workaround
+  const BSD_TAR_ZSTD =
+    tarPath.type === ArchiveToolType.BSD &&
+    compressionMethod !== CompressionMethod.Gzip &&
+    IS_WINDOWS
 
   // Method specific args
   switch (type) {
@@ -91,21 +78,41 @@ async function getTarArgs(
       args.push(
         '--posix',
         '-cf',
-        tarFile,
+        BSD_TAR_ZSTD
+          ? tarFile
+          : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '--exclude',
-        tarFile,
+        BSD_TAR_ZSTD
+          ? tarFile
+          : cacheFileName.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '-P',
         '-C',
-        workingDirectory,
+        workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
         '--files-from',
         ManifestFilename
       )
       break
     case 'extract':
-      args.push('-xf', tarFile, '-P', '-C', workingDirectory)
+      args.push(
+        '-xf',
+        BSD_TAR_ZSTD
+          ? tarFile
+          : archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        '-P',
+        '-C',
+        BSD_TAR_ZSTD
+          ? quoteAbsolutePath(workingDirectory)
+          : workingDirectory.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+      )
       break
     case 'list':
-      args.push('-tf', tarFile, '-P')
+      args.push(
+        '-tf',
+        BSD_TAR_ZSTD
+          ? tarFile
+          : archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        '-P'
+      )
       break
   }
 
@@ -143,7 +150,10 @@ async function getCommands(
     type !== 'create'
       ? await getDecompressionProgram(tarPath, compressionMethod, archivePath)
       : await getCompressionProgram(tarPath, compressionMethod)
-  const BSD_TAR_ZSTD = isBsdTarZstd(tarPath, compressionMethod)
+  const BSD_TAR_ZSTD =
+    tarPath.type === ArchiveToolType.BSD &&
+    compressionMethod !== CompressionMethod.Gzip &&
+    IS_WINDOWS
 
   if (BSD_TAR_ZSTD && type !== 'create') {
     args = [[...compressionArgs].join(' '), [...tarArgs].join(' ')]
@@ -175,7 +185,10 @@ async function getDecompressionProgram(
   // unzstd is equivalent to 'zstd -d'
   // --long=#: Enables long distance matching with # bits. Maximum is 30 (1GB) on 32-bit OS and 31 (2GB) on 64-bit.
   // Using 30 here because we also support 32-bit self-hosted runners.
-  const BSD_TAR_ZSTD = isBsdTarZstd(tarPath, compressionMethod)
+  const BSD_TAR_ZSTD =
+    tarPath.type === ArchiveToolType.BSD &&
+    compressionMethod !== CompressionMethod.Gzip &&
+    IS_WINDOWS
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD
@@ -208,7 +221,10 @@ async function getCompressionProgram(
   compressionMethod: CompressionMethod
 ): Promise<string[]> {
   const cacheFileName = utils.getCacheFileName(compressionMethod)
-  const BSD_TAR_ZSTD = isBsdTarZstd(tarPath, compressionMethod)
+  const BSD_TAR_ZSTD =
+    tarPath.type === ArchiveToolType.BSD &&
+    compressionMethod !== CompressionMethod.Gzip &&
+    IS_WINDOWS
   switch (compressionMethod) {
     case CompressionMethod.Zstd:
       return BSD_TAR_ZSTD

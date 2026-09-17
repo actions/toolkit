@@ -84,56 +84,57 @@ test('zstd extract tar', async () => {
   )
 })
 
-test.each([
-  {operation: 'extract', read: tar.extractTar, flag: '-xf'},
-  {operation: 'list', read: tar.listTar, flag: '-tf'}
-])(
-  'zstd $operation tar with windows BSDtar',
-  async ({operation, read, flag}) => {
-    if (!IS_WINDOWS) {
-      return
-    }
+test('zstd extract tar with windows BSDtar', async () => {
+  if (IS_WINDOWS) {
     const mkdirMock = jest.spyOn(io, 'mkdirP')
     const execMock = jest.spyOn(exec, 'exec')
     const tempDirectory = getTempDir()
     jest.spyOn(utils, 'createTempDirectory').mockResolvedValue(tempDirectory)
-    jest.spyOn(utils, 'getGnuTarPathOnWindows').mockResolvedValue('')
+    jest
+      .spyOn(utils, 'getGnuTarPathOnWindows')
+      .mockReturnValue(Promise.resolve(''))
 
     const archivePath = `${process.env['windir']}\\fakepath\\cache.tar`
     const workspace = process.env['GITHUB_WORKSPACE']
-    const options = {
-      cwd: tempDirectory,
-      env: expect.objectContaining(defaultEnv)
-    }
-    const tarArgs = [`"${SystemTarPathOnWindows}"`, flag, TarFilename, '-P']
-    if (operation === 'extract') {
-      tarArgs.push('-C', `"${workspace?.replace(/\\/g, '/')}"`)
-    }
+    const tarPath = SystemTarPathOnWindows
 
-    await read(archivePath, CompressionMethod.Zstd)
+    await tar.extractTar(archivePath, CompressionMethod.Zstd)
 
-    if (operation === 'extract') {
-      expect(mkdirMock).toHaveBeenCalledWith(workspace)
-    }
+    expect(mkdirMock).toHaveBeenCalledWith(workspace)
     expect(execMock).toHaveBeenCalledTimes(2)
+
     expect(execMock).toHaveBeenNthCalledWith(
       1,
       [
         'zstd -d --long=30 --force -o',
-        TarFilename,
-        `"${archivePath.replace(/\\/g, '/')}"`
+        TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        `"${archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')}"`
       ].join(' '),
       undefined,
-      options
+      {
+        cwd: tempDirectory,
+        env: expect.objectContaining(defaultEnv)
+      }
     )
+
     expect(execMock).toHaveBeenNthCalledWith(
       2,
-      tarArgs.join(' '),
+      [
+        `"${tarPath}"`,
+        '-xf',
+        TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        '-P',
+        '-C',
+        `"${workspace?.replace(/\\/g, '/')}"`
+      ].join(' '),
       undefined,
-      options
+      {
+        cwd: tempDirectory,
+        env: expect.objectContaining(defaultEnv)
+      }
     )
   }
-)
+})
 
 test('gzip extract tar', async () => {
   const mkdirMock = jest.spyOn(io, 'mkdirP')
@@ -279,7 +280,7 @@ test('zstd create tar with windows BSDtar', async () => {
         TarFilename.replace(/\\/g, '/'),
         '-P',
         '-C',
-        `"${workspace?.replace(/\\/g, '/')}"`,
+        workspace?.replace(/\\/g, '/'),
         '--files-from',
         ManifestFilename
       ].join(' '),
@@ -377,6 +378,52 @@ test('zstd list tar', async () => {
       env: expect.objectContaining(defaultEnv)
     }
   )
+})
+
+test('zstd list tar with windows BSDtar', async () => {
+  if (IS_WINDOWS) {
+    const execMock = jest.spyOn(exec, 'exec')
+    const tempDirectory = getTempDir()
+    jest.spyOn(utils, 'createTempDirectory').mockResolvedValue(tempDirectory)
+    jest
+      .spyOn(utils, 'getGnuTarPathOnWindows')
+      .mockReturnValue(Promise.resolve(''))
+    const archivePath = `${process.env['windir']}\\fakepath\\cache.tar`
+
+    await tar.listTar(archivePath, CompressionMethod.Zstd)
+
+    const tarPath = SystemTarPathOnWindows
+    expect(execMock).toHaveBeenCalledTimes(2)
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      1,
+      [
+        'zstd -d --long=30 --force -o',
+        TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        `"${archivePath.replace(new RegExp(`\\${path.sep}`, 'g'), '/')}"`
+      ].join(' '),
+      undefined,
+      {
+        cwd: tempDirectory,
+        env: expect.objectContaining(defaultEnv)
+      }
+    )
+
+    expect(execMock).toHaveBeenNthCalledWith(
+      2,
+      [
+        `"${tarPath}"`,
+        '-tf',
+        TarFilename.replace(new RegExp(`\\${path.sep}`, 'g'), '/'),
+        '-P'
+      ].join(' '),
+      undefined,
+      {
+        cwd: tempDirectory,
+        env: expect.objectContaining(defaultEnv)
+      }
+    )
+  }
 })
 
 test('zstdWithoutLong list tar', async () => {
