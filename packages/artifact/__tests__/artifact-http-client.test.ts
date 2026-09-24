@@ -503,6 +503,50 @@ describe('artifact-http-client', () => {
       expect(sleepTimes()).toEqual([60000])
     })
 
+    it.each([
+      [429, 'Too Many Requests'],
+      [503, 'Service Unavailable']
+    ])(
+      'should honor Retry-After on %s with a non-JSON body',
+      async (statusCode, statusMessage) => {
+        const mockPost = mockPostResponses(
+          failedResponse(
+            statusCode,
+            statusMessage,
+            {'retry-after': '20'},
+            '<html>rate limited</html>'
+          )
+        )
+
+        const client = internalArtifactTwirpClient()
+        const artifact = await client.CreateArtifact(createArtifactRequest)
+
+        expect(artifact.ok).toBe(true)
+        expect(mockPost).toHaveBeenCalledTimes(2)
+        expect(sleepTimes()).toEqual([20000])
+      }
+    )
+
+    it('should fail fast when Retry-After exceeds the maximum wait with a non-JSON body', async () => {
+      const mockPost = mockPostResponses(
+        failedResponse(
+          429,
+          'Too Many Requests',
+          {'retry-after': '61'},
+          '<html>rate limited</html>'
+        )
+      )
+
+      const client = internalArtifactTwirpClient()
+      await expect(
+        client.CreateArtifact(createArtifactRequest)
+      ).rejects.toThrow(
+        'Retry-After of 61 seconds exceeds the maximum wait of 60 seconds'
+      )
+      expect(mockPost).toHaveBeenCalledTimes(1)
+      expect(sleepSpy).not.toHaveBeenCalled()
+    })
+
     const serverErrors = (count: number): object[] =>
       Array.from({length: count}, () =>
         failedResponse(500, 'Internal Server Error')

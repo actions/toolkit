@@ -85,6 +85,12 @@ class ArtifactHttpClient implements Rpc {
       try {
         const response = await operation()
         const statusCode = response.message.statusCode
+        if (
+          statusCode === HttpCodes.TooManyRequests ||
+          statusCode === HttpCodes.ServiceUnavailable
+        ) {
+          retryAfterSeconds = this.getRetryAfterSeconds(response)
+        }
         rawBody = await response.readBody()
         debug(`[Response] - ${response.message.statusCode}`)
         debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`)
@@ -95,12 +101,6 @@ class ArtifactHttpClient implements Rpc {
           return {response, body}
         }
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
-        if (
-          statusCode === HttpCodes.TooManyRequests ||
-          statusCode === HttpCodes.ServiceUnavailable
-        ) {
-          retryAfterSeconds = this.getRetryAfterSeconds(response)
-        }
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
         if (body.msg) {
           if (UsageError.isUsageErrorMessage(body.msg)) {
