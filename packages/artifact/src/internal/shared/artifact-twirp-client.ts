@@ -23,8 +23,7 @@ class ArtifactHttpClient implements Rpc {
   private maxAttempts = 5
   private baseRetryIntervalMilliseconds = 3000
   private retryMultiplier = 1.5
-  private retryAfterMaxJitterMilliseconds = 5000
-  private maxRetryAfterWaitMilliseconds = 150000
+  private maxRetryAfterSeconds = 60
 
   constructor(
     userAgent: string,
@@ -137,20 +136,19 @@ class ArtifactHttpClient implements Rpc {
         )
       }
 
-      let retryTimeMilliseconds: number
-      if (retryAfterSeconds !== undefined) {
-        retryTimeMilliseconds =
-          retryAfterSeconds * 1000 + this.getRetryAfterJitterMilliseconds()
-        if (retryTimeMilliseconds > this.maxRetryAfterWaitMilliseconds) {
-          throw new Error(
-            `Retry-After of ${retryAfterSeconds} seconds (${retryTimeMilliseconds} ms with jitter) exceeds the maximum wait of ${this.maxRetryAfterWaitMilliseconds} ms: ${errorMessage}`
-          )
-        }
-      } else {
-        retryTimeMilliseconds =
-          this.getExponentialRetryTimeMilliseconds(attempt)
+      if (
+        retryAfterSeconds !== undefined &&
+        retryAfterSeconds > this.maxRetryAfterSeconds
+      ) {
+        throw new Error(
+          `Retry-After of ${retryAfterSeconds} seconds exceeds the maximum wait of ${this.maxRetryAfterSeconds} seconds: ${errorMessage}`
+        )
       }
 
+      const retryTimeMilliseconds =
+        retryAfterSeconds !== undefined
+          ? retryAfterSeconds * 1000
+          : this.getExponentialRetryTimeMilliseconds(attempt)
       info(
         `Attempt ${attempt + 1} of ${
           this.maxAttempts
@@ -195,10 +193,6 @@ class ArtifactHttpClient implements Rpc {
     return seconds > 0 ? seconds : undefined
   }
 
-  getRetryAfterJitterMilliseconds(): number {
-    return Math.trunc(Math.random() * this.retryAfterMaxJitterMilliseconds)
-  }
-
   async sleep(milliseconds: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
@@ -206,6 +200,10 @@ class ArtifactHttpClient implements Rpc {
   getExponentialRetryTimeMilliseconds(attempt: number): number {
     if (attempt < 0) {
       throw new Error('attempt should be a positive integer')
+    }
+
+    if (attempt === 0) {
+      return this.baseRetryIntervalMilliseconds
     }
 
     const minTime =
