@@ -347,6 +347,7 @@ describe('artifact-http-client', () => {
   })
   describe('retry wait times', () => {
     let sleepSpy: jest.SpyInstance
+    let randomSpy: jest.SpyInstance | undefined
 
     const createArtifactRequest = {
       workflowRunBackendId: '1234',
@@ -416,6 +417,8 @@ describe('artifact-http-client', () => {
 
     afterEach(() => {
       sleepSpy.mockRestore()
+      randomSpy?.mockRestore()
+      randomSpy = undefined
     })
 
     it('should honor Retry-After on 429', async () => {
@@ -500,6 +503,60 @@ describe('artifact-http-client', () => {
       expect(sleepTimes()).toEqual([60000])
     })
 
+    const serverErrors = (count: number): object[] =>
+      Array.from({length: count}, () =>
+        failedResponse(500, 'Internal Server Error')
+      )
+
+    it.each([
+      ['minimum', 0, [5000, 10000, 20000, 40000]],
+      ['maximum', 0.9999999, [5000, 19999, 39999, 79999]]
+    ])(
+      'should use the %s default backoff wait per attempt',
+      async (_, random, expectedWaits) => {
+        randomSpy = jest.spyOn(Math, 'random').mockReturnValue(random)
+        const mockPost = mockPostResponses(...serverErrors(5))
+
+        const client = internalArtifactTwirpClient()
+        await expect(
+          client.CreateArtifact(createArtifactRequest)
+        ).rejects.toThrow(
+          'Failed to make request after 5 attempts: Failed request: (500) Internal Server Error'
+        )
+        expect(mockPost).toHaveBeenCalledTimes(5)
+        expect(sleepTimes()).toEqual(expectedWaits)
+      }
+    )
+
+    it('should wait at least 60s in total across default backoff retries', async () => {
+      randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
+      mockPostResponses(...serverErrors(5))
+
+      const client = internalArtifactTwirpClient()
+      await expect(
+        client.CreateArtifact(createArtifactRequest)
+      ).rejects.toThrow('Failed to make request after 5 attempts')
+
+      const totalWait = sleepTimes().reduce((sum, wait) => sum + wait, 0)
+      expect(sleepTimes()).toHaveLength(4)
+      expect(totalWait).toBeGreaterThanOrEqual(60000)
+      expect(totalWait).toBe(75000)
+    })
+
+    it('should let constructor options override the default backoff', async () => {
+      randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
+      mockPostResponses(...serverErrors(5))
+
+      const client = internalArtifactTwirpClient({
+        retryIntervalMs: 1000,
+        retryMultiplier: 3
+      })
+      await expect(
+        client.CreateArtifact(createArtifactRequest)
+      ).rejects.toThrow('Failed to make request after 5 attempts')
+      expect(sleepTimes()).toEqual([1000, 3000, 9000, 27000])
+    })
+
     it.each([
       ['missing', undefined],
       ['empty', ''],
@@ -518,7 +575,7 @@ describe('artifact-http-client', () => {
 
         expect(artifact.ok).toBe(true)
         expect(mockPost).toHaveBeenCalledTimes(2)
-        expect(sleepTimes()).toEqual([3000])
+        expect(sleepTimes()).toEqual([5000])
       }
     )
 
@@ -530,7 +587,7 @@ describe('artifact-http-client', () => {
       const client = internalArtifactTwirpClient()
       await client.CreateArtifact(createArtifactRequest)
 
-      expect(sleepTimes()).toEqual([3000])
+      expect(sleepTimes()).toEqual([5000])
     })
 
     it('should fail immediately on non-retryable status with Retry-After', async () => {

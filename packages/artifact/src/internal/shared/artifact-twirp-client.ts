@@ -21,8 +21,8 @@ class ArtifactHttpClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
   private maxAttempts = 5
-  private baseRetryIntervalMilliseconds = 3000
-  private retryMultiplier = 1.5
+  private baseRetryIntervalMilliseconds = 5000
+  private retryMultiplier = 2
   private maxRetryAfterSeconds = 60
 
   constructor(
