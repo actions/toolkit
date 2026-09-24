@@ -1,6 +1,6 @@
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {info, debug} from '@actions/core'
+import {info, debug, warning} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated/index.js'
 import {getResultsServiceUrl, getRuntimeToken} from './config.js'
 import {getUserAgentString} from './user-agent.js'
@@ -20,10 +20,10 @@ interface Rpc {
 class ArtifactHttpClient implements Rpc {
   private httpClient: HttpClient
   private baseUrl: string
-  private maxAttempts = 5
-  private baseRetryIntervalMilliseconds = 5000
-  private retryMultiplier = 2
-  private maxRetryAfterSeconds = 60
+  private maxAttempts = 4
+  private baseRetryIntervalMilliseconds = 14000
+  private retryMultiplier = 1.5
+  private maxTotalRetryWaitMilliseconds = 120000
 
   constructor(
     userAgent: string,
@@ -78,13 +78,15 @@ class ArtifactHttpClient implements Rpc {
     let attempt = 0
     let errorMessage = ''
     let rawBody = ''
+    let totalRetryWaitMilliseconds = 0
     while (attempt < this.maxAttempts) {
       let isRetryable = false
       let retryAfterSeconds: number | undefined
+      let statusCode: number | undefined
 
       try {
         const response = await operation()
-        const statusCode = response.message.statusCode
+        statusCode = response.message.statusCode
         if (
           statusCode === HttpCodes.TooManyRequests ||
           statusCode === HttpCodes.ServiceUnavailable
@@ -130,18 +132,16 @@ class ArtifactHttpClient implements Rpc {
         throw new Error(`Received non-retryable error: ${errorMessage}`)
       }
 
+      const isRateLimited = statusCode === HttpCodes.TooManyRequests
+
       if (attempt + 1 === this.maxAttempts) {
+        if (isRateLimited) {
+          warning(
+            `Request was rate limited (HTTP 429). Not retrying: reached the maximum of ${this.maxAttempts} attempts`
+          )
+        }
         throw new Error(
           `Failed to make request after ${this.maxAttempts} attempts: ${errorMessage}`
-        )
-      }
-
-      if (
-        retryAfterSeconds !== undefined &&
-        retryAfterSeconds > this.maxRetryAfterSeconds
-      ) {
-        throw new Error(
-          `Retry-After of ${retryAfterSeconds} seconds exceeds the maximum wait of ${this.maxRetryAfterSeconds} seconds: ${errorMessage}`
         )
       }
 
@@ -149,12 +149,39 @@ class ArtifactHttpClient implements Rpc {
         retryAfterSeconds !== undefined
           ? retryAfterSeconds * 1000
           : this.getExponentialRetryTimeMilliseconds(attempt)
+
+      if (
+        totalRetryWaitMilliseconds + retryTimeMilliseconds >
+        this.maxTotalRetryWaitMilliseconds
+      ) {
+        if (isRateLimited) {
+          warning(
+            `Request was rate limited (HTTP 429). Not retrying: waiting ${
+              retryTimeMilliseconds / 1000
+            } seconds would exceed the maximum total retry wait of ${
+              this.maxTotalRetryWaitMilliseconds / 1000
+            } seconds`
+          )
+        }
+        throw new Error(
+          `Retry wait of ${retryTimeMilliseconds} ms would exceed the maximum total retry wait of ${this.maxTotalRetryWaitMilliseconds} ms: ${errorMessage}`
+        )
+      }
+
+      if (isRateLimited) {
+        warning(
+          `Request was rate limited (HTTP 429). Retrying in ${
+            retryTimeMilliseconds / 1000
+          } seconds (attempt ${attempt + 2} of ${this.maxAttempts})`
+        )
+      }
       info(
         `Attempt ${attempt + 1} of ${
           this.maxAttempts
         } failed with error: ${errorMessage}. Retrying request in ${retryTimeMilliseconds} ms...`
       )
       await this.sleep(retryTimeMilliseconds)
+      totalRetryWaitMilliseconds += retryTimeMilliseconds
       attempt++
     }
 
