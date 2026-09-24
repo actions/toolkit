@@ -23,6 +23,8 @@ class ArtifactHttpClient implements Rpc {
   private maxAttempts = 5
   private baseRetryIntervalMilliseconds = 3000
   private retryMultiplier = 1.5
+  private retryAfterMaxJitterMilliseconds = 5000
+  private maxRetryAfterWaitMilliseconds = 150000
 
   constructor(
     userAgent: string,
@@ -79,6 +81,7 @@ class ArtifactHttpClient implements Rpc {
     let rawBody = ''
     while (attempt < this.maxAttempts) {
       let isRetryable = false
+      let retryAfterSeconds: number | undefined
 
       try {
         const response = await operation()
@@ -93,6 +96,12 @@ class ArtifactHttpClient implements Rpc {
           return {response, body}
         }
         isRetryable = this.isRetryableHttpStatusCode(statusCode)
+        if (
+          statusCode === HttpCodes.TooManyRequests ||
+          statusCode === HttpCodes.ServiceUnavailable
+        ) {
+          retryAfterSeconds = this.getRetryAfterSeconds(response)
+        }
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
         if (body.msg) {
           if (UsageError.isUsageErrorMessage(body.msg)) {
@@ -128,8 +137,20 @@ class ArtifactHttpClient implements Rpc {
         )
       }
 
-      const retryTimeMilliseconds =
-        this.getExponentialRetryTimeMilliseconds(attempt)
+      let retryTimeMilliseconds: number
+      if (retryAfterSeconds !== undefined) {
+        retryTimeMilliseconds =
+          retryAfterSeconds * 1000 + this.getRetryAfterJitterMilliseconds()
+        if (retryTimeMilliseconds > this.maxRetryAfterWaitMilliseconds) {
+          throw new Error(
+            `Retry-After of ${retryAfterSeconds} seconds (${retryTimeMilliseconds} ms with jitter) exceeds the maximum wait of ${this.maxRetryAfterWaitMilliseconds} ms: ${errorMessage}`
+          )
+        }
+      } else {
+        retryTimeMilliseconds =
+          this.getExponentialRetryTimeMilliseconds(attempt)
+      }
+
       info(
         `Attempt ${attempt + 1} of ${
           this.maxAttempts
@@ -161,6 +182,23 @@ class ArtifactHttpClient implements Rpc {
     return retryableStatusCodes.includes(statusCode)
   }
 
+  // Returns the Retry-After header value in seconds if it is a positive
+  // integer, otherwise undefined (HTTP-date values are not supported)
+  getRetryAfterSeconds(response: HttpClientResponse): number | undefined {
+    const header = response.message.headers['retry-after']
+    const value = Array.isArray(header) ? header[0] : header
+    if (!value || !/^\d+$/.test(value.trim())) {
+      return undefined
+    }
+
+    const seconds = parseInt(value.trim(), 10)
+    return seconds > 0 ? seconds : undefined
+  }
+
+  getRetryAfterJitterMilliseconds(): number {
+    return Math.trunc(Math.random() * this.retryAfterMaxJitterMilliseconds)
+  }
+
   async sleep(milliseconds: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
@@ -168,10 +206,6 @@ class ArtifactHttpClient implements Rpc {
   getExponentialRetryTimeMilliseconds(attempt: number): number {
     if (attempt < 0) {
       throw new Error('attempt should be a positive integer')
-    }
-
-    if (attempt === 0) {
-      return this.baseRetryIntervalMilliseconds
     }
 
     const minTime =
