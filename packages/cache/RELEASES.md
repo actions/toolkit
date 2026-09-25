@@ -8,7 +8,7 @@
 ### 5.2.0
 
 - Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures (both the v2 twirp path and the v1 `_apis/artifactcache` path) and surface it as a `core.warning` (without failing the run).
-- Honor the `ACTIONS_CACHE_MODE` environment variable: skip restore when the effective cache-mode does not permit reads (`none`, `write-only`) and skip save when it does not permit writes (`none`, `read`), logging a single non-fatal `core.info` line. When `ACTIONS_CACHE_MODE` is unset or unrecognized, behavior is unchanged.
+- Honor the `ACTIONS_CACHE_MODE` environment variable: skip restore when the effective cache-mode does not permit reads (`none`, `write-only`) and skip save when the effective cache-mode does not permit writes (`none`, `read`), logging a single non-fatal `core.info` line. When `ACTIONS_CACHE_MODE` is unset or unrecognized, behavior is unchanged.
 
 ### 5.1.0
 
@@ -153,6 +153,32 @@ Read more about the change & access the migration guide: [reference to the annou
 - Added support for fallback to gzip to restore old caches on windows.
 
 ### 3.0.6
+
+- Added `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
+
+### 3.0.5
+
+- Update `@actions/cache` to use `@actions/core@^1.10.0`
+
+### 3.0.4
+
+- Fix zstd not working for windows on gnu tar in issues [#888](https://github.com/actions/cache/issues/888) and [#891](https://github.com/actions/cache/issues/891).
+- Allowing users to provide a custom timeout as input for aborting download of a cache segment using an environment variable `SEGMENT_DOWNLOAD_TIMEOUT_MINS`. Default is 60 minutes.
+
+### 3.0.3
+
+- Bug fixes for download stuck issue [#810](https://github.com/actions/cache/issues/810).
+
+### 3.0.2
+
+- Added 1 hour timeout for the download stuck issue [#810](https://github.com/actions/cache/issues/810).
+
+### 3.0.1
+
+- Fix [#833](https://github.com/actions/cache/issues/833) - cache doesn't work with github workspace directory.
+- Fix [#809](https://github.com/actions/cache/issues/809) `zstd -d: no such file or directory` error on AWS self-hosted runners.
+
+### 3.0.0
 
 - Updated actions/cache to suppress Actions cache server error and log warning for those error  [#1122](https://github.com/actions/toolkit/pull/1122)
 
