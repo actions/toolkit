@@ -10,7 +10,7 @@ import {NetworkError, UsageError} from '../src/internal/shared/errors.js'
 jest.mock('@actions/http-client')
 
 const clientOptions = {
-  maxAttempts: 4,
+  maxAttempts: 5,
   retryIntervalMs: 1,
   retryMultiplier: 1.5
 }
@@ -165,7 +165,7 @@ describe('artifact-http-client', () => {
     expect(mockPost).toHaveBeenCalledTimes(2)
   })
 
-  it('should fail if the request fails 4 times', async () => {
+  it('should fail if the request fails 5 times', async () => {
     const mockPost = jest.fn(() => {
       const msgFailed = new http.IncomingMessage(new net.Socket())
       msgFailed.statusCode = 500
@@ -194,10 +194,10 @@ describe('artifact-http-client', () => {
         version: 4
       })
     }).rejects.toThrowError(
-      'Failed to make request after 4 attempts: Failed request: (500) Internal Server Error'
+      'Failed to make request after 5 attempts: Failed request: (500) Internal Server Error'
     )
     expect(mockHttpClient).toHaveBeenCalledTimes(1)
-    expect(mockPost).toHaveBeenCalledTimes(4)
+    expect(mockPost).toHaveBeenCalledTimes(5)
   })
 
   it('should fail immediately if there is a non-retryable error', async () => {
@@ -491,17 +491,17 @@ describe('artifact-http-client', () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
       const mockPost = mockPostResponses(
         failedResponse(500, 'Internal Server Error'),
-        failedResponse(503, 'Service Unavailable', {'retry-after': '107'})
+        failedResponse(503, 'Service Unavailable', {'retry-after': '116'})
       )
 
       const client = internalArtifactTwirpClient()
       await expect(
         client.CreateArtifact(createArtifactRequest)
       ).rejects.toThrow(
-        'Retry wait of 107000 ms would exceed the maximum total retry wait of 120000 ms: Failed request: (503) Service Unavailable'
+        'Retry wait of 116000 ms would exceed the maximum total retry wait of 120000 ms: Failed request: (503) Service Unavailable'
       )
       expect(mockPost).toHaveBeenCalledTimes(2)
-      expect(sleepTimes()).toEqual([14000])
+      expect(sleepTimes()).toEqual([5000])
     })
 
     it.each([
@@ -555,31 +555,31 @@ describe('artifact-http-client', () => {
 
     it('should use the minimum default backoff waits and complete within the total wait budget', async () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
-      const mockPost = mockPostResponses(...serverErrors(3))
+      const mockPost = mockPostResponses(...serverErrors(4))
 
       const client = internalArtifactTwirpClient()
       const artifact = await client.CreateArtifact(createArtifactRequest)
 
       expect(artifact.ok).toBe(true)
-      expect(mockPost).toHaveBeenCalledTimes(4)
-      expect(sleepTimes()).toEqual([14000, 21000, 31500])
+      expect(mockPost).toHaveBeenCalledTimes(5)
+      expect(sleepTimes()).toEqual([5000, 10000, 20000, 40000])
     })
 
-    it('should use the maximum default backoff waits and complete within 110s', async () => {
+    it('should fail fast when the next default backoff wait exceeds the remaining wait budget', async () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9999999)
-      const mockPost = mockPostResponses(...serverErrors(3))
+      const mockPost = mockPostResponses(...serverErrors(5))
 
       const client = internalArtifactTwirpClient()
-      const artifact = await client.CreateArtifact(createArtifactRequest)
-
-      expect(artifact.ok).toBe(true)
+      await expect(
+        client.CreateArtifact(createArtifactRequest)
+      ).rejects.toThrow(
+        'Retry wait of 79999 ms would exceed the maximum total retry wait of 120000 ms: Failed request: (500) Internal Server Error'
+      )
       expect(mockPost).toHaveBeenCalledTimes(4)
-      expect(sleepTimes()).toEqual([14000, 31499, 47249])
-      const totalWait = sleepTimes().reduce((sum, wait) => sum + wait, 0)
-      expect(totalWait).toBeLessThanOrEqual(110000)
+      expect(sleepTimes()).toEqual([5000, 19999, 39999])
     })
 
-    it('should fail fast when the next backoff wait exceeds the remaining wait budget', async () => {
+    it('should fail fast when a custom backoff wait exceeds the remaining wait budget', async () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
       const mockPost = mockPostResponses(...serverErrors(4))
 
@@ -598,22 +598,22 @@ describe('artifact-http-client', () => {
 
     it('should wait at least 60s in total across default backoff retries', async () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
-      mockPostResponses(...serverErrors(4))
+      mockPostResponses(...serverErrors(5))
 
       const client = internalArtifactTwirpClient()
       await expect(
         client.CreateArtifact(createArtifactRequest)
-      ).rejects.toThrow('Failed to make request after 4 attempts')
+      ).rejects.toThrow('Failed to make request after 5 attempts')
 
       const totalWait = sleepTimes().reduce((sum, wait) => sum + wait, 0)
-      expect(sleepTimes()).toHaveLength(3)
+      expect(sleepTimes()).toHaveLength(4)
       expect(totalWait).toBeGreaterThanOrEqual(60000)
-      expect(totalWait).toBe(66500)
+      expect(totalWait).toBe(75000)
     })
 
     it('should let constructor options override the default backoff', async () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
-      mockPostResponses(...serverErrors(4))
+      mockPostResponses(...serverErrors(5))
 
       const client = internalArtifactTwirpClient({
         retryIntervalMs: 1000,
@@ -621,8 +621,8 @@ describe('artifact-http-client', () => {
       })
       await expect(
         client.CreateArtifact(createArtifactRequest)
-      ).rejects.toThrow('Failed to make request after 4 attempts')
-      expect(sleepTimes()).toEqual([1000, 3000, 9000])
+      ).rejects.toThrow('Failed to make request after 5 attempts')
+      expect(sleepTimes()).toEqual([1000, 3000, 9000, 27000])
     })
 
     it.each([
@@ -643,7 +643,7 @@ describe('artifact-http-client', () => {
 
         expect(artifact.ok).toBe(true)
         expect(mockPost).toHaveBeenCalledTimes(2)
-        expect(sleepTimes()).toEqual([14000])
+        expect(sleepTimes()).toEqual([5000])
       }
     )
 
@@ -655,7 +655,7 @@ describe('artifact-http-client', () => {
       const client = internalArtifactTwirpClient()
       await client.CreateArtifact(createArtifactRequest)
 
-      expect(sleepTimes()).toEqual([14000])
+      expect(sleepTimes()).toEqual([5000])
     })
 
     describe('rate limit warnings', () => {
@@ -675,8 +675,8 @@ describe('artifact-http-client', () => {
         ).rejects.toThrow('would exceed the maximum total retry wait')
 
         expect(warningMessages()).toEqual([
-          'Request was rate limited (HTTP 429). Retrying in 60 seconds (attempt 2 of 4)',
-          'Request was rate limited (HTTP 429). Retrying in 60 seconds (attempt 3 of 4)',
+          'Request was rate limited (HTTP 429). Retrying in 60 seconds (attempt 2 of 5)',
+          'Request was rate limited (HTTP 429). Retrying in 60 seconds (attempt 3 of 5)',
           'Request was rate limited (HTTP 429). Not retrying: waiting 60 seconds would exceed the maximum total retry wait of 120 seconds'
         ])
       })
@@ -688,24 +688,24 @@ describe('artifact-http-client', () => {
         await client.CreateArtifact(createArtifactRequest)
 
         expect(warningMessages()).toEqual([
-          'Request was rate limited (HTTP 429). Retrying in 14 seconds (attempt 2 of 4)'
+          'Request was rate limited (HTTP 429). Retrying in 5 seconds (attempt 2 of 5)'
         ])
       })
 
       it('should warn that it will not retry a 429 on the last attempt', async () => {
         const mockPost = mockPostResponses(
-          ...Array.from({length: 4}, () => rateLimitedResponse('1'))
+          ...Array.from({length: 5}, () => rateLimitedResponse('1'))
         )
 
         const client = internalArtifactTwirpClient()
         await expect(
           client.CreateArtifact(createArtifactRequest)
-        ).rejects.toThrow('Failed to make request after 4 attempts')
+        ).rejects.toThrow('Failed to make request after 5 attempts')
 
-        expect(mockPost).toHaveBeenCalledTimes(4)
-        expect(warningMessages()).toHaveLength(4)
-        expect(warningMessages()[3]).toBe(
-          'Request was rate limited (HTTP 429). Not retrying: reached the maximum of 4 attempts'
+        expect(mockPost).toHaveBeenCalledTimes(5)
+        expect(warningMessages()).toHaveLength(5)
+        expect(warningMessages()[4]).toBe(
+          'Request was rate limited (HTTP 429). Not retrying: reached the maximum of 5 attempts'
         )
       })
 
