@@ -647,6 +647,72 @@ describe('artifact-http-client', () => {
       }
     )
 
+    describe('Retry-After logging', () => {
+      const infoMessages = (): string[] =>
+        (core.info as jest.Mock).mock.calls.map(call => call[0] as string)
+
+      it.each([
+        [429, 'Too Many Requests'],
+        [503, 'Service Unavailable']
+      ])(
+        'should log a valid Retry-After on %s',
+        async (statusCode, statusMessage) => {
+          mockPostResponses(
+            failedResponse(statusCode, statusMessage, {'retry-after': '30'})
+          )
+
+          const client = internalArtifactTwirpClient()
+          await client.CreateArtifact(createArtifactRequest)
+
+          expect(infoMessages()).toContain(
+            'Retry-After header provided: 30 seconds'
+          )
+        }
+      )
+
+      it('should log a missing Retry-After', async () => {
+        mockPostResponses(rateLimitedResponse())
+
+        const client = internalArtifactTwirpClient()
+        await client.CreateArtifact(createArtifactRequest)
+
+        expect(infoMessages()).toContain(
+          'No Retry-After header provided, falling back to exponential backoff'
+        )
+      })
+
+      it.each([
+        ['empty', ''],
+        ['zero', '0'],
+        ['negative', '-5'],
+        ['non-numeric', 'abc'],
+        ['decimal', '1.5'],
+        ['HTTP-date', 'Wed, 21 Oct 2015 07:28:00 GMT']
+      ])('should log an invalid %s Retry-After', async (_, retryAfter) => {
+        mockPostResponses(rateLimitedResponse(retryAfter))
+
+        const client = internalArtifactTwirpClient()
+        await client.CreateArtifact(createArtifactRequest)
+
+        expect(infoMessages()).toContain(
+          `Invalid Retry-After header value '${retryAfter}', falling back to exponential backoff`
+        )
+      })
+
+      it('should not log Retry-After on other statuses', async () => {
+        mockPostResponses(
+          failedResponse(500, 'Internal Server Error', {'retry-after': '30'})
+        )
+
+        const client = internalArtifactTwirpClient()
+        await client.CreateArtifact(createArtifactRequest)
+
+        expect(
+          infoMessages().filter(message => message.includes('Retry-After'))
+        ).toEqual([])
+      })
+    })
+
     it('should ignore Retry-After on other retryable statuses', async () => {
       mockPostResponses(
         failedResponse(500, 'Internal Server Error', {'retry-after': '30'})

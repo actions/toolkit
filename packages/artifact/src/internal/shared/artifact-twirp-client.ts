@@ -212,12 +212,25 @@ class ArtifactHttpClient implements Rpc {
   getRetryAfterSeconds(response: HttpClientResponse): number | undefined {
     const header = response.message.headers['retry-after']
     const value = Array.isArray(header) ? header[0] : header
-    if (!value || !/^\d+$/.test(value.trim())) {
+    if (value === undefined) {
+      info(
+        'No Retry-After header provided, falling back to exponential backoff'
+      )
       return undefined
     }
 
-    const seconds = parseInt(value.trim(), 10)
-    return seconds > 0 ? seconds : undefined
+    const seconds = /^\d+$/.test(value.trim())
+      ? parseInt(value.trim(), 10)
+      : undefined
+    if (seconds === undefined || seconds <= 0) {
+      info(
+        `Invalid Retry-After header value '${value}', falling back to exponential backoff`
+      )
+      return undefined
+    }
+
+    info(`Retry-After header provided: ${seconds} seconds`)
+    return seconds
   }
 
   async sleep(milliseconds: number): Promise<void> {
