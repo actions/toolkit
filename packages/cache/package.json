@@ -61,6 +61,8 @@
   },
   "overrides": {
     "uri-js": "npm:uri-js-replace@^1.0.1",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "brace-expansion@^1": "^1.1.18",
+    "undici": "^6.28.1"
   }
 }
