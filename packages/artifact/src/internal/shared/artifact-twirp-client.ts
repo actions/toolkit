@@ -23,7 +23,7 @@ class ArtifactHttpClient implements Rpc {
   private maxAttempts = 5
   private baseRetryIntervalMilliseconds = 5000
   private retryMultiplier = 2
-  private maxTotalRetryWaitMilliseconds = 120000
+  private retryTimeoutMilliseconds = 120000
 
   constructor(
     userAgent: string,
@@ -152,19 +152,19 @@ class ArtifactHttpClient implements Rpc {
 
       if (
         totalRetryWaitMilliseconds + retryTimeMilliseconds >
-        this.maxTotalRetryWaitMilliseconds
+        this.retryTimeoutMilliseconds
       ) {
         if (isRateLimited) {
           warning(
             `Request was rate limited (HTTP 429). Not retrying: waiting ${
               retryTimeMilliseconds / 1000
             } seconds would exceed the maximum total retry wait of ${
-              this.maxTotalRetryWaitMilliseconds / 1000
+              this.retryTimeoutMilliseconds / 1000
             } seconds`
           )
         }
         throw new Error(
-          `Retry wait of ${retryTimeMilliseconds} ms would exceed the maximum total retry wait of ${this.maxTotalRetryWaitMilliseconds} ms: ${errorMessage}`
+          `Retry wait of ${retryTimeMilliseconds} ms would exceed the maximum total retry wait of ${this.retryTimeoutMilliseconds} ms: ${errorMessage}`
         )
       }
 
