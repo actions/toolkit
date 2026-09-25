@@ -1,13 +1,11 @@
 import {HttpClient, HttpClientResponse, HttpCodes} from '@actions/http-client'
 import {BearerCredentialHandler} from '@actions/http-client/lib/auth'
-import {info, debug, warning} from '@actions/core'
+import {info, debug} from '@actions/core'
 import {ArtifactServiceClientJSON} from '../../generated/index.js'
 import {getResultsServiceUrl, getRuntimeToken} from './config.js'
 import {getUserAgentString} from './user-agent.js'
 import {NetworkError, UsageError} from './errors.js'
 import {maskSecretUrls} from './util.js'
-
-const rateLimitDocsUrl = 'https://docs.github.com/en/actions/reference/limits'
 
 // The twirp http client must implement this interface
 interface Rpc {
@@ -64,9 +62,8 @@ class ArtifactHttpClient implements Rpc {
       'Content-Type': contentType
     }
     try {
-      const {body} = await this.retryableRequest(
-        async () => this.httpClient.post(url, JSON.stringify(data), headers),
-        method
+      const {body} = await this.retryableRequest(async () =>
+        this.httpClient.post(url, JSON.stringify(data), headers)
       )
 
       return body
@@ -76,33 +73,7 @@ class ArtifactHttpClient implements Rpc {
   }
 
   async retryableRequest(
-    operation: () => Promise<HttpClientResponse>,
-    method: string
-  ): Promise<{response: HttpClientResponse; body: object}> {
-    let wasRateLimited = false
-    try {
-      const result = await this.retryWithBackoff(operation, () => {
-        wasRateLimited = true
-      })
-      if (wasRateLimited) {
-        warning(
-          `This artifact operation (${method}) was rate limited but succeeded on retry. See ${rateLimitDocsUrl}`
-        )
-      }
-      return result
-    } catch (error) {
-      if (wasRateLimited) {
-        warning(
-          `This artifact operation (${method}) was rate limited and failed after retrying. See ${rateLimitDocsUrl}`
-        )
-      }
-      throw error
-    }
-  }
-
-  private async retryWithBackoff(
-    operation: () => Promise<HttpClientResponse>,
-    onRateLimited: () => void
+    operation: () => Promise<HttpClientResponse>
   ): Promise<{response: HttpClientResponse; body: object}> {
     let attempt = 0
     let errorMessage = ''
@@ -111,13 +82,11 @@ class ArtifactHttpClient implements Rpc {
     while (attempt < this.maxAttempts) {
       let isRetryable = false
       let retryAfterSeconds: number | undefined
-      let statusCode: number | undefined
 
       try {
         const response = await operation()
-        statusCode = response.message.statusCode
+        const statusCode = response.message.statusCode
         if (statusCode === HttpCodes.TooManyRequests) {
-          onRateLimited()
           retryAfterSeconds = this.getRetryAfterSeconds(response)
         }
         rawBody = await response.readBody()
@@ -169,7 +138,6 @@ class ArtifactHttpClient implements Rpc {
         retryAfterSeconds !== undefined
           ? retryAfterSeconds * 1000
           : this.getExponentialRetryTimeMilliseconds(attempt)
-
       if (
         totalRetryWaitMilliseconds + retryTimeMilliseconds >
         this.retryTimeoutMilliseconds
@@ -178,7 +146,6 @@ class ArtifactHttpClient implements Rpc {
           `Retry wait of ${retryTimeMilliseconds} ms would exceed the maximum total retry wait of ${this.retryTimeoutMilliseconds} ms: ${errorMessage}`
         )
       }
-
       info(
         `Attempt ${attempt + 1} of ${
           this.maxAttempts
@@ -217,21 +184,11 @@ class ArtifactHttpClient implements Rpc {
     const header = response.message.headers['retry-after']
     const value = Array.isArray(header) ? header[0] : header
     if (value === undefined) {
-      info(
-        'No Retry-After header provided, falling back to exponential backoff'
-      )
       return undefined
     }
 
-    const parsed = parseInt(value, 10)
-    if (!isNaN(parsed) && parsed > 0) {
-      return parsed
-    }
-
-    info(
-      `Invalid Retry-After header value '${value}', falling back to exponential backoff`
-    )
-    return undefined
+    const parsed = parseInt(value)
+    return !isNaN(parsed) && parsed > 0 ? parsed : undefined
   }
 
   async sleep(milliseconds: number): Promise<void> {
