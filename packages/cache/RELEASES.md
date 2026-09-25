@@ -8,7 +8,7 @@
 ## 6.2.0
 
 - Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures (both the v2 twirp path and the v1 `_apis/artifactcache` path) and surface it as a `core.warning` (without failing the run).
-- Honor the `ACTIONS_CACHE_MODE` environment variable: skip restore when the effective cache-mode does not permit reads (`none`, `write-only`) and skip save when it does not permit writes (`none`, `read`), logging a single non-fatal `core.info` line. When `ACTIONS_CACHE_MODE` is unset or unrecognized, behavior is unchanged.
+- Honor the `ACTIONS_CACHE_MODE` environment variable: skip restore when the effective cache-mode does not permit reads (`none`, `write-only`) and skip save when the effective cache-mode does not permit writes (`none`, `read`), logging a single non-fatal `core.info` line. When `ACTIONS_CACHE_MODE` is unset or unrecognized, behavior is unchanged.
 
 ## 6.1.0
 
@@ -245,7 +245,7 @@ Read more about the change & access the migration guide: [reference to the annou
 
 ## 1.0.7
 
-- Fixes permissions issue extracting archives with GNU tar on macOS if available [#701](https://github.com/actions/toolkit/pull/701)
+- Fixes permissions issue extracting archives with GNU tar on macOS ([issue](https://github.com/actions/cache/issues/527))
 
 ## 1.0.6
 
