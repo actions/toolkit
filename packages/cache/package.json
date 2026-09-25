@@ -48,8 +48,8 @@
     "@actions/glob": "^0.7.0",
     "@actions/http-client": "^4.0.1",
     "@actions/io": "^3.0.2",
-    "@azure/core-rest-pipeline": "^1.25.0",
-    "@azure/storage-blob": "^12.34.0",
+    "@azure/core-rest-pipeline": "~1.23.0",
+    "@azure/storage-blob": "~12.31.0",
     "@protobuf-ts/runtime-rpc": "^2.11.1",
     "semver": "^7.8.5"
   },
