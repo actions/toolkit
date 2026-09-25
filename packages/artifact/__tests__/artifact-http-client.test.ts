@@ -433,18 +433,20 @@ describe('artifact-http-client', () => {
       expect(sleepTimes()).toEqual([30000])
     })
 
-    it('should honor Retry-After on 503', async () => {
-      const mockPost = mockPostResponses(
-        failedResponse(503, 'Service Unavailable', {'retry-after': '10'})
-      )
+    it.each([
+      ['1.5', 1000],
+      ['10 ', 10000]
+    ])(
+      'should parse a Retry-After of %p with parseInt',
+      async (retryAfter, expectedWait) => {
+        mockPostResponses(rateLimitedResponse(retryAfter))
 
-      const client = internalArtifactTwirpClient()
-      const artifact = await client.CreateArtifact(createArtifactRequest)
+        const client = internalArtifactTwirpClient()
+        await client.CreateArtifact(createArtifactRequest)
 
-      expect(artifact.ok).toBe(true)
-      expect(mockPost).toHaveBeenCalledTimes(2)
-      expect(sleepTimes()).toEqual([10000])
-    })
+        expect(sleepTimes()).toEqual([expectedWait])
+      }
+    )
 
     it('should fail without sleeping once Retry-After waits exhaust the total wait budget', async () => {
       const mockPost = mockPostResponses(
@@ -491,42 +493,36 @@ describe('artifact-http-client', () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
       const mockPost = mockPostResponses(
         failedResponse(500, 'Internal Server Error'),
-        failedResponse(503, 'Service Unavailable', {'retry-after': '116'})
+        rateLimitedResponse('116')
       )
 
       const client = internalArtifactTwirpClient()
       await expect(
         client.CreateArtifact(createArtifactRequest)
       ).rejects.toThrow(
-        'Retry wait of 116000 ms would exceed the maximum total retry wait of 120000 ms: Failed request: (503) Service Unavailable'
+        'Retry wait of 116000 ms would exceed the maximum total retry wait of 120000 ms: Failed request: (429) Too Many Requests: rate limit exceeded'
       )
       expect(mockPost).toHaveBeenCalledTimes(2)
       expect(sleepTimes()).toEqual([8000])
     })
 
-    it.each([
-      [429, 'Too Many Requests'],
-      [503, 'Service Unavailable']
-    ])(
-      'should honor Retry-After on %s with a non-JSON body',
-      async (statusCode, statusMessage) => {
-        const mockPost = mockPostResponses(
-          failedResponse(
-            statusCode,
-            statusMessage,
-            {'retry-after': '20'},
-            '<html>rate limited</html>'
-          )
+    it('should honor Retry-After on 429 with a non-JSON body', async () => {
+      const mockPost = mockPostResponses(
+        failedResponse(
+          429,
+          'Too Many Requests',
+          {'retry-after': '20'},
+          '<html>rate limited</html>'
         )
+      )
 
-        const client = internalArtifactTwirpClient()
-        const artifact = await client.CreateArtifact(createArtifactRequest)
+      const client = internalArtifactTwirpClient()
+      const artifact = await client.CreateArtifact(createArtifactRequest)
 
-        expect(artifact.ok).toBe(true)
-        expect(mockPost).toHaveBeenCalledTimes(2)
-        expect(sleepTimes()).toEqual([20000])
-      }
-    )
+      expect(artifact.ok).toBe(true)
+      expect(mockPost).toHaveBeenCalledTimes(2)
+      expect(sleepTimes()).toEqual([20000])
+    })
 
     it('should fail fast when Retry-After exceeds the total wait budget with a non-JSON body', async () => {
       const mockPost = mockPostResponses(
@@ -631,7 +627,6 @@ describe('artifact-http-client', () => {
       ['zero', '0'],
       ['negative', '-5'],
       ['non-numeric', 'abc'],
-      ['decimal', '1.5'],
       ['HTTP-date', 'Wed, 21 Oct 2015 07:28:00 GMT']
     ])(
       'should fall back to backoff when Retry-After is %s',
@@ -651,24 +646,18 @@ describe('artifact-http-client', () => {
       const infoMessages = (): string[] =>
         (core.info as jest.Mock).mock.calls.map(call => call[0] as string)
 
-      it.each([
-        [429, 'Too Many Requests'],
-        [503, 'Service Unavailable']
-      ])(
-        'should log a valid Retry-After on %s',
-        async (statusCode, statusMessage) => {
-          mockPostResponses(
-            failedResponse(statusCode, statusMessage, {'retry-after': '30'})
-          )
+      const retryAfterMessages = (): string[] =>
+        infoMessages().filter(message => message.includes('Retry-After'))
 
-          const client = internalArtifactTwirpClient()
-          await client.CreateArtifact(createArtifactRequest)
+      it('should not log a valid Retry-After', async () => {
+        mockPostResponses(rateLimitedResponse('30'))
 
-          expect(infoMessages()).toContain(
-            'Retry-After header provided: 30 seconds'
-          )
-        }
-      )
+        const client = internalArtifactTwirpClient()
+        await client.CreateArtifact(createArtifactRequest)
+
+        expect(sleepTimes()).toEqual([30000])
+        expect(retryAfterMessages()).toEqual([])
+      })
 
       it('should log a missing Retry-After', async () => {
         mockPostResponses(rateLimitedResponse())
@@ -686,7 +675,6 @@ describe('artifact-http-client', () => {
         ['zero', '0'],
         ['negative', '-5'],
         ['non-numeric', 'abc'],
-        ['decimal', '1.5'],
         ['HTTP-date', 'Wed, 21 Oct 2015 07:28:00 GMT']
       ])('should log an invalid %s Retry-After', async (_, retryAfter) => {
         mockPostResponses(rateLimitedResponse(retryAfter))
@@ -699,36 +687,88 @@ describe('artifact-http-client', () => {
         )
       })
 
-      it('should not log Retry-After on other statuses', async () => {
+      it.each([
+        [
+          '503 with a Retry-After',
+          503,
+          'Service Unavailable',
+          {'retry-after': '30'}
+        ],
+        ['503 without a Retry-After', 503, 'Service Unavailable', {}],
+        [
+          '500 with a Retry-After',
+          500,
+          'Internal Server Error',
+          {'retry-after': '30'}
+        ]
+      ])(
+        'should not log Retry-After on a %s',
+        async (_, statusCode, statusMessage, headers) => {
+          mockPostResponses(failedResponse(statusCode, statusMessage, headers))
+
+          const client = internalArtifactTwirpClient()
+          await client.CreateArtifact(createArtifactRequest)
+
+          expect(retryAfterMessages()).toEqual([])
+        }
+      )
+    })
+
+    it.each([
+      [503, 'Service Unavailable'],
+      [500, 'Internal Server Error']
+    ])(
+      'should ignore Retry-After on %s and use backoff',
+      async (statusCode, statusMessage) => {
         mockPostResponses(
-          failedResponse(500, 'Internal Server Error', {'retry-after': '30'})
+          failedResponse(statusCode, statusMessage, {'retry-after': '30'})
         )
 
         const client = internalArtifactTwirpClient()
         await client.CreateArtifact(createArtifactRequest)
 
-        expect(
-          infoMessages().filter(message => message.includes('Retry-After'))
-        ).toEqual([])
-      })
-    })
-
-    it('should ignore Retry-After on other retryable statuses', async () => {
-      mockPostResponses(
-        failedResponse(500, 'Internal Server Error', {'retry-after': '30'})
-      )
-
-      const client = internalArtifactTwirpClient()
-      await client.CreateArtifact(createArtifactRequest)
-
-      expect(sleepTimes()).toEqual([8000])
-    })
+        expect(sleepTimes()).toEqual([8000])
+      }
+    )
 
     describe('rate limit warnings', () => {
       const warningMessages = (): string[] =>
         (core.warning as jest.Mock).mock.calls.map(call => call[0] as string)
 
-      it('should warn on every 429 response', async () => {
+      const succeededWarning =
+        'This artifact operation (CreateArtifact) was rate limited but succeeded on retry. See https://docs.github.com/en/actions/reference/limits'
+      const failedWarning =
+        'This artifact operation (CreateArtifact) was rate limited and failed after retrying. See https://docs.github.com/en/actions/reference/limits'
+
+      it('should warn once when a rate limited operation succeeds on retry', async () => {
+        mockPostResponses(rateLimitedResponse('1'), rateLimitedResponse())
+
+        const client = internalArtifactTwirpClient()
+        const artifact = await client.CreateArtifact(createArtifactRequest)
+
+        expect(artifact.ok).toBe(true)
+        expect(warningMessages()).toEqual([succeededWarning])
+        expect(
+          (core.info as jest.Mock).mock.calls.filter(([message]) =>
+            (message as string).startsWith('Attempt ')
+          )
+        ).toHaveLength(2)
+      })
+
+      it('should warn once when a rate limited operation fails after max attempts', async () => {
+        mockPostResponses(
+          ...Array.from({length: 5}, () => rateLimitedResponse('1'))
+        )
+
+        const client = internalArtifactTwirpClient()
+        await expect(
+          client.CreateArtifact(createArtifactRequest)
+        ).rejects.toThrow('Failed to make request after 5 attempts')
+
+        expect(warningMessages()).toEqual([failedWarning])
+      })
+
+      it('should warn once when a rate limited operation exceeds the retry timeout', async () => {
         mockPostResponses(
           rateLimitedResponse('60'),
           rateLimitedResponse('60'),
@@ -740,46 +780,28 @@ describe('artifact-http-client', () => {
           client.CreateArtifact(createArtifactRequest)
         ).rejects.toThrow('would exceed the maximum total retry wait')
 
-        expect(warningMessages()).toEqual([
-          'Request was rate limited (HTTP 429). Retrying in 60 seconds (attempt 2 of 5)',
-          'Request was rate limited (HTTP 429). Retrying in 60 seconds (attempt 3 of 5)',
-          'Request was rate limited (HTTP 429). Not retrying: waiting 60 seconds would exceed the maximum total retry wait of 120 seconds'
-        ])
+        expect(warningMessages()).toEqual([failedWarning])
       })
 
-      it('should warn with the backoff wait when a 429 has no Retry-After', async () => {
-        mockPostResponses(rateLimitedResponse())
-
-        const client = internalArtifactTwirpClient()
-        await client.CreateArtifact(createArtifactRequest)
-
-        expect(warningMessages()).toEqual([
-          'Request was rate limited (HTTP 429). Retrying in 8 seconds (attempt 2 of 5)'
-        ])
-      })
-
-      it('should warn that it will not retry a 429 on the last attempt', async () => {
-        const mockPost = mockPostResponses(
-          ...Array.from({length: 5}, () => rateLimitedResponse('1'))
+      it('should warn once when a later attempt fails with a non-retryable error', async () => {
+        mockPostResponses(
+          rateLimitedResponse('1'),
+          failedResponse(400, 'Bad Request')
         )
 
         const client = internalArtifactTwirpClient()
         await expect(
           client.CreateArtifact(createArtifactRequest)
-        ).rejects.toThrow('Failed to make request after 5 attempts')
+        ).rejects.toThrow('Received non-retryable error')
 
-        expect(mockPost).toHaveBeenCalledTimes(5)
-        expect(warningMessages()).toHaveLength(5)
-        expect(warningMessages()[4]).toBe(
-          'Request was rate limited (HTTP 429). Not retrying: reached the maximum of 5 attempts'
-        )
+        expect(warningMessages()).toEqual([failedWarning])
       })
 
       it.each([
         [503, 'Service Unavailable'],
         [500, 'Internal Server Error']
       ])(
-        'should not warn on %s responses',
+        'should not warn when a %s is retried successfully',
         async (statusCode, statusMessage) => {
           mockPostResponses(
             failedResponse(statusCode, statusMessage, {'retry-after': '1'})
@@ -792,6 +814,17 @@ describe('artifact-http-client', () => {
           expect(core.warning).not.toHaveBeenCalled()
         }
       )
+
+      it('should not warn when an operation without a 429 fails', async () => {
+        mockPostResponses(...serverErrors(5))
+
+        const client = internalArtifactTwirpClient()
+        await expect(
+          client.CreateArtifact(createArtifactRequest)
+        ).rejects.toThrow('Failed to make request after 5 attempts')
+
+        expect(core.warning).not.toHaveBeenCalled()
+      })
     })
 
     it('should fail immediately on non-retryable status with Retry-After', async () => {

@@ -7,6 +7,8 @@ import {getUserAgentString} from './user-agent.js'
 import {NetworkError, UsageError} from './errors.js'
 import {maskSecretUrls} from './util.js'
 
+const rateLimitDocsUrl = 'https://docs.github.com/en/actions/reference/limits'
+
 // The twirp http client must implement this interface
 interface Rpc {
   request(
@@ -62,8 +64,9 @@ class ArtifactHttpClient implements Rpc {
       'Content-Type': contentType
     }
     try {
-      const {body} = await this.retryableRequest(async () =>
-        this.httpClient.post(url, JSON.stringify(data), headers)
+      const {body} = await this.retryableRequest(
+        async () => this.httpClient.post(url, JSON.stringify(data), headers),
+        method
       )
 
       return body
@@ -73,7 +76,33 @@ class ArtifactHttpClient implements Rpc {
   }
 
   async retryableRequest(
-    operation: () => Promise<HttpClientResponse>
+    operation: () => Promise<HttpClientResponse>,
+    method: string
+  ): Promise<{response: HttpClientResponse; body: object}> {
+    let wasRateLimited = false
+    try {
+      const result = await this.retryWithBackoff(operation, () => {
+        wasRateLimited = true
+      })
+      if (wasRateLimited) {
+        warning(
+          `This artifact operation (${method}) was rate limited but succeeded on retry. See ${rateLimitDocsUrl}`
+        )
+      }
+      return result
+    } catch (error) {
+      if (wasRateLimited) {
+        warning(
+          `This artifact operation (${method}) was rate limited and failed after retrying. See ${rateLimitDocsUrl}`
+        )
+      }
+      throw error
+    }
+  }
+
+  private async retryWithBackoff(
+    operation: () => Promise<HttpClientResponse>,
+    onRateLimited: () => void
   ): Promise<{response: HttpClientResponse; body: object}> {
     let attempt = 0
     let errorMessage = ''
@@ -87,10 +116,8 @@ class ArtifactHttpClient implements Rpc {
       try {
         const response = await operation()
         statusCode = response.message.statusCode
-        if (
-          statusCode === HttpCodes.TooManyRequests ||
-          statusCode === HttpCodes.ServiceUnavailable
-        ) {
+        if (statusCode === HttpCodes.TooManyRequests) {
+          onRateLimited()
           retryAfterSeconds = this.getRetryAfterSeconds(response)
         }
         rawBody = await response.readBody()
@@ -132,14 +159,7 @@ class ArtifactHttpClient implements Rpc {
         throw new Error(`Received non-retryable error: ${errorMessage}`)
       }
 
-      const isRateLimited = statusCode === HttpCodes.TooManyRequests
-
       if (attempt + 1 === this.maxAttempts) {
-        if (isRateLimited) {
-          warning(
-            `Request was rate limited (HTTP 429). Not retrying: reached the maximum of ${this.maxAttempts} attempts`
-          )
-        }
         throw new Error(
           `Failed to make request after ${this.maxAttempts} attempts: ${errorMessage}`
         )
@@ -154,27 +174,11 @@ class ArtifactHttpClient implements Rpc {
         totalRetryWaitMilliseconds + retryTimeMilliseconds >
         this.retryTimeoutMilliseconds
       ) {
-        if (isRateLimited) {
-          warning(
-            `Request was rate limited (HTTP 429). Not retrying: waiting ${
-              retryTimeMilliseconds / 1000
-            } seconds would exceed the maximum total retry wait of ${
-              this.retryTimeoutMilliseconds / 1000
-            } seconds`
-          )
-        }
         throw new Error(
           `Retry wait of ${retryTimeMilliseconds} ms would exceed the maximum total retry wait of ${this.retryTimeoutMilliseconds} ms: ${errorMessage}`
         )
       }
 
-      if (isRateLimited) {
-        warning(
-          `Request was rate limited (HTTP 429). Retrying in ${
-            retryTimeMilliseconds / 1000
-          } seconds (attempt ${attempt + 2} of ${this.maxAttempts})`
-        )
-      }
       info(
         `Attempt ${attempt + 1} of ${
           this.maxAttempts
@@ -208,7 +212,7 @@ class ArtifactHttpClient implements Rpc {
   }
 
   // Returns the Retry-After header value in seconds if it is a positive
-  // integer, otherwise undefined (HTTP-date values are not supported)
+  // number, otherwise undefined (HTTP-date values are not supported)
   getRetryAfterSeconds(response: HttpClientResponse): number | undefined {
     const header = response.message.headers['retry-after']
     const value = Array.isArray(header) ? header[0] : header
@@ -219,18 +223,15 @@ class ArtifactHttpClient implements Rpc {
       return undefined
     }
 
-    const seconds = /^\d+$/.test(value.trim())
-      ? parseInt(value.trim(), 10)
-      : undefined
-    if (seconds === undefined || seconds <= 0) {
-      info(
-        `Invalid Retry-After header value '${value}', falling back to exponential backoff`
-      )
-      return undefined
+    const parsed = parseInt(value, 10)
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed
     }
 
-    info(`Retry-After header provided: ${seconds} seconds`)
-    return seconds
+    info(
+      `Invalid Retry-After header value '${value}', falling back to exponential backoff`
+    )
+    return undefined
   }
 
   async sleep(milliseconds: number): Promise<void> {
