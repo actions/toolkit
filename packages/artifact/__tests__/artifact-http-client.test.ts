@@ -501,7 +501,7 @@ describe('artifact-http-client', () => {
         'Retry wait of 116000 ms would exceed the maximum total retry wait of 120000 ms: Failed request: (503) Service Unavailable'
       )
       expect(mockPost).toHaveBeenCalledTimes(2)
-      expect(sleepTimes()).toEqual([5000])
+      expect(sleepTimes()).toEqual([8000])
     })
 
     it.each([
@@ -562,21 +562,21 @@ describe('artifact-http-client', () => {
 
       expect(artifact.ok).toBe(true)
       expect(mockPost).toHaveBeenCalledTimes(5)
-      expect(sleepTimes()).toEqual([5000, 10000, 20000, 40000])
+      expect(sleepTimes()).toEqual([8000, 12000, 18000, 27000])
     })
 
-    it('should fail fast when the next default backoff wait exceeds the remaining wait budget', async () => {
+    it('should use the maximum default backoff waits and complete within the total wait budget', async () => {
       randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9999999)
-      const mockPost = mockPostResponses(...serverErrors(5))
+      const mockPost = mockPostResponses(...serverErrors(4))
 
       const client = internalArtifactTwirpClient()
-      await expect(
-        client.CreateArtifact(createArtifactRequest)
-      ).rejects.toThrow(
-        'Retry wait of 79999 ms would exceed the maximum total retry wait of 120000 ms: Failed request: (500) Internal Server Error'
-      )
-      expect(mockPost).toHaveBeenCalledTimes(4)
-      expect(sleepTimes()).toEqual([5000, 19999, 39999])
+      const artifact = await client.CreateArtifact(createArtifactRequest)
+
+      expect(artifact.ok).toBe(true)
+      expect(mockPost).toHaveBeenCalledTimes(5)
+      expect(sleepTimes()).toEqual([8000, 17999, 26999, 40499])
+      const totalWait = sleepTimes().reduce((sum, wait) => sum + wait, 0)
+      expect(totalWait).toBeLessThanOrEqual(110000)
     })
 
     it('should fail fast when a custom backoff wait exceeds the remaining wait budget', async () => {
@@ -608,7 +608,7 @@ describe('artifact-http-client', () => {
       const totalWait = sleepTimes().reduce((sum, wait) => sum + wait, 0)
       expect(sleepTimes()).toHaveLength(4)
       expect(totalWait).toBeGreaterThanOrEqual(60000)
-      expect(totalWait).toBe(75000)
+      expect(totalWait).toBe(65000)
     })
 
     it('should let constructor options override the default backoff', async () => {
@@ -643,7 +643,7 @@ describe('artifact-http-client', () => {
 
         expect(artifact.ok).toBe(true)
         expect(mockPost).toHaveBeenCalledTimes(2)
-        expect(sleepTimes()).toEqual([5000])
+        expect(sleepTimes()).toEqual([8000])
       }
     )
 
@@ -721,7 +721,7 @@ describe('artifact-http-client', () => {
       const client = internalArtifactTwirpClient()
       await client.CreateArtifact(createArtifactRequest)
 
-      expect(sleepTimes()).toEqual([5000])
+      expect(sleepTimes()).toEqual([8000])
     })
 
     describe('rate limit warnings', () => {
@@ -754,7 +754,7 @@ describe('artifact-http-client', () => {
         await client.CreateArtifact(createArtifactRequest)
 
         expect(warningMessages()).toEqual([
-          'Request was rate limited (HTTP 429). Retrying in 5 seconds (attempt 2 of 5)'
+          'Request was rate limited (HTTP 429). Retrying in 8 seconds (attempt 2 of 5)'
         ])
       })
 
