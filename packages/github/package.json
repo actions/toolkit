@@ -14,11 +14,15 @@
   "exports": {
     ".": {
       "types": "./lib/github.d.ts",
-      "import": "./lib/github.js"
+      "import": "./lib/github.js",
+      "require": "./lib/github.js",
+      "default": "./lib/github.js"
     },
     "./lib/utils": {
       "types": "./lib/utils.d.ts",
-      "import": "./lib/utils.js"
+      "import": "./lib/utils.js",
+      "require": "./lib/utils.js",
+      "default": "./lib/utils.js"
     }
   },
   "directories": {
