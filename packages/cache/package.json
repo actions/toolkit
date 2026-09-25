@@ -1,6 +1,6 @@
 {
   "name": "@actions/cache",
-  "version": "5.2.0",
+  "version": "5.3.0",
   "preview": true,
   "description": "Actions cache lib",
   "keywords": [
@@ -37,22 +37,22 @@
     "url": "https://github.com/actions/toolkit/issues"
   },
   "dependencies": {
-    "@actions/core": "^2.0.0",
+    "@actions/core": "^2.0.3",
     "@actions/exec": "^2.0.0",
     "@actions/glob": "^0.5.1",
-    "@protobuf-ts/runtime-rpc": "^2.11.1",
     "@actions/http-client": "^3.0.2",
     "@actions/io": "^2.0.0",
     "@azure/abort-controller": "^1.1.0",
-    "@azure/core-rest-pipeline": "^1.22.0",
-    "@azure/storage-blob": "^12.29.1",
+    "@azure/core-rest-pipeline": "^1.25.0",
+    "@azure/storage-blob": "^12.34.0",
+    "@protobuf-ts/runtime-rpc": "^2.11.1",
     "semver": "^6.3.1"
   },
   "devDependencies": {
-    "@types/node": "^24.1.0",
-    "@types/semver": "^6.0.0",
-    "@protobuf-ts/plugin": "^2.9.4",
-    "typescript": "^5.2.2"
+    "@protobuf-ts/plugin": "^2.11.1",
+    "@types/node": "^24.13.6",
+    "@types/semver": "^6.2.7",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "uri-js": "npm:uri-js-replace@^1.0.1",
