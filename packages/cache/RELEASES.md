@@ -183,7 +183,7 @@ Read more about the change & access the migration guide: [reference to the annou
 
 ## 3.0.6
 
-- Add `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
+- Added `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
 
 ## 3.0.5
 
@@ -209,7 +209,7 @@ Read more about the change & access the migration guide: [reference to the annou
 
 ## 3.0.0
 
-- Updated actions/cache to suppress Actions cache server error and log warning for server error  [#1122](https://github.com/actions/toolkit/pull/1122)
+- Updated actions/cache to suppress Actions cache server error and log warning for those error  [#1122](https://github.com/actions/toolkit/pull/1122)
 
 ## 2.0.6
 
