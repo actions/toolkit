@@ -29,6 +29,11 @@
 - **Breaking change**: Package is now ESM-only
   - CommonJS consumers must use dynamic `import()` instead of `require()`
 
+## 5.3.0
+
+- Isolate Windows BSD tar scratch files for concurrent cache list and extract operations, preventing calls from sharing `cache.tar` [#2497](https://github.com/actions/toolkit/pull/2497).
+- Update compatible runtime and development dependencies and resolve npm audit findings.
+
 ## 5.2.0
 
 - Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures (both the v2 twirp path and the v1 `_apis/artifactcache` path) and surface it as a `core.warning` (without failing the run).
@@ -178,7 +183,7 @@ Read more about the change & access the migration guide: [reference to the annou
 
 ## 3.0.6
 
-- Added `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
+- Add `@azure/abort-controller` to dependencies to fix compatibility issue with ESM [#1208](https://github.com/actions/toolkit/issues/1208)
 
 ## 3.0.5
 
@@ -204,7 +209,7 @@ Read more about the change & access the migration guide: [reference to the annou
 
 ## 3.0.0
 
-- Updated actions/cache to suppress Actions cache server error and log warning for those error  [#1122](https://github.com/actions/toolkit/pull/1122)
+- Updated actions/cache to suppress Actions cache server error and log warning for server error  [#1122](https://github.com/actions/toolkit/pull/1122)
 
 ## 2.0.6
 
