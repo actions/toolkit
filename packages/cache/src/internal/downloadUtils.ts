@@ -454,8 +454,7 @@ const promiseWithTimeout = async <T>(
     timeoutHandle = setTimeout(() => resolve('timeout'), timeoutMs)
   })
 
-  return Promise.race([promise, timeoutPromise]).then(result => {
+  return Promise.race([promise, timeoutPromise]).finally(() => {
     clearTimeout(timeoutHandle)
-    return result
   })
 }
