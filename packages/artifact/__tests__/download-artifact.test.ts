@@ -1050,6 +1050,69 @@ describe('download-artifact', () => {
       await expectExtractedArchive(fixtures.workspaceDir)
     })
 
+    it('should reject when content-length does not match bytes received (incomplete download)', async () => {
+      const rawFileContent = 'partial content'
+
+      const mockGetIncomplete = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'text/plain'
+        message.headers['content-disposition'] = 'attachment; filename="data.txt"'
+        // Advertise more bytes than we actually send
+        message.headers['content-length'] = '9999'
+        message.push(Buffer.from(rawFileContent))
+        message.push(null)
+        return {
+          message
+        }
+      })
+
+      ;(HttpClient as jest.Mock).mockImplementation(() => {
+        return {
+          get: mockGetIncomplete
+        }
+      })
+
+      await expect(
+        streamExtractExternal(
+          fixtures.blobStorageUrl,
+          fixtures.workspaceDir
+        )
+      ).rejects.toThrow(
+        `Incomplete download: received ${Buffer.byteLength(rawFileContent)} bytes but expected 9999`
+      )
+    })
+
+    it('should reject when the response stream emits an error', async () => {
+      const mockGetStreamError = jest.fn(() => {
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'text/plain'
+        message.headers['content-disposition'] =
+          'attachment; filename="data.txt"'
+        // Emit an error after a short delay
+        process.nextTick(() => {
+          message.destroy(new Error('connection reset'))
+        })
+        return {
+          message
+        }
+      })
+
+      ;(HttpClient as jest.Mock).mockImplementation(() => {
+        return {
+          get: mockGetStreamError
+        }
+      })
+
+      await expect(
+        streamExtractExternal(
+          fixtures.blobStorageUrl,
+          fixtures.workspaceDir
+        )
+      ).rejects.toThrow('connection reset')
+    })
+
     it.each([
       ['土', '_'], // U+571F - known to cause 400 errors
       ['日', '_'], // U+65E5 - reported to work fine
