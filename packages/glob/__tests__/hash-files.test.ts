@@ -269,6 +269,162 @@ describe('globber', () => {
     }
   })
 
+  it('honors an explicit root outside the workspace without the opt-in', async () => {
+    // Mirrors the documented GITHUB_ACTION_PATH usage: an action passes its own
+    // directory as an allowed root, and that directory is not under the workspace.
+    const insideRoot = path.join(getTestTemp(), 'explicit-root-inside')
+    await fs.mkdir(insideRoot, {recursive: true})
+    await fs.writeFile(path.join(insideRoot, 'inside.txt'), 'inside content')
+
+    // Outside GITHUB_WORKSPACE (which the suite pins to __dirname).
+    const actionRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-explicit-root-')
+    )
+    try {
+      await fs.writeFile(path.join(actionRoot, 'action.txt'), 'action content')
+
+      const patterns = `${insideRoot}/*\n${actionRoot}/*`
+
+      const insideOnly = await hashFiles(`${insideRoot}/*`, '', {
+        roots: [insideRoot]
+      })
+      expect(insideOnly).not.toEqual('')
+
+      // The explicit roots list is the allowlist, so files under actionRoot
+      // must be hashed even though allowFilesOutsideWorkspace is not set.
+      const both = await hashFiles(patterns, '', {
+        roots: [insideRoot, actionRoot]
+      })
+      expect(both).not.toEqual('')
+      expect(both).not.toEqual(insideOnly)
+
+      // And it hashes exactly those two files, no more.
+      const expected = await hashFiles(patterns, '', {
+        roots: [insideRoot, actionRoot],
+        allowFilesOutsideWorkspace: true
+      })
+      expect(both).toEqual(expected)
+    } finally {
+      await io.rmRF(actionRoot)
+    }
+  })
+
+  it('(control) still restricts to the allowed roots when roots are explicit', async () => {
+    // allowFilesOutsideWorkspace stays the only way to widen past the roots
+    // list: a match under neither declared root must be skipped.
+    const insideRoot = path.join(getTestTemp(), 'explicit-root-restricts')
+    await fs.mkdir(insideRoot, {recursive: true})
+    await fs.writeFile(path.join(insideRoot, 'inside.txt'), 'inside content')
+
+    const actionRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-declared-root-')
+    )
+    const strayRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-stray-root-')
+    )
+    try {
+      await fs.writeFile(path.join(actionRoot, 'action.txt'), 'action content')
+      await fs.writeFile(path.join(strayRoot, 'stray.txt'), 'stray content')
+
+      const declaredOnly = await hashFiles(
+        `${insideRoot}/*\n${actionRoot}/*`,
+        '',
+        {roots: [insideRoot, actionRoot]}
+      )
+      expect(declaredOnly).not.toEqual('')
+
+      // strayRoot is not an allowed root, so adding it to the patterns must
+      // not change the hash.
+      const withStray = await hashFiles(
+        `${insideRoot}/*\n${actionRoot}/*\n${strayRoot}/*`,
+        '',
+        {roots: [insideRoot, actionRoot]}
+      )
+      expect(withStray).toEqual(declaredOnly)
+
+      // With the opt-in, the stray file is included.
+      const withOptIn = await hashFiles(
+        `${insideRoot}/*\n${actionRoot}/*\n${strayRoot}/*`,
+        '',
+        {roots: [insideRoot, actionRoot], allowFilesOutsideWorkspace: true}
+      )
+      expect(withOptIn).not.toEqual(declaredOnly)
+    } finally {
+      await io.rmRF(actionRoot)
+      await io.rmRF(strayRoot)
+    }
+  })
+
+  it('(control) returns empty when every explicit root fails to resolve', async () => {
+    const insideRoot = path.join(getTestTemp(), 'explicit-root-unresolved')
+    await fs.mkdir(insideRoot, {recursive: true})
+    await fs.writeFile(path.join(insideRoot, 'inside.txt'), 'inside content')
+
+    const missingRoot = path.join(getTestTemp(), 'no-such-root')
+    const hash = await hashFiles(`${insideRoot}/*`, '', {roots: [missingRoot]})
+    expect(hash).toEqual('')
+  })
+
+  it('honors explicit roots when every one of them is outside the workspace', async () => {
+    // No in-workspace root to mask the drop: before the fix every root was
+    // discarded and hashFiles returned '' with only a core.debug line.
+    const actionRootA = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-all-outside-a-')
+    )
+    const actionRootB = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-all-outside-b-')
+    )
+    try {
+      await fs.writeFile(path.join(actionRootA, 'a.txt'), 'a content')
+      await fs.writeFile(path.join(actionRootB, 'b.txt'), 'b content')
+
+      const patterns = `${actionRootA}/*\n${actionRootB}/*`
+
+      const hash = await hashFiles(patterns, '', {
+        roots: [actionRootA, actionRootB]
+      })
+      expect(hash).not.toEqual('')
+
+      // Reaching the same files through the opt-in yields the same digest.
+      const withOptIn = await hashFiles(patterns, '', {
+        roots: [actionRootA, actionRootB],
+        allowFilesOutsideWorkspace: true
+      })
+      expect(hash).toEqual(withOptIn)
+    } finally {
+      await io.rmRF(actionRootA)
+      await io.rmRF(actionRootB)
+    }
+  })
+
+  it('honors an explicit root that is a symlink pointing outside the workspace', async () => {
+    const linkParent = path.join(getTestTemp(), 'explicit-root-symlink')
+    await fs.mkdir(linkParent, {recursive: true})
+
+    const realRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-symlink-target-')
+    )
+    try {
+      await fs.writeFile(path.join(realRoot, 'linked.txt'), 'linked content')
+      const linkPath = path.join(linkParent, 'link')
+      await createSymlinkDir(realRoot, linkPath)
+
+      // realpathSync resolves the root to a directory outside the workspace;
+      // the caller named it explicitly, so it is honored.
+      const hash = await hashFiles(`${linkPath}/*`, '', {roots: [linkPath]})
+      expect(hash).not.toEqual('')
+
+      // Containment is still computed on resolved paths, so declaring the
+      // link target directly produces the same digest.
+      const viaRealPath = await hashFiles(`${linkPath}/*`, '', {
+        roots: [realRoot]
+      })
+      expect(hash).toEqual(viaRealPath)
+    } finally {
+      await io.rmRF(realRoot)
+    }
+  })
+
   it('applies relative exclude patterns across all allowed roots', async () => {
     const root = path.join(getTestTemp(), 'exclude-across-roots')
     const dir1 = path.join(root, 'dir1')
