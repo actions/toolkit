@@ -29,16 +29,23 @@ export class OidcClient {
     const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN']
     if (!token) {
       throw new Error(
-        'Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable'
+        'Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable. Ensure your workflow has:\n' +
+          '  permissions:\n' +
+          '    id-token: write'
       )
     }
+    setSecret(token)
     return token
   }
 
   private static getIDTokenUrl(): string {
     const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL']
     if (!runtimeUrl) {
-      throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable')
+      throw new Error(
+        'Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable. Ensure your workflow has:\n' +
+          '  permissions:\n' +
+          '    id-token: write'
+      )
     }
     return runtimeUrl
   }
@@ -58,7 +65,10 @@ export class OidcClient {
 
     const id_token = res.result?.value
     if (!id_token) {
-      throw new Error('Response json body do not have ID Token field')
+      throw new Error(
+        `Response json body does not have ID Token field (HTTP ${res.statusCode}). ` +
+          'Verify that the audience is correct and that the token service URL is reachable.'
+      )
     }
     return id_token
   }
