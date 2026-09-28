@@ -15,7 +15,9 @@
   "exports": {
     ".": {
       "types": "./lib/cache.d.ts",
-      "import": "./lib/cache.js"
+      "import": "./lib/cache.js",
+      "require": "./lib/cache.js",
+      "default": "./lib/cache.js"
     }
   },
   "directories": {
