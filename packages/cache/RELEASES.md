@@ -1,5 +1,10 @@
 # @actions/cache Releases
 
+## 6.3.0
+
+- Isolate Windows BSD tar read scratch files per operation and make cleanup best-effort, preventing concurrent cache restores from racing over shared temporary archives ([#2497](https://github.com/actions/toolkit/pull/2497)).
+- Update compatible runtime and development dependencies, refresh transitive dependencies, and resolve npm audit findings.
+
 ## 6.2.0
 
 - Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures (both the v2 twirp path and the v1 `_apis/artifactcache` path) and surface it as a `core.warning` (without failing the run).
@@ -23,6 +28,20 @@
 
 - **Breaking change**: Package is now ESM-only
   - CommonJS consumers must use dynamic `import()` instead of `require()`
+
+## 5.3.0
+
+- Isolate Windows BSD tar scratch files for concurrent cache list and extract operations, preventing calls from sharing `cache.tar` [#2497](https://github.com/actions/toolkit/pull/2497).
+- Update compatible runtime and development dependencies and resolve npm audit findings.
+
+## 5.2.0
+
+- Handle cache read error due to read-only token: detect the `cache read denied:` prefix on cache download failures (both the v2 twirp path and the v1 `_apis/artifactcache` path) and surface it as a `core.warning` (without failing the run).
+- Honor the `ACTIONS_CACHE_MODE` environment variable: skip restore when the effective cache-mode does not permit reads (`none`, `write-only`) and skip save when it does not permit writes (`none`, `read`), logging a single non-fatal `core.info` line. When `ACTIONS_CACHE_MODE` is unset or unrecognized, behavior is unchanged.
+
+## 5.1.0
+
+- Handle cache write error due to read-only token: detect the `cache write denied:` prefix on cache reservation failures and surface it as a `core.warning` (without failing the run).
 
 ## 5.0.5
 
