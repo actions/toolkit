@@ -263,6 +263,29 @@ var pid = core.getState("pidToKill");
 process.kill(pid);
 ```
 
+#### Problem matchers
+
+You can use this library to register problem matchers for your action.
+Problem matchers are used to scan the output of actions for a specified regex pattern and surface that information prominently in the UI.
+
+#### Register a problem matcher
+
+```js
+const core = require('@actions/core');
+
+// Add matcher file "my-matcher.json"
+core.addMatcher('my-matcher.json');
+```
+
+#### Remove a problem matcher
+
+```js
+const core = require('@actions/core');
+
+// Remove the problem matcher with the owner "my-matcher-owner"
+core.removeMatcher('my-matcher-owner');
+```
+
 #### OIDC Token
 
 You can use these methods to interact with the GitHub OIDC provider and get a JWT ID token which would help to get access token from third party cloud providers.
