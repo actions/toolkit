@@ -113,7 +113,12 @@ export async function hashFiles(
   const excludeMatchers = buildExcludeMatchers(options?.exclude ?? [])
 
   // Resolve roots up front; warn and skip any that fail to resolve.
-  // If allowFilesOutsideWorkspace is not enabled, roots are restricted to the resolved workspace.
+  // When the caller did not specify roots, the workspace is the only allowed
+  // root and `allowFilesOutsideWorkspace` is the opt-in that widens it.
+  // An explicit `roots` list is itself the allowlist, so its entries are
+  // honored as given - otherwise a root outside the workspace would be
+  // dropped here and the files under it silently skipped.
+  const explicitRoots = options?.roots !== undefined
   const resolvedRootsSet = new Set<string>()
   const roots = options?.roots ?? [resolvedWorkspace]
 
@@ -123,6 +128,7 @@ export async function hashFiles(
         root === resolvedWorkspace ? root : fs.realpathSync(root)
 
       if (
+        !explicitRoots &&
         !allowOutside &&
         !isInResolvedRoots(resolvedRoot, [resolvedWorkspace])
       ) {

@@ -269,6 +269,46 @@ describe('globber', () => {
     }
   })
 
+  it('honors an explicit root outside the workspace without the opt-in', async () => {
+    // Mirrors the documented GITHUB_ACTION_PATH usage: an action passes its own
+    // directory as an allowed root, and that directory is not under the workspace.
+    const insideRoot = path.join(getTestTemp(), 'explicit-root-inside')
+    await fs.mkdir(insideRoot, {recursive: true})
+    await fs.writeFile(path.join(insideRoot, 'inside.txt'), 'inside content')
+
+    // Outside GITHUB_WORKSPACE (which the suite pins to __dirname).
+    const actionRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'hash-files-explicit-root-')
+    )
+    try {
+      await fs.writeFile(path.join(actionRoot, 'action.txt'), 'action content')
+
+      const patterns = `${insideRoot}/*\n${actionRoot}/*`
+
+      const insideOnly = await hashFiles(`${insideRoot}/*`, '', {
+        roots: [insideRoot]
+      })
+      expect(insideOnly).not.toEqual('')
+
+      // The explicit roots list is the allowlist, so files under actionRoot
+      // must be hashed even though allowFilesOutsideWorkspace is not set.
+      const both = await hashFiles(patterns, '', {
+        roots: [insideRoot, actionRoot]
+      })
+      expect(both).not.toEqual('')
+      expect(both).not.toEqual(insideOnly)
+
+      // And it hashes exactly those two files, no more.
+      const expected = await hashFiles(patterns, '', {
+        roots: [insideRoot, actionRoot],
+        allowFilesOutsideWorkspace: true
+      })
+      expect(both).toEqual(expected)
+    } finally {
+      await io.rmRF(actionRoot)
+    }
+  })
+
   it('applies relative exclude patterns across all allowed roots', async () => {
     const root = path.join(getTestTemp(), 'exclude-across-roots')
     const dir1 = path.join(root, 'dir1')
