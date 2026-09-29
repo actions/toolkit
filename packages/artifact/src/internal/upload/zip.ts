@@ -1,5 +1,5 @@
 import {realpath} from 'fs/promises'
-import archiver from 'archiver'
+import {ZipArchive} from 'archiver'
 import * as core from '@actions/core'
 import {UploadZipSpecification} from './upload-zip-specification.js'
 import {getUploadChunkSize} from '../shared/config.js'
@@ -15,7 +15,7 @@ export async function createZipUploadStream(
     `Creating Artifact archive with compressionLevel: ${compressionLevel}`
   )
 
-  const zip = archiver.create('zip', {
+  const zip = new ZipArchive({
     highWaterMark: getUploadChunkSize(),
     zlib: {level: compressionLevel}
   })
