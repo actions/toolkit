@@ -58,6 +58,6 @@
     "jose": "^5.10.0"
   },
   "overrides": {
-    "ip-address": "^10.3.1"
+    "ip-address": "^10.7.1"
   }
 }
