@@ -46,5 +46,9 @@
   "dependencies": {
     "@actions/core": "^3.0.0",
     "minimatch": "^10.2.5"
+  },
+  "overrides": {
+    "undici": "^6.28.1",
+    "brace-expansion": "^5.0.12"
   }
 }
