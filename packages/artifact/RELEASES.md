@@ -1,5 +1,11 @@
 # @actions/artifact Releases
 
+## 6.3.0
+
+- Honor the `Retry-After` header on HTTP 429 responses in the artifact Twirp client. When the header is a valid positive number of seconds, the client waits that long before retrying instead of using exponential backoff ([#2498](https://github.com/actions/toolkit/pull/2498))
+- Add a 120 second retry timeout per request. If the next retry wait would push the total wait over 120 seconds, the request fails immediately instead of sleeping ([#2498](https://github.com/actions/toolkit/pull/2498))
+- Increase the default retry backoff base interval from 3 seconds to 8 seconds, so a retry without `Retry-After` lands in a later minute ([#2498](https://github.com/actions/toolkit/pull/2498))
+
 ## 6.2.2
 
 - Bump dependency versions ([#2393](https://github.com/actions/toolkit/pull/2393)):
