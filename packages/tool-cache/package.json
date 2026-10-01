@@ -45,7 +45,7 @@
   "dependencies": {
     "@actions/core": "^3.0.0",
     "@actions/exec": "^3.0.0",
-    "@actions/http-client": "^4.0.0",
+    "@actions/http-client": "^4.0.2",
     "@actions/io": "^3.0.0",
     "semver": "^7.7.3"
   },

@@ -1,11 +1,5 @@
 # @actions/artifact Releases
 
-## 6.3.0
-
-- Honor the `Retry-After` header on HTTP 429 responses in the artifact Twirp client when it contains a positive integer number of seconds. Unsupported values fall back to exponential backoff ([#2498](https://github.com/actions/toolkit/pull/2498)).
-- Cap accumulated retry sleeps at 120 seconds per request, failing before the next sleep would exceed the cap. This is not a wall-clock timeout for HTTP requests ([#2498](https://github.com/actions/toolkit/pull/2498)).
-- Increase the fallback retry backoff base interval from 3 seconds to 8 seconds, retaining the 1.5 multiplier and maximum of 5 attempts ([#2498](https://github.com/actions/toolkit/pull/2498)).
-
 ## 6.2.2
 
 - Bump dependency versions ([#2393](https://github.com/actions/toolkit/pull/2393)):
