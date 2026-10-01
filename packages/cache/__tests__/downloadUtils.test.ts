@@ -1,5 +1,20 @@
 import * as core from '@actions/core'
-import {DownloadProgress} from '../src/internal/downloadUtils'
+import * as fs from 'fs'
+import * as path from 'path'
+import {
+  DownloadProgress,
+  downloadCacheStorageSDK
+} from '../src/internal/downloadUtils'
+
+const mockGetProperties = jest.fn()
+const mockDownloadToBuffer = jest.fn()
+
+jest.mock('@azure/storage-blob', () => ({
+  BlockBlobClient: jest.fn().mockImplementation(() => ({
+    getProperties: mockGetProperties,
+    downloadToBuffer: mockDownloadToBuffer
+  }))
+}))
 
 test('download progress tracked correctly', () => {
   const progress = new DownloadProgress(1000)
@@ -157,4 +172,26 @@ test('display does not print completed line twice', () => {
 
   expect(progress.displayedComplete).toBe(true)
   expect(infoMock).toHaveBeenCalledTimes(3)
+})
+
+test('storage download clears segment timeout when download rejects', async () => {
+  jest.useFakeTimers()
+  const archivePath = path.join(__dirname, '_temp', 'rejected-download')
+  fs.mkdirSync(path.dirname(archivePath), {recursive: true})
+  mockGetProperties.mockResolvedValue({contentLength: 1})
+  mockDownloadToBuffer.mockRejectedValue(new Error('download failed'))
+
+  try {
+    await expect(
+      downloadCacheStorageSDK('https://example.test/cache', archivePath, {
+        segmentTimeoutInMs: 600000
+      })
+    ).rejects.toThrow('download failed')
+
+    expect(jest.getTimerCount()).toBe(0)
+  } finally {
+    jest.clearAllTimers()
+    jest.useRealTimers()
+    fs.rmSync(archivePath, {force: true})
+  }
 })
