@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@actions/exec": "^3.0.0",
-    "@actions/http-client": "^4.0.2"
+    "@actions/http-client": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.1.0"

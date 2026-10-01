@@ -1,9 +1,5 @@
 # Releases
 
-## 4.0.2
-
-- Bump the minimum `undici` version from `6.23.0` to `6.28.1` and refresh the lockfile to `6.29.0`.
-
 ## 4.0.1
 
 - Bump `undici` from `6.23.0` to `6.24.0` [#2347](https://github.com/actions/toolkit/pull/2347)
