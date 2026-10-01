@@ -57,7 +57,7 @@
     "@protobuf-ts/plugin": "^2.11.1",
     "@types/node": "^25.9.8",
     "@types/semver": "^7.8.0",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "uri-js": "npm:uri-js-replace@^1.0.1",
