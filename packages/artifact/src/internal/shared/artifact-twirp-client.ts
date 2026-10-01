@@ -178,16 +178,15 @@ class ArtifactHttpClient implements Rpc {
     return retryableStatusCodes.includes(statusCode)
   }
 
-  // Returns the Retry-After header value in seconds if it is a positive
-  // number, otherwise undefined (HTTP-date values are not supported)
+  // Only positive integer seconds are supported, not HTTP-date values.
   getRetryAfterSeconds(response: HttpClientResponse): number | undefined {
     const header = response.message.headers['retry-after']
-    const value = Array.isArray(header) ? header[0] : header
-    if (value === undefined) {
+    const value = (Array.isArray(header) ? header[0] : header)?.trim()
+    if (value === undefined || !/^\d+$/.test(value)) {
       return undefined
     }
 
-    const parsed = parseInt(value)
+    const parsed = parseInt(value, 10)
     return !isNaN(parsed) && parsed > 0 ? parsed : undefined
   }
 

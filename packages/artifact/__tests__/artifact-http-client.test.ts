@@ -417,8 +417,9 @@ describe('artifact-http-client', () => {
 
     it.each([
       ['30', 30000],
-      ['1.5', 1000],
-      ['10 ', 10000]
+      ['010', 10000],
+      ['10 ', 10000],
+      [' 10 ', 10000]
     ])('should wait for a Retry-After of %p on 429', async (header, wait) => {
       const mockPost = mockResponses(rateLimited(header))
 
@@ -439,8 +440,18 @@ describe('artifact-http-client', () => {
     it.each([
       ['missing', undefined],
       ['empty', ''],
+      ['whitespace', ' '],
       ['zero', '0'],
+      ['padded zero', '000'],
       ['negative', '-5'],
+      ['fractional', '1.5'],
+      ['decimal', '1.0'],
+      ['a positive sign', '+5'],
+      ['hexadecimal', '0x10'],
+      ['scientific notation', '1e2'],
+      ['trailing junk', '10seconds'],
+      ['prefix junk', 'seconds10'],
+      ['embedded whitespace', '1 0'],
       ['non-numeric', 'abc'],
       ['an HTTP-date', 'Wed, 21 Oct 2015 07:28:00 GMT']
     ])('should use backoff when Retry-After is %s', async (_, header) => {
@@ -453,7 +464,9 @@ describe('artifact-http-client', () => {
 
     it.each([
       [503, 'Service Unavailable'],
-      [500, 'Internal Server Error']
+      [500, 'Internal Server Error'],
+      [502, 'Bad Gateway'],
+      [504, 'Gateway Timeout']
     ])('should ignore Retry-After on %s', async (statusCode, statusMessage) => {
       mockResponses(response(statusCode, statusMessage, {'retry-after': '30'}))
 
@@ -477,30 +490,69 @@ describe('artifact-http-client', () => {
     })
 
     it.each([
-      ['a 121s Retry-After', [rateLimited('121')], []],
+      ['a 121s Retry-After', [rateLimited('121')], [], 1],
       [
         'a 113s Retry-After after an 8s backoff',
         [serverError(), rateLimited('113')],
-        [8000]
+        [8000],
+        2
       ]
     ])(
       'should fail before sleeping when %s would exceed the retry timeout',
-      async (_, responses, waits) => {
-        mockResponses(...responses)
+      async (_, responses, waits, attempts) => {
+        const mockPost = mockResponses(...responses)
 
         await expect(createArtifact()).rejects.toThrow(
           'would exceed the maximum total retry wait of 120000 ms'
         )
         expect(sleepTimes()).toEqual(waits)
+        expect(mockPost).toHaveBeenCalledTimes(attempts)
       }
     )
 
     it('should allow a wait that exactly fills the retry timeout', async () => {
-      mockResponses(rateLimited('120'))
+      const mockPost = mockResponses(rateLimited('120'))
 
       await createArtifact()
 
       expect(sleepTimes()).toEqual([120000])
+      expect(mockPost).toHaveBeenCalledTimes(2)
+    })
+
+    it('should allow mixed waits that exactly fill the retry timeout', async () => {
+      const mockPost = mockResponses(serverError(), rateLimited('112'))
+
+      await createArtifact()
+
+      expect(sleepTimes()).toEqual([8000, 112000])
+      expect(mockPost).toHaveBeenCalledTimes(3)
+    })
+
+    it('should use backoff after a 429 without reusing its Retry-After', async () => {
+      randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0)
+      const mockPost = mockResponses(rateLimited('30'), serverError())
+
+      await createArtifact()
+
+      expect(sleepTimes()).toEqual([30000, 12000])
+      expect(mockPost).toHaveBeenCalledTimes(3)
+    })
+
+    it('should stop after five attempts without sleeping after the last failure', async () => {
+      const mockPost = mockResponses(
+        rateLimited('30'),
+        rateLimited('30'),
+        rateLimited('30'),
+        rateLimited('30'),
+        rateLimited('30')
+      )
+
+      await expect(createArtifact()).rejects.toThrow(
+        'Failed to make request after 5 attempts: Failed request: (429) Too Many Requests'
+      )
+
+      expect(mockPost).toHaveBeenCalledTimes(5)
+      expect(sleepTimes()).toEqual([30000, 30000, 30000, 30000])
     })
 
     it.each([

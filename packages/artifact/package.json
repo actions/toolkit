@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "6.3.0",
+  "version": "6.2.2",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -71,10 +71,6 @@
   },
   "overrides": {
     "uri-js": "npm:uri-js-replace@^1.0.1",
-    "node-fetch": "^3.3.2",
-    "brace-expansion@^2": "^2.1.7",
-    "brace-expansion@^5": "^5.0.12",
-    "undici": "^6.28.1",
-    "markdown-it": "^14.3.1"
+    "node-fetch": "^3.3.2"
   }
 }
