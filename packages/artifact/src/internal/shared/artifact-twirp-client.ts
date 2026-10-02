@@ -92,7 +92,6 @@ class ArtifactHttpClient implements Rpc {
         if (this.isSuccessStatusCode(statusCode)) {
           return {response, body}
         }
-        isRetryable = this.isRetryableHttpStatusCode(statusCode)
         errorMessage = `Failed request: (${statusCode}) ${response.message.statusMessage}`
         if (body.msg) {
           if (UsageError.isUsageErrorMessage(body.msg)) {
@@ -101,6 +100,7 @@ class ArtifactHttpClient implements Rpc {
 
           errorMessage = `${errorMessage}: ${body.msg}`
         }
+        isRetryable = this.isRetryableHttpStatusCode(statusCode, errorMessage)
       } catch (error) {
         if (error instanceof SyntaxError) {
           debug(`Raw Body: ${rawBody}`)
@@ -147,7 +147,10 @@ class ArtifactHttpClient implements Rpc {
     return statusCode >= 200 && statusCode < 300
   }
 
-  isRetryableHttpStatusCode(statusCode?: number): boolean {
+  isRetryableHttpStatusCode(
+    statusCode?: number,
+    errorMessage?: string
+  ): boolean {
     if (!statusCode) return false
 
     const retryableStatusCodes = [
@@ -158,7 +161,24 @@ class ArtifactHttpClient implements Rpc {
       HttpCodes.TooManyRequests
     ]
 
-    return retryableStatusCodes.includes(statusCode)
+    if (retryableStatusCodes.includes(statusCode)) {
+      return true
+    }
+
+    // A 403 from the artifact Results Service usually means a genuine
+    // authorization failure (e.g. an expired runtime token, or an artifact
+    // outside the run's scope), which should fail fast rather than retry.
+    // However, the service's edge/proxy layer can also intermittently
+    // return a 403 of its own, distinguishable by a body identifying it as
+    // coming from an intermediary rather than the backend (e.g. "Error from
+    // intermediary with HTTP status code 403"). That flavor is a transient
+    // infrastructure hiccup, not an authorization decision, so it's safe -
+    // and worthwhile - to retry. See actions/download-artifact#464.
+    if (statusCode === HttpCodes.Forbidden && errorMessage) {
+      return /error from intermediary/i.test(errorMessage)
+    }
+
+    return false
   }
 
   async sleep(milliseconds: number): Promise<void> {
