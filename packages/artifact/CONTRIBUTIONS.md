@@ -29,6 +29,13 @@ To run unit tests for the `@actions/artifact` package:
 3. Change working directory to `packages/artifact`
 4. Run jest tests: `npm run test`
 
+After building the package, run `npm run test:package` from `packages/artifact`
+to pack it, install it in a temporary consumer with only production dependencies,
+and check that its public entry point and protobuf RPC runtime can be imported.
+This check requires access to the npm registry and also runs in the unit-test CI
+matrix, without monorepo hoisting or code-generation tooling masking missing
+runtime dependencies.
+
 ## Within upload-artifact or download-artifact actions
 
 Any easy way to test changes for the official upload/download actions is to fork them, compile changes and run them.

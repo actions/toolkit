@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "6.3.0",
+  "version": "6.3.1",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -38,6 +38,7 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "cd ../../ && npm run test ./packages/artifact",
+    "test:package": "node scripts/test-package.mjs",
     "bootstrap": "cd ../../ && npm run bootstrap",
     "tsc-run": "tsc && cp src/internal/shared/package-version.cjs lib/internal/shared/",
     "tsc": "npm run bootstrap && npm run tsc-run",
@@ -57,6 +58,7 @@
     "@octokit/request": "^10.0.8",
     "@octokit/request-error": "^7.1.0",
     "@protobuf-ts/runtime": "^2.11.1",
+    "@protobuf-ts/runtime-rpc": "^2.11.1",
     "archiver": "^7.0.1",
     "jwt-decode": "^4.0.0",
     "unzip-stream": "^0.3.1"
