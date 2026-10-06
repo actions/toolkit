@@ -207,6 +207,23 @@ This is wrapped by the core addPath method:
 export function addPath(inputPath: string): void {}
 ```
 
+### Declare an artifact
+
+To declare an artifact that a step produced, write to the file located at `GITHUB_ARTIFACTS` or use the equivalent `actions/core` function. Each line declares one artifact, which is either a path to a local file or an OCI subject reference that includes a digest.
+
+```sh
+echo "dist/app.tar.gz" >> $GITHUB_ARTIFACTS
+echo "ghcr.io/octocat/app:1.0.0@sha256:<hex>" >> $GITHUB_ARTIFACTS
+```
+
+The runner resolves relative file paths against `GITHUB_WORKSPACE` and ignores blank lines and lines that start with `#`. To force how the runner interprets a line, prefix it with `file://` or `oci://`. The runner fails the step if a declaration is invalid, for example, if the file doesn't exist.
+
+This is wrapped by the core `declareArtifact` method:
+
+```javascript
+export function declareArtifact(artifact: string): void {}
+```
+
 ### Powershell
 
 Powershell does not use UTF8 by default. You will want to make sure you write in the correct encoding. For example, to set the path:

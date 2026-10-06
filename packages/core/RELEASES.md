@@ -1,5 +1,9 @@
 # @actions/core Releases
 
+## 3.1.0
+
+- Add `declareArtifact` to declare artifacts using the `GITHUB_ARTIFACTS` environment file
+
 ## 3.0.1
 
 - Bump `undici` from `6.23.0` to `6.24.1` [#2348](https://github.com/actions/toolkit/pull/2348)

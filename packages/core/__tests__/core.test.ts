@@ -40,7 +40,8 @@ const testEnvVars = {
   GITHUB_PATH: '',
   GITHUB_ENV: '',
   GITHUB_OUTPUT: '',
-  GITHUB_STATE: ''
+  GITHUB_STATE: '',
+  GITHUB_ARTIFACTS: ''
 }
 
 const UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
@@ -633,6 +634,91 @@ describe('@actions/core', () => {
   it('setCommandEcho can disable echoing', () => {
     core.setCommandEcho(false)
     assertWriteCalls([`::echo::off${os.EOL}`])
+  })
+
+  it('declareArtifact writes a file path to the artifacts file', () => {
+    const command = 'ARTIFACTS'
+    createFileCommandFile(command)
+    core.declareArtifact('dist/app.tar.gz')
+    verifyFileCommand(command, `dist/app.tar.gz${os.EOL}`)
+  })
+
+  it('declareArtifact writes an OCI subject to the artifacts file', () => {
+    const command = 'ARTIFACTS'
+    const subject = `ghcr.io/octocat/app:1.0.0@sha256:${'a'.repeat(64)}`
+    createFileCommandFile(command)
+    core.declareArtifact(subject)
+    verifyFileCommand(command, `${subject}${os.EOL}`)
+  })
+
+  it('declareArtifact writes one line per declaration', () => {
+    const command = 'ARTIFACTS'
+    createFileCommandFile(command)
+    core.declareArtifact('dist/app.tar.gz')
+    core.declareArtifact('file://#notes.txt')
+    verifyFileCommand(
+      command,
+      `dist/app.tar.gz${os.EOL}file://#notes.txt${os.EOL}`
+    )
+  })
+
+  it('declareArtifact trims surrounding whitespace', () => {
+    const command = 'ARTIFACTS'
+    createFileCommandFile(command)
+    core.declareArtifact('  dist/app.tar.gz\t')
+    core.declareArtifact(`dist/app.zip${os.EOL}`)
+    verifyFileCommand(command, `dist/app.tar.gz${os.EOL}dist/app.zip${os.EOL}`)
+  })
+
+  it('declareArtifact does not allow empty values', () => {
+    const command = 'ARTIFACTS'
+    createFileCommandFile(command)
+    expect(() => core.declareArtifact('')).toThrow('Artifact must not be empty')
+    expect(() => core.declareArtifact(' \t ')).toThrow(
+      'Artifact must not be empty'
+    )
+    verifyFileCommand(command, '')
+  })
+
+  it('declareArtifact does not allow line breaks', () => {
+    const command = 'ARTIFACTS'
+    createFileCommandFile(command)
+    for (const value of [
+      'dist/a\ndist/b',
+      'dist/a\r\ndist/b',
+      'dist/a\rdist/b'
+    ]) {
+      expect(() => core.declareArtifact(value)).toThrow(
+        `Artifact must not contain line breaks: ${JSON.stringify(value)}`
+      )
+    }
+    verifyFileCommand(command, '')
+  })
+
+  it('declareArtifact does not allow values that would be read as comments', () => {
+    const command = 'ARTIFACTS'
+    createFileCommandFile(command)
+    expect(() => core.declareArtifact('#notes.txt')).toThrow(
+      `Artifact "#notes.txt" would be ignored as a comment. To declare a file whose name starts with '#', prefix the path with 'file://'`
+    )
+    expect(() => core.declareArtifact('  # notes.txt')).toThrow(
+      'would be ignored as a comment'
+    )
+    verifyFileCommand(command, '')
+  })
+
+  it('declareArtifact skips the declaration when GITHUB_ARTIFACTS is not set', () => {
+    core.declareArtifact('dist/app.tar.gz')
+    assertWriteCalls([
+      `::debug::Skipping artifact declaration "dist/app.tar.gz": $GITHUB_ARTIFACTS is not set. The runner might not support artifact declarations.${os.EOL}`
+    ])
+  })
+
+  it('declareArtifact validates the value when GITHUB_ARTIFACTS is not set', () => {
+    expect(() => core.declareArtifact('dist/a\ndist/b')).toThrow(
+      'Artifact must not contain line breaks'
+    )
+    expect(process.stdout.write).not.toHaveBeenCalled()
   })
 })
 
