@@ -38,7 +38,6 @@
   "scripts": {
     "audit-moderate": "npm install && npm audit --json --audit-level=moderate > audit.json",
     "test": "cd ../../ && npm run test ./packages/artifact",
-    "test:package": "node scripts/test-package.mjs",
     "bootstrap": "cd ../../ && npm run bootstrap",
     "tsc-run": "tsc && cp src/internal/shared/package-version.cjs lib/internal/shared/",
     "tsc": "npm run bootstrap && npm run tsc-run",

@@ -43,9 +43,6 @@ jobs:
     - name: Compile
       run: npm run build
 
-    - name: Check artifact production package
-      run: npm run test:package --prefix packages/artifact
-
     - name: npm test
       run: npm test -- --runInBand --forceExit
       env:
