@@ -1,6 +1,6 @@
 {
   "name": "@actions/artifact",
-  "version": "6.3.0",
+  "version": "6.3.1",
   "preview": true,
   "description": "Actions artifact lib",
   "keywords": [
@@ -57,6 +57,7 @@
     "@octokit/request": "^10.0.8",
     "@octokit/request-error": "^7.1.0",
     "@protobuf-ts/runtime": "^2.11.1",
+    "@protobuf-ts/runtime-rpc": "^2.11.1",
     "archiver": "^7.0.1",
     "jwt-decode": "^4.0.0",
     "unzip-stream": "^0.3.1"
