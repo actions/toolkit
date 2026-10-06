@@ -2,7 +2,7 @@
 
 ## 6.3.0
 
-- Honor positive integer `Retry-After` seconds on HTTP 429 responses, including when the response body is not valid JSON. Unsupported or missing values use exponential backoff.
+- Honor positive integer `Retry-After` seconds on HTTP 429 responses, including when the response body is not valid JSON. Unsupported or missing values use exponential backoff ([#2534](https://github.com/actions/toolkit/pull/2534)).
 - Increase the initial fallback retry wait to 8 seconds and limit accumulated retry sleep to 120 seconds.
 
 ## 6.2.2
