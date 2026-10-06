@@ -2,7 +2,7 @@
 
 ## 3.1.0
 
-- Add `declareArtifact` to declare artifacts using the `GITHUB_ARTIFACTS` environment file
+- Add `declareArtifact` to declare artifacts using the `GITHUB_ARTIFACTS` environment file [#2538](https://github.com/actions/toolkit/pull/2538)
 
 ## 3.0.1
 
