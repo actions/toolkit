@@ -50,6 +50,22 @@ describe('globber', () => {
     }
   })
 
+  it('captures large number of files', async () => {
+    const root = path.join(getTestTemp(), 'large-number-of-files')
+    await fs.mkdir(root, {recursive: true})
+
+    const promises: Promise<void>[] = []
+    for (let i = 0; i < 150000; i++) {
+      promises.push(
+        fs.writeFile(path.join(root, `item-${i}.txt`), 'test file content')
+      )
+    }
+
+    await Promise.all(promises)
+    const itemPaths = await glob(`${root}${path.sep}*`)
+    expect(itemPaths.length).toEqual(150000)
+  })
+
   it('defaults to followSymbolicLinks=true', async () => {
     // Create the following layout:
     //   <root>
