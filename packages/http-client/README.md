@@ -36,7 +36,7 @@ See the [tests](./__tests__) for detailed examples.
 
 ## Debugging
 
-To enable detailed console logging of all HTTP requests and responses, set the NODE_DEBUG environment varible:
+To enable detailed console logging of all HTTP requests and responses, set the NODE_DEBUG environment variable:
 
 ```shell
 export NODE_DEBUG=http

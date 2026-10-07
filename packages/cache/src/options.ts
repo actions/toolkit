@@ -88,7 +88,7 @@ export interface DownloadOptions {
  * @param copy the original upload options
  */
 export function getUploadOptions(copy?: UploadOptions): UploadOptions {
-  // Defaults if not overriden
+  // Defaults if not overridden
   const result: UploadOptions = {
     useAzureSdk: false,
     uploadConcurrency: 4,

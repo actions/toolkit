@@ -703,7 +703,7 @@ export function isExplicitVersion(versionSpec: string): boolean {
 }
 
 /**
- * Get the highest satisfiying semantic version in `versions` which satisfies `versionSpec`
+ * Get the highest satisfying semantic version in `versions` which satisfies `versionSpec`
  *
  * @param versions        array of versions to evaluate
  * @param versionSpec     semantic version spec to satisfy
