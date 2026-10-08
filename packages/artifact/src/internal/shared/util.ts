@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import {getRuntimeToken} from './config.js'
 import {jwtDecode} from 'jwt-decode'
 import {debug, setSecret} from '@actions/core'
+import {Artifact} from './interfaces.js'
 
 export interface BackendIds {
   workflowRunBackendId: string
@@ -142,4 +143,19 @@ export function maskSecretUrls(body: Record<string, unknown> | null): void {
   if ('signed_url' in body && typeof body.signed_url === 'string') {
     maskSigUrl(body.signed_url)
   }
+}
+
+/**
+ * Sort comparator that puts the most recently created artifact first.
+ *
+ * @remarks
+ * Artifact IDs are not assigned in creation order: a later upload can get a
+ * lower ID, for example when a re-run uploads an artifact with the same name
+ * again. So the creation time decides, and the ID only breaks ties. An
+ * artifact without a creation time counts as the oldest.
+ */
+export function compareNewestFirst(a: Artifact, b: Artifact): number {
+  const byCreationTime =
+    (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
+  return byCreationTime || b.id - a.id
 }
