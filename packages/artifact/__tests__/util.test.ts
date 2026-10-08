@@ -2,6 +2,7 @@ import * as config from '../src/internal/shared/config.js'
 import * as util from '../src/internal/shared/util.js'
 import {maskSigUrl, maskSecretUrls} from '../src/internal/shared/util.js'
 import {setSecret, debug} from '@actions/core'
+import {Artifact} from '../src/internal/shared/interfaces.js'
 
 export const testRuntimeToken =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NwIjoiQWN0aW9ucy5FeGFtcGxlIEFjdGlvbnMuQW5vdGhlckV4YW1wbGU6dGVzdCBBY3Rpb25zLlJlc3VsdHM6Y2U3ZjU0YzctNjFjNy00YWFlLTg4N2YtMzBkYTQ3NWY1ZjFhOmNhMzk1MDg1LTA0MGEtNTI2Yi0yY2U4LWJkYzg1ZjY5Mjc3NCIsImlhdCI6MTUxNjIzOTAyMn0.XYnI_wHPBlUi1mqYveJnnkJhp4dlFjqxzRmISPsqfw8'
@@ -215,5 +216,38 @@ describe('maskSecretUrls', () => {
     }
     maskSecretUrls(body)
     expect(setSecret).not.toHaveBeenCalled()
+  })
+})
+
+describe('compareNewestFirst', () => {
+  const artifact = (id: number, createdAt?: string): Artifact => ({
+    name: 'my-artifact',
+    id,
+    size: 456,
+    createdAt: createdAt ? new Date(createdAt) : undefined
+  })
+
+  it('puts the most recently created artifact first, even if its id is lower', () => {
+    const artifacts = [
+      artifact(2, '2023-12-01T00:00:00Z'),
+      artifact(1, '2023-12-02T00:00:00Z')
+    ]
+    artifacts.sort(util.compareNewestFirst)
+    expect(artifacts.map(a => a.id)).toEqual([1, 2])
+  })
+
+  it('puts the higher id first when the creation times are equal', () => {
+    const artifacts = [
+      artifact(1, '2023-12-01T00:00:00Z'),
+      artifact(2, '2023-12-01T00:00:00Z')
+    ]
+    artifacts.sort(util.compareNewestFirst)
+    expect(artifacts.map(a => a.id)).toEqual([2, 1])
+  })
+
+  it('puts the higher id first when there are no creation times', () => {
+    const artifacts = [artifact(1), artifact(2)]
+    artifacts.sort(util.compareNewestFirst)
+    expect(artifacts.map(a => a.id)).toEqual([2, 1])
   })
 })

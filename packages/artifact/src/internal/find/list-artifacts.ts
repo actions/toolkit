@@ -8,7 +8,7 @@ import {requestLog} from '@octokit/plugin-request-log'
 import {retry} from '@octokit/plugin-retry'
 import type {OctokitOptions} from '@octokit/core/types'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client.js'
-import {getBackendIdsFromToken} from '../shared/util.js'
+import {compareNewestFirst, getBackendIdsFromToken} from '../shared/util.js'
 import {getMaxArtifactListCount} from '../shared/config.js'
 import {ListArtifactsRequest, Timestamp} from '../../generated/index.js'
 
@@ -174,7 +174,7 @@ interface ArtifactResponse {
  * @returns The filtered list of artifacts
  */
 function filterLatest(artifacts: Artifact[]): Artifact[] {
-  artifacts.sort((a, b) => b.id - a.id)
+  artifacts.sort(compareNewestFirst)
   const latestArtifacts: Artifact[] = []
   const seenArtifactNames = new Set<string>()
   for (const artifact of artifacts) {
