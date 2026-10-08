@@ -218,6 +218,8 @@ echo "ghcr.io/octocat/app:1.0.0@sha256:<hex>" >> $GITHUB_ARTIFACTS
 
 The runner resolves relative file paths against `GITHUB_WORKSPACE` and ignores blank lines and lines that start with `#`. To force how the runner interprets a line, prefix it with `file://` or `oci://`. The runner fails the step if a declaration is invalid, for example, if the file doesn't exist.
 
+`GITHUB_ARTIFACTS` is available in runner version 2.336.0 and later.
+
 This is wrapped by the core `declareArtifact` method:
 
 ```javascript

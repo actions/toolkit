@@ -412,8 +412,9 @@ export function getState(name: string): string {
  * `oci://`. The runner validates each declaration after the step completes and
  * fails the step if a declaration is invalid.
  *
- * If `GITHUB_ARTIFACTS` isn't set, for example on an older runner, this
- * function logs a debug message and returns without declaring the artifact.
+ * Artifact declarations require runner version 2.336.0 or later. On older
+ * runners, `GITHUB_ARTIFACTS` isn't set, so this function logs a debug message
+ * and returns without declaring the artifact.
  *
  * @param artifact path to a local file, or an OCI subject reference with a digest
  */
@@ -438,7 +439,7 @@ export function declareArtifact(artifact: string): void {
 
   if (!process.env['GITHUB_ARTIFACTS']) {
     debug(
-      `Skipping artifact declaration ${JSON.stringify(value)}: $GITHUB_ARTIFACTS is not set. The runner might not support artifact declarations.`
+      `Skipping artifact declaration ${JSON.stringify(value)}: $GITHUB_ARTIFACTS is not set. Artifact declarations require runner version 2.336.0 or later.`
     )
     return
   }

@@ -710,7 +710,7 @@ describe('@actions/core', () => {
   it('declareArtifact skips the declaration when GITHUB_ARTIFACTS is not set', () => {
     core.declareArtifact('dist/app.tar.gz')
     assertWriteCalls([
-      `::debug::Skipping artifact declaration "dist/app.tar.gz": $GITHUB_ARTIFACTS is not set. The runner might not support artifact declarations.${os.EOL}`
+      `::debug::Skipping artifact declaration "dist/app.tar.gz": $GITHUB_ARTIFACTS is not set. Artifact declarations require runner version 2.336.0 or later.${os.EOL}`
     ])
   })
 

@@ -63,7 +63,9 @@ core.declareArtifact('dist/app.tar.gz');
 core.declareArtifact(`ghcr.io/octocat/app:1.0.0@${digest}`);
 ```
 
-To force how the runner interprets a value, prefix it with `file://` or `oci://`. If `GITHUB_ARTIFACTS` isn't set, for example on an older runner, `declareArtifact` logs a debug message and skips the declaration.
+To force how the runner interprets a value, prefix it with `file://` or `oci://`.
+
+Artifact declarations require runner version 2.336.0 or later. On older runners, `GITHUB_ARTIFACTS` isn't set, so `declareArtifact` logs a debug message and skips the declaration.
 
 #### Exit codes
 
