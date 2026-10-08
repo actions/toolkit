@@ -15,11 +15,15 @@
   "exports": {
     ".": {
       "types": "./lib/io.d.ts",
-      "import": "./lib/io.js"
+      "import": "./lib/io.js",
+      "require": "./lib/io.js",
+      "default": "./lib/io.js"
     },
     "./lib/io-util": {
       "types": "./lib/io-util.d.ts",
-      "import": "./lib/io-util.js"
+      "import": "./lib/io-util.js",
+      "require": "./lib/io-util.js",
+      "default": "./lib/io-util.js"
     }
   },
   "directories": {
