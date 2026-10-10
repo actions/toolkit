@@ -55,12 +55,12 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
+      expect(outstream.write).toHaveBeenCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
       )
     }
@@ -85,12 +85,12 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
+      expect(outstream.write).toHaveBeenCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
       )
     }
@@ -115,12 +115,12 @@ describe('@actions/exec', () => {
 
     expect(exitCode).toBe(0)
     if (IS_WINDOWS) {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} /c echo hello${os.EOL}`
       )
-      expect(outstream.write).toBeCalledWith(Buffer.from(`hello${os.EOL}`))
+      expect(outstream.write).toHaveBeenCalledWith(Buffer.from(`hello${os.EOL}`))
     } else {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} -l -a${os.EOL}`
       )
     }
@@ -182,11 +182,11 @@ describe('@actions/exec', () => {
 
     expect(failed).toBe(true)
     if (IS_WINDOWS) {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} /c non-existent${os.EOL}`
       )
     } else {
-      expect(outstream.write).toBeCalledWith(
+      expect(outstream.write).toHaveBeenCalledWith(
         `[command]${toolpath} -l non-existent${os.EOL}`
       )
     }
@@ -209,7 +209,7 @@ describe('@actions/exec', () => {
     )
 
     expect(exitCode).toBe(0)
-    expect(outstream.write).toBeCalledWith(
+    expect(outstream.write).toHaveBeenCalledWith(
       Buffer.from('this is output to stderr')
     )
   })
@@ -233,7 +233,7 @@ describe('@actions/exec', () => {
       })
 
     expect(failed).toBe(true)
-    expect(errstream.write).toBeCalledWith(
+    expect(errstream.write).toHaveBeenCalledWith(
       Buffer.from('this is output to stderr')
     )
   })
@@ -524,7 +524,7 @@ describe('@actions/exec', () => {
     const execOptions = getExecOptions()
     execOptions.cwd = 'nonexistent/path'
 
-    await expect(exec.exec('ls', ['-all'], execOptions)).rejects.toThrowError(
+    await expect(exec.exec('ls', ['-all'], execOptions)).rejects.toThrow(
       `The cwd: ${execOptions.cwd} does not exist!`
     )
   })
