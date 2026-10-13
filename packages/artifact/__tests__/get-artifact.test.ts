@@ -43,6 +43,22 @@ const fixtures = {
       size: 456,
       createdAt: new Date('2023-12-02')
     }
+  ],
+  // IDs are not assigned in creation order: a re-run can upload an artifact
+  // with the same name again and get a lower ID
+  rerunArtifacts: [
+    {
+      id: 2,
+      name: 'my-artifact',
+      size: 456,
+      createdAt: new Date('2023-12-01')
+    },
+    {
+      id: 1,
+      name: 'my-artifact',
+      size: 456,
+      createdAt: new Date('2023-12-02')
+    }
   ]
 }
 
@@ -111,6 +127,36 @@ describe('get-artifact', () => {
 
       expect(response).toEqual({
         artifact: fixtures.artifacts[1]
+      })
+    })
+
+    it('should return the most recently created artifact even if its id is lower', async () => {
+      const mockRequest = github.getOctokit(fixtures.token)
+        .request as MockedRequest
+      mockRequest.mockResolvedValueOnce({
+        status: 200,
+        headers: {},
+        url: '',
+        data: {
+          artifacts: fixtures.rerunArtifacts.map(artifact => ({
+            name: artifact.name,
+            id: artifact.id,
+            size_in_bytes: artifact.size,
+            created_at: artifact.createdAt.toISOString()
+          }))
+        }
+      })
+
+      const response = await getArtifactPublic(
+        fixtures.rerunArtifacts[0].name,
+        fixtures.runId,
+        fixtures.owner,
+        fixtures.repo,
+        fixtures.token
+      )
+
+      expect(response).toEqual({
+        artifact: fixtures.rerunArtifacts[1]
       })
     })
 
@@ -211,6 +257,28 @@ describe('get-artifact', () => {
 
       expect(response).toEqual({
         artifact: fixtures.artifacts[1]
+      })
+    })
+
+    it('should return the most recently created artifact even if its id is lower', async () => {
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'ListArtifacts')
+        .mockResolvedValue({
+          artifacts: fixtures.rerunArtifacts.map(artifact => ({
+            ...fixtures.backendIds,
+            databaseId: artifact.id.toString(),
+            name: artifact.name,
+            size: artifact.size.toString(),
+            createdAt: Timestamp.fromDate(artifact.createdAt)
+          }))
+        })
+
+      const response = await getArtifactInternal(
+        fixtures.rerunArtifacts[0].name
+      )
+
+      expect(response).toEqual({
+        artifact: fixtures.rerunArtifacts[1]
       })
     })
 
