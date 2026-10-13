@@ -51,6 +51,22 @@ To make a tool's path available in the path for the remainder of the job (withou
 core.addPath('/path/to/mytool');
 ```
 
+#### Declaring artifacts
+
+To declare an artifact that your action produced, use `declareArtifact`. Each call declares one artifact, which is either a path to a local file or an OCI subject reference that includes a digest. The runner validates each declaration after the step completes and fails the step if a declaration is invalid, for example, if the file doesn't exist.
+
+```js
+// A local file. The runner resolves relative paths against GITHUB_WORKSPACE.
+core.declareArtifact('dist/app.tar.gz');
+
+// An OCI subject. The digest, such as sha256:<hex>, is required.
+core.declareArtifact(`ghcr.io/octocat/app:1.0.0@${digest}`);
+```
+
+To force how the runner interprets a value, prefix it with `file://` or `oci://`.
+
+Artifact declarations require runner version 2.336.0 or later. On older runners, `GITHUB_ARTIFACTS` isn't set, so `declareArtifact` logs a debug message and skips the declaration.
+
 #### Exit codes
 
 You should use this library to set the failing exit code for your action.  If status is not set and the script runs to completion, that will lead to a success.

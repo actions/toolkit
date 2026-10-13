@@ -393,6 +393,60 @@ export function getState(name: string): string {
   return process.env[`STATE_${name}`] || ''
 }
 
+//-----------------------------------------------------------------------
+// Artifacts
+//-----------------------------------------------------------------------
+
+/**
+ * Declares an artifact produced by the current step.
+ *
+ * Each call declares a single artifact, which is either of the following:
+ *
+ * - A path to a local file, such as `dist/app.tar.gz`. The runner resolves
+ *   relative paths against `GITHUB_WORKSPACE`, not the current working
+ *   directory.
+ * - An OCI subject reference that includes a digest, such as
+ *   `ghcr.io/octocat/app:1.0.0@sha256:<hex>`.
+ *
+ * To force how the runner interprets the value, prefix it with `file://` or
+ * `oci://`. The runner validates each declaration after the step completes and
+ * fails the step if a declaration is invalid.
+ *
+ * Artifact declarations require runner version 2.336.0 or later. On older
+ * runners, `GITHUB_ARTIFACTS` isn't set, so this function logs a debug message
+ * and returns without declaring the artifact.
+ *
+ * @param artifact path to a local file, or an OCI subject reference with a digest
+ */
+export function declareArtifact(artifact: string): void {
+  const value = artifact.trim()
+
+  // The runner reads one declaration per line and skips blank and comment
+  // lines, so reject values that would be split or silently dropped.
+  if (!value) {
+    throw new Error('Artifact must not be empty')
+  }
+  if (/[\r\n]/.test(value)) {
+    throw new Error(
+      `Artifact must not contain line breaks: ${JSON.stringify(value)}`
+    )
+  }
+  if (value.startsWith('#')) {
+    throw new Error(
+      `Artifact ${JSON.stringify(value)} would be ignored as a comment. To declare a file whose name starts with '#', prefix the path with 'file://'`
+    )
+  }
+
+  if (!process.env['GITHUB_ARTIFACTS']) {
+    debug(
+      `Skipping artifact declaration ${JSON.stringify(value)}: $GITHUB_ARTIFACTS is not set. Artifact declarations require runner version 2.336.0 or later.`
+    )
+    return
+  }
+
+  issueFileCommand('ARTIFACTS', value)
+}
+
 export async function getIDToken(aud?: string): Promise<string> {
   return await OidcClient.getIDToken(aud)
 }
