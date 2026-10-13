@@ -30,9 +30,20 @@ export class Context {
     this.payload = {}
     if (process.env.GITHUB_EVENT_PATH) {
       if (existsSync(process.env.GITHUB_EVENT_PATH)) {
-        this.payload = JSON.parse(
-          readFileSync(process.env.GITHUB_EVENT_PATH, {encoding: 'utf8'})
-        )
+        try {
+          this.payload = JSON.parse(
+            readFileSync(process.env.GITHUB_EVENT_PATH, {encoding: 'utf8'})
+          )
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            const path = process.env.GITHUB_EVENT_PATH
+            process.stdout.write(
+              `GITHUB_EVENT_PATH ${path} contains invalid JSON${EOL}`
+            )
+          } else {
+            throw error
+          }
+        }
       } else {
         const path = process.env.GITHUB_EVENT_PATH
         process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${EOL}`)
