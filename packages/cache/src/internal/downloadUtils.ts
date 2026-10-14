@@ -217,6 +217,7 @@ export async function downloadCacheHttpClientConcurrent(
     socketTimeout: options.timeoutInMs,
     keepAlive: true
   })
+  let progress: DownloadProgress | undefined
   try {
     const res = await retryHttpClientResponse(
       'downloadCacheMetadata',
@@ -258,7 +259,7 @@ export async function downloadCacheHttpClientConcurrent(
     downloads.reverse()
     let actives = 0
     let bytesDownloaded = 0
-    const progress = new DownloadProgress(length)
+    progress = new DownloadProgress(length)
     progress.startDisplayTimer()
     const progressFn = progress.onProgress()
 
@@ -294,6 +295,7 @@ export async function downloadCacheHttpClientConcurrent(
       await waitAndWrite()
     }
   } finally {
+    progress?.stopDisplayTimer()
     httpClient.dispose()
     await archiveDescriptor.close()
   }

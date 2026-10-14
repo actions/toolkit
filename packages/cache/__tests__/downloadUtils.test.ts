@@ -1,5 +1,10 @@
 import * as core from '@actions/core'
-import {DownloadProgress} from '../src/internal/downloadUtils'
+import {HttpClient, HttpClientResponse} from '@actions/http-client'
+import * as fs from 'fs'
+import {
+  DownloadProgress,
+  downloadCacheHttpClientConcurrent
+} from '../src/internal/downloadUtils'
 
 test('download progress tracked correctly', () => {
   const progress = new DownloadProgress(1000)
@@ -157,4 +162,44 @@ test('display does not print completed line twice', () => {
 
   expect(progress.displayedComplete).toBe(true)
   expect(infoMock).toHaveBeenCalledTimes(3)
+})
+
+test('concurrent download stops the progress timer when the download fails', async () => {
+  jest.useFakeTimers()
+  const openMock = jest.spyOn(fs.promises, 'open').mockResolvedValue({
+    write: jest.fn().mockRejectedValue(new Error('write failed')),
+    close: jest.fn().mockResolvedValue(undefined)
+  } as unknown as fs.promises.FileHandle)
+  const requestMock = jest
+    .spyOn(HttpClient.prototype, 'request')
+    .mockResolvedValue({
+      message: {
+        statusCode: 200,
+        headers: {'content-length': '1'}
+      }
+    } as unknown as HttpClientResponse)
+  const getMock = jest.spyOn(HttpClient.prototype, 'get').mockResolvedValue({
+    message: {
+      statusCode: 200,
+      headers: {}
+    },
+    readBodyBuffer: async () => Buffer.from('x')
+  } as unknown as HttpClientResponse)
+
+  try {
+    await expect(
+      downloadCacheHttpClientConcurrent('https://example.com/cache', 'cache', {
+        downloadConcurrency: 1,
+        timeoutInMs: 30_000
+      })
+    ).rejects.toThrow('write failed')
+
+    expect(jest.getTimerCount()).toBe(0)
+  } finally {
+    jest.clearAllTimers()
+    jest.useRealTimers()
+    openMock.mockRestore()
+    requestMock.mockRestore()
+    getMock.mockRestore()
+  }
 })
