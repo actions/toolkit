@@ -402,7 +402,7 @@ export class HttpClient {
           // if there's no location to redirect to, we won't
           break
         }
-        const parsedRedirectUrl = new URL(redirectUrl)
+        const parsedRedirectUrl = new URL(redirectUrl, info.parsedUrl)
         if (
           parsedUrl.protocol === 'https:' &&
           parsedUrl.protocol !== parsedRedirectUrl.protocol &&
