@@ -23,10 +23,15 @@ export interface BlobUploadResponse {
   sha256Hash?: string
 }
 
+export interface BlobUploadOptions {
+  suppressZeroByteWarning?: boolean
+}
+
 export async function uploadToBlobStorage(
   authenticatedUploadURL: string,
   uploadStream: WaterMarkedUploadStream,
-  contentType: string
+  contentType: string,
+  options?: BlobUploadOptions
 ): Promise<BlobUploadResponse> {
   let uploadByteCount = 0
   let lastProgressTime = Date.now()
@@ -61,7 +66,7 @@ export async function uploadToBlobStorage(
     lastProgressTime = Date.now()
   }
 
-  const options: BlockBlobUploadStreamOptions = {
+  const uploadOptions: BlockBlobUploadStreamOptions = {
     blobHTTPHeaders: {blobContentType: contentType},
     onProgress: uploadCallback,
     abortSignal: abortController.signal
@@ -82,7 +87,7 @@ export async function uploadToBlobStorage(
         blobUploadStream,
         bufferSize,
         maxConcurrency,
-        options
+        uploadOptions
       ),
       chunkTimer(getUploadChunkTimeout())
     ])
@@ -101,7 +106,7 @@ export async function uploadToBlobStorage(
   sha256Hash = hashStream.read() as string
   core.info(`SHA256 digest of uploaded artifact is ${sha256Hash}`)
 
-  if (uploadByteCount === 0) {
+  if (uploadByteCount === 0 && !options?.suppressZeroByteWarning) {
     core.warning(
       `No data was uploaded to blob storage. Reported upload byte count is 0.`
     )

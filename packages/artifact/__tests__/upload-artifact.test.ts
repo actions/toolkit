@@ -12,6 +12,7 @@ import {BlockBlobUploadStreamOptions} from '@azure/storage-blob'
 import * as fs from 'fs'
 import * as path from 'path'
 import unzip from 'unzip-stream'
+import * as core from '@actions/core'
 
 const uploadStreamMock = jest.fn()
 const blockBlobClientMock = jest.fn().mockImplementation(() => ({
@@ -464,6 +465,71 @@ describe('upload-artifact', () => {
       expect(digest).toHaveLength(64)
       // Verify the uploaded content is the raw file, not a zip
       expect(uploadedContent).toBe(expectedContent)
+    })
+
+    it('should not warn when uploading an empty file with skipArchive enabled', async () => {
+      jest
+        .spyOn(uploadZipSpecification, 'getUploadZipSpecification')
+        .mockRestore()
+
+      const emptyFile = path.join(fixtures.uploadDirectory, 'empty.txt')
+      fs.writeFileSync(emptyFile, '')
+
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'CreateArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            signedUploadUrl: 'https://signed-upload-url.local'
+          })
+        )
+      jest
+        .spyOn(ArtifactServiceClientJSON.prototype, 'FinalizeArtifact')
+        .mockReturnValue(
+          Promise.resolve({
+            ok: true,
+            artifactId: '1'
+          })
+        )
+
+      uploadStreamMock.mockImplementation(
+        async (
+          stream: NodeJS.ReadableStream,
+          bufferSize?: number,
+          maxConcurrency?: number,
+          options?: BlockBlobUploadStreamOptions
+        ) => {
+          const {onProgress} = options || {}
+          onProgress?.({loadedBytes: 0})
+
+          return new Promise((resolve, reject) => {
+            stream.on('data', () => {
+              onProgress?.({loadedBytes: 0})
+            })
+            stream.on('end', () => {
+              onProgress?.({loadedBytes: 0})
+              resolve({})
+            })
+            stream.on('error', err => {
+              reject(err)
+            })
+          })
+        }
+      )
+
+      const warningSpy = core.warning as jest.Mock
+      warningSpy.mockClear()
+
+      await uploadArtifact(
+        fixtures.inputs.artifactName,
+        [emptyFile],
+        fixtures.uploadDirectory,
+        {skipArchive: true}
+      )
+
+      expect(warningSpy).not.toHaveBeenCalledWith(
+        'No data was uploaded to blob storage. Reported upload byte count is 0.'
+      )
     })
 
     it('should use the correct MIME type when skipArchive is true', async () => {
