@@ -418,8 +418,8 @@ export class ToolRunner extends events.EventEmitter {
       }
 
       const optionsNonNull = this._cloneExecOptions(this.options)
-      if (!optionsNonNull.silent && optionsNonNull.outStream) {
-        optionsNonNull.outStream.write(
+      if (!optionsNonNull.silent && optionsNonNull.errStream) {
+        optionsNonNull.errStream.write(
           this._getCommandString(optionsNonNull) + os.EOL
         )
       }
