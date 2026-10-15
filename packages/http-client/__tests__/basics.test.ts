@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import * as httpm from '..'
+import * as httpm from '../src/index'
 import * as path from 'path'
 import * as fs from 'fs'
 
