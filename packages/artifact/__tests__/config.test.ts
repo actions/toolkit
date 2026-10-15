@@ -12,6 +12,9 @@ jest.mock('os', () => {
 
 beforeEach(() => {
   jest.resetModules()
+  delete process.env['FORGEJO_ACTIONS']
+  delete process.env['GITEA_ACTIONS']
+  delete process.env['ACTIONS_VENDOR']
 })
 
 describe('isGhes', () => {
@@ -35,8 +38,43 @@ describe('isGhes', () => {
     expect(config.isGhes()).toBe(false)
   })
 
-  it('should return false when the request domain is specific to an enterprise', () => {
+  it('should return true when the request domain is specific to an enterprise (GHES)', () => {
     process.env.GITHUB_SERVER_URL = 'https://my-enterprise.github.com'
+    expect(config.isGhes()).toBe(true)
+  })
+
+  it('should return false when FORGEJO_ACTIONS is set on a forge hostname', () => {
+    process.env.GITHUB_SERVER_URL = 'https://forge.example.com'
+    process.env.FORGEJO_ACTIONS = 'true'
+    expect(config.isGhes()).toBe(false)
+  })
+
+  it('should return false when GITEA_ACTIONS is set on a forge hostname', () => {
+    process.env.GITHUB_SERVER_URL = 'https://forge.example.com'
+    process.env.GITEA_ACTIONS = 'true'
+    expect(config.isGhes()).toBe(false)
+  })
+
+  it('should return false when ACTIONS_VENDOR is github on an enterprise hostname', () => {
+    process.env.GITHUB_SERVER_URL = 'https://my-enterprise.github.com'
+    process.env.ACTIONS_VENDOR = 'github'
+    expect(config.isGhes()).toBe(false)
+  })
+
+  it('should return true when ACTIONS_VENDOR is ghes on a forge hostname', () => {
+    process.env.GITHUB_SERVER_URL = 'https://forge.example.com'
+    process.env.ACTIONS_VENDOR = 'ghes'
+    expect(config.isGhes()).toBe(true)
+  })
+
+  it('should fall through to hostname when ACTIONS_VENDOR is an unknown value on an enterprise hostname', () => {
+    process.env.GITHUB_SERVER_URL = 'https://my-enterprise.github.com'
+    process.env.ACTIONS_VENDOR = 'unknownvalue'
+    expect(config.isGhes()).toBe(true)
+  })
+
+  it('should return true for a forge hostname with no forge flags or vendor set (pre-fix behavior)', () => {
+    process.env.GITHUB_SERVER_URL = 'https://forge.example.com'
     expect(config.isGhes()).toBe(true)
   })
 })
