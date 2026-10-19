@@ -15,19 +15,27 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.js"
+      "import": "./lib/index.js",
+      "require": "./lib/index.js",
+      "default": "./lib/index.js"
     },
     "./lib/auth": {
       "types": "./lib/auth.d.ts",
-      "import": "./lib/auth.js"
+      "import": "./lib/auth.js",
+      "requier": "./lib/auth.js",
+      "default": "./lib/auth.js"
     },
-    "./lib/proxy": {  
-      "types": "./lib/proxy.d.ts",  
-      "import": "./lib/proxy.js"
+    "./lib/proxy": {
+      "types": "./lib/proxy.d.ts",
+      "import": "./lib/proxy.js",
+      "require": "./lib/proxy.js",
+      "default": "./lib/proxy.js"
     },
-    "./lib/interfaces": {  
-      "types": "./lib/interfaces.d.ts",  
-      "import": "./lib/interfaces.js"
+    "./lib/interfaces": {
+      "types": "./lib/interfaces.d.ts",
+      "import": "./lib/interfaces.js",
+      "require": "./lib/interfaces.js",
+      "default": "./lib/interfaces.js"
     }
   },
   "directories": {

@@ -16,7 +16,9 @@
   "exports": {
     ".": {
       "types": "./lib/artifact.d.ts",
-      "import": "./lib/artifact.js"
+      "import": "./lib/artifact.js",
+      "require": "./lib/artifact.js",
+      "default": "./lib/artifact.js"
     }
   },
   "directories": {
