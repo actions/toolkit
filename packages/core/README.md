@@ -451,17 +451,17 @@ For example
 ```typescript
 
 const tableData = [
-  {data: 'Header1', header: true},
-  {data: 'Header2', header: true},
-  {data: 'Header3', header: true},
-  {data: 'MyData1'},
-  {data: 'MyData2'},
-  {data: 'MyData3'}
+  [
+    {data: 'Header1', header: true},
+    {data: 'Header2', header: true},
+    {data: 'Header3', header: true}
+  ],
+  ['MyData1', 'MyData2', 'MyData3']
 ]
 
 // Add an HTML table
-core.summary.addTable([tableData])
-// Output: <table><tr><th>Header1</th><th>Header2</th><th>Header3</th></tr><tr></tr><td>MyData1</td><td>MyData2</td><td>MyData3</td></tr></table>
+core.summary.addTable(tableData)
+// Output: <table><tr><th>Header1</th><th>Header2</th><th>Header3</th></tr><tr><td>MyData1</td><td>MyData2</td><td>MyData3</td></tr></table>
 
 ```
 
