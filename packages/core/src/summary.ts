@@ -150,7 +150,7 @@ class Summary {
   /**
    * If the summary buffer is empty
    *
-   * @returns {boolen} true if the buffer is empty
+   * @returns {boolean} true if the buffer is empty
    */
   isEmptyBuffer(): boolean {
     return this._buffer.length === 0
@@ -255,10 +255,10 @@ class Summary {
   }
 
   /**
-   * Adds a collapsable HTML details element to the summary buffer
+   * Adds a collapsible HTML details element to the summary buffer
    *
    * @param {string} label text for the closed state
-   * @param {string} content collapsable content
+   * @param {string} content collapsible content
    *
    * @returns {Summary} summary instance
    */

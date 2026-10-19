@@ -44,7 +44,7 @@ const fs = require('fs')
 
 const USAGE = "Usage: npm audit --json | scripts/audit-allow-list"
 
-// To add entires to the allow list:
+// To add entries to the allow list:
 //   - Run `npm audit --json`
 //   - Copy `path` from each `actions[k].resolves` you want to allow
 //   - Fill in the `advisoryUrl` and `justification` (these are just for documentation)
