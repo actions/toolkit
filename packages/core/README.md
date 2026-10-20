@@ -65,7 +65,7 @@ core.declareArtifact(`ghcr.io/octocat/app:1.0.0@${digest}`);
 
 To force how the runner interprets a value, prefix it with `file://` or `oci://`.
 
-Artifact declarations require runner version 2.336.0 or later. On older runners, `GITHUB_ARTIFACTS` isn't set, so `declareArtifact` logs a debug message and skips the declaration.
+Artifact declarations require runner version 2.336.0 or later and take effect only where they're enabled. On older runners, `GITHUB_ARTIFACTS` isn't set, so `declareArtifact` logs a debug message and skips the declaration. Where artifact declarations aren't enabled, `GITHUB_ARTIFACTS` is set, but the runner ignores it — the declaration has no effect and doesn't fail the step. For how the runner names artifacts and the limits it enforces, see [Declare an artifact](../../docs/commands.md#declare-an-artifact).
 
 #### Exit codes
 

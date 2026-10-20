@@ -218,7 +218,9 @@ echo "ghcr.io/octocat/app:1.0.0@sha256:<hex>" >> $GITHUB_ARTIFACTS
 
 The runner resolves relative file paths against `GITHUB_WORKSPACE` and ignores blank lines and lines that start with `#`. To force how the runner interprets a line, prefix it with `file://` or `oci://`. The runner fails the step if a declaration is invalid, for example, if the file doesn't exist.
 
-`GITHUB_ARTIFACTS` is available in runner version 2.336.0 and later.
+The runner identifies each artifact by name: a file's basename, such as `app.tar.gz` for `dist/app.tar.gz`, or an OCI reference without its digest, such as `ghcr.io/octocat/app:1.0.0`. Within a job, declarations that share a name must also share a digest — declaring `linux/app.tgz` and `darwin/app.tgz` with different contents fails the step that declares the second one. Each step can write up to 1 MiB to `GITHUB_ARTIFACTS`, and a job can declare up to 500 unique artifacts. Exceeding either limit fails the step.
+
+`GITHUB_ARTIFACTS` is set in runner version 2.336.0 and later, but the runner processes it only where artifact declarations are enabled. Otherwise, the runner ignores the file without validating its contents or failing the step.
 
 This is wrapped by the core `declareArtifact` method:
 

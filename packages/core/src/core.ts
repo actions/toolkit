@@ -412,9 +412,11 @@ export function getState(name: string): string {
  * `oci://`. The runner validates each declaration after the step completes and
  * fails the step if a declaration is invalid.
  *
- * Artifact declarations require runner version 2.336.0 or later. On older
- * runners, `GITHUB_ARTIFACTS` isn't set, so this function logs a debug message
- * and returns without declaring the artifact.
+ * Artifact declarations require runner version 2.336.0 or later and take
+ * effect only where they're enabled. On older runners, `GITHUB_ARTIFACTS`
+ * isn't set, so this function logs a debug message and returns without
+ * declaring the artifact. Where artifact declarations aren't enabled, the
+ * runner ignores `GITHUB_ARTIFACTS`, so the declaration has no effect.
  *
  * @param artifact path to a local file, or an OCI subject reference with a digest
  */
