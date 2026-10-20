@@ -87,15 +87,15 @@ export class ToolRunner extends events.EventEmitter {
   ): string {
     try {
       let s = strBuffer + data.toString()
-      let n = s.indexOf(os.EOL)
+      let n = s.indexOf('\n')
 
       while (n > -1) {
-        const line = s.substring(0, n)
+        const line = s.substring(0, n > 0 && s[n - 1] === '\r' ? n - 1 : n)
         onLine(line)
 
         // the rest of the string ...
-        s = s.substring(n + os.EOL.length)
-        n = s.indexOf(os.EOL)
+        s = s.substring(n + 1)
+        n = s.indexOf('\n')
       }
 
       return s
