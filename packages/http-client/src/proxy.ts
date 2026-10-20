@@ -1,3 +1,5 @@
+import {BlockList, isIP} from 'net'
+
 export function getProxyUrl(reqUrl: URL): URL | undefined {
   const usingSsl = reqUrl.protocol === 'https:'
 
@@ -69,7 +71,8 @@ export function checkBypass(reqUrl: URL): boolean {
           x.endsWith(`.${upperNoProxyItem}`) ||
           (upperNoProxyItem.startsWith('.') &&
             x.endsWith(`${upperNoProxyItem}`))
-      )
+      ) ||
+      matchesCidr(reqHost.replace(/^\[|\]$/g, ''), upperNoProxyItem)
     ) {
       return true
     }
@@ -86,6 +89,19 @@ function isLoopbackAddress(host: string): boolean {
     hostLower.startsWith('[::1]') ||
     hostLower.startsWith('[0:0:0:0:0:0:0:1]')
   )
+}
+
+function matchesCidr(ip: string, cidr: string): boolean {
+  const [network, prefix, extra] = cidr.split('/')
+  if (!prefix || extra !== undefined || !isIP(ip)) return false
+
+  const blockList = new BlockList()
+  try {
+    blockList.addSubnet(network, +prefix, isIP(network) === 6 ? 'ipv6' : 'ipv4')
+    return blockList.check(ip, isIP(ip) === 6 ? 'ipv6' : 'ipv4')
+  } catch {
+    return false
+  }
 }
 
 class DecodedURL extends URL {
