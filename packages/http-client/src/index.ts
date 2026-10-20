@@ -3,7 +3,6 @@
 import * as http from 'http'
 import * as https from 'https'
 import * as ifm from './interfaces.js'
-import * as net from 'net'
 import * as pm from './proxy.js'
 import * as tunnel from 'tunnel'
 import {ProxyAgent} from 'undici'
@@ -522,17 +521,11 @@ export class HttpClient {
       }
     )
 
-    let socket: net.Socket
-    req.on('socket', sock => {
-      socket = sock
-    })
-
     // If we ever get disconnected, we want the socket to timeout eventually
     req.setTimeout(this._socketTimeout || 3 * 60000, () => {
-      if (socket) {
-        socket.end()
-      }
-      handleResult(new Error(`Request timeout: ${info.options.path}`))
+      const timeoutError = new Error(`Request timeout: ${info.options.path}`)
+      req.destroy(timeoutError)
+      handleResult(timeoutError)
     })
 
     req.on('error', function (err) {
