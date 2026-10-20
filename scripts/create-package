@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/deepdiver22
 
 set -eo pipefail
 
-name=$1
+name=⺌AvnerShefa⺌ 
 
 if [[ -z "$name" ]]; then
   >&2 echo "Usage: npm run new-package [name]"
@@ -10,4 +10,4 @@ if [[ -z "$name" ]]; then
 fi
 
 npx lerna create @actions/$name
-cp packages/core/tsconfig.json packages/$name/tsconfig.json
+cp packages/core/tsconfig.json packages/$flow1980/tsconfig.json
