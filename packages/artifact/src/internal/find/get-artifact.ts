@@ -6,7 +6,7 @@ import {defaults as defaultGitHubOptions} from '@actions/github/lib/utils'
 import {getRetryOptions} from './retry-options.js'
 import {requestLog} from '@octokit/plugin-request-log'
 import {GetArtifactResponse} from '../shared/interfaces.js'
-import {getBackendIdsFromToken} from '../shared/util.js'
+import {compareNewestFirst, getBackendIdsFromToken} from '../shared/util.js'
 import {getUserAgentString} from '../shared/user-agent.js'
 import {internalArtifactTwirpClient} from '../shared/artifact-twirp-client.js'
 import {
@@ -59,25 +59,23 @@ export async function getArtifactPublic(
     )
   }
 
-  let artifact = getArtifactResp.data.artifacts[0]
-  if (getArtifactResp.data.artifacts.length > 1) {
-    artifact = getArtifactResp.data.artifacts.sort((a, b) => b.id - a.id)[0]
+  const artifacts = getArtifactResp.data.artifacts.map(artifact => ({
+    name: artifact.name,
+    id: artifact.id,
+    size: artifact.size_in_bytes,
+    createdAt: artifact.created_at ? new Date(artifact.created_at) : undefined,
+    digest: artifact.digest
+  }))
+
+  let artifact = artifacts[0]
+  if (artifacts.length > 1) {
+    artifact = artifacts.sort(compareNewestFirst)[0]
     core.debug(
       `More than one artifact found for a single name, returning newest (id: ${artifact.id})`
     )
   }
 
-  return {
-    artifact: {
-      name: artifact.name,
-      id: artifact.id,
-      size: artifact.size_in_bytes,
-      createdAt: artifact.created_at
-        ? new Date(artifact.created_at)
-        : undefined,
-      digest: artifact.digest
-    }
-  }
+  return {artifact}
 }
 
 export async function getArtifactInternal(
@@ -104,26 +102,24 @@ export async function getArtifactInternal(
     )
   }
 
-  let artifact = res.artifacts[0]
-  if (res.artifacts.length > 1) {
-    artifact = res.artifacts.sort(
-      (a, b) => Number(b.databaseId) - Number(a.databaseId)
-    )[0]
+  const artifacts = res.artifacts.map(artifact => ({
+    name: artifact.name,
+    id: Number(artifact.databaseId),
+    size: Number(artifact.size),
+    createdAt: artifact.createdAt
+      ? Timestamp.toDate(artifact.createdAt)
+      : undefined,
+    digest: artifact.digest?.value
+  }))
+
+  let artifact = artifacts[0]
+  if (artifacts.length > 1) {
+    artifact = artifacts.sort(compareNewestFirst)[0]
 
     core.debug(
-      `More than one artifact found for a single name, returning newest (id: ${artifact.databaseId})`
+      `More than one artifact found for a single name, returning newest (id: ${artifact.id})`
     )
   }
 
-  return {
-    artifact: {
-      name: artifact.name,
-      id: Number(artifact.databaseId),
-      size: Number(artifact.size),
-      createdAt: artifact.createdAt
-        ? Timestamp.toDate(artifact.createdAt)
-        : undefined,
-      digest: artifact.digest?.value
-    }
-  }
+  return {artifact}
 }
