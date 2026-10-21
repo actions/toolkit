@@ -1,5 +1,6 @@
 import * as exec from '../src/exec.js'
 import * as im from '../src/interfaces.js'
+import {ToolRunner} from '../src/toolrunner.js'
 
 import * as childProcess from 'child_process'
 import * as fs from 'fs'
@@ -19,6 +20,40 @@ const SPAWN_WAIT_SCRIPT = path.join(
 
 let outstream: stream.Writable
 let errstream: stream.Writable
+
+describe('ToolRunner line buffering', () => {
+  it.each([
+    {
+      name: 'LF',
+      chunks: ['first\nsecond\n'],
+      lines: ['first', 'second'],
+      remainder: ''
+    },
+    {
+      name: 'CRLF',
+      chunks: ['first\r\nsecond\r\n'],
+      lines: ['first', 'second'],
+      remainder: ''
+    },
+    {
+      name: 'mixed endings across chunks',
+      chunks: ['fir', 'st\nsecond\r', '\n\npartial'],
+      lines: ['first', 'second', ''],
+      remainder: 'partial'
+    }
+  ])('Handles $name', ({chunks, lines, remainder}) => {
+    const runner = new ToolRunner(process.execPath)
+    const onLine = jest.fn()
+    let buffer = ''
+
+    for (const chunk of chunks) {
+      buffer = runner['_processLineBuffer'](Buffer.from(chunk), buffer, onLine)
+    }
+
+    expect(onLine.mock.calls).toEqual(lines.map(line => [line]))
+    expect(buffer).toBe(remainder)
+  })
+})
 
 describe('@actions/exec', () => {
   beforeAll(() => {
