@@ -207,6 +207,27 @@ This is wrapped by the core addPath method:
 export function addPath(inputPath: string): void {}
 ```
 
+### Declare an artifact
+
+To declare an artifact that a step produced, write to the file located at `GITHUB_ARTIFACTS` or use the equivalent `actions/core` function. Each line declares one artifact, which is either a path to a local file or an OCI subject reference that includes a digest.
+
+```sh
+echo "dist/app.tar.gz" >> $GITHUB_ARTIFACTS
+echo "ghcr.io/octocat/app:1.0.0@sha256:<hex>" >> $GITHUB_ARTIFACTS
+```
+
+The runner resolves relative file paths against `GITHUB_WORKSPACE` and ignores blank lines and lines that start with `#`. To force how the runner interprets a line, prefix it with `file://` or `oci://`. The runner fails the step if a declaration is invalid, for example, if the file doesn't exist.
+
+The runner identifies each artifact by name: a file's basename, such as `app.tar.gz` for `dist/app.tar.gz`, or an OCI reference without its digest, such as `ghcr.io/octocat/app:1.0.0`. Within a job, declarations that share a name must also share a digest — declaring `linux/app.tgz` and `darwin/app.tgz` with different contents fails the step that declares the second one. Each step can write up to 1 MiB to `GITHUB_ARTIFACTS`, and a job can declare up to 500 unique artifacts. Exceeding either limit fails the step.
+
+`GITHUB_ARTIFACTS` is set in runner version 2.336.0 and later, but the runner processes it only where artifact declarations are enabled. Otherwise, the runner ignores the file without validating its contents or failing the step.
+
+This is wrapped by the core `declareArtifact` method:
+
+```javascript
+export function declareArtifact(artifact: string): void {}
+```
+
 ### Powershell
 
 Powershell does not use UTF8 by default. You will want to make sure you write in the correct encoding. For example, to set the path:
