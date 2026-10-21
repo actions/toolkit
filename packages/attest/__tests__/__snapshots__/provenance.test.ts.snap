@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`provenance functions buildSLSAProvenancePredicate returns a provenance hydrated from an OIDC token 1`] = `
 {
