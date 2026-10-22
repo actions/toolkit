@@ -4,6 +4,7 @@ import * as path from 'path'
 import {MatchKind} from '../src/internal-match-kind.js'
 import {promises as fs} from 'fs'
 import {Pattern} from '../src/internal-pattern.js'
+import {performance} from 'perf_hooks'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -353,6 +354,17 @@ describe('pattern', () => {
       expect(pattern.searchPath).toBe('C:\\foo\\b[\\!]r')
       expect(pattern.match('C:/foo/b[undefined/!]r/baz')).toBeFalsy()
     }
+  })
+})
+
+describe('globEscape ReDoS', () => {
+  it('done in 1s', () => {
+    const attackString = `${'['.repeat(100000)}\u0000`
+    const startTime = performance.now()
+    Pattern.globEscape(attackString)
+    const endTime = performance.now()
+    const timeTaken = endTime - startTime
+    expect(timeTaken).toBeLessThan(1000)
   })
 })
 
