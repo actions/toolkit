@@ -1,5 +1,12 @@
 import * as core from '@actions/core'
-import {DownloadProgress} from '../src/internal/downloadUtils'
+import {BlobDownloadToBufferOptions, BlockBlobClient} from '@azure/storage-blob'
+import * as fs from 'fs'
+import * as os from 'os'
+import * as path from 'path'
+import {
+  DownloadProgress,
+  downloadCacheStorageSDK
+} from '../src/internal/downloadUtils'
 
 test('download progress tracked correctly', () => {
   const progress = new DownloadProgress(1000)
@@ -157,4 +164,97 @@ test('display does not print completed line twice', () => {
 
   expect(progress.displayedComplete).toBe(true)
   expect(infoMock).toHaveBeenCalledTimes(3)
+})
+
+describe('cache download timeout cleanup', () => {
+  let directory: string
+  let archivePath: string
+
+  beforeEach(() => {
+    jest.useFakeTimers()
+    directory = fs.mkdtempSync(path.join(os.tmpdir(), 'cache-download-'))
+    archivePath = path.join(directory, 'archive')
+    jest.spyOn(BlockBlobClient.prototype, 'getProperties').mockResolvedValue({
+      contentLength: 4
+    } as Awaited<ReturnType<BlockBlobClient['getProperties']>>)
+  })
+
+  afterEach(() => {
+    jest.clearAllTimers()
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+    fs.rmSync(directory, {recursive: true, force: true})
+  })
+
+  test('rejected download preserves the error without leaving a timer', async () => {
+    const error = new Error('download failed')
+    jest
+      .spyOn(BlockBlobClient.prototype, 'downloadToBuffer')
+      .mockRejectedValue(error)
+
+    await expect(
+      downloadCacheStorageSDK('https://example.com/cache', archivePath, {
+        segmentTimeoutInMs: 1000
+      })
+    ).rejects.toBe(error)
+
+    expect(jest.getTimerCount()).toBe(0)
+  })
+
+  test('successful download writes the buffer without leaving a timer', async () => {
+    jest
+      .spyOn(BlockBlobClient.prototype, 'downloadToBuffer')
+      .mockImplementation(
+        async (
+          _offset,
+          _count,
+          options?: number | BlobDownloadToBufferOptions
+        ) => {
+          if (typeof options !== 'number') {
+            options?.onProgress?.({loadedBytes: 4})
+          }
+          return Buffer.from('data')
+        }
+      )
+
+    await downloadCacheStorageSDK('https://example.com/cache', archivePath, {
+      segmentTimeoutInMs: 1000
+    })
+
+    expect(fs.readFileSync(archivePath)).toEqual(Buffer.from('data'))
+    expect(jest.getTimerCount()).toBe(0)
+  })
+
+  test('timed out download aborts without leaving a timer', async () => {
+    let signal: {aborted: boolean} | undefined
+    jest
+      .spyOn(BlockBlobClient.prototype, 'downloadToBuffer')
+      .mockImplementation(
+        async (
+          _offset,
+          _count,
+          options?: number | BlobDownloadToBufferOptions
+        ) => {
+          if (typeof options !== 'number') {
+            signal = options?.abortSignal
+          }
+          return new Promise<Buffer>(() => {})
+        }
+      )
+
+    const download = downloadCacheStorageSDK(
+      'https://example.com/cache',
+      archivePath,
+      {segmentTimeoutInMs: 1000}
+    )
+    const rejected = expect(download).rejects.toThrow(
+      'Aborting cache download as the download time exceeded the timeout.'
+    )
+
+    await jest.advanceTimersByTimeAsync(1000)
+    await rejected
+
+    expect(signal?.aborted).toBe(true)
+    expect(jest.getTimerCount()).toBe(0)
+  })
 })
