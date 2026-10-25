@@ -204,3 +204,13 @@ export function safeTrimTrailingSeparator(p: string): string {
   // Otherwise trim trailing slash
   return p.substr(0, p.length - 1)
 }
+
+/**
+ * Converts a filesystem path to a Minimatch-friendly path.
+ * Minimatch operates on POSIX-style '/' separators across platforms.
+ * On Windows, convert '\\' to '/'. Otherwise, return the path unchanged.
+ */
+export function toMinimatchPath(p: string): string {
+  if (!p) return ''
+  return IS_WINDOWS ? p.replace(/\\/g, '/') : p
+}
