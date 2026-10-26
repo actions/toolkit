@@ -665,6 +665,31 @@ async function saveCacheV2(
     )
   }
 
+  // Skip creating the archive when another job has already saved this key.
+  if (isCacheReadable(getCacheMode())) {
+    try {
+      const existing = await cacheTwirpClient
+        .internalCacheTwirpClient({maxAttempts: 1})
+        .GetCacheEntryDownloadURL({
+          key,
+          restoreKeys: [],
+          version: utils.getCacheVersion(
+            paths,
+            compressionMethod,
+            enableCrossOsArchive
+          )
+        })
+      if (existing.ok && existing.matchedKey === key) {
+        core.info(
+          `Cache entry with key ${key} already exists, not saving cache.`
+        )
+        return cacheId
+      }
+    } catch (error) {
+      core.debug(`Failed to look up existing cache entry: ${error}`)
+    }
+  }
+
   const archiveFolder = await utils.createTempDirectory()
   const archivePath = path.join(
     archiveFolder,
