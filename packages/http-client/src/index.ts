@@ -91,32 +91,23 @@ export class HttpClientResponse {
 
   message: http.IncomingMessage
   async readBody(): Promise<string> {
-    return new Promise<string>(async resolve => {
-      let output = Buffer.alloc(0)
-
-      this.message.on('data', (chunk: Buffer) => {
-        output = Buffer.concat([output, chunk])
-      })
-
-      this.message.on('end', () => {
-        resolve(output.toString())
-      })
-    })
+    return (await readResponseBody(this.message)).toString()
   }
 
   async readBodyBuffer?(): Promise<Buffer> {
-    return new Promise<Buffer>(async resolve => {
-      const chunks: Buffer[] = []
-
-      this.message.on('data', (chunk: Buffer) => {
-        chunks.push(chunk)
-      })
-
-      this.message.on('end', () => {
-        resolve(Buffer.concat(chunks))
-      })
-    })
+    return readResponseBody(this.message)
   }
+}
+
+async function readResponseBody(
+  message: http.IncomingMessage
+): Promise<Buffer> {
+  const chunks: Buffer[] = []
+  // Stream iteration rejects on errors and premature closure, including aborts.
+  for await (const chunk of message) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+  }
+  return Buffer.concat(chunks)
 }
 
 export function isHttps(requestUrl: string): boolean {
