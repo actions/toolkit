@@ -574,60 +574,52 @@ export function findAllVersions(toolName: string, arch?: string): string[] {
 export type IToolRelease = mm.IToolRelease
 export type IToolReleaseFile = mm.IToolReleaseFile
 
-interface GitHubTreeItem {
-  path: string
-  size: string
-  url: string
-}
-
-interface GitHubTree {
-  tree: GitHubTreeItem[]
-  truncated: boolean
-}
-
 export async function getManifestFromRepo(
   owner: string,
   repo: string,
   auth?: string,
   branch = 'master'
 ): Promise<IToolRelease[]> {
-  let releases: IToolRelease[] = []
-  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}`
+  const manifestUrl = `https://api.github.com/repos/${owner}/${repo}/contents/versions-manifest.json?ref=${encodeURIComponent(branch)}`
 
   const http: httpm.HttpClient = new httpm.HttpClient('tool-cache')
-  const headers: OutgoingHttpHeaders = {}
+  const headers: OutgoingHttpHeaders = {
+    accept: 'application/vnd.github.raw+json'
+  }
   if (auth) {
     core.debug('set auth')
     headers.authorization = auth
   }
 
-  const response = await http.getJson<GitHubTree>(treeUrl, headers)
-  if (!response.result) {
-    return releases
+  const response = await http.get(manifestUrl, headers)
+  const statusCode = response.message.statusCode || 0
+  let versionsRaw = await response.readBody()
+  if (statusCode === httpm.HttpCodes.NotFound) {
+    return []
   }
 
-  let manifestUrl = ''
-  for (const item of response.result.tree) {
-    if (item.path === 'versions-manifest.json') {
-      manifestUrl = item.url
-      break
-    }
-  }
-
-  headers['accept'] = 'application/vnd.github.VERSION.raw'
-  let versionsRaw = await (await http.get(manifestUrl, headers)).readBody()
-
+  let result: unknown
   if (versionsRaw) {
     // shouldn't be needed but protects against invalid json saved with BOM
     versionsRaw = versionsRaw.replace(/^\uFEFF/, '')
     try {
-      releases = JSON.parse(versionsRaw)
+      result = JSON.parse(versionsRaw)
     } catch {
       core.debug('Invalid json')
     }
   }
 
-  return releases
+  if (statusCode > 299) {
+    const message =
+      (result as {message?: string})?.message ||
+      versionsRaw ||
+      `Failed request: (${statusCode})`
+    const error = new httpm.HttpClientError(message, statusCode)
+    error.result = result ?? null
+    throw error
+  }
+
+  return result === undefined ? [] : (result as IToolRelease[])
 }
 
 export async function findFromManifest(

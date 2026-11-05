@@ -1,3 +1,7 @@
+import assert from 'node:assert/strict'
+
+import nock from 'nock'
+
 import * as tc from '../src/tool-cache.js'
 import * as mm from '../src/manifest.js'
 
@@ -16,6 +20,144 @@ const fakeToken = 'notrealtoken'
 // just loading data and require handles BOMs etc.
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const manifestData = require('./data/versions-manifest.json')
+
+describe('getManifestFromRepo', () => {
+  beforeAll(() => {
+    nock.disableNetConnect()
+  })
+
+  afterEach(() => {
+    nock.cleanAll()
+  })
+
+  afterAll(() => {
+    nock.enableNetConnect()
+  })
+
+  function mockManifest(branch = 'master'): nock.Interceptor {
+    return nock('https://api.github.com', {
+      reqheaders: {accept: 'application/vnd.github.raw+json'}
+    })
+      .get('/repos/actions/some-tool/contents/versions-manifest.json')
+      .query({ref: branch})
+  }
+
+  it('fetches the manifest in one request', async () => {
+    const scope = mockManifest()
+      .matchHeader('authorization', value => value === undefined)
+      .reply(200, JSON.stringify(manifestData))
+
+    const manifest = await tc.getManifestFromRepo(owner, repo)
+
+    scope.done()
+    assert.deepStrictEqual(manifest, manifestData)
+  })
+
+  it('forwards the authorization header', async () => {
+    const auth = `token ${fakeToken}`
+    const scope = mockManifest()
+      .matchHeader('authorization', auth)
+      .reply(200, JSON.stringify(manifestData))
+
+    const manifest = await tc.getManifestFromRepo(owner, repo, auth)
+
+    scope.done()
+    assert.deepStrictEqual(manifest, manifestData)
+  })
+
+  it.each(['main', 'release/with+metadata&build#1'])(
+    'fetches the requested ref %s',
+    async branch => {
+      const scope = mockManifest(branch).reply(
+        200,
+        JSON.stringify(manifestData)
+      )
+
+      const manifest = await tc.getManifestFromRepo(
+        owner,
+        repo,
+        undefined,
+        branch
+      )
+
+      scope.done()
+      assert.deepStrictEqual(manifest, manifestData)
+    }
+  )
+
+  it('strips a leading byte order mark', async () => {
+    const scope = mockManifest().reply(
+      200,
+      `\uFEFF${JSON.stringify(manifestData)}`
+    )
+
+    const manifest = await tc.getManifestFromRepo(owner, repo)
+
+    scope.done()
+    assert.deepStrictEqual(manifest, manifestData)
+  })
+
+  it.each(['', '[]', 'invalid json', '[{"version":'])(
+    'returns an empty manifest for %j',
+    async body => {
+      const scope = mockManifest().reply(200, body)
+
+      const manifest = await tc.getManifestFromRepo(owner, repo)
+
+      scope.done()
+      assert.deepStrictEqual(manifest, [])
+    }
+  )
+
+  it('returns an empty manifest when the file or ref is missing', async () => {
+    const scope = mockManifest().reply(404, {message: 'Not Found'})
+
+    const manifest = await tc.getManifestFromRepo(owner, repo)
+
+    scope.done()
+    assert.deepStrictEqual(manifest, [])
+  })
+
+  it.each([403, 429, 500])('preserves HTTP %i errors', async statusCode => {
+    const message = 'Unable to fetch the manifest'
+    const scope = mockManifest().reply(statusCode, {message})
+
+    await assert.rejects(tc.getManifestFromRepo(owner, repo), {
+      name: 'HttpClientError',
+      message,
+      statusCode,
+      result: {message}
+    })
+
+    scope.done()
+  })
+
+  it.each(['Service unavailable', ''])(
+    'preserves HTTP errors with body %j',
+    async body => {
+      const scope = mockManifest().reply(503, body)
+
+      await assert.rejects(tc.getManifestFromRepo(owner, repo), {
+        name: 'HttpClientError',
+        message: body || 'Failed request: (503)',
+        statusCode: 503,
+        result: null
+      })
+
+      scope.done()
+    }
+  )
+
+  it('propagates transport errors', async () => {
+    const scope = mockManifest().replyWithError('Connection reset')
+
+    await assert.rejects(tc.getManifestFromRepo(owner, repo), {
+      message: 'Connection reset'
+    })
+
+    scope.done()
+  })
+})
 
 describe('@actions/tool-cache-manifest', () => {
   let os: {platform: string; arch: string}
