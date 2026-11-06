@@ -223,6 +223,34 @@ describe('@actions/tool-cache', function () {
     expect(fs.existsSync(binaryPath)).toBeTruthy()
   })
 
+  it('checks downloaded file against expected hash', async () => {
+    const downPath: string = await tc.downloadTool(
+      'http://example.com/bytes/35',
+      undefined,
+      undefined,
+      undefined,
+      "sha256-920719e26beaf4094a97dba323c96c0809c84ff347c6415bab79d6e01af78d98"
+    )
+
+    expect(fs.existsSync(downPath)).toBeTruthy()
+    expect(fs.statSync(downPath).size).toBe(35)
+  })
+
+  it('fails if downloaded file does not match expected hash', async () => {
+    try {
+      await tc.downloadTool(
+        'http://example.com/bytes/35',
+        undefined,
+        undefined,
+        undefined,
+        "sha256-asdf"
+      )
+      fail("Expected exception!")
+    } catch (err) {
+      // OK!
+    }
+  })
+
   if (IS_WINDOWS) {
     it('installs a 7z and finds it', async () => {
       const tempDir = path.join(__dirname, 'test-install-7z')
