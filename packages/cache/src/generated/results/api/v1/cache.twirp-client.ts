@@ -6,11 +6,11 @@ import {
     GetCacheEntryDownloadURLRequest,
     GetCacheEntryDownloadURLResponse,
   } from "./cache.js";
-  
+
   //==================================//
   //          Client Code             //
   //==================================//
-  
+
   interface Rpc {
     request(
       service: string,
@@ -19,7 +19,7 @@ import {
       data: object | Uint8Array
     ): Promise<object | Uint8Array>;
   }
-  
+
   export interface CacheServiceClient {
     CreateCacheEntry(
       request: CreateCacheEntryRequest
@@ -31,7 +31,7 @@ import {
       request: GetCacheEntryDownloadURLRequest
     ): Promise<GetCacheEntryDownloadURLResponse>;
   }
-  
+
   export class CacheServiceClientJSON implements CacheServiceClient {
     private readonly rpc: Rpc;
     constructor(rpc: Rpc) {
@@ -59,7 +59,7 @@ import {
         })
       );
     }
-  
+
     FinalizeCacheEntryUpload(
       request: FinalizeCacheEntryUploadRequest
     ): Promise<FinalizeCacheEntryUploadResponse> {
@@ -79,7 +79,7 @@ import {
         })
       );
     }
-  
+
     GetCacheEntryDownloadURL(
       request: GetCacheEntryDownloadURLRequest
     ): Promise<GetCacheEntryDownloadURLResponse> {
@@ -100,7 +100,7 @@ import {
       );
     }
   }
-  
+
   export class CacheServiceClientProtobuf implements CacheServiceClient {
     private readonly rpc: Rpc;
     constructor(rpc: Rpc) {
@@ -123,7 +123,7 @@ import {
         CreateCacheEntryResponse.fromBinary(data as Uint8Array)
       );
     }
-  
+
     FinalizeCacheEntryUpload(
       request: FinalizeCacheEntryUploadRequest
     ): Promise<FinalizeCacheEntryUploadResponse> {
@@ -138,7 +138,7 @@ import {
         FinalizeCacheEntryUploadResponse.fromBinary(data as Uint8Array)
       );
     }
-  
+
     GetCacheEntryDownloadURL(
       request: GetCacheEntryDownloadURLRequest
     ): Promise<GetCacheEntryDownloadURLResponse> {
@@ -154,4 +154,3 @@ import {
       );
     }
   }
-  
