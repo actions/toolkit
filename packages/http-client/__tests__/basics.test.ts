@@ -66,6 +66,31 @@ describe('basics', () => {
     expect(obj.headers['user-agent']).toBe('actions/http-client')
   })
 
+  it('can make a request to an IPv6 literal host', async () => {
+    const res: httpm.HttpClientResponse = await _http.get(
+      // This is Cloudflare's DNS, the IPv6 equivalent of 1.1.1.1
+      'https://[2606:4700:4700::1111]'
+    )
+
+    expect(res.message.statusCode).toBeDefined()
+  })
+
+  it('can make a request to an IPv6 literal host with an explicit port', async () => {
+    const res: httpm.HttpClientResponse = await _http.get(
+      'https://[2606:4700:4700::1111]:443'
+    )
+
+    expect(res.message.statusCode).toBeDefined()
+  })
+
+  it('can make a request to an IPv6 literal host with a path', async () => {
+    const res: httpm.HttpClientResponse = await _http.get(
+      'https://[2606:4700:4700::1111]/hello'
+    )
+
+    expect(res.message.statusCode).toBeDefined()
+  })
+
   /* TODO write a mock rather then relying on a third party
   it('does basic https get request', async () => {
     const res: httpm.HttpClientResponse = await _http.get(
