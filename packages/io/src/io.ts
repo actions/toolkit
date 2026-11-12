@@ -86,7 +86,8 @@ export async function mv(
 ): Promise<void> {
   if (await ioUtil.exists(dest)) {
     let destExists = true
-    if (await ioUtil.isDirectory(dest)) {
+    // Follow a symlink to a directory, like mv(1) and cp
+    if (await ioUtil.isDirectory(dest, true)) {
       // If dest is directory copy src into dest
       dest = path.join(dest, path.basename(source))
       destExists = await ioUtil.exists(dest)
