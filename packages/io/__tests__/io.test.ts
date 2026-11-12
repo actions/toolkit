@@ -292,6 +292,42 @@ describe('mv', () => {
     )
     await assertNotExists(sourceFile)
   })
+
+  it('moves file into a symlink to a directory', async () => {
+    const root: string = path.join(getTestTemp(), ' mv_to_symlink_dir')
+    const sourceFile: string = path.join(root, ' mv_source')
+    const realFolder: string = path.join(root, ' mv_real_folder')
+    const symlinkFolder: string = path.join(root, ' mv_symlink_folder')
+    await io.mkdirP(realFolder)
+    await createSymlinkDir(realFolder, symlinkFolder)
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
+
+    await io.mv(sourceFile, symlinkFolder, {force: false})
+
+    expect((await fs.lstat(symlinkFolder)).isSymbolicLink()).toBe(true)
+    expect(
+      await fs.readFile(path.join(realFolder, ' mv_source'), {encoding: 'utf8'})
+    ).toBe('test file content')
+    await assertNotExists(sourceFile)
+  })
+
+  it('moves file into a symlink to a directory with -f', async () => {
+    const root: string = path.join(getTestTemp(), ' mv_to_symlink_dir_-f')
+    const sourceFile: string = path.join(root, ' mv_source')
+    const realFolder: string = path.join(root, ' mv_real_folder')
+    const symlinkFolder: string = path.join(root, ' mv_symlink_folder')
+    await io.mkdirP(realFolder)
+    await createSymlinkDir(realFolder, symlinkFolder)
+    await fs.writeFile(sourceFile, 'test file content', {encoding: 'utf8'})
+
+    await io.mv(sourceFile, symlinkFolder)
+
+    expect((await fs.lstat(symlinkFolder)).isSymbolicLink()).toBe(true)
+    expect(
+      await fs.readFile(path.join(realFolder, ' mv_source'), {encoding: 'utf8'})
+    ).toBe('test file content')
+    await assertNotExists(sourceFile)
+  })
 })
 
 describe('rmRF', () => {
