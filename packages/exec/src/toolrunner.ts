@@ -557,6 +557,8 @@ export function argStringToArray(argString: string): string[] {
   let inQuotes = false
   let escaped = false
   let arg = ''
+  // true once the current argument has a quote, so `""` is an empty argument
+  let quoted = false
 
   function append(c: string): void {
     // we only escape double quotes.
@@ -574,6 +576,7 @@ export function argStringToArray(argString: string): string[] {
     if (c === '"') {
       if (!escaped) {
         inQuotes = !inQuotes
+        quoted = true
       } else {
         append(c)
       }
@@ -591,9 +594,10 @@ export function argStringToArray(argString: string): string[] {
     }
 
     if (c === ' ' && !inQuotes) {
-      if (arg.length > 0) {
+      if (arg.length > 0 || quoted) {
         args.push(arg)
         arg = ''
+        quoted = false
       }
       continue
     }
@@ -601,8 +605,9 @@ export function argStringToArray(argString: string): string[] {
     append(c)
   }
 
-  if (arg.length > 0) {
-    args.push(arg.trim())
+  if (arg.length > 0 || quoted) {
+    // keep whitespace that was inside quotes
+    args.push(quoted ? arg : arg.trim())
   }
 
   return args

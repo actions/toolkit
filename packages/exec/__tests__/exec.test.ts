@@ -1,6 +1,6 @@
 import * as exec from '../src/exec.js'
 import * as im from '../src/interfaces.js'
-import {ToolRunner} from '../src/toolrunner.js'
+import {ToolRunner, argStringToArray} from '../src/toolrunner.js'
 
 import * as childProcess from 'child_process'
 import * as fs from 'fs'
@@ -1204,3 +1204,36 @@ const compileExe = (sourceFileName: string, targetFileName: string): string => {
 const compileArgsExe = (targetFileName: string): string => {
   return compileExe('print-args-exe.cs', targetFileName)
 }
+
+describe('argStringToArray', () => {
+  it('splits arguments on spaces and removes quotes', () => {
+    expect(argStringToArray('cmd a "b c" d')).toEqual(['cmd', 'a', 'b c', 'd'])
+  })
+
+  it('keeps an empty quoted argument', () => {
+    expect(argStringToArray('ssh-keygen -N "" -f key')).toEqual([
+      'ssh-keygen',
+      '-N',
+      '',
+      '-f',
+      'key'
+    ])
+    expect(argStringToArray('cmd ""')).toEqual(['cmd', ''])
+    expect(argStringToArray('cmd "" ""')).toEqual(['cmd', '', ''])
+  })
+
+  it('keeps whitespace inside quotes in the last argument', () => {
+    expect(argStringToArray('git commit -m "fix typo "')).toEqual([
+      'git',
+      'commit',
+      '-m',
+      'fix typo '
+    ])
+    expect(argStringToArray('cmd " a"')).toEqual(['cmd', ' a'])
+  })
+
+  it('trims an unquoted last argument', () => {
+    expect(argStringToArray('cmd arg\n')).toEqual(['cmd', 'arg'])
+    expect(argStringToArray('cmd arg   ')).toEqual(['cmd', 'arg'])
+  })
+})
