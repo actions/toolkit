@@ -2,7 +2,12 @@ import * as os from 'os'
 import * as path from 'path'
 import * as pathHelper from './internal-path-helper.js'
 import assert from 'assert'
-import {Minimatch, type MinimatchOptions} from 'minimatch'
+import {
+  GLOBSTAR,
+  Minimatch,
+  type MinimatchOptions,
+  type ParseReturnFiltered
+} from 'minimatch'
 import {MatchKind} from './internal-match-kind.js'
 import {Path} from './internal-path.js'
 
@@ -176,10 +181,10 @@ export class Pattern {
       return this.rootRegExp.test(itemPath)
     }
 
-    return this.minimatch.matchOne(
+    return partialMatchOne(
       itemPath.split(IS_WINDOWS ? /\\+/ : /\/+/),
       this.minimatch.set[0],
-      true
+      IS_WINDOWS
     )
   }
 
@@ -337,4 +342,44 @@ export class Pattern {
   private static regExpEscape(s: string): string {
     return s.replace(/[[\\^$.|?*+()]/g, '\\$&')
   }
+}
+
+/**
+ * Checks whether file path segments partially match a parsed pattern —
+ * i.e., the file segments match a leading prefix of the pattern segments.
+ * Replaces Minimatch#matchOne (removed in minimatch 11).
+ */
+function partialMatchOne(
+  file: string[],
+  pattern: ParseReturnFiltered[],
+  nocase: boolean,
+  fi = 0,
+  pi = 0
+): boolean {
+  for (; fi < file.length && pi < pattern.length; fi++, pi++) {
+    const p = pattern[pi]
+
+    if (p === GLOBSTAR) {
+      // Terminal globstar matches everything
+      if (pi + 1 >= pattern.length) return true
+      // Try consuming 0..N file segments
+      for (let i = fi; i <= file.length; i++) {
+        if (partialMatchOne(file, pattern, nocase, i, pi + 1)) return true
+      }
+      return false
+    }
+
+    const f = file[fi]
+    if (typeof p === 'string') {
+      const match = nocase
+        ? p.localeCompare(f, undefined, {sensitivity: 'accent'}) === 0
+        : p === f
+      if (!match) return false
+    } else {
+      if (!p.test(f)) return false
+    }
+  }
+
+  // All file segments consumed — remaining pattern is for deeper paths
+  return fi >= file.length
 }
