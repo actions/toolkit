@@ -22,26 +22,24 @@ const exec = require('@actions/exec');
 await exec.exec('node', ['index.js', 'foo=bar']);
 ```
 
+#### Capture stdout
+To capture stdout (or stderr), use the function `getExecOutput`.
+```js
+const exec = require('@actions/exec');
+
+const { stdout } = await exec.getExecOutput('node', ['index.js', 'foo=bar']);
+```
 #### Output/options
 
-Capture output or specify [other options](https://github.com/actions/toolkit/blob/d9347d4ab99fd507c0b9104b2cf79fb44fcc827d/packages/exec/src/interfaces.ts#L5):
+Specify [other options](https://github.com/actions/toolkit/blob/main/packages/exec/src/interfaces.ts#L5):
 
 ```js
 const exec = require('@actions/exec');
 
-let myOutput = '';
-let myError = '';
-
-const options = {};
-options.listeners = {
-  stdout: (data: Buffer) => {
-    myOutput += data.toString();
-  },
-  stderr: (data: Buffer) => {
-    myError += data.toString();
-  }
+const options = {
+  silent: true,
+  ignoreReturnCode: true,
 };
-options.cwd = './lib';
 
 await exec.exec('node', ['index.js', 'foo=bar'], options);
 ```
