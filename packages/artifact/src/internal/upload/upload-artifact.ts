@@ -32,6 +32,8 @@ export async function uploadArtifact(
   options?: UploadArtifactOptions | undefined
 ): Promise<UploadArtifactResponse> {
   let artifactFileName = `${name}.zip`
+  let suppressZeroByteWarning = false
+
   if (options?.skipArchive) {
     if (files.length === 0) {
       throw new FilesNotFoundError([])
@@ -47,6 +49,7 @@ export async function uploadArtifact(
       throw new FilesNotFoundError(files)
     }
 
+    suppressZeroByteWarning = fs.statSync(files[0]).size === 0
     artifactFileName = path.basename(files[0])
     name = artifactFileName
   }
@@ -114,7 +117,10 @@ export async function uploadArtifact(
   const uploadResult = await uploadToBlobStorage(
     createArtifactResp.signedUploadUrl,
     stream,
-    contentType
+    contentType,
+    {
+      suppressZeroByteWarning
+    }
   )
 
   // finalize the artifact
