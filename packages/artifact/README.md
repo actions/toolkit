@@ -89,6 +89,8 @@ const {id, size} = await artifact.uploadArtifact(
   'my-artifact',
   // files to include (supports absolute and relative paths)
   ['/absolute/path/file1.txt', './relative/file2.txt'],
+  // root directory
+  '.',
   {
     // optional: how long to retain the artifact
     // if unspecified, defaults to repository/org retention settings (the limit of this value)
@@ -174,7 +176,7 @@ await artifact.listArtifacts({
 If you have large files that need to be uploaded (or file types that don't compress well), you may benefit from changing the compression level of the Artifact archive. NOTE: This is a tradeoff between artifact upload time and stored data size.
 
 ```ts
-await artifact.uploadArtifact('my-massive-artifact', ['big_file.bin'], {
+await artifact.uploadArtifact('my-massive-artifact', ['big_file.bin'], '.', {
   // The level of compression for Zlib to be applied to the artifact archive.
   // - 0: No compression
   // - 1: Best speed
