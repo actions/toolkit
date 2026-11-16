@@ -1,6 +1,10 @@
 # Problem Matchers
 
-Problem Matchers are a way to scan the output of actions for a specified regex pattern and surface that information prominently in the UI. Both [GitHub Annotations](https://developer.github.com/v3/checks/runs/#annotations-object-1) and log file decorations are created when a match is detected.
+Problem Matchers are a way to scan the output of actions for a specified regular expression pattern and surface that information prominently in the UI.
+
+Log file decorations are created when a match is detected.
+
+[GitHub Annotations](https://docs.github.com/en/rest/checks/runs?apiVersion=2022-11-28#list-check-run-annotations) will also be created subject to the limitations below.
 
 ## Limitations
 
@@ -10,7 +14,31 @@ Currently, GitHub Actions limit the annotation count in a workflow run.
 - 50 annotations per job (sum of annotations from all the steps)
 - 50 annotations per run (separate from the job annotations, these annotations aren’t created by users)
 
-If your workflow may exceed these annotation counts, consider filtering of the log messages which the Problem Matcher is exposed to (e.g. by PR touched files, lines, or other).
+If your workflow may exceed these annotation counts, consider filtering of the log messages which the Problem Matcher is exposed to (e.g. by PR touched files / lines).
+
+Alternatively, you may consider using [Sarif reporting](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#validating-your-sarif-file) which have considerably higher limits.
+
+### Severities
+
+Only the following severities are recognized (regardless of case):
+
+* `notice`
+* `warning`
+* `error`
+
+If you want to assign a severity to text that doesn't match these values or where your severity you want to assign doesn't match the text (e.g. `Info`), you will need to rely on the _default_ `severity` field which is a sibling to the `owner` field (and **not** the `pattern`'s `severity` field).
+
+### Problem Matcher Owner Uniqueness
+
+If you need multiple patterns to cover related but distinct cases, each problem matcher will need to be given a unique owner name.
+
+If, for example, you have an `info` case and a `critical` case, you may choose owner names `foo-info` and `foo-critical` respectively.
+
+### Multiline matches stop at the first line that doesn't match any pattern
+
+Problem matchers with multiple patterns designed to catch messages spread across multiple lines will stop matching once they encounter a line that matches none of the patterns in the problem matcher.
+
+If you need to surface messages that have this property, you'll want to filter/rewrite your output to produce a version of the output that satisfies this constraint.
 
 ## Single Line Matchers
 
@@ -20,13 +48,14 @@ Let's consider the ESLint compact output:
 badFile.js: line 50, col 11, Error - 'myVar' is defined but never used. (no-unused-vars)
 ```
 
-We can define a problem matcher in json that detects input in that format:
+We can define a problem matcher in **json** that detects input in that format. Note that we have to specify the default `severity` as `notice` because `Info` isn't a recognized `severity`:
 
 ```json
 {
     "problemMatcher": [
         {
             "owner": "eslint-compact",
+            "severity": "notice",
             "pattern": [
                 {
                     "regexp": "^(.+):\\sline\\s(\\d+),\\scol\\s(\\d+),\\s(Error|Warning|Info)\\s-\\s(.+)\\s\\((.+)\\)$",
@@ -47,23 +76,37 @@ The following fields are available for problem matchers:
 
 ```
 {
-    owner: an ID field that can be used to remove or replace the problem matcher. **required**
-    severity: indicates the default severity, either 'warning' or 'error' case-insensitive. Defaults to 'error'
+    owner: owner
+    severity: matcherSeverity
     pattern: [
         {
-            regexp: the regex pattern that provides the groups to match against **required**
-            file: a group number containing the file name
-            fromPath: a group number containing a filepath used to root the file (e.g. a project file)
-            line: a group number containing the line number
-            column: a group number containing the column information
-            severity: a group number containing either 'warning' or 'error' case-insensitive. Defaults to `error`
-            code: a group number containing the error code
-            message: a group number containing the error message. **required** at least one pattern must set the message
-            loop: whether to loop until a match is not found, only valid on the last pattern of a multipattern matcher
+            regexp: regexp
+            file: file
+            fromPath: fromPath
+            line: line
+            column: column
+            severity: patternSeverity
+            code: code
+            message: message
+            loop: loop
         }
     ]
 }
 ```
+
+Field | Description | Default | Required 
+-|-|-|-
+owner | an ID field that can be used to remove or replace the problem matcher (must be unique within the file, and last instance added wins) | | **required**
+matcherSeverity | indicates the default severity, one of `notice`, `warning` or `error` case-insensitive | `error`
+regexp | the regex pattern that provides the groups to match against ||**required**
+file| a **group number** containing the file name
+fromPath| a **group number** containing a filepath used to root the file (e.g. a project file)
+line| a **group number** containing the line number
+column| a **group number** containing the column information
+patternSeverity| a **group number** containing one of `notice`, `warning` or `error` case-insensitive | _matcherSeverity_
+code| a **group number** containing the error code
+message| a **group number** containing the error message || at least one pattern must set the message
+loop| whether to loop until a match is not found, only valid on the last pattern of a multipattern matcher
 
 ## Multiline Matching
 Consider the following output:
@@ -84,6 +127,7 @@ The eslint-stylish problem matcher defined below catches that output, and create
     "problemMatcher": [
         {
             "owner": "eslint-stylish",
+            "severity": "notice",
             "pattern": [
                 {
                     // Matches the 1st line in the output
