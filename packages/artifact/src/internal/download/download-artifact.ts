@@ -74,6 +74,10 @@ export async function streamExtractExternal(
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
   if (response.message.statusCode !== 200) {
+    // Release the socket before the caller retries: an unread keep-alive
+    // response is never freed and keeps the process alive until the request
+    // times out (#2575).
+    response.message.destroy()
     throw new Error(
       `Unexpected HTTP response from blob storage: ${response.message.statusCode} ${response.message.statusMessage}`
     )

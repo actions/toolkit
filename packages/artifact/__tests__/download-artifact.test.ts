@@ -660,6 +660,28 @@ describe('download-artifact', () => {
       }
     })
 
+    it('should destroy the response when blob storage returns a non-200 status', async () => {
+      const message = new http.IncomingMessage(new net.Socket())
+      message.statusCode = 503
+      message.statusMessage = 'Service Unavailable'
+      const destroy = jest.spyOn(message, 'destroy')
+
+      ;(HttpClient as jest.Mock).mockImplementation(() => {
+        return {
+          get: jest.fn(() => ({message}))
+        }
+      })
+
+      // An unread response keeps its keep-alive socket open and the process
+      // cannot exit, so it must be destroyed before the error is thrown.
+      await expect(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir)
+      ).rejects.toThrow(
+        'Unexpected HTTP response from blob storage: 503 Service Unavailable'
+      )
+      expect(destroy).toHaveBeenCalledTimes(1)
+    })
+
     it('should extract zip file when content-type is application/zip', async () => {
       const mockHttpClient = (HttpClient as jest.Mock).mockImplementation(
         () => {
