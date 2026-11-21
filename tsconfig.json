@@ -1,27 +1,72 @@
 {
-  "compilerOptions": {
-    "esModuleInterop": true,
-    "module": "commonjs",
-    "strict": true,
-    "declaration": true,
-    "target": "es6",
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "noImplicitAny": false,
-    "baseUrl": "./",
-    "paths": {
-      "@actions/core": [
-        "packages/core"
-      ],
-      "@actions/http-client": [
-        "packages/http-client"
-      ],
-    },
-    "useUnknownInCatchVariables": false
-  },
-  "exclude": [
-    "node_modules",
-    "**/*.test.ts",
-    "**/__mocks__/*"
-  ]
-}
+  "View Disclosures
+Name
+ _ga_.*
+Provider
+ Google LLC
+Type
+ Cookie
+Expiration
+ 2 years
+Purpose
+ Used to persist session state.
+Name
+ _ym_isad
+Provider
+ Yandex LLC
+Type
+ Cookie
+Expiration
+ Unknown
+Purpose
+ This cookie is used to determine whether a user has ad blockers. It is set by the Yandex Metrica analytics tool which provides statistical data on visitors' behavior on the website.
+Name
+ _ym_visorc
+Provider
+ Yandex LLC
+Type
+ Cookie
+Expiration
+ 30 minutes
+Purpose
+ This cookie is used by the Yandex Metrica analytics tool to track user behavior and measure site performance.
+Name
+ ^_ga$
+Provider
+ Google LLC
+Type
+ Cookie
+Expiration
+ 2 Years
+Purpose
+ Associated with Google Universal Analytics to distinguish unique users by assigning a randomly generated number as a client identifier.
+Name
+ ^_gat$
+Provider
+ Google LLC
+Type
+ Cookie
+Expiration
+ 1 minute
+Purpose
+ Associated with Google Universal Analytics to throttle the request rate, limiting the collection of data on high traffic sites.
+Name
+ ^_gd.*
+Provider
+ Google LLC
+Type
+ Cookie
+Expiration
+ Undefined
+Purpose
+ Associated with Google Analytics.
+Name
+ ^_gid$
+Provider
+ Google LLC
+Type
+ Cookie
+Expiration
+ 24 hours
+Purpose
+ Associated with Google Universal Analytics to distinguish unique users by assigning a randomly generated number as a client identifier.
