@@ -154,6 +154,67 @@ describe('cp', () => {
     await assertNotExists(targetFile)
   })
 
+  describe.each([false, true])('copying symlinks with force=%s', force => {
+    it.each(['file', 'symlink', 'dangling symlink'] as const)(
+      'respects force for an existing %s destination',
+      async destinationType => {
+        const root = path.join(
+          getTestTemp(),
+          `cp_symlink_${force}_${destinationType.replace(/ /g, '_')}`
+        )
+        const source = path.join(root, 'source')
+        const sourceTarget = path.join(root, 'source_target')
+        const destination = path.join(root, 'destination')
+        const destinationLink = path.join(destination, 'link')
+        const originalTarget = path.join(root, 'original_target')
+        await io.mkdirP(source)
+        await io.mkdirP(sourceTarget)
+        await fs.writeFile(path.join(sourceTarget, 'new.txt'), 'new content')
+        await createSymlinkDir(sourceTarget, path.join(source, 'link'))
+        await io.mkdirP(destination)
+
+        if (destinationType === 'file') {
+          await fs.writeFile(destinationLink, 'original content')
+        } else {
+          if (destinationType === 'symlink') {
+            await io.mkdirP(originalTarget)
+            await fs.writeFile(path.join(originalTarget, 'keep.txt'), 'keep')
+          }
+          await createSymlinkDir(originalTarget, destinationLink)
+        }
+
+        await io.cp(source, destination, {
+          recursive: true,
+          copySourceDirectory: false,
+          force
+        })
+
+        if (!force && destinationType === 'file') {
+          expect((await fs.lstat(destinationLink)).isFile()).toBe(true)
+          expect(await fs.readFile(destinationLink, 'utf8')).toBe(
+            'original content'
+          )
+        } else {
+          expect((await fs.lstat(destinationLink)).isSymbolicLink()).toBe(true)
+          expect(path.resolve(await fs.readlink(destinationLink))).toBe(
+            force ? sourceTarget : originalTarget
+          )
+          if (force) {
+            expect(
+              await fs.readFile(path.join(destinationLink, 'new.txt'), 'utf8')
+            ).toBe('new content')
+          }
+        }
+
+        if (destinationType === 'symlink') {
+          expect(
+            await fs.readFile(path.join(originalTarget, 'keep.txt'), 'utf8')
+          ).toBe('keep')
+        }
+      }
+    )
+  })
+
   it('Copies symlinks correctly', async () => {
     // create the following layout
     // sourceFolder

@@ -304,6 +304,9 @@ async function copyFile(
     // unlink/re-link it
     try {
       await ioUtil.lstat(destFile)
+      if (!force) {
+        return
+      }
       await ioUtil.unlink(destFile)
     } catch (e) {
       // Try to override file permission
