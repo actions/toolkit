@@ -2,6 +2,8 @@ import fs from 'fs'
 import * as http from 'http'
 import * as net from 'net'
 import * as path from 'path'
+import * as stream from 'stream'
+import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {HttpClient} from '@actions/http-client'
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
@@ -1097,5 +1099,317 @@ describe('download-artifact', () => {
         expect(fs.readFileSync(savedFilePath, 'utf8')).toBe(rawFileContent)
       }
     )
+  })
+
+  describe('minimum throughput', () => {
+    // Bytes written to the raw file by the latest trickle download
+    let rawFileBytes = 0
+
+    // Every second, sends `bytesAt(second)` bytes (seconds start at 1), and
+    // ends the response once `totalBytes` have been sent. The raw file is
+    // written to memory, so that no file I/O races the fake clock.
+    const mockGetArtifactTrickle = (
+      bytesAt: (second: number) => number,
+      totalBytes: number
+    ): jest.Mock =>
+      jest.fn(() => {
+        rawFileBytes = 0
+        jest.spyOn(fs, 'createWriteStream').mockImplementationOnce(
+          () =>
+            new stream.Writable({
+              write(chunk: Buffer, _encoding, callback) {
+                rawFileBytes += chunk.length
+                callback()
+              }
+            }) as unknown as fs.WriteStream
+        )
+        const message = new http.IncomingMessage(new net.Socket())
+        message.statusCode = 200
+        message.headers['content-type'] = 'text/plain'
+        message.headers['content-disposition'] =
+          'attachment; filename="slow.txt"'
+        let second = 0
+        let sent = 0
+        const interval = setInterval(() => {
+          second++
+          const size = Math.min(bytesAt(second), totalBytes - sent)
+          if (size > 0) {
+            message.push(Buffer.alloc(size, 'a'))
+            sent += size
+          }
+          if (sent >= totalBytes) {
+            clearInterval(interval)
+            message.push(null)
+          }
+        }, 1000)
+        message.on('close', () => clearInterval(interval))
+        return {
+          message
+        }
+      })
+
+    const mockHttpClientGet = (get: jest.Mock): void => {
+      ;(HttpClient as jest.Mock).mockImplementation(() => {
+        return {
+          get
+        }
+      })
+    }
+
+    // Records the outcome of a promise without awaiting it
+    const track = (
+      promise: Promise<unknown>
+    ): {settled: boolean; error?: Error} => {
+      const state: {settled: boolean; error?: Error} = {settled: false}
+      promise.then(
+        () => {
+          state.settled = true
+        },
+        (error: Error) => {
+          state.settled = true
+          state.error = error
+        }
+      )
+      return state
+    }
+
+    const waitForCall = async (mock: jest.Mock): Promise<void> => {
+      while (mock.mock.calls.length === 0) {
+        await new Promise(resolve => setImmediate(resolve))
+      }
+    }
+
+    const mockDownloadRedirect = (): void => {
+      const downloadArtifactMock = github.getOctokit(fixtures.token).rest
+        .actions.downloadArtifact as MockedDownloadArtifact
+      downloadArtifactMock.mockResolvedValueOnce({
+        headers: {
+          location: fixtures.blobStorageUrl
+        },
+        status: 302,
+        url: '',
+        data: Buffer.from('')
+      })
+    }
+
+    beforeEach(async () => {
+      await setup()
+      await fs.promises.mkdir(fixtures.workspaceDir, {recursive: true})
+      // Only fake timers, so that streams behave normally
+      jest.useFakeTimers({
+        doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask']
+      })
+    })
+    afterEach(async () => {
+      jest.useRealTimers()
+      await cleanup()
+    })
+
+    it('should retry when the download is too slow and then succeed', async () => {
+      // 100 bytes/s, never completes on its own
+      const mockGetArtifact = jest
+        .fn(mockGetArtifactSuccess)
+        .mockImplementationOnce(mockGetArtifactTrickle(() => 100, 1024 * 1024))
+      mockHttpClientGet(mockGetArtifact)
+      mockDownloadRedirect()
+
+      const download = downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token
+      )
+      await waitForCall(mockGetArtifact)
+
+      // no retry before a full window has elapsed
+      await jest.advanceTimersByTimeAsync(29 * 1000)
+      expect(mockGetArtifact).toHaveBeenCalledTimes(1)
+
+      // window elapses, then the retry waits 5 seconds
+      await jest.advanceTimersByTimeAsync(1000 + 5000)
+      const response = await download
+
+      expect(mockGetArtifact).toHaveBeenCalledTimes(2)
+      expect(core.info).toHaveBeenCalledWith(
+        expect.stringContaining('Blob storage download too slow')
+      )
+      await expectExtractedArchive(fixtures.workspaceDir)
+      expect(response.downloadPath).toBe(fixtures.workspaceDir)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should not check throughput on the last attempt', async () => {
+      // 100 bytes/s for 60 seconds on every attempt
+      const totalBytes = 60 * 100
+      const mockGetArtifact = mockGetArtifactTrickle(() => 100, totalBytes)
+      mockHttpClientGet(mockGetArtifact)
+      mockDownloadRedirect()
+
+      const download = downloadArtifactPublic(
+        fixtures.artifactID,
+        fixtures.repositoryOwner,
+        fixtures.repositoryName,
+        fixtures.token
+      )
+      await waitForCall(mockGetArtifact)
+
+      // four attempts are aborted after one window, each followed by a
+      // 5 second wait, then the last attempt runs to completion
+      await jest.advanceTimersByTimeAsync(4 * (30 + 5) * 1000 + 61 * 1000)
+      const response = await download
+
+      expect(mockGetArtifact).toHaveBeenCalledTimes(5)
+      const abortMessages = (core.info as jest.Mock).mock.calls.filter(
+        ([message]: string[]) =>
+          message.includes('Blob storage download too slow')
+      )
+      expect(abortMessages).toHaveLength(4)
+      expect(rawFileBytes).toBe(totalBytes)
+      expect(response.downloadPath).toBe(fixtures.workspaceDir)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should not abort before a full window has elapsed', async () => {
+      // 10 bytes/s, never completes on its own
+      mockHttpClientGet(mockGetArtifactTrickle(() => 10, 1024 * 1024))
+
+      const extract = track(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir)
+      )
+      await jest.advanceTimersByTimeAsync(29 * 1000)
+      expect(extract.settled).toBe(false)
+
+      await jest.advanceTimersByTimeAsync(1000)
+      expect(extract.error?.message).toContain('Blob storage download too slow')
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should abort about one window after the download slows down', async () => {
+      // 4 KiB/s for 45 seconds, then 10 bytes/s
+      mockHttpClientGet(
+        mockGetArtifactTrickle(
+          second => (second <= 45 ? 4096 : 10),
+          1024 * 1024
+        )
+      )
+
+      const extract = track(
+        streamExtractExternal(fixtures.blobStorageUrl, fixtures.workspaceDir, {
+          minBytesPerSecond: 1024
+        })
+      )
+      // the trailing 30 seconds drop below 30 KiB 23 seconds after the
+      // slowdown, well before the next fixed 30 second boundary at 90s
+      await jest.advanceTimersByTimeAsync(66 * 1000)
+      expect(extract.settled).toBe(false)
+
+      await jest.advanceTimersByTimeAsync(4 * 1000)
+      expect(extract.error?.message).toContain('Blob storage download too slow')
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should not abort on a dip shorter than the window', async () => {
+      // 4 KiB/s, except for 10 bytes/s during seconds 41 to 60
+      const totalBytes = 80 * 4096 + 20 * 10
+      const mockGetArtifact = mockGetArtifactTrickle(
+        second => (second > 40 && second <= 60 ? 10 : 4096),
+        totalBytes
+      )
+      mockHttpClientGet(mockGetArtifact)
+
+      const extract = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {minBytesPerSecond: 1024}
+      )
+      await jest.advanceTimersByTimeAsync(101 * 1000)
+      await extract
+
+      expect(mockGetArtifact).toHaveBeenCalledTimes(1)
+      expect(rawFileBytes).toBe(totalBytes)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should not abort a download that starts slowly', async () => {
+      // nothing for 10 seconds, then 2 KiB/s for 130 seconds
+      const totalBytes = 130 * 2048
+      const mockGetArtifact = mockGetArtifactTrickle(
+        second => (second <= 10 ? 0 : 2048),
+        totalBytes
+      )
+      mockHttpClientGet(mockGetArtifact)
+
+      const extract = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir,
+        {minBytesPerSecond: 1024}
+      )
+      await jest.advanceTimersByTimeAsync(141 * 1000)
+      await extract
+
+      expect(mockGetArtifact).toHaveBeenCalledTimes(1)
+      expect(rawFileBytes).toBe(totalBytes)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should complete a small artifact within the first window', async () => {
+      ;(HttpClient as jest.Mock).mockImplementation(() => {
+        return {
+          get: mockGetArtifactSuccess
+        }
+      })
+
+      await streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+
+      await expectExtractedArchive(fixtures.workspaceDir)
+      expect(jest.getTimerCount()).toBe(0)
+    })
+
+    it('should not abort when writing to disk is the bottleneck', async () => {
+      // the response is available immediately, but each 1 KiB write to
+      // disk takes one second
+      const totalBytes = 200 * 1024
+      ;(HttpClient as jest.Mock).mockImplementation(() => {
+        return {
+          get: jest.fn(() => {
+            const message = new http.IncomingMessage(new net.Socket())
+            message.statusCode = 200
+            message.headers['content-type'] = 'text/plain'
+            for (let i = 0; i < totalBytes / 1024; i++) {
+              message.push(Buffer.alloc(1024, 'a'))
+            }
+            message.push(null)
+            return {
+              message
+            }
+          })
+        }
+      })
+      let written = 0
+      jest.spyOn(fs, 'createWriteStream').mockReturnValue(
+        new stream.Writable({
+          highWaterMark: 1024,
+          write(chunk: Buffer, _encoding, callback) {
+            setTimeout(() => {
+              written += chunk.length
+              callback()
+            }, 1000)
+          }
+        }) as unknown as fs.WriteStream
+      )
+
+      const extract = streamExtractExternal(
+        fixtures.blobStorageUrl,
+        fixtures.workspaceDir
+      )
+      await jest.advanceTimersByTimeAsync(201 * 1000)
+      await extract
+
+      expect(written).toBe(totalBytes)
+      expect(jest.getTimerCount()).toBe(0)
+    })
   })
 })
