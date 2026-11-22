@@ -37,6 +37,10 @@ export async function cp(
 ): Promise<void> {
   const {force, recursive, copySourceDirectory} = readCopyOptions(options)
 
+  if (!(await ioUtil.exists(source))) {
+    throw new Error(`no such file or directory: ${source}`)
+  }
+
   const destStat = (await ioUtil.exists(dest)) ? await ioUtil.stat(dest) : null
   // Dest is an existing file, but not forcing
   if (destStat && destStat.isFile() && !force) {
@@ -49,9 +53,6 @@ export async function cp(
       ? path.join(dest, path.basename(source))
       : dest
 
-  if (!(await ioUtil.exists(source))) {
-    throw new Error(`no such file or directory: ${source}`)
-  }
   const sourceStat = await ioUtil.stat(source)
 
   if (sourceStat.isDirectory()) {

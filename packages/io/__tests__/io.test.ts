@@ -70,6 +70,40 @@ describe('cp', () => {
     )
   })
 
+  describe.each([false, true])('missing source with force=%s', force => {
+    it.each(['file', 'directory', 'missing'] as const)(
+      'rejects without changing a %s destination',
+      async destinationType => {
+        const root = path.join(
+          getTestTemp(),
+          `cp_missing_source_${force}_${destinationType}`
+        )
+        const source = path.join(root, 'missing_source')
+        const destination = path.join(root, 'destination')
+        await io.mkdirP(root)
+        if (destinationType === 'file') {
+          await fs.writeFile(destination, 'original content')
+        } else if (destinationType === 'directory') {
+          await io.mkdirP(destination)
+        }
+
+        await expect(io.cp(source, destination, {force})).rejects.toThrow(
+          `no such file or directory: ${source}`
+        )
+
+        if (destinationType === 'file') {
+          expect(await fs.readFile(destination, 'utf8')).toBe(
+            'original content'
+          )
+        } else if (destinationType === 'directory') {
+          expect(await fs.readdir(destination)).toEqual([])
+        } else {
+          await assertNotExists(destination)
+        }
+      }
+    )
+  })
+
   it('copies directory into existing destination with -r', async () => {
     const root: string = path.join(getTestTemp(), 'cp_with_-r_existing_dest')
     const sourceFolder: string = path.join(root, 'cp_source')
