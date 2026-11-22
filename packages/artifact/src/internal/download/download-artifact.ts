@@ -24,6 +24,9 @@ import {
 import {getBackendIdsFromToken} from '../shared/util.js'
 import {ArtifactNotFoundError} from '../shared/errors.js'
 
+// How often the minimum download throughput is checked
+const throughputCheckInterval = 1000
+
 const scrubQueryParameters = (url: string): string => {
   const parsed = new URL(url)
   parsed.search = ''
@@ -48,10 +51,17 @@ async function streamExtract(
   directory: string,
   skipDecompress?: boolean
 ): Promise<StreamExtractResponse> {
+  const maxAttempts = 5
   let retryCount = 0
-  while (retryCount < 5) {
+  while (retryCount < maxAttempts) {
+    // Disable the minimum throughput check on the last attempt, so that a
+    // connection that is slow on every attempt still completes the download
+    const isLastAttempt = retryCount === maxAttempts - 1
     try {
-      return await streamExtractExternal(url, directory, {skipDecompress})
+      return await streamExtractExternal(url, directory, {
+        skipDecompress,
+        minBytesPerSecond: isLastAttempt ? 0 : undefined
+      })
     } catch (error) {
       retryCount++
       core.debug(
@@ -68,9 +78,19 @@ async function streamExtract(
 export async function streamExtractExternal(
   url: string,
   directory: string,
-  opts: {timeout?: number; skipDecompress?: boolean} = {}
+  opts: {
+    timeout?: number
+    skipDecompress?: boolean
+    minBytesPerSecond?: number
+    throughputWindow?: number
+  } = {}
 ): Promise<StreamExtractResponse> {
-  const {timeout = 30 * 1000, skipDecompress = false} = opts
+  const {
+    timeout = 30 * 1000,
+    skipDecompress = false,
+    minBytesPerSecond = 1024 * 1024,
+    throughputWindow = 30 * 1000
+  } = opts
   const client = new httpClient.HttpClient(getUserAgentString())
   const response = await client.get(url)
   if (response.message.statusCode !== 200) {
@@ -121,10 +141,13 @@ export async function streamExtractExternal(
   let sha256Digest: string | undefined = undefined
 
   return new Promise((resolve, reject) => {
+    let throughputTimer: NodeJS.Timeout | undefined = undefined
+
     const timerFn = (): void => {
       const timeoutError = new Error(
         `Blob storage chunk did not respond in ${timeout}ms`
       )
+      clearInterval(throughputTimer)
       response.message.destroy(timeoutError)
       reject(timeoutError)
     }
@@ -133,21 +156,75 @@ export async function streamExtractExternal(
     const onError = (error: Error): void => {
       core.debug(`response.message: Artifact download failed: ${error.message}`)
       clearTimeout(timer)
+      clearInterval(throughputTimer)
       reject(error)
     }
 
+    let intervalBytes = 0
     const hashStream = crypto.createHash('sha256').setEncoding('hex')
     const passThrough = new stream.PassThrough()
-      .on('data', () => {
+      .on('data', (chunk: Buffer) => {
         timer.refresh()
+        intervalBytes += chunk.length
       })
       .on('error', onError)
+
+    // Abort if too little data arrived over the trailing window, so that the
+    // download is retried on a new connection. Bytes are counted per check
+    // interval. The check is skipped while the window includes an interval in
+    // which the download was paused because writing to disk could not keep
+    // up, since a new connection would not help.
+    let consumerBusy = false
+    const isPaused = (): boolean =>
+      response.message.readableFlowing === false ||
+      passThrough.readableFlowing === false
+    const onPause = (): void => {
+      consumerBusy = true
+    }
+    response.message.on('pause', onPause)
+    passThrough.on('pause', onPause)
+    if (minBytesPerSecond > 0) {
+      const minWindowBytes = (minBytesPerSecond * throughputWindow) / 1000
+      const windowIntervals = Math.ceil(
+        throughputWindow / throughputCheckInterval
+      )
+      const recentBytes: number[] = []
+      const recentBusy: boolean[] = []
+      throughputTimer = setInterval(() => {
+        recentBytes.push(intervalBytes)
+        recentBusy.push(consumerBusy)
+        if (recentBytes.length > windowIntervals) {
+          recentBytes.shift()
+          recentBusy.shift()
+        }
+        intervalBytes = 0
+        consumerBusy = isPaused()
+
+        if (recentBytes.length < windowIntervals || recentBusy.includes(true)) {
+          return
+        }
+        const windowBytes = recentBytes.reduce((sum, bytes) => sum + bytes, 0)
+        if (windowBytes < minWindowBytes) {
+          const throughputError = new Error(
+            `Blob storage download too slow: received ${windowBytes} bytes in the last ${throughputWindow}ms, expected at least ${minBytesPerSecond} bytes/s`
+          )
+          core.info(
+            `${throughputError.message}. Aborting this download attempt.`
+          )
+          clearTimeout(timer)
+          clearInterval(throughputTimer)
+          response.message.destroy(throughputError)
+          reject(throughputError)
+        }
+      }, throughputCheckInterval)
+    }
 
     response.message.pipe(passThrough)
     passThrough.pipe(hashStream)
 
     const onClose = (): void => {
       clearTimeout(timer)
+      clearInterval(throughputTimer)
       if (hashStream) {
         hashStream.end()
         sha256Digest = hashStream.read() as string
