@@ -19,13 +19,13 @@ export interface WebhookPayload {
     [key: string]: any
     number: number
     html_url?: string
-    body?: string
+    body?: string | null
   }
   pull_request?: {
     [key: string]: any
     number: number
     html_url?: string
-    body?: string
+    body?: string | null
   }
   sender?: {
     [key: string]: any
