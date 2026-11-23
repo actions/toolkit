@@ -188,15 +188,23 @@ function normalizeSeparators(p: string): string {
 //     R   W  X  R  W X R W X
 //   256 128 64 32 16 8 4 2 1
 function isUnixExecutable(stats: fs.Stats): boolean {
-  return (
-    (stats.mode & 1) > 0 ||
-    ((stats.mode & 8) > 0 &&
-      process.getgid !== undefined &&
-      stats.gid === process.getgid()) ||
-    ((stats.mode & 64) > 0 &&
-      process.getuid !== undefined &&
-      stats.uid === process.getuid())
-  )
+  const uid = process.geteuid?.() ?? process.getuid?.()
+  if (uid === 0) {
+    return (stats.mode & 0o111) > 0
+  }
+  if (uid !== undefined && stats.uid === uid) {
+    return (stats.mode & 0o100) > 0
+  }
+
+  const gid = process.getegid?.() ?? process.getgid?.()
+  if (
+    (gid !== undefined && stats.gid === gid) ||
+    (process.getgroups !== undefined && process.getgroups().includes(stats.gid))
+  ) {
+    return (stats.mode & 0o010) > 0
+  }
+
+  return (stats.mode & 0o001) > 0
 }
 
 // Get the path of cmd.exe in windows
