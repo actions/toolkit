@@ -107,7 +107,7 @@ class Summary {
       .map(([key, value]) => ` ${key}="${value}"`)
       .join('')
 
-    if (!content) {
+    if (content === null) {
       return `<${tag}${htmlAttrs}>`
     }
 

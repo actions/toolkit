@@ -178,6 +178,72 @@ describe('@actions/core/src/summary', () => {
     await assertSummary(expected)
   })
 
+  it.each([
+    {
+      name: 'unordered list',
+      add: () => summary.addList([]),
+      html: '<ul></ul>'
+    },
+    {
+      name: 'ordered list',
+      add: () => summary.addList([], true),
+      html: '<ol></ol>'
+    },
+    {
+      name: 'list item',
+      add: () => summary.addList(['']),
+      html: '<ul><li></li></ul>'
+    },
+    {
+      name: 'table',
+      add: () => summary.addTable([]),
+      html: '<table></table>'
+    },
+    {
+      name: 'table row',
+      add: () => summary.addTable([[]]),
+      html: '<table><tr></tr></table>'
+    },
+    {
+      name: 'table cells',
+      add: () => summary.addTable([[{data: '', header: true}, '']]),
+      html: '<table><tr><th></th><td></td></tr></table>'
+    },
+    {
+      name: 'code block',
+      add: () => summary.addCodeBlock('', 'typescript'),
+      html: '<pre lang="typescript"><code></code></pre>'
+    },
+    {
+      name: 'heading',
+      add: () => summary.addHeading('', 2),
+      html: '<h2></h2>'
+    },
+    {
+      name: 'quote',
+      add: () => summary.addQuote('', 'https://example.com/'),
+      html: '<blockquote cite="https://example.com/"></blockquote>'
+    },
+    {
+      name: 'link',
+      add: () => summary.addLink('', 'https://example.com/'),
+      html: '<a href="https://example.com/"></a>'
+    },
+    {
+      name: 'details label',
+      add: () => summary.addDetails('', 'details body'),
+      html: '<details><summary></summary>details body</details>'
+    }
+  ])('closes $name markup when content is empty', async ({add, html}) => {
+    expect(add()).toBe(summary)
+    summary.addRaw('following content')
+    const expected = `${html}${os.EOL}following content`
+    expect(summary.stringify()).toBe(expected)
+    await summary.write()
+    await assertSummary(expected)
+    expect(summary.isEmptyBuffer()).toBe(true)
+  })
+
   it('adds a table', async () => {
     await summary.addTable(fixtures.table).write()
     const expected = `<table><tr><th>foo</th><th>bar</th><th>baz</th><td rowspan="3">tall</td></tr><tr><td>one</td><td>two</td><td>three</td></tr><tr><td colspan="3">wide</td></tr></table>${os.EOL}`
