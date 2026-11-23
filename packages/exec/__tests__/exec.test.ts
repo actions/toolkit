@@ -3,6 +3,7 @@ import * as im from '../src/interfaces.js'
 import {ToolRunner} from '../src/toolrunner.js'
 
 import * as childProcess from 'child_process'
+import {StringDecoder} from 'string_decoder'
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
@@ -44,14 +45,20 @@ describe('ToolRunner line buffering', () => {
   ])('Handles $name', ({chunks, lines, remainder}) => {
     const runner = new ToolRunner(process.execPath)
     const onLine = jest.fn()
+    const decoder = new StringDecoder('utf8')
     let buffer = ''
 
     for (const chunk of chunks) {
-      buffer = runner['_processLineBuffer'](Buffer.from(chunk), buffer, onLine)
+      buffer = runner['_processLineBuffer'](
+        Buffer.from(chunk),
+        buffer,
+        onLine,
+        decoder
+      )
     }
 
     expect(onLine.mock.calls).toEqual(lines.map(line => [line]))
-    expect(buffer).toBe(remainder)
+    expect(buffer + decoder.end()).toBe(remainder)
   })
 })
 
@@ -349,6 +356,58 @@ describe('@actions/exec', () => {
     )
     expect(exitCode).toBe(0)
     expect(Buffer.byteLength(largeLine)).toEqual(2 ** 16 + 1)
+  })
+
+  it('Does not corrupt a multi-byte character split across stdout chunks', async () => {
+    const splitLinePath: string = path.join(
+      __dirname,
+      'scripts',
+      'splitlineoutput.cjs'
+    )
+    const nodePath: string = await io.which('node', true)
+
+    const _testExecOptions = getExecOptions()
+    const lines: string[] = []
+    _testExecOptions.listeners = {
+      stdline: (line: string) => {
+        lines.push(line)
+      }
+    }
+
+    const exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [splitLinePath],
+      _testExecOptions
+    )
+
+    expect(exitCode).toBe(0)
+    expect(lines).toEqual(['\u{1F642}'])
+  })
+
+  it('Does not corrupt a multi-byte character split across stderr chunks', async () => {
+    const splitLinePath: string = path.join(
+      __dirname,
+      'scripts',
+      'splitlineoutput.cjs'
+    )
+    const nodePath: string = await io.which('node', true)
+
+    const _testExecOptions = getExecOptions()
+    const lines: string[] = []
+    _testExecOptions.listeners = {
+      errline: (line: string) => {
+        lines.push(line)
+      }
+    }
+
+    const exitCode = await exec.exec(
+      `"${nodePath}"`,
+      [splitLinePath, '--stderr'],
+      _testExecOptions
+    )
+
+    expect(exitCode).toBe(0)
+    expect(lines).toEqual(['\u{1F642}'])
   })
 
   it('Handles stdin shell', async () => {

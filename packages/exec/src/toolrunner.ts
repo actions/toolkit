@@ -1,3 +1,4 @@
+import {StringDecoder} from 'string_decoder'
 import * as os from 'os'
 import * as events from 'events'
 import * as child from 'child_process'
@@ -83,10 +84,13 @@ export class ToolRunner extends events.EventEmitter {
   private _processLineBuffer(
     data: Buffer,
     strBuffer: string,
-    onLine: (line: string) => void
+    onLine: (line: string) => void,
+    decoder: StringDecoder
   ): string {
     try {
-      let s = strBuffer + data.toString()
+      // Decode through a streaming decoder so a multi-byte character split
+      // across two chunks is not turned into replacement characters.
+      let s = strBuffer + decoder.write(data)
       let n = s.indexOf('\n')
 
       while (n > -1) {
@@ -441,6 +445,7 @@ export class ToolRunner extends events.EventEmitter {
       )
 
       let stdbuffer = ''
+      const stdoutDecoder = new StringDecoder('utf8')
       if (cp.stdout) {
         cp.stdout.on('data', (data: Buffer) => {
           if (this.options.listeners && this.options.listeners.stdout) {
@@ -458,12 +463,14 @@ export class ToolRunner extends events.EventEmitter {
               if (this.options.listeners && this.options.listeners.stdline) {
                 this.options.listeners.stdline(line)
               }
-            }
+            },
+            stdoutDecoder
           )
         })
       }
 
       let errbuffer = ''
+      const stderrDecoder = new StringDecoder('utf8')
       if (cp.stderr) {
         cp.stderr.on('data', (data: Buffer) => {
           state.processStderr = true
@@ -489,7 +496,8 @@ export class ToolRunner extends events.EventEmitter {
               if (this.options.listeners && this.options.listeners.errline) {
                 this.options.listeners.errline(line)
               }
-            }
+            },
+            stderrDecoder
           )
         })
       }
@@ -517,9 +525,15 @@ export class ToolRunner extends events.EventEmitter {
       })
 
       state.on('done', (error: Error, exitCode: number) => {
+        // Flush any bytes the decoders are still holding so a truncated
+        // trailing sequence is not dropped silently.
+        stdbuffer += stdoutDecoder.end()
+
         if (stdbuffer.length > 0) {
           this.emit('stdline', stdbuffer)
         }
+
+        errbuffer += stderrDecoder.end()
 
         if (errbuffer.length > 0) {
           this.emit('errline', errbuffer)
