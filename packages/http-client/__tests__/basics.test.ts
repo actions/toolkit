@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as httpm from '..'
+import * as http from 'http'
+import {AddressInfo} from 'net'
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -440,5 +442,30 @@ describe('basics', () => {
     expect(obj.headers['user-agent']).toBe(
       `actions/http-client actions_orchestration_id/${orchId}`
     )
+  })
+
+  it('makes requests to an IPv6 literal host', async () => {
+    const server = http.createServer((req, res) => {
+      res.writeHead(200, {'content-type': 'application/json'})
+      res.end(JSON.stringify({host: req.headers.host, url: req.url}))
+    })
+    await new Promise<void>(resolve => {
+      server.listen(0, '::1', resolve)
+    })
+
+    try {
+      const {port} = server.address() as AddressInfo
+      const res: httpm.HttpClientResponse = await _http.get(
+        `http://[::1]:${port}/hello?foo=bar`
+      )
+      expect(res.message.statusCode).toBe(200)
+      const obj = JSON.parse(await res.readBody())
+      expect(obj.url).toBe('/hello?foo=bar')
+      expect(obj.host).toBe(`[::1]:${port}`)
+    } finally {
+      await new Promise<void>(resolve => {
+        server.close(() => resolve())
+      })
+    }
   })
 })

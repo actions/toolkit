@@ -258,7 +258,9 @@ describe('proxy', () => {
       response.writeHead(200)
       request.pipe(response)
     })
-    server.listen(8091)
+    await new Promise<void>(resolve => {
+      server.listen(8091, resolve)
+    })
     try {
       process.env['http_proxy'] = _proxyUrl
       const httpClient = new httpm.HttpClient()
@@ -266,14 +268,15 @@ describe('proxy', () => {
       expect(res.message.statusCode).toBe(200)
       res = await httpClient.get('http://127.0.0.1:8091')
       expect(res.message.statusCode).toBe(200)
-
-      // no support for ipv6 for now
-      expect(httpClient.get('http://[::1]:8091')).rejects.toThrow()
+      res = await httpClient.get('http://[::1]:8091')
+      expect(res.message.statusCode).toBe(200)
 
       // proxy at _proxyUrl was ignored
       expect(_proxyConnects).toEqual([])
     } finally {
-      server.close()
+      await new Promise<void>(resolve => {
+        server.close(() => resolve())
+      })
     }
   })
 
@@ -318,6 +321,24 @@ describe('proxy', () => {
     expect(agent.proxyOptions.host).toBe('127.0.0.1')
     expect(agent.proxyOptions.port).toBe('8080')
     expect(agent.proxyOptions.proxyAuth).toBe('user@github.com:p@ssword')
+  })
+
+  it('strips brackets from IPv6 literal proxy host in tunnel agent', async () => {
+    process.env['https_proxy'] = 'http://[2001:db8::1]:8080'
+    const httpClient = new httpm.HttpClient()
+    const agent: any = httpClient.getAgent('https://some-url')
+    expect(agent.proxyOptions.host).toBe('2001:db8::1')
+    expect(agent.proxyOptions.port).toBe('8080')
+    expect(agent.proxyOptions.proxyAuth).toBe(undefined)
+  })
+
+  it('strips brackets from authenticated IPv6 literal proxy host in tunnel agent', async () => {
+    process.env['https_proxy'] = 'http://user:password@[2001:db8::1]:8080'
+    const httpClient = new httpm.HttpClient()
+    const agent: any = httpClient.getAgent('https://some-url')
+    expect(agent.proxyOptions.host).toBe('2001:db8::1')
+    expect(agent.proxyOptions.port).toBe('8080')
+    expect(agent.proxyOptions.proxyAuth).toBe('user:password')
   })
 })
 
