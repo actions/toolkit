@@ -6,7 +6,7 @@ import * as ifm from './interfaces.js'
 import * as net from 'net'
 import * as pm from './proxy.js'
 import * as tunnel from 'tunnel'
-import {ProxyAgent} from 'undici'
+import type {ProxyAgent} from 'undici'
 
 export enum HttpCodes {
   OK = 200,
@@ -566,12 +566,12 @@ export class HttpClient {
     return this._getAgent(parsedUrl)
   }
 
-  getAgentDispatcher(serverUrl: string): ProxyAgent | undefined {
+  async getAgentDispatcher(serverUrl: string): Promise<ProxyAgent | undefined> {
     const parsedUrl = new URL(serverUrl)
     const proxyUrl = pm.getProxyUrl(parsedUrl)
     const useProxy = proxyUrl && proxyUrl.hostname
     if (!useProxy) {
-      return
+      return undefined
     }
 
     return this._getProxyAgentDispatcher(parsedUrl, proxyUrl)
@@ -780,7 +780,10 @@ export class HttpClient {
     return agent
   }
 
-  private _getProxyAgentDispatcher(parsedUrl: URL, proxyUrl: URL): ProxyAgent {
+  private async _getProxyAgentDispatcher(
+    parsedUrl: URL,
+    proxyUrl: URL
+  ): Promise<ProxyAgent> {
     let proxyAgent
 
     if (this._keepAlive) {
@@ -793,6 +796,7 @@ export class HttpClient {
     }
 
     const usingSsl = parsedUrl.protocol === 'https:'
+    const {ProxyAgent} = await import('undici')
     proxyAgent = new ProxyAgent({
       uri: proxyUrl.href,
       pipelining: !this._keepAlive ? 0 : 1,
