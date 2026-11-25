@@ -590,7 +590,9 @@ export class HttpClient {
     const defaultPort: number = usingSsl ? 443 : 80
 
     info.options = <http.RequestOptions>{}
-    info.options.host = info.parsedUrl.hostname
+    // WHATWG URL.hostname keeps brackets around IPv6 literals (e.g. "[::1]"),
+    // whereas Node's http.request expects an unbracketed host string.
+    info.options.host = normalizeHostname(info.parsedUrl.hostname)
     info.options.port = info.parsedUrl.port
       ? parseInt(info.parsedUrl.port)
       : defaultPort
@@ -744,7 +746,7 @@ export class HttpClient {
           ...((proxyUrl.username || proxyUrl.password) && {
             proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
           }),
-          host: proxyUrl.hostname,
+          host: normalizeHostname(proxyUrl.hostname),
           port: proxyUrl.port
         }
       }
@@ -912,3 +914,11 @@ export class HttpClient {
 
 const lowercaseKeys = (obj: {[index: string]: any}): any =>
   Object.keys(obj).reduce((c: any, k) => ((c[k.toLowerCase()] = obj[k]), c), {})
+
+function normalizeHostname(hostname: string): string {
+  if (hostname.startsWith('[') && hostname.endsWith(']')) {
+    return hostname.slice(1, -1)
+  }
+
+  return hostname
+}
