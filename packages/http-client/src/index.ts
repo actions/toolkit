@@ -136,7 +136,8 @@ export class HttpClient {
   private _maxRedirects = 50
   private _allowRetries = false
   private _maxRetries = 1
-  private _agent: any
+  private _httpAgent?: http.Agent
+  private _httpsAgent?: https.Agent
   private _proxyAgent: any
   private _proxyAgentDispatcher: any
   private _keepAlive = false
@@ -456,9 +457,8 @@ export class HttpClient {
    * Needs to be called if keepAlive is set to true in request options.
    */
   dispose(): void {
-    if (this._agent) {
-      this._agent.destroy()
-    }
+    this._httpAgent?.destroy()
+    this._httpsAgent?.destroy()
 
     this._disposed = true
   }
@@ -713,6 +713,7 @@ export class HttpClient {
 
   private _getAgent(parsedUrl: URL): http.Agent {
     let agent
+    const usingSsl = parsedUrl.protocol === 'https:'
     const proxyUrl = pm.getProxyUrl(parsedUrl)
     const useProxy = proxyUrl && proxyUrl.hostname
 
@@ -721,7 +722,7 @@ export class HttpClient {
     }
 
     if (!useProxy) {
-      agent = this._agent
+      agent = usingSsl ? this._httpsAgent : this._httpAgent
     }
 
     // if agent is already assigned use that agent.
@@ -729,7 +730,6 @@ export class HttpClient {
       return agent
     }
 
-    const usingSsl = parsedUrl.protocol === 'https:'
     let maxSockets = 100
     if (this.requestOptions) {
       maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
@@ -764,8 +764,11 @@ export class HttpClient {
     // if tunneling agent isn't assigned create a new agent
     if (!agent) {
       const options = {keepAlive: this._keepAlive, maxSockets}
-      agent = usingSsl ? new https.Agent(options) : new http.Agent(options)
-      this._agent = agent
+      if (usingSsl) {
+        agent = this._httpsAgent = new https.Agent(options)
+      } else {
+        agent = this._httpAgent = new http.Agent(options)
+      }
     }
 
     if (usingSsl && this._ignoreSslError) {
