@@ -302,7 +302,7 @@ describe('proxy', () => {
   it('ProxyAgent is returned when proxy setting are provided', async () => {
     process.env['https_proxy'] = 'http://127.0.0.1:8080'
     const httpClient = new httpm.HttpClient()
-    const agent = httpClient.getAgentDispatcher('https://some-url')
+    const agent = await httpClient.getAgentDispatcher('https://some-url')
     // eslint-disable-next-line no-console
     console.log(agent)
     expect(agent instanceof ProxyAgent).toBe(true)
